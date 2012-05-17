@@ -59,6 +59,8 @@ namespace caret {
         
         void chooseSpecFileViaOpenFileDialog();
         
+        void twitterActionTriggered();
+        
     protected:
         void userButtonPressed(QPushButton* userPushButton);
         

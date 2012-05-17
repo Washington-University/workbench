@@ -32,11 +32,14 @@
  */
 /*LICENSE_END*/
 
+#include <QAction>
 #include <QDesktopServices>
+#include <QIcon>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QToolButton>
 #include <QTreeWidget>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -108,6 +111,19 @@ SplashScreen::SplashScreen(QWidget* parent)
     hcpWebsiteLabel->setAlignment(Qt::AlignCenter);
     QObject::connect(hcpWebsiteLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(websiteLinkActivated(const QString&)));
+
+    QToolButton* twitterToolButton = NULL;
+    QIcon twitterIcon;
+    if (WuQtUtilities::loadIcon(":/twitter_icon.png", twitterIcon)) {
+        QAction* twitterAction = WuQtUtilities::createAction("Twitter",
+                                                             "Follow HCP on Twitter",
+                                                             this,
+                                                             this,
+                                                             SLOT(twitterActionTriggered()));
+        twitterAction->setIcon(twitterIcon);
+        twitterToolButton = new QToolButton();
+        twitterToolButton->setDefaultAction(twitterAction);
+    }
     
     QStringList headerText;
     headerText.append("Spec File");
@@ -129,8 +145,12 @@ SplashScreen::SplashScreen(QWidget* parent)
     }
     leftColumnLayout->addWidget(workbenchLabel);
     leftColumnLayout->addWidget(versionLabel);
-    leftColumnLayout->addSpacing(15);
+    leftColumnLayout->addSpacing(10);
     leftColumnLayout->addWidget(hcpWebsiteLabel);
+    if (twitterToolButton != NULL) {
+        leftColumnLayout->addSpacing(3);
+        leftColumnLayout->addWidget(twitterToolButton, 0, Qt::AlignHCenter);
+    }
     leftColumnLayout->addStretch();
     
     QWidget* widget = new QWidget();
@@ -188,6 +208,15 @@ SplashScreen::websiteLinkActivated(const QString& link)
     if (link.isEmpty() == false) {
         QDesktopServices::openUrl(QUrl(link));
     }
+}
+
+/**
+ * Display twitter page in web browser.
+ */
+void 
+SplashScreen::twitterActionTriggered()
+{
+    websiteLinkActivated("http://twitter.com/#!/HumanConnectome");
 }
 
 /**
