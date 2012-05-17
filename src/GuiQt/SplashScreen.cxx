@@ -34,6 +34,7 @@
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QDir>
 #include <QIcon>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -49,11 +50,13 @@
 #undef __SPLASH_SCREEN_DECLARE__
 
 #include "ApplicationInformation.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretPreferences.h"
 #include "DataFileTypeEnum.h"
 #include "FileInformation.h"
+#include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 
@@ -290,43 +293,17 @@ SplashScreen::loadSpecFileTreeWidget()
 {
     m_specFileTreeWidget->clear();
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    std::vector<AString> recentSpecFiles;
-    prefs->getPreviousSpecFiles(recentSpecFiles);
+    QTreeWidgetItem* selectedItem = addDirectorySpecFiles();
     
-    QTreeWidgetItem* firstItem = NULL;
+    QTreeWidgetItem* specItem = addRecentSpecFiles();
+    if (selectedItem == NULL) {
+        selectedItem = specItem;
+    }
     
-    const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
-    for (int32_t i = 0; i < numRecentSpecFiles; i++) {
-        FileInformation fileInfo(recentSpecFiles[i]);
-        if (fileInfo.exists()) {
-            const QString path = fileInfo.getPathName().trimmed();
-            const QString name = fileInfo.getFileName().trimmed();
-            const QString fullPath = fileInfo.getFilePath();
-
-            QStringList treeText;
-            treeText.append(name);
-            treeText.append(path);
-            
-            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
-            lwi->setData(0,
-                         Qt::UserRole, 
-                         fullPath);            
-            lwi->setData(1,
-                         Qt::UserRole, 
-                         fullPath);            
-            m_specFileTreeWidget->addTopLevelItem(lwi);
-            
-            if (firstItem == NULL) {
-                firstItem = lwi;
-            }
-        }
-    } 
-
     int nameColWidth = 0;
     int pathColWidth = 0;
-    if (firstItem != NULL) {
-        m_specFileTreeWidget->setCurrentItem(firstItem);
+    if (selectedItem != NULL) {
+        m_specFileTreeWidget->setCurrentItem(selectedItem);
         
         nameColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(0) + 25;
         pathColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
@@ -344,4 +321,110 @@ SplashScreen::loadSpecFileTreeWidget()
     
     return treeWidgetWidth;
 }
+
+/**
+ * Add recent spec files.
+ */
+QTreeWidgetItem* 
+SplashScreen::addRecentSpecFiles()
+{    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<AString> recentSpecFiles;
+    prefs->getPreviousSpecFiles(recentSpecFiles);
+    
+    QTreeWidgetItem* firstItem = NULL;
+    
+    const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
+    for (int32_t i = 0; i < numRecentSpecFiles; i++) {
+        FileInformation fileInfo(recentSpecFiles[i]);
+        if (fileInfo.exists()) {
+            if (firstItem == NULL) {
+                QStringList itemText;
+                itemText.append("Recent Spec Files");
+                itemText.append("-------------------------------");
+                QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+                titleItem->setDisabled(true);
+                m_specFileTreeWidget->addTopLevelItem(titleItem);
+            }
+            
+            const QString path = fileInfo.getPathName().trimmed();
+            const QString name = fileInfo.getFileName().trimmed();
+            const QString fullPath = fileInfo.getFilePath();
+            
+            QStringList treeText;
+            treeText.append("    " + name);
+            treeText.append(path);
+            
+            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
+            lwi->setData(0,
+                         Qt::UserRole, 
+                         fullPath);            
+            lwi->setData(1,
+                         Qt::UserRole, 
+                         fullPath);   
+            
+            m_specFileTreeWidget->addTopLevelItem(lwi);
+            
+            if (firstItem == NULL) {
+                firstItem = lwi;
+            }
+        }
+    } 
+    
+    return firstItem;
+}
+
+/**
+ * Add spec files in current directory
+ */
+QTreeWidgetItem* 
+SplashScreen::addDirectorySpecFiles()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const QString dirName = brain->getCurrentDirectory();
+    
+    QTreeWidgetItem* firstItem = NULL;
+    
+    QStringList nameFilters;
+    nameFilters.append("*." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
+    QDir dir(dirName);
+    QStringList specFileList = dir.entryList(nameFilters,
+                                             QDir::Files,
+                                             QDir::Name);
+    const int32_t numFiles = specFileList.count();
+    for (int32_t i = 0; i < numFiles; i++) {
+        if (firstItem == NULL) {
+            QStringList itemText;
+            itemText.append("Current Directory");
+            itemText.append("-------------------------------");
+            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+            titleItem->setDisabled(true);
+            m_specFileTreeWidget->addTopLevelItem(titleItem);
+        }
+        
+        FileInformation fileInfo(specFileList.at(i));
+        const QString name = fileInfo.getFileName().trimmed();
+        const QString fullPath = fileInfo.getFilePath();
+        
+        QStringList treeText;
+        treeText.append("    " + name);
+        treeText.append(" . "); // Use . for current directory
+        
+        QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
+        lwi->setData(0,
+                     Qt::UserRole, 
+                     fullPath);            
+        lwi->setData(1,
+                     Qt::UserRole, 
+                     fullPath);            
+        m_specFileTreeWidget->addTopLevelItem(lwi);
+
+        if (firstItem == NULL) {
+            firstItem = lwi;
+        }
+    }
+    
+    return firstItem;
+}
+
 

@@ -39,6 +39,7 @@
 
 class QPushButton;
 class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace caret {
 
@@ -68,6 +69,10 @@ namespace caret {
         SplashScreen(const SplashScreen&);
 
         SplashScreen& operator=(const SplashScreen&);
+        
+        QTreeWidgetItem* addRecentSpecFiles();
+        
+        QTreeWidgetItem* addDirectorySpecFiles();
         
         int32_t loadSpecFileTreeWidget();
         
