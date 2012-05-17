@@ -605,14 +605,15 @@ OverlaySet::initializeOverlays()
      * Limit to two connectivity files if there are overlay files
      * and put them in the front of the overlay map files
      */
-    int32_t maxConnFiles = numConnFiles;
-    if (numOverlayMapFiles > 0) {
-        maxConnFiles = std::min(maxConnFiles, 2);
-    }
-    for (int32_t i = (maxConnFiles - 1); i >= 0; i--) {
-        overlayMapFiles.push_front(connFiles[i]);
-        overlayMapFileIndices.push_front(0);
-    }
+// DISABLE adding connectivity files as of 17 May 2012
+//    int32_t maxConnFiles = numConnFiles;
+//    if (numOverlayMapFiles > 0) {
+//        maxConnFiles = std::min(maxConnFiles, 2);
+//    }
+//    for (int32_t i = (maxConnFiles - 1); i >= 0; i--) {
+//        overlayMapFiles.push_front(connFiles[i]);
+//        overlayMapFileIndices.push_front(0);
+//    }
     /* update count */
     numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size()); 
     
