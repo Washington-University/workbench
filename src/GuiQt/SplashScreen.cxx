@@ -396,7 +396,7 @@ SplashScreen::addDirectorySpecFiles()
         if (firstItem == NULL) {
             QStringList itemText;
             itemText.append("Current Directory");
-            itemText.append("-------------------------------");
+            itemText.append(dirName);
             QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
             titleItem->setDisabled(true);
             m_specFileTreeWidget->addTopLevelItem(titleItem);
