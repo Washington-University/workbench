@@ -1,5 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+<file>toolbar_info_icon.png</file>
+<file>twitter_icon.png</file>
 <file>layers_toolbox_icon.png</file>
 <file>splash_hcp.png</file>
 <file>splash_startup_image.png</file>

@@ -125,6 +125,8 @@ namespace caret {
         void processShowSearchHelpOnlineWindow();
         void processShowInformationWindow();
         
+        void showHideInfoWindowSelected(bool);
+        
     private:
         GuiManager(QObject* parent = 0);
         

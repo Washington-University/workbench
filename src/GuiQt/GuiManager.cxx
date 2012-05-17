@@ -79,14 +79,33 @@ GuiManager::GuiManager(QObject* parent)
     
     this->cursorManager = new CursorManager();
     
+    QIcon infoDisplayIcon;
+    const bool infoDisplayIconValid =
+    WuQtUtilities::loadIcon(":/toolbar_info_icon.png", 
+                            infoDisplayIcon);
+    
+
     this->informationDisplayDialogEnabledAction =
     WuQtUtilities::createAction("Information...",
                                 "Enables display of the Information Window\n"
                                 "when new information is available",
-                                this); 
+                                this,
+                                this,
+                                SLOT(showHideInfoWindowSelected(bool))); 
+    if (infoDisplayIconValid) {
+        this->informationDisplayDialogEnabledAction->setIcon(infoDisplayIcon);
+        this->informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
+    }
+    else {
+        this->informationDisplayDialogEnabledAction->setIconText("Info");
+    }
+    
+    this->informationDisplayDialogEnabledAction->blockSignals(true);
     this->informationDisplayDialogEnabledAction->setCheckable(true);
     this->informationDisplayDialogEnabledAction->setChecked(true);
+    this->showHideInfoWindowSelected(this->informationDisplayDialogEnabledAction->isChecked());
     this->informationDisplayDialogEnabledAction->setIconText("Info"); 
+    this->informationDisplayDialogEnabledAction->blockSignals(false);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
@@ -737,6 +756,25 @@ void
 GuiManager::processShowInformationWindow()
 {
     this->processShowInformationDisplayDialog(true);
+}
+
+void 
+GuiManager::showHideInfoWindowSelected(bool status)
+{
+    QString text("Show Information Window");
+    if (status) {
+        text = "Hide Information Window";
+        if (this->informationDisplayDialogEnabledAction->signalsBlocked() == false) {
+            this->processShowInformationDisplayDialog(true);
+        }
+    }
+    
+    text += ("\n\n"
+             "When this button is 'on', the information window\n"
+             "is automatically displayed when an identification\n"
+             "operation (mouse click over surface or volume slice)\n"
+             "is performed.  ");
+    this->informationDisplayDialogEnabledAction->setToolTip(text);
 }
 
 /**
