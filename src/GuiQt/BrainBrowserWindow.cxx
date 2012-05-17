@@ -159,26 +159,26 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     QObject::connect(this->overlayVerticalToolBox, SIGNAL(visibilityChanged(bool)),
                      this, SLOT(processOverlayVerticalToolBoxVisibilityChanged(bool)));
     
-    this->layersToolBox = 
+    this->featuresToolBox = 
     new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
                                           "Features ToolBox",
                                           BrainBrowserWindowOrientedToolBox::TOOL_BOX_LAYERS,
                                           this);
-    this->layersToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
-    this->addDockWidget(Qt::RightDockWidgetArea, this->layersToolBox);
+    this->featuresToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
+    this->addDockWidget(Qt::RightDockWidgetArea, this->featuresToolBox);
     
     this->createActionsUsedByToolBar();
     this->overlayToolBoxAction->blockSignals(true);
     this->overlayToolBoxAction->setChecked(true);
     this->overlayToolBoxAction->blockSignals(false);
-    this->layersToolBoxAction->blockSignals(true);
-    this->layersToolBoxAction->setChecked(true);
-    this->layersToolBoxAction->blockSignals(false);
+    this->featuresToolBoxAction->blockSignals(true);
+    this->featuresToolBoxAction->setChecked(true);
+    this->featuresToolBoxAction->blockSignals(false);
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
                                                   this->overlayToolBoxAction,
-                                                  this->layersToolBoxAction,
+                                                  this->featuresToolBoxAction,
                                                   this);
     this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
     this->addToolBar(this->toolbar);
@@ -189,7 +189,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
      
     this->toolbar->updateToolBar();
 
-    this->processHideLayersToolBox();
+    this->processShowOverlayToolBox(this->overlayToolBoxAction->isChecked());
+    this->processHideFeaturesToolBox();
     
     if (browserTabContent == NULL) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
@@ -253,10 +254,13 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void 
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
-    QIcon toolBoxIcon;
-    const bool toolBoxIconValid =
-    WuQtUtilities::loadIcon(":/toolbox.png", 
-                            toolBoxIcon);
+    QIcon featuresToolBoxIcon;
+    const bool featuresToolBoxIconValid = WuQtUtilities::loadIcon(":/toolbox.png", 
+                                                         featuresToolBoxIcon);
+    
+    QIcon overlayToolBoxIcon;
+    const bool overlayToolBoxIconValid = WuQtUtilities::loadIcon(":/layers_toolbox_icon.png",
+                                                                  overlayToolBoxIcon);
     
     /*
      * Note: The name of a dock widget becomes its
@@ -266,13 +270,13 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      */
     this->overlayToolBoxAction = 
     WuQtUtilities::createAction("Overlay ToolBox",
-                                "Show the Overlay ToolBox",
+                                "Overlay ToolBox",
                                 this,
                                 this,
                                 SLOT(processShowOverlayToolBox(bool)));
     this->overlayToolBoxAction->setCheckable(true);
-    if (toolBoxIconValid) {
-        this->overlayToolBoxAction->setIcon(toolBoxIcon);
+    if (overlayToolBoxIconValid) {
+        this->overlayToolBoxAction->setIcon(overlayToolBoxIcon);
         this->overlayToolBoxAction->setIconVisibleInMenu(false);
     }
     else {
@@ -285,14 +289,16 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      * a separate action here so that the name in 
      * the menu is as set here.
      */
-    this->layersToolBoxAction = this->layersToolBox->toggleViewAction();
-    this->layersToolBoxAction->setCheckable(true);
-    if (toolBoxIconValid) {
-        this->layersToolBoxAction->setIcon(toolBoxIcon);
-        this->layersToolBoxAction->setIconVisibleInMenu(false);
+    this->featuresToolBoxAction = this->featuresToolBox->toggleViewAction();
+    this->featuresToolBoxAction->setCheckable(true);
+    QObject::connect(this->featuresToolBoxAction, SIGNAL(triggered(bool)),
+                     this, SLOT(processShowFeaturesToolBox(bool)));
+    if (featuresToolBoxIconValid) {
+        this->featuresToolBoxAction->setIcon(featuresToolBoxIcon);
+        this->featuresToolBoxAction->setIconVisibleInMenu(false);
     }
     else {
-        this->layersToolBoxAction->setIconText("LT");
+        this->featuresToolBoxAction->setIconText("LT");
     }
     
 }
@@ -611,6 +617,12 @@ BrainBrowserWindow::processShowOverlayToolBox(bool status)
     this->overlayToolBoxAction->blockSignals(true);
     this->overlayToolBoxAction->setChecked(status);
     this->overlayToolBoxAction->blockSignals(false);
+    if (status) {
+        this->overlayToolBoxAction->setToolTip("Hide Overlay Toolbox");
+    }
+    else {
+        this->overlayToolBoxAction->setToolTip("Show Overlay Toolbox");
+    }
 }
 
 /**
@@ -778,7 +790,7 @@ BrainBrowserWindow::createMenuView()
                      this, SLOT(processViewMenuAboutToShow()));
     
     menu->addAction(this->showToolBarAction);
-    menu->addMenu(this->createMenuViewMoveLayersToolBox());
+    menu->addMenu(this->createMenuViewMoveFeaturesToolBox());
     menu->addMenu(this->createMenuViewMoveOverlayToolBox());
     menu->addSeparator();
     
@@ -797,13 +809,13 @@ BrainBrowserWindow::createMenuView()
  * @return Create and return the overlay toolbox menu.
  */
 QMenu* 
-BrainBrowserWindow::createMenuViewMoveLayersToolBox()
+BrainBrowserWindow::createMenuViewMoveFeaturesToolBox()
 {
     QMenu* menu = new QMenu("Features Toolbox", this);
     
-    menu->addAction("Attach to Right", this, SLOT(processMoveLayersToolBoxToRight()));
-    menu->addAction("Detach", this, SLOT(processMoveLayersToolBoxToFloat()));
-    menu->addAction("Hide", this, SLOT(processHideLayersToolBox()));
+    menu->addAction("Attach to Right", this, SLOT(processMoveFeaturesToolBoxToRight()));
+    menu->addAction("Detach", this, SLOT(processMoveFeaturesToolBoxToFloat()));
+    menu->addAction("Hide", this, SLOT(processHideFeaturesToolBox()));
     
     return menu;
 }
@@ -1618,10 +1630,10 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
         this->overlayToolBoxAction->blockSignals(false);
         this->overlayToolBoxAction->trigger();
 
-        this->layersToolBoxAction->blockSignals(true);
-        this->layersToolBoxAction->setChecked(true);
-        this->layersToolBoxAction->blockSignals(false);
-        this->layersToolBoxAction->trigger();
+        this->featuresToolBoxAction->blockSignals(true);
+        this->featuresToolBoxAction->setChecked(true);
+        this->featuresToolBoxAction->blockSignals(false);
+        this->featuresToolBoxAction->trigger();
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
@@ -1659,18 +1671,18 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         this->overlayToolBoxAction->trigger();
     }
     
-    this->layersToolBoxAction->setEnabled(true);
-    if (wcs.isLayersToolBoxDisplayed) {
-        this->layersToolBoxAction->blockSignals(true);
-        this->layersToolBoxAction->setChecked(false);
-        this->layersToolBoxAction->blockSignals(false);
-        this->layersToolBoxAction->trigger();
+    this->featuresToolBoxAction->setEnabled(true);
+    if (wcs.isFeaturesToolBoxDisplayed) {
+        this->featuresToolBoxAction->blockSignals(true);
+        this->featuresToolBoxAction->setChecked(false);
+        this->featuresToolBoxAction->blockSignals(false);
+        this->featuresToolBoxAction->trigger();
     }
     else {
-        this->layersToolBoxAction->blockSignals(true);
-        this->layersToolBoxAction->setChecked(true);
-        this->layersToolBoxAction->blockSignals(false);
-        this->layersToolBoxAction->trigger();
+        this->featuresToolBoxAction->blockSignals(true);
+        this->featuresToolBoxAction->setChecked(true);
+        this->featuresToolBoxAction->blockSignals(false);
+        this->featuresToolBoxAction->trigger();
     }
 }
 
@@ -1686,10 +1698,10 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
     wcs.isOverlayToolBoxDisplayed = this->overlayToolBoxAction->isChecked();
-    wcs.isLayersToolBoxDisplayed  = this->layersToolBoxAction->isChecked();
+    wcs.isFeaturesToolBoxDisplayed  = this->featuresToolBoxAction->isChecked();
     this->showToolBarAction->setEnabled(false);
     this->overlayToolBoxAction->setEnabled(false);
-    this->layersToolBoxAction->setEnabled(false);
+    this->featuresToolBoxAction->setEnabled(false);
 }
 
 /**
@@ -1855,46 +1867,52 @@ BrainBrowserWindow::processHideOverlayToolBox()
  * Called to move the layers toolbox to the right side of the window.
  */
 void 
-BrainBrowserWindow::processMoveLayersToolBoxToRight()
+BrainBrowserWindow::processMoveFeaturesToolBoxToRight()
 {
-    this->moveLayersToolBox(Qt::RightDockWidgetArea);
+    this->moveFeaturesToolBox(Qt::RightDockWidgetArea);
 }
 
 /**
  * Called to move the layers toolbox to float outside of the window.
  */
 void 
-BrainBrowserWindow::processMoveLayersToolBoxToFloat()
+BrainBrowserWindow::processMoveFeaturesToolBoxToFloat()
 {
-    this->moveLayersToolBox(Qt::NoDockWidgetArea);
+    this->moveFeaturesToolBox(Qt::NoDockWidgetArea);
 }
 
 /**
  * Called to hide the layers tool box.
  */
 void 
-BrainBrowserWindow::processHideLayersToolBox()
+BrainBrowserWindow::processHideFeaturesToolBox()
 {
-    if (this->layersToolBoxAction->isChecked()) {
-        this->layersToolBoxAction->trigger();
+    if (this->featuresToolBoxAction->isChecked()) {
+        this->featuresToolBoxAction->trigger();
     }
 }
 
 /**
  * Called to display the layers toolbox.
  */
-//void 
-//BrainBrowserWindow::processShowLayersToolBox(bool status)
-//{
+void 
+BrainBrowserWindow::processShowFeaturesToolBox(bool status)
+{
+    if (status) {
+        this->featuresToolBoxAction->setToolTip("Hide Features Toolbox");
+    }
+    else {
+        this->featuresToolBoxAction->setToolTip("Show Features Toolbox");
+    }
 //    if (status) {
-//        AString title = this->layersToolBoxTitle;
-//        if (this->layersToolBox->isFloating()) {
+//        AString title = this->featuresToolBoxTitle;
+//        if (this->featuresToolBox->isFloating()) {
 //            title += (" "
 //                      + AString::number(this->browserWindowIndex + 1));
 //        }
-//        this->layersToolBox->setWindowTitle(title);
+//        this->featuresToolBox->setWindowTitle(title);
 //    }
-//}
+}
 
 /**
  * Move the overlay toolbox to the desired location.
@@ -1902,18 +1920,18 @@ BrainBrowserWindow::processHideLayersToolBox()
  *    DockWidget location.
  */
 void 
-BrainBrowserWindow::moveLayersToolBox(Qt::DockWidgetArea area)
+BrainBrowserWindow::moveFeaturesToolBox(Qt::DockWidgetArea area)
 {
     switch (area) {
         case Qt::LeftDockWidgetArea:
             CaretAssertMessage(0, "Layers toolbox not allowed on left");
             break;
         case Qt::RightDockWidgetArea:
-            this->layersToolBox->setFloating(false);
+            this->featuresToolBox->setFloating(false);
             this->addDockWidget(Qt::RightDockWidgetArea, 
-                                this->layersToolBox);
-            if (this->layersToolBoxAction->isChecked() == false) {
-                this->layersToolBoxAction->trigger();
+                                this->featuresToolBox);
+            if (this->featuresToolBoxAction->isChecked() == false) {
+                this->featuresToolBoxAction->trigger();
             }
             break;
         case Qt::TopDockWidgetArea:
@@ -1923,14 +1941,14 @@ BrainBrowserWindow::moveLayersToolBox(Qt::DockWidgetArea area)
             CaretAssertMessage(0, "Layers toolbox not allowed on bottom");
             break;
         default:
-            this->layersToolBox->setFloating(true);
-            if (this->layersToolBoxAction->isChecked() == false) {
-                this->layersToolBoxAction->trigger();
+            this->featuresToolBox->setFloating(true);
+            if (this->featuresToolBoxAction->isChecked() == false) {
+                this->featuresToolBoxAction->trigger();
             }
             break;
     }
     
-//    this->processShowLayersToolBox(true);
+//    this->processShowFeaturesToolBox(true);
 }
 
 /**

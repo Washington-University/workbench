@@ -58,6 +58,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         case TOOL_BOX_LAYERS:
             orientation = Qt::Vertical;
             isLayersToolBox = true;
+            this->toggleViewAction()->setText("Features Toolbox");
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
@@ -92,7 +93,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 //        this->addToTabWidget(this->overlaySetViewController, 
 //                             "Overlay");
         this->tabWidget->addTab(this->overlaySetViewController ,
-                                "Overlay");
+                                "Layers");
     }
     if (isOverlayToolBox) {
         this->connectivityViewController = new ConnectivityManagerViewController(orientation,

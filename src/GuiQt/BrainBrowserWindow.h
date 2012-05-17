@@ -113,9 +113,9 @@ namespace caret {
         void processMoveOverlayToolBoxToFloat();
         void processHideOverlayToolBox();
         
-        void processMoveLayersToolBoxToRight();
-        void processMoveLayersToolBoxToFloat();
-        void processHideLayersToolBox();
+        void processMoveFeaturesToolBoxToRight();
+        void processMoveFeaturesToolBoxToFloat();
+        void processHideFeaturesToolBox();
         
         void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
         void processMoveSelectedTabToWindowMenuSelection(QAction*);
@@ -124,7 +124,7 @@ namespace caret {
         void processRecentSpecFileMenuSelection(QAction*);
         
         void processShowOverlayToolBox(bool);
-//        void processShowLayersToolBox(bool);
+        void processShowFeaturesToolBox(bool);
         void processOverlayHorizontalToolBoxVisibilityChanged(bool);
         void processOverlayVerticalToolBoxVisibilityChanged(bool);
         
@@ -144,7 +144,7 @@ namespace caret {
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
-            bool isLayersToolBoxDisplayed;
+            bool isFeaturesToolBoxDisplayed;
             bool isOverlayToolBoxDisplayed;
             bool isToolBarDisplayed;
         };
@@ -173,7 +173,7 @@ namespace caret {
         QMenu* createMenuFile();
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
-        QMenu* createMenuViewMoveLayersToolBox();
+        QMenu* createMenuViewMoveFeaturesToolBox();
         QMenu* createMenuConnect();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
@@ -182,7 +182,7 @@ namespace caret {
         QMenu* createMenuHelp();
         
         void moveOverlayToolBox(Qt::DockWidgetArea area);
-        void moveLayersToolBox(Qt::DockWidgetArea area);
+        void moveFeaturesToolBox(Qt::DockWidgetArea area);
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
@@ -253,7 +253,7 @@ namespace caret {
         
         QAction* overlayToolBoxAction;
         
-        QAction* layersToolBoxAction;
+        QAction* featuresToolBoxAction;
         
         QMenu* moveSelectedTabToWindowMenu;
         
@@ -262,7 +262,7 @@ namespace caret {
         QDockWidget* overlayHorizontalToolBox;
         QDockWidget* overlayVerticalToolBox;
         QDockWidget* overlayActiveToolBox;
-        QDockWidget* layersToolBox;
+        QDockWidget* featuresToolBox;
         
         static AString previousOpenFileNameFilter;
         static bool previousOpenFileAddToSpecFileSelection;

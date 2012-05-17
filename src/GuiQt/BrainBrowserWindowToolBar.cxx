@@ -201,6 +201,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolBarToolButtonAction->blockSignals(true);
     this->toolBarToolButtonAction->setCheckable(true);
     this->toolBarToolButtonAction->setChecked(true);
+    this->showHideToolBar(this->toolBarToolButtonAction->isChecked());
     this->toolBarToolButtonAction->blockSignals(false);
     QToolButton* toolBarToolButton = new QToolButton();
     toolBarToolButton->setDefaultAction(this->toolBarToolButtonAction);
@@ -491,7 +492,16 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 void 
 BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 {
-    this->toolbarWidget->setVisible(showIt);
+    if (this->isContructorFinished) {
+        this->toolbarWidget->setVisible(showIt);
+    }
+    
+    if (showIt) {
+        this->toolBarToolButtonAction->setToolTip("Hide Toolbar");
+    }
+    else {
+        this->toolBarToolButtonAction->setToolTip("Show Toolbar");
+    }
 }
 
 

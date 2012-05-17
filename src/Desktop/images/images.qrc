@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+<file>layers_toolbox_icon.png</file>
 <file>splash_hcp.png</file>
 <file>splash_startup_image.png</file>
 <file>view-anterior.png</file>
