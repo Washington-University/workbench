@@ -90,8 +90,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 100);
+        gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 100);
+        gridLayout->setColumnStretch(5, 100);
         
         QLabel* onLabel       = new QLabel("On");
         QLabel* settingsLabel = new QLabel("Settings");
@@ -100,9 +101,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
 
         const int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
-        gridLayout->addWidget(settingsLabel, row, 1, 1, 2, Qt::AlignHCenter);
-        gridLayout->addWidget(fileLabel, row, 3, Qt::AlignHCenter);
-        gridLayout->addWidget(mapLabel, row, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(settingsLabel, row, 1, 1, 3, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(mapLabel, row, 5, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);

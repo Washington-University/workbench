@@ -35,6 +35,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
@@ -120,6 +121,18 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
     this->mapComboBox->setToolTip("Selects map within the selected file");
+    
+    /*
+     * Opacity double spin box
+     */
+    this->opacityDoubleSpinBox = new QDoubleSpinBox();
+    this->opacityDoubleSpinBox->setMinimum(0.0);
+    this->opacityDoubleSpinBox->setMaximum(1.0);
+    this->opacityDoubleSpinBox->setSingleStep(0.10);
+    this->opacityDoubleSpinBox->setDecimals(1);
+    this->opacityDoubleSpinBox->setFixedWidth(50);
+    QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
     
     /*
      * ColorBar Tool Button
@@ -209,10 +222,12 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
+        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 3);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
                                          row, 4);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                                         row, 5);
         
     }
     else {
@@ -226,22 +241,26 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
-                              row, 0, 2, 1,
-                              Qt::AlignCenter);
+                                         row, 0,
+                                         2, 1);
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1);
+        this->gridLayoutGroup->addWidget(colorBarToolButton,
+                                         row, 2);
         this->gridLayoutGroup->addWidget(fileLabel,
-                              row, 2);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
                               row, 3);
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
+                              row, 4);
         
         row++;
-        this->gridLayoutGroup->addWidget(colorBarToolButton,
-                                         row, 1);
+        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
+                                         row, 1,
+                                         1, 2,
+                                         Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(mapLabel,
-                              row, 2);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
                               row, 3);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                              row, 4);
         
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
@@ -327,6 +346,18 @@ OverlayViewController::colorBarActionTriggered(bool status)
     this->updateUserInterfaceAndGraphicsWindow();
 }
 
+/**
+ * Called when opacity value is changed.
+ * @param value
+ *    New value.
+ */
+void 
+OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
+{
+    this->overlay->setOpacity(value);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
+}
 
 /**
  * Called when the settings action is selected.
@@ -438,6 +469,9 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
     this->colorBarAction->blockSignals(false);
     
+    this->opacityDoubleSpinBox->blockSignals(true);
+    this->opacityDoubleSpinBox->setValue(overlay->getOpacity());
+    this->opacityDoubleSpinBox->blockSignals(false);
 //    this->widgetsGroup->blockAllSignals(false);
 //    this->widgetsGroup->setEnabled(this->overlay != NULL);
     if (selectedFile != NULL) {

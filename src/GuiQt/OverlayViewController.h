@@ -41,6 +41,7 @@
 class QAction;
 class QCheckBox;
 class QComboBox;
+class QDoubleSpinBox;
 class QGridLayout;
 
 namespace caret {
@@ -83,6 +84,8 @@ namespace caret {
         
         void removeActionTriggered();
         
+        void opacityDoubleSpinBoxValueChanged(double value);
+        
     private:
         OverlayViewController(const OverlayViewController&);
 
@@ -99,6 +102,8 @@ namespace caret {
         QComboBox* fileComboBox;
         
         QComboBox* mapComboBox;
+        
+        QDoubleSpinBox* opacityDoubleSpinBox;
         
         QAction* colorBarAction;
         
