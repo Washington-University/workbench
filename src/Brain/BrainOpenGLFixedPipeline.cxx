@@ -2068,6 +2068,11 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         vf = dynamic_cast<VolumeFile*>(mapFile);
                     }
                     if (vf != NULL) {
+                        float opacity = overlay->getOpacity();
+                        if (volumeDrawInfoOut.empty()) {
+                            opacity = 1.0;
+                        }
+                        
                         if (vf->isMappedWithPalette()) {
                             PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
                             if (connLoadFile != NULL) {
@@ -2076,8 +2081,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
                             if (palette != NULL) {
                                 bool useIt = true;
-                                
-                                const float opacity = overlay->getOpacity();
                                 
                                 if (volumeDrawInfoOut.empty() == false) {
                                     /*
@@ -2120,7 +2123,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                NULL,
                                                NULL,
                                                mapIndex,
-                                               1.0);
+                                               opacity);
                             volumeDrawInfoOut.push_back(vdi);
                         }
                     }
@@ -2776,11 +2779,11 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
 //                                                          sliceVoxelsRGBA);
             
             /*
-             * Voxels not color will have negative alpha so fix it.
+             * Voxels not colored will have negative alpha so fix it.
              */
             for (int64_t iVoxel = 0; iVoxel < numVoxelsInSlice; iVoxel++) {
                 const int64_t alphaIndex = iVoxel * 4 + 3;
-                if (sliceVoxelsRGBA[alphaIndex] < 0) {
+                if (sliceVoxelsRGBA[alphaIndex] <= 0) {
                     if (iVol == 0) {
                         /*
                          * For first drawn volume, use black for voxel that would not be displayed.
@@ -2791,8 +2794,17 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         sliceVoxelsRGBA[alphaIndex] = 1.0;
                     }
                     else {
+                        /*
+                         * Do not show voxel
+                         */
                         sliceVoxelsRGBA[alphaIndex] = 0.0;
                     }
+                }
+                else {
+                    /*
+                     * Use overlay's opacity
+                     */
+                    sliceVoxelsRGBA[alphaIndex] = volInfo.opacity;
                 }
             }
             
