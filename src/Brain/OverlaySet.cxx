@@ -440,7 +440,7 @@ OverlaySet::initializeOverlays()
     if (brain != NULL) {
         brain->getConnectivityFilesOfAllTypes(connFiles);
     }
-    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
+//    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     
     
     std::deque<CaretMappableDataFile*> shapeMapFiles;

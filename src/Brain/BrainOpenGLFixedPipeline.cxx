@@ -3318,11 +3318,30 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
 //                                                                      1,
 //                                                                      rgba);
                         if (rgba[3] > 0.0) {
-                            sliceRGBA[sliceRgbaOffset]   = rgba[0];
-                            sliceRGBA[sliceRgbaOffset+1] = rgba[1];
-                            sliceRGBA[sliceRgbaOffset+2] = rgba[2];
-                            sliceRGBA[sliceRgbaOffset+3] = rgba[3];
+                            bool useOpacity = false;
+                            if (iVol > 0) {
+                                if (volInfo.opacity < 1.0) {
+                                    useOpacity = true;
+                                }
+                            }
+                            if (useOpacity) {
+                                const float oneMinuseOpacity = 1.0 - volInfo.opacity;
+                                sliceRGBA[sliceRgbaOffset]   = ((rgba[0] * volInfo.opacity)
+                                                                + (sliceRGBA[sliceRgbaOffset] * oneMinuseOpacity));
+                                sliceRGBA[sliceRgbaOffset+1] = ((rgba[1] * volInfo.opacity)
+                                                                + (sliceRGBA[sliceRgbaOffset+1] * oneMinuseOpacity));
+                                sliceRGBA[sliceRgbaOffset+2] = ((rgba[2] * volInfo.opacity)
+                                                                + (sliceRGBA[sliceRgbaOffset+2] * oneMinuseOpacity));
+                                sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                            }
+                            else {
+                                sliceRGBA[sliceRgbaOffset]   = rgba[0];
+                                sliceRGBA[sliceRgbaOffset+1] = rgba[1];
+                                sliceRGBA[sliceRgbaOffset+2] = rgba[2];
+                                sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                            }
                         }
+                        
                     }
                 }
             } 
