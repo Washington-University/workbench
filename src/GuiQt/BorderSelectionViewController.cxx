@@ -261,27 +261,88 @@ BorderSelectionViewController::processAttributesChanges()
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    updateOtherBorderAttributesWidgets();
+    updateOtherBorderViewControllers();
 }
 
 /**
- * Update the attributes widget
- */ 
+ * Called when the border display group combo box is changed.
+ */
 void 
-BorderSelectionViewController::updateAttributesWidget()
+BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
 {
-    std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
-    BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
-    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    /*
+     * Update selected display group in model.
+     */
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    dsb->setDisplayGroupForTab(browserTabIndex,
+                         displayGroup);
     
-    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    /*
+     * Since display group has changed, need to update controls
+     */
+    updateBorderViewController();
+    
+    /*
+     * Apply the changes.
+     */
+    processBorderSelectionChanges();
+}
+
+/**
+ * Called when the border selections are changed.
+ * Updates border display information and redraws
+ * graphics.
+ */
+void 
+BorderSelectionViewController::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
+{
+    processBorderSelectionChanges();
+}
+
+/**
+ * Update the border selection widget.
+ */
+void 
+BorderSelectionViewController::updateBorderViewController()
+{
+    setWindowTitle("Borders");
     
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     if (browserTabContent == NULL) {
         return;
     }
+    
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    
+    m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroupForTab(browserTabIndex));
+    
+    /*;
+     * Get all of border files.
+     */
+    std::vector<BorderFile*> allBorderFiles;
+    const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t ibf= 0; ibf < numberOfBorderFiles; ibf++) {
+        allBorderFiles.push_back(brain->getBorderFile(ibf));
+    }
+    
+    /*
+     * Update the class/name hierarchy
+     */
+    m_borderClassNameHierarchyViewController->updateContents(allBorderFiles);
+
+    std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
+    BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    
+    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     
     m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup));
@@ -308,98 +369,17 @@ BorderSelectionViewController::updateAttributesWidget()
 }
 
 /**
- * Called when the border display group combo box is changed.
- */
-void 
-BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
-{
-    /*
-     * Update selected display group in model.
-     */
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    dsb->setDisplayGroupForTab(browserTabIndex,
-                         displayGroup);
-    
-    /*
-     * Since display group has changed, need to update controls
-     */
-    updateAttributesWidget();
-    updateBorderSelectionViewController();
-    
-    /*
-     * Apply the changes.
-     */
-    processBorderSelectionChanges();
-}
-
-/**
- * Called when the border selections are changed.
- * Updates border display information and redraws
- * graphics.
- */
-void 
-BorderSelectionViewController::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
-{
-    processBorderSelectionChanges();
-}
-
-/**
- * Update the border selection widget.
- */
-void 
-BorderSelectionViewController::updateBorderSelectionViewController()
-{
-    setWindowTitle("Borders");
-    
-    Brain* brain = GuiManager::get()->getBrain();
-    
-    /*;
-     * Get all of border files.
-     */
-    std::vector<BorderFile*> allBorderFiles;
-    const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
-    for (int32_t ibf= 0; ibf < numberOfBorderFiles; ibf++) {
-        allBorderFiles.push_back(brain->getBorderFile(ibf));
-    }
-    
-    /*
-     * Update the class/name hierarchy
-     */
-    m_borderClassNameHierarchyViewController->updateContents(allBorderFiles);
-}
-
-/**
  * Update other selection toolbox since they should all be the same.
  */
 void 
-BorderSelectionViewController::updateOtherBorderSelectionViewControllers()
+BorderSelectionViewController::updateOtherBorderViewControllers()
 {
     for (std::set<BorderSelectionViewController*>::iterator iter = BorderSelectionViewController::allBorderSelectionViewControllers.begin();
          iter != BorderSelectionViewController::allBorderSelectionViewControllers.end();
          iter++) {
         BorderSelectionViewController* bsw = *iter;
         if (bsw != this) {
-            bsw->updateBorderSelectionViewController();
-        }
-    }
-}
-
-/**
- * Update other border attributes widgets since they all should be the same.
- */
-void 
-BorderSelectionViewController::updateOtherBorderAttributesWidgets()
-{
-    for (std::set<BorderSelectionViewController*>::iterator iter = BorderSelectionViewController::allBorderSelectionViewControllers.begin();
-         iter != BorderSelectionViewController::allBorderSelectionViewControllers.end();
-         iter++) {
-        BorderSelectionViewController* bsw = *iter;
-        if (bsw != this) {
-            bsw->updateAttributesWidget();
+            bsw->updateBorderViewController();
         }
     }
 }
@@ -428,7 +408,7 @@ BorderSelectionViewController::processBorderSelectionChanges()
 void 
 BorderSelectionViewController::processSelectionChanges()
 {
-    updateOtherBorderSelectionViewControllers();
+    updateOtherBorderViewControllers();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -464,20 +444,7 @@ BorderSelectionViewController::receiveEvent(Event* event)
     }
 
     if (doUpdate) {
-        BrowserTabContent* browserTabContent = 
-        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-        if (browserTabContent == NULL) {
-            return;
-        }
-        
-        const int32_t browserTabIndex = browserTabContent->getTabNumber();
-        Brain* brain = GuiManager::get()->getBrain();
-        DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-        
-        m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroupForTab(browserTabIndex));
-
-        updateBorderSelectionViewController();
-        updateAttributesWidget();
+        updateBorderViewController();
     }
 }
 

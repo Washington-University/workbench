@@ -80,17 +80,13 @@ namespace caret {
 
         BorderSelectionViewController& operator=(const BorderSelectionViewController&);
 
-        void updateBorderSelectionViewController();
+        void updateBorderViewController();
         
-        void updateOtherBorderSelectionViewControllers();
-        
-        void updateOtherBorderAttributesWidgets();
+        void updateOtherBorderViewControllers();
         
         QWidget* createSelectionWidget();
         
         QWidget* createAttributesWidget();
-        
-        void updateAttributesWidget();
         
         int32_t m_browserWindowIndex;
         
