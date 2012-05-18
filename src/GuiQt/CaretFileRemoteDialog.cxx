@@ -42,6 +42,7 @@
 #undef __CARET_FILE_REMOTE_DIALOG_DECLARE__
 
 #include "Brain.h"
+#include "CursorDisplayScoped.h"
 #include "DataFileTypeEnum.h"
 #include "EventDataFileRead.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -133,6 +134,9 @@ CaretFileRemoteDialog::~CaretFileRemoteDialog()
 void 
 CaretFileRemoteDialog::okButtonPressed()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     const AString filename = m_urlLineEdit->text().trimmed();
     
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
@@ -160,9 +164,11 @@ CaretFileRemoteDialog::okButtonPressed()
     bool isError = false;
     EventManager::get()->sendEvent(readFileEvent.getPointer());
     if (readFileEvent.isError()) {
+        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, 
                                readFileEvent.getErrorMessage());  
         isError = true;
+        cursor.showWaitCursor();
     }    
 
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

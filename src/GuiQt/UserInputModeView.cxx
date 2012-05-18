@@ -36,6 +36,7 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderManager.h"
+#include "CursorDisplayScoped.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -158,6 +159,9 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                          BrowserTabContent* /*browserTabContent*/,
                                          BrainOpenGLWidget* openGLWidget)
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     
@@ -240,7 +244,9 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 EventManager::get()->sendEvent(e.getPointer());
             }
             catch (const DataFileException& e) {
+                cursor.restoreCursor();
                 QMessageBox::critical(openGLWidget, "", e.whatString());
+                cursor.showWaitCursor();
             }
         }
         
@@ -273,7 +279,9 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                     ciftiRowColumnInformation += voxelRowColInfo;
                 }
                 catch (const DataFileException& e) {
+                    cursor.restoreCursor();
                     QMessageBox::critical(openGLWidget, "", e.whatString());
+                    cursor.showWaitCursor();
                 }
                 try {
                     AString voxelTimeLineRowColInfo;
@@ -287,7 +295,9 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                     ciftiRowColumnInformation += voxelTimeLineRowColInfo;
                 }
                 catch (const DataFileException& e) {
+                    cursor.restoreCursor();
                     QMessageBox::critical(openGLWidget, "", e.whatString());
+                    cursor.showWaitCursor();
                 }
                 QList <TimeLine> tlV;
                 connMan->getVolumeTimeLines(tlV);
