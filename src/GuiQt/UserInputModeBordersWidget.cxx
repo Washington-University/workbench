@@ -431,7 +431,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     }
     
     DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    dpb->setDisplayed(btc->getTabNumber(), 
+    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(btc->getTabNumber());
+    dpb->setDisplayed(displayGroup, 
                       true);
     
     switch (this->inputModeBorders->getDrawOperation()) {

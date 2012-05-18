@@ -83,6 +83,16 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
 {
     m_browserWindowIndex = browserWindowIndex;
     
+    QLabel* groupLabel = new QLabel("Group");
+    m_bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
+    QObject::connect(m_bordersDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
+                     this, SLOT(borderDisplayGroupSelected(const DisplayGroupEnum::Enum)));
+    
+    QHBoxLayout* groupLayout = new QHBoxLayout();
+    groupLayout->addWidget(groupLabel);
+    groupLayout->addWidget(m_bordersDisplayGroupComboBox->getWidget());
+    groupLayout->addStretch(); 
+    
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
     
@@ -95,6 +105,7 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addLayout(groupLayout);
     layout->addWidget(tabWidget, 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -118,27 +129,11 @@ BorderSelectionViewController::~BorderSelectionViewController()
 QWidget* 
 BorderSelectionViewController::createSelectionWidget()
 {
-    QLabel* groupLabel = new QLabel("Group");
-    m_bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
-    QObject::connect(m_bordersDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
-                     this, SLOT(borderDisplayGroupSelected(const DisplayGroupEnum::Enum)));
-    
-    QHBoxLayout* groupLayout = new QHBoxLayout();
-    groupLayout->addWidget(groupLabel);
-    groupLayout->addWidget(m_bordersDisplayGroupComboBox->getWidget());
-    groupLayout->addStretch(); 
-    
     m_borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
     QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
                      this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
     
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addLayout(groupLayout);  
-    layout->addWidget(m_borderClassNameHierarchyViewController);
-    layout->addStretch();
-    
-    return widget;
+    return m_borderClassNameHierarchyViewController;
 }
 
 /**
@@ -251,14 +246,18 @@ BorderSelectionViewController::processAttributesChanges()
         return;
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    dpb->setDisplayed(browserTabIndex,
+    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
+    dpb->setDisplayed(displayGroup,
                       m_bordersDisplayCheckBox->isChecked());
-    dpb->setContralateralDisplayed(browserTabIndex,
+    dpb->setContralateralDisplayed(displayGroup,
                                    m_bordersContralateralCheckBox->isChecked());
 
-    dpb->setDrawingType(selectedDrawingType);
-    dpb->setLineWidth(m_lineWidthSpinBox->value());
-    dpb->setPointSize(m_pointSizeSpinBox->value());
+    dpb->setDrawingType(displayGroup,
+                        selectedDrawingType);
+    dpb->setLineWidth(displayGroup,
+                      m_lineWidthSpinBox->value());
+    dpb->setPointSize(displayGroup,
+                      m_pointSizeSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -283,11 +282,12 @@ BorderSelectionViewController::updateAttributesWidget()
         return;
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     
-    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(browserTabIndex));
-    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(browserTabIndex));
+    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup));
+    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(displayGroup));
     
-    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType();
+    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType(displayGroup);
     int32_t selectedDrawingTypeIndex = 0;
     
     for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
@@ -299,11 +299,11 @@ BorderSelectionViewController::updateAttributesWidget()
     m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
     
     m_lineWidthSpinBox->blockSignals(true);
-    m_lineWidthSpinBox->setValue(dpb->getLineWidth());
+    m_lineWidthSpinBox->setValue(dpb->getLineWidth(displayGroup));
     m_lineWidthSpinBox->blockSignals(false);
     
     m_pointSizeSpinBox->blockSignals(true);
-    m_pointSizeSpinBox->setValue(dpb->getPointSize());
+    m_pointSizeSpinBox->setValue(dpb->getPointSize(displayGroup));
     m_pointSizeSpinBox->blockSignals(false);
 }
 
@@ -321,12 +321,13 @@ BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    dsb->setDisplayGroup(browserTabIndex,
+    dsb->setDisplayGroupForTab(browserTabIndex,
                          displayGroup);
     
     /*
      * Since display group has changed, need to update controls
      */
+    updateAttributesWidget();
     updateBorderSelectionViewController();
     
     /*
@@ -352,20 +353,9 @@ BorderSelectionViewController::bordersSelectionsChanged(ClassAndNameHierarchySel
 void 
 BorderSelectionViewController::updateBorderSelectionViewController()
 {
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
     setWindowTitle("Borders");
     
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    
-    m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroup(browserTabIndex));
     
     /*;
      * Get all of border files.
@@ -425,7 +415,7 @@ BorderSelectionViewController::processBorderSelectionChanges()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    dsb->setDisplayGroup(browserTabIndex, 
+    dsb->setDisplayGroupForTab(browserTabIndex, 
                          m_bordersDisplayGroupComboBox->getSelectedDisplayGroup());
     
     
@@ -474,6 +464,18 @@ BorderSelectionViewController::receiveEvent(Event* event)
     }
 
     if (doUpdate) {
+        BrowserTabContent* browserTabContent = 
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+        if (browserTabContent == NULL) {
+            return;
+        }
+        
+        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+        Brain* brain = GuiManager::get()->getBrain();
+        DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+        
+        m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroupForTab(browserTabIndex));
+
         updateBorderSelectionViewController();
         updateAttributesWidget();
     }

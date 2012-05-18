@@ -1518,9 +1518,10 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         const BrainStructure* bs = surface->getBrainStructure();
         const Brain* brain = bs->getBrain();
         const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
-        pointSize = dpb->getPointSize();
-        lineWidth  = dpb->getLineWidth();
-        drawType  = dpb->getDrawingType();
+        const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
+        pointSize = dpb->getPointSize(displayGroup);
+        lineWidth  = dpb->getLineWidth(displayGroup);
+        drawType  = dpb->getDrawingType(displayGroup);
     }
     
     bool drawSphericalPoints = false;
@@ -1909,13 +1910,12 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 
     Brain* brain = surface->getBrainStructure()->getBrain();
     const DisplayPropertiesBorders* borderDisplayProperties = brain->getDisplayPropertiesBorders();
-    if (borderDisplayProperties->isDisplayed(this->windowTabIndex) == false) {
+    const DisplayGroupEnum::Enum displayGroup = borderDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
+    if (borderDisplayProperties->isDisplayed(displayGroup) == false) {
         return;
     }
     
-    const DisplayGroupEnum::Enum displayGroup = borderDisplayProperties->getDisplayGroup(this->windowTabIndex);
-    
-    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
+    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);

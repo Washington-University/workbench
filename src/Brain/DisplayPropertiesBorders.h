@@ -54,49 +54,52 @@ namespace caret {
         
         virtual void update();
         
-        bool isDisplayed(const int32_t browserTabIndex) const;
+        bool isDisplayed(const DisplayGroupEnum::Enum  displayGroup) const;
         
-        void setDisplayed(const int32_t browserTabIndex,
+        void setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
                           const bool displayStatus);
         
-        bool isContralateralDisplayed(const int32_t browserTabIndex) const;
+        bool isContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup) const;
         
-        void setContralateralDisplayed(const int32_t browserTabIndex,
+        void setContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup,
                                        const bool contralateralDisplayStatus);
         
-        DisplayGroupEnum::Enum getDisplayGroup(const int32_t browserTabIndex) const;
+        DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
-        void setDisplayGroup(const int32_t browserTabIndex,
+        void setDisplayGroupForTab(const int32_t browserTabIndex,
                              const DisplayGroupEnum::Enum  displayGroup);
         
-        float getPointSize() const;
+        float getPointSize(const DisplayGroupEnum::Enum  displayGroup) const;
         
-        void setPointSize(const float pointSize);
+        void setPointSize(const DisplayGroupEnum::Enum  displayGroup,
+                          const float pointSize);
         
-        float getLineWidth() const;
+        float getLineWidth(const DisplayGroupEnum::Enum  displayGroup) const;
         
-        void setLineWidth(const float lineWidth);
+        void setLineWidth(const DisplayGroupEnum::Enum  displayGroup,
+                          const float lineWidth);
         
-        BorderDrawingTypeEnum::Enum getDrawingType() const;
+        BorderDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum  displayGroup) const;
         
-        void setDrawingType(const BorderDrawingTypeEnum::Enum drawingType);
+        void setDrawingType(const DisplayGroupEnum::Enum  displayGroup,
+                            const BorderDrawingTypeEnum::Enum drawingType);
         
     private:
         DisplayPropertiesBorders(const DisplayPropertiesBorders&);
 
         DisplayPropertiesBorders& operator=(const DisplayPropertiesBorders&);
         
-        bool displayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_displayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        bool contralateralDisplayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_contralateralDisplayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        DisplayGroupEnum::Enum displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_pointSize;
+        float m_pointSize[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        float m_lineWidth;
+        float m_lineWidth[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        BorderDrawingTypeEnum::Enum m_drawingType;
+        BorderDrawingTypeEnum::Enum m_drawingType[DisplayGroupEnum::NUMBER_OF_GROUPS];
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

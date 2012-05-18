@@ -122,7 +122,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -169,7 +169,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -210,7 +210,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -316,7 +316,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
         GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     /*
      * Loop through the models.
@@ -433,7 +433,7 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
