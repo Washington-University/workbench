@@ -305,7 +305,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 if (myRoi->getValue(myNode, 0) > 0.0f)
                 {
                     tempNodeList.push_back(myNode);
-                    ciftiIndexList.push_back(make_pair<int, int>(myMap[j].m_ciftiIndex, newCiftiIndex));
+                    ciftiIndexList.push_back(std::pair<int,int>(myMap[j].m_ciftiIndex, newCiftiIndex));
                     ++newCiftiIndex;
                 }
             }
@@ -337,7 +337,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                     tempVoxList.push_back(myMap[j].m_ijk[0]);
                     tempVoxList.push_back(myMap[j].m_ijk[1]);
                     tempVoxList.push_back(myMap[j].m_ijk[2]);
-                    ciftiIndexList.push_back(make_pair<int, int>(myMap[j].m_ciftiIndex, newCiftiIndex));
+                    ciftiIndexList.push_back(std::pair<int, int>(myMap[j].m_ciftiIndex, newCiftiIndex));
                     ++newCiftiIndex;
                 }
             }
