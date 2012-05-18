@@ -83,6 +83,16 @@ FociSelectionViewController::FociSelectionViewController(const int32_t browserWi
 {
     m_browserWindowIndex = browserWindowIndex;
     
+    QLabel* groupLabel = new QLabel("Group");
+    m_fociDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
+    QObject::connect(m_fociDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
+                     this, SLOT(fociDisplayGroupSelected(const DisplayGroupEnum::Enum)));
+    
+    QHBoxLayout* groupLayout = new QHBoxLayout();
+    groupLayout->addWidget(groupLabel);
+    groupLayout->addWidget(m_fociDisplayGroupComboBox->getWidget());
+    groupLayout->addStretch(); 
+    
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
     
@@ -95,6 +105,7 @@ FociSelectionViewController::FociSelectionViewController(const int32_t browserWi
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addLayout(groupLayout);
     layout->addWidget(tabWidget, 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -118,27 +129,11 @@ FociSelectionViewController::~FociSelectionViewController()
 QWidget* 
 FociSelectionViewController::createSelectionWidget()
 {
-    QLabel* groupLabel = new QLabel("Group");
-    m_fociDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
-    QObject::connect(m_fociDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
-                     this, SLOT(fociDisplayGroupSelected(const DisplayGroupEnum::Enum)));
-    
-    QHBoxLayout* groupLayout = new QHBoxLayout();
-    groupLayout->addWidget(groupLabel);
-    groupLayout->addWidget(m_fociDisplayGroupComboBox->getWidget());
-    groupLayout->addStretch(); 
-    
     m_fociClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
     QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
                      this, SLOT(fociSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
     
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addLayout(groupLayout);  
-    layout->addWidget(m_fociClassNameHierarchyViewController);
-    layout->addStretch();
-    
-    return widget;
+    return m_fociClassNameHierarchyViewController;
 }
 
 /**
@@ -263,73 +258,24 @@ FociSelectionViewController::processAttributesChanges()
         return;
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    dpf->setDisplayed(browserTabIndex,
+    const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(browserTabIndex);
+    
+    dpf->setDisplayed(displayGroup,
                       m_fociDisplayCheckBox->isChecked());
-    dpf->setContralateralDisplayed(browserTabIndex,
+    dpf->setContralateralDisplayed(displayGroup,
                                    m_fociContralateralCheckBox->isChecked());
-    dpf->setPasteOntoSurface(browserTabIndex,
+    dpf->setPasteOntoSurface(displayGroup,
                              m_pasteOntoSurfaceCheckBox->isChecked());
-    dpf->setColoringType(selectedColoringType);
-    dpf->setFociSize(m_sizeSpinBox->value());
-    dpf->setDrawingType(selectedDrawingType);
+    dpf->setColoringType(displayGroup,
+                         selectedColoringType);
+    dpf->setFociSize(displayGroup,
+                     m_sizeSpinBox->value());
+    dpf->setDrawingType(displayGroup,
+                        selectedDrawingType);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
-    updateOtherFociAttributesWidgets();
-}
-
-/**
- * Update the attributes widget
- */ 
-void 
-FociSelectionViewController::updateAttributesWidget()
-{
-    std::vector<FociDrawingTypeEnum::Enum> drawingTypeEnums;
-    FociDrawingTypeEnum::getAllEnums(drawingTypeEnums);
-    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
-    
-    std::vector<FociColoringTypeEnum::Enum> coloringTypeEnums;
-    FociColoringTypeEnum::getAllEnums(coloringTypeEnums);
-    const int32_t numColoringTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
-    
-    DisplayPropertiesFoci* dpf = GuiManager::get()->getBrain()->getDisplayPropertiesFoci();
-    
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    m_fociDisplayCheckBox->setChecked(dpf->isDisplayed(browserTabIndex));
-    m_fociContralateralCheckBox->setChecked(dpf->isContralateralDisplayed(browserTabIndex));
-    m_pasteOntoSurfaceCheckBox->setChecked(dpf->isPasteOntoSurface(browserTabIndex));
-    
-    const FociColoringTypeEnum::Enum selectedColoringType = dpf->getColoringType();
-    int32_t selectedColoringTypeIndex = 0;
-    
-    for (int32_t i = 0; i < numColoringTypeEnums; i++) {
-        FociColoringTypeEnum::Enum colorType = coloringTypeEnums[i];
-        if (colorType == selectedColoringType) {
-            selectedColoringTypeIndex = i;
-        }
-    }
-    m_coloringTypeComboBox->setCurrentIndex(selectedColoringTypeIndex);
-    
-    const FociDrawingTypeEnum::Enum selectedDrawingType = dpf->getDrawingType();
-    int32_t selectedDrawingTypeIndex = 0;
-    
-    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
-        FociDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
-        if (drawType == selectedDrawingType) {
-            selectedDrawingTypeIndex = i;
-        }
-    }
-    m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
-    
-    m_sizeSpinBox->blockSignals(true);
-    m_sizeSpinBox->setValue(dpf->getFociSize());
-    m_sizeSpinBox->blockSignals(false);
+    updateOtherFociViewControllers();
 }
 
 /**
@@ -346,13 +292,13 @@ FociSelectionViewController::fociDisplayGroupSelected(const DisplayGroupEnum::En
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
-    dpf->setDisplayGroup(browserTabIndex,
+    dpf->setDisplayGroupForTab(browserTabIndex,
                          displayGroup);
     
     /*
      * Since display group has changed, need to update controls
      */
-    updateFociSelectionViewController();
+    updateFociViewController();
     
     /*
      * Apply the changes.
@@ -372,10 +318,10 @@ FociSelectionViewController::fociSelectionsChanged(ClassAndNameHierarchySelected
 }
 
 /**
- * Update the foci selection widget.
+ * Update the foci widget.
  */
 void 
-FociSelectionViewController::updateFociSelectionViewController()
+FociSelectionViewController::updateFociViewController()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -384,13 +330,14 @@ FociSelectionViewController::updateFociSelectionViewController()
     }
     
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
+    dpf->setDisplayGroupForTab(browserTabIndex, 
+                               m_fociDisplayGroupComboBox->getSelectedDisplayGroup());
     
     setWindowTitle("Foci");
     
-    Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
-    
-    m_fociDisplayGroupComboBox->setSelectedDisplayGroup(dpf->getDisplayGroup(browserTabIndex));
+    m_fociDisplayGroupComboBox->setSelectedDisplayGroup(dpf->getDisplayGroupForTab(browserTabIndex));
     
     /*;
      * Get all of foci files.
@@ -405,36 +352,61 @@ FociSelectionViewController::updateFociSelectionViewController()
      * Update the class/name hierarchy
      */
     m_fociClassNameHierarchyViewController->updateContents(allFociFiles);
-}
-
-/**
- * Update other selection toolbox since they should all be the same.
- */
-void 
-FociSelectionViewController::updateOtherFociSelectionViewControllers()
-{
-    for (std::set<FociSelectionViewController*>::iterator iter = FociSelectionViewController::allFociSelectionViewControllers.begin();
-         iter != FociSelectionViewController::allFociSelectionViewControllers.end();
-         iter++) {
-        FociSelectionViewController* bsw = *iter;
-        if (bsw != this) {
-            bsw->updateFociSelectionViewController();
+    
+    
+    std::vector<FociDrawingTypeEnum::Enum> drawingTypeEnums;
+    FociDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    
+    std::vector<FociColoringTypeEnum::Enum> coloringTypeEnums;
+    FociColoringTypeEnum::getAllEnums(coloringTypeEnums);
+    const int32_t numColoringTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
+    
+    const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(browserTabIndex);
+    
+    m_fociDisplayCheckBox->setChecked(dpf->isDisplayed(displayGroup));
+    m_fociContralateralCheckBox->setChecked(dpf->isContralateralDisplayed(displayGroup));
+    m_pasteOntoSurfaceCheckBox->setChecked(dpf->isPasteOntoSurface(displayGroup));
+    
+    const FociColoringTypeEnum::Enum selectedColoringType = dpf->getColoringType(displayGroup);
+    int32_t selectedColoringTypeIndex = 0;
+    
+    for (int32_t i = 0; i < numColoringTypeEnums; i++) {
+        FociColoringTypeEnum::Enum colorType = coloringTypeEnums[i];
+        if (colorType == selectedColoringType) {
+            selectedColoringTypeIndex = i;
         }
     }
+    m_coloringTypeComboBox->setCurrentIndex(selectedColoringTypeIndex);
+    
+    const FociDrawingTypeEnum::Enum selectedDrawingType = dpf->getDrawingType(displayGroup);
+    int32_t selectedDrawingTypeIndex = 0;
+    
+    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
+        FociDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
+        if (drawType == selectedDrawingType) {
+            selectedDrawingTypeIndex = i;
+        }
+    }
+    m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
+    
+    m_sizeSpinBox->blockSignals(true);
+    m_sizeSpinBox->setValue(dpf->getFociSize(displayGroup));
+    m_sizeSpinBox->blockSignals(false);
 }
 
 /**
- * Update other foci attributes widgets since they all should be the same.
+ * Update other foci view controllers.
  */
 void 
-FociSelectionViewController::updateOtherFociAttributesWidgets()
+FociSelectionViewController::updateOtherFociViewControllers()
 {
     for (std::set<FociSelectionViewController*>::iterator iter = FociSelectionViewController::allFociSelectionViewControllers.begin();
          iter != FociSelectionViewController::allFociSelectionViewControllers.end();
          iter++) {
         FociSelectionViewController* bsw = *iter;
         if (bsw != this) {
-            bsw->updateAttributesWidget();
+            bsw->updateFociViewController();
         }
     }
 }
@@ -445,15 +417,6 @@ FociSelectionViewController::updateOtherFociAttributesWidgets()
 void 
 FociSelectionViewController::processFociSelectionChanges()
 {
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
-    dpf->setDisplayGroup(browserTabIndex, 
-                         m_fociDisplayGroupComboBox->getSelectedDisplayGroup());
-    
-    
     processSelectionChanges();
 }
 
@@ -463,7 +426,7 @@ FociSelectionViewController::processFociSelectionChanges()
 void 
 FociSelectionViewController::processSelectionChanges()
 {
-    updateOtherFociSelectionViewControllers();
+    updateOtherFociViewControllers();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -499,8 +462,7 @@ FociSelectionViewController::receiveEvent(Event* event)
     }
 
     if (doUpdate) {
-        updateFociSelectionViewController();
-        updateAttributesWidget();
+        updateFociViewController();
     }
 }
 

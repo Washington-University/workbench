@@ -80,17 +80,13 @@ namespace caret {
 
         FociSelectionViewController& operator=(const FociSelectionViewController&);
 
-        void updateFociSelectionViewController();
+        void updateFociViewController();
         
-        void updateOtherFociSelectionViewControllers();
-        
-        void updateOtherFociAttributesWidgets();
+        void updateOtherFociViewControllers();
         
         QWidget* createSelectionWidget();
         
         QWidget* createAttributesWidget();
-        
-        void updateAttributesWidget();
         
         int32_t m_browserWindowIndex;
         

@@ -1717,19 +1717,19 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     
     Brain* brain = surface->getBrainStructure()->getBrain();
     const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
-    if (fociDisplayProperties->isDisplayed(this->windowTabIndex) == false) {
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
+    
+    if (fociDisplayProperties->isDisplayed(displayGroup) == false) {
         return;
     }
-    const float focusRadius = fociDisplayProperties->getFociSize() / 2.0;
-    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType();
+    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup) / 2.0;
+    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup);
     
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
     
-    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroup(this->windowTabIndex);
-    
     bool drawAsSpheres = false;
-    switch (fociDisplayProperties->getDrawingType()) {
+    switch (fociDisplayProperties->getDrawingType(displayGroup)) {
         case FociDrawingTypeEnum::DRAW_AS_SPHERES:
             drawAsSpheres = true;
             break;
@@ -1737,9 +1737,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(this->windowTabIndex);
+    const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(displayGroup);
     
-    const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
+    const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(displayGroup);
     const int32_t numFociFiles = brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
         FociFile* fociFile = brain->getFociFile(i);

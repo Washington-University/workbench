@@ -55,56 +55,59 @@ namespace caret {
         
         virtual void update();
         
-        bool isDisplayed(const int32_t browserTabIndex) const;
+        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setDisplayed(const int32_t browserTabIndex,
+        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                           const bool displayStatus);
         
-        bool isContralateralDisplayed(const int32_t browserTabIndex) const;
+        bool isContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setContralateralDisplayed(const int32_t browserTabIndex,
+        void setContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                        const bool contralateralDisplayStatus);
         
-        DisplayGroupEnum::Enum getDisplayGroup(const int32_t browserTabIndex) const;
+        DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
-        void setDisplayGroup(const int32_t browserTabIndex,
+        void setDisplayGroupForTab(const int32_t browserTabIndex,
                              const DisplayGroupEnum::Enum  displayGroup);
         
-        float getFociSize() const;
+        float getFociSize(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setFociSize(const float pointSize);
+        void setFociSize(const DisplayGroupEnum::Enum displayGroup,
+                         const float pointSize);
         
-        FociColoringTypeEnum::Enum getColoringType() const;
+        FociColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setColoringType(const FociColoringTypeEnum::Enum coloringType);
+        void setColoringType(const DisplayGroupEnum::Enum displayGroup,
+                             const FociColoringTypeEnum::Enum coloringType);
         
-        FociDrawingTypeEnum::Enum getDrawingType() const;
+        FociDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setDrawingType(const FociDrawingTypeEnum::Enum drawingType);
+        void setDrawingType(const DisplayGroupEnum::Enum displayGroup,
+                            const FociDrawingTypeEnum::Enum drawingType);
         
-        void setPasteOntoSurface(const int32_t browserTabIndex,
+        void setPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup,
                                  const bool enabled);
         
-        bool isPasteOntoSurface(const int32_t browserTabIndex) const;
+        bool isPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup) const;
         
     private:
         DisplayPropertiesFoci(const DisplayPropertiesFoci&);
 
         DisplayPropertiesFoci& operator=(const DisplayPropertiesFoci&);
         
-        bool m_displayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_displayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        bool m_contralateralDisplayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_contralateralDisplayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        bool m_pasteOntoSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_pasteOntoSurface[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_fociSize;
+        float m_fociSize[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        FociColoringTypeEnum::Enum m_coloringType;
+        FociColoringTypeEnum::Enum m_coloringType[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        FociDrawingTypeEnum::Enum m_drawingType;
+        FociDrawingTypeEnum::Enum m_drawingType[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
     };
     

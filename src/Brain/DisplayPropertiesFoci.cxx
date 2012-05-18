@@ -56,15 +56,17 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
 : DisplayProperties(brain)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayStatus[i] = false;
-        m_contralateralDisplayStatus[i] = false;
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
-        m_pasteOntoSurface[i] = false;
     }
     
-    m_fociSize = 4.0;
-    m_coloringType = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
-    m_drawingType = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_pasteOntoSurface[i] = false;
+        m_displayStatus[i] = false;
+        m_contralateralDisplayStatus[i] = false;
+        m_fociSize[i] = 4.0;
+        m_coloringType[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+        m_drawingType[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+    }
 }
 
 /**
@@ -101,61 +103,66 @@ DisplayPropertiesFoci::update()
 
 /**
  * @return  Display status of foci.
- * @param browserTabIndex
- *    Index of browser tab.
+ * @param displayGroup
+ *     Display group.
  */
 bool 
-DisplayPropertiesFoci::isDisplayed(const int32_t browserTabIndex) const
+DisplayPropertiesFoci::isDisplayed(const DisplayGroupEnum::Enum displayGroup) const
 {
-    return m_displayStatus[browserTabIndex];
+    CaretAssertArrayIndex(m_displayStatus, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    return m_displayStatus[displayGroup];
 }
 
 /**
  * Set the display status for foci.
- * @param browserTabIndex
- *    Index of browser tab.
+ * @param displayGroup
+ *     Display group.
  * @param displayStatus
  *    New status.
  */
 void 
-DisplayPropertiesFoci::setDisplayed(const int32_t browserTabIndex,
+DisplayPropertiesFoci::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                        const bool displayStatus)
 {
-    CaretAssertArrayIndex(m_displayGroup, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    m_displayStatus[browserTabIndex] = displayStatus;
+    CaretAssertArrayIndex(m_displayStatus, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_displayStatus[displayGroup] = displayStatus;
 }
 
 /**
  * @return  Contralateral display status of foci.
+ * @param displayGroup
+ *     Display group.
  * @param browserTabIndex
  *    Index of browser tab.
  */
 bool 
-DisplayPropertiesFoci::isContralateralDisplayed(const int32_t browserTabIndex) const
+DisplayPropertiesFoci::isContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup) const
 {
-    CaretAssertArrayIndex(m_displayGroup, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    return m_contralateralDisplayStatus[browserTabIndex];
+    CaretAssertArrayIndex(m_contralateralDisplayStatus, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    return m_contralateralDisplayStatus[displayGroup];
 }
 
 /**
  * Set the contralateral display status for foci.
- * @param browserTabIndex
- *    Index of browser tab.
+ * @param displayGroup
+ *     Display group.
  * @param contralateralDisplayStatus
  *    New status.
  */
 void 
-DisplayPropertiesFoci::setContralateralDisplayed(const int32_t browserTabIndex,
+DisplayPropertiesFoci::setContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                                     const bool contralateralDisplayStatus)
 {
-    CaretAssertArrayIndex(m_displayGroup, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    m_contralateralDisplayStatus[browserTabIndex] = contralateralDisplayStatus;
+    CaretAssertArrayIndex(m_contralateralDisplayStatus, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_contralateralDisplayStatus[displayGroup] = contralateralDisplayStatus;
 }
 
 /**
@@ -164,7 +171,7 @@ DisplayPropertiesFoci::setContralateralDisplayed(const int32_t browserTabIndex,
  *    Index of browser tab.
  */
 DisplayGroupEnum::Enum 
-DisplayPropertiesFoci::getDisplayGroup(const int32_t browserTabIndex) const
+DisplayPropertiesFoci::getDisplayGroupForTab(const int32_t browserTabIndex) const
 {
     CaretAssertArrayIndex(m_displayGroup, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -180,7 +187,7 @@ DisplayPropertiesFoci::getDisplayGroup(const int32_t browserTabIndex) const
  *    New value for display group.
  */
 void 
-DisplayPropertiesFoci::setDisplayGroup(const int32_t browserTabIndex,
+DisplayPropertiesFoci::setDisplayGroupForTab(const int32_t browserTabIndex,
                                           const DisplayGroupEnum::Enum  displayGroup)
 {
     CaretAssertArrayIndex(m_displayGroup, 
@@ -191,90 +198,126 @@ DisplayPropertiesFoci::setDisplayGroup(const int32_t browserTabIndex,
 
 /**
  * @return The foci size.
+ * @param displayGroup
+ *     Display group.
  */
 float 
-DisplayPropertiesFoci::getFociSize() const
+DisplayPropertiesFoci::getFociSize(const DisplayGroupEnum::Enum displayGroup) const
 {
-    return m_fociSize;
+    CaretAssertArrayIndex(m_fociSize, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    return m_fociSize[displayGroup];
 }
 
 /**
  * Set the foci size to the given value.
+ * @param displayGroup
+ *     Display group.
  * @param fociSize
  *     New value for foci size.
  */
 void 
-DisplayPropertiesFoci::setFociSize(const float fociSize)
+DisplayPropertiesFoci::setFociSize(const DisplayGroupEnum::Enum displayGroup,
+                                   const float fociSize)
 {
-    m_fociSize = fociSize;
+    CaretAssertArrayIndex(m_fociSize, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_fociSize[displayGroup] = fociSize;
 }
 
 /**
  * @return The coloring type.
+ * @param displayGroup
+ *     Display group.
  */
 FociColoringTypeEnum::Enum 
-DisplayPropertiesFoci::getColoringType() const
+DisplayPropertiesFoci::getColoringType(const DisplayGroupEnum::Enum displayGroup) const
 {
-    return m_coloringType;
+    CaretAssertArrayIndex(m_coloringType, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    return m_coloringType[displayGroup];
 }
 
 /**
  * Set the coloring type.
+ * @param displayGroup
+ *     Display group.
  * @param coloringType
  *    New value for coloring type.
  */
 void 
-DisplayPropertiesFoci::setColoringType(const FociColoringTypeEnum::Enum coloringType)
+DisplayPropertiesFoci::setColoringType(const DisplayGroupEnum::Enum displayGroup,
+                                       const FociColoringTypeEnum::Enum coloringType)
 {
-    m_coloringType = coloringType;
+    CaretAssertArrayIndex(m_coloringType, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_coloringType[displayGroup] = coloringType;
 }
 
 /**
+ * @param displayGroup
+ *     Display group.
  * @return The drawing type.
  */
 FociDrawingTypeEnum::Enum 
-DisplayPropertiesFoci::getDrawingType() const
+DisplayPropertiesFoci::getDrawingType(const DisplayGroupEnum::Enum displayGroup) const
 {
-    return m_drawingType;
+    CaretAssertArrayIndex(m_drawingType, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    return m_drawingType[displayGroup];
 }
 
 /**
  * Set the drawing type to the given value.
+ * @param displayGroup
+ *     Display group.
  * @param drawingType
  *     New value for drawing type.
  */
 void 
-DisplayPropertiesFoci::setDrawingType(const FociDrawingTypeEnum::Enum drawingType)
+DisplayPropertiesFoci::setDrawingType(const DisplayGroupEnum::Enum displayGroup,
+                                      const FociDrawingTypeEnum::Enum drawingType)
 {
-    m_drawingType = drawingType;
+    CaretAssertArrayIndex(m_drawingType, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_drawingType[displayGroup] = drawingType;
 }
 
 /**
  * Set paste onto surface so the foci are placed directly on the surface.
- * @param browserTabIndex
- *    Index of browser tab.
+ * @param displayGroup
+ *     Display group.
  * @param enabled
  *   True if pasting foci onto surface is enabled.
  */
 void 
-DisplayPropertiesFoci::setPasteOntoSurface(const int32_t browserTabIndex,
+DisplayPropertiesFoci::setPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup,
                                            const bool enabled)
 {
-    CaretAssertArrayIndex(m_displayGroup, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    m_pasteOntoSurface[browserTabIndex] = enabled; 
+    CaretAssertArrayIndex(m_pasteOntoSurface, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    m_pasteOntoSurface[displayGroup] = enabled; 
 }
 
 /**
- * @param browserTabIndex
- *    Index of browser tab.
+ * @param displayGroup
+ *     Display group.
  * @return True if foci are pasted onto surface.
  */
 bool 
-DisplayPropertiesFoci::isPasteOntoSurface(const int32_t browserTabIndex) const
+DisplayPropertiesFoci::isPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup) const
 {
-    return m_pasteOntoSurface[browserTabIndex];
+   CaretAssertArrayIndex(m_pasteOntoSurface, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+   return m_pasteOntoSurface[displayGroup];
 }
 
 
