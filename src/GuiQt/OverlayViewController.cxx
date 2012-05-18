@@ -133,6 +133,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->opacityDoubleSpinBox->setFixedWidth(50);
     QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
+    this->opacityDoubleSpinBox->setToolTip("Opacity (0.0=transparent, 1.0=opaque)");
     
     /*
      * ColorBar Tool Button

@@ -112,6 +112,9 @@ namespace caret {
         
         ConnectivityLoaderManager* getConnectivityLoaderManager(Brain* brain);
         
+        bool warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
+                                           const std::vector<int32_t>& nodeIndices);
+        
         std::vector<ParcelConnectivity*> parcelConnectivities;
         
         IdentificationManager* identificationManager;

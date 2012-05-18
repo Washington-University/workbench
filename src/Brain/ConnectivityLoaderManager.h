@@ -78,6 +78,8 @@ namespace caret {
         bool loadTimeLineForVoxelAtCoordinate(const float xyz[3],
                                               AString* rowColumnInformationOut = NULL) throw (DataFileException);
         
+        bool hasNetworkFiles() const;
+        
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);
 

@@ -505,6 +505,35 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
 }
 
 /**
+ * @return True if there are enabled connectivity
+ * files that retrieve data from the network.
+ */
+bool 
+ConnectivityLoaderManager::hasNetworkFiles() const
+{
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        
+        if (clf->isEmpty() == false) {
+            const AString filename = clf->getFileName();
+            if (filename.startsWith("http://")
+                || filename.startsWith("https://")) {
+                if (clf->isDataLoadingEnabled()) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false; 
+}
+
+/**
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.

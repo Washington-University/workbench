@@ -260,22 +260,25 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                                         clm);
                         this->parcelConnectivities.push_back(pc);
                         
-                        const AString actionName("Show Connectivity For Parcel "
-                                                 + giftiLabel->getName()
-                                                 + " in map "
-                                                 + mapName);
-                        QAction* action = connectivityActionGroup->addAction(actionName);
-                        action->setData(qVariantFromValue((void*)pc));
+                        if (hasDenseConnectivity) {
+                            const AString actionName("Show Connectivity For Parcel "
+                                                     + giftiLabel->getName()
+                                                     + " in map "
+                                                     + mapName);
+                            QAction* action = connectivityActionGroup->addAction(actionName);
+                            action->setData(qVariantFromValue((void*)pc));
+                            connectivityActions.push_back(action);
+                        }
 
-                        const AString tsActionName("Show Time Series For Parcel "
-                                                 + giftiLabel->getName()
-                                                 + " in map "
-                                                 + mapName);
-                        QAction* tsAction = timeSeriesActionGroup->addAction(tsActionName);
-                        tsAction->setData(qVariantFromValue((void*)pc));
-                        
-                        timeSeriesActions.push_back(tsAction);
-                        connectivityActions.push_back(action);
+                        if (hasTimeSeries) {
+                            const AString tsActionName("Show Time Series For Parcel "
+                                                       + giftiLabel->getName()
+                                                       + " in map "
+                                                       + mapName);
+                            QAction* tsAction = timeSeriesActionGroup->addAction(tsActionName);
+                            tsAction->setData(qVariantFromValue((void*)pc));                            
+                            timeSeriesActions.push_back(tsAction);
+                        }
                     }
                 }
             }
@@ -352,6 +355,11 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
         return;
     }
     
+    if (this->warnIfNetworkNodeCountIsLarge(pc->connectivityLoaderManager, 
+                                            nodeIndices) == false) {
+        return;
+    }
+    
     try {
         CursorDisplayScoped cursor;
         cursor.showWaitCursor();
@@ -405,6 +413,11 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
             return;
         }
         
+        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getConnectivityLoaderManager(), 
+                                                nodeIndices) == false) {
+            return;
+        }
+        
         try {
             CursorDisplayScoped cursor;
             cursor.showWaitCursor();
@@ -423,7 +436,6 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
     catch (const AlgorithmException& e) {
         WuQMessageBox::errorOk(this, e.whatString());
     }
-
 }
 
 /**
@@ -444,6 +456,11 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
     if (nodeIndices.empty()) {
         WuQMessageBox::errorOk(this,
                                "No nodes match label " + pc->labelName);
+        return;
+    }
+    
+    if (this->warnIfNetworkNodeCountIsLarge(pc->connectivityLoaderManager, 
+                                            nodeIndices) == false) {
         return;
     }
     
@@ -508,6 +525,11 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
         if (nodeIndices.empty()) {
             WuQMessageBox::errorOk(this,
                                    "No nodes found inside border " + border->getName());
+            return;
+        }
+        
+        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getConnectivityLoaderManager(), 
+                                                nodeIndices) == false) {
             return;
         }
         
@@ -605,4 +627,40 @@ BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolsSelected()
     EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * If any enabled connectivity files retrieve data from the network
+ * and the number of nodes is large, warn the user since this will
+ * be a very slow operation.
+ *
+ * @param clm
+ *    The connectivity manager.
+ * @param nodeIndices
+ *    Indices of nodes that will have connectivity data retrieved.
+ * @return 
+ *    true if process should continue, false if user cancels.
+ */
+bool 
+BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
+                                                            const std::vector<int32_t>& nodeIndices)
+{
+    const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
+    if (numNodes < 200) {
+        return true;
+    }
+    
+    if (clm->hasNetworkFiles() == false) {
+        return true;
+    }
+    
+    const QString msg = ("There are "
+                         + QString::number(numNodes)
+                         + " nodes in the selected region.  Loading data for "
+                         + "this quantity of nodes may take a very long time.");
+    const bool result = WuQMessageBox::warningYesNo(this,
+                                                    "Do you want to continue?",
+                                                    msg);
+    return result;
+}
+
 
