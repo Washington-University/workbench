@@ -22,7 +22,6 @@
  * 
  */ 
 
-#include <QStringList>
 
 #include "Model.h"
 
