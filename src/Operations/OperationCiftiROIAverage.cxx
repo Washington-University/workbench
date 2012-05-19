@@ -53,10 +53,10 @@ OperationParameters* OperationCiftiROIAverage::getParameters()
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
     OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "nodes to use from right hempsphere");
-    rightRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
+    rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
     OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cereb-roi", "nodes to use from cerebellum");
-    cerebRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
+    cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
     OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");

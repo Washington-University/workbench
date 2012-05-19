@@ -409,40 +409,36 @@ SurfaceFile::computeNormals(const bool averageNormals)
         float* normalPointer = &this->normalVectors[0];
         std::vector<float> numContribute(numCoords, 0.0f);
 
-#pragma omp CARET_PAR
-        {
-            float triangleNormal[3];
-#pragma omp CARET_FOR
-            for (int32_t i = 0; i < numTriangles; i++) {
-                const int32_t it3 = i * 3;
-                const int n1 = this->trianglePointer[it3];
-                const int n2 = this->trianglePointer[it3 + 1];
-                const int n3 = this->trianglePointer[it3 + 2];
-                const int32_t c1 = n1 * 3;
-                const int32_t c2 = n2 * 3;
-                const int32_t c3 = n3 * 3;
-                if ((n1 >= 0)
-                    && (n2 >= 0)
-                    && (n3 >= 0)) {
-                    
-                    MathFunctions::normalVector(&this->coordinatePointer[c1],
-                                                &this->coordinatePointer[c2],
-                                                &this->coordinatePointer[c3],
-                                                triangleNormal);
-                    
-                    normalPointer[c1 + 0] += triangleNormal[0];
-                    normalPointer[c1 + 1] += triangleNormal[1];
-                    normalPointer[c1 + 2] += triangleNormal[2];
-                    numContribute[n1] += 1.0;
-                    normalPointer[c2 + 0] += triangleNormal[0];
-                    normalPointer[c2 + 1] += triangleNormal[1];
-                    normalPointer[c2 + 2] += triangleNormal[2];
-                    numContribute[n2] += 1.0;
-                    normalPointer[c3 + 0] += triangleNormal[0];
-                    normalPointer[c3 + 1] += triangleNormal[1];
-                    normalPointer[c3 + 2] += triangleNormal[2];
-                    numContribute[n3] += 1.0;
-                }
+        float triangleNormal[3];
+        for (int32_t i = 0; i < numTriangles; i++) {
+            const int32_t it3 = i * 3;
+            const int n1 = this->trianglePointer[it3];
+            const int n2 = this->trianglePointer[it3 + 1];
+            const int n3 = this->trianglePointer[it3 + 2];
+            const int32_t c1 = n1 * 3;
+            const int32_t c2 = n2 * 3;
+            const int32_t c3 = n3 * 3;
+            if ((n1 >= 0)
+                && (n2 >= 0)
+                && (n3 >= 0)) {
+                
+                MathFunctions::normalVector(&this->coordinatePointer[c1],
+                                            &this->coordinatePointer[c2],
+                                            &this->coordinatePointer[c3],
+                                            triangleNormal);
+                
+                normalPointer[c1 + 0] += triangleNormal[0];//+= is not guaranteed to be atomic, do not parallelize
+                normalPointer[c1 + 1] += triangleNormal[1];
+                normalPointer[c1 + 2] += triangleNormal[2];
+                numContribute[n1] += 1.0;
+                normalPointer[c2 + 0] += triangleNormal[0];
+                normalPointer[c2 + 1] += triangleNormal[1];
+                normalPointer[c2 + 2] += triangleNormal[2];
+                numContribute[n2] += 1.0;
+                normalPointer[c3 + 0] += triangleNormal[0];
+                normalPointer[c3 + 1] += triangleNormal[1];
+                normalPointer[c3 + 2] += triangleNormal[2];
+                numContribute[n3] += 1.0;
             }
         }
         

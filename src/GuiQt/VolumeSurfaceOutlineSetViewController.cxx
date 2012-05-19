@@ -138,6 +138,10 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
 VolumeSurfaceOutlineSetViewController::~VolumeSurfaceOutlineSetViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    for (size_t i = 0; i < outlineViewControllers.size(); ++i)
+    {
+        delete outlineViewControllers[i];
+    }
 }
 
 /**
