@@ -1870,7 +1870,7 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                         {
                             this->tl.nodeid = nodeIndex;
                             this->tl = timeLine;
-                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
+                            for(int i = 0;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
@@ -1933,7 +1933,7 @@ int64_t ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz
                         if(this->timeSeriesGraphEnabled)
                         {
                             this->tl = timeLine;
-                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
+                            for(int i = 0;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
