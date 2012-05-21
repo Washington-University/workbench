@@ -166,7 +166,15 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     //this->tabBar->setDocumentMode(true);
     this->tabBar->setShape(QTabBar::RoundedNorth);
 #ifdef Q_OS_MACX
-    this->tabBar->setStyle(new QCleanlooksStyle());
+    /*
+     * Adding a parent to the style will result in it
+     * being destroyed when this instance is destroyed.
+     * The style must remain valid until the destruction
+     * of this instance.  It cannot be declared statically.
+     */
+    QCleanlooksStyle* cleanLooksStyle = new QCleanlooksStyle();
+    cleanLooksStyle->setParent(this);
+    this->tabBar->setStyle(cleanLooksStyle);
 #endif // Q_OS_MACX
     QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
                      this, SLOT(selectedTabChanged(int)));

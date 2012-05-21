@@ -104,7 +104,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     
     
     if (orientation == Qt::Horizontal) {
-        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
+        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
+                                                       this);
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
@@ -117,7 +118,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         bottomHorizontalLineWidget->setMidLineWidth(1);
         bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
         
-        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
+        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
+                                                       this);
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 2);
