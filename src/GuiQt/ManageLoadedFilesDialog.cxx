@@ -247,7 +247,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         AString msg;
         try {
             for (int32_t i = 0; i < numFiles; i++) {
-                this->fileRows[i]->saveFile();
+                this->fileRows[i]->saveFile(this->addSavedFilesToSpecFileCheckBox->isChecked());
             }
         }
         catch (const DataFileException& e) {
@@ -458,12 +458,13 @@ ManageFileRow::fileNameToolButtonPressed()
  * Called to save the file
  */
 void 
-ManageFileRow::saveFile()  throw (DataFileException)
+ManageFileRow::saveFile(const bool isAddToSpecFile)  throw (DataFileException)
 {
     if (this->saveCheckBox->isChecked()) {
         AString name = this->fileNameLineEdit->text().trimmed();
         this->caretDataFile->setFileName(name);
-        this->brain->writeDataFile(this->caretDataFile);
+        this->brain->writeDataFile(this->caretDataFile,
+                                   isAddToSpecFile);
         this->modifiedLabel->setText("   ");
         this->saveCheckBox->setChecked(false);
         this->parentWidget->updateUserInterfaceAndGraphics();

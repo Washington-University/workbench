@@ -1737,13 +1737,16 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
  * Write a data file.
  * @param caretDataFile
  *    Data file to write.
+ * @param isAddToSpecFile
+ *    If true, add the data file to the spec file.
  * @return
  *    true if file was written, else false.
  * @throw
  *    DataFileException if there was an error writing the file.
  */
 void 
-Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
+Brain::writeDataFile(CaretDataFile* caretDataFile,
+                     const bool isAddToSpecFile) throw (DataFileException)
 {
     /*
      * If file is relative path, update path using current directory
@@ -1755,14 +1758,16 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
     caretDataFile->writeFile(caretDataFile->getFileName());
     caretDataFile->clearModified();
     
-    const AString specFileName = this->specFile->getFileName();
-    if (specFileName.isEmpty() == false) {
-        FileInformation fileInfo(specFileName);
-        if (fileInfo.exists()) {
-            this->specFile->addDataFile(caretDataFile->getDataFileType(), 
-                                        caretDataFile->getStructure(), 
-                                        caretDataFile->getFileName());
-            this->specFile->writeFile(specFileName);
+    if (isAddToSpecFile) {
+        const AString specFileName = this->specFile->getFileName();
+        if (specFileName.isEmpty() == false) {
+            FileInformation fileInfo(specFileName);
+            if (fileInfo.exists()) {
+                this->specFile->addDataFile(caretDataFile->getDataFileType(), 
+                                            caretDataFile->getStructure(), 
+                                            caretDataFile->getFileName());
+                this->specFile->writeFile(specFileName);
+            }
         }
     }
 }

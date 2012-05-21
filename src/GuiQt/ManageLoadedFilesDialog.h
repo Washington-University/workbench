@@ -120,7 +120,7 @@ namespace caret {
         
         Brain* brain;
         
-        void saveFile() throw (DataFileException);
+        void saveFile(const bool isAddToSpecFile) throw (DataFileException);
         
     private slots:
         void metaDataToolButtonPressed();
