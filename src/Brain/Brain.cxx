@@ -1769,6 +1769,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
 
 /**
  * Remove a data file from memory (does NOT delete file on disk.)
+ * Searches all of the loaded files for given file, and, when found
+ * deletes the file.
  * @param caretDataFile
  *    Data file to remove.
  * @return
@@ -1783,6 +1785,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     for (int32_t i = 0; i < numBrainStructures; i++) {
         if (this->getBrainStructure(i)->removeDataFile(caretDataFile)) {
             wasRemoved = true;
+            caretDataFile = NULL;
         }
     }
     
@@ -1790,40 +1793,50 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
                                                                   this->borderFiles.end(),
                                                                   caretDataFile);
     if (borderIterator != this->borderFiles.end()) {
-        delete caretDataFile;
+        BorderFile* borderFile = *borderIterator;
+        delete borderFile;
         this->borderFiles.erase(borderIterator);
         wasRemoved = true;
+        caretDataFile = NULL;
     }
     
     std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(this->connectivityDenseFiles.begin(),
                                                                             this->connectivityDenseFiles.end(),
                                                                             caretDataFile);
     if (connIterator != this->connectivityDenseFiles.end()) {
-        delete caretDataFile;
+        ConnectivityLoaderFile* connFile = *connIterator;
+        delete connFile;
         this->connectivityDenseFiles.erase(connIterator);
         wasRemoved = true;
+        caretDataFile = NULL;
     }
 
     std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(this->connectivityTimeSeriesFiles.begin(),
                                                                             this->connectivityTimeSeriesFiles.end(),
                                                                             caretDataFile);
     if (timeIterator != this->connectivityTimeSeriesFiles.end()) {
-        delete caretDataFile;
+        ConnectivityLoaderFile* timeFile = *timeIterator;
+        delete timeFile;
         this->connectivityTimeSeriesFiles.erase(timeIterator);
         wasRemoved = true;
+        caretDataFile = NULL;
     }
     
     std::vector<FociFile*>::iterator fociIterator = std::find(this->fociFiles.begin(),
                                                                   this->fociFiles.end(),
                                                                   caretDataFile);
     if (fociIterator != this->fociFiles.end()) {
-        delete caretDataFile;
+        FociFile* fociFile =  *fociIterator;
+        delete fociFile;
         this->fociFiles.erase(fociIterator);
         wasRemoved = true;
+        caretDataFile = NULL;
     }
     
     if (this->paletteFile == caretDataFile) {
-        throw DataFileException("Cannot remove PaletteFile.");
+        if (this->paletteFile != NULL) {
+            throw DataFileException("Cannot remove PaletteFile at this time.");
+        }
     }
     
     std::vector<VolumeFile*>::iterator volumeIterator = 
@@ -1831,9 +1844,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
               this->volumeFiles.end(),
               caretDataFile);
     if (volumeIterator != this->volumeFiles.end()) {
-        delete caretDataFile;
+        VolumeFile* volumeFile = *volumeIterator;
+        delete volumeFile;
         this->volumeFiles.erase(volumeIterator);
         wasRemoved = true;
+        caretDataFile = NULL;
     }
     
     if (wasRemoved) {
