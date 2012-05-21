@@ -170,7 +170,7 @@ Focus::copyHelperFocus(const Focus& focus)
     m_searchXYZ[2] = focus.m_searchXYZ[2];
     m_statistic = focus.m_statistic;
     delete m_studyMetaDataLinkSet;
-    m_studyMetaDataLinkSet = new StudyMetaDataLinkSet(*m_studyMetaDataLinkSet);
+    m_studyMetaDataLinkSet = new StudyMetaDataLinkSet(*focus.m_studyMetaDataLinkSet);
     m_sumsIdNumber = focus.m_sumsIdNumber;
     m_sumsRepeatNumber = focus.m_sumsRepeatNumber;
     m_sumsParentFocusBaseId = focus.m_sumsParentFocusBaseId;
