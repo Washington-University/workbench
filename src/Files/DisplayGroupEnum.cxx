@@ -89,9 +89,9 @@ DisplayGroupEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DisplayGroupEnum(DISPLAY_ALL_WINDOWS, 
-                                        "DISPLAY_ALL_WINDOWS", 
-                                        "All Windows"));
+//    enumData.push_back(DisplayGroupEnum(DISPLAY_ALL_WINDOWS, 
+//                                        "DISPLAY_ALL_WINDOWS", 
+//                                        "All Windows"));
     
     enumData.push_back(DisplayGroupEnum(DISPLAY_GROUP_A, 
                                         "DISPLAY_GROUP_A", 
@@ -169,7 +169,7 @@ DisplayGroupEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DISPLAY_ALL_WINDOWS;
+    Enum enumValue = getDefaultValue();
     
     for (std::vector<DisplayGroupEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -222,7 +222,7 @@ DisplayGroupEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DISPLAY_ALL_WINDOWS;
+    Enum enumValue = getDefaultValue();
     
     for (std::vector<DisplayGroupEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -275,7 +275,7 @@ DisplayGroupEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = DISPLAY_ALL_WINDOWS;
+    Enum enumValue = getDefaultValue();
     
     for (std::vector<DisplayGroupEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

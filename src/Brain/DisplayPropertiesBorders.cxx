@@ -56,7 +56,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
 : DisplayProperties(brain)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {

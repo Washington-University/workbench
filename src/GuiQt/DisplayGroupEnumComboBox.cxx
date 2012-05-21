@@ -88,7 +88,7 @@ DisplayGroupEnumComboBox::~DisplayGroupEnumComboBox()
 DisplayGroupEnum::Enum 
 DisplayGroupEnumComboBox::getSelectedDisplayGroup() const
 {
-    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::getDefaultValue();
     const int32_t indx = this->displayGroupComboBox->currentIndex();
     if (indx >= 0) {
         const int32_t integerCode = this->displayGroupComboBox->itemData(indx).toInt();

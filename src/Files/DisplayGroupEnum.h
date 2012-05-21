@@ -48,8 +48,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** All windows */
-        DISPLAY_ALL_WINDOWS,
+//        /** All windows */
+//        DISPLAY_ALL_WINDOWS,
         /** Group A */
         DISPLAY_GROUP_A,
         /** Group B */
@@ -63,7 +63,7 @@ public:
 
     enum Misc {
         /** Number of groups, update if new enums are added */
-        NUMBER_OF_GROUPS = 5
+        NUMBER_OF_GROUPS = 4
     };
     
     ~DisplayGroupEnum();
@@ -86,6 +86,7 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static DisplayGroupEnum::Enum getDefaultValue() { return DISPLAY_GROUP_A; }
 private:
     DisplayGroupEnum(const Enum enumValue, 
                  const AString& name,
