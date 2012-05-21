@@ -198,10 +198,10 @@ void
 BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool status)
 {
     QString title = this->toolBoxTitle;
-    if (status) {
-        title += (" "
-                  + QString::number(this->browserWindowIndex + 1));
-    }
+//    if (status) {
+//        title += (" "
+//                  + QString::number(this->browserWindowIndex + 1));
+//    }
     this->setWindowTitle(title);
 }
 
