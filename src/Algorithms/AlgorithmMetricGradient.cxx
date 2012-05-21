@@ -174,7 +174,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             myVectorsOut->setStructure(mySurf->getStructure());
             myVecScratch = new float[numNodes * 3];
         }
-        const float* myRoiColumn;
+        const float* myRoiColumn = NULL;
         if (myRoi != NULL)
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
@@ -228,6 +228,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     MathFunctions::normalizeVector(xhat);
                     MathFunctions::crossProduct(myNormal, xhat, yhat);
                     MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
+                    int neighCount = 0;//count within-roi neighbors, not simply surface neighbors
                     if (numNeigh >= 2)
                     {
                         FloatMatrix myRegress = FloatMatrix::zeros(3, 4);
@@ -237,6 +238,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             int32_t whichNode3 = whichNode * 3;
                             if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
                             {
+                                ++neighCount;
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
                                 const float* neighCoord = myCoords + whichNode3;
                                 MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
@@ -257,17 +259,20 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                 myRegress[2][3] += tempf;
                             }
                         }
-                        myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
-                        myRegress[2][0] = myRegress[0][2];
-                        myRegress[2][1] = myRegress[1][2];
-                        myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
-                        FloatMatrix myRref = myRegress.reducedRowEchelon();
-                        somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
-                        somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
-                        somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
-                        sanity = somevec[0] + somevec[1] + somevec[2];
+                        if (neighCount >= 2)
+                        {
+                            myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
+                            myRegress[2][0] = myRegress[0][2];
+                            myRegress[2][1] = myRegress[1][2];
+                            myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
+                            FloatMatrix myRref = myRegress.reducedRowEchelon();
+                            somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
+                            somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
+                            somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
+                            sanity = somevec[0] + somevec[1] + somevec[2];
+                        }
                     }
-                    if (numNeigh > 0 && (numNeigh < 2 || sanity != sanity))
+                    if (neighCount > 0 && (neighCount < 2 || sanity != sanity))
                     {
                         if (!haveWarned && myRoi == NULL)
                         {//don't issue this warning with an ROI, because it is somewhat expected
@@ -275,14 +280,12 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least node " + AString::number(i));
                         }
                         float xgrad = 0.0f, ygrad = 0.0f;
-                        int32_t totalNeigh = 0;
                         for (int32_t j = 0; j < numNeigh; ++j)
                         {
                             int32_t whichNode = myNeighbors[j];
                             int32_t whichNode3 = whichNode * 3;
                             if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
                             {
-                                ++totalNeigh;
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
                                 const float* neighCoord = myCoords + whichNode3;
                                 MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
@@ -295,16 +298,17 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                 ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
                             }
                         }
-                        xgrad /= totalNeigh;//average
-                        ygrad /= totalNeigh;
+                        xgrad /= neighCount;//average
+                        ygrad /= neighCount;
                         somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
                         somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
                         somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
+                        sanity = somevec[0] + somevec[1] + somevec[2];
                     }
-                    if (numNeigh <= 0 || sanity != sanity)
+                    if (neighCount <= 0 || sanity != sanity)
                     {
-                        if (!haveFailed)
-                        {
+                        if (!haveFailed && myRoi == NULL)
+                        {//don't warn with an roi, they can be strange
                             haveFailed = true;
                             CaretLogWarning("Failed to compute gradient for at least node " + AString::number(i) + " with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
                         }
