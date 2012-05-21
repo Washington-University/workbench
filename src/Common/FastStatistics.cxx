@@ -30,7 +30,7 @@
 using namespace caret;
 using namespace std;
 
-const int NUM_BUCKETS_PERCENTILE_HIST = 10000;//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory for each histogram
+const int NUM_BUCKETS_PERCENTILE_HIST = 100000;//100,000 to temporarily overcome somewhat extreme outliers while I think of a better fix
 
 FastStatistics::FastStatistics()
 {
