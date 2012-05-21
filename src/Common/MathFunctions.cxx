@@ -883,7 +883,7 @@ MathFunctions::vtkLUFactor3x3(
     // third column
     A[1][2] -= A[1][0]*A[0][2];
     A[2][2] -= A[2][0]*A[0][2] + A[2][1]*A[1][2];
-    largest = scale[2]*std::abs(A[2][2]);
+    //largest = scale[2]*std::abs(A[2][2]);
     index[2] = 2;
     A[2][2] = (1.0f)/A[2][2];
 }

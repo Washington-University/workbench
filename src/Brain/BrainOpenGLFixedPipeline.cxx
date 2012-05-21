@@ -370,32 +370,11 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayC
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    float translateFlipX = 1.0;
-    switch (viewingMatrixIndex) {
-        case Model::VIEWING_TRANSFORM_COUNT:
-            break;
-        case Model::VIEWING_TRANSFORM_NORMAL:
-            break;
-        case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-            break;
-        case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-            translateFlipX = -1.0;
-            break;
-        case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-            translateFlipX = -1.0;
-            break;
-        case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-            break;
-    }
-    
     const float* translation = modelDisplayController->getTranslation(tabIndex,
                                                                       viewingMatrixIndex);
     glTranslatef(translation[0], 
                  translation[1], 
                  translation[2]);
-//    glTranslatef((translation[0] * translateFlipX), 
-//                 translation[1], 
-//                 translation[2]);
     
     const Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(tabIndex,
                                                                                        viewingMatrixIndex);

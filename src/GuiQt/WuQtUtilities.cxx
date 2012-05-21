@@ -302,7 +302,7 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     const int ph = parentGeometry.height();
     const int parentMaxX = px + pw;
     
-    int x = px + pw + 1;
+    //int x = px + pw + 1;
     int y = py + ph - window->height() - 20;
     const int windowWidth = window->width();
 
@@ -316,6 +316,7 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     const int spaceOnLeft = px -screenMinX;
     const int spaceOnRight = screenMaxX - parentMaxX;
     
+    int x = screenMinX;
     if (spaceOnRight > windowWidth) {
         x = parentMaxX;
     }
@@ -325,9 +326,9 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     else if (spaceOnRight > spaceOnLeft) {
         x = screenMaxX - windowWidth;
     }
-    else {
-        x = screenMinX;
-    }
+//    else {
+//        x = screenMinX;
+//    }
     
     if ((x + windowWidth) > screenMaxX) {
         x = screenMaxX - windowWidth;

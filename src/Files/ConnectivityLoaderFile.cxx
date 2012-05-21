@@ -891,7 +891,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
         return -1;
     }
     
-    int64_t rowIndex;
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -1648,7 +1648,7 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             createVolumeFlag = true;
         }
         else {
-            float x0, y0, z0, x1, y1, z1;
+            float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
             this->connectivityVolumeFile->indexToSpace(0, 0, 0, x0, y0, z0);
             this->connectivityVolumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
             const float dx = x1 - x0;

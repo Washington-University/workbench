@@ -923,7 +923,7 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::setSelected(const DisplayG
     CaretAssertArrayIndex(this->selected, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    this->selected[displayGroup] = status;
+    this->selected[displayIndex] = status;
 }
 
 /**

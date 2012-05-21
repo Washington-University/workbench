@@ -1363,7 +1363,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
                     break;
             }
             
-            z = z - 1;
+            //z = z - 1;
             
             const bool showLinesFlag = false;
             if (showLinesFlag) {

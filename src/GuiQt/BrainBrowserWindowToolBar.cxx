@@ -981,33 +981,26 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showToolsWidget = true;
     bool showWindowWidget = true;
     
-    int spacerWidgetStretchFactor = 0;
-    int singleSurfaceWidgetStretchFactor = 0;
-    
     switch (viewModel) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             showOrientationWidget = true;
             showSingleSurfaceOptionsWidget = true;
-            singleSurfaceWidgetStretchFactor = 100;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             showOrientationWidget = true;
             showSurfaceMontageOptionsWidget = true;
-            spacerWidgetStretchFactor = 100;
             break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             showVolumeIndicesWidget = true;
             showVolumePlaneWidget = true;
             showVolumeMontageWidget = true;
-            spacerWidgetStretchFactor = 100;
             break;
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             showOrientationWidget = true;
             showWholeBrainSurfaceOptionsWidget = true;
             showVolumeIndicesWidget = true;
-            spacerWidgetStretchFactor = 100;
             break;
         case ModelTypeEnum::MODEL_TYPE_YOKING:
             CaretAssertMessage(0, "Yoking model display controller should NEVER be displayed");
@@ -1029,11 +1022,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeMontageWidget->setVisible(false);
     this->toolsWidget->setVisible(false);
     this->windowWidget->setVisible(false);
-    
-    //this->toolbarWidgetLayout->setStretchFactor(this->singleSurfaceSelectionWidget, 
-    //                                          singleSurfaceWidgetStretchFactor);
-    //this->toolbarWidgetLayout->setStretchFactor(this->spacerWidget, 
-    //                                          spacerWidgetStretchFactor);
     
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
@@ -1646,44 +1634,24 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double)));
     
     
-    QLabel* separationLabel = new QLabel("Separation");
-    
-
     QGridLayout* gridLayout = new QGridLayout();
 
-    const bool compactLayoutFlag = true;
-    if (compactLayoutFlag) {
-        QLabel* columnTwoSpaceLabel = new QLabel(" ");
-        wholeBrainLeftSurfaceToolButton->setText("L");
-        wholeBrainRightSurfaceToolButton->setText("R");
-        wholeBrainCerebellumSurfaceToolButton->setText("C");
-        gridLayout->setVerticalSpacing(2);
-        gridLayout->setHorizontalSpacing(2);
-        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
-        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-        gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
-        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
-        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
-        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
-        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
-    }
-    else {
-        gridLayout->setVerticalSpacing(4);
-        gridLayout->setHorizontalSpacing(4);
-        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 4);
-        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 2);
-        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 3);
-        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
-        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1, 1, 3);
-        gridLayout->addWidget(separationLabel, 0, 4);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 4);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 4);
-    }
+    QLabel* columnTwoSpaceLabel = new QLabel(" ");
+    wholeBrainLeftSurfaceToolButton->setText("L");
+    wholeBrainRightSurfaceToolButton->setText("R");
+    wholeBrainCerebellumSurfaceToolButton->setText("C");
+    gridLayout->setVerticalSpacing(2);
+    gridLayout->setHorizontalSpacing(2);
+    gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
+    gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+    gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+    gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
+    gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
+    gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
+    gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
+    gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
+    gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);

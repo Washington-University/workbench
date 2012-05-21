@@ -90,6 +90,10 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
                                   (int)DataFileTypeEnum::toIntegerCode(dft));
     }
     
+    if (defaultFileTypeComboBoxIndex >= 0) {
+        m_fileTypeComboBox->setCurrentIndex(defaultFileTypeComboBoxIndex);
+    }
+    
     QLabel* usernameLabel = new QLabel("Username: ");
     m_usernameLineEdit = new QLineEdit();
     m_usernameLineEdit->setFixedWidth(200);
