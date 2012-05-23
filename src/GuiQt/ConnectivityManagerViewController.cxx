@@ -46,7 +46,6 @@
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
 #include "ConnectivityDenseViewController.h"
-#include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"

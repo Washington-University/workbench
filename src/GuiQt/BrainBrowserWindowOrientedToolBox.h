@@ -6,8 +6,6 @@
 
 #include <QDockWidget>
 
-#include "EventListenerInterface.h"
-
 class QTabWidget;
 
 namespace caret {
@@ -17,7 +15,7 @@ namespace caret {
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
-    class BrainBrowserWindowOrientedToolBox : public QDockWidget, public EventListenerInterface {
+    class BrainBrowserWindowOrientedToolBox : public QDockWidget{
         Q_OBJECT
         
     public:
@@ -33,10 +31,8 @@ namespace caret {
                                   QWidget* parent = 0);
         
         ~BrainBrowserWindowOrientedToolBox();
-        
-        void receiveEvent(Event* event);
-        
-    private slots:
+
+        private slots:
         void floatingStatusChanged(bool);
         
     private:

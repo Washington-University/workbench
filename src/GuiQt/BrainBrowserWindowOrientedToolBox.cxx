@@ -13,9 +13,6 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventManager.h"
-#include "EventUserInterfaceUpdate.h"
 #include "FociSelectionViewController.h"
 #include "OverlaySetViewController.h"
 #include "SessionManager.h"
@@ -40,10 +37,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                      QWidget* parent)
 :   QDockWidget(parent)
 {
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
-    
     this->browserWindowIndex = browserWindowIndex;
     
     this->toggleViewAction()->setText("Toolbox");
@@ -165,7 +158,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
  */
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -203,29 +195,5 @@ BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool status)
 //                  + QString::number(this->browserWindowIndex + 1));
 //    }
     this->setWindowTitle(title);
-}
-
-/**
- * Receive events from the event manager.
- * 
- * @param event
- *   Event sent by event manager.
- */
-void 
-BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
-{
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        uiEvent->setEventProcessed();
-    }
-    else if ((event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ)
-             || (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES)) {
-//        this->tabWidget->setCurrentWidget(this->overlayWidget);
-    }
-    else {
-    }
 }
 

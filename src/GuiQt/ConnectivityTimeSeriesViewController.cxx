@@ -59,7 +59,6 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventUserInterfaceUpdate.h"
 #include "EventUpdateAnimationStartTime.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
@@ -383,7 +382,6 @@ ConnectivityTimeSeriesViewController::updateUserInterfaceAndGraphicsWindow()
     this->updateOtherConnectivityTimeSeriesViewControllers();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    //EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
