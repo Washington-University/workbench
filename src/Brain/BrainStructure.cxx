@@ -1034,13 +1034,13 @@ BrainStructure::receiveEvent(Event* event)
             const StructureEnum::Enum idStructure = idRemovalEvent->getSurfaceStructure();
             const int32_t idNodeNumber = idRemovalEvent->getSurfaceNodeNumber();
             if (idStructure == this->structure) {
-                if (this->getNumberOfNodes() >= idNodeNumber) {
+                if (idNodeNumber < this->getNumberOfNodes()) {
                     this->nodeAttributes->setIdentificationType(idNodeNumber,
                                                                 NodeIdentificationTypeEnum::NONE);
                 }
             }
             else if (this->structure == StructureEnum::getContralateralStructure(idStructure)) {
-                if (this->getNumberOfNodes() >= idNodeNumber) {
+                if (idNodeNumber < this->getNumberOfNodes()) {
                     this->nodeAttributes->setIdentificationType(idNodeNumber,
                                                                 NodeIdentificationTypeEnum::NONE);
                 }
