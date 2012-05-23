@@ -128,6 +128,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     
     InformationDisplayWidget::allInformationDisplayWidgets.insert(this);
     this->updateInformationDisplayWidget();
+    this->clearInformationText();
     
     /*
      * Use processed event listener since the text event
@@ -166,7 +167,9 @@ InformationDisplayWidget::contralateralIdentificationToggled(bool)
 void 
 InformationDisplayWidget::clearInformationText()
 {
-    this->informationTextBrowser->setText("");
+    this->informationText = "";
+    this->informationText.reserve(32000);
+    this->informationTextBrowser->setHtml("");
 }
 
 
@@ -217,7 +220,9 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
 {
     const AString text = informationEvent->getText();
     if (text.isEmpty() == false) {
-        this->informationTextBrowser->appendHtml(informationEvent->getText());
+        this->informationText.append(informationEvent->getText());
+        this->informationText.append("<br><br>");
+        this->informationTextBrowser->setContentToHtml(this->informationText);
     }
 }
 

@@ -74,6 +74,8 @@ namespace caret {
         static std::set<InformationDisplayWidget*> allInformationDisplayWidgets;
         
         QAction* contralateralIdentificationAction;
+        
+        QString informationText;
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__
