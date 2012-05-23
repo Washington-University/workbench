@@ -100,8 +100,7 @@ LogHandlerInformationTextDisplay::publish(const LogRecord& logRecord)
     + "\nText:   " + logRecord.getText()
      + "\n");
     
-    EventInformationTextDisplay eitd(msg,
-                                     EventInformationTextDisplay::TYPE_PLAIN);
+    EventInformationTextDisplay eitd(msg);
     if (logRecord.getLevel() < LogLevelEnum::WARNING) {
         eitd.setNotImportant();
     }

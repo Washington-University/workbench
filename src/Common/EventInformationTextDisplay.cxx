@@ -30,15 +30,11 @@ using namespace caret;
  * Construct an event for display text in the information windows.
  * @param text
  *   Text that will be displayed.
- * @param isPlainText
- *   Set to true if text is plain text.  Otherwise
  */
-EventInformationTextDisplay::EventInformationTextDisplay(const AString& text,
-                                                         const TextType textType)
+EventInformationTextDisplay::EventInformationTextDisplay(const AString& text)
 : Event(EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY)
 {
     this->text = text;
-    this->textType = textType;
     this->important = true;
 }
 
@@ -80,15 +76,6 @@ AString
 EventInformationTextDisplay::getText() const
 {
     return this->text; 
-}
-
-/**
- * @return The type of text.
- */
-EventInformationTextDisplay::TextType 
-EventInformationTextDisplay::getTextType() const
-{
-    return this->textType;
 }
 
 

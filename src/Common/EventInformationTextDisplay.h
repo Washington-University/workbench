@@ -35,13 +35,7 @@ namespace caret {
     class EventInformationTextDisplay : public Event {
         
     public:
-        enum TextType {
-            TYPE_HTML,
-            TYPE_PLAIN,
-        };
-        
-        EventInformationTextDisplay(const AString& text,
-                                    const TextType textType);
+        EventInformationTextDisplay(const AString& text);
         
         virtual ~EventInformationTextDisplay();
 
@@ -51,16 +45,12 @@ namespace caret {
         
         AString getText() const;
         
-        TextType getTextType() const;
-        
     private:
         EventInformationTextDisplay(const EventInformationTextDisplay&);
         
         EventInformationTextDisplay& operator=(const EventInformationTextDisplay&);
 
         AString text;
-        
-        TextType textType;
         
         bool important;
     };

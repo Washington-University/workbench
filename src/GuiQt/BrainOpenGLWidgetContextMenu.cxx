@@ -580,8 +580,7 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
-                                                               EventInformationTextDisplay::TYPE_HTML).getPointer());
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
 }
 
 /**
@@ -597,8 +596,7 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
-                                                               EventInformationTextDisplay::TYPE_HTML).getPointer());
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
 }
 
 /**
@@ -614,8 +612,7 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
-                                                               EventInformationTextDisplay::TYPE_HTML).getPointer());
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
 }
 
 /**

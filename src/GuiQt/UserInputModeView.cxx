@@ -312,8 +312,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         
         if (ciftiRowColumnInformation.isEmpty() == false) {
             ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:\n");
-            EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation,
-                                                                       EventInformationTextDisplay::TYPE_PLAIN).getPointer());                    
+            EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation).getPointer());                    
         }
         
     }
@@ -322,8 +321,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     const AString idMessage = idManager->getIdentificationText(btc,
                                                                brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
-                                                               EventInformationTextDisplay::TYPE_HTML).getPointer());
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
 
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

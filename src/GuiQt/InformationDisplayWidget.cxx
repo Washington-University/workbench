@@ -217,14 +217,7 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
 {
     const AString text = informationEvent->getText();
     if (text.isEmpty() == false) {
-        switch(informationEvent->getTextType()) {
-            case EventInformationTextDisplay::TYPE_PLAIN:
-                this->informationTextBrowser->append(informationEvent->getText());
-                break;
-            case EventInformationTextDisplay::TYPE_HTML:
-                this->informationTextBrowser->appendHtml(informationEvent->getText());
-                break;
-        }
+        this->informationTextBrowser->appendHtml(informationEvent->getText());
     }
 }
 
