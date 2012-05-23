@@ -291,6 +291,12 @@ namespace caret {
         bool hasRowSurfaceData(const StructureEnum::Enum& structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
         
+        ///comparison
+        bool matchesForRows(const CiftiXML& rhs) const;
+        bool matchesForColumns(const CiftiXML& rhs) const;
+        bool matchesVolumeSpace(const CiftiXML& rhs) const;
+        bool operator==(const CiftiXML& rhs) const;
+        
     protected:
         CiftiRootElement m_root;
         int m_rowMapIndex, m_colMapIndex;

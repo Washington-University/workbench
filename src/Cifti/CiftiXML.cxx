@@ -1264,3 +1264,76 @@ const CiftiBrainModelElement* CiftiXML::findVolumeModel(const int& myMapIndex, c
     }
     return NULL;
 }
+
+bool CiftiXML::matchesForColumns(const CiftiXML& rhs) const
+{
+    if (this == &rhs) return true;//compare pointers to skip checking object against itself
+    if (m_colMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return (rhs.m_colMapIndex == -1 || rhs.m_root.m_matrices.size() == 0);
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_colMapIndex);
+    CaretAssertVectorIndex(rhs.m_root.m_matrices[0].m_matrixIndicesMap, rhs.m_colMapIndex);
+    if (!matchesVolumeSpace(rhs)) return false;
+    return (m_root.m_matrices[0].m_matrixIndicesMap[m_colMapIndex] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_colMapIndex]);
+}
+
+bool CiftiXML::matchesForRows(const caret::CiftiXML& rhs) const
+{
+    if (this == &rhs) return true;//compare pointers to skip checking object against itself
+    if (m_rowMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return (rhs.m_rowMapIndex == -1 || rhs.m_root.m_matrices.size() == 0);
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_rowMapIndex);
+    CaretAssertVectorIndex(rhs.m_root.m_matrices[0].m_matrixIndicesMap, rhs.m_rowMapIndex);
+    if (!matchesVolumeSpace(rhs)) return false;
+    return (m_root.m_matrices[0].m_matrixIndicesMap[m_rowMapIndex] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_rowMapIndex]);
+}
+
+bool CiftiXML::operator==(const caret::CiftiXML& rhs) const
+{
+    if (this == &rhs) return true;//compare pointers to skip checking object against itself
+    if (m_root.m_matrices.size() != rhs.m_root.m_matrices.size()) return false;
+    if (!matchesVolumeSpace(rhs)) return false;
+    if (!matchesForColumns(rhs)) return false;
+    if (m_root.m_matrices.size() > 1) return matchesForRows(rhs);
+    return true;
+}
+
+bool CiftiXML::matchesVolumeSpace(const CiftiXML& rhs) const
+{
+    if (hasColumnVolumeData() || hasRowVolumeData())
+    {
+        if (!(rhs.hasColumnVolumeData() || rhs.hasRowVolumeData()))
+        {
+            return false;
+        }
+    } else {
+        if (rhs.hasColumnVolumeData() || rhs.hasRowVolumeData())
+        {
+            return false;
+        } else {
+            return true;//don't check for matching/existing sforms if there are no voxel maps in either
+        }
+    }
+    int64_t dims[3], rdims[3];
+    vector<vector<float> > sform, rsform;
+    if (!getVolumeDimsAndSForm(dims, sform) || !rhs.getVolumeDimsAndSForm(rdims, rsform))
+    {//should NEVER happen
+        CaretAssertMessage(false, "has*VolumeData() and getVolumeDimsAndSForm() disagree");
+        throw CiftiFileException("has*VolumeData() and getVolumeDimsAndSForm() disagree");
+    }
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
+    for (int i = 0; i < 3; ++i)
+    {
+        if (dims[i] != rdims[i]) return false;
+        for (int j = 0; j < 4; ++j)
+        {
+            float left = sform[i][j];
+            float right = rsform[i][j];
+            if (left != right && (left == 0.0f || right == 0.0f || left / right < TOLER_RATIO || right / left < TOLER_RATIO)) return false;
+        }
+    }
+    return true;
+}

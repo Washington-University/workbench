@@ -18,6 +18,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmCiftiAverageDenseROI.h
 AlgorithmCiftiCorrelation.h
 AlgorithmCiftiCorrelationGradient.h
 AlgorithmCiftiCreateDenseTimeseries.h
@@ -40,6 +41,7 @@ AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 
 AbstractAlgorithm.cxx
+AlgorithmCiftiAverageDenseROI.cxx
 AlgorithmCiftiCorrelation.cxx
 AlgorithmCiftiCorrelationGradient.cxx
 AlgorithmCiftiCreateDenseTimeseries.cxx

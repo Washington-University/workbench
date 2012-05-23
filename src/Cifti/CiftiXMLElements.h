@@ -64,6 +64,7 @@ public:
     std::vector<voxelIndexType> m_voxelIndicesIJK; /*!<  Identifies the voxels that model a brain structure. */
     std::vector<int64_t> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
     void setupLookup();//convenience function to populate lookup
+    bool operator==(const CiftiBrainModelElement& rhs) const;
 };
 
 /// Cifti Matrix Indices Map XML Element
@@ -84,6 +85,7 @@ public:
     int m_timeStepUnits;/*!< Indicates units of TimeStep. */
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
+    bool operator==(const CiftiMatrixIndicesMapElement& rhs) const;
 };
 
 /// Cifti Label XML Element

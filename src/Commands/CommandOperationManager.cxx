@@ -26,6 +26,7 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "AlgorithmCiftiAverageDenseROI.h"
 #include "AlgorithmCiftiCorrelation.h"
 #include "AlgorithmCiftiCorrelationGradient.h"
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
@@ -105,6 +106,7 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverageDenseROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelationGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseTimeseries()));
