@@ -60,9 +60,12 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     } catch (ProgramParametersException& e) {
         throw e;
     } catch (CaretException& e) {
-        throw CommandException(e);//rethrow EVERYTHING else as CommandException
+        throw CommandException(e);//rethrow all other caret exceptions as CommandException
+    } catch (exception& e) {
+        throw CommandException(e.what());//rethrow std::exception and derived as CommandException
+    } catch (...) {
+        throw CommandException("unknown exception type thrown");//throw dummy CommandException for anything else
     }
-    
 }
 
 void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
@@ -92,8 +95,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 case OperationParametersEnum::DOUBLE:
                     break;//it is probably a negative number, so don't throw an exception unless it fails to parse as one
                 default:
-                    throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
-                                                     ">, option switch is either incorrect, or incorrectly placed");
+                    throw ProgramParametersException("Invalid option \"" + nextArg + "\" while next required argument is <" + myComponent->m_paramList[i]->m_shortName +
+                                                     ">, option is either incorrect, or incorrectly placed");
                 };
             } else {
                 --i;
@@ -218,8 +221,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
-                throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
-                ">, option switch is either incorrect, or incorrectly placed");
+                throw ProgramParametersException("Invalid option \"" + nextArg + "\" while next reqired argument is <" + myComponent->m_outputList[i]->m_shortName +
+                ">, option is either incorrect, or incorrectly placed");
             }
             --i;//options do not set required arguments
             continue;//so rewind the index and skip trying to parse it as a required argument
