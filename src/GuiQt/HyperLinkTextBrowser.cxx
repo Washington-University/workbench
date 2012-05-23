@@ -134,14 +134,35 @@ HyperLinkTextBrowser::appendHtml(const AString& html)
    QScrollBar* vsb = verticalScrollBar();
    vsb->setValue(vsb->maximum());
 }
-      
+ 
 /**
- * Set the text in the browser.
+ * Set the content of the browser to the given html and then
+ * scroll to the bottom.
+ *
+ * @param html
+ *   Html for browser.
+ */ 
+void 
+HyperLinkTextBrowser::setContentToHtml(const AString& html)
+{
+    this->setHtml(html);
+
+    //
+    // Scroll to newest text (at end of scroll bar)
+    //
+    QScrollBar* vsb = verticalScrollBar();
+    vsb->setValue(vsb->maximum());
+}
+
+/**
+ * Set the content of the browser to the given text and then
+ * scroll to the bottom.
+ *
  * @param textIn
- *   Text for the browser.
- */
+ *   Text for browser.
+ */ 
 void
-HyperLinkTextBrowser::setText(const AString& textIn)
+HyperLinkTextBrowser::setContentToText(const AString& textIn)
 {
    //
    // See if string contains a URL

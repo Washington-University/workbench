@@ -41,7 +41,9 @@ namespace caret {
         
         ~HyperLinkTextBrowser();
         
-        void setText(const AString& text);
+        void setContentToHtml(const AString& html);
+        
+        void setContentToText(const AString& text);
         
     signals:
         void keyPressed();
