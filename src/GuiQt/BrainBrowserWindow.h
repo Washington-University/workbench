@@ -35,7 +35,6 @@
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
-#include "EventListenerInterface.h"
 
 class QAction;
 class QActionGroup;
@@ -53,13 +52,11 @@ namespace caret {
      * brain models.  It may contain multiple tabs
      * with each tab displaying brain models.
      */ 
-    class BrainBrowserWindow : public QMainWindow, public EventListenerInterface  {
+    class BrainBrowserWindow : public QMainWindow  {
         Q_OBJECT
         
     public:
         virtual ~BrainBrowserWindow();
-        
-        void receiveEvent(Event* event);
         
         BrowserTabContent* getBrowserTabContent();
         

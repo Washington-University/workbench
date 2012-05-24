@@ -202,7 +202,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
-    EventManager::get()->removeAllEventsFromListener(this);    
 }
 
 /**
@@ -1820,7 +1819,6 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
         }
         
         if (this->toolbar->tabBar->count() <= 0) {
-            EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
             this->close();
         }
         
@@ -2111,31 +2109,6 @@ void
 BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent)
 {
     this->toolbar->removeAndReturnAllTabs(allTabContent);
-}
-
-/**
- * Receive events from the event manager.
- * 
- * @param event
- *   Event sent by event manager.
- */
-void 
-BrainBrowserWindow::receiveEvent(Event* event)
-{
-// TOOLBAR PROCESSES USER INTERFACE UPDATE EVENT !!!!
-//
-//    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-//        EventUserInterfaceUpdate* uiEvent =
-//        dynamic_cast<EventUserInterfaceUpdate*>(event);
-//        CaretAssert(uiEvent);
-//        
-//        this->toolbar->updateToolBar();
-//        
-//        uiEvent->setEventProcessed();
-//    }
-//    else {
-//        
-//    }
 }
 
 /**
