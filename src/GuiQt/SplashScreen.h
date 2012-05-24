@@ -56,7 +56,9 @@ namespace caret {
     private slots:
         void websiteLinkActivated(const QString& link);
         
-        void specFileTreeWidgetItemSelected();
+        void specFileTreeWidgetItemClicked(QTreeWidgetItem* item);
+        
+        void specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item);
         
         void chooseSpecFileViaOpenFileDialog();
         

@@ -133,8 +133,10 @@ SplashScreen::SplashScreen(QWidget* parent)
     headerText.append("Path");
     m_specFileTreeWidget = new QTreeWidget();
     m_specFileTreeWidget->setHeaderLabels(headerText);
-    QObject::connect(m_specFileTreeWidget, SIGNAL(itemSelectionChanged()),
-                     this, SLOT(specFileTreeWidgetItemSelected()));
+    QObject::connect(m_specFileTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(specFileTreeWidgetItemClicked(QTreeWidgetItem*)));
+    QObject::connect(m_specFileTreeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem*)));
 
     QScrollArea* treeScrollArea = new QScrollArea();
     treeScrollArea->setWidget(m_specFileTreeWidget);
@@ -223,16 +225,37 @@ SplashScreen::twitterActionTriggered()
 }
 
 /**
- * Called when spec file tree widget item is selected.
+ * Called when spec file tree widget item is clicked.
+ * @param item
+ *    Item clicked.
  */
 void 
-SplashScreen::specFileTreeWidgetItemSelected()
+SplashScreen::specFileTreeWidgetItemClicked(QTreeWidgetItem* item)
 {
     m_selectedSpecFileName = "";
     
-    QTreeWidgetItem* twi = m_specFileTreeWidget->currentItem();
-    if (twi != NULL) {
-        m_selectedSpecFileName = twi->data(0, Qt::UserRole).toString();
+    if (item != NULL) {
+        m_selectedSpecFileName = item->data(0, Qt::UserRole).toString();
+    }
+}
+
+/**
+ * Called when spec file tree widget item is double-clicked.
+ * @param item
+ *    Item clicked.
+ */
+void 
+SplashScreen::specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
+{
+    m_selectedSpecFileName = "";
+    
+    if (item != NULL) {
+        m_selectedSpecFileName = item->data(0, Qt::UserRole).toString();
+        
+        /*
+         * Accept is like hitting OK button
+         */
+        this->accept();
     }
 }
 
@@ -296,7 +319,7 @@ SplashScreen::loadSpecFileTreeWidget()
     QTreeWidgetItem* selectedItem = addDirectorySpecFiles();
     
     QTreeWidgetItem* specItem = addRecentSpecFiles();
-    if (selectedItem == NULL) {
+    if (specItem != NULL) {
         selectedItem = specItem;
     }
     
