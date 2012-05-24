@@ -122,10 +122,11 @@ SpecFileDialog::displayFastOpenDataFile(SpecFile* specFile,
 SpecFileDialog::SpecFileDialog(const Mode mode,
                                SpecFile* specFile,
                                QWidget* parent)
-: WuQDialogModal("Spec File Data File Selection",
+: WuQDialogModal(("Spec File Data File Selection: " + specFile->getFileNameNoPath()),
                  parent)
 {
     this->mode = mode;
+    
     
     /*
      * Mac wheel event causes unintentional selection of combo box
