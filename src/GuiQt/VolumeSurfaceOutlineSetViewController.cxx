@@ -44,7 +44,6 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -129,7 +128,6 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
 }
 
 /**
@@ -223,27 +221,12 @@ VolumeSurfaceOutlineSetViewController::receiveEvent(Event* event)
         dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        this->updateViewController();
-        
-        uiEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
-        EventToolBoxUpdate* tbEvent =
-        dynamic_cast<EventToolBoxUpdate*>(event);
-        bool doUpdate = false;
-        if (tbEvent->isUpdateAllWindows()) {
-            doUpdate = true;
+        if (uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
+            if (uiEvent->isSurfaceUpdate()
+                || uiEvent->isToolBoxUpdate()) {
+                this->updateViewController();
+                uiEvent->setEventProcessed();
+            }
         }
-        else if (tbEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
-            doUpdate = true;
-        }
-        
-        if (doUpdate) {
-            this->updateViewController();
-        }
-        
-        tbEvent->setEventProcessed();
-    }
-    else {
     }
 }

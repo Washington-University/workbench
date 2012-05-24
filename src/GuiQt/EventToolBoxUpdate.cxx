@@ -28,24 +28,12 @@
 using namespace caret;
 
 /**
- * Constructor for updating the toolbox in a given browser window.
- * @param browserWindowIndex
- *    Index of the browser window.
- */
-EventToolBoxUpdate::EventToolBoxUpdate(const int32_t browserWindowIndex)
-: Event(EventTypeEnum::EVENT_TOOLBOX_UPDATE),
-  browserWindowIndex(browserWindowIndex)
-{
-    CaretAssert(browserWindowIndex >= 0);
-}
-
-/**
- * Constructor for updating the toolbox in ALL browser windows.
+ * Constructor for updating the toolbox.
  */
 EventToolBoxUpdate::EventToolBoxUpdate()
-: Event(EventTypeEnum::EVENT_TOOLBOX_UPDATE),
-browserWindowIndex(-1)
+: Event(EventTypeEnum::EVENT_TOOLBOX_UPDATE)
 {
+    m_windowIndex = -1;
 }
 
 /*
@@ -57,24 +45,33 @@ EventToolBoxUpdate::~EventToolBoxUpdate()
 }
 
 /**
- * @return True if ALL browser windows should be updated.
- * Returns false if a specific browser window should be updated.
+ * @return Is the update for the given window?
+ *
+ * @param windowIndex
+ *     Index of window.
  */
 bool 
-EventToolBoxUpdate::isUpdateAllWindows() const
+EventToolBoxUpdate::isUpdateForWindow(const int32_t windowIndex) const
 {
-    const bool doAll = (this->browserWindowIndex < 0);
-    return doAll;
+    if (m_windowIndex < 0) {
+        return true;
+    }
+    else if (m_windowIndex == windowIndex) {
+        return true;
+    }
+    return false;
 }
 
-
 /**
- * @return The browser window index for updating a specific browser window.
- * Value is undefined if all browser windows should be updated.
+ * Set the update so that it only updates a specific window.
+ * 
+ * @return A reference to the instance so that the
+ * request update calls can be chained.
  */
-int32_t 
-EventToolBoxUpdate::getBrowserWindowIndex() const 
-{ 
-    return this->browserWindowIndex; 
+EventToolBoxUpdate& 
+EventToolBoxUpdate::setWindowIndex(const int32_t windowIndex)
+{
+    m_windowIndex = windowIndex;
+    return *this;
 }
 

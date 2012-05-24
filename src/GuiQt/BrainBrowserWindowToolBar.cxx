@@ -481,17 +481,11 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     const int32_t numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
     
-    //this->tabBar->setTabText(newTabIndex, tabContent->getName());
     this->updateTabName(newTabIndex);
     
     this->tabBar->setCurrentIndex(newTabIndex);
     
     this->tabBar->blockSignals(false);
-    
-    if (this->isContructorFinished) {
-        //this->updateUserInterface();
-        //this->updateGraphicsWindow();
-    }
 }
 
 /**
@@ -907,8 +901,6 @@ void
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
     this->updateTabName(indx);
-//    this->updateGraphicsWindow();
-//    this->updateUserInterface();
     this->updateToolBar();
     this->updateToolBox();
     emit viewedModelChanged();
@@ -2991,8 +2983,7 @@ BrainBrowserWindowToolBar::updateUserInterface()
 void 
 BrainBrowserWindowToolBar::updateToolBox()
 {
-    EventToolBoxUpdate toolBoxUpdate(this->browserWindowIndex);
-    EventManager::get()->sendEvent(toolBoxUpdate.getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).addToolBox().getPointer());
 }
 
 /**
@@ -3361,7 +3352,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
         const SurfaceTypeEnum::Enum surfaceType = SurfaceTypeEnum::fromIntegerCode(integerCode, &isValid);
         if (isValid) {
             wholeBrainController->setSelectedSurfaceType(tabIndex, surfaceType);
-            //this->updateUserInterface();
             this->updateVolumeIndicesWidget(btc); // slices may get deselected
             this->updateGraphicsWindow();
         }
@@ -4241,9 +4231,11 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        uiEvent->setEventProcessed();
-        
-        this->updateToolBar();
+        if (uiEvent->isToolBarUpdate()
+            && uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
+            this->updateToolBar();
+            uiEvent->setEventProcessed();
+        }
     }
     else {
         

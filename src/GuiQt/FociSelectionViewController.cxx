@@ -56,7 +56,6 @@
 #include "FociColoringTypeEnum.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
@@ -110,7 +109,6 @@ FociSelectionViewController::FociSelectionViewController(const int32_t browserWi
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
     
     FociSelectionViewController::allFociSelectionViewControllers.insert(this);
 }
@@ -445,20 +443,13 @@ FociSelectionViewController::receiveEvent(Event* event)
         EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        doUpdate = true;
-        event->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
-        EventToolBoxUpdate* tbEvent =
-        dynamic_cast<EventToolBoxUpdate*>(event);
-        if (tbEvent->isUpdateAllWindows()) {
-            doUpdate = true;
+        if (uiEvent->isUpdateForWindow(m_browserWindowIndex)) {
+            if (uiEvent->isFociUpdate()
+                || uiEvent->isToolBoxUpdate()) {
+                doUpdate = true;
+                uiEvent->setEventProcessed();
+            }
         }
-        else if (tbEvent->getBrowserWindowIndex() == m_browserWindowIndex) {
-            doUpdate = true;
-        }
-        
-        tbEvent->setEventProcessed();
     }
 
     if (doUpdate) {

@@ -2121,18 +2121,20 @@ BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allT
 void 
 BrainBrowserWindow::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        this->toolbar->updateToolBar();
-        
-        uiEvent->setEventProcessed();
-    }
-    else {
-        
-    }
+// TOOLBAR PROCESSES USER INTERFACE UPDATE EVENT !!!!
+//
+//    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+//        EventUserInterfaceUpdate* uiEvent =
+//        dynamic_cast<EventUserInterfaceUpdate*>(event);
+//        CaretAssert(uiEvent);
+//        
+//        this->toolbar->updateToolBar();
+//        
+//        uiEvent->setEventProcessed();
+//    }
+//    else {
+//        
+//    }
 }
 
 /**

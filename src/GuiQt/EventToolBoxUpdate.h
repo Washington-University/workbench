@@ -37,20 +37,18 @@ namespace caret {
     public:
         EventToolBoxUpdate();
         
-        EventToolBoxUpdate(const int32_t browserWindowIndex);
-        
         virtual ~EventToolBoxUpdate();
         
-        int32_t getBrowserWindowIndex() const;
-
-        bool isUpdateAllWindows() const;
+        bool isUpdateForWindow(const int32_t windowIndex) const;
+        
+        EventToolBoxUpdate& setWindowIndex(const int32_t windowIndex);
         
     private:
         EventToolBoxUpdate(const EventToolBoxUpdate&);
         
         EventToolBoxUpdate& operator=(const EventToolBoxUpdate&);
         
-        const int32_t browserWindowIndex;
+        int32_t m_windowIndex;
     };
 
 } // namespace

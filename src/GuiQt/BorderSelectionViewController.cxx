@@ -56,7 +56,6 @@
 #include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
@@ -110,7 +109,6 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
     
     BorderSelectionViewController::allBorderSelectionViewControllers.insert(this);
 }
@@ -427,20 +425,13 @@ BorderSelectionViewController::receiveEvent(Event* event)
         EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        doUpdate = true;
-        event->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
-        EventToolBoxUpdate* tbEvent =
-        dynamic_cast<EventToolBoxUpdate*>(event);
-        if (tbEvent->isUpdateAllWindows()) {
-            doUpdate = true;
+        if (uiEvent->isUpdateForWindow(m_browserWindowIndex)) {
+            if (uiEvent->isBorderUpdate()
+                || uiEvent->isToolBoxUpdate()) {
+                doUpdate = true;
+                uiEvent->setEventProcessed();
+            }
         }
-        else if (tbEvent->getBrowserWindowIndex() == m_browserWindowIndex) {
-            doUpdate = true;
-        }
-        
-        tbEvent->setEventProcessed();
     }
 
     if (doUpdate) {

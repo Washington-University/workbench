@@ -38,10 +38,64 @@ namespace caret {
         
         virtual ~EventUserInterfaceUpdate();
         
+        EventUserInterfaceUpdate& addBorder();
+        
+        EventUserInterfaceUpdate& addConnectivity();
+        
+        EventUserInterfaceUpdate& addFoci();
+        
+        EventUserInterfaceUpdate& addSurface();
+        
+        EventUserInterfaceUpdate& addTab();
+        
+        EventUserInterfaceUpdate& addToolBar();
+
+        EventUserInterfaceUpdate& addToolBox();
+        
+        bool isBorderUpdate() const;
+        
+        bool isConnectivityUpdate() const;
+        
+        bool isFociUpdate() const;
+        
+        bool isSurfaceUpdate() const;
+        
+        bool isTabUpdate() const;
+        
+        bool isToolBarUpdate() const;
+        
+        bool isToolBoxUpdate() const;
+        
+        bool isUpdateForWindow(const int32_t windowIndex) const;
+        
+        EventUserInterfaceUpdate& setWindowIndex(const int32_t windowIndex);
+        
     private:
         EventUserInterfaceUpdate(const EventUserInterfaceUpdate&);
         
         EventUserInterfaceUpdate& operator=(const EventUserInterfaceUpdate&);
+        
+        void setAll(bool selected);
+        
+        void addInitialization();
+        
+        bool m_borderUpdate;
+        
+        bool m_connectivityUpdate;
+        
+        bool m_fociUpdate;
+        
+        bool m_surfaceUpdate;
+        
+        bool m_tabUpdate;
+        
+        bool m_toolBarUpdate;
+        
+        bool m_toolBoxUpdate;
+        
+        bool m_isFirstUpdateType;
+        
+        int32_t m_windowIndex;
     };
 
 } // namespace

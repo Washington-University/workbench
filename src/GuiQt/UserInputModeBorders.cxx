@@ -417,7 +417,7 @@ UserInputModeBorders::drawOperationFinish()
     this->borderBeingDrawnByOpenGL->clear();
 
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
 /**

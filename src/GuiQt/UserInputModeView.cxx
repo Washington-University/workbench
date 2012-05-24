@@ -170,7 +170,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     
     bool updateGraphicsFlag = false;
     
-
+    const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
+    
     IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
     if ((idSymbol->getSurface() != NULL)
         && (idSymbol->getNodeNumber() >= 0)) {
@@ -194,9 +195,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 connMan->loadDataForSurfaceNode(surface, nodeIndex, &nodeRowColInfo);
                 if (ciftiRowColumnInformation.isEmpty() == false) {
                     if (ciftiRowColumnInformation.isEmpty() == false) {
-                        ciftiRowColumnInformation += "\n";
+                        ciftiRowColumnInformation += "<br>";
                     }
                 }
+                ciftiRowColumnInformation += spaces;
                 ciftiRowColumnInformation += nodeRowColInfo;
 
                 AString timeLineRowColInfo;
@@ -206,9 +208,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 
                 if (ciftiRowColumnInformation.isEmpty() == false) {
                     if (ciftiRowColumnInformation.isEmpty() == false) {
-                        ciftiRowColumnInformation += "\n";
+                        ciftiRowColumnInformation += "<br>";
                     }
                 }
+                ciftiRowColumnInformation += spaces;
                 ciftiRowColumnInformation += timeLineRowColInfo;
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
@@ -273,9 +276,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                           &voxelRowColInfo);
                     if (ciftiRowColumnInformation.isEmpty() == false) {
                         if (ciftiRowColumnInformation.isEmpty() == false) {
-                            ciftiRowColumnInformation += "\n";
+                            ciftiRowColumnInformation += "<br>";
                         }
                     }
+                    ciftiRowColumnInformation += spaces;
                     ciftiRowColumnInformation += voxelRowColInfo;
                 }
                 catch (const DataFileException& e) {
@@ -289,9 +293,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                               &voxelTimeLineRowColInfo);
                     if (ciftiRowColumnInformation.isEmpty() == false) {
                         if (ciftiRowColumnInformation.isEmpty() == false) {
-                            ciftiRowColumnInformation += "\n";
+                            ciftiRowColumnInformation += "<br>";
                         }
                     }
+                    ciftiRowColumnInformation += spaces;
                     ciftiRowColumnInformation += voxelTimeLineRowColInfo;
                 }
                 catch (const DataFileException& e) {
@@ -311,7 +316,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         }
         
         if (ciftiRowColumnInformation.isEmpty() == false) {
-            ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:\n");
+            ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:<br>");
             EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation).getPointer());                    
         }
         
@@ -326,7 +331,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
     }
 }
 

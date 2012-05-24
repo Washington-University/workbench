@@ -47,7 +47,6 @@
 #include "ConnectivityTimeSeriesViewController.h"
 #include "ConnectivityDenseViewController.h"
 #include "EventManager.h"
-#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
@@ -95,7 +94,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     layout->addStretch();    
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
 }
 
 /**
@@ -209,28 +207,13 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
         dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        this->updateManagerViewController();
-        
-        uiEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
-        EventToolBoxUpdate* tbEvent =
-        dynamic_cast<EventToolBoxUpdate*>(event);
-        bool doUpdate = false;
-        if (tbEvent->isUpdateAllWindows()) {
-            doUpdate = true;
+        if (uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
+            if (uiEvent->isConnectivityUpdate()
+                || uiEvent->isToolBoxUpdate()) {
+                this->updateManagerViewController();
+                uiEvent->setEventProcessed();
+            }
         }
-        else if (tbEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
-            doUpdate = true;
-        }
-        
-        if (doUpdate) {
-            this->updateManagerViewController();
-        }
-        
-        tbEvent->setEventProcessed();
-    }
-    else {
     }
 }
 
