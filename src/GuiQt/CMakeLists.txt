@@ -132,7 +132,6 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditorShow.h
-EventToolBoxUpdate.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
@@ -220,7 +219,6 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditorShow.cxx
-EventToolBoxUpdate.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
