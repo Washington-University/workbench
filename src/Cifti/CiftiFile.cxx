@@ -142,8 +142,14 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         int64_t offset = header.getVolumeOffset();
         m_matrix.setup(vec,offset,m_caching,m_swapNeeded);
     }
-    catch (NiftiException e) {
-        throw CiftiFileException(e.whatString());
+    catch (CaretException& e) {
+        throw CiftiFileException("Error reading file \"" + fileName + "\": " + e.whatString());
+    }
+    catch (std::exception& e) {
+        throw CiftiFileException("Error reading file \"" + fileName + "\": " + e.what());
+    }
+    catch (...) {
+        throw CiftiFileException("Unknown error reading file \"" + fileName + "\"");
     }
 }
 
