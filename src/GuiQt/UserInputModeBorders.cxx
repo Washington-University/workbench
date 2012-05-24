@@ -231,7 +231,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 this->drawPointAtMouseXY(openGLWidget,
                                                          mouseX,
                                                          mouseY);
-                                mouseEvent->setGraphicsUpdateOneWindowRequested();
+                                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
                             }
                             break;
                     }
@@ -250,8 +250,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
                                 borderFile->removeBorder(border);
-                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
-                                mouseEvent->setUserInterfaceUpdateRequested();
+                                this->updateAfterBordersChanged();
                             }
                         }
                         else if (isLeftDrag || isWheel) {
@@ -270,14 +269,12 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
-                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
                                 std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
                                             BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
                                                                                                 border,
                                                                                                 openGLWidget));
                                 if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
-                                    mouseEvent->setGraphicsUpdateAllWindowsRequested();
-                                    mouseEvent->setUserInterfaceUpdateRequested();
+                                    this->updateAfterBordersChanged();
                                 }
                             }
                         }
@@ -336,6 +333,19 @@ UserInputModeBorders::initialize()
 void 
 UserInputModeBorders::finish()
 {
+}
+
+/**
+ * Update after borders changed.
+ */
+void 
+UserInputModeBorders::updateAfterBordersChanged()
+{
+    /*
+     * Need to update all graphics windows and all border controllers.
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
 /**

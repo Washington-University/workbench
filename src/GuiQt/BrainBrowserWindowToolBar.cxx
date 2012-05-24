@@ -72,7 +72,6 @@
 #include "EventModelGetAll.h"
 #include "EventModelYokingGroupGetAll.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventToolBoxUpdate.h"
 #include "GuiManager.h"
 #include "Model.h"
 #include "ModelSurface.h"
@@ -632,6 +631,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     }
     
     EventUserInterfaceUpdate f;
+    f.setWindowIndex(this->browserWindowIndex);
     EventManager::get()->sendEvent(f.getPointer());
     EventGraphicsUpdateAllWindows e;
     EventManager::get()->sendEvent(e.getPointer());
@@ -725,7 +725,7 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
         
     }
     
-    this->updateUserInterface();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -2974,7 +2974,7 @@ BrainBrowserWindowToolBar::updateGraphicsWindow()
 void 
 BrainBrowserWindowToolBar::updateUserInterface()
 {
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
 }
 
 /**

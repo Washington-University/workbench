@@ -42,12 +42,13 @@ namespace caret {
     class MouseEvent : public CaretObject {
         
     public:
-        MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
+        MouseEvent(const int32_t browserWindowIndex,
+                   const MouseEventTypeEnum::Enum mouseEventType,
                    const Qt::KeyboardModifiers keyModifiers,
-                   const int x,
-                   const int y,
-                   const int dx,
-                   const int dy);
+                   const int32_t x,
+                   const int32_t y,
+                   const int32_t dx,
+                   const int32_t dy);
         
         MouseEvent(const QWheelEvent& event);
         
@@ -64,6 +65,8 @@ namespace caret {
         bool isValid() const;
         
         AString toString() const;
+        
+        int32_t getBrowserWindowIndex() const;
         
         int32_t getDx() const;
         
@@ -87,20 +90,10 @@ namespace caret {
         
         void setNoKeysDown();
         
-        bool isGraphicsUpdateOneWindowRequested() const;
-        
-        void setGraphicsUpdateOneWindowRequested();
-        
-        bool isGraphicsUpdateAllWindowsRequested() const;
-        
-        void setGraphicsUpdateAllWindowsRequested();
-        
-        bool isUserInterfaceUpdateRequested() const;
-        
-        void setUserInterfaceUpdateRequested();
-        
     private:
         MouseEventTypeEnum::Enum mouseEventType;
+        
+        int32_t browserWindowIndex;
         
         int32_t x;
         
@@ -117,13 +110,6 @@ namespace caret {
         bool keyDownControl;
         
         bool keyDownShift;
-        
-        bool graphicsUpdateOneWindowRequested;
-        
-        bool graphicsUpdateAllWindowsRequested;
-        
-        bool userInterfaceUpdateRequested;
-        
     };
     
 } // namespace

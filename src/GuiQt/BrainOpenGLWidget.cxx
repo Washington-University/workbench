@@ -316,7 +316,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     int delta = we->delta();
     delta = MathFunctions::limitRange(delta, -2, 2);
     
-    MouseEvent mouseEvent(MouseEventTypeEnum::WHEEL_MOVED,
+    MouseEvent mouseEvent(this->windowIndex,
+                          MouseEventTypeEnum::WHEEL_MOVED,
                           keyModifiers,
                           wheelX,
                           wheelY,
@@ -345,7 +346,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
         
-        MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_PRESSED,
+        MouseEvent mouseEvent(this->windowIndex,
+                              MouseEventTypeEnum::LEFT_PRESSED,
                               keyModifiers,
                               mouseX,
                               mouseY,
@@ -396,7 +398,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 
         if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
             && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
-            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_CLICKED,
+            MouseEvent mouseEvent(this->windowIndex,
+                                  MouseEventTypeEnum::LEFT_CLICKED,
                                   keyModifiers,
                                   mouseX,
                                   mouseY,
@@ -405,7 +408,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             this->processMouseEvent(&mouseEvent);
         }
         else {
-            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_RELEASED,
+            MouseEvent mouseEvent(this->windowIndex,
+                                  MouseEventTypeEnum::LEFT_RELEASED,
                                   keyModifiers,
                                   mouseX,
                                   mouseY,
@@ -543,7 +547,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             if ((absDX > 0) 
                 || (absDY > 0)) { 
                 
-                MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_DRAGGED,
+                MouseEvent mouseEvent(this->windowIndex,
+                                      MouseEventTypeEnum::LEFT_DRAGGED,
                                       keyModifiers,
                                       mouseX,
                                       mouseY,
@@ -596,16 +601,6 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
                 this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
                                                                     browserTabContent,
                                                                     this);
-                
-                if (mouseEvent->isUserInterfaceUpdateRequested()) {
-                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                }
-                if (mouseEvent->isGraphicsUpdateOneWindowRequested()) {
-                    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
-                }
-                if (mouseEvent->isGraphicsUpdateAllWindowsRequested()) {
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                }
             }
         }
     }

@@ -34,7 +34,8 @@ using namespace caret;
  * need to update the user-interface.  Options are available
  * to limit the update for specific types of data.  However,
  * some receivers will update regardless of any specific
- * update type requests.
+ * update type requests.  In addition, the update can
+ * be targeted to a specific window.
  */
 
 /**

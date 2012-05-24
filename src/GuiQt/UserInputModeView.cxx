@@ -38,6 +38,7 @@
 #include "ConnectivityLoaderManager.h"
 #include "CursorDisplayScoped.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
@@ -578,7 +579,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
             }
         }
         
-        mouseEvent->setGraphicsUpdateOneWindowRequested();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent->getBrowserWindowIndex()).getPointer());
     }
 }
 
