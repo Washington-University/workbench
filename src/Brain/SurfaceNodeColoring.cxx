@@ -29,6 +29,8 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
+#include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
@@ -120,6 +122,21 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         EventManager::get()->sendEvent(surfaceGet.getPointer());
         surfaceController = surfaceGet.getModelSurface();
         CaretAssert(surfaceController);
+        
+        /*
+         * If whole brain is displayed in the tab, use coloring
+         * from whole brain instead of surface.
+         */
+        EventBrowserTabGet getBrowserTab(browserTabIndex);
+        EventManager::get()->sendEvent(getBrowserTab.getPointer());
+        BrowserTabContent* browserTabContent = getBrowserTab.getBrowserTab();
+        if (browserTabContent != NULL) {
+            ModelWholeBrain* wholeBrain = browserTabContent->getDisplayedWholeBrainModel();
+            if (wholeBrain != NULL) {
+                wholeBrainController = wholeBrain;
+                surfaceController = NULL;
+            }
+        }
     }
     
     /*
