@@ -188,6 +188,8 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
         const bool isLeftDragWithControlAndShiftKeyDown = (isLeftDrag
                                                            && mouseEvent->isControlAndShiftKeyDown());
+        const bool isWheelWithControlAndShiftKeyDown = (isWheel
+                                                        && mouseEvent->isControlAndShiftKeyDown());
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
                                                   && mouseEvent->isShiftKeyDown());
         
@@ -209,7 +211,8 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                                                           this->mousePressY);
                     }
                 }
-                else if (isLeftDragWithControlAndShiftKeyDown) {
+                else if (isLeftDragWithControlAndShiftKeyDown
+                         || isWheelWithControlAndShiftKeyDown) {
                     /*
                      * In drawing mode, but perform surface rotation
                      * by setting no keys down
