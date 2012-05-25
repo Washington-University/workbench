@@ -119,7 +119,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         this->overlayViewControllers.push_back(ovc);
     }
     
-    QLabel* overlayCountLabel = new QLabel("Number of Overlays: ");
+    QLabel* overlayCountLabel = new QLabel("Number of Layers: ");
     this->overlayCountSpinBox = new QSpinBox();
     this->overlayCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
                                         BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
