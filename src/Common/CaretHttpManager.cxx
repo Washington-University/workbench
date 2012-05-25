@@ -34,7 +34,7 @@ using namespace std;
 
 CaretHttpManager* CaretHttpManager::m_singleton = NULL;
 
-CaretHttpManager::CaretHttpManager() : QObject()
+CaretHttpManager::CaretHttpManager() : QObject(), m_reply(NULL)
 {
 }
 
@@ -132,13 +132,14 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     default:
         CaretAssertMessage(false, "Unrecognized http request method");
     };
+    CaretHttpManager::getHttpManager()->m_reply = myReply;
     QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
     //QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
     QObject::connect(myReply, SIGNAL(finished()), &myLoop, SLOT(quit()));//this is safe, because nothing will hand this thread events except queued through this thread's event mechanism
     QObject::connect(myReply,
-        SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> & )),
+        SIGNAL(sslErrors(const QList<QSslError> & )),
         CaretHttpManager::getHttpManager(),
-        SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError> & )));
+        SLOT(handleSslErrors(const QList<QSslError> & )));
     myLoop.exec();//so, they can only be delivered after myLoop.exec() starts
     response.m_method = request.m_method;
     response.m_ok = false;
@@ -157,6 +158,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         response.m_body[i] = myBody[(int)i];//because QByteArray apparently just uses int - hope we won't need to transfer 2GB on a system that uses int32 for this
     }
     delete myReply;
+    CaretHttpManager::getHttpManager()->m_reply = NULL;
 }
 
 void CaretHttpManager::setAuthentication(const AString& url, const AString& user, const AString& password)
@@ -180,7 +182,7 @@ void CaretHttpManager::setAuthentication(const AString& url, const AString& user
     myCaretMgr->m_authList.push_back(myAuth);
 }
 
-void CaretHttpManager::handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/)
+void CaretHttpManager::handleSslErrors(const QList<QSslError> &/*errors*/)
 {
     /*qDebug() << "handleSslErrors: ";
     foreach (QSslError e, errors)
@@ -188,7 +190,7 @@ void CaretHttpManager::handleSslErrors(QNetworkReply* reply, const QList<QSslErr
         qDebug() << "ssl error: " << e;
     }*/
 
-    reply->ignoreSslErrors();
+    m_reply->ignoreSslErrors();
 }
 
 /*void CaretHttpManager::authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator)

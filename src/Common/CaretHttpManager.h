@@ -48,8 +48,9 @@ namespace caret {
         CaretHttpManager();
         static CaretHttpManager* m_singleton;
         std::vector<AuthEntry> m_authList;
-        static AString getServerString(const AString& url);
+        static AString getServerString(const AString& url);        
     public:
+        QNetworkReply *m_reply;
         enum Method
         {
             GET,
@@ -62,7 +63,7 @@ namespace caret {
         static QNetworkAccessManager* getQNetManager();
         static void setAuthentication(const AString& url, const AString& user, const AString& password);
     public slots:
-        void handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/);
+        void handleSslErrors(const QList<QSslError> &/*errors*/);
         //void authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator);
     };
 
