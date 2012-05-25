@@ -332,6 +332,8 @@ SplashScreen::loadSpecFileTreeWidget()
         pathColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
         m_specFileTreeWidget->setColumnWidth(0,
                                              nameColWidth);
+        
+        this->specFileTreeWidgetItemClicked(selectedItem);
     }
     
     int treeWidgetWidth = (nameColWidth
