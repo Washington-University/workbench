@@ -88,7 +88,7 @@ namespace caret {
         CaretPreferences* caretPreferences;
         
         /** Yoking Groups */
-        std::vector<ModelYokingGroup*> yokingGroups;
+        std::vector<ModelYokingGroup*> yokingGroupModels;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

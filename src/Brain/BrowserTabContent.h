@@ -31,7 +31,6 @@
 
 namespace caret {
 
-    class BrowserTabYoking;
     class CaretMappableDataFile;
     class Model;
     class ModelSurface;
@@ -67,8 +66,6 @@ namespace caret {
         void setUserName(const AString& userName);
         
         OverlaySet* getOverlaySet();
-        
-        BrowserTabYoking* getBrowserTabYoking();
         
         int32_t getTabNumber() const;
         
@@ -123,6 +120,10 @@ namespace caret {
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
         
+        ModelYokingGroup* getSelectedYokingGroup();
+        
+        void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
@@ -161,7 +162,7 @@ namespace caret {
         AString userName;
         
         /** Controls yoking */
-        BrowserTabYoking* browserTabYoking;       
+        ModelYokingGroup* selectedYokingGroup;
         
         /** Volume Surface Outlines */
         VolumeSurfaceOutlineSetModel* volumeSurfaceOutlineSetModel;

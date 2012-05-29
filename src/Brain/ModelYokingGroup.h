@@ -1,5 +1,5 @@
-#ifndef __MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_H__
-#define __MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_H__
+#ifndef __MODEL_YOKING_H__
+#define __MODEL_YOKING_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -27,53 +27,98 @@
 
 
 #include "Model.h"
+#include "ModelVolumeInterface.h"
 
-#include "YokingTypeEnum.h"
-
+#include "VolumeSliceCoordinateSelection.h"
+#include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSliceViewModeEnum.h"
 
 namespace caret {
 
-    class Surface;
+    class Brain;
     
-    /// Model Controller for a yoking group
-    class ModelYokingGroup : public Model {
+    /// Model information for yoking (contains transforms and volume slice info for volume yoking)
+    class ModelYokingGroup: public Model, public ModelVolumeInterface {
         
-    public:
-        ModelYokingGroup(const int32_t yokingGroupIndex,
-                                          const AString& yokingGroupName,
-                                          const YokingTypeEnum::Enum yokingType);
+    public:        
+        ModelYokingGroup(Brain* brain,
+                    const AString& yokingName);
         
         virtual ~ModelYokingGroup();
         
-        YokingTypeEnum::Enum getYokingType() const;
+        AString getYokingName() const;
         
-        int32_t getYokingGroupIndex() const;
+        void initializeOverlays();
         
-        AString getNameForGUI(const bool includeStructureFlag) const;
-        
-        virtual AString getNameForBrowserTab() const;        
-
         OverlaySet* getOverlaySet(const int tabIndex);
         
         const OverlaySet* getOverlaySet(const int tabIndex) const;
         
-        void initializeOverlays();
+        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane(const int32_t windowTabNumber) const;
+        
+        void setSliceViewPlane(const int32_t windowTabNumber,
+                              VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        
+        VolumeSliceViewModeEnum::Enum getSliceViewMode(const int32_t windowTabNumber) const;
+        
+        void setSliceViewMode(const int32_t windowTabNumber,
+                              VolumeSliceViewModeEnum::Enum sliceViewMode);
+                
+        int32_t getMontageNumberOfColumns(const int32_t windowTabNumber) const;
+        
+        void setMontageNumberOfColumns(const int32_t windowTabNumber,
+                                    const int32_t montageNumberOfColumns);
+        
+        int32_t getMontageNumberOfRows(const int32_t windowTabNumber) const;
+        
+        void setMontageNumberOfRows(const int32_t windowTabNumber,
+                                    const int32_t montageNumberOfRows);
+        
+        int32_t getMontageSliceSpacing(const int32_t windowTabNumber) const;
+        
+        void setMontageSliceSpacing(const int32_t windowTabNumber,
+                                    const int32_t montageSliceSpacing);
+        
+        VolumeSliceCoordinateSelection* getSelectedVolumeSlices(const int32_t windowTabNumber);
+        
+        const VolumeSliceCoordinateSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
+        
+        virtual void setSlicesToOrigin(const int32_t windowTabNumber);
+        
+    public:
+        AString getNameForGUI(const bool includeStructureFlag) const;
+        
+        virtual AString getNameForBrowserTab() const;
         
     private:
         ModelYokingGroup(const ModelYokingGroup&);
         
         ModelYokingGroup& operator=(const ModelYokingGroup&);
         
-    private:
-        void initializeMembersModelYokingGroup();
+        void initializeMembersModelYoking();
         
-        YokingTypeEnum::Enum yokingType;
-         
-        int32_t yokingGroupIndex;
+        /** Axis of slice being viewed */
+        VolumeSliceViewPlaneEnum::Enum sliceViewPlane;
         
-        AString yokingGroupName;
+        /** Type of slice viewing */
+        VolumeSliceViewModeEnum::Enum sliceViewMode;
+        
+        /** Number of montage rows */
+        int32_t montageNumberOfRows;
+        
+        /** Number of montage columns */
+        int32_t montageNumberOfColumns;
+        
+        /** Montage slice spacing */
+        int32_t montageSliceSpacing;
+        
+        /** Selected volume slices */
+        mutable VolumeSliceCoordinateSelection volumeSlicesSelected;
+        
+        /** Name of yoking */
+        AString yokingName;
     };
 
 } // namespace
 
-#endif // __MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_H__
+#endif // __MODEL_YOKING_H__

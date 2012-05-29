@@ -27,7 +27,6 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
-#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventModelGetAll.h"
@@ -64,8 +63,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->surfaceMontageModel = NULL;
     this->guiName = "";
     this->userName = "";
-    this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
     this->volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
+    this->selectedYokingGroup = defaultYokingGroup;
 }
 
 /**
@@ -75,9 +74,6 @@ BrowserTabContent::~BrowserTabContent()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    delete this->browserTabYoking;
-    this->browserTabYoking = NULL;
-
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
     
@@ -180,6 +176,7 @@ void
 BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 {
     this->selectedModelType = selectedModelType;
+    this->updateTransformationsForYoking();
 }
 
 /**
@@ -271,9 +268,8 @@ BrowserTabContent::getModelControllerForTransformation()
     }
     
     if (mdc->isYokeable()) {
-        ModelYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
-        if (mdcyg->getYokingType() != YokingTypeEnum::OFF) {
-            mdc = mdcyg;
+        if (this->selectedYokingGroup != NULL) {
+            mdc = this->selectedYokingGroup;
         }
     }
     
@@ -292,8 +288,7 @@ BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
     if (surfaceController != NULL) {
         const Surface* surface = surfaceController->getSurface();
         if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-            ModelYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
-            if (mdcyg->getYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+            if (this->selectedYokingGroup != NULL) {
                 itIs = true;
             }
         }
@@ -457,15 +452,6 @@ BrowserTabContent::getOverlaySet()
 }
 
 /**
- * @return The yoking for this browser tab.
- */
-BrowserTabYoking* 
-BrowserTabContent::getBrowserTabYoking()
-{
-    return this->browserTabYoking;
-}
-
-/**
  * Get the tab number for this content.
  * 
  * @return  Tab number.
@@ -562,6 +548,8 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             this->selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
         }
     }
+
+    this->updateTransformationsForYoking();
 }
 
 /**
@@ -699,6 +687,26 @@ const VolumeSurfaceOutlineSetModel*
 BrowserTabContent::getVolumeSurfaceOutlineSet() const
 {
     return this->volumeSurfaceOutlineSetModel;
+}
+
+/**
+ * @return The model yoking group (NULL if NOT yoked).
+ */
+ModelYokingGroup* 
+BrowserTabContent::getSelectedYokingGroup()
+{
+    return this->selectedYokingGroup;
+}
+
+/**
+ * Set the model yoking group to the given value.
+ * @param selectedYokingGroup
+ *     New value for yoking group.
+ */
+void 
+BrowserTabContent::setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup)
+{
+    this->selectedYokingGroup = selectedYokingGroup;
 }
 
 

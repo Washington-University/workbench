@@ -56,7 +56,6 @@ BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
-BrowserTabYoking.h
 ConnectivityLoaderManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
@@ -99,6 +98,7 @@ ModelSurfaceMontage.h
 ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
+ModelVolumeInterface.h
 ModelWholeBrain.h
 ModelYokingGroup.h
 NodeAndVoxelColoring.h
@@ -116,7 +116,6 @@ VolumeSliceViewPlaneEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
-YokingTypeEnum.h
 
 BorderDrawingTypeEnum.cxx
 Brain.cxx
@@ -126,7 +125,6 @@ BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
-BrowserTabYoking.cxx
 ConnectivityLoaderManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
@@ -186,7 +184,6 @@ VolumeSliceViewPlaneEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx
-YokingTypeEnum.cxx
 ) 
 
 #

@@ -88,6 +88,15 @@ Model::getControllerType() const
 }
 
 /**
+ * @return Is this a yoking model?
+ */
+bool 
+Model::isYokingModel() const
+{
+    return this->isYokingController;
+}
+
+/**
  * See if this controller allows rotation.
  * 
  * @return true if this controller allows rotation, else false.
@@ -289,25 +298,35 @@ Model::setTranslation(const int32_t windowTabNumberIn,
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][0] = tx;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][1] = ty;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][2] = tz;
+    this->setTranslation(windowTabNumber,
+                         VIEWING_TRANSFORM_NORMAL,
+                         tx,
+                         ty,
+                         tz);
 
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][0] = tx;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][1] = ty;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][2] = tz;
-
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][0] = tx;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][1] = ty;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][2] = tz;
-
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][0] = tx;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][1] = ty;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][2] = tz;
-
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][0] = tx;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][1] = ty;
-    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][2] = tz;
+    this->setTranslation(windowTabNumber,
+                         VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
+                         tx,
+                         ty,
+                         tz);
+    
+    this->setTranslation(windowTabNumber,
+                         VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
+                         tx,
+                         ty,
+                         tz);
+    
+    this->setTranslation(windowTabNumber,
+                         VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
+                         tx,
+                         ty,
+                         tz);
+    
+    this->setTranslation(windowTabNumber,
+                         VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
+                         tx,
+                         ty,
+                         tz);
 }
 
 /**

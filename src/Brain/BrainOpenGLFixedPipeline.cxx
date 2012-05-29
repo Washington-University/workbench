@@ -52,7 +52,6 @@
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
-#include "BrowserTabYoking.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"

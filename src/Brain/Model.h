@@ -95,36 +95,38 @@ namespace caret {
         
         bool isYokeable() const;
         
+        bool isYokingModel() const;
+        
         void copyTransformations(const Model& controller,
                                  const int32_t windowTabNumberSource,
                                  const int32_t windowTabNumberTarget);
         
-        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
+        virtual Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
                                             const ViewingTransformIndex viewingTransformIndex);
         
-        const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
+        virtual const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
                                                   const ViewingTransformIndex viewingTransformIndex) const;
         
-        const float* getTranslation(const int32_t windowTabNumber,
+        virtual const float* getTranslation(const int32_t windowTabNumber,
                                     const ViewingTransformIndex viewingTransformIndex) const;
         
-        void setTranslation(const int32_t windowTabNumber,
+        virtual void setTranslation(const int32_t windowTabNumber,
                             const float t[3]);
         
-        void setTranslation(const int32_t windowTabNumber,
+        virtual void setTranslation(const int32_t windowTabNumber,
                             const float tx,
                             const float ty,
                             const float tz);
         
-        void setTranslation(const int32_t windowTabNumber,
+        virtual void setTranslation(const int32_t windowTabNumber,
                             const ViewingTransformIndex viewingTransformIndex,
                             const float tx,
                             const float ty,
                             const float tz);
         
-        float getScaling(const int32_t windowTabNumber) const;
+        virtual float getScaling(const int32_t windowTabNumber) const;
         
-        void setScaling(const int32_t windowTabNumber,
+        virtual void setScaling(const int32_t windowTabNumber,
                         const float s);
         
         virtual void resetView(const int32_t windowTabNumber);

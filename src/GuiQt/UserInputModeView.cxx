@@ -52,6 +52,7 @@
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "ModelSurfaceMontage.h"
+#include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Model.h"
 #include "Surface.h"
@@ -579,6 +580,9 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
             }
         }
         
+        /*
+         * Update graphics.
+         */
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent->getBrowserWindowIndex()).getPointer());
     }
 }

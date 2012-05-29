@@ -28,6 +28,7 @@
 
 #include "EventListenerInterface.h"
 #include "Model.h"
+#include "ModelVolumeInterface.h"
 
 #include "VolumeSliceCoordinateSelection.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -39,7 +40,7 @@ namespace caret {
     class VolumeFile;
     
     /// Controls the display of a volumes.
-    class ModelVolume : public Model, public EventListenerInterface {
+    class ModelVolume : public Model, public ModelVolumeInterface, public EventListenerInterface {
         
     public:        
         ModelVolume(Brain* brain);

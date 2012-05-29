@@ -41,7 +41,6 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CursorManager.h"
@@ -657,13 +656,10 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                     BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
                     Model* mdc = btc->getModelControllerForDisplay();
                     if (mdc != NULL) {
-                        ModelYokingGroup* mdcyg = btc->getBrowserTabYoking()->getSelectedYokingGroup();
+                        ModelYokingGroup* mdcyg = btc->getSelectedYokingGroup();
                         if (mdcyg != NULL) {
-                            const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
-                            if (yokingType != YokingTypeEnum::OFF) {
-                                needUpdate = true;
-                                break;
-                            }
+                            needUpdate = true;
+                            break;
                         }
                     }
                 }

@@ -22,41 +22,25 @@
  * 
  */ 
 
-#include <algorithm>
-#include <cmath>
-
-#include "BrowserTabContent.h"
-#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "ModelYokingGroup.h"
-
-#include "Brain.h"
-#include "BrainOpenGL.h"
-#include "Surface.h"
 
 using namespace caret;
 
 /**
  * Constructor.
- * @param surface - surface for this controller.
+ * @param brain - brain to which this volume controller belongs.
  *
  */
-ModelYokingGroup::ModelYokingGroup(const int32_t yokingGroupIndex,
-                                                                     const AString& yokingGroupName,
-                                                                     const YokingTypeEnum::Enum yokingType)
+ModelYokingGroup::ModelYokingGroup(Brain* brain,
+                         const AString& yokingName)
 : Model(ModelTypeEnum::MODEL_TYPE_YOKING,
-                         YOKING_ALLOWED_YES,
+                         YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_YES,
-                         NULL)
+                         brain)
 {
-    this->initializeMembersModelYokingGroup();
-    this->yokingType = yokingType;
-    this->yokingGroupIndex = yokingGroupIndex;
-    this->yokingGroupName  = yokingGroupName;
-    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->dorsalView(i);
-    }
+    this->initializeMembersModelYoking();
+    this->yokingName = yokingName;
 }
 
 /**
@@ -66,25 +50,30 @@ ModelYokingGroup::~ModelYokingGroup()
 {
 }
 
-void
-ModelYokingGroup::initializeMembersModelYokingGroup()
+/**
+ * Return the name of the yoking.
+ */
+AString 
+ModelYokingGroup::getYokingName() const
 {
-    this->yokingGroupIndex = -1;
+    return this->yokingName;
 }
 
-/**
- * @return Type of yoking this yoking controller performs.
- */
-YokingTypeEnum::Enum 
-ModelYokingGroup::getYokingType() const
+void
+ModelYokingGroup::initializeMembersModelYoking()
 {
-    return this->yokingType;
+        this->sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
+        this->sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
+        this->montageNumberOfColumns = 3;
+        this->montageNumberOfRows    = 4;
+        this->montageSliceSpacing    = 5;
+        this->volumeSlicesSelected.reset();
 }
 
 /**
  * Get the name for use in a GUI.
  *
- * @param includeStructureFlag - Prefix label with structure to which
+ * @param includeStructureFlag Prefix label with structure to which
  *      this structure model belongs.
  * @return   Name for use in a GUI.
  *
@@ -92,7 +81,7 @@ ModelYokingGroup::getYokingType() const
 AString
 ModelYokingGroup::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
-    return this->yokingGroupName;
+    return "ModelYoking";
 }
 
 /**
@@ -102,16 +91,182 @@ ModelYokingGroup::getNameForGUI(const bool /*includeStructureFlag*/) const
 AString 
 ModelYokingGroup::getNameForBrowserTab() const
 {
-    return this->yokingGroupName;
+    return "ModelYoking";
+}
+
+
+/**
+ * Return the for axis mode in the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return Axis mode.
+ *   
+ */
+VolumeSliceViewPlaneEnum::Enum 
+ModelYokingGroup::getSliceViewPlane(const int32_t /*windowTabNumber*/) const
+{    
+    return this->sliceViewPlane;
 }
 
 /**
- * @return The index of this yoking group.
+ * Set the axis mode in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param slicePlane
+ *    New value for slice plane.
+ */
+void 
+ModelYokingGroup::setSliceViewPlane(const int32_t /*windowTabNumber*/,
+                      VolumeSliceViewPlaneEnum::Enum slicePlane)
+{   
+    this->sliceViewPlane = slicePlane;
+}
+
+/**
+ * Return the view mode for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   View mode.
+ */
+VolumeSliceViewModeEnum::Enum 
+ModelYokingGroup::getSliceViewMode(const int32_t /*windowTabNumber*/) const
+{    
+    return this->sliceViewMode;
+}
+
+/**
+ * Set the view mode in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceViewMode
+ *    New value for view mode
+ */
+void 
+ModelYokingGroup::setSliceViewMode(const int32_t /*windowTabNumber*/,
+                      VolumeSliceViewModeEnum::Enum sliceViewMode)
+{    
+    this->sliceViewMode = sliceViewMode;
+}
+
+/**
+ * Return the volume slice selection.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Volume slice selection for tab.
+ */
+VolumeSliceCoordinateSelection* 
+ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/)
+{
+    return &this->volumeSlicesSelected;
+}
+
+/**
+ * Return the volume slice selection.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Volume slice selection for tab.
+ */
+const VolumeSliceCoordinateSelection* 
+ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/) const
+{
+    return &this->volumeSlicesSelected;
+}
+
+
+
+/**
+ * Return the montage number of columns for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage number of columns 
  */
 int32_t 
-ModelYokingGroup::getYokingGroupIndex() const
+ModelYokingGroup::getMontageNumberOfColumns(const int32_t /*windowTabNumber*/) const
+{    
+    return this->montageNumberOfColumns;
+}
+
+
+/**
+ * Set the montage number of columns in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param montageNumberOfColumns
+ *    New value for montage number of columns 
+ */
+void 
+ModelYokingGroup::setMontageNumberOfColumns(const int32_t /*windowTabNumber*/,
+                               const int32_t montageNumberOfColumns)
+{    
+    this->montageNumberOfColumns = montageNumberOfColumns;
+}
+
+/**
+ * Return the montage number of rows for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage number of rows
+ */
+int32_t 
+ModelYokingGroup::getMontageNumberOfRows(const int32_t /*windowTabNumber*/) const
 {
-    return this->yokingGroupIndex;
+    return this->montageNumberOfRows;
+}
+
+/**
+ * Set the montage number of rows in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param montageNumberOfRows
+ *    New value for montage number of rows 
+ */
+void 
+ModelYokingGroup::setMontageNumberOfRows(const int32_t /*windowTabNumber*/,
+                            const int32_t montageNumberOfRows)
+{    
+    this->montageNumberOfRows = montageNumberOfRows;
+}
+
+/**
+ * Return the montage slice spacing for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage slice spacing.
+ */
+int32_t 
+ModelYokingGroup::getMontageSliceSpacing(const int32_t /*windowTabNumber*/) const
+{    
+    return this->montageSliceSpacing;
+}
+
+/**
+ * Set the montage slice spacing in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param montageSliceSpacing
+ *    New value for montage slice spacing 
+ */
+void 
+ModelYokingGroup::setMontageSliceSpacing(const int32_t /*windowTabNumber*/,
+                            const int32_t montageSliceSpacing)
+{
+    this->montageSliceSpacing = montageSliceSpacing;
+}
+
+/**
+ * Set the selected slices to the origin.
+ * @param  windowTabNumber  Window for which slices set to origin is requested.
+ */
+void
+ModelYokingGroup::setSlicesToOrigin(const int32_t /*windowTabNumber*/)
+{
+    this->volumeSlicesSelected.selectSlicesAtOrigin();
 }
 
 /**
@@ -148,6 +303,7 @@ ModelYokingGroup::getOverlaySet(const int /*tabIndex*/) const
 void 
 ModelYokingGroup::initializeOverlays()
 {
+    CaretAssertMessage(0, "NEVER should be called.");
 }
 
 

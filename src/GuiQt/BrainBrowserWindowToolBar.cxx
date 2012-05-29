@@ -53,7 +53,6 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
@@ -2228,10 +2227,12 @@ BrainBrowserWindowToolBar::createWindowWidget()
     this->windowYokeGroupComboBox->setStatusTip("Select a yoking group (linked views)");
     this->windowYokeGroupComboBox->setToolTip(("Select a yoking group (linked views)\n"
                                                "Models yoked to a group are displayed in the same view"));
+    this->windowYokeGroupComboBox->addItem("Off",
+                                           qVariantFromValue((void*)NULL));
     const int32_t numYokingGroups = static_cast<int>(yokingGroups.size());
     for (int32_t i = 0; i < numYokingGroups; i++) {
-        this->windowYokeGroupComboBox->addItem(yokingGroups[i]->getNameForBrowserTab());
-        this->windowYokeGroupComboBox->setItemData(i, qVariantFromValue((void*)yokingGroups[i]));
+        this->windowYokeGroupComboBox->addItem(yokingGroups[i]->getYokingName(),
+                                               qVariantFromValue((void*)yokingGroups[i]));
     }
     QObject::connect(this->windowYokeGroupComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(windowYokeToGroupComboBoxIndexChanged(int)));
@@ -2275,11 +2276,21 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     
     this->windowWidgetGroup->blockAllSignals(true);
     
-    BrowserTabYoking* browserTabYoking = browserTabContent->getBrowserTabYoking();
     std::vector<BrowserTabContent*> yokableBrowserTabContent;
-    ModelYokingGroup* yokeToGroup = browserTabYoking->getSelectedYokingGroup();
+    ModelYokingGroup* selectedYokingGroup = browserTabContent->getSelectedYokingGroup();
     
-    this->windowYokeGroupComboBox->setCurrentIndex(yokeToGroup->getYokingGroupIndex());
+    int selectedIndex = 0;
+    const int numItems = this->windowYokeGroupComboBox->count();
+    for (int i = 0; i < numItems; i++) {
+        void* pointer = this->windowYokeGroupComboBox->itemData(i).value<void*>();
+        ModelYokingGroup* yokingGroup = (ModelYokingGroup*)pointer;
+        if (yokingGroup == selectedYokingGroup) {
+            selectedIndex = i;
+            break;
+        }
+        
+    }
+    this->windowYokeGroupComboBox->setCurrentIndex(selectedIndex);
     
     this->windowWidgetGroup->blockAllSignals(false);
 
@@ -2957,7 +2968,6 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
     return w;
 }
 
-
 /**
  * Update the graphics windows for the selected tab.
  */
@@ -3034,15 +3044,9 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
         ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
             if (mdcyg != NULL) {
-                const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
                 const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
                 if (StructureEnum::isRight(structure)) {
-                    if (yokingType == YokingTypeEnum::ON_LATERAL_MEDIAL) {
-                        mdcyg->leftView(btc->getTabNumber());
-                    }
-                    else {
-                        mdcyg->rightView(btc->getTabNumber());
-                    }
+                    mdcyg->leftView(btc->getTabNumber());
                 }
                 else {
                     mdcyg->leftView(btc->getTabNumber());
@@ -3055,6 +3059,7 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
         else {
             mdc->leftView(btc->getTabNumber());
         }
+        
         this->updateGraphicsWindow();
     }
     
@@ -3074,15 +3079,9 @@ BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*ch
         ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
             if (mdcyg != NULL) {
-                const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
                 const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
                 if (StructureEnum::isRight(structure)) {
-                    if (yokingType == YokingTypeEnum::ON_LATERAL_MEDIAL) {
-                        mdcyg->rightView(btc->getTabNumber());
-                    }
-                    else {
-                        mdcyg->leftView(btc->getTabNumber());
-                    }
+                    mdcyg->rightView(btc->getTabNumber());
                 }
                 else {
                     mdcyg->rightView(btc->getTabNumber());
@@ -3941,11 +3940,11 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged(int indx)
 
     if (indx >= 0) {
         BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-        BrowserTabYoking* browserTabYoking = btc->getBrowserTabYoking();
 
         void* pointer = this->windowYokeGroupComboBox->itemData(indx).value<void*>();
         ModelYokingGroup* yokingGroup = (ModelYokingGroup*)pointer;
-        browserTabYoking->setSelectedYokingGroup(yokingGroup);
+        btc->setSelectedYokingGroup(yokingGroup);
+        btc->updateTransformationsForYoking();
     }
     this->updateGraphicsWindow();
 }
@@ -3968,6 +3967,7 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
         surfaceModelSelector->setSelectedStructure(structure);
         surfaceModelSelector->setSelectedSurfaceController(surfaceController);
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        btc->updateTransformationsForYoking();
         this->updateUserInterface();
         this->updateGraphicsWindow();
     }
