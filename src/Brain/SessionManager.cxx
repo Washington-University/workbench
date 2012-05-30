@@ -74,11 +74,30 @@ SessionManager::SessionManager()
     Brain* brain = new Brain();
     this->brains.push_back(brain);    
 
-    const int32_t numberOfYokingGroups = 4;
-    for (int32_t i = 0; i < numberOfYokingGroups; i++) {
-        const char letter = ('A' + (char)i);
-        const AString yokingGroupName = AString(letter);
+    const int32_t numberOfSurfaceYokingGroups = 4;
+    int32_t letterIndex = 0;
+    for (int32_t i = 0; i < numberOfSurfaceYokingGroups; i++) {
+        const char letter = ('A' + (char)letterIndex);
+        letterIndex++;
+        const AString yokingGroupName = (AString(letter)
+                                         + "-Surface");
         ModelYokingGroup* myg = new ModelYokingGroup(brain,
+                                                     ModelYokingGroup::YOKING_TYPE_SURFACE,
+                                                     yokingGroupName);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            myg->dorsalView(i);
+        }
+        this->yokingGroupModels.push_back(myg);
+    }
+    
+    const int32_t numberOfVolumeYokingGroups = 4;
+    for (int32_t i = 0; i < numberOfVolumeYokingGroups; i++) {
+        const char letter = ('A' + (char)letterIndex);
+        letterIndex++;
+        const AString yokingGroupName = (AString(letter)
+                                         + "-Volume");
+        ModelYokingGroup* myg = new ModelYokingGroup(brain,
+                                                     ModelYokingGroup::YOKING_TYPE_VOLUME,
                                                      yokingGroupName);
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             myg->dorsalView(i);
@@ -250,8 +269,7 @@ SessionManager::receiveEvent(Event* event)
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (this->browserTabs[i] == NULL) {
-                BrowserTabContent* tab = new BrowserTabContent(i, 
-                                                               NULL);
+                BrowserTabContent* tab = new BrowserTabContent(i);
                 tab->update(this->modelDisplayControllers);
                 this->browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);

@@ -1938,25 +1938,24 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
+    ModelYokingGroup* modelYoking = NULL;
+    
     VolumeSliceCoordinateSelection* sliceSelection = NULL;
     VolumeFile* vf = NULL;
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
+    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
-        if (this->getDisplayedModelController() == volumeController) {
-            vf = volumeController->getUnderlayVolumeFile(tabIndex);
-            sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
-        }
+        vf = volumeController->getUnderlayVolumeFile(tabIndex);
+        sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
+        modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
     }
     
-    ModelWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController != NULL) {
-        if (this->getDisplayedModelController() == wholeBrainController) {
-            vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
-            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
-        }
+        vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+        sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
+        modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
     }
     
-    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
     if (modelYoking != NULL) {
         sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
     }
@@ -2266,8 +2265,10 @@ BrainBrowserWindowToolBar::createWindowWidget()
     QLabel* yokeToLabel = new QLabel("Yoking:");
     this->windowYokeGroupComboBox = new QComboBox();
     this->windowYokeGroupComboBox->setStatusTip("Select a yoking group (linked views)");
-    this->windowYokeGroupComboBox->setToolTip(("Select a yoking group (linked views)\n"
-                                               "Models yoked to a group are displayed in the same view"));
+    this->windowYokeGroupComboBox->setToolTip(("Select a yoking group (linked views).\n"
+                                               "Models yoked to a group are displayed in the same view.\n"
+                                               "Surface Yoking is applied to Surface, Surface Montage\n"
+                                               "and Whole Brain.  Volume Yoking is applied to Volumes."));
     this->windowYokeGroupComboBox->addItem("Off",
                                            qVariantFromValue((void*)NULL));
     const int32_t numYokingGroups = static_cast<int>(yokingGroups.size());
@@ -2943,14 +2944,15 @@ ModelVolumeInterface*
 BrainBrowserWindowToolBar::getModelVolumeForViewSelections()
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelVolumeInterface* volumeModel = btc->getSelectedVolumeModel();
+    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
+    ModelVolumeInterface* volumeInterface = volumeModel;
     if (volumeModel != NULL) {
-        ModelYokingGroup* modelYokingGroup = btc->getSelectedYokingGroup();
+        ModelYokingGroup* modelYokingGroup = btc->getSelectedYokingGroupForModel(volumeModel);
         if (modelYokingGroup != NULL) {
-            volumeModel = modelYokingGroup;
+            volumeInterface = modelYokingGroup;
         }        
     }
-    return volumeModel;
+    return volumeInterface;
 }
 
 /**
@@ -3708,22 +3710,33 @@ BrainBrowserWindowToolBar::volumeIndicesOriginActionTriggered()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
+    ModelYokingGroup* modelYoking = NULL;
+    
     ModelVolume* volumeController = btc->getSelectedVolumeModel();
     if (volumeController != NULL) {
         volumeController->setSlicesToOrigin(tabIndex);
+        modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
     }
     
     ModelWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
     if (wholeBrainController != NULL) {
         wholeBrainController->setSlicesToOrigin(tabIndex);
+        modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
     }
     
-    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
     if (modelYoking != NULL) {
         modelYoking->setSlicesToOrigin(tabIndex);
     }
     
     this->updateVolumeIndicesWidget(btc);
+    
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+
     this->updateGraphicsWindow();
 }
 
@@ -3872,12 +3885,15 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     const int32_t tabIndex = btc->getTabNumber();
     VolumeSliceCoordinateSelection* sliceSelection = NULL;
     
+    ModelYokingGroup* modelYoking = NULL;
+    
     VolumeFile* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
             sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+            modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
         }
     }
     
@@ -3886,10 +3902,10 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
         if (this->getDisplayedModelController() == volumeController) {
             sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+            modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
         }
     }
     
-    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
     if (modelYoking != NULL) {
         sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
     }
@@ -3958,12 +3974,14 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
     const int32_t tabIndex = btc->getTabNumber();
     VolumeSliceCoordinateSelection* sliceSelection = NULL;
     
+    ModelYokingGroup* modelYoking = NULL;
     VolumeFile* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
             sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+            modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
         }
     }
     
@@ -3972,10 +3990,10 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
         if (this->getDisplayedModelController() == volumeController) {
             sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+            modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
         }
     }
     
-    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
     if (modelYoking != NULL) {
         sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
         float sliceCoords[3] = {
@@ -4192,17 +4210,15 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelYokingGroup* yokingGroup = btc->getSelectedYokingGroup();
     ModelVolume* volumeController = btc->getSelectedVolumeModel();
+    ModelYokingGroup* yokingGroup = btc->getSelectedYokingGroupForModel(volumeController);
     if (yokingGroup != NULL) {
         yokingGroup->resetView(tabIndex);
     }
     else if (volumeController != NULL) {
         volumeController->resetView(tabIndex);
     }
-    else {
-        return;
-    }
+
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }

@@ -51,8 +51,7 @@ using namespace caret;
  * @param tabNumber
  *    Number for this tab.
  */
-BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
-                                     ModelYokingGroup* defaultYokingGroup)
+BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
     this->tabNumber = tabNumber;
@@ -64,7 +63,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->guiName = "";
     this->userName = "";
     this->volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
-    this->selectedYokingGroup = defaultYokingGroup;
+    this->selectedYokingGroup = NULL;
 }
 
 /**
@@ -253,8 +252,8 @@ BrowserTabContent::getModelControllerForDisplay() const
 
 /**
  * Get the model controller for TRANSFORMATION purposes.  If yoked
- * to a different tab, this will return the model controller for
- * the tab to which this is yoked.
+ * to a valid yoking model, the transformation for the yoking model
+ * will be returned.
  * 
  * @return  Pointer to transformation controller or NULL
  *          if none are available.
@@ -267,10 +266,9 @@ BrowserTabContent::getModelControllerForTransformation()
         return NULL;
     }
     
-    if (mdc->isYokeable()) {
-        if (this->selectedYokingGroup != NULL) {
-            mdc = this->selectedYokingGroup;
-        }
+    ModelYokingGroup* myg = this->getSelectedYokingGroupForModel(mdc);
+    if (myg != NULL) {
+        mdc = myg;
     }
     
     return mdc;
@@ -288,7 +286,7 @@ BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
     if (surfaceController != NULL) {
         const Surface* surface = surfaceController->getSurface();
         if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-            if (this->selectedYokingGroup != NULL) {
+            if (this->getSelectedYokingGroupForModel(surfaceController) != NULL) {
                 itIs = true;
             }
         }
@@ -620,7 +618,7 @@ BrowserTabContent::updateTransformationsForYoking()
 {
     Model* transformController = this->getModelControllerForTransformation();
     ModelYokingGroup* yokingController = 
-    dynamic_cast<ModelYokingGroup*>(transformController);
+        dynamic_cast<ModelYokingGroup*>(transformController);
     if (yokingController != NULL) {
         Model* mdc = this->getModelControllerForDisplay();
         if (mdc != NULL) {
@@ -691,11 +689,108 @@ BrowserTabContent::getVolumeSurfaceOutlineSet() const
 
 /**
  * @return The model yoking group (NULL if NOT yoked).
+ * NOTE: This just returns the selected yoking model, it does
+ * not indicate if the yoking is compatible with a brain model.
+ * In most cases, getSelectedYokingGroupForModel() is the
+ * appropriate method to use.
+ */
+const ModelYokingGroup* 
+BrowserTabContent::getSelectedYokingGroup() const
+{
+    return this->selectedYokingGroup;
+}
+
+/**
+ * @return The model yoking group (NULL if NOT yoked).
+ * NOTE: This just returns the selected yoking model, it does
+ * not indicate if the yoking is compatible with a brain model.
+ * In most cases, getSelectedYokingGroupForModel() is the
+ * appropriate method to use.
  */
 ModelYokingGroup* 
 BrowserTabContent::getSelectedYokingGroup()
 {
     return this->selectedYokingGroup;
+}
+
+/**
+ * If yoking is selected and the yoking is appropriate for
+ * the given model, return the selected yoking group.  Otherwise,
+ * return NULL.
+ * 
+ * @param model
+ *     Model which is tested for compatibility with selected yoking.
+ * @return The model yoking group if yoking is selected and valid
+ *     for the given model, else NULL.
+ */
+const ModelYokingGroup* 
+BrowserTabContent::getSelectedYokingGroupForModel(const Model* model) const
+{
+    ModelYokingGroup* myg = this->selectedYokingGroup;
+    if (myg != NULL) {
+        if (model->isYokeable()) {
+            switch (model->getControllerType()) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    if (myg->isSurfaceYoking() == false) {
+                        myg = NULL;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    if (myg->isVolumeYoking() == false) {
+                        myg = NULL;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_YOKING:
+                    break;
+            }
+        }
+    }
+    
+    return myg;
+}
+
+/**
+ * If yoking is selected and the yoking is appropriate for
+ * the given model, return the selected yoking group.  Otherwise,
+ * return NULL.
+ * 
+ * @param model
+ *     Model which is tested for compatibility with selected yoking.
+ * @return The model yoking group if yoking is selected and valid
+ *     for the given model, else NULL.
+ */
+ModelYokingGroup* 
+BrowserTabContent::getSelectedYokingGroupForModel(const Model* model)
+{
+    ModelYokingGroup* myg = this->selectedYokingGroup;
+    if (myg != NULL) {
+        if (model->isYokeable()) {
+            switch (model->getControllerType()) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    if (myg->isSurfaceYoking() == false) {
+                        myg = NULL;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    if (myg->isVolumeYoking() == false) {
+                        myg = NULL;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_YOKING:
+                    break;
+            }
+        }
+    }
+    
+    return myg;
 }
 
 /**

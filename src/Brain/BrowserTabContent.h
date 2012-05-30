@@ -48,8 +48,7 @@ namespace caret {
     class BrowserTabContent : public CaretObject, public EventListenerInterface {
         
     public:
-        BrowserTabContent(const int32_t tabNumber,
-                          ModelYokingGroup* defaultYokingGroup);
+        BrowserTabContent(const int32_t tabNumber);
         
         virtual ~BrowserTabContent();
         
@@ -120,7 +119,13 @@ namespace caret {
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
         
+        const ModelYokingGroup* getSelectedYokingGroup() const;
+        
         ModelYokingGroup* getSelectedYokingGroup();
+        
+        const ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model) const;
+        
+        ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model);
         
         void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
         

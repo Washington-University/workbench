@@ -655,13 +655,18 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 for (int32_t i = 0; i < numItemsToDraw; i++) {
                     BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
                     Model* mdc = btc->getModelControllerForDisplay();
-                    if (mdc != NULL) {
-                        ModelYokingGroup* mdcyg = btc->getSelectedYokingGroup();
-                        if (mdcyg != NULL) {
-                            needUpdate = true;
-                            break;
-                        }
+                    ModelYokingGroup* myg = btc->getSelectedYokingGroupForModel(mdc);
+                    if (myg != NULL) {
+                        needUpdate = true;
+                        break;
                     }
+//                    if (mdc != NULL) {
+//                        ModelYokingGroup* mdcyg = btc->getSelectedYokingGroup();
+//                        if (mdcyg != NULL) {
+//                            needUpdate = true;
+//                            break;
+//                        }
+//                    }
                 }
             }
             if (needUpdate) {

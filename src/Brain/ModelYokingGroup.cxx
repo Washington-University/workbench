@@ -29,17 +29,24 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain - brain to which this volume controller belongs.
  *
+ * @param brain 
+ *    Brain to which this yoking model belongs.
+ * @param yokingType
+ *    Type of yoking supported by this yoking model.
+ * @param yokingName
+ *    Name of this yoking model.
  */
 ModelYokingGroup::ModelYokingGroup(Brain* brain,
-                         const AString& yokingName)
+                                   const YokingType yokingType,
+                                   const AString& yokingName)
 : Model(ModelTypeEnum::MODEL_TYPE_YOKING,
-                         YOKING_ALLOWED_NO,
-                         ROTATION_ALLOWED_YES,
-                         brain)
+        YOKING_ALLOWED_NO,
+        ((yokingType == YOKING_TYPE_SURFACE) ? ROTATION_ALLOWED_YES : ROTATION_ALLOWED_NO),
+        brain)
 {
     this->initializeMembersModelYoking();
+    this->yokingType = yokingType;
     this->yokingName = yokingName;
 }
 
@@ -353,6 +360,33 @@ ModelYokingGroup::copyTransformationsAndViews(const Model& controllerSource,
     
     this->getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
                                             *modelVolumeSource->getSelectedVolumeSlices(windowTabNumberSource));
+}
+
+/**
+ * @return The type of yoking.
+ */
+ModelYokingGroup::YokingType 
+ModelYokingGroup::getYokingType() const
+{
+    return this->yokingType;
+}
+
+/**
+ * @return Is this surface yoking?
+ */
+bool 
+ModelYokingGroup::isSurfaceYoking() const
+{
+    return (this->yokingType == YOKING_TYPE_SURFACE);
+}
+
+/**
+ * @return Is this volume yoking?
+ */
+bool 
+ModelYokingGroup::isVolumeYoking() const
+{
+    return (this->yokingType == YOKING_TYPE_VOLUME);
 }
 
 

@@ -40,9 +40,15 @@ namespace caret {
     /// Model information for yoking (contains transforms and volume slice info for volume yoking)
     class ModelYokingGroup: public Model, public ModelVolumeInterface {
         
-    public:        
+    public:       
+        enum YokingType {
+            YOKING_TYPE_SURFACE,
+            YOKING_TYPE_VOLUME
+        };
+        
         ModelYokingGroup(Brain* brain,
-                    const AString& yokingName);
+                         const YokingType yokingType,
+                         const AString& yokingName);
         
         virtual ~ModelYokingGroup();
         
@@ -89,6 +95,12 @@ namespace caret {
                                                  const int32_t windowTabNumberSource,
                                                  const int32_t windowTabNumberTarget);
         
+        YokingType getYokingType() const;
+        
+        bool isSurfaceYoking() const;
+        
+        bool isVolumeYoking() const;
+        
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
@@ -121,6 +133,9 @@ namespace caret {
         
         /** Name of yoking */
         AString yokingName;
+        
+        /** Type of yoking */
+        YokingType yokingType;
     };
 
 } // namespace
