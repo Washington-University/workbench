@@ -56,6 +56,7 @@ namespace caret {
     class BrowserTabContent;
     class Model;
     class ModelSurface;
+    class ModelVolumeInterface;
     class Surface;
     class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
@@ -95,6 +96,8 @@ namespace caret {
         
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
+        
+        ModelVolumeInterface* getModelVolumeForViewSelections();
         
         Model* getDisplayedModelController();
         

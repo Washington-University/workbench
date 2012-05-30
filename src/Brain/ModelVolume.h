@@ -90,6 +90,10 @@ namespace caret {
         
         void initializeOverlays();
         
+        virtual void copyTransformationsAndViews(const Model& controller,
+                                                 const int32_t windowTabNumberSource,
+                                                 const int32_t windowTabNumberTarget);
+        
     private:
         ModelVolume(const ModelVolume&);
         

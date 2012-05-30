@@ -624,7 +624,7 @@ BrowserTabContent::updateTransformationsForYoking()
     if (yokingController != NULL) {
         Model* mdc = this->getModelControllerForDisplay();
         if (mdc != NULL) {
-            mdc->copyTransformations(*yokingController, 
+            mdc->copyTransformationsAndViews(*yokingController, 
                                      0, // always used window 0  
                                      this->tabNumber);
         }

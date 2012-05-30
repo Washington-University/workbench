@@ -97,7 +97,7 @@ namespace caret {
         
         bool isYokingModel() const;
         
-        void copyTransformations(const Model& controller,
+        virtual void copyTransformationsAndViews(const Model& controller,
                                  const int32_t windowTabNumberSource,
                                  const int32_t windowTabNumberTarget);
         

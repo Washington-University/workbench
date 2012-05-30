@@ -86,6 +86,8 @@ namespace caret {
         
         void reset();
         
+        void copySelections(const VolumeSliceCoordinateSelection& vscs);
+        
     private:
         VolumeSliceCoordinateSelection(const VolumeSliceCoordinateSelection&);
 

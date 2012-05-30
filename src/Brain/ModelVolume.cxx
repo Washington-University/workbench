@@ -41,7 +41,7 @@ using namespace caret;
  */
 ModelVolume::ModelVolume(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                         YOKING_ALLOWED_NO,
+                         YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_NO,
                          brain)
 {
@@ -448,5 +448,64 @@ ModelVolume::initializeOverlays()
     }
 }
 
+/**
+ * For a structure model, copy the transformations from one window of
+ * the structure model to another window.
+ *
+ * @param controllerSource        Source structure model
+ * @param windowTabNumberSource   windowTabNumber of source transformation.
+ * @param windowTabNumberTarget   windowTabNumber of target transformation.
+ *
+ */
+void
+ModelVolume::copyTransformationsAndViews(const Model& controllerSource,
+                                   const int32_t windowTabNumberSource,
+                                   const int32_t windowTabNumberTarget)
+{
+    if (this == &controllerSource) {
+        if (windowTabNumberSource == windowTabNumberTarget) {
+            return;
+        }
+    }
+    
+    CaretAssertArrayIndex(this->translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumberTarget);
+    CaretAssertArrayIndex(controllerSource->translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumberSource);
+    
+    Model::copyTransformationsAndViews(controllerSource, windowTabNumberSource, windowTabNumberTarget);
 
+    const ModelVolumeInterface* modelVolumeSource = dynamic_cast<const ModelVolumeInterface*>(&controllerSource);
+    if (modelVolumeSource == NULL) {
+        return;
+    }
+    
+    this->setSliceViewPlane(windowTabNumberTarget, 
+                            modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
+    this->setSliceViewMode(windowTabNumberTarget,
+                           modelVolumeSource->getSliceViewMode(windowTabNumberSource));
+    this->setMontageNumberOfRows(windowTabNumberTarget,
+                                 modelVolumeSource->getMontageNumberOfRows(windowTabNumberSource));
+    this->setMontageNumberOfColumns(windowTabNumberTarget,
+                                    modelVolumeSource->getMontageNumberOfColumns(windowTabNumberSource));
+    this->setMontageSliceSpacing(windowTabNumberTarget,
+                                 modelVolumeSource->getMontageSliceSpacing(windowTabNumberSource));
+    
+    this->getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
+                                                                         *modelVolumeSource->getSelectedVolumeSlices(windowTabNumberSource));
+/*
+    const ModelVolume* modelVolumeSource = dynamic_cast<const ModelVolume*>(&controllerSource);
+    if (modelVolumeSource == NULL) {
+        return;
+    }
 
+    this->sliceViewPlane[windowTabNumberTarget] = modelVolumeSource->sliceViewPlane[windowTabNumberSource];
+    this->sliceViewMode[windowTabNumberTarget] = modelVolumeSource->sliceViewMode[windowTabNumberSource];
+    this->montageNumberOfRows[windowTabNumberTarget] = modelVolumeSource->montageNumberOfRows[windowTabNumberSource];
+    this->montageNumberOfColumns[windowTabNumberTarget] = modelVolumeSource->montageNumberOfColumns[windowTabNumberSource];
+    this->montageSliceSpacing[windowTabNumberTarget] = modelVolumeSource->montageSliceSpacing[windowTabNumberSource];
+                      
+    this->volumeSlicesSelected[windowTabNumberTarget].copySelections(modelVolumeSource->volumeSlicesSelected[windowTabNumberSource]);
+*/}

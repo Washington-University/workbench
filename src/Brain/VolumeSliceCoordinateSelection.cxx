@@ -442,3 +442,22 @@ VolumeSliceCoordinateSelection::setSliceAxialEnabled(const bool sliceEnabledAxia
 {
     this->sliceEnabledAxial = sliceEnabledAxial;
 }
+
+/**
+ * Copy selections from another volume slice selections.
+ * @param vscs
+ *   Other selections that are copied to 'this' instance.
+ */
+void 
+VolumeSliceCoordinateSelection::copySelections(const VolumeSliceCoordinateSelection& vscs)
+{
+    this->sliceCoordinateParasagittal = vscs.sliceCoordinateParasagittal;
+    this->sliceCoordinateCoronal      = vscs.sliceCoordinateCoronal;
+    this->sliceCoordinateAxial        = vscs.sliceCoordinateAxial;
+    this->sliceEnabledParasagittal = vscs.sliceCoordinateParasagittal;
+    this->sliceEnabledCoronal      = vscs.sliceCoordinateCoronal;
+    this->sliceEnabledAxial        = vscs.sliceCoordinateAxial;
+    this->initializedFlag = true;
+}
+
+

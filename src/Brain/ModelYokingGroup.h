@@ -85,6 +85,10 @@ namespace caret {
         
         virtual void setSlicesToOrigin(const int32_t windowTabNumber);
         
+        virtual void copyTransformationsAndViews(const Model& controller,
+                                                 const int32_t windowTabNumberSource,
+                                                 const int32_t windowTabNumberTarget);
+        
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         

@@ -131,7 +131,7 @@ Model::isYokeable() const
  *
  */
 void
-Model::copyTransformations(
+Model::copyTransformationsAndViews(
                    const Model& controllerSource,
                    const int32_t windowTabNumberSource,
                    const int32_t windowTabNumberTarget)
@@ -342,7 +342,7 @@ Model::setTranslation(const int32_t windowTabNumberIn,
  *
  */
 void
-Model::setTranslation(const int32_t windowTabNumber,
+Model::setTranslation(const int32_t windowTabNumberIn,
                       const ViewingTransformIndex viewingTransformIndex,
                       const float tx,
                       const float ty,
@@ -351,8 +351,9 @@ Model::setTranslation(const int32_t windowTabNumber,
     /*
      * Yoking ALWAYS uses first window index.
      */
+    int32_t windowTabNumber = windowTabNumberIn;
     if (this->isYokingController) {
-        CaretAssert(0);
+        windowTabNumber = 0;
     }
     
     CaretAssertArrayIndex(this->translation,

@@ -1956,16 +1956,50 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
         }
     }
     
+    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
+    if (modelYoking != NULL) {
+        sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
+    }
+    
     if (vf != NULL) {
+        this->volumeIndicesAxialSpinBox->setEnabled(true);
+        this->volumeIndicesCoronalSpinBox->setEnabled(true);
+        this->volumeIndicesParasagittalSpinBox->setEnabled(true);
+        
         std::vector<int64_t> dimensions;
         vf->getDimensions(dimensions);
-        const int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
-        const int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
-        const int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
-        this->volumeIndicesAxialSpinBox->setMaximum(maxAxialDim);
-        this->volumeIndicesCoronalSpinBox->setMaximum(maxCoronalDim);
-        this->volumeIndicesParasagittalSpinBox->setMaximum(maxParasagittalDim);
         
+        /*
+         * Setup minimum and maximum slices for each dimension.
+         * Range is unlimited when Yoked.
+         */
+        int minAxialDim = 0;
+        int minCoronalDim = 0;
+        int minParasagittalDim = 0;
+        int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
+        int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
+        int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
+        
+//        if (modelYoking != NULL) {
+//            minAxialDim = -std::numeric_limits<int>::max();
+//            minCoronalDim = -std::numeric_limits<int>::max();
+//            minParasagittalDim = -std::numeric_limits<int>::max();
+//            maxAxialDim = std::numeric_limits<int>::max();
+//            maxCoronalDim = std::numeric_limits<int>::max();
+//            maxParasagittalDim = std::numeric_limits<int>::max();
+//        }
+        this->volumeIndicesAxialSpinBox->setRange(minAxialDim,
+                                                  maxAxialDim);
+        this->volumeIndicesCoronalSpinBox->setRange(minCoronalDim,
+                                                    maxCoronalDim);
+        this->volumeIndicesParasagittalSpinBox->setRange(minParasagittalDim,
+                                                         maxParasagittalDim);
+        
+        
+        /*
+         * Setup minimum and maximum coordinates for each dimension.
+         * Range is unlimited when Yoked.
+         */
         int64_t slicesZero[3] = { 0, 0, 0 };
         float sliceZeroCoords[3];
         vf->indexToSpace(slicesZero,
@@ -1988,6 +2022,13 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
                                                               sliceMaxCoords[1]));
         this->volumeIndicesZcoordSpinBox->setMaximum(std::max(sliceZeroCoords[2],
                                                               sliceMaxCoords[2])); 
+//        if (modelYoking != NULL) {
+//            const float minValue = -std::numeric_limits<float>::max();
+//            const float maxValue =  std::numeric_limits<float>::max();
+//            this->volumeIndicesXcoordSpinBox->setRange(minValue, maxValue);
+//            this->volumeIndicesYcoordSpinBox->setRange(minValue, maxValue);
+//            this->volumeIndicesZcoordSpinBox->setRange(minValue, maxValue);
+//        }
         
         int64_t slicesOne[3] = { 1, 1, 1 };
         float slicesOneCoords[3];
@@ -2664,11 +2705,11 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController != NULL) {
-        this->montageRowsSpinBox->setValue(volumeController->getMontageNumberOfRows(tabIndex));
-        this->montageColumnsSpinBox->setValue(volumeController->getMontageNumberOfColumns(tabIndex));
-        this->montageSpacingSpinBox->setValue(volumeController->getMontageSliceSpacing(tabIndex));
+    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
+    if (volumeModel != NULL) {
+        this->montageRowsSpinBox->setValue(volumeModel->getMontageNumberOfRows(tabIndex));
+        this->montageColumnsSpinBox->setValue(volumeModel->getMontageNumberOfColumns(tabIndex));
+        this->montageSpacingSpinBox->setValue(volumeModel->getMontageSliceSpacing(tabIndex));
     }
     
     
@@ -2857,9 +2898,10 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController != NULL) {
-        switch (volumeController->getSliceViewPlane(tabIndex)) {
+    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
+
+    if (volumeModel != NULL) {
+        switch (volumeModel->getSliceViewPlane(tabIndex)) {
             case VolumeSliceViewPlaneEnum::ALL:
                 this->volumePlaneAllToolButtonAction->setChecked(true);
                 break;
@@ -2874,7 +2916,7 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
                 break;
         }
         
-        switch(volumeController->getSliceViewMode(tabIndex)) {
+        switch(volumeModel->getSliceViewMode(tabIndex)) {
             case VolumeSliceViewModeEnum::MONTAGE:
                 this->volumePlaneViewMontageToolButtonAction->setChecked(true);
                 break;
@@ -2891,6 +2933,24 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
     this->volumePlaneWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+}
+
+/**
+ * @return Model volume for viewing selections.
+ * If view is yoked, model returned is the yoking model.
+ */
+ModelVolumeInterface* 
+BrainBrowserWindowToolBar::getModelVolumeForViewSelections()
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelVolumeInterface* volumeModel = btc->getSelectedVolumeModel();
+    if (volumeModel != NULL) {
+        ModelYokingGroup* modelYokingGroup = btc->getSelectedYokingGroup();
+        if (modelYokingGroup != NULL) {
+            volumeModel = modelYokingGroup;
+        }        
+    }
+    return volumeModel;
 }
 
 /**
@@ -3658,6 +3718,11 @@ BrainBrowserWindowToolBar::volumeIndicesOriginActionTriggered()
         wholeBrainController->setSlicesToOrigin(tabIndex);
     }
     
+    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
+    if (modelYoking != NULL) {
+        modelYoking->setSlicesToOrigin(tabIndex);
+    }
+    
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
@@ -3824,6 +3889,11 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
         }
     }
     
+    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
+    if (modelYoking != NULL) {
+        sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
+    }
+    
     if (sliceSelection != NULL) {  
         if (underlayVolumeFile != NULL) {
             const int64_t parasagittalSlice = this->volumeIndicesParasagittalSpinBox->value();
@@ -3864,6 +3934,13 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+    
     this->updateGraphicsWindow();    
 }
 
@@ -3898,7 +3975,18 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
         }
     }
     
-    if (sliceSelection != NULL) {  
+    ModelYokingGroup* modelYoking = btc->getSelectedYokingGroup();
+    if (modelYoking != NULL) {
+        sliceSelection = modelYoking->getSelectedVolumeSlices(tabIndex);
+        float sliceCoords[3] = {
+            this->volumeIndicesXcoordSpinBox->value(),
+            this->volumeIndicesYcoordSpinBox->value(),
+            this->volumeIndicesZcoordSpinBox->value()
+        };
+        
+        sliceSelection->selectSlicesAtCoordinate(sliceCoords);
+    }
+    else if (sliceSelection != NULL) {  
         if (underlayVolumeFile != NULL) {
             float sliceCoords[3] = {
                 this->volumeIndicesXcoordSpinBox->value(),
@@ -3926,6 +4014,13 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+    
     this->updateGraphicsWindow();
 }
 
@@ -3945,6 +4040,12 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged(int indx)
         ModelYokingGroup* yokingGroup = (ModelYokingGroup*)pointer;
         btc->setSelectedYokingGroup(yokingGroup);
         btc->updateTransformationsForYoking();
+
+        if (this->getModelVolumeForViewSelections() != NULL) {
+            this->updateVolumeIndicesWidget(btc);
+            this->updateVolumeMontageWidget(btc);
+            this->updateVolumePlaneWidget(btc);
+        }
     }
     this->updateGraphicsWindow();
 }
@@ -4009,7 +4110,7 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
+    ModelVolumeInterface* volumeController = this->getModelVolumeForViewSelections();
     if (volumeController == NULL) {
         return;
     }
@@ -4059,7 +4160,7 @@ BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
+    ModelVolumeInterface* volumeController = this->getModelVolumeForViewSelections();
     if (volumeController == NULL) {
         return;
     }
@@ -4091,11 +4192,17 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
+    ModelYokingGroup* yokingGroup = btc->getSelectedYokingGroup();
     ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
+    if (yokingGroup != NULL) {
+        yokingGroup->resetView(tabIndex);
+    }
+    else if (volumeController != NULL) {
+        volumeController->resetView(tabIndex);
+    }
+    else {
         return;
     }
-    volumeController->resetView(tabIndex);
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
@@ -4112,11 +4219,11 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
+    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
+    if (volumeModel == NULL) {
         return;
     }
-    volumeController->setMontageNumberOfRows(tabIndex, this->montageRowsSpinBox->value());
+    volumeModel->setMontageNumberOfRows(tabIndex, this->montageRowsSpinBox->value());
     this->updateGraphicsWindow();
 }
 
@@ -4131,11 +4238,11 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
+    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
+    if (volumeModel == NULL) {
         return;
     }
-    volumeController->setMontageNumberOfColumns(tabIndex, this->montageColumnsSpinBox->value());
+    volumeModel->setMontageNumberOfColumns(tabIndex, this->montageColumnsSpinBox->value());
     this->updateGraphicsWindow();
 }
 
@@ -4150,11 +4257,11 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int /*i*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
+    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
+    if (volumeModel == NULL) {
         return;
     }
-    volumeController->setMontageSliceSpacing(tabIndex, this->montageSpacingSpinBox->value());
+    volumeModel->setMontageSliceSpacing(tabIndex, this->montageSpacingSpinBox->value());
     this->updateGraphicsWindow();
 }
 
