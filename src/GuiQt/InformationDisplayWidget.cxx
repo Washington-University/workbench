@@ -82,7 +82,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                       SLOT(copy()));
     
     QAction* removeIdSymbolAction = WuQtUtilities::createAction("RID", 
-                                                               "Remove ID symbols from ALL surfaces.", 
+                                                               "Remove ID symbols from ALL surfaces", 
                                                                this, 
                                                                this, 
                                                                SLOT(removeIdSymbols()));
@@ -92,6 +92,13 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                           this,
                                                           this,
                                                           SLOT(showPropertiesDialog()));
+    
+    this->volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID", 
+                                                                        "Enable volume slice movement to identified brainordinate.", 
+                                                                        this, 
+                                                                        this, 
+                                                                        SLOT(volumeSliceIdentificationToggled(bool)));
+    this->volumeSliceIdentificationAction->setCheckable(true);
     
     QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
@@ -113,6 +120,8 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->addAction(removeIdSymbolAction);
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(this->contralateralIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(this->volumeSliceIdentificationAction);
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
@@ -150,7 +159,6 @@ InformationDisplayWidget::~InformationDisplayWidget()
 
 /**
  * Called when contralateral toolbutton is toggled.
- * @param
  */
 void 
 InformationDisplayWidget::contralateralIdentificationToggled(bool)
@@ -159,6 +167,18 @@ InformationDisplayWidget::contralateralIdentificationToggled(bool)
     DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
     info->setContralateralIdentificationEnabled(this->contralateralIdentificationAction->isChecked());
     InformationDisplayWidget::updateAllInformationDisplayWidgets();
+}
+
+/**
+ * Called when volume identification toolbutton is toggled.
+ */
+void 
+InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    info->setVolumeIdentificationEnabled(this->volumeSliceIdentificationAction->isChecked());
+    InformationDisplayWidget::updateAllInformationDisplayWidgets();    
 }
 
 /**
@@ -189,11 +209,14 @@ InformationDisplayWidget::removeIdSymbols()
 void 
 InformationDisplayWidget::updateInformationDisplayWidget()
 {
-    this->contralateralIdentificationAction->blockSignals(true);
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    this->contralateralIdentificationAction->blockSignals(true);
     this->contralateralIdentificationAction->setChecked(info->isContralateralIdentificationEnabled());
     this->contralateralIdentificationAction->blockSignals(false);
+    this->volumeSliceIdentificationAction->blockSignals(true);
+    this->volumeSliceIdentificationAction->setChecked(info->isVolumeIdentificationEnabled());
+    this->volumeSliceIdentificationAction->blockSignals(false);
 }
 
 void 

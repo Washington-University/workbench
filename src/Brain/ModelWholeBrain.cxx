@@ -27,6 +27,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "DisplayPropertiesInformation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventIdentificationHighlightLocation.h"
@@ -517,12 +518,14 @@ ModelWholeBrain::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
         
-        const float* highlighXYZ = idLocationEvent->getXYZ();
+        if (this->getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+            const float* highlighXYZ = idLocationEvent->getXYZ();
         
-        for (int32_t windowTabNumber = 0; 
-             windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
-             windowTabNumber++) {
-             this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
+            for (int32_t windowTabNumber = 0; 
+                 windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
+                 windowTabNumber++) {
+                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
+            }
         }
         
         idLocationEvent->setEventProcessed();

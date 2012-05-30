@@ -43,6 +43,7 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
 : DisplayProperties(brain)
 {
     this->contralateralIdentificationEnabled = false;
+    this->volumeIdentificationEnabled = true;
     this->identificationSymbolColor = CaretColorEnum::GREEN;
     this->identificationContralateralSymbolColor = CaretColorEnum::BLUE;
     this->identifcationSymbolSize = 3.5;
@@ -91,6 +92,26 @@ void
 DisplayPropertiesInformation::setContralateralIdentificationEnabled(const bool enabled)
 {
     this->contralateralIdentificationEnabled = enabled;
+}
+
+/**
+ * @return Status of volume identification.
+ */
+bool 
+DisplayPropertiesInformation::isVolumeIdentificationEnabled() const
+{
+    return this->volumeIdentificationEnabled;
+}
+
+/**
+ * Set status of volume identification.
+ * @param 
+ *    New status.
+ */
+void 
+DisplayPropertiesInformation::setVolumeIdentificationEnabled(const bool enabled)
+{
+    this->volumeIdentificationEnabled = enabled;
 }
 
 /**

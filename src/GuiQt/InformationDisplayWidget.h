@@ -60,6 +60,8 @@ namespace caret {
         
         void contralateralIdentificationToggled(bool);
         
+        void volumeSliceIdentificationToggled(bool);
+        
         void showPropertiesDialog();
         
     private:
@@ -74,6 +76,8 @@ namespace caret {
         static std::set<InformationDisplayWidget*> allInformationDisplayWidgets;
         
         QAction* contralateralIdentificationAction;
+        
+        QAction* volumeSliceIdentificationAction;
         
         QString informationText;
     };

@@ -45,6 +45,10 @@ namespace caret {
         
         void setContralateralIdentificationEnabled(const bool enabled);
 
+        bool isVolumeIdentificationEnabled() const;
+        
+        void setVolumeIdentificationEnabled(const bool enabled);
+        
         float getIdentificationSymbolSize() const;
         
         void setIdentificationSymbolSize(const float symbolSize);
@@ -63,6 +67,8 @@ namespace caret {
         DisplayPropertiesInformation& operator=(const DisplayPropertiesInformation&);
         
         bool contralateralIdentificationEnabled;
+        
+        bool volumeIdentificationEnabled;
         
         float identifcationSymbolSize;
         

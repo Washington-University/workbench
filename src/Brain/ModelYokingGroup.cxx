@@ -22,7 +22,11 @@
  * 
  */ 
 
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "DisplayPropertiesInformation.h"
+#include "EventIdentificationHighlightLocation.h"
+#include "EventManager.h"
 #include "ModelYokingGroup.h"
 
 using namespace caret;
@@ -48,6 +52,8 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
     this->initializeMembersModelYoking();
     this->yokingType = yokingType;
     this->yokingName = yokingName;
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
 
 /**
@@ -55,6 +61,7 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
  */
 ModelYokingGroup::~ModelYokingGroup()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -387,6 +394,60 @@ bool
 ModelYokingGroup::isVolumeYoking() const
 {
     return (this->yokingType == YOKING_TYPE_VOLUME);
+}
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+ModelYokingGroup::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idLocationEvent =
+        dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idLocationEvent);
+        
+        if (this->getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+            const float* highlighXYZ = idLocationEvent->getXYZ();
+            float sliceXYZ[3] = {
+                highlighXYZ[0],
+                highlighXYZ[1],
+                highlighXYZ[2]
+            };
+            
+            switch (this->sliceViewMode) {
+                case VolumeSliceViewModeEnum::MONTAGE:
+                    /*
+                     * For montage, do not allow slice in selected plane change
+                     */
+                    switch (this->sliceViewPlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            sliceXYZ[0] = this->volumeSlicesSelected.getSliceCoordinateParasagittal();
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            sliceXYZ[1] = this->volumeSlicesSelected.getSliceCoordinateCoronal();
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            sliceXYZ[2] = this->volumeSlicesSelected.getSliceCoordinateAxial();
+                            break;
+                    }
+                    break;
+                case VolumeSliceViewModeEnum::OBLIQUE:
+                    break;
+                case VolumeSliceViewModeEnum::ORTHOGONAL:
+                    break;
+            }
+            
+            this->volumeSlicesSelected.selectSlicesAtCoordinate(sliceXYZ);
+        }
+        
+        idLocationEvent->setEventProcessed();
+    }
 }
 
 

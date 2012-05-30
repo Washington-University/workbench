@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "EventListenerInterface.h"
 #include "Model.h"
 #include "ModelVolumeInterface.h"
 
@@ -38,7 +38,7 @@ namespace caret {
     class Brain;
     
     /// Model information for yoking (contains transforms and volume slice info for volume yoking)
-    class ModelYokingGroup: public Model, public ModelVolumeInterface {
+    class ModelYokingGroup: public Model, public ModelVolumeInterface, public EventListenerInterface {
         
     public:       
         enum YokingType {
@@ -55,6 +55,8 @@ namespace caret {
         AString getYokingName() const;
         
         void initializeOverlays();
+        
+        void receiveEvent(Event* event);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         
