@@ -60,6 +60,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateAnimationStartTime.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "TimeCourseDialog.h"
@@ -357,9 +358,8 @@ ConnectivityTimeSeriesViewController::yokeCheckBoxStateChanged(int state)
     if (this->connectivityLoaderFile != NULL) {
         this->connectivityLoaderFile->setYokeEnabled(selected);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
+        this->updateOtherConnectivityTimeSeriesViewControllers();
     }
-    
-    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**

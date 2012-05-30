@@ -168,9 +168,8 @@ ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
     if (this->connectivityLoaderFile != NULL) {
         this->connectivityLoaderFile->setDataLoadingEnabled(selected);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
+        this->updateOtherConnectivityDenseViewControllers();
     }
-    
-    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
