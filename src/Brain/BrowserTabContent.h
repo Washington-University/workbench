@@ -86,13 +86,7 @@ namespace caret {
         
         ModelWholeBrain* getDisplayedWholeBrainModel();
         
-        ModelVolume* getSelectedVolumeModel();
-        
-        ModelWholeBrain* getSelectedWholeBrainModel();
-        
         ModelSurfaceMontage* getDisplayedSurfaceMontageModel();
-        
-        ModelSurfaceMontage* getSelectedSurfaceMontageModel();
         
         const std::vector<ModelSurface*> getAllSurfaceModels() const;
         

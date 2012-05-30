@@ -107,21 +107,6 @@ BrowserTabContent::getName() const
     return s;
 }
 
-/*
- * Set the name of this tab.  This is typically
- * called by the user-interface with a name that
- * indicates the content of the tab.
- *
- * @param guiName
- *    New name for tab.
- *
-void 
-BrowserTabContent::setGuiName(const AString& guiName)
-{
-    this->guiName = guiName;
-}
-*/
-
 /**
  * Set the user name of this tab.  The user name
  * overrides the default naming.
@@ -358,55 +343,12 @@ BrowserTabContent::getDisplayedWholeBrainModel()
 }
 
 /**
- * Get the displayed volume model.
- * 
- * @return  Pointer to displayed volume model or 
- *          NULL if the displayed model is not a 
- *          volume.
- */   
-ModelVolume* 
-BrowserTabContent::getSelectedVolumeModel()
-{
-    ModelVolume* mdcv =
-        dynamic_cast<ModelVolume*>(this->getModelControllerForDisplay());
-    return mdcv;
-}
-
-/**
- * Get the selected whole brain model.
- * 
- * @return  Pointer to displayed whole brain model or 
- *          NULL if the displayed model is not a 
- *          whole brain.
- */   
-ModelWholeBrain* 
-BrowserTabContent::getSelectedWholeBrainModel()
-{
-    ModelWholeBrain* mdcwb =
-        dynamic_cast<ModelWholeBrain*>(this->getModelControllerForDisplay());
-    return mdcwb;
-}
-
-/**
  * @return Pointer to displayed surface montage model
  * or NULL if the displayed model is not a surface
  * montage model.
  */
 ModelSurfaceMontage* 
 BrowserTabContent::getDisplayedSurfaceMontageModel()
-{
-    ModelSurfaceMontage* mdcsm =
-    dynamic_cast<ModelSurfaceMontage*>(this->getModelControllerForDisplay());
-    return mdcsm;
-}
-
-/**
- * @return Pointer to selected surface montage model
- * or NULL if the displayed model is not a surface
- * montage model.
- */
-ModelSurfaceMontage* 
-BrowserTabContent::getSelectedSurfaceMontageModel()
 {
     ModelSurfaceMontage* mdcsm =
     dynamic_cast<ModelSurfaceMontage*>(this->getModelControllerForDisplay());
