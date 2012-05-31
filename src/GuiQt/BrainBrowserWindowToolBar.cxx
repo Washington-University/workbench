@@ -629,11 +629,11 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         }
     }
     
-    EventUserInterfaceUpdate f;
-    f.setWindowIndex(this->browserWindowIndex);
-    EventManager::get()->sendEvent(f.getPointer());
-    EventGraphicsUpdateAllWindows e;
-    EventManager::get()->sendEvent(e.getPointer());
+//    EventUserInterfaceUpdate f;
+//    f.setWindowIndex(this->browserWindowIndex);
+//    EventManager::get()->sendEvent(f.getPointer());
+//    EventGraphicsUpdateAllWindows e;
+//    EventManager::get()->sendEvent(e.getPointer());
 }
 
 /**

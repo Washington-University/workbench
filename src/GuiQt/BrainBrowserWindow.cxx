@@ -1065,10 +1065,15 @@ BrainBrowserWindow::processNewWindow()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
 
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+                                    true);
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
     const int32_t newWindowIndex = eventNewBrowser.getBrowserWindowCreated()->getBrowserWindowIndex();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(newWindowIndex).getPointer());
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+                                    false);
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(newWindowIndex).getPointer());
 }
 
 /**

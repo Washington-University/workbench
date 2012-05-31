@@ -235,6 +235,8 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
 {
     this->inverseRotationMatrixValid = false;
     
+    this->checkForOpenGLError(NULL, "At beginning of drawModels()");
+    
     float backgroundColor[3];
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->getColorBackground(backgroundColor);
@@ -243,6 +245,8 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
                  backgroundColor[2],
                  1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+    
+    this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
         this->drawModelInternal(MODE_DRAWING,
@@ -271,6 +275,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     et.start();
     
     this->mode = mode;
+    
+    this->checkForOpenGLError(modelDisplayController, "At beginning of drawModelInternal()");
     
     /*
      * Update transformations with those from the yoked 
@@ -312,7 +318,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     
     glFlush();
     
-    this->checkForOpenGLError(modelDisplayController, "At end of drawModel()");
+    this->checkForOpenGLError(modelDisplayController, "At end of drawModelInternal()");
     
     if (modelDisplayController != NULL) {
         CaretLogFine("Time to draw " 
@@ -4292,7 +4298,7 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* modelController,
         if (modelController != NULL) {
             msg += ("While drawing brain model " + modelController->getNameForGUI(true) + "\n");
         }
-        msg += ("In window number " + AString::number(this->windowTabIndex) + "\n");
+        msg += ("In tab number " + AString::number(this->windowTabIndex) + "\n");
         GLint nameStackDepth, modelStackDepth, projStackDepth;
         glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
                       &projStackDepth);
