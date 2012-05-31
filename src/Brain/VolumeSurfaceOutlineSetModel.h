@@ -51,6 +51,8 @@ namespace caret {
         
         virtual ~VolumeSurfaceOutlineSetModel();
         
+        void copyVolumeSurfaceOutlineSetModel(VolumeSurfaceOutlineSetModel* setModel);
+        
         int32_t getNumberOfDislayedVolumeSurfaceOutlines() const;
         
         void setNumberOfDisplayedVolumeSurfaceOutlines(const int32_t numberDisplayed);

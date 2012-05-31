@@ -53,6 +53,8 @@ namespace caret {
         
         virtual ~OverlaySet();
         
+        void copyOverlaySet(const OverlaySet* overlaySet);
+        
         Overlay* getPrimaryOverlay();
         
         Overlay* getUnderlay();

@@ -81,6 +81,37 @@ BrowserTabContent::~BrowserTabContent()
 }
 
 /**
+ * Clone the contents of the given browser tab.
+ * @param tabToClone
+ *    Tab whose contents is cloned.
+ */
+void 
+BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
+{
+    CaretAssert(tabToClone);
+    this->surfaceModelSelector->setSelectedStructure(tabToClone->surfaceModelSelector->getSelectedStructure());
+    this->surfaceModelSelector->setSelectedSurfaceController(tabToClone->surfaceModelSelector->getSelectedSurfaceController());
+
+    this->selectedModelType = tabToClone->selectedModelType;
+    this->volumeModel = tabToClone->volumeModel;
+    this->wholeBrainModel = tabToClone->wholeBrainModel;
+    this->surfaceMontageModel = tabToClone->surfaceMontageModel;
+    this->selectedYokingGroup = tabToClone->selectedYokingGroup;
+    
+    const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
+    if (overlaySetToClone != NULL) {
+        OverlaySet* overlaySet = this->getOverlaySet();
+        if (overlaySet != NULL) {
+            overlaySet->copyOverlaySet(overlaySetToClone);
+        }
+    }
+    
+    this->volumeSurfaceOutlineSetModel->copyVolumeSurfaceOutlineSetModel(tabToClone->getVolumeSurfaceOutlineSet());
+    
+    this->updateTransformationsForYoking();
+}
+
+/**
  * Get the name of this browser tab.
  * Name priority is (1) name set by user, (2) name set by
  * user-interface, and (3) the default name.

@@ -169,6 +169,23 @@ OverlaySet::~OverlaySet()
 }
 
 /**
+ * Copy the given overlay set to this overlay set.
+ * @param overlaySet
+ *    Overlay set that is copied.
+ */
+void 
+OverlaySet::copyOverlaySet(const OverlaySet* overlaySet)
+{
+    this->initializeOverlaySet(overlaySet->modelDisplayController, 
+                               overlaySet->brainStructure);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i]->copyData(overlaySet->getOverlay(i));
+    }
+    this->numberOfDisplayedOverlays = overlaySet->numberOfDisplayedOverlays;
+}
+
+/**
  * Initialize the overlay.
  * @param modelDisplayController
  *     Controller that uses this overlay set.

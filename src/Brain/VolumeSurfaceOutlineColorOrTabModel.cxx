@@ -110,6 +110,24 @@ VolumeSurfaceOutlineColorOrTabModel::~VolumeSurfaceOutlineColorOrTabModel()
 }
 
 /**
+ * Copy the given volume surface outline color or tab model.
+ * @param modelToCopy
+ *    Model that is copied.
+ */
+void 
+VolumeSurfaceOutlineColorOrTabModel::copyVolumeSurfaceOutlineColorOrTabModel(VolumeSurfaceOutlineColorOrTabModel* modelToCopy)
+{
+    switch (this->getSelectedItem()->getItemType()) {
+        case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+            this->setColor(modelToCopy->getSelectedItem()->getColor());
+            break;
+        case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+            this->setBrowserTabIndex(modelToCopy->getSelectedItem()->getBrowserTabIndex());
+            break;
+    }
+}
+
+/**
  * @return All of the valid items for this model.
  */
 std::vector<VolumeSurfaceOutlineColorOrTabModel::Item*> 

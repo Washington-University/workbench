@@ -96,6 +96,20 @@ VolumeSurfaceOutlineSetModel::getNumberOfDislayedVolumeSurfaceOutlines() const
 }
 
 /**
+ * Copy the given volume surface outline set model.
+ * @param setModel
+ *     Model that is copied.
+ */
+void 
+VolumeSurfaceOutlineSetModel::copyVolumeSurfaceOutlineSetModel(VolumeSurfaceOutlineSetModel* setModel)
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
+        this->outlineModels[i]->copyVolumeSurfaceOutlineModel(setModel->getVolumeSurfaceOutlineModel(i));
+    }
+    this->numberOfDisplayedVolumeSurfaceOutlines = setModel->getNumberOfDislayedVolumeSurfaceOutlines();
+}
+
+/**
  * Set the number of volume surface outlines.
  * @param numberDisplayed
  *    Number of displayed volume surface outlines.

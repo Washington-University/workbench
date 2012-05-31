@@ -52,6 +52,8 @@ namespace caret {
         
         virtual ~BrowserTabContent();
         
+        void cloneBrowserTabContent(BrowserTabContent* tabToClone);
+        
         virtual void receiveEvent(Event* event);
         
         virtual AString toString() const;

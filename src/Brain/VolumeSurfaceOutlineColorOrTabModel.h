@@ -92,6 +92,8 @@ namespace caret {
         
         std::vector<Item*> getValidItems();
         
+        void copyVolumeSurfaceOutlineColorOrTabModel(VolumeSurfaceOutlineColorOrTabModel* modelToCopy);
+        
         Item* getSelectedItem();
         
         void setSelectedItem(Item* item);

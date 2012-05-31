@@ -1716,9 +1716,19 @@ BrainBrowserWindow::processNewTab()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
+    BrowserTabContent* previousTabContent = this->getBrowserTabContent();
+    
     this->toolbar->addNewTab();
     this->toolbar->updateToolBar();
 
+    if (previousTabContent != NULL) {
+        /*
+         * New tab is clone of tab that was displayed when the new tab was created.
+         */
+        BrowserTabContent* newTabContent = this->getBrowserTabContent();
+        newTabContent->cloneBrowserTabContent(previousTabContent);
+    }
+    
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());

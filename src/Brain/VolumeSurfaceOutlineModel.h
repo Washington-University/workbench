@@ -40,6 +40,8 @@ namespace caret {
         
         virtual ~VolumeSurfaceOutlineModel();
         
+        void copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineModel* modelToCopy);
+        
         bool isDisplayed() const;
         
         void setDisplayed(const bool displayed);

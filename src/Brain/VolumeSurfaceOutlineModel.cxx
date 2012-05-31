@@ -63,6 +63,22 @@ VolumeSurfaceOutlineModel::~VolumeSurfaceOutlineModel()
 }
 
 /**
+ * Copy the given volume surface outline model to this model.
+ * @param modelToCopy
+ *    Model that is copied.
+ */
+void 
+VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineModel* modelToCopy)
+{
+    this->displayed = modelToCopy->displayed;
+    this->thickness = modelToCopy->thickness;
+    this->surfaceSelectionModel->setSurface(modelToCopy->getSurface());
+    
+    VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
+    this->colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
