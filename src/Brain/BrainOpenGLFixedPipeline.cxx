@@ -1700,17 +1700,21 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
     const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
     
-    if (fociDisplayProperties->isDisplayed(displayGroup) == false) {
+    if (fociDisplayProperties->isDisplayed(displayGroup,
+                                           this->windowTabIndex) == false) {
         return;
     }
-    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup) / 2.0;
-    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup);
+    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
+                                                                 this->windowTabIndex) / 2.0;
+    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+                                                                                               this->windowTabIndex);
     
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
     
     bool drawAsSpheres = false;
-    switch (fociDisplayProperties->getDrawingType(displayGroup)) {
+    switch (fociDisplayProperties->getDrawingType(displayGroup,
+                                                  this->windowTabIndex)) {
         case FociDrawingTypeEnum::DRAW_AS_SPHERES:
             drawAsSpheres = true;
             break;
@@ -1718,9 +1722,11 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(displayGroup);
+    const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(displayGroup,
+                                                                              this->windowTabIndex);
     
-    const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(displayGroup);
+    const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(displayGroup,
+                                                                                        this->windowTabIndex);
     const int32_t numFociFiles = brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
         FociFile* fociFile = brain->getFociFile(i);

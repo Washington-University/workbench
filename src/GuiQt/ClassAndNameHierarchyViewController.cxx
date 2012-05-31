@@ -46,7 +46,7 @@
 #include "CaretAssert.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
-#include "DisplayPropertiesBorders.h"
+//#include "DisplayPropertiesBorders.h"
 #include "FociFile.h"
 #include "GuiManager.h"
 #include "GiftiLabel.h"
@@ -75,6 +75,7 @@ ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const i
                                                                          QWidget* parent)
 : QWidget(parent)
 {
+    this->displayGroup = DisplayGroupEnum::getDefaultValue();
     this->browserWindowIndex = browserWindowIndex;
     this->treeWidget = new WuQTreeWidget();
     this->treeWidget->setStyleSheet("background-color: rgba(125,125,125,0)");
@@ -121,15 +122,15 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
     BrowserTabContent* browserTabContent = 
        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    const DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
+//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+//    const DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
             ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
-            hierarchyModel->setSelected(displayGroup,
+            hierarchyModel->setSelected(this->displayGroup,
                                         browserTabIndex,
                                         isSelected);
         }
@@ -137,7 +138,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
             ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            classSelector->setSelected(displayGroup,
+            classSelector->setSelected(this->displayGroup,
                                        browserTabIndex,
                                        isSelected);
         }
@@ -145,7 +146,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
         {
             ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = selectionInfo->getNameDisplayGroupSelector();
-            nameSelector->setSelected(displayGroup,
+            nameSelector->setSelected(this->displayGroup,
                                       browserTabIndex,
                                       isSelected);
         }
@@ -171,15 +172,15 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
+//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
             ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
-            hierarchyModel->setExpanded(displayGroup,
+            hierarchyModel->setExpanded(this->displayGroup,
                                         browserTabIndex,
                                         false);
         }
@@ -188,7 +189,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
         {
             ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
-            classSelector->setExpanded(displayGroup,
+            classSelector->setExpanded(this->displayGroup,
                                        browserTabIndex,
                                        false);
         }
@@ -214,15 +215,15 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
+//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
             ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
-            hierarchyModel->setExpanded(displayGroup,
+            hierarchyModel->setExpanded(this->displayGroup,
                                         browserTabIndex,
                                         true);
         }
@@ -231,7 +232,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
         {
             ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
-            classSelector->setExpanded(displayGroup, 
+            classSelector->setExpanded(this->displayGroup, 
                                        browserTabIndex,
                                        true);
         }
@@ -245,10 +246,14 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
  * Update with border files.
  * @param borderFiles
  *    The border files.
+ * @param displayGroup
+ *    The selected display group.
  */
 void 
-ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles)
+ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles,
+                                                    const DisplayGroupEnum::Enum displayGroup)
 {
+    this->displayGroup = displayGroup;
     std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<BorderFile*>::iterator iter = borderFiles.begin();
          iter != borderFiles.end();
@@ -267,10 +272,14 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
  * Update with border files.
  * @param borderFiles
  *    The border files.
+ * @param displayGroup
+ *    The selected display group.
  */
 void 
-ClassAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles)
+ClassAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles,
+                                                    const DisplayGroupEnum::Enum displayGroup)
 {
+    this->displayGroup = displayGroup;
     std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
          iter != fociFiles.end();
@@ -322,8 +331,8 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
     BrowserTabContent* browserTabContent = 
         GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
+//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     /*
      * Loop through the models.
@@ -360,7 +369,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                     ClassAndNameHierarchySelectedItem* nameInfo = 
                     new ClassAndNameHierarchySelectedItem(nameSelector);
                     QTreeWidgetItem* nameItem = this->createTreeWidgetItem(nameSelector->getName(),
-                                                                           nameSelector->isSelected(displayGroup,
+                                                                           nameSelector->isSelected(this->displayGroup,
                                                                                                     browserTabIndex),
                                                                            nameInfo);
                     nameTreeWidgets.append(nameItem);
@@ -377,12 +386,12 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                 ClassAndNameHierarchySelectedItem* classInfo = 
                    new ClassAndNameHierarchySelectedItem(classSelector);
                 QTreeWidgetItem* classItem = this->createTreeWidgetItem(classSelector->getName(),
-                                                                        classSelector->isSelected(displayGroup,
+                                                                        classSelector->isSelected(this->displayGroup,
                                                                                                   browserTabIndex),
                                                                         classInfo);
                 classItem->addChildren(nameTreeWidgets);                
                 classTreeWidgets.append(classItem);
-                classItem->setExpanded(classSelector->isExpanded(displayGroup,
+                classItem->setExpanded(classSelector->isExpanded(this->displayGroup,
                                                                  browserTabIndex));
             }
         }
@@ -394,12 +403,12 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
             ClassAndNameHierarchySelectedItem* modelInfo = 
                new ClassAndNameHierarchySelectedItem(classNamesModel);
             QTreeWidgetItem* modelItem = this->createTreeWidgetItem(classNamesModel->getName(), 
-                                                                    classNamesModel->isSelected(displayGroup,
+                                                                    classNamesModel->isSelected(this->displayGroup,
                                                                                                 browserTabIndex), 
                                                                     modelInfo);
             modelItem->addChildren(classTreeWidgets);                                   
             this->treeWidget->addTopLevelItem(modelItem);
-            modelItem->setExpanded(classNamesModel->isExpanded(displayGroup,
+            modelItem->setExpanded(classNamesModel->isExpanded(this->displayGroup,
                                                                browserTabIndex));
         }
     }
@@ -444,15 +453,15 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
+//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
             ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
-            item->setExpanded(hierarchyModel->isExpanded(displayGroup,
+            item->setExpanded(hierarchyModel->isExpanded(this->displayGroup,
                                                          browserTabIndex));
         }
             break;
@@ -460,7 +469,7 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
         {
             ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
-            item->setExpanded(classSelector->isExpanded(displayGroup,
+            item->setExpanded(classSelector->isExpanded(this->displayGroup,
                                                         browserTabIndex));
         }
             break;

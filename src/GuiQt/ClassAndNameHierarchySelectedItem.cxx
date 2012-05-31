@@ -36,7 +36,6 @@
 #include "ClassAndNameHierarchySelectedItem.h"
 #undef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
 
-#include "BorderFile.h"
 #include "CaretAssert.h"
 
 using namespace caret;

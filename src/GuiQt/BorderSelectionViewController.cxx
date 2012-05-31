@@ -322,9 +322,10 @@ BorderSelectionViewController::updateBorderViewController()
     
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
+    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     
-    m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroupForTab(browserTabIndex));
+    m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dpb->getDisplayGroupForTab(browserTabIndex));
     
     /*;
      * Get all of border files.
@@ -338,15 +339,12 @@ BorderSelectionViewController::updateBorderViewController()
     /*
      * Update the class/name hierarchy
      */
-    m_borderClassNameHierarchyViewController->updateContents(allBorderFiles);
+    m_borderClassNameHierarchyViewController->updateContents(allBorderFiles,
+                                                             displayGroup);
 
     std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
     BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
     const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
-    
-    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    
-    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     
     m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup,
                                                           browserTabIndex));

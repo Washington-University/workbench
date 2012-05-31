@@ -86,7 +86,7 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static DisplayGroupEnum::Enum getDefaultValue() { return DISPLAY_GROUP_A; }
+    static DisplayGroupEnum::Enum getDefaultValue();
 private:
     DisplayGroupEnum(const Enum enumValue, 
                  const AString& name,

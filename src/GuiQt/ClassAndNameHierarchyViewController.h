@@ -39,9 +39,9 @@
 #include <QWidget>
 
 #include "AString.h"
+#include "DisplayGroupEnum.h"
 
 class QCheckBox;
-//class QTreeWidget;
 class QTreeWidgetItem;
 
 namespace caret {
@@ -62,9 +62,11 @@ namespace caret {
         
         virtual ~ClassAndNameHierarchyViewController();
         
-        void updateContents(std::vector<BorderFile*> borderFiles);
+        void updateContents(std::vector<BorderFile*> borderFiles,
+                            const DisplayGroupEnum::Enum displayGroup);
         
-        void updateContents(std::vector<FociFile*> fociFiles);
+        void updateContents(std::vector<FociFile*> fociFiles,
+                            const DisplayGroupEnum::Enum displayGroup);
         
     signals:
         void itemSelected(ClassAndNameHierarchySelectedItem* selectedItem);
@@ -100,6 +102,8 @@ namespace caret {
         std::vector<ClassAndNameHierarchySelectedItem*> itemSelectionInfo;
 
         int32_t browserWindowIndex;
+        
+        DisplayGroupEnum::Enum displayGroup;
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__

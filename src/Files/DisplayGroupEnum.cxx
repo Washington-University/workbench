@@ -371,3 +371,12 @@ DisplayGroupEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool i
     }
 }
 
+/**
+ * @return The default value for a display group.
+ */
+DisplayGroupEnum::Enum 
+DisplayGroupEnum::getDefaultValue() 
+{ 
+    return DISPLAY_GROUP_A; 
+}
+
