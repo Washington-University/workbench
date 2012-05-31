@@ -4242,6 +4242,23 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
         return;
     }
     volumeModel->setMontageNumberOfRows(tabIndex, this->montageRowsSpinBox->value());
+    
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    ModelYokingGroup* modelYoking = NULL;
+    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
+    }
+    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
+    if (volumeController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
+    }
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+
     this->updateGraphicsWindow();
 }
 
@@ -4261,6 +4278,23 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
         return;
     }
     volumeModel->setMontageNumberOfColumns(tabIndex, this->montageColumnsSpinBox->value());
+    
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    ModelYokingGroup* modelYoking = NULL;
+    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
+    }
+    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
+    if (volumeController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
+    }
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+    
     this->updateGraphicsWindow();
 }
 
@@ -4280,6 +4314,23 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int /*i*/)
         return;
     }
     volumeModel->setMontageSliceSpacing(tabIndex, this->montageSpacingSpinBox->value());
+    
+    /*
+     * When yoked, need to update other toolbars.
+     */
+    ModelYokingGroup* modelYoking = NULL;
+    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(wholeBrainController);
+    }
+    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
+    if (volumeController != NULL) {
+        modelYoking = btc->getSelectedYokingGroupForModel(volumeController);
+    }
+    if (modelYoking != NULL) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+    }
+    
     this->updateGraphicsWindow();
 }
 
