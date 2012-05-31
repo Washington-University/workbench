@@ -35,6 +35,7 @@
 //      will result in the effective ROI being the logical AND of the two (intersection).
 
 #include "stdint.h"
+#include "stddef.h"
 #include <vector>
 
 namespace caret {
