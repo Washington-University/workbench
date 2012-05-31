@@ -267,14 +267,19 @@ SessionManager::receiveEvent(Event* event)
         
         tabEvent->setEventProcessed();
         
+        bool createdTab = false;
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (this->browserTabs[i] == NULL) {
                 BrowserTabContent* tab = new BrowserTabContent(i);
                 tab->update(this->modelDisplayControllers);
                 this->browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);
+                createdTab = true;
                 break;
             }
+        }
+        if (createdTab == false) {
+            tabEvent->setErrorMessage("Workbench is exhausted.  It cannot create any more tabs.");
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
