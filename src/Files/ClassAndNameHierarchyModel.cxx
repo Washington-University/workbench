@@ -65,9 +65,16 @@ using namespace caret;
  * removed when the entire instance is cleared (via clear())
  * or by calling removeUnusedNamesAndClasses().  
  *
- * Each class or name is stored using a GiftiLabel that
- * supports a 'count'.  If the for a class or name is zero,
- * that indicates that the item is unused.
+ * Each class or name supports a 'count'.  If the for a class 
+ * or name is zero, that indicates that the item is unused.
+ * 
+ * Attributes are available for every tab and also a 
+ * few 'display groups'.  A number of methods in this class accept 
+ * both display group and tab index parameters.  When the display 
+ * group is set to 'Tab', the tab index is used meaning that the
+ * attribute requeted/sent is for use with a specifc tab.  For an
+ * other display group value, the attribute is for a display group
+ * and the tab index is ignored.
  */
 
 /**
@@ -78,10 +85,12 @@ ClassAndNameHierarchyModel::ClassAndNameHierarchyModel()
 {
     this->clear();
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectionStatus[i] = true;
+        this->selectionStatusInDisplayGroup[i] = true;
+        this->expandedStatusInDisplayGroup[i] = true;
     }
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->expandedStatus[i] = true;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->selectionStatusInTab[i] = true;
+        this->expandedStatusInTab[i] = true;
     }
 }
 
@@ -511,31 +520,55 @@ ClassAndNameHierarchyModel::getName() const
 
 /**
  * @return Is this hierarchy selected?
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  */
 bool 
-ClassAndNameHierarchyModel::isSelected(const DisplayGroupEnum::Enum displayGroup) const
+ClassAndNameHierarchyModel::isSelected(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    return this->selectionStatus[displayIndex];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectionStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                              tabIndex);
+        return this->selectionStatusInTab[tabIndex];
+    }
+    return this->selectionStatusInDisplayGroup[displayIndex];
 }
 
 /**
  * Set the selection status of this hierarchy model.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param selectionStatus
  *    New selection status.
  */
 void 
 ClassAndNameHierarchyModel::setSelected(const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
                                         const bool selectionStatus)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    this->selectionStatus[displayIndex] = selectionStatus;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectionStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                              tabIndex);
+        this->selectionStatusInTab[tabIndex] = selectionStatus;
+    }
+    else {
+        this->selectionStatusInDisplayGroup[displayIndex] = selectionStatus;
+    }
 }
 
 /**
@@ -671,7 +704,9 @@ ClassAndNameHierarchyModel::addName(const AString& parentClassName,
 /**
  * Is a class selected in the given display group?
  * @param displayGroup
- *    Display group for which selection status is desired.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param classKey
  *    Key for class for which selection statis is desired.
  * @return
@@ -679,7 +714,8 @@ ClassAndNameHierarchyModel::addName(const AString& parentClassName,
  *    false if not selected or key is invalid.
  */
 bool 
-ClassAndNameHierarchyModel::isClassSelected(DisplayGroupEnum::Enum displayGroup,
+ClassAndNameHierarchyModel::isClassSelected(const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
                                             const int32_t classKey) const
 {
     bool status = false;
@@ -688,7 +724,7 @@ ClassAndNameHierarchyModel::isClassSelected(DisplayGroupEnum::Enum displayGroup,
         && (classKey < static_cast<int32_t>(this->keyToClassNameSelectorVector.size()))) {
         ClassDisplayGroupSelector* cs = this->keyToClassNameSelectorVector[classKey];
         if (cs != NULL) {
-            status = cs->isSelected(displayGroup);
+            status = cs->isSelected(displayGroup, tabIndex);
         }
         else {
             CaretAssertMessage(0, "No class group for class key="
@@ -702,14 +738,17 @@ ClassAndNameHierarchyModel::isClassSelected(DisplayGroupEnum::Enum displayGroup,
 /**
  * Set a class selected in the given display group
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param classKey
  *    Key for class for which selection status is set.
  * @param selected
  *    New selection status.
  */
 void 
-ClassAndNameHierarchyModel::setClassSelected(DisplayGroupEnum::Enum displayGroup,
+ClassAndNameHierarchyModel::setClassSelected(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
                                              const int32_t classKey,
                                              const bool selected)
 {
@@ -717,7 +756,7 @@ ClassAndNameHierarchyModel::setClassSelected(DisplayGroupEnum::Enum displayGroup
         && (classKey < static_cast<int32_t>(this->keyToClassNameSelectorVector.size()))) {
         ClassDisplayGroupSelector* cs = this->keyToClassNameSelectorVector[classKey];
         if (cs != NULL) {
-            cs->setSelected(displayGroup, selected);
+            cs->setSelected(displayGroup, tabIndex, selected);
         }
         else {
             CaretAssertMessage(0, "No class group for class key="
@@ -729,7 +768,9 @@ ClassAndNameHierarchyModel::setClassSelected(DisplayGroupEnum::Enum displayGroup
 /**
  * Is a name selected in the given parent class and display group?
  * @param displayGroup
- *    Display group for which selection status is desired.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param parentClassKey
  *    Key for parent class for which name selection status is desired.
  * @param nameKey
@@ -739,7 +780,8 @@ ClassAndNameHierarchyModel::setClassSelected(DisplayGroupEnum::Enum displayGroup
  *    false if not selected or either class or name key is invalid.
  */
 bool 
-ClassAndNameHierarchyModel::isNameSelected(DisplayGroupEnum::Enum displayGroup,
+ClassAndNameHierarchyModel::isNameSelected(const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex,
                                            const int32_t parentClassKey,
                                            const int32_t nameKey) const
 {
@@ -751,7 +793,7 @@ ClassAndNameHierarchyModel::isNameSelected(DisplayGroupEnum::Enum displayGroup,
         if (cs != NULL) {
             NameDisplayGroupSelector* ns = cs->getNameSelector(nameKey);
             if (ns != NULL) {
-                status = ns->isSelected(displayGroup);
+                status = ns->isSelected(displayGroup, tabIndex);
             }
             else {
                 CaretAssertMessage(0, "No name group for name key="
@@ -772,7 +814,9 @@ ClassAndNameHierarchyModel::isNameSelected(DisplayGroupEnum::Enum displayGroup,
 /**
  * Set a name selected in the given parent class and display group
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param parentClassKey
  *    Key for parent class for which selection status is set.
  * @param nameKey
@@ -780,7 +824,8 @@ ClassAndNameHierarchyModel::isNameSelected(DisplayGroupEnum::Enum displayGroup,
  * @param selected
  *    New selection status.
  */
-void ClassAndNameHierarchyModel::setNameSelected(DisplayGroupEnum::Enum displayGroup,
+void ClassAndNameHierarchyModel::setNameSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex,
                                                  const int32_t parentClassKey,
                                                  const int32_t nameKey,
                                                  const bool selected)
@@ -791,7 +836,7 @@ void ClassAndNameHierarchyModel::setNameSelected(DisplayGroupEnum::Enum displayG
         if (cs != NULL) {
             NameDisplayGroupSelector* ns = cs->getNameSelector(nameKey);
             if (ns != NULL) {
-                ns->setSelected(displayGroup, selected);
+                ns->setSelected(displayGroup, tabIndex, selected);
             }
             else {
                 CaretAssertMessage(0, "No name group for name key="
@@ -811,34 +856,56 @@ void ClassAndNameHierarchyModel::setNameSelected(DisplayGroupEnum::Enum displayG
 /**
  * @return The expanded status.
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  */
 bool 
-ClassAndNameHierarchyModel::isExpanded(const DisplayGroupEnum::Enum displayGroup) const
+ClassAndNameHierarchyModel::isExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->expandedStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    return this->expandedStatus[displayIndex];
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->expandedStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                              tabIndex);
+        return this->expandedStatusInTab[tabIndex];
+    }
+    return this->expandedStatusInDisplayGroup[displayIndex];
 }
 
 /**
  * Set the expanded status.
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param expanded
  *    New expaned status.
  */
 void 
 ClassAndNameHierarchyModel::setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
                                         const bool expanded)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->expandedStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    this->expandedStatus[displayIndex] = expanded;
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->expandedStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                              tabIndex);
+        this->expandedStatusInTab[tabIndex] = expanded;
+    }
+    else {
+        this->expandedStatusInDisplayGroup[displayIndex] = expanded;
+    }
 }
 
 //===================================================================
@@ -861,7 +928,10 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::NameDisplayGroupSelector(c
     this->name = name;
     this->key  = key;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selected[i] = true;
+        this->selectedInDisplayGroup[i] = true;
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->selectedInTab[i] = true;
     }
     this->counter = 0;
 }
@@ -895,35 +965,56 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::getKey() const
  * Is this name selected for the given display group.
  * @param displayGroup
  *    Display Group for which selection status is requested.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @return
  *    True if selected, else false.
  */
 bool 
-ClassAndNameHierarchyModel::NameDisplayGroupSelector::isSelected(const DisplayGroupEnum::Enum displayGroup) const
+ClassAndNameHierarchyModel::NameDisplayGroupSelector::isSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                                 const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->selectedInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    return this->selected[displayIndex];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectedInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return this->selectedInTab[tabIndex];
+    }
+    
+    return this->selectedInDisplayGroup[displayIndex];
 }
 
 /**
  * Set name seletion status for the given display group.
  * @param displayGroup
- *    Display Group for which selection status is being set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param status
  *    New selection status.
  */
 void 
 ClassAndNameHierarchyModel::NameDisplayGroupSelector::setSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                                  const int32_t tabIndex,
                                                                   const bool status)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->selectedselectedInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    this->selected[displayIndex] = status;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectedInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        this->selectedInTab[tabIndex] = status;
+    }
+    else {
+        this->selectedInDisplayGroup[displayIndex] = status;
+    }
 }
 
 /**
@@ -1008,7 +1099,10 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::clear()
     this->availableNameKeys.clear();
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->expandedStatus[i] = false;
+        this->expandedStatusInDisplayGroup[i] = false;
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->expandedStatusInTab[i] = false;
     }
 }
 
@@ -1062,7 +1156,14 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setAllSelected(const bool
 {
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         DisplayGroupEnum::Enum group = (DisplayGroupEnum::Enum)i;
-        this->setSelected(group, status);
+        if (group == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+            for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
+                this->setSelected(group, j, status);
+            }
+        }
+        else {
+            this->setSelected(group, -1, status);
+        }
     }
     
     for (std::vector<NameDisplayGroupSelector*>::iterator iter = this->keyToNameSelectorVector.begin();
@@ -1072,7 +1173,14 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setAllSelected(const bool
         if (ns != NULL) {
             for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
                 DisplayGroupEnum::Enum group = (DisplayGroupEnum::Enum)i;
-                ns->setSelected(group, status);
+                if (group == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+                    for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
+                        ns->setSelected(group, j, status);
+                    }
+                }
+                else {
+                    ns->setSelected(group, -1, status);
+                }
             }
         }
     }
@@ -1235,35 +1343,55 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::removeNamesWithCountersEq
 
 /**
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @return The expanded status.
  */
 bool 
-ClassAndNameHierarchyModel::ClassDisplayGroupSelector::isExpanded(const DisplayGroupEnum::Enum displayGroup) const
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::isExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                                                  const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->expandedStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    return this->expandedStatus[displayIndex];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->expandedStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return this->expandedStatusInTab[tabIndex];
+    }
+    return this->expandedStatusInDisplayGroup[displayIndex];
 }
 
 /**
  * Set the expanded status.
  * @param displayGroup
- *    Display group for which selection status is set.
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @param expanded
  *    New expaned status.
  */
 void 
 ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                                                   const int32_t tabIndex,
                                                                    const bool expanded)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selected, 
+    CaretAssertArrayIndex(this->expandedStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
                           displayIndex);
-    this->expandedStatus[displayIndex] = expanded;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->expandedStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        this->expandedStatusInTab[tabIndex] = expanded;
+    }
+    else {
+        this->expandedStatusInDisplayGroup[displayIndex] = expanded;
+    }
 }
 
 

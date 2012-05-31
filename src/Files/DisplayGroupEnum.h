@@ -48,8 +48,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-//        /** All windows */
-//        DISPLAY_ALL_WINDOWS,
+        /** Unique to Tab */
+        DISPLAY_GROUP_TAB,
         /** Group A */
         DISPLAY_GROUP_A,
         /** Group B */
@@ -63,7 +63,7 @@ public:
 
     enum Misc {
         /** Number of groups, update if new enums are added */
-        NUMBER_OF_GROUPS = 4
+        NUMBER_OF_GROUPS = 5
     };
     
     ~DisplayGroupEnum();

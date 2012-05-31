@@ -2159,8 +2159,10 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
         DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
         const int32_t browserTabIndex = tabContent->getTabNumber();
         const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
-        if (dpb->isDisplayed(displayGroup) == false) {
+        if (dpb->isDisplayed(displayGroup,
+                             browserTabIndex) == false) {
             dpb->setDisplayed(displayGroup, 
+                              browserTabIndex,
                               true);
             this->updateUserInterface();
             this->updateGraphicsWindow();

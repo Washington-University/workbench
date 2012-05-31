@@ -1497,9 +1497,12 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         const Brain* brain = bs->getBrain();
         const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
         const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
-        pointSize = dpb->getPointSize(displayGroup);
-        lineWidth  = dpb->getLineWidth(displayGroup);
-        drawType  = dpb->getDrawingType(displayGroup);
+        pointSize = dpb->getPointSize(displayGroup,
+                                      this->windowTabIndex);
+        lineWidth  = dpb->getLineWidth(displayGroup,
+                                       this->windowTabIndex);
+        drawType  = dpb->getDrawingType(displayGroup,
+                                        this->windowTabIndex);
     }
     
     bool drawSphericalPoints = false;
@@ -1723,7 +1726,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         FociFile* fociFile = brain->getFociFile(i);
         
         const ClassAndNameHierarchyModel* classAndNameSelection = fociFile->getClassAndNameHierarchyModel();
-        if (classAndNameSelection->isSelected(displayGroup) == false) {
+        if (classAndNameSelection->isSelected(displayGroup,
+                                              this->windowTabIndex) == false) {
             continue;
         }
         
@@ -1735,10 +1739,13 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             Focus* focus = fociFile->getFocus(j);
             const int32_t selectionClassKey = focus->getSelectionClassKey();
             const int32_t selectionNameKey  = focus->getSelectionNameKey();
-            if (classAndNameSelection->isClassSelected(displayGroup, selectionClassKey) == false) {
+            if (classAndNameSelection->isClassSelected(displayGroup, 
+                                                       this->windowTabIndex,
+                                                       selectionClassKey) == false) {
                 continue;
             }
             if (classAndNameSelection->isNameSelected(displayGroup, 
+                                                      this->windowTabIndex,
                                                       selectionClassKey, 
                                                       selectionNameKey) == false) {
                 continue;
@@ -1889,17 +1896,20 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     Brain* brain = surface->getBrainStructure()->getBrain();
     const DisplayPropertiesBorders* borderDisplayProperties = brain->getDisplayPropertiesBorders();
     const DisplayGroupEnum::Enum displayGroup = borderDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
-    if (borderDisplayProperties->isDisplayed(displayGroup) == false) {
+    if (borderDisplayProperties->isDisplayed(displayGroup,
+                                             this->windowTabIndex) == false) {
         return;
     }
     
-    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup);
+    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
+                                                                                          this->windowTabIndex);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
         const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
-        if (classAndNameSelection->isSelected(displayGroup) == false) {
+        if (classAndNameSelection->isSelected(displayGroup,
+                                              this->windowTabIndex) == false) {
             continue;
         }
         
@@ -1911,10 +1921,13 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             Border* border = borderFile->getBorder(j);
             const int32_t selectionClassKey = border->getSelectionClassKey();
             const int32_t selectionNameKey  = border->getSelectionNameKey();
-            if (classAndNameSelection->isClassSelected(displayGroup, selectionClassKey) == false) {
+            if (classAndNameSelection->isClassSelected(displayGroup, 
+                                                       this->windowTabIndex,
+                                                       selectionClassKey) == false) {
                 continue;
             }
             if (classAndNameSelection->isNameSelected(displayGroup, 
+                                                      this->windowTabIndex,
                                                       selectionClassKey, 
                                                       selectionNameKey) == false) {
                 continue;

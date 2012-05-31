@@ -54,34 +54,44 @@ namespace caret {
         
         virtual void update();
         
-        bool isDisplayed(const DisplayGroupEnum::Enum  displayGroup) const;
+        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex) const;
         
-        void setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
                           const bool displayStatus);
         
-        bool isContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup) const;
+        bool isContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex) const;
         
-        void setContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+        void setContralateralDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex,
                                        const bool contralateralDisplayStatus);
         
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
         void setDisplayGroupForTab(const int32_t browserTabIndex,
-                             const DisplayGroupEnum::Enum  displayGroup);
+                             const DisplayGroupEnum::Enum displayGroup);
         
-        float getPointSize(const DisplayGroupEnum::Enum  displayGroup) const;
+        float getPointSize(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const;
         
-        void setPointSize(const DisplayGroupEnum::Enum  displayGroup,
+        void setPointSize(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
                           const float pointSize);
         
-        float getLineWidth(const DisplayGroupEnum::Enum  displayGroup) const;
+        float getLineWidth(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const;
         
-        void setLineWidth(const DisplayGroupEnum::Enum  displayGroup,
+        void setLineWidth(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
                           const float lineWidth);
         
-        BorderDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum  displayGroup) const;
+        BorderDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum displayGroup,
+                                                   const int32_t tabIndex) const;
         
-        void setDrawingType(const DisplayGroupEnum::Enum  displayGroup,
+        void setDrawingType(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
                             const BorderDrawingTypeEnum::Enum drawingType);
         
     private:
@@ -89,17 +99,27 @@ namespace caret {
 
         DisplayPropertiesBorders& operator=(const DisplayPropertiesBorders&);
         
-        bool m_displayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        bool m_contralateralDisplayStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_pointSize[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        float m_lineWidth[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        BorderDrawingTypeEnum::Enum m_drawingType[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        bool m_contralateralDisplayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        bool m_contralateralDisplayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_pointSizeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        float m_pointSizeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_lineWidthInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        float m_lineWidthInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        BorderDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        BorderDrawingTypeEnum::Enum m_drawingTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

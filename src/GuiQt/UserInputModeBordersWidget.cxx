@@ -403,6 +403,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     if (btc == NULL) {
         return;
     }
+    const int32_t browserTabIndex = btc->getTabNumber();
     
     if (this->inputModeBorders->borderBeingDrawnByOpenGL->verifyAllPointsOnSameStructure() == false) {
         WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
@@ -433,6 +434,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(btc->getTabNumber());
     dpb->setDisplayed(displayGroup, 
+                      browserTabIndex,
                       true);
     
     switch (this->inputModeBorders->getDrawOperation()) {

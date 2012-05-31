@@ -37,8 +37,8 @@
 #include <deque>
 #include <map>
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
-
 #include "DisplayGroupEnum.h"
 
 namespace caret {
@@ -66,9 +66,11 @@ namespace caret {
             
             int32_t getKey() const;
             
-            bool isSelected(const DisplayGroupEnum::Enum displayGroup) const;
+            bool isSelected(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex) const;
             
             void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
                              const bool status);
             
             void clearCounter();
@@ -85,7 +87,10 @@ namespace caret {
             int32_t key;
             
             /** Selection for each display group */
-            bool selected[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            bool selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            
+            /** Selection for each tab */
+            bool selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
             
             /** Counter for tracking usage of item */
             int32_t counter;
@@ -118,9 +123,11 @@ namespace caret {
             
             void removeNamesWithCountersEqualZero();
             
-            bool isExpanded(const DisplayGroupEnum::Enum displayGroup) const;
+            bool isExpanded(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex) const;
             
             void setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
                              const bool expanded);
             
         private:
@@ -133,8 +140,11 @@ namespace caret {
             /** Maps a name to its name information.  Map is fastest way to search by name.   */
             std::map<AString, NameDisplayGroupSelector*> nameToNameSelectorMap;
             
-            /** Expanded (collapsed) status */        
-            bool expandedStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            /** Expanded (collapsed) status in display group */        
+            bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            
+            /** Expanded (collapsed) status in tab */        
+            bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         };
         
     public:
@@ -162,9 +172,11 @@ namespace caret {
         
         AString getName() const;
         
-        bool isSelected(const DisplayGroupEnum::Enum displayGroup) const;
+        bool isSelected(const DisplayGroupEnum::Enum displayGroup,
+                        const int32_t tabIndex) const;
         
         void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex,
                          const bool selectionStatus);
         
         std::vector<int32_t> getAllClassKeysSortedByName() const;
@@ -183,24 +195,30 @@ namespace caret {
                      int32_t& nameKeyOut);
         
         bool isClassSelected(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
                              const int32_t classKey) const;
         
         void setClassSelected(const DisplayGroupEnum::Enum displayGroup,
+                              const int32_t tabIndex,
                               const int32_t classKey,
                               const bool selected);
         
         bool isNameSelected(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
                             const int32_t parentClassKey,
                             const int32_t nameKey) const;
 
         void setNameSelected(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
                              const int32_t parentClassKey,
                              const int32_t nameKey,
                              const bool selected);
         
-        bool isExpanded(const DisplayGroupEnum::Enum displayGroup) const;
+        bool isExpanded(const DisplayGroupEnum::Enum displayGroup,
+                        const int32_t tabIndex) const;
         
         void setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex,
                          const bool expanded);
         
     private:
@@ -211,12 +229,18 @@ namespace caret {
         /** Name of model, does NOT get cleared. */
         AString name;
         
-        /* overlay selection status */
-        bool selectionStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        /* overlay selection status in display group */
+        bool selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        /** Expanded (collapsed) status */        
-        bool expandedStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        /* overlay selection status in tab */
+        bool selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Expanded (collapsed) status in display group */        
+        bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
 
+        /** Expanded (collapsed) status in tab */        
+        bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         /** If keys are removed, they are stored here for future reuse. */
         std::deque<int32_t> availableClassKeys;
         

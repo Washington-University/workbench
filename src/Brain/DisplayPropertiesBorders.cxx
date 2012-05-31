@@ -45,6 +45,14 @@ using namespace caret;
 /**
  * \class caret::DisplayPropertiesBorders 
  * \brief Contains display properties for borders.
+ *
+ * Border display properties are available for every tab and also a 
+ * few 'display groups'.  A number of methods in this class accept 
+ * both display group and tab index parameters.  When the display 
+ * group is set to 'Tab', the tab index is used meaning that the
+ * attribute requeted/sent is for use with a specifc tab.  For an
+ * other display group value, the attribute is for a display group
+ * and the tab index is ignored.
  */
 
 /**
@@ -55,16 +63,25 @@ using namespace caret;
 DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
 : DisplayProperties(brain)
 {
+    const float defaultPointSize = 2.0;
+    const float defaultLineSize  = 1.0;
+    const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
+        m_displayStatusInTab[i] = false;
+        m_contralateralDisplayStatusInTab[i] = false;
+        m_lineWidthInTab[i] = defaultLineSize;
+        m_pointSizeInTab[i] = defaultPointSize;
+        m_drawingTypeInTab[i] = defaultDrawingType;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_displayStatus[i] = false;
-        m_contralateralDisplayStatus[i] = false;
-        m_lineWidth[i]  = 1.0;
-        m_pointSize[i] = 2.0;
-        m_drawingType[i] = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+        m_displayStatusInDisplayGroup[i] = false;
+        m_contralateralDisplayStatusInDisplayGroup[i] = false;
+        m_lineWidthInDisplayGroup[i]  = defaultLineSize;
+        m_pointSizeInDisplayGroup[i] = defaultPointSize;
+        m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
     }
 }
 
@@ -101,64 +118,104 @@ DisplayPropertiesBorders::update()
 
 /**
  * @return  Display status of borders.
- * @param browserTabIndex
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
  *    Index of browser tab.
  */
 bool 
-DisplayPropertiesBorders::isDisplayed(const DisplayGroupEnum::Enum  displayGroup) const
+DisplayPropertiesBorders::isDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                      const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_displayStatus, 
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    return m_displayStatus[displayGroup];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);  
+        return m_displayStatusInTab[tabIndex];
+    }
+    return m_displayStatusInDisplayGroup[displayGroup];
 }
 
 /**
  * Set the display status for borders for the given display group.
  * @param displayGroup
+ *    The display group.
+ * @param tabIndex
  *    Index of browser tab.
  * @param displayStatus
  *    New status.
  */
 void 
 DisplayPropertiesBorders::setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex,
                                        const bool displayStatus)
 {
-    CaretAssertArrayIndex(m_displayStatus, 
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    m_displayStatus[displayGroup] = displayStatus;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);   
+        m_displayStatusInTab[tabIndex] = displayStatus;
+    }
+    else {
+        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
+    }
 }
 
 /**
  * @return  Contralateral display status of borders.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  */
 bool 
-DisplayPropertiesBorders::isContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup) const
+DisplayPropertiesBorders::isContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                                   const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_contralateralDisplayStatus, 
+    CaretAssertArrayIndex(m_contralateralDisplayStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    return m_contralateralDisplayStatus[displayGroup];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);  
+        return m_contralateralDisplayStatusInTab[tabIndex];
+    }
+    return m_contralateralDisplayStatusInDisplayGroup[displayGroup];
 }
 
 /**
  * Set the contralateral display status for borders.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  * @param contralateralDisplayStatus
  *    New status.
  */
 void 
 DisplayPropertiesBorders::setContralateralDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                                    const int32_t tabIndex,
                                                     const bool contralateralDisplayStatus)
 {
-    CaretAssertArrayIndex(m_contralateralDisplayStatus, 
+    CaretAssertArrayIndex(m_contralateralDisplayStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    m_contralateralDisplayStatus[displayGroup] = contralateralDisplayStatus;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);        
+        m_contralateralDisplayStatusInTab[tabIndex] = contralateralDisplayStatus;
+    }
+    else {
+        m_contralateralDisplayStatusInDisplayGroup[displayGroup] = contralateralDisplayStatus;
+    }
 }
 
 /**
@@ -195,94 +252,154 @@ DisplayPropertiesBorders::setDisplayGroupForTab(const int32_t browserTabIndex,
 /**
  * @return The point size.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  */
 float 
-DisplayPropertiesBorders::getPointSize(const DisplayGroupEnum::Enum  displayGroup) const
+DisplayPropertiesBorders::getPointSize(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_pointSize, 
+    CaretAssertArrayIndex(m_pointSizeInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    return m_pointSize[displayGroup];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);    
+        return m_pointSizeInTab[tabIndex];
+    }
+    return m_pointSizeInDisplayGroup[displayGroup];
 }
 
 /**
  * Set the point size to the given value.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  * @param pointSize
  *     New value for point size.
  */
 void 
 DisplayPropertiesBorders::setPointSize(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex,
                                        const float pointSize)
 {
-    CaretAssertArrayIndex(m_pointSize, 
+    CaretAssertArrayIndex(m_pointSizeInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    m_pointSize[displayGroup] = pointSize;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);        
+        m_pointSizeInTab[tabIndex] = pointSize;
+    }
+    else {
+        m_pointSizeInDisplayGroup[displayGroup] = pointSize;
+    }
 }
 
 /**
  * @return The line width.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  */
 float 
-DisplayPropertiesBorders::getLineWidth(const DisplayGroupEnum::Enum  displayGroup) const
+DisplayPropertiesBorders::getLineWidth(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_lineWidth, 
+    CaretAssertArrayIndex(m_lineWidthInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    return m_lineWidth[displayGroup];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);  
+        return m_lineWidthInTab[tabIndex];
+    }
+    return m_lineWidthInDisplayGroup[displayGroup];
 }
 
 /**
  * Set the line width to the given value.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  * @param lineWidth
  *     New value for line width.
  */
 void 
 DisplayPropertiesBorders::setLineWidth(const DisplayGroupEnum::Enum  displayGroup,
+                                       const int32_t tabIndex,
                                        const float lineWidth)
 {
-    CaretAssertArrayIndex(m_lineWidth, 
+    CaretAssertArrayIndex(m_lineWidthInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    m_lineWidth[displayGroup] = lineWidth;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);   
+        m_lineWidthInTab[tabIndex] = lineWidth;
+    }
+    else {
+        m_lineWidthInDisplayGroup[displayGroup] = lineWidth;
+    }
 }
 
 /**
  * @return The drawing type.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  */
 BorderDrawingTypeEnum::Enum 
-DisplayPropertiesBorders::getDrawingType(const DisplayGroupEnum::Enum  displayGroup) const
+DisplayPropertiesBorders::getDrawingType(const DisplayGroupEnum::Enum  displayGroup,
+                                         const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_drawingType, 
+    CaretAssertArrayIndex(m_drawingTypeInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    return m_drawingType[displayGroup];
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);   
+        return m_drawingTypeInTab[tabIndex];
+    }
+    return m_drawingTypeInDisplayGroup[displayGroup];
 }
 
 /**
  * Set the drawing type to the given value.
  * @param displayGroup
- *     Display group.
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
  * @param drawingType
  *     New value for drawing type.
  */
 void 
 DisplayPropertiesBorders::setDrawingType(const DisplayGroupEnum::Enum  displayGroup,
+                                         const int32_t tabIndex,
                                          const BorderDrawingTypeEnum::Enum drawingType)
 {
-    CaretAssertArrayIndex(m_drawingType, 
+    CaretAssertArrayIndex(m_drawingTypeInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
-    m_drawingType[displayGroup] = drawingType;
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);  
+        m_drawingTypeInTab[tabIndex] = drawingType;
+    }
+    else {
+        m_drawingTypeInDisplayGroup[displayGroup] = drawingType;
+    }
 }
 
 

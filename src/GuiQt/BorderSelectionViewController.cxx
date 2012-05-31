@@ -246,15 +246,20 @@ BorderSelectionViewController::processAttributesChanges()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     dpb->setDisplayed(displayGroup,
+                      browserTabIndex,
                       m_bordersDisplayCheckBox->isChecked());
     dpb->setContralateralDisplayed(displayGroup,
+                                   browserTabIndex,
                                    m_bordersContralateralCheckBox->isChecked());
 
     dpb->setDrawingType(displayGroup,
+                        browserTabIndex,
                         selectedDrawingType);
     dpb->setLineWidth(displayGroup,
+                      browserTabIndex,
                       m_lineWidthSpinBox->value());
     dpb->setPointSize(displayGroup,
+                      browserTabIndex,
                       m_pointSizeSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -343,10 +348,13 @@ BorderSelectionViewController::updateBorderViewController()
     
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     
-    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup));
-    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(displayGroup));
+    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup,
+                                                          browserTabIndex));
+    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(displayGroup,
+                                                                             browserTabIndex));
     
-    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType(displayGroup);
+    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType(displayGroup,
+                                                                                browserTabIndex);
     int32_t selectedDrawingTypeIndex = 0;
     
     for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
@@ -358,11 +366,13 @@ BorderSelectionViewController::updateBorderViewController()
     m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
     
     m_lineWidthSpinBox->blockSignals(true);
-    m_lineWidthSpinBox->setValue(dpb->getLineWidth(displayGroup));
+    m_lineWidthSpinBox->setValue(dpb->getLineWidth(displayGroup,
+                                                   browserTabIndex));
     m_lineWidthSpinBox->blockSignals(false);
     
     m_pointSizeSpinBox->blockSignals(true);
-    m_pointSizeSpinBox->setValue(dpb->getPointSize(displayGroup));
+    m_pointSizeSpinBox->setValue(dpb->getPointSize(displayGroup,
+                                                   browserTabIndex));
     m_pointSizeSpinBox->blockSignals(false);
 }
 
