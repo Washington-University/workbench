@@ -54,6 +54,9 @@ namespace caret {
         
         virtual void update();
         
+        void copyDisplayPropertiesBorders(const int32_t sourceTabIndex,
+                                        const int32_t targetTabIndex);
+        
         bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex) const;
         

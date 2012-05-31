@@ -128,6 +128,21 @@ ClassAndNameHierarchyModel::clear()
 }
 
 /**
+ * Copy the class and names selections from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which selections are copied.
+ * @param targetTabIndex
+ *    Index of tab to which selections are copied.
+ */
+void 
+ClassAndNameHierarchyModel::copyClassNameAndHierarchy(const int32_t sourceTabIndex,
+                                                      const int32_t targetTabIndex)
+{
+    this->selectionStatusInTab[targetTabIndex] = this->selectionStatusInTab[sourceTabIndex];
+    this->expandedStatusInTab[targetTabIndex]  = this->expandedStatusInTab[sourceTabIndex];
+}
+
+/**
  * Set the selected status for EVERYTHING.
  * @param status
  *    The selection status.
@@ -944,6 +959,20 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::~NameDisplayGroupSelector(
 }
 
 /**
+ * Copy the selections from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which selections are copied.
+ * @param targetTabIndex
+ *    Index of tab to which selections are copied.
+ */
+void 
+ClassAndNameHierarchyModel::NameDisplayGroupSelector::copySelections(const int32_t sourceTabIndex,
+                                                                     const int32_t targetTabIndex)
+{
+    this->selectedInTab[targetTabIndex] = this->selectedInTab[sourceTabIndex];
+}
+
+/**
  * @return The name.
  */
 AString 
@@ -1072,6 +1101,32 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::ClassDisplayGroupSelector
 ClassAndNameHierarchyModel::ClassDisplayGroupSelector::~ClassDisplayGroupSelector()
 {
     this->clear();
+}
+
+/**
+ * Copy the selections from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which selections are copied.
+ * @param targetTabIndex
+ *    Index of tab to which selections are copied.
+ */
+void 
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::copySelections(const int32_t sourceTabIndex,
+                                                                     const int32_t targetTabIndex)
+{
+    NameDisplayGroupSelector::copySelections(sourceTabIndex, 
+                                             targetTabIndex);
+    this->expandedStatusInTab[targetTabIndex] = this->expandedStatusInTab[sourceTabIndex];
+
+    for (std::vector<NameDisplayGroupSelector*>::iterator iter = this->keyToNameSelectorVector.begin();
+         iter != this->keyToNameSelectorVector.end();
+         iter++) {
+        NameDisplayGroupSelector* ns = *iter;
+        if (ns != NULL) {
+            ns->copySelections(sourceTabIndex,
+                               targetTabIndex);
+        }
+    }
 }
 
 /**

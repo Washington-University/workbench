@@ -84,6 +84,28 @@ DisplayPropertiesFoci::~DisplayPropertiesFoci()
 }
 
 /**
+ * Copy the border display properties from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which properties are copied.
+ * @param targetTabIndex
+ *    Index of tab to which properties are copied.
+ */
+void 
+DisplayPropertiesFoci::copyDisplayPropertiesFoci(const int32_t sourceTabIndex,
+                                                 const int32_t targetTabIndex)
+{
+    const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
+    this->setDisplayGroupForTab(targetTabIndex, displayGroup);
+    
+    m_coloringTypeInTab[targetTabIndex]     = m_coloringTypeInTab[sourceTabIndex];
+    m_contralateralDisplayStatusInTab[targetTabIndex] = m_contralateralDisplayStatusInTab[sourceTabIndex];
+    m_displayStatusInTab[targetTabIndex]    = m_displayStatusInTab[sourceTabIndex];
+    m_drawingTypeInTab[targetTabIndex]      = m_drawingTypeInTab[sourceTabIndex];
+    m_fociSizeInTab[targetTabIndex]         = m_fociSizeInTab[sourceTabIndex];
+    m_pasteOntoSurfaceInTab[targetTabIndex] = m_pasteOntoSurfaceInTab[sourceTabIndex];
+}
+
+/**
  * Reset all settings to their defaults
  * and remove any data.
  */

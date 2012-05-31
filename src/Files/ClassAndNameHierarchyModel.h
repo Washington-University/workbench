@@ -62,6 +62,9 @@ namespace caret {
             
             ~NameDisplayGroupSelector();
             
+            void copySelections(const int32_t sourceTabIndex,
+                                const int32_t targetTabIndex);
+            
             AString getName() const;
             
             int32_t getKey() const;
@@ -104,6 +107,9 @@ namespace caret {
             ~ClassDisplayGroupSelector();
             
             void clear();
+            
+            void copySelections(const int32_t sourceTabIndex,
+                                const int32_t targetTabIndex);
             
             int32_t addName(const AString& name);
             
@@ -153,6 +159,9 @@ namespace caret {
         virtual ~ClassAndNameHierarchyModel();
         
         void clear();
+        
+        void copyClassNameAndHierarchy(const int32_t sourceTabIndex,
+                                       const int32_t targetTabIndex);
         
         void removeUnusedNamesAndClasses(BorderFile* borderFile);
         

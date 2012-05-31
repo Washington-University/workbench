@@ -117,6 +117,27 @@ DisplayPropertiesBorders::update()
 }
 
 /**
+ * Copy the border display properties from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which properties are copied.
+ * @param targetTabIndex
+ *    Index of tab to which properties are copied.
+ */
+void 
+DisplayPropertiesBorders::copyDisplayPropertiesBorders(const int32_t sourceTabIndex,
+                                                     const int32_t targetTabIndex)
+{
+    const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
+    this->setDisplayGroupForTab(targetTabIndex, displayGroup);
+    
+    this->m_contralateralDisplayStatusInTab[targetTabIndex] = this->m_contralateralDisplayStatusInTab[sourceTabIndex];
+    this->m_displayStatusInTab[targetTabIndex] = this->m_displayStatusInTab[sourceTabIndex];
+    this->m_drawingTypeInTab[targetTabIndex] = this->m_drawingTypeInTab[sourceTabIndex];
+    this->m_lineWidthInTab[targetTabIndex]   = this->m_lineWidthInTab[sourceTabIndex];
+    this->m_pointSizeInTab[targetTabIndex]   = this->m_pointSizeInTab[sourceTabIndex];
+}
+
+/**
  * @return  Display status of borders.
  * @param displayGroup
  *    The display group.

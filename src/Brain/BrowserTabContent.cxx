@@ -27,10 +27,16 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include "BorderFile.h"
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ClassAndNameHierarchyModel.h"
+#include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesFoci.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
+#include "FociFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -98,11 +104,45 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     this->surfaceMontageModel = tabToClone->surfaceMontageModel;
     this->selectedYokingGroup = tabToClone->selectedYokingGroup;
     
+    Model* model = this->getModelControllerForDisplay();
+    Model* modelBeingCloned = tabToClone->getModelControllerForDisplay();
+    if ((model != NULL)
+        && (modelBeingCloned != NULL)) {
+        model->copyTransformationsAndViews(*modelBeingCloned, 
+                                           tabToClone->getTabNumber(), 
+                                           this->getTabNumber());
+    }
+    
     const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
     if (overlaySetToClone != NULL) {
         OverlaySet* overlaySet = this->getOverlaySet();
         if (overlaySet != NULL) {
             overlaySet->copyOverlaySet(overlaySetToClone);
+        }
+    }
+    
+    if (model != NULL) {
+        Brain* brain = model->getBrain();
+        
+        DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
+        dpb->copyDisplayPropertiesBorders(tabToClone->getTabNumber(),
+                                          this->getTabNumber());
+        DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
+        dpf->copyDisplayPropertiesFoci(tabToClone->getTabNumber(),
+                                       this->getTabNumber());
+        
+        const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+        for (int32_t i = 0; i < numBorderFiles; i++) {
+            BorderFile* bf = brain->getBorderFile(i);
+            bf->getClassAndNameHierarchyModel()->copyClassNameAndHierarchy(tabToClone->getTabNumber(),
+                                                                           this->getTabNumber());
+        }
+        
+        const int32_t numFociFiles = brain->getNumberOfFociFiles();
+        for (int32_t i = 0; i < numFociFiles; i++) {
+            FociFile* ff = brain->getFociFile(i);
+            ff->getClassAndNameHierarchyModel()->copyClassNameAndHierarchy(tabToClone->getTabNumber(),
+                                                                           this->getTabNumber());
         }
     }
     
