@@ -810,6 +810,8 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
             
             this->informationDisplayDialog->resize(600, 200);
             this->informationDisplayDialog->setSavePositionForNextTime(true);
+            WuQtUtilities::moveWindowToSideOfParent(parentWindow,
+                                                    this->informationDisplayDialog);
         }
     }
     
