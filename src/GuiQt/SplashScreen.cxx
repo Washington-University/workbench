@@ -79,7 +79,7 @@ SplashScreen::SplashScreen(QWidget* parent)
     /*
      * Removes title bar
      */
-    this->setWindowFlags(Qt::SplashScreen);
+//    this->setWindowFlags(Qt::SplashScreen);
 
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
