@@ -120,6 +120,7 @@ SurfaceSelectionViewController::initializeControl(const Mode mode,
 {
     this->mode = mode;
     this->surfaceComboBox = new QComboBox();
+    this->surfaceComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(comboBoxCurrentIndexChanged(int)));
 

@@ -226,8 +226,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->tabBarWidget = new QWidget();
     QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
     WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1);
-    tabBarLayout->addWidget(this->tabBar);
-    tabBarLayout->addStretch();
+    tabBarLayout->addWidget(this->tabBar, 100);
+//    tabBarLayout->addStretch();
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(overlayToolBoxToolButton);
@@ -1079,8 +1079,13 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
+//    if (showSingleSurfaceOptionsWidget) {
+//        this->singleSurfaceSelectionWidget->adjustSize();
+//    }
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
-    this->singleSurfaceSelectionWidget->updateGeometry();
+//    if (showSurfaceMontageOptionsWidget) {
+//        this->surfaceMontageSelectionWidget->adjustSize();
+//    }
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -2424,7 +2429,8 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
                      SLOT(surfaceSelectionControlChanged(const StructureEnum::Enum,
                                                          ModelSurface*)));
     
-    this->surfaceSurfaceSelectionControl->setFixedWidth(275);
+    this->surfaceSurfaceSelectionControl->setMinimumWidth(275);
+    this->surfaceSurfaceSelectionControl->setMaximumWidth(1200);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -2478,29 +2484,29 @@ BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
     QObject::connect(this->surfaceMontageDualConfigurationCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(surfaceMontageDualConfigurationCheckBoxSelected(bool)));
     
-    const int comboWidth = 150;
+//    const int comboWidth = 150;
     
     QLabel* leftLabel = new QLabel("Left:");
     this->surfaceMontageLeftSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageLeftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageLeftSurfaceSelected(Surface*)));
-    this->surfaceMontageLeftSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+//    this->surfaceMontageLeftSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
     
     this->surfaceMontageLeftSecondSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageLeftSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageLeftSecondSurfaceSelected(Surface*)));
-    this->surfaceMontageLeftSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+//    this->surfaceMontageLeftSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
     
     QLabel* rightLabel = new QLabel("Right:");
     this->surfaceMontageRightSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageRightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageRightSurfaceSelected(Surface*)));
-    this->surfaceMontageRightSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+//    this->surfaceMontageRightSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
 
     this->surfaceMontageRightSecondSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageRightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageRightSecondSurfaceSelected(Surface*)));
-    this->surfaceMontageRightSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+//    this->surfaceMontageRightSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
     
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
@@ -3038,7 +3044,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
     
     QWidget* w = new QWidget();
     QGridLayout* layout = new QGridLayout(w);
-    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(0, 100);
     layout->setColumnStretch(1, 100);    
     WuQtUtilities::setLayoutMargins(layout, 2, 0);
     switch (contentPlacement) {
@@ -3072,13 +3078,14 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         QHBoxLayout* horizLayout = new QHBoxLayout(w2);
         WuQtUtilities::setLayoutMargins(horizLayout, 0, 0);
         if (addVerticalBarOnLeftSide) {
-            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
             horizLayout->addSpacing(3);
         }
-        horizLayout->addWidget(w);
+        const int widgetStretchFactor = 100;
+        horizLayout->addWidget(w, widgetStretchFactor);
         if (addVerticalBarOnRightSide) {
             horizLayout->addSpacing(3);
-            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
         }
         w = w2;
     }
