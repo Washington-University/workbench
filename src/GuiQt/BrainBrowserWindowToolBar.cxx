@@ -395,7 +395,7 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
         this->tabClosed(i);
     }
 
-    this->isDestructionInProgress = true;
+    this->isDestructionInProgress = false;
 }
 
 ///**
@@ -964,9 +964,11 @@ BrainBrowserWindowToolBar::tabClosed(int tabIndex)
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
     this->removeTab(tabIndex);
     
-    this->updateToolBar();
-    this->updateToolBox();
-    emit viewedModelChanged();
+    if (this->isDestructionInProgress == false) {
+        this->updateToolBar();
+        this->updateToolBox();
+        emit viewedModelChanged();
+    }
 }
 
 /**
