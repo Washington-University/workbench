@@ -30,6 +30,7 @@
 #undef __USER_INPUT_MODE_VIEW_DECLARE__
 
 #include "Brain.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
@@ -112,7 +113,7 @@ UserInputModeView::getUserInputMode() const
  */
 void 
 UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
-                       BrowserTabContent* browserTabContent,
+                       BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget)
 {
     switch (mouseEvent->getMouseEventType()) {
@@ -120,12 +121,12 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
             break;
         case MouseEventTypeEnum::LEFT_CLICKED:
             this->processIdentification(mouseEvent, 
-                                        browserTabContent, 
+                                        viewportContent, 
                                         openGLWidget);
             break;
         case MouseEventTypeEnum::LEFT_DRAGGED:
             this->processModelViewTransformation(mouseEvent, 
-                                                 browserTabContent, 
+                                                 viewportContent, 
                                                  openGLWidget,
                                                  this->mousePressX,
                                                  this->mousePressY);
@@ -138,7 +139,7 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
             break;
         case MouseEventTypeEnum::WHEEL_MOVED:
             this->processModelViewTransformation(mouseEvent, 
-                                                 browserTabContent, 
+                                                 viewportContent, 
                                                  openGLWidget,
                                                  this->mousePressX,
                                                  this->mousePressY);
@@ -158,7 +159,7 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
  */
 void 
 UserInputModeView::processIdentification(MouseEvent* mouseEvent,
-                                         BrowserTabContent* /*browserTabContent*/,
+                                         BrainOpenGLViewportContent* /*viewportContent */,
                                          BrainOpenGLWidget* openGLWidget)
 {
     CursorDisplayScoped cursor;
@@ -349,11 +350,12 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
  */
 void 
 UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
-                                                  BrowserTabContent* browserTabContent,
+                                                  BrainOpenGLViewportContent* viewportContent,
                                                   BrainOpenGLWidget* openGLWidget,
                                                   const int32_t mousePressedX,
                                                   const int32_t mousePressedY)
 {
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
@@ -393,12 +395,31 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                 ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
                 if (montageModel != NULL) {
                     /*
+                     * Need to adjust mouse for location in viewport
+                     */
+                    int viewport[4];
+                    viewportContent->getViewport(viewport);
+                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
+                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
+                    const int32_t halfWidth  = viewport[2] / 2;
+                    const int32_t halfHeight = viewport[3] / 2;
+                    
+                    /*
+                     * Use location of where mouse is originally pressed
+                     * to determine the surface montage surface being
+                     * manipulated.  Otherwise, if mouse is moved out of
+                     * region where originally pressed, the rotations
+                     * would change.
+                     */
+                    const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+                    const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+                    
+                    /*
                      * By default, surface montage rotates a left surface.
                      * Bottom row contains a right surface so flip the 
                      * rotation.
                      */
-                    const int32_t halfHeight = openGLWidget->height() / 2;
-                    if (mouseEvent->getY() < halfHeight) {
+                    if (viewportMousePressedY < halfHeight) {
                         dx = -dx;
                     }
                     
@@ -407,22 +428,20 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                      * opposite of first.  For dual, rotate second and fourth
                      * columns opposite of first and third.
                      */
-                    const int32_t halfWidth = openGLWidget->width() / 2;
-                    const int32_t mouseX    = mouseEvent->getX();
                     bool flipY = false;
                     if (montageModel->isDualConfigurationEnabled(tabIndex)) {
                         const int32_t quarterWidth = halfWidth / 2;
                         const int32_t threeQuarterWidth = halfWidth + quarterWidth;
-                        if ((mouseX > quarterWidth)
+                        if ((viewportMousePressedX > quarterWidth)
                             && (mouseX <= halfWidth)) {
                             flipY = true;
                         }
-                        else if (mouseX > threeQuarterWidth) {
+                        else if (viewportMousePressedX > threeQuarterWidth) {
                             flipY = true;
                         }
                     }
                     else {
-                        if (mouseX > halfWidth) {
+                        if (viewportMousePressedX > halfWidth) {
                             flipY = true;
                         }
                     }
@@ -498,21 +517,38 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  *    S1  S3  S5  S7   (S5 behaves like S1,  S7 behaves like S3)
                  *    S2  S4  S6  S8   (S6 behaves like S2,  S8 behaves like S4)
                  */
+                /*
+                 * Need to adjust mouse for location in viewport
+                 */
+                int viewport[4];
+                viewportContent->getViewport(viewport);
+                const int32_t mouseX = mouseEvent->getX() - viewport[0];
+                const int32_t mouseY = mouseEvent->getY() - viewport[1];
+                const int32_t halfWidth  = viewport[2] / 2;
+                const int32_t halfHeight = viewport[3] / 2;
 
+                /*
+                 * Use location of where mouse is originally pressed
+                 * to determine the surface montage surface being
+                 * manipulated.  Otherwise, if mouse is moved out of
+                 * region where originally pressed, the rotations
+                 * would change.
+                 */
+                const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+                const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+                
                 /*
                  * Determine which surface S1 to S4  (S5 to S8 duplicate S1 to S4)
                  */
-                const int32_t halfHeight = openGLWidget->height() / 2;
-                const int32_t halfWidth  = openGLWidget->width() / 2;
                 const int32_t quarterWidth = halfWidth / 2;
                 
                 int32_t xp = 0;
-                int32_t yp = (mousePressedY / halfHeight);
+                int32_t yp = (viewportMousePressedY / halfHeight);
                 if (montageModel->isDualConfigurationEnabled(tabIndex)) {
-                    xp = (mousePressedX / quarterWidth); 
+                    xp = (viewportMousePressedX / quarterWidth); 
                 }
                 else {
-                    xp = (mousePressedX / halfWidth);
+                    xp = (viewportMousePressedX / halfWidth);
                 }
                 
                 float flipX = 1.0;

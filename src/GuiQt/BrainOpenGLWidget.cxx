@@ -598,7 +598,7 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
             BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
             if (browserTabContent != NULL) {
                 this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
-                                                                    browserTabContent,
+                                                                    viewportContent,
                                                                     this);
             }
         }

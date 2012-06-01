@@ -39,7 +39,7 @@ namespace caret {
         virtual ~UserInputModeView();
         
         void processMouseEvent(MouseEvent* mouseEvent,
-                               BrowserTabContent* browserTabContent,
+                               BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
         UserInputMode getUserInputMode() const;
@@ -53,7 +53,7 @@ namespace caret {
         QWidget* getWidgetForToolBar();
         
         static void processModelViewTransformation(MouseEvent* mouseEvent,
-                                                   BrowserTabContent* browserTabContent,
+                                                   BrainOpenGLViewportContent* viewportContent,
                                                    BrainOpenGLWidget* openGLWidget,
                                                    const int32_t mousePressedX,
                                                    const int32_t mousePressedY);
@@ -64,7 +64,7 @@ namespace caret {
         UserInputModeView& operator=(const UserInputModeView&);
         
         void processIdentification(MouseEvent* mouseEvent,
-                                   BrowserTabContent* browserTabContent,
+                                   BrainOpenGLViewportContent* viewportContent,
                                    BrainOpenGLWidget* openGLWidget);
         
     public:

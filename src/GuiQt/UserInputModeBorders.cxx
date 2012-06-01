@@ -35,6 +35,7 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CursorManager.h"
@@ -167,9 +168,10 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
  */
 void 
 UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
-                       BrowserTabContent* browserTabContent,
+                       BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget)
 {
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
         //const int32_t tabIndex = browserTabContent->getTabNumber();
@@ -205,7 +207,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 else if (this->borderToolsWidget->isDrawModeTransformSelected()) {                
                     if (isLeftDrag || isWheel) {
                         UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                          browserTabContent, 
+                                                                          viewportContent, 
                                                                           openGLWidget,
                                                                           this->mousePressX,
                                                                           this->mousePressY);
@@ -219,7 +221,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                      */
                     mouseEvent->setNoKeysDown();
                     UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                      browserTabContent, 
+                                                                      viewportContent, 
                                                                       openGLWidget,
                                                                       this->mousePressX,
                                                                       this->mousePressY);
@@ -258,7 +260,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         }
                         else if (isLeftDrag || isWheel) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                              browserTabContent, 
+                                                                              viewportContent, 
                                                                               openGLWidget,
                                                                               this->mousePressX,
                                                                               this->mousePressY);
@@ -283,7 +285,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         }
                         else if (isLeftDrag || isWheel) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                              browserTabContent, 
+                                                                              viewportContent, 
                                                                               openGLWidget,
                                                                               this->mousePressX,
                                                                               this->mousePressY);
@@ -309,7 +311,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 }
                 else if (isLeftDrag || isWheel) {
                     UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                      browserTabContent, 
+                                                                      viewportContent, 
                                                                       openGLWidget,
                                                                       this->mousePressX,
                                                                       this->mousePressY);

@@ -31,8 +31,8 @@ class QWidget;
 
 namespace caret {
 
+    class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
-    class BrowserTabContent;
     class MouseEvent;
     
     /**
@@ -69,7 +69,7 @@ namespace caret {
          *     OpenGL Widget in which mouse event occurred.
          */
         virtual void processMouseEvent(MouseEvent* mouseEvent,
-                               BrowserTabContent* browserTabContent,
+                               BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget) = 0;
         
         /**

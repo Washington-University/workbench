@@ -61,7 +61,7 @@ namespace caret {
         virtual ~UserInputModeBorders();
         
         void processMouseEvent(MouseEvent* mouseEvent,
-                               BrowserTabContent* browserTabContent,
+                               BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
         UserInputMode getUserInputMode() const;
