@@ -75,6 +75,10 @@ namespace caret {
         
         ~BrainBrowserWindowToolBar();
         
+        void addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned);
+        
+        void addNewTab(BrowserTabContent* browserTabContent);
+        
         void addDefaultTabsAfterLoadingSpecFile();
         
         void receiveEvent(Event* event);
@@ -193,10 +197,8 @@ namespace caret {
         void removeTabWithContent(BrowserTabContent* browserTabContent);
         
     public slots:
-        void addNewTab();
+//        void addNewTab();
 
-        void addNewTab(BrowserTabContent* browserTabContent);
-        
         void closeSelectedTab();
 
         void moveTabsToNewWindows();
@@ -217,6 +219,8 @@ namespace caret {
         
     private:
         void removeTab(int index);
+        
+        BrowserTabContent* createNewTab(AString& errorMessage);
         
         QRadioButton* viewModeSurfaceRadioButton;
         QRadioButton* viewModeSurfaceMontageRadioButton;
@@ -408,8 +412,6 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
-        
-        int32_t indexOfNewestAddedOrInsertedTab;
     };
 }
 

@@ -1069,6 +1069,13 @@ BrainBrowserWindow::processNewWindow()
                                     true);
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
+    if (eventNewBrowser.isError()) {
+        cursor.restoreCursor();
+        QMessageBox::critical(this,
+                              "",
+                              eventNewBrowser.getErrorMessage());
+        return;
+    }
     const int32_t newWindowIndex = eventNewBrowser.getBrowserWindowCreated()->getBrowserWindowIndex();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(newWindowIndex).getPointer());
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
@@ -1715,28 +1722,31 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 void 
 BrainBrowserWindow::processNewTab()
 {
-    /*
-     * Wait cursor
-     */
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-    
     BrowserTabContent* previousTabContent = this->getBrowserTabContent();
+    this->toolbar->addNewTabCloneContent(previousTabContent);
     
-    this->toolbar->addNewTab();
-    this->toolbar->updateToolBar();
-
-    if (previousTabContent != NULL) {
-        /*
-         * New tab is clone of tab that was displayed when the new tab was created.
-         */
-        BrowserTabContent* newTabContent = this->getBrowserTabContent();
-        newTabContent->cloneBrowserTabContent(previousTabContent);
-    }
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+//    /*
+//     * Wait cursor
+//     */
+//    CursorDisplayScoped cursor;
+//    cursor.showWaitCursor();
+//    
+//    BrowserTabContent* previousTabContent = this->getBrowserTabContent();
+//    
+//    this->toolbar->addNewTab();
+//    this->toolbar->updateToolBar();
+//
+//    if (previousTabContent != NULL) {
+//        /*
+//         * New tab is clone of tab that was displayed when the new tab was created.
+//         */
+//        BrowserTabContent* newTabContent = this->getBrowserTabContent();
+//        newTabContent->cloneBrowserTabContent(previousTabContent);
+//    }
+//    
+//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+//    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -1822,15 +1832,23 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
         
         BrowserTabContent* btc = this->getBrowserTabContent();
         
-        this->toolbar->removeTabWithContent(btc);
             
         if (moveToBrowserWindow != NULL) {
+            this->toolbar->removeTabWithContent(btc);
             moveToBrowserWindow->toolbar->addNewTab(btc);
         }
         else {
             EventBrowserWindowNew newWindow(this,
                                             btc);
             EventManager::get()->sendEvent(newWindow.getPointer());
+            if (newWindow.isError()) {
+                cursor.restoreCursor();
+                QMessageBox::critical(this,
+                                      "",
+                                      newWindow.getErrorMessage());
+                return;
+            }
+            this->toolbar->removeTabWithContent(btc);
         }
         
         if (this->toolbar->tabBar->count() <= 0) {

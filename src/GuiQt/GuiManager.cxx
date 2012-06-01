@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "CursorManager.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventInformationTextDisplay.h"
@@ -336,6 +337,15 @@ BrainBrowserWindow*
 GuiManager::newBrainBrowserWindow(QWidget* parent,
                                   BrowserTabContent* browserTabContent)
 {
+    /*
+     * If no tabs can be created, do not create a new window.
+     */
+    EventBrowserTabGetAll getAllTabs;
+    EventManager::get()->sendEvent(getAllTabs.getPointer());
+    if (getAllTabs.getNumberOfBrowserTabs() == BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS) {
+        return NULL;
+    }
+    
     int32_t windowIndex = -1;
     
     int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
@@ -551,8 +561,13 @@ GuiManager::receiveEvent(Event* event)
         
         BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(), 
                                                               eventNewBrowser->getBrowserTabContent());
-        eventNewBrowser->setBrowserWindowCreated(bbw);
+        if (bbw == NULL) {
+            eventNewBrowser->setErrorMessage("Workench is exhausted.  It cannot create any more windows.");
+            eventNewBrowser->setEventProcessed();
+            return;
+        }
         
+        eventNewBrowser->setBrowserWindowCreated(bbw);
         eventNewBrowser->setEventProcessed();
         
         /*

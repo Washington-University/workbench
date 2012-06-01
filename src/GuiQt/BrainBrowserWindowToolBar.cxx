@@ -57,6 +57,7 @@
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CursorDisplayScoped.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGetAll.h"
@@ -123,8 +124,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     //this->toolBox = toolBox;
     //this->toolBoxToolButtonAction = toolBox->toggleViewAction();
     this->updateCounter = 0;
-    
-    this->indexOfNewestAddedOrInsertedTab = -1;
     
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
@@ -310,7 +309,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
         this->addNewTab(initialBrowserTabContent);
     }
     else {
-        this->addNewTab();
+        AString errorMessage;
+        this->createNewTab(errorMessage);
     }
     
     //this->updateViewWidget(NULL);
@@ -398,41 +398,96 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->isDestructionInProgress = true;
 }
 
+///**
+// * Add a new tab.
+// */
+//void 
+//BrainBrowserWindowToolBar::addNewTab()
+//{
+//    EventBrowserTabNew newTabEvent;
+//    EventManager::get()->sendEvent(newTabEvent.getPointer());
+//    
+//    if (newTabEvent.isError()) {
+//        QMessageBox::critical(this, "", newTabEvent.getErrorMessage());
+//        return;
+//    }
+//    
+//    BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
+//    
+//    Brain* brain = GuiManager::get()->getBrain();
+//    tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
+//                                                                                false);
+//    this->addNewTab(tabContent);
+//}
+
 /**
- * Add a new tab.
+ * Create a new tab.
+ * @param errorMessage
+ *     If fails to create new tab, it will contain a message
+ *     describing the error.
+ * @return 
+ *     Pointer to content of new tab or NULL if unable to
+ *     create the new tab.
  */
-void 
-BrainBrowserWindowToolBar::addNewTab()
+BrowserTabContent* 
+BrainBrowserWindowToolBar::createNewTab(AString& errorMessage)
 {
+    errorMessage = "";
+    
     EventBrowserTabNew newTabEvent;
     EventManager::get()->sendEvent(newTabEvent.getPointer());
     
     if (newTabEvent.isError()) {
-        QMessageBox::critical(this, "", newTabEvent.getErrorMessage());
-        return;
+        errorMessage = newTabEvent.getErrorMessage();
+        return NULL;
     }
     
     BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
-    
     Brain* brain = GuiManager::get()->getBrain();
     tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
                                                                                 false);
     this->addNewTab(tabContent);
+    
+    return tabContent;
+}
 
+
+/**
+ * Add a new tab and clone the content of the given tab.
+ * @param browserTabContentToBeCloned
+ *    Tab Content that is to be cloned into the new tab.
+ */
+void 
+BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned)
+{
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
     
-/*
-    const int newTabIndex = this->tabBar->addTab("NewTab");
-    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
+    AString errorMessage;
+    BrowserTabContent* tabContent = this->createNewTab(errorMessage);
+    if (tabContent == NULL) {
+        cursor.restoreCursor();
+        QMessageBox::critical(this,
+                              "",
+                              errorMessage);
+        return;
+    }
     
-    const int numOpenTabs = this->tabBar->count();
-    this->tabBar->setTabsClosable(numOpenTabs > 1);
+    if (browserTabContentToBeCloned != NULL) {
+        /*
+         * New tab is clone of tab that was displayed when the new tab was created.
+         */
+        tabContent->cloneBrowserTabContent(browserTabContentToBeCloned);
+    }
     
-    this->tabBar->setTabText(newTabIndex, tabContent->getName());
+    this->updateToolBar();
     
-    this->tabBar->blockSignals(false);
-    
-    this->tabBar->setCurrentIndex(newTabIndex);
-*/
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -448,8 +503,6 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     this->tabBar->blockSignals(true);
     
     const int32_t tabContentIndex = tabContent->getTabNumber();
-    
-    this->indexOfNewestAddedOrInsertedTab = -1;
     
     int32_t newTabIndex = -1;
     const int32_t numTabs = this->tabBar->count();
@@ -471,8 +524,6 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
             newTabIndex = insertIndex;
         }
     }
-    
-    this->indexOfNewestAddedOrInsertedTab = newTabIndex;
     
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
@@ -600,7 +651,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     
     const int32_t numberOfTabsToAdd = numberOfTabsNeeded - this->tabBar->count();
     for (int32_t i = 0; i < numberOfTabsToAdd; i++) {
-        this->addNewTab();
+        AString errorMessage;
+        this->createNewTab(errorMessage);
     }
     
     int32_t tabIndex = 0;
@@ -653,19 +705,19 @@ int32_t
 BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
                                        Model* controller)
 {
+    if (tabIndexIn < 0) {
+        return -1;
+    }
+    
     int32_t tabIndex = tabIndexIn;
     
     if (controller != NULL) {
-        this->indexOfNewestAddedOrInsertedTab = -1;
-        
         if (tabIndex >= this->tabBar->count()) {
-            this->addNewTab();
-            if (this->indexOfNewestAddedOrInsertedTab >= 0) {
-                tabIndex = this->indexOfNewestAddedOrInsertedTab;
+            AString errorMessage;
+            if (this->createNewTab(errorMessage) == NULL) {
+                return -1;
             }
-            else {
-                tabIndex = this->tabBar->count() - 1;
-            }
+            tabIndex = this->tabBar->count() - 1;
         }
         
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
