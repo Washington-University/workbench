@@ -1614,6 +1614,12 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
         return;
     }
     
+    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
+        if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
+            this->saveWindowComponentStatus(this->normalWindowComponentStatus);
+        }
+    }
+    
     if (showInFullScreen) {
         if (this->isFullScreen() == false) {
             this->showFullScreen();
@@ -1624,12 +1630,6 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
             this->showNormal();
         }
     }    
-    
-    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
-        if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-            this->saveWindowComponentStatus(this->normalWindowComponentStatus);
-        }
-    }
     
     if (this->screenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
         this->restoreWindowComponentStatus(this->normalWindowComponentStatus);
