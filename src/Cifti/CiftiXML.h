@@ -296,6 +296,7 @@ namespace caret {
         bool matchesForColumns(const CiftiXML& rhs) const;
         bool matchesVolumeSpace(const CiftiXML& rhs) const;
         bool operator==(const CiftiXML& rhs) const;
+        bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
         
     protected:
         CiftiRootElement m_root;
