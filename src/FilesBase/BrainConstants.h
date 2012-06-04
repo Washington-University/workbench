@@ -39,7 +39,7 @@ namespace caret {
             MAXIMUM_NUMBER_OF_BROWSER_WINDOWS = 10,
             
             /// Maximum number of browser tabs
-            MAXIMUM_NUMBER_OF_BROWSER_TABS = 50,
+            MAXIMUM_NUMBER_OF_BROWSER_TABS = 100,
             
             /// Maximum number of overlays
             MAXIMUM_NUMBER_OF_OVERLAYS = 10,
