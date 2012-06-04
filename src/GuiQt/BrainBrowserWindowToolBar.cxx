@@ -3406,17 +3406,50 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
         const QString actionText = action->text();
         if (actionText == "Add...") {
             bool ok = false;
-            QString text = QInputDialog::getText(this->orientationUserViewSelectToolButtonMenu, 
-                                                 "", 
-                                                 "Name of New View",
-                                                 QLineEdit::Normal,
-                                                 "",
-                                                 &ok);
-            if (ok && (text.isEmpty() == false)) {
+            bool exitLoop = false;
+            AString newViewName;
+            while (exitLoop == false) {
+                newViewName = QInputDialog::getText(this->orientationUserViewSelectToolButtonMenu, 
+                                                     "", 
+                                                     "Name of New View",
+                                                     QLineEdit::Normal,
+                                                     newViewName,
+                                                     &ok);
+                if (ok) {
+                    bool overwriteFlag = false;
+                    const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+                    const int32_t numViews = static_cast<int32_t>(userViews.size());
+                    if (numViews > 0) {
+                        for (int32_t i = 0; i < numViews; i++) {
+                            const QString viewName = userViews[i]->getName();
+                            if (viewName == newViewName) {
+                                overwriteFlag = true;
+                            }
+                        }
+                    }
+                    if (overwriteFlag) {
+                        const QString msg = ("View named \""
+                                             + newViewName
+                                             + "\" already exits.  Replace?");
+                        if (WuQMessageBox::warningYesNo(this->orientationUserViewSelectToolButtonMenu, 
+                                                        msg)) {
+                            exitLoop = true;
+                        }
+                    }
+                    else {
+                        exitLoop = true;
+                    }
+                    
+                }
+                else {
+                    exitLoop = true;
+                }
+            }
+            if (ok && (newViewName.isEmpty() == false)) {
                 UserView uv;
                 mdc->getTransformationsInUserView(tabIndex,
                                                   uv);
-                uv.setName(text);
+                uv.setName(newViewName);
                 prefs->addUserView(uv);
             }
         }
