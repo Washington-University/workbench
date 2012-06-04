@@ -131,6 +131,7 @@ BrainOpenGLWidget::initializeGL()
     
     this->lastMouseX = 0;
     this->lastMouseY = 0;
+    this->isMousePressedNearToolBox = false;
 
     this->setFocusPolicy(Qt::StrongFocus);
     
@@ -338,6 +339,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     const Qt::MouseButton button = me->button();
     const Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
+    this->isMousePressedNearToolBox = false;
+    
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
         const int mouseY = this->windowHeight[this->windowIndex] - me->y();
@@ -361,6 +364,21 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mouseMovementMaximumX = mouseX;
         this->mouseMovementMinimumY = mouseY;
         this->mouseMovementMaximumY = mouseY;
+        
+        /*
+         * The user may intend to increase the size of a toolbox
+         * but instead misses the edge of the toolbox when trying
+         * to drag the toolbox and make it larger.  So, indicate
+         * when the user is very close to the edge of the graphics
+         * window.
+         */
+        const int nearToolBoxDistance = 5;
+        if ((mouseX < nearToolBoxDistance) 
+            || (mouseX > (this->windowWidth[this->windowIndex] - 5))
+            || (mouseY < nearToolBoxDistance) 
+            || (mouseY > (this->windowHeight[this->windowIndex] - 5))) {
+            this->isMousePressedNearToolBox = true;
+        }
     }
     else {
         this->mousePressX = -10000;
@@ -420,6 +438,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     
     this->mousePressX = -10000;
     this->mousePressY = -10000;
+    this->isMousePressedNearToolBox = false;
     
     me->accept();
 }
@@ -545,7 +564,6 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             
             if ((absDX > 0) 
                 || (absDY > 0)) { 
-                
                 MouseEvent mouseEvent(this->windowIndex,
                                       MouseEventTypeEnum::LEFT_DRAGGED,
                                       keyModifiers,
@@ -578,28 +596,33 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
     
     if (mouseEvent->isValid()) {        
         /*
-         * Use location of mouse press so that the model
-         * being manipulated does not change if mouse moves
-         * out of its viewport without releasing the mouse
-         * button.
+         * Ignore mouse movement near edge of graphics
          */
-        BrainOpenGLViewportContent* viewportContent = NULL;
-        
-        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
-            viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
-                                                           mouseEvent->getY());
-        }
-        else {
-            viewportContent = this->getViewportContentAtXY(this->mousePressX, 
-                                                           this->mousePressY);
-        }
-        
-        if (viewportContent != NULL) {
-            BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-            if (browserTabContent != NULL) {
-                this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
-                                                                    viewportContent,
-                                                                    this);
+        if (this->isMousePressedNearToolBox == false) {
+            /*
+             * Use location of mouse press so that the model
+             * being manipulated does not change if mouse moves
+             * out of its viewport without releasing the mouse
+             * button.
+             */
+            BrainOpenGLViewportContent* viewportContent = NULL;
+            
+            if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
+                viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
+                                                               mouseEvent->getY());
+            }
+            else {
+                viewportContent = this->getViewportContentAtXY(this->mousePressX, 
+                                                               this->mousePressY);
+            }
+            
+            if (viewportContent != NULL) {
+                BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
+                                                                        viewportContent,
+                                                                        this);
+                }
             }
         }
     }

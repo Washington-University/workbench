@@ -124,6 +124,7 @@ namespace caret {
         
         int mousePressX;
         int mousePressY;
+        bool isMousePressedNearToolBox;
         
         int lastMouseX;
         
