@@ -3927,24 +3927,31 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         rightSecondSurface = NULL;
     }
     
+    /*
+     * Viewports for surfaces
+     * Row 1 is bottom
+     * Column 1 is left
+     */
+    const int vpRow1Col1[4] = { viewport[0], viewport[1], vpSizeX, vpSizeY };
+    const int vpRow1Col2[4] = { viewport[0] + vpSizeX, viewport[1], vpSizeX, vpSizeY };
+    const int vpRow1Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1], vpSizeX, vpSizeY };
+    const int vpRow1Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1], vpSizeX, vpSizeY };
+    const int vpRow2Col1[4] = { viewport[0], viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+    const int vpRow2Col2[4] = { viewport[0] + vpSizeX, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+    const int vpRow2Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+    const int vpRow2Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+    
     if (leftSurface != NULL) {
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
                                                                                      leftSurface, 
                                                                                      this->windowTabIndex);
-        int vp[4] = {
-            viewport[0],
-            viewport[1] + vpSizeY,
-            vpSizeX,
-            vpSizeY
-        };
-
         float center[3];
         leftSurface->getBoundingBox()->getCenter(center);
         
         /*
          * Left surface view
          */
-        this->setViewportAndOrthographicProjection(vp,
+        this->setViewportAndOrthographicProjection(vpRow2Col1,
                                                    Model::VIEWING_TRANSFORM_NORMAL);
         
         this->applyViewingTransformations(surfaceMontageModel, 
@@ -3958,9 +3965,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         /*
          * Left Surface lateral/medial view
          */
-        vp[0] += vpSizeX;
-        
-        this->setViewportAndOrthographicProjection(vp,
+        this->setViewportAndOrthographicProjection(vpRow1Col1,
                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
         
         this->applyViewingTransformations(surfaceMontageModel, 
@@ -3975,8 +3980,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
              * Left surface view
              */
             leftSecondSurface->getBoundingBox()->getCenter(center);
-            vp[0] += vpSizeX;
-            this->setViewportAndOrthographicProjection(vp,
+            this->setViewportAndOrthographicProjection(vpRow2Col3,
                                                        Model::VIEWING_TRANSFORM_NORMAL);
             
             this->applyViewingTransformations(surfaceMontageModel, 
@@ -3990,9 +3994,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             /*
              * Left Surface lateral/medial view
              */
-            vp[0] += vpSizeX;
-            
-            this->setViewportAndOrthographicProjection(vp,
+            this->setViewportAndOrthographicProjection(vpRow1Col3,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
             
             this->applyViewingTransformations(surfaceMontageModel, 
@@ -4021,7 +4023,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         float center[3];
         rightSurface->getBoundingBox()->getCenter(center);
         
-        this->setViewportAndOrthographicProjection(vp,
+        this->setViewportAndOrthographicProjection(vpRow2Col2,
                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); //VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
         
         this->applyViewingTransformations(surfaceMontageModel, 
@@ -4035,7 +4037,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
          * Right Surface lateral/medial view
          */
         vp[0] += vpSizeX;
-        this->setViewportAndOrthographicProjection(vp,
+        this->setViewportAndOrthographicProjection(vpRow1Col2,
                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
         
         this->applyViewingTransformations(surfaceMontageModel, 
@@ -4051,7 +4053,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
              */
             rightSecondSurface->getBoundingBox()->getCenter(center);
             vp[0] += vpSizeX;
-            this->setViewportAndOrthographicProjection(vp,
+            this->setViewportAndOrthographicProjection(vpRow2Col4,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
             
             this->applyViewingTransformations(surfaceMontageModel, 
@@ -4067,7 +4069,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
              */
             vp[0] += vpSizeX;
             
-            this->setViewportAndOrthographicProjection(vp,
+            this->setViewportAndOrthographicProjection(vpRow1Col4,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
             
             this->applyViewingTransformations(surfaceMontageModel, 

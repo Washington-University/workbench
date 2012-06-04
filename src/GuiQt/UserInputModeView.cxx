@@ -415,39 +415,81 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                     const int32_t viewportMousePressedY = mousePressedY - viewport[1];
                     
                     /*
-                     * By default, surface montage rotates a left surface.
-                     * Bottom row contains a right surface so flip the 
-                     * rotation.
+                     * Determine hemisphere of surface and if it is lateral or 
+                     * medial view.
+                     * Row2 => Top => Lateral View
+                     * Row1 => Bottom => Medial View
+                     * Columns 1 and 3 => Left Hemisphere
+                     * Columns 2 and 4 => Right Hemisphere
                      */
-                    if (viewportMousePressedY < halfHeight) {
-                        dx = -dx;
-                    }
-                    
-                    /*
-                     * For single configuration, need to rotate second column
-                     * opposite of first.  For dual, rotate second and fourth
-                     * columns opposite of first and third.
-                     */
-                    bool flipY = false;
+                    bool isRight  = false;
+                    bool isMedial = false;
                     if (montageModel->isDualConfigurationEnabled(tabIndex)) {
                         const int32_t quarterWidth = halfWidth / 2;
                         const int32_t threeQuarterWidth = halfWidth + quarterWidth;
                         if ((viewportMousePressedX > quarterWidth)
-                            && (mouseX <= halfWidth)) {
-                            flipY = true;
+                            && (viewportMousePressedX <= halfWidth)) {
+                            isRight = true;
                         }
                         else if (viewportMousePressedX > threeQuarterWidth) {
-                            flipY = true;
+                            isRight = true;
                         }
                     }
                     else {
                         if (viewportMousePressedX > halfWidth) {
-                            flipY = true;
+                            isRight = true;
                         }
                     }
-                    if (flipY) {
+                    if (viewportMousePressedY < halfHeight) {
+                        isMedial = true;
+                    }
+                    
+                    if (isRight) {
+                        dx = -dx;
+                    }
+                    
+                    if (isMedial) {
                         dy = -dy;
                     }
+                    
+//                    /*
+//                     * By default, surface montage rotates a left surface.
+//                     * Bottom row contains a right surface so flip the 
+//                     * rotation.
+//                     */
+//                    if (viewportMousePressedY < halfHeight) {
+//                        dx = -dx;
+//                    }
+//                    
+//                    /*
+//                     * For single configuration, need to rotate second column
+//                     * opposite of first.  For dual, rotate second and fourth
+//                     * columns opposite of first and third.
+//                     */
+//                    bool flipY = false;
+//                    bool flipX = false;
+//                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
+//                        const int32_t quarterWidth = halfWidth / 2;
+//                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
+//                        if ((viewportMousePressedX > quarterWidth)
+//                            && (mouseX <= halfWidth)) {
+//                            flipY = true;
+//                        }
+//                        else if (viewportMousePressedX > threeQuarterWidth) {
+//                            flipY = true;
+//                        }
+//                    }
+//                    else {
+//                        if (viewportMousePressedX > halfWidth) {
+//                            flipY = true;
+//                        }
+//                    }
+//                    if (flipX) {
+//                        dx = -dx;
+//                    }
+//                    if (flipY) {
+//                        dy = -dy;
+//                    }
                 }
                 
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
