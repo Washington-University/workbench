@@ -3919,7 +3919,8 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
 
     int vpSizeX = viewport[2] / 2;
     int vpSizeY = viewport[3] / 2;
-    if (surfaceMontageModel->isDualConfigurationEnabled(tabIndex)) {
+    const bool isDualDisplay = surfaceMontageModel->isDualConfigurationEnabled(tabIndex);
+    if (isDualDisplay) {
         vpSizeX /= 2;
     }
     else {
@@ -3941,142 +3942,229 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     const int vpRow2Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
     const int vpRow2Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
     
-    if (leftSurface != NULL) {
-        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
-                                                                                     leftSurface, 
-                                                                                     this->windowTabIndex);
-        float center[3];
-        leftSurface->getBoundingBox()->getCenter(center);
-        
-        /*
-         * Left surface view
-         */
-        this->setViewportAndOrthographicProjection(vpRow2Col1,
-                                                   Model::VIEWING_TRANSFORM_NORMAL);
-        
-        this->applyViewingTransformations(surfaceMontageModel, 
-                                          this->windowTabIndex,
-                                          center,
-                                          Model::VIEWING_TRANSFORM_NORMAL);
-        this->drawSurface(leftSurface,
-                          nodeColoringRGBA);
-        
-        
-        /*
-         * Left Surface lateral/medial view
-         */
-        this->setViewportAndOrthographicProjection(vpRow1Col1,
-                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-        
-        this->applyViewingTransformations(surfaceMontageModel, 
-                                          this->windowTabIndex,
-                                          center,
-                                          Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-        this->drawSurface(leftSurface,
-                          nodeColoringRGBA);
-        
-        if (leftSecondSurface != NULL) {
+    
+    /*
+     * Is DUAL CONFIGURATION Enabled?
+     */
+    if (isDualDisplay) {
+        if (leftSurface != NULL) {
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                         leftSurface, 
+                                                                                         this->windowTabIndex);
+            float center[3];
+            leftSurface->getBoundingBox()->getCenter(center);
+            
             /*
              * Left surface view
              */
-            leftSecondSurface->getBoundingBox()->getCenter(center);
-            this->setViewportAndOrthographicProjection(vpRow2Col3,
+            this->setViewportAndOrthographicProjection(vpRow2Col1,
                                                        Model::VIEWING_TRANSFORM_NORMAL);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
                                               Model::VIEWING_TRANSFORM_NORMAL);
-            this->drawSurface(leftSecondSurface,
+            this->drawSurface(leftSurface,
                               nodeColoringRGBA);
             
             
             /*
              * Left Surface lateral/medial view
              */
-            this->setViewportAndOrthographicProjection(vpRow1Col3,
+            this->setViewportAndOrthographicProjection(vpRow2Col2,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
                                               Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-            this->drawSurface(leftSecondSurface,
+            this->drawSurface(leftSurface,
                               nodeColoringRGBA);
+            
+            if (leftSecondSurface != NULL) {
+                /*
+                 * Left surface view
+                 */
+                leftSecondSurface->getBoundingBox()->getCenter(center);
+                this->setViewportAndOrthographicProjection(vpRow1Col1,
+                                                           Model::VIEWING_TRANSFORM_NORMAL);
+                
+                this->applyViewingTransformations(surfaceMontageModel, 
+                                                  this->windowTabIndex,
+                                                  center,
+                                                  Model::VIEWING_TRANSFORM_NORMAL);
+                this->drawSurface(leftSecondSurface,
+                                  nodeColoringRGBA);
+                
+                
+                /*
+                 * Left Surface lateral/medial view
+                 */
+                this->setViewportAndOrthographicProjection(vpRow1Col2,
+                                                           Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                
+                this->applyViewingTransformations(surfaceMontageModel, 
+                                                  this->windowTabIndex,
+                                                  center,
+                                                  Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                this->drawSurface(leftSecondSurface,
+                                  nodeColoringRGBA);
+            }
         }
-    }
-    
-    if (rightSurface != NULL) {
-        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
-                                                                                     rightSurface, 
-                                                                                     this->windowTabIndex);
-        int vp[4] = {
-            viewport[0],
-            viewport[1],
-            vpSizeX,
-            vpSizeY
-        };
         
-        /*
-         * Right Surface
-         */
-        float center[3];
-        rightSurface->getBoundingBox()->getCenter(center);
-        
-        this->setViewportAndOrthographicProjection(vpRow2Col2,
-                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); //VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-        
-        this->applyViewingTransformations(surfaceMontageModel, 
-                                          this->windowTabIndex,
-                                          center,
-                                          Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); // VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-        this->drawSurface(rightSurface,
-                          nodeColoringRGBA);
-        
-        /*
-         * Right Surface lateral/medial view
-         */
-        vp[0] += vpSizeX;
-        this->setViewportAndOrthographicProjection(vpRow1Col2,
-                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-        
-        this->applyViewingTransformations(surfaceMontageModel, 
-                                          this->windowTabIndex,
-                                          center,
-                                          Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-        this->drawSurface(rightSurface,
-                          nodeColoringRGBA);
-        
-        if (rightSecondSurface != NULL) {
+        if (rightSurface != NULL) {
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                         rightSurface, 
+                                                                                         this->windowTabIndex);
+            int vp[4] = {
+                viewport[0],
+                viewport[1],
+                vpSizeX,
+                vpSizeY
+            };
+            
             /*
-             * Left surface view
+             * Right Surface
              */
-            rightSecondSurface->getBoundingBox()->getCenter(center);
-            vp[0] += vpSizeX;
-            this->setViewportAndOrthographicProjection(vpRow2Col4,
-                                                       Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+            float center[3];
+            rightSurface->getBoundingBox()->getCenter(center);
+            
+            this->setViewportAndOrthographicProjection(vpRow2Col3,
+                                                       Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); //VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-            this->drawSurface(rightSecondSurface,
+                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); // VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+            this->drawSurface(rightSurface,
                               nodeColoringRGBA);
             
-            
             /*
-             * Left Surface lateral/medial view
+             * Right Surface lateral/medial view
              */
             vp[0] += vpSizeX;
-            
-            this->setViewportAndOrthographicProjection(vpRow1Col4,
+            this->setViewportAndOrthographicProjection(vpRow2Col4,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
                                               Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-            this->drawSurface(rightSecondSurface,
+            this->drawSurface(rightSurface,
+                              nodeColoringRGBA);
+            
+            if (rightSecondSurface != NULL) {
+                /*
+                 * Left surface view
+                 */
+                rightSecondSurface->getBoundingBox()->getCenter(center);
+                vp[0] += vpSizeX;
+                this->setViewportAndOrthographicProjection(vpRow1Col3,
+                                                           Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+                
+                this->applyViewingTransformations(surfaceMontageModel, 
+                                                  this->windowTabIndex,
+                                                  center,
+                                                  Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+                this->drawSurface(rightSecondSurface,
+                                  nodeColoringRGBA);
+                
+                
+                /*
+                 * Left Surface lateral/medial view
+                 */
+                vp[0] += vpSizeX;
+                
+                this->setViewportAndOrthographicProjection(vpRow1Col4,
+                                                           Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+                
+                this->applyViewingTransformations(surfaceMontageModel, 
+                                                  this->windowTabIndex,
+                                                  center,
+                                                  Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+                this->drawSurface(rightSecondSurface,
+                                  nodeColoringRGBA);
+            }
+        }
+    }
+    else {
+        /*
+         * NOT DUAL CONFIGURATION
+         */
+        if (leftSurface != NULL) {
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                         leftSurface, 
+                                                                                         this->windowTabIndex);
+            float center[3];
+            leftSurface->getBoundingBox()->getCenter(center);
+            
+            /*
+             * Left surface view
+             */
+            this->setViewportAndOrthographicProjection(vpRow2Col1,
+                                                       Model::VIEWING_TRANSFORM_NORMAL);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              Model::VIEWING_TRANSFORM_NORMAL);
+            this->drawSurface(leftSurface,
+                              nodeColoringRGBA);
+            
+            
+            /*
+             * Left Surface lateral/medial view
+             */
+            this->setViewportAndOrthographicProjection(vpRow1Col1,
+                                                       Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+            this->drawSurface(leftSurface,
+                              nodeColoringRGBA);
+        }
+        
+        if (rightSurface != NULL) {
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                         rightSurface, 
+                                                                                         this->windowTabIndex);
+            int vp[4] = {
+                viewport[0],
+                viewport[1],
+                vpSizeX,
+                vpSizeY
+            };
+            
+            /*
+             * Right Surface
+             */
+            float center[3];
+            rightSurface->getBoundingBox()->getCenter(center);
+            
+            this->setViewportAndOrthographicProjection(vpRow2Col2,
+                                                       Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); //VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT); // VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+            this->drawSurface(rightSurface,
+                              nodeColoringRGBA);
+            
+            /*
+             * Right Surface lateral/medial view
+             */
+            vp[0] += vpSizeX;
+            this->setViewportAndOrthographicProjection(vpRow1Col2,
+                                                       Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+            this->drawSurface(rightSurface,
                               nodeColoringRGBA);
         }
     }

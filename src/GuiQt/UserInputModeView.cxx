@@ -427,21 +427,25 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                     if (montageModel->isDualConfigurationEnabled(tabIndex)) {
                         const int32_t quarterWidth = halfWidth / 2;
                         const int32_t threeQuarterWidth = halfWidth + quarterWidth;
-                        if ((viewportMousePressedX > quarterWidth)
-                            && (viewportMousePressedX <= halfWidth)) {
+                        if (viewportMousePressedX > halfWidth) {
                             isRight = true;
                         }
-                        else if (viewportMousePressedX > threeQuarterWidth) {
-                            isRight = true;
+                        
+                        if ((viewportMousePressedX >= quarterWidth)
+                            && (viewportMousePressedX < halfWidth)) {
+                            isMedial = true;
+                        }
+                        else if (viewportMousePressedX >= threeQuarterWidth) {
+                            isMedial = true;
                         }
                     }
                     else {
                         if (viewportMousePressedX > halfWidth) {
                             isRight = true;
                         }
-                    }
-                    if (viewportMousePressedY < halfHeight) {
-                        isMedial = true;
+                        if (viewportMousePressedY < halfHeight) {
+                            isMedial = true;
+                        }
                     }
                     
                     if (isRight) {
