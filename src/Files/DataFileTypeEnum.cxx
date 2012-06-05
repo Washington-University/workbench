@@ -134,7 +134,7 @@ DataFileTypeEnum::initialize()
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES, 
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
-                                        "Connectivity - Dense Time Series",
+                                        "Connectivity - Dense Data Series",
                                         false,
                                         false,
                                         "dtseries.nii"));

@@ -428,7 +428,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
                 dataTypeName = "CONNECTIVITY";
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                dataTypeName = "TIME_SERIES";
+                dataTypeName = "DATA_SERIES";
                 break;
             default:
                 break;
