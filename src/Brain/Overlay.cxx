@@ -129,10 +129,10 @@ Overlay::Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
  * @param
  *    Controller that is for 
  */
-Overlay::Overlay(ModelYokingGroup* modelDisplayControllerYokingGroup)
+Overlay::Overlay(ModelYokingGroup* /*modelDisplayControllerYokingGroup*/)
 : CaretObject()
 {
-    CaretAssert(modelDisplayControllerYokingGroup);
+//    CaretAssert(modelDisplayControllerYokingGroup);
     
     this->volumeController  = NULL;
     this->wholeBrainController  = NULL;

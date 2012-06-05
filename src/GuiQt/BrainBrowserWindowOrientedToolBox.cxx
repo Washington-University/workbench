@@ -187,7 +187,7 @@ BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
  *   New floating status.
  */
 void 
-BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool status)
+BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool /*status*/)
 {
     QString title = this->toolBoxTitle;
 //    if (status) {

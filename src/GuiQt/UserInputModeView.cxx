@@ -351,7 +351,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 void 
 UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrainOpenGLViewportContent* viewportContent,
-                                                  BrainOpenGLWidget* openGLWidget,
+                                                  BrainOpenGLWidget* /*openGLWidget*/,
                                                   const int32_t mousePressedX,
                                                   const int32_t mousePressedY)
 {
@@ -399,8 +399,8 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                      */
                     int viewport[4];
                     viewportContent->getViewport(viewport);
-                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
-                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
+//                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
+//                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
                     const int32_t halfWidth  = viewport[2] / 2;
                     const int32_t halfHeight = viewport[3] / 2;
                     
@@ -568,8 +568,8 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  */
                 int viewport[4];
                 viewportContent->getViewport(viewport);
-                const int32_t mouseX = mouseEvent->getX() - viewport[0];
-                const int32_t mouseY = mouseEvent->getY() - viewport[1];
+//                const int32_t mouseX = mouseEvent->getX() - viewport[0];
+//                const int32_t mouseY = mouseEvent->getY() - viewport[1];
                 const int32_t halfWidth  = viewport[2] / 2;
                 const int32_t halfHeight = viewport[3] / 2;
 

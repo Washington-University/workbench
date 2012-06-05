@@ -83,7 +83,7 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
  *     The event that the receive can respond to.
  */
 void 
-ModelSurfaceMontage::receiveEvent(Event* event)
+ModelSurfaceMontage::receiveEvent(Event* /*event*/)
 {
 }
 

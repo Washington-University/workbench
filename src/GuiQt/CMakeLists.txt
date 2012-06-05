@@ -39,7 +39,6 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
-ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityDenseViewController.h

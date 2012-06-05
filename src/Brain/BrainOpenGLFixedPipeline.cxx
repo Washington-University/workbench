@@ -3737,14 +3737,14 @@ BrainOpenGLFixedPipeline::colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
  *    Bottom-most displayed volume.
  */
 void 
-BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
+BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
                                                     Model* /*modelDisplayController*/,
                                                     BrowserTabContent* browserTabContent,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     VolumeFile* underlayVolume)
 {
-    CaretAssert(brain);
+ //   CaretAssert(brain);
     CaretAssert(underlayVolume);
     
     std::vector<int64_t> dim;
