@@ -224,7 +224,7 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         QLabel* onLabel = new QLabel("Yoke");
         QLabel* graphLabel = new QLabel("Graph");
         QLabel* animateLabel = new QLabel("Animate");
-        QLabel* timeLabel = new QLabel("Time");
+        QLabel* timeLabel = new QLabel("Frame");
         QLabel* fileLabel = new QLabel("File");
         
         const int row = gridLayout->rowCount();

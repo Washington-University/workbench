@@ -100,7 +100,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                browserWindowIndex,
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
         this->addToTabWidget(this->timeSeriesViewController, 
-                             "Time-Series");
+                             "Data-Series");
     }
     if (isLayersToolBox) {
         this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
