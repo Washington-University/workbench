@@ -68,6 +68,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
+TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
@@ -158,6 +159,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
+TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
@@ -245,6 +247,7 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx
+TimeCoursePlotter.cxx
 TimeSeriesManagerForViewController.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx

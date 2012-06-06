@@ -29,34 +29,17 @@
 #include "AString.h"
 
 #include <QDialog>
-//qwt includes
-#include <qapplication.h>
-#include "qlayout.h"
-#include "qwt_plot.h"
-#include "qwt_plot_marker.h"
-#include "qwt_plot_curve.h"
-#include "qwt_legend.h"
-#include "qwt_series_data.h"
-#include "qwt_plot_canvas.h"
-#include "qwt_plot_panner.h"
-#include "qwt_plot_magnifier.h"
-#include "qwt_text.h"
-#include "qwt_math.h"
-#include "math.h"
-#include "TimeLine.h"
-#include "ColorManager.h"
+#include "TimeCoursePlotter.h"
 #include "QList"
 #include <stdio.h>
-#include "PlotMagnifier.h"
+
 
 
 namespace Ui {
     class TimeCourseDialog;
 }
 using namespace caret;
-namespace caret {
-    class PlotTC;
-}
+
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -107,7 +90,7 @@ public slots:
 
 private:
     void populateHistory();
-    PlotTC *plot;
+    TimeCoursePlotter *plot;
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
     AString filename;
@@ -119,62 +102,9 @@ private:
 };
 
 
-namespace caret {
-
-class PlotTC : public QwtPlot
-{
-    Q_OBJECT
-public:
-     PlotTC( QWidget *parent = NULL);
-     void populate(QList<TimeLine> &tlVIn, const bool &forceDisableAutoScale = false);
-     void sortByColorId(QList<TimeLine> &tlV);
-     void setDisplayAverage(bool checked);
-     void calculateAndDisplayAverage(QList<TimeLine> &tlV);
-     void clear(QList<TimeLine> &tlV);
-     void setMaxTimeLines(int maxIn) { max = maxIn; }
-     int getMaxTimeLines() { return max; }
-     void setAutoScaleEnabled(bool checked);
-     void setTimeLineWidth(int width);
-     PlotMagnifier * magnifier;
-     void resetView();
-     bool getAutoScale();
-     ColorManager colors;     
-     void initExtents(double &tmin, double &tmax, double &amin, double &amax);
-     void setTimeExtents(const double &min, const double &max);
-     void setActivityExtents(const double &min, const double &max);
-     void getTimeExtents(double &min, double &max) const;
-     void getActivityExtents(double &min, double &max) const;
-public slots:
-    virtual void replot();
-signals:
-     void timeStartValueChanged(double value);
-     void timeEndValueChanged(double value);
-     void activityMinValueChanged(double value);
-     void activityMaxValueChanged(double value);
-
-protected:
-    bool ctrlKeyDown;
-    bool shiftKeyDown;
-    //virtual bool eventFilter(QObject * object,QEvent *event);
-    void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
-    virtual void resizeEvent( QResizeEvent * );
-    QList<QwtPlotCurve *> plotV;
-    
-    int max;
-    bool displayAverage;
-    TimeLine averageTimeLine;
-    bool autoScaleEnabled;
-    bool autoScaleOnce;
-    int lineWidth;
-    double minTimeExtent;
-    double maxTimeExtent;
-    double minActivityExtent;
-    double maxActivityExtent;
-
-};
 
 
 
-}
+
 
 #endif //__TIME_COURSE_DIALOG__
