@@ -55,7 +55,7 @@ public:
         /** Class instance */
         SCENE_CLASS,
         /** Enumerated type value */
-        SCENE_ENUM,
+        SCENE_ENUMERATED_TYPE,
         /** Float */
         SCENE_FLOAT,
         /** Integer 32-bit */

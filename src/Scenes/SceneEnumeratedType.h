@@ -1,5 +1,5 @@
-#ifndef __SCENE_BOOLEAN__H_
-#define __SCENE_BOOLEAN__H_
+#ifndef __SCENE_ENUMERATED_TYPE__H_
+#define __SCENE_ENUMERATED_TYPE__H_
 
 /*LICENSE_START*/
 /*
@@ -35,30 +35,24 @@
 /*LICENSE_END*/
 
 
-#include "ScenePrimitive.h"
+#include "SceneObject.h"
 
 namespace caret {
 
-    class SceneBoolean : public ScenePrimitive {
+    class SceneEnumeratedType : public SceneObject {
         
     public:
-        SceneBoolean(const AString& name,
-                     const bool value);
+        SceneEnumeratedType(const AString& name,
+                            const AString& enumeratedValueAsString);
         
-        virtual ~SceneBoolean();
+        virtual ~SceneEnumeratedType();
         
-        virtual bool booleanValue() const;
-        
-        virtual float floatValue() const;
-        
-        virtual int32_t integerValue() const;
-        
-        virtual AString stringValue() const;
+        AString getEnumeratedValueAsString() const;
         
     private:
-        SceneBoolean(const SceneBoolean&);
+        SceneEnumeratedType(const SceneEnumeratedType&);
 
-        SceneBoolean& operator=(const SceneBoolean&);
+        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
         
     public:
 
@@ -66,15 +60,14 @@ namespace caret {
 
     private:
 
-        bool m_value;
-        
         // ADD_NEW_MEMBERS_HERE
 
+        AString m_enumeratedValueAsString;
     };
     
-#ifdef __SCENE_BOOLEAN_DECLARE__
+#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_BOOLEAN_DECLARE__
+#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
 
 } // namespace
-#endif  //__SCENE_BOOLEAN__H_
+#endif  //__SCENE_ENUMERATED_TYPE__H_

@@ -1,5 +1,3 @@
-#ifndef __SCENE_BOOLEAN__H_
-#define __SCENE_BOOLEAN__H_
 
 /*LICENSE_START*/
 /*
@@ -34,47 +32,46 @@
  */
 /*LICENSE_END*/
 
+#define __SCENE_ENUMERATED_TYPE_DECLARE__
+#include "SceneEnumeratedType.h"
+#undef __SCENE_ENUMERATED_TYPE_DECLARE__
 
-#include "ScenePrimitive.h"
+using namespace caret;
 
-namespace caret {
 
-    class SceneBoolean : public ScenePrimitive {
-        
-    public:
-        SceneBoolean(const AString& name,
-                     const bool value);
-        
-        virtual ~SceneBoolean();
-        
-        virtual bool booleanValue() const;
-        
-        virtual float floatValue() const;
-        
-        virtual int32_t integerValue() const;
-        
-        virtual AString stringValue() const;
-        
-    private:
-        SceneBoolean(const SceneBoolean&);
-
-        SceneBoolean& operator=(const SceneBoolean&);
-        
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
-        bool m_value;
-        
-        // ADD_NEW_MEMBERS_HERE
-
-    };
     
-#ifdef __SCENE_BOOLEAN_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_BOOLEAN_DECLARE__
+/**
+ * \class caret::SceneEnumeratedType 
+ * \brief For storage of an emumerated type value in a scene.
+ */
 
-} // namespace
-#endif  //__SCENE_BOOLEAN__H_
+/**
+ * Constructor.
+ */
+SceneEnumeratedType::SceneEnumeratedType(const AString& name,
+                                         const AString& enumeratedValueAsString)
+: SceneObject(name,
+              SceneDataTypeEnum::SCENE_ENUMERATED_TYPE)
+{
+    m_enumeratedValueAsString = enumeratedValueAsString;
+}
+
+/**
+ * Destructor.
+ */
+SceneEnumeratedType::~SceneEnumeratedType()
+{
+    
+}
+
+/**
+ * @return The string representing the value of the
+ * enumerated type.
+ */
+AString 
+SceneEnumeratedType::getEnumeratedValueAsString() const
+{
+    return m_enumeratedValueAsString;
+}
+
+

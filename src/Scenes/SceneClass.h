@@ -1,5 +1,5 @@
-#ifndef __SCENE_BOOLEAN__H_
-#define __SCENE_BOOLEAN__H_
+#ifndef __SCENE_CLASS__H_
+#define __SCENE_CLASS__H_
 
 /*LICENSE_START*/
 /*
@@ -35,46 +35,81 @@
 /*LICENSE_END*/
 
 
-#include "ScenePrimitive.h"
+#include "SceneObject.h"
 
 namespace caret {
 
-    class SceneBoolean : public ScenePrimitive {
+    class SceneEnumeratedType;
+    class ScenePrimitive;
+    
+    class SceneClass : public SceneObject {
         
     public:
-        SceneBoolean(const AString& name,
-                     const bool value);
+        SceneClass(const AString& name);
         
-        virtual ~SceneBoolean();
-        
-        virtual bool booleanValue() const;
-        
-        virtual float floatValue() const;
-        
-        virtual int32_t integerValue() const;
-        
-        virtual AString stringValue() const;
+        virtual ~SceneClass();
         
     private:
-        SceneBoolean(const SceneBoolean&);
+        SceneClass(const SceneClass&);
 
-        SceneBoolean& operator=(const SceneBoolean&);
+        SceneClass& operator=(const SceneClass&);
         
     public:
 
+        void addBoolean(const AString& name,
+                        const bool value);
+        
+        void addClass(SceneClass* sceneClass);
+        
+        void addEnumeratedType(const AString& name,
+                               const AString& value);
+        
+        void addFloat(const AString& name,
+                      const float value);
+        
+        void addInteger(const AString& name,
+                        const int32_t value);
+        
+        void addString(const AString& name,
+                       const AString& value);
+        
+        
+        bool getBooleanValue(const AString& name,
+                             const bool defaultValue = false) const;
+        
+        const SceneClass* getClass(const AString& name) const;
+        
+        AString getEnumeratedTypeValue(const AString& name,
+                                       const AString& defaultValue = "") const;
+        
+        float getFloatValue(const AString& name,
+                             const float defaultValue = 0.0) const;
+        
+        int32_t getIntegerValue(const AString& name,
+                             const int32_t defaultValue = 0) const;
+        
+        AString getStringValue(const AString& name,
+                             const AString& defaultValue = "") const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
 
-        bool m_value;
+        const ScenePrimitive* getPrimitive(const AString& name) const;
         
         // ADD_NEW_MEMBERS_HERE
+        
+        std::vector<SceneClass*> m_childClasses;
+        
+        std::vector<ScenePrimitive*> m_childPrimitives;
 
+        std::vector<SceneEnumeratedType*> m_childEnumeratedTypes;
+        
     };
     
-#ifdef __SCENE_BOOLEAN_DECLARE__
+#ifdef __SCENE_CLASS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_BOOLEAN_DECLARE__
+#endif // __SCENE_CLASS_DECLARE__
 
 } // namespace
-#endif  //__SCENE_BOOLEAN__H_
+#endif  //__SCENE_CLASS__H_

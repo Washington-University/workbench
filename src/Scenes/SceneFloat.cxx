@@ -44,7 +44,7 @@ using namespace caret;
     
 /**
  * \class caret::SceneFloat 
- * \brief For storage of a boolean value in a scene.
+ * \brief For storage of a float value in a scene.
  */
 
 /**
@@ -75,7 +75,7 @@ SceneFloat::~SceneFloat()
  * @return The value as a boolean data type.
  */
 bool 
-SceneFloat::booleanValue()
+SceneFloat::booleanValue() const
 {
     const bool b = ((m_value != 0.0) ? true : false);
     return b;
@@ -85,7 +85,7 @@ SceneFloat::booleanValue()
  * @return The value as a float data type.
  */
 float
-SceneFloat::floatValue()
+SceneFloat::floatValue() const
 {
     return m_value;
 }
@@ -94,7 +94,7 @@ SceneFloat::floatValue()
  * @return The value as a integer data type.
  */
 int32_t 
-SceneFloat::integerValue()
+SceneFloat::integerValue() const
 {
     if (m_value > std::numeric_limits<int32_t>::max()) {
         return std::numeric_limits<int32_t>::max();
@@ -111,7 +111,7 @@ SceneFloat::integerValue()
  * @return The value as a string data type.
  */
 AString 
-SceneFloat::stringValue()
+SceneFloat::stringValue() const
 {
     const AString s = AString::number(m_value);
     return s;

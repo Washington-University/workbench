@@ -36,13 +36,15 @@
 #include "SceneObject.h"
 #undef __SCENE_OBJECT_DECLARE__
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 
     
 /**
  * \class caret::SceneObject 
- * \brief Base class for any item saved to a scene.
+ * \brief Abstract class for any item saved to a scene.
  */
 
 /**
@@ -56,6 +58,7 @@ SceneObject::SceneObject(const QString& name,
                          const SceneDataTypeEnum::Enum dataType)
 : CaretObject(), m_name(name), m_dataType(dataType)
 {
+    CaretAssert(name.isEmpty());
 }
 
 /**

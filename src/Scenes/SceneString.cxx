@@ -42,7 +42,7 @@ using namespace caret;
     
 /**
  * \class caret::SceneString 
- * \brief For storage of a boolean value in a scene.
+ * \brief For storage of a string value in a scene.
  */
 
 /**
@@ -73,7 +73,7 @@ SceneString::~SceneString()
  * @return The value as a boolean data type.
  */
 bool 
-SceneString::booleanValue()
+SceneString::booleanValue() const
 {
     const bool b = m_value.toBool();
     return b;
@@ -85,7 +85,7 @@ SceneString::booleanValue()
  * 0.0 is returned.
  */
 float
-SceneString::floatValue()
+SceneString::floatValue() const
 {
     bool isValid = false;
     float f = m_value.toFloat(&isValid);
@@ -101,7 +101,7 @@ SceneString::floatValue()
  * 0 is returned.
  */
 int32_t 
-SceneString::integerValue()
+SceneString::integerValue() const
 {
     bool isValid = false;
     int32_t i = m_value.toInt(&isValid);
@@ -115,7 +115,7 @@ SceneString::integerValue()
  * @return The value as a string data type.
  */
 AString 
-SceneString::stringValue()
+SceneString::stringValue() const
 {
     return m_value;
 }

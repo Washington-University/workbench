@@ -47,13 +47,13 @@ namespace caret {
         
         virtual ~SceneInteger();
         
-        virtual bool booleanValue();
+        virtual bool booleanValue() const;
         
-        virtual float floatValue();
+        virtual float floatValue() const;
         
-        virtual int32_t integerValue();
+        virtual int32_t integerValue() const;
         
-        virtual AString stringValue();
+        virtual AString stringValue() const;
         
     private:
         SceneInteger(const SceneInteger&);

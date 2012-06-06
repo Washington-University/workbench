@@ -98,9 +98,9 @@ SceneDataTypeEnum::initialize()
                                     "SCENE_CLASS", 
                                     "Class Instance"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_ENUM, 
-                                    "SCENE_ENUM", 
-                                    "Enumerated Type Value"));
+    enumData.push_back(SceneDataTypeEnum(SCENE_ENUMERATED_TYPE, 
+                                    "SCENE_ENUMERATED_TYPE", 
+                                    "Enumerated Type"));
     
     enumData.push_back(SceneDataTypeEnum(SCENE_FLOAT, 
                                     "SCENE_FLOAT", 

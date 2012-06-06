@@ -73,7 +73,7 @@ SceneBoolean::~SceneBoolean()
  * @return The value as a boolean data type.
  */
 bool 
-SceneBoolean::booleanValue()
+SceneBoolean::booleanValue() const
 {
     return m_value;
 }
@@ -82,7 +82,7 @@ SceneBoolean::booleanValue()
  * @return The value as a float data type.
  */
 float
-SceneBoolean::floatValue()
+SceneBoolean::floatValue() const
 {
     const float f = (m_value ? 1.0 : 0.0);
     return f;
@@ -92,7 +92,7 @@ SceneBoolean::floatValue()
  * @return The value as a integer data type.
  */
 int32_t 
-SceneBoolean::integerValue()
+SceneBoolean::integerValue() const
 {
     const float i = (m_value ? 1 : 0);
     return i;
@@ -102,7 +102,7 @@ SceneBoolean::integerValue()
  * @return The value as a string data type.
  */
 AString 
-SceneBoolean::stringValue()
+SceneBoolean::stringValue() const
 {
     const AString s = (m_value ? "true" : "false");
     return s;

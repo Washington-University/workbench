@@ -58,16 +58,16 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
         /** @return Value as a boolean data type */
-        virtual bool booleanValue() = 0;
+        virtual bool booleanValue() const = 0;
 
         /** @return Value as a float data type */
-        virtual float floatValue() = 0;
+        virtual float floatValue() const = 0;
         
         /** @return Value as a integer data type */
-        virtual int32_t integerValue() = 0;
+        virtual int32_t integerValue() const = 0;
         
         /** @return Value as a string data type */
-        virtual AString stringValue() = 0;
+        virtual AString stringValue() const = 0;
                 
     private:
 
