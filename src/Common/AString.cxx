@@ -343,6 +343,30 @@ AString::toNumbers(const AString& s,
 }
 
 /**
+ * Convert the string to a boolean value.
+ * These case insensitive values are considered true:
+ * true, t, 1, 1.0.  All others are considered false.
+ *
+ * @return 
+ *    Boolean value interpreted from contents of 
+ *    this string.
+ */
+bool 
+AString::toBool() const
+{
+    const AString s = this->toLower();
+    if ((s == "true")
+        || (s == "t") 
+        || (s == "1")
+        || (s == "1.0")) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
  * Convert the boolean value to a string.
  * @param b
  *    The boolean value.
