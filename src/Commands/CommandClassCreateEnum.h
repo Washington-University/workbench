@@ -42,7 +42,7 @@ namespace caret {
             throw (CommandException,
                    ProgramParametersException);
         
-        AString getHelpInformation(const AString& /*programName*/) { return ""; };
+        AString getHelpInformation(const AString& /*programName*/);
             
     private:
         

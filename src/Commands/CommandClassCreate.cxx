@@ -22,10 +22,6 @@
  * 
  */ 
 
-#include <fstream>
-#include <ostream>
-#include <iostream>
-
 #include "CaretAssertion.h"
 #include "CommandClassCreate.h"
 #include "FileInformation.h"
@@ -52,6 +48,33 @@ CommandClassCreate::~CommandClassCreate()
     
 }
 
+AString 
+CommandClassCreate::getHelpInformation(const AString& /*programName*/) 
+{
+    AString helpInfo = ("\n"
+                        "Create class header (.h) and implementation (.cxx) files.\n"
+                        "\n"
+                        "Usage:  <class-name> [-copy]\n"
+                        "                     [-no-parent]\n"
+                        "                     [-parent <parent-class-name>]\n"
+                        "\n"
+                        "Options: \n"
+                        "    -copy\n"
+                        "        Adds copy constructor and assignment operator\n"
+                        "    \n"
+                        "    -no-parent\n"
+                        "        Created class is not derived from any other\n"
+                        "        class.  By default, the parent class is\n"
+                        "        CaretObject.\n"
+                        "    \n"
+                        "    -parent <parent-class-name>\n"
+                        "        Specify the parent (derived from) class.\n"
+                        "        By default, the parent class is CaretObject.\n"
+                        "    \n"
+                        );
+    return helpInfo; 
+}
+
 /**
  * Execute the operation.
  * 
@@ -75,10 +98,18 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
         if (param == "-copy") {
             hasCopyAndAssignment = true;
         }
-        else if (param == "-base") {
-            derivedFromClassName = parameters.nextString("Derived From Class Name");
+        else if (param == "-parent") {
+            derivedFromClassName = parameters.nextString("Parent Class Name");
+            if (derivedFromClassName.isEmpty()) {
+                throw CommandException("Parent class name is empty.");
+            }
+            else {
+                if (derivedFromClassName[0].isUpper() == false) {
+                    throw CommandException("Parent class name must begin with a Capital Letter");
+                }
+            }
         }
-        else if (param == "-no-base") {
+        else if (param == "-no-parent") {
             derivedFromClassName = "";
         }
         else {
@@ -90,7 +121,7 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
         throw CommandException("class name is empty.");
     }
     AString errorMessage;
-    if (className[0].isLower()) {
+    if (className[0].isUpper() == false) {
         errorMessage += "First letter of class name must be upper case.\n";
     }
     
@@ -198,6 +229,10 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("    public:\n");
     }
     
+    t += ("\n");
+    t += ("        " + getNewMethodsString() + "\n");
+    t += ("\n");          
+
     if (derivedFromClassName == "CaretObject") {
         t += ("        virtual AString toString() const;\n");
         t += ("        \n");
@@ -211,6 +246,9 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     else {
         
     }
+    t += ("\n");
+    t += ("        " + getNewMembersString() + "\n");
+    t += ("\n");
     t += ("    };\n");
     t += ("    \n");
     t += ("#ifdef " + ifdefNameStaticDeclaration + "\n");
@@ -268,7 +306,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
     t += (" *\n");
     t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
-    t += (" */\n");    
+    t += (" */\n"); 
+    t += ("\n");
     t += ("/**\n");
     t += (" * Constructor.\n");
     t += (" */\n");
