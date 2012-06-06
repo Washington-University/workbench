@@ -62,6 +62,7 @@
 #include "AlgorithmException.h"
 #include "OperationException.h"
 
+#include "CommandClassAddMember.h"
 #include "CommandClassCreate.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandGiftiConvert.h"
@@ -140,6 +141,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());
+    this->commandOperations.push_back(new CommandClassAddMember());
     this->commandOperations.push_back(new CommandClassCreate());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandGiftiConvert());
