@@ -17,6 +17,7 @@ INCLUDE (${QT_USE_FILE})
 # Create the brain library
 #
 ADD_LIBRARY(Commands
+CommandClassAddMember.h
 CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
@@ -29,6 +30,7 @@ CommandParser.h
 CommandException.h
 CommandUnitTest.h
 
+CommandClassAddMember.cxx
 CommandClassCreate.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
