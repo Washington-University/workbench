@@ -904,8 +904,43 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
     
     
     /*
-     * Check feature files
+     * Check border files
      */
+    Brain* brain = model->getBrain();
+    const DisplayPropertiesBorders* borderDisplayProperties = brain->getDisplayPropertiesBorders();
+    const DisplayGroupEnum::Enum borderDisplayGroup = borderDisplayProperties->getDisplayGroupForTab(tabIndex);
+    if (borderDisplayProperties->isDisplayed(borderDisplayGroup,
+                                             tabIndex)) {
+        const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+        for (int32_t i = 0; i < numBorderFiles; i++) {
+            BorderFile* borderFile = brain->getBorderFile(i);
+            const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
+            if (classAndNameSelection->isSelected(borderDisplayGroup,
+                                                  tabIndex)) {
+                displayedDataFilesOut.push_back(borderFile);
+            }
+        }
+    }
+
+    /*
+     * Check foci files
+     */
+    const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum fociDisplayGroup = fociDisplayProperties->getDisplayGroupForTab(tabIndex);
+    
+    if (fociDisplayProperties->isDisplayed(fociDisplayGroup,
+                                           tabIndex)) {
+        const int32_t numFociFiles = brain->getNumberOfFociFiles();
+        for (int32_t i = 0; i < numFociFiles; i++) {
+            FociFile* fociFile = brain->getFociFile(i);
+            
+            const ClassAndNameHierarchyModel* classAndNameSelection = fociFile->getClassAndNameHierarchyModel();
+            if (classAndNameSelection->isSelected(fociDisplayGroup,
+                                                  tabIndex)) {
+                displayedDataFilesOut.push_back(fociFile);
+            }
+        }
+    }
     
     /*
      * Might be NULLs so filter them out and return the results
