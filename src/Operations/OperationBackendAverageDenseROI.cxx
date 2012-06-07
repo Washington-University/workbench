@@ -79,6 +79,10 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
         {
             throw OperationException("failed to parse '" + indexStrings[i] + "' as integer");
         }
+        if (indexList[i] < 0)
+        {
+            throw OperationException("negative integers are not valid cifti indexes");
+        }
     }
     vector<const CiftiInterface*> ciftiList;
     try
@@ -106,6 +110,7 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
         if (numCifti > 0)
         {
             baseXML = ciftiList[0]->getCiftiXML();
+            int numRows = baseXML.getNumberOfRows();
             int rowSize = baseXML.getNumberOfColumns();
             vector<double> accum(rowSize, 0.0);
             vector<float> rowScratch(rowSize);
@@ -117,7 +122,11 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
                 }
                 for (int j = 0; j < numStrings; ++j)
                 {
-                    ciftiList[i]->getRow(rowScratch.data(), j);
+                    if (indexList[j] >= numRows)
+                    {
+                        throw OperationException("error, cifti index outside number of rows");
+                    }
+                    ciftiList[i]->getRow(rowScratch.data(), indexList[j]);
                     for (int k = 0; k < rowSize; ++k)
                     {
                         accum[k] += rowScratch[k];
