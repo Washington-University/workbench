@@ -56,7 +56,7 @@ using namespace caret;
 SceneBoolean::SceneBoolean(const AString& name,
                            const bool value)
 : ScenePrimitive(name,
-                 SceneDataTypeEnum::SCENE_BOOLEAN)
+                 SceneObjectDataTypeEnum::SCENE_BOOLEAN)
 {
     m_value = value;
 }

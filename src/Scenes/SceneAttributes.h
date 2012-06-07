@@ -1,3 +1,5 @@
+#ifndef __SCENE_ATTRIBUTES__H_
+#define __SCENE_ATTRIBUTES__H_
 
 /*LICENSE_START*/
 /*
@@ -32,91 +34,41 @@
  */
 /*LICENSE_END*/
 
-#define __SCENE_STRING_DECLARE__
-#include "SceneString.h"
-#undef __SCENE_STRING_DECLARE__
 
-using namespace caret;
+#include "CaretObject.h"
+#include "SceneTypeEnum.h"
 
+namespace caret {
 
+    class SceneAttributes : public CaretObject {
+        
+    public:
+        SceneAttributes(const SceneTypeEnum::Enum sceneType);
+        
+        virtual ~SceneAttributes();
+        
+        SceneTypeEnum::Enum getSceneType() const;
+        
+    private:
+        SceneAttributes(const SceneAttributes&);
+
+        SceneAttributes& operator=(const SceneAttributes&);
+        
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+
+        const SceneTypeEnum::Enum m_sceneType;
+        
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::SceneString 
- * \brief For storage of a string value in a scene.
- */
+#ifdef __SCENE_ATTRIBUTES_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __SCENE_ATTRIBUTES_DECLARE__
 
-/**
- * Constructor.
- *
- * @param name
- *   Name of object.
- * @param value
- *   Value of object.
- */
-SceneString::SceneString(const AString& name,
-                           const AString& value)
-: ScenePrimitive(name,
-                 SceneObjectDataTypeEnum::SCENE_STRING)
-{
-    m_value = value;
-}
-
-/**
- * Destructor.
- */
-SceneString::~SceneString()
-{
-    
-}
-
-/**
- * @return The value as a boolean data type.
- */
-bool 
-SceneString::booleanValue() const
-{
-    const bool b = m_value.toBool();
-    return b;
-}
-
-/**
- * @return The value as a float data type.
- * If the string does not convert to a float number,
- * 0.0 is returned.
- */
-float
-SceneString::floatValue() const
-{
-    bool isValid = false;
-    float f = m_value.toFloat(&isValid);
-    if (isValid == false) {
-        f = 0.0;
-    }
-    return f;
-}
-
-/**
- * @return The value as a integer data type.
- * If the string does not convert to an integer number,
- * 0 is returned.
- */
-int32_t 
-SceneString::integerValue() const
-{
-    bool isValid = false;
-    int32_t i = m_value.toInt(&isValid);
-    if (isValid == false) {
-        i = 0;
-    }
-    return i;
-}
-
-/**
- * @return The value as a string data type.
- */
-AString 
-SceneString::stringValue() const
-{
-    return m_value;
-}
-
+} // namespace
+#endif  //__SCENE_ATTRIBUTES__H_

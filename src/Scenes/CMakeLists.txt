@@ -17,25 +17,32 @@ INCLUDE(${QT_USE_FILE})
 # Create a Library
 #
 ADD_LIBRARY(Scenes
+Scene.h
+SceneAttributes.h
 SceneBoolean.h
 SceneClass.h
-SceneDataTypeEnum.h
 SceneEnumeratedType.h
 SceneFloat.h
 SceneInteger.h
 SceneObject.h
+SceneObjectDataTypeEnum.h
 ScenePrimitive.h
 SceneString.h
+SceneTypeEnum.h
+SceneableInterface.h
 
+Scene.cxx
+SceneAttributes.cxx
 SceneBoolean.cxx
 SceneClass.cxx
-SceneDataTypeEnum.cxx
 SceneEnumeratedType.cxx
 SceneFloat.cxx
 SceneInteger.cxx
 SceneObject.cxx
+SceneObjectDataTypeEnum.cxx
 ScenePrimitive.cxx
 SceneString.cxx
+SceneTypeEnum.cxx
 )
 
 #

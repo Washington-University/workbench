@@ -55,7 +55,7 @@ using namespace caret;
  *    Data type of the primitive.
  */
 SceneObject::SceneObject(const QString& name,
-                         const SceneDataTypeEnum::Enum dataType)
+                         const SceneObjectDataTypeEnum::Enum dataType)
 : CaretObject(), m_name(name), m_dataType(dataType)
 {
     CaretAssert(name.isEmpty());
@@ -81,7 +81,7 @@ SceneObject::getName() const
 /**
  * @return Data type of the object.
  */
-SceneDataTypeEnum::Enum 
+SceneObjectDataTypeEnum::Enum 
 SceneObject::getDataType() const
 {
     return m_dataType;

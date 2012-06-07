@@ -58,7 +58,7 @@ using namespace caret;
 SceneFloat::SceneFloat(const AString& name,
                        const float value)
 : ScenePrimitive(name,
-                 SceneDataTypeEnum::SCENE_FLOAT)
+                 SceneObjectDataTypeEnum::SCENE_FLOAT)
 {
     m_value = value;
 }

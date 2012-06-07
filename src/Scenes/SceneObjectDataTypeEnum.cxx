@@ -33,9 +33,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __SCENE_DATA_TYPE_ENUM_DECLARE__
-#include "SceneDataTypeEnum.h"
-#undef __SCENE_DATA_TYPE_ENUM_DECLARE__
+#define __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
+#include "SceneObjectDataTypeEnum.h"
+#undef __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -43,8 +43,8 @@ using namespace caret;
 
     
 /**
- * \class caret::SceneDataTypeEnum 
- * \brief Types of data saved in scenes.
+ * \class caret::SceneObjectDataTypeEnum 
+ * \brief Types of data objects saved in scenes.
  */
 
 /**
@@ -58,7 +58,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-SceneDataTypeEnum::SceneDataTypeEnum(const Enum enumValue,
+SceneObjectDataTypeEnum::SceneObjectDataTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -71,7 +71,7 @@ SceneDataTypeEnum::SceneDataTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-SceneDataTypeEnum::~SceneDataTypeEnum()
+SceneObjectDataTypeEnum::~SceneObjectDataTypeEnum()
 {
 }
 
@@ -79,34 +79,34 @@ SceneDataTypeEnum::~SceneDataTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-SceneDataTypeEnum::initialize()
+SceneObjectDataTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(SceneDataTypeEnum(SCENE_INVALID, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_INVALID, 
                                     "SCENE_INVALID", 
                                     "Invalid Value"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_BOOLEAN, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_BOOLEAN, 
                                     "SCENE_BOOLEAN", 
                                     "Boolean"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_CLASS, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_CLASS, 
                                     "SCENE_CLASS", 
                                     "Class Instance"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_ENUMERATED_TYPE, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_ENUMERATED_TYPE, 
                                     "SCENE_ENUMERATED_TYPE", 
                                     "Enumerated Type"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_FLOAT, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_FLOAT, 
                                     "SCENE_FLOAT", 
                                     "Float"));
     
-    enumData.push_back(SceneDataTypeEnum(SCENE_INTEGER, 
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_INTEGER, 
                                     "SCENE_INTEGER", 
                                     "Integer 32-Bit"));
     
@@ -119,14 +119,14 @@ SceneDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const SceneDataTypeEnum*
-SceneDataTypeEnum::findData(const Enum enumValue)
+const SceneObjectDataTypeEnum*
+SceneObjectDataTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const SceneDataTypeEnum* d = &enumData[i];
+        const SceneObjectDataTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -143,10 +143,10 @@ SceneDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-SceneDataTypeEnum::toName(Enum enumValue) {
+SceneObjectDataTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const SceneDataTypeEnum* enumInstance = findData(enumValue);
+    const SceneObjectDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -160,18 +160,18 @@ SceneDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-SceneDataTypeEnum::Enum 
-SceneDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+SceneObjectDataTypeEnum::Enum 
+SceneObjectDataTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = SCENE_INVALID;
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const SceneDataTypeEnum& d = *iter;
+        const SceneObjectDataTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -183,7 +183,7 @@ SceneDataTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type SceneDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type SceneObjectDataTypeEnum"));
     }
     return enumValue;
 }
@@ -196,10 +196,10 @@ SceneDataTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-SceneDataTypeEnum::toGuiName(Enum enumValue) {
+SceneObjectDataTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const SceneDataTypeEnum* enumInstance = findData(enumValue);
+    const SceneObjectDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -213,18 +213,18 @@ SceneDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-SceneDataTypeEnum::Enum 
-SceneDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+SceneObjectDataTypeEnum::Enum 
+SceneObjectDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = SCENE_INVALID;
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const SceneDataTypeEnum& d = *iter;
+        const SceneObjectDataTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -236,7 +236,7 @@ SceneDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type SceneDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type SceneObjectDataTypeEnum"));
     }
     return enumValue;
 }
@@ -248,10 +248,10 @@ SceneDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-SceneDataTypeEnum::toIntegerCode(Enum enumValue)
+SceneObjectDataTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const SceneDataTypeEnum* enumInstance = findData(enumValue);
+    const SceneObjectDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -266,18 +266,18 @@ SceneDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-SceneDataTypeEnum::Enum
-SceneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+SceneObjectDataTypeEnum::Enum
+SceneObjectDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = SCENE_INVALID;
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const SceneDataTypeEnum& enumInstance = *iter;
+        const SceneObjectDataTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -289,7 +289,7 @@ SceneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type SceneDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type SceneObjectDataTypeEnum"));
     }
     return enumValue;
 }
@@ -302,13 +302,13 @@ SceneDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-SceneDataTypeEnum::getAllEnums(std::vector<SceneDataTypeEnum::Enum>& allEnums)
+SceneObjectDataTypeEnum::getAllEnums(std::vector<SceneObjectDataTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -324,16 +324,16 @@ SceneDataTypeEnum::getAllEnums(std::vector<SceneDataTypeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-SceneDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+SceneObjectDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(SceneDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(SceneObjectDataTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -350,16 +350,16 @@ SceneDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSort
  *     If true, the names are sorted in alphabetical order.
  */
 void
-SceneDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+SceneObjectDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<SceneDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(SceneDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(SceneObjectDataTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

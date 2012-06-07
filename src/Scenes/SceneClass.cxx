@@ -50,14 +50,38 @@ using namespace caret;
 /**
  * \class caret::SceneClass 
  * \brief For storage of a class instance in a scene.
+ *
+ * When an instance of a class is saved to a scene,
+ * non-transient data is added to an instance of a
+ * scene class.
+ *
+ * There are several types of scenes: (1) Full in which
+ * all data is saved, and (2) Generic in which only 
+ * non-file parameters are saved.
+ * 
+ * With full scenes, data files will be loaded and
+ * the scene data is appled.
+ *
+ * With generic scenes, no data is loaded and the
+ * scene is applied to any currently loaded data.
  */
 
 /**
  * Constructor.
+ *
+ * @param name
+ *     Name of the instance saved to this scene class.
+ * @param versionNumber
+ *     Version number of the class that is saved to this
+ *     scene class.  Since a class may change over time,
+ *     this version number can be used to handle cases
+ *     of scenes saved prior to changes made to a class.
  */
-SceneClass::SceneClass(const AString& name)
+SceneClass::SceneClass(const AString& name,
+                       const int32_t versionNumber)
 : SceneObject(name,
-              SceneDataTypeEnum::SCENE_CLASS)
+              SceneObjectDataTypeEnum::SCENE_CLASS),
+  m_versionNumber(versionNumber)
 {
     
 }
@@ -87,6 +111,15 @@ SceneClass::~SceneClass()
         delete *iter;
     }
     m_childEnumeratedTypes.clear();
+}
+
+/**
+ * @return The version number of this scene class instance.
+ */
+int32_t 
+SceneClass::getVersionNumber() const
+{
+    return m_versionNumber;
 }
 
 /**

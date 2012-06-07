@@ -1,5 +1,5 @@
-#ifndef __SCENE_PRIMITIVE__H_
-#define __SCENE_PRIMITIVE__H_
+#ifndef __SCENEABLE_INTERFACE__H_
+#define __SCENEABLE_INTERFACE__H_
 
 /*LICENSE_START*/
 /*
@@ -35,49 +35,64 @@
 /*LICENSE_END*/
 
 
-#include "SceneObject.h"
+/**
+ * \class caret::SceneableInterface 
+ * \brief Interface that must be implemented by classes saved to scenes.
+ *       
+ */
 
 namespace caret {
 
-    class ScenePrimitive : public SceneObject {
+    class SceneAttributes;
+    class SceneClass;
+    
+    class SceneableInterface {
         
-    public:
-        virtual ~ScenePrimitive();
-
     protected:
-        ScenePrimitive(const QString& name,
-                       const SceneObjectDataTypeEnum::Enum dataType);
-        
-    private:
-        ScenePrimitive(const ScenePrimitive&);
-
-        ScenePrimitive& operator=(const ScenePrimitive&);
+        SceneableInterface() { }
         
     public:
+        virtual ~SceneableInterface() { }
 
-        // ADD_NEW_METHODS_HERE
+        /**
+         * Create a scene for an instance of a class.
+         *
+         * @param sceneAttributes
+         *    Attributes for the scene.  Scenes may be of different types
+         *    (full, generic, etc) and the attributes should be checked when
+         *    saving the scene.
+         *
+         * @return Pointer to SceneClass object representing the state of 
+         *    this object.  Under some circumstances a NULL pointer may be
+         *    returned.  Caller will take ownership of returned object.
+         */
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes) = 0;
         
-        /** @return Value as a boolean data type */
-        virtual bool booleanValue() const = 0;
-
-        /** @return Value as a float data type */
-        virtual float floatValue() const = 0;
+        /**
+         * Restore the state of an instance of a class.
+         * 
+         * @param sceneAttributes
+         *    Attributes for the scene.  Scenes may be of different types
+         *    (full, generic, etc) and the attributes should be checked when
+         *    restoring the scene.
+         *
+         * @param sceneClass
+         *     SceneClass containing the state that was previously 
+         *     saved and should be restored.
+         */
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass) = 0;
         
-        /** @return Value as a integer data type */
-        virtual int32_t integerValue() const = 0;
-        
-        /** @return Value as a string data type */
-        virtual AString stringValue() const = 0;
-                
     private:
+        SceneableInterface(const SceneableInterface&);
 
-        // ADD_NEW_MEMBERS_HERE
-
+        SceneableInterface& operator=(const SceneableInterface&);
+        
     };
     
-#ifdef __SCENE_PRIMITIVE_DECLARE__
+#ifdef __SCENEABLE_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_PRIMITIVE_DECLARE__
+#endif // __SCENEABLE_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__SCENE_PRIMITIVE__H_
+#endif  //__SCENEABLE_INTERFACE__H_

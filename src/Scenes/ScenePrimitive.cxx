@@ -56,7 +56,7 @@ using namespace caret;
  *    Data type of the primitive.
  */
 ScenePrimitive::ScenePrimitive(const QString& name,
-                               const SceneDataTypeEnum::Enum dataType)
+                               const SceneObjectDataTypeEnum::Enum dataType)
 : SceneObject(name, dataType)
 {
     

@@ -36,7 +36,7 @@
 
 
 #include "CaretObject.h"
-#include "SceneDataTypeEnum.h"
+#include "SceneObjectDataTypeEnum.h"
 
 namespace caret {
 
@@ -47,11 +47,11 @@ namespace caret {
         
         QString getName() const;
         
-        SceneDataTypeEnum::Enum getDataType() const;
+        SceneObjectDataTypeEnum::Enum getDataType() const;
         
     protected:
         SceneObject(const QString& name,
-                    const SceneDataTypeEnum::Enum dataType);
+                    const SceneObjectDataTypeEnum::Enum dataType);
         
     private:
         SceneObject(const SceneObject&);
@@ -71,7 +71,7 @@ namespace caret {
         const QString m_name;
         
         /** Type of object */
-        const SceneDataTypeEnum::Enum m_dataType;
+        const SceneObjectDataTypeEnum::Enum m_dataType;
         
     };
     

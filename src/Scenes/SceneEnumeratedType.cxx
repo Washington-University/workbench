@@ -51,7 +51,7 @@ using namespace caret;
 SceneEnumeratedType::SceneEnumeratedType(const AString& name,
                                          const AString& enumeratedValueAsString)
 : SceneObject(name,
-              SceneDataTypeEnum::SCENE_ENUMERATED_TYPE)
+              SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
 {
     m_enumeratedValueAsString = enumeratedValueAsString;
 }

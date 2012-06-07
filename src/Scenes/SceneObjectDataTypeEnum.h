@@ -1,5 +1,5 @@
-#ifndef __SCENE_DATA_TYPE_ENUM__H_
-#define __SCENE_DATA_TYPE_ENUM__H_
+#ifndef __SCENE_OBJECT_DATA_TYPE_ENUM__H_
+#define __SCENE_OBJECT_DATA_TYPE_ENUM__H_
 
 /*LICENSE_START*/
 /*
@@ -41,7 +41,7 @@
 
 namespace caret {
 
-class SceneDataTypeEnum {
+class SceneObjectDataTypeEnum {
 
 public:
     /**
@@ -65,7 +65,7 @@ public:
     };
 
 
-    ~SceneDataTypeEnum();
+    ~SceneObjectDataTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -86,14 +86,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    SceneDataTypeEnum(const Enum enumValue, 
+    SceneObjectDataTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const SceneDataTypeEnum* findData(const Enum enumValue);
+    static const SceneObjectDataTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<SceneDataTypeEnum> enumData;
+    static std::vector<SceneObjectDataTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -117,11 +117,11 @@ private:
     AString guiName;
 };
 
-#ifdef __SCENE_DATA_TYPE_ENUM_DECLARE__
-std::vector<SceneDataTypeEnum> SceneDataTypeEnum::enumData;
-bool SceneDataTypeEnum::initializedFlag = false;
-int32_t SceneDataTypeEnum::integerCodeCounter = 0; 
-#endif // __SCENE_DATA_TYPE_ENUM_DECLARE__
+#ifdef __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
+std::vector<SceneObjectDataTypeEnum> SceneObjectDataTypeEnum::enumData;
+bool SceneObjectDataTypeEnum::initializedFlag = false;
+int32_t SceneObjectDataTypeEnum::integerCodeCounter = 0; 
+#endif // __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__SCENE_DATA_TYPE_ENUM__H_
+#endif  //__SCENE_OBJECT_DATA_TYPE_ENUM__H_

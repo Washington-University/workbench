@@ -32,91 +32,40 @@
  */
 /*LICENSE_END*/
 
-#define __SCENE_STRING_DECLARE__
-#include "SceneString.h"
-#undef __SCENE_STRING_DECLARE__
+#define __SCENE_ATTRIBUTES_DECLARE__
+#include "SceneAttributes.h"
+#undef __SCENE_ATTRIBUTES_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class caret::SceneString 
- * \brief For storage of a string value in a scene.
+ * \class caret::SceneAttributes 
+ * \brief Attributes of a scene.
  */
 
 /**
  * Constructor.
- *
- * @param name
- *   Name of object.
- * @param value
- *   Value of object.
  */
-SceneString::SceneString(const AString& name,
-                           const AString& value)
-: ScenePrimitive(name,
-                 SceneObjectDataTypeEnum::SCENE_STRING)
+SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
+: CaretObject(), m_sceneType(sceneType)
 {
-    m_value = value;
 }
 
 /**
  * Destructor.
  */
-SceneString::~SceneString()
+SceneAttributes::~SceneAttributes()
 {
     
 }
 
 /**
- * @return The value as a boolean data type.
+ * @return The type of scene.
  */
-bool 
-SceneString::booleanValue() const
+SceneTypeEnum::Enum 
+SceneAttributes::getSceneType() const
 {
-    const bool b = m_value.toBool();
-    return b;
+    return m_sceneType;
 }
-
-/**
- * @return The value as a float data type.
- * If the string does not convert to a float number,
- * 0.0 is returned.
- */
-float
-SceneString::floatValue() const
-{
-    bool isValid = false;
-    float f = m_value.toFloat(&isValid);
-    if (isValid == false) {
-        f = 0.0;
-    }
-    return f;
-}
-
-/**
- * @return The value as a integer data type.
- * If the string does not convert to an integer number,
- * 0 is returned.
- */
-int32_t 
-SceneString::integerValue() const
-{
-    bool isValid = false;
-    int32_t i = m_value.toInt(&isValid);
-    if (isValid == false) {
-        i = 0;
-    }
-    return i;
-}
-
-/**
- * @return The value as a string data type.
- */
-AString 
-SceneString::stringValue() const
-{
-    return m_value;
-}
-

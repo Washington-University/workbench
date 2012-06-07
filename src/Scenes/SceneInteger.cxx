@@ -58,7 +58,7 @@ using namespace caret;
 SceneInteger::SceneInteger(const AString& name,
                        const int32_t value)
 : ScenePrimitive(name,
-                 SceneDataTypeEnum::SCENE_INTEGER)
+                 SceneObjectDataTypeEnum::SCENE_INTEGER)
 {
     m_value = value;
 }

@@ -45,17 +45,15 @@ namespace caret {
     class SceneClass : public SceneObject {
         
     public:
-        SceneClass(const AString& name);
+        SceneClass(const AString& name,
+                   const int32_t versionNumber);
         
         virtual ~SceneClass();
         
-    private:
-        SceneClass(const SceneClass&);
-
-        SceneClass& operator=(const SceneClass&);
-        
     public:
 
+        int32_t getVersionNumber() const;
+        
         void addBoolean(const AString& name,
                         const bool value);
         
@@ -94,16 +92,21 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        SceneClass(const SceneClass&);
+        
+        SceneClass& operator=(const SceneClass&);
 
         const ScenePrimitive* getPrimitive(const AString& name) const;
         
-        // ADD_NEW_MEMBERS_HERE
+        const int32_t m_versionNumber;
         
         std::vector<SceneClass*> m_childClasses;
         
         std::vector<ScenePrimitive*> m_childPrimitives;
 
         std::vector<SceneEnumeratedType*> m_childEnumeratedTypes;
+        
+        // ADD_NEW_MEMBERS_HERE
         
     };
     
