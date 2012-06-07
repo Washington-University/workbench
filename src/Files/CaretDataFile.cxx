@@ -45,6 +45,7 @@ CaretDataFile::CaretDataFile(const DataFileTypeEnum::Enum dataFileType)
 : DataFile()
 {
     this->dataFileType = dataFileType;
+    this->displayedInGuiFlag = false;
     
     AString name = (DataFileTypeEnum::toName(this->dataFileType).toLower()
                     + "_file_"
@@ -122,4 +123,31 @@ CaretDataFile::copyDataCaretDataFile(const CaretDataFile& cdf)
 {
     this->dataFileType = cdf.dataFileType;
 }
+
+/**
+ * @return Is this file displayed in the graphical user-interface?
+ *
+ * Note: Before calling this method, Brain::determineDisplayedDataFiles()
+ * must be called.  It will set the displayed status for all 
+ * files that is owns.
+ */
+bool 
+CaretDataFile::isDisplayedInGUI() const
+{
+    return this->displayedInGuiFlag;
+}
+
+/**
+ * Set the displayed in graphical user-interface status.
+ * @param displayedInGUI
+ *    New status of displayed in GUI.
+ *
+ * Note: This method is called by Brain::determineDisplayedDataFiles().
+ */
+void 
+CaretDataFile::setDisplayedInGUI(const bool displayedInGUI)
+{
+    this->displayedInGuiFlag = displayedInGUI;
+}
+
 

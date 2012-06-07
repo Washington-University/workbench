@@ -173,6 +173,8 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
+        void determineDisplayedDataFiles();
+        
         void writeDataFile(CaretDataFile* caretDataFile,
                            const bool isAddToSpecFile) throw (DataFileException);
         

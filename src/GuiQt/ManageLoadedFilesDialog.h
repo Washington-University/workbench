@@ -62,6 +62,7 @@ namespace caret {
         
         enum Column {
             COLUMN_SAVE_CHECKBOX,
+            COLUMN_DISPLAYED,
             COLUMN_MODIFIED,
             COLUMN_STRUCTURE,
             COLUMN_FILE_TYPE,
@@ -98,7 +99,8 @@ namespace caret {
     private:
         ManageFileRow(ManageLoadedFilesDialog* parentWidget,
                       Brain* brain,
-                      CaretDataFile* caretDataFile);
+                      CaretDataFile* caretDataFile,
+                      const bool caretDataFileDisplayedFlag);
         
         ~ManageFileRow();
         
@@ -109,6 +111,7 @@ namespace caret {
         QCheckBox* saveCheckBox;
         QLabel* structureLabel;
         QLabel* fileTypeLabel;
+        QLabel* displayedLabel;
         QLabel* modifiedLabel;
         QToolButton* metaDataToolButton;
         QToolButton* removeFileToolButton;

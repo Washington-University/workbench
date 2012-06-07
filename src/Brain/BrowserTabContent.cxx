@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <set>
+
 #define __BROWSER_TAB_CONTENT_DECLARE__
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
@@ -46,7 +48,9 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "Surface.h"
+#include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
+#include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
@@ -816,5 +820,105 @@ BrowserTabContent::setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup)
 {
     this->selectedYokingGroup = selectedYokingGroup;
 }
+
+/**
+ * Get the data files displayed in this tab.
+ * @param displayedDataFilesOut
+ *    Displayed data file are loaded into this parameter.
+ */
+void 
+BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut)
+{
+    displayedDataFilesOut.clear();
+ 
+    Model* model = this->getModelControllerForDisplay();
+    if (model == NULL) {
+        return;
+    }
+    
+    std::set<CaretDataFile*> displayedDataFiles;
+    
+    const int32_t tabIndex = this->getTabNumber();
+    switch (this->getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+        {
+            ModelSurface* ms = this->getDisplayedSurfaceModel();
+            displayedDataFiles.insert(ms->getSurface());
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        {
+            ModelSurfaceMontage* msm = this->getDisplayedSurfaceMontageModel();
+            displayedDataFiles.insert(msm->getLeftSurfaceSelectionModel(tabIndex)->getSurface());
+            displayedDataFiles.insert(msm->getRightSurfaceSelectionModel(tabIndex)->getSurface());
+            if (msm->isDualConfigurationEnabled(tabIndex)) {
+                displayedDataFiles.insert(msm->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface());
+                displayedDataFiles.insert(msm->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface());
+            }
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        {
+            const int32_t numOutlines = this->volumeSurfaceOutlineSetModel->getNumberOfDislayedVolumeSurfaceOutlines();
+            for (int32_t i = 0; i < numOutlines; i++) {
+                VolumeSurfaceOutlineModel* model = this->volumeSurfaceOutlineSetModel->getVolumeSurfaceOutlineModel(i);
+                if (model->isDisplayed()) {
+                    displayedDataFiles.insert(model->getSurface());
+                }
+            }
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        {
+            ModelWholeBrain* wbm = this->getDisplayedWholeBrainModel();
+            if (wbm->isLeftEnabled(tabIndex)) {
+                displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CORTEX_LEFT, tabIndex));
+            }
+            if (wbm->isRightEnabled(tabIndex)) {
+                displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CORTEX_RIGHT, tabIndex));
+            }
+            if (wbm->isCerebellumEnabled(tabIndex)) {
+                displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CEREBELLUM, tabIndex));
+            }
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_YOKING:
+            break;
+    }
+
+    /*
+     * Check overlay files
+     */
+    OverlaySet* overlaySet = model->getOverlaySet(tabIndex);
+    const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        Overlay* overlay = overlaySet->getOverlay(i);
+        CaretMappableDataFile* overlayDataFile = NULL;
+        int32_t mapIndex;
+        overlay->getSelectionData(overlayDataFile, 
+                                  mapIndex);
+        displayedDataFiles.insert(overlayDataFile);
+    }
+    
+    
+    /*
+     * Check feature files
+     */
+    
+    /*
+     * Might be NULLs so filter them out and return the results
+     */
+    for (std::set<CaretDataFile*>::iterator iter = displayedDataFiles.begin();
+         iter != displayedDataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        if (cdf != NULL) {
+            displayedDataFilesOut.push_back(cdf);
+        }
+    }
+}
+
 
 

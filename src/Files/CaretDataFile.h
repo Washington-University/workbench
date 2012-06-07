@@ -65,6 +65,10 @@ namespace caret {
          */
         virtual const GiftiMetaData* getFileMetaData() const = 0;
         
+        bool isDisplayedInGUI() const;
+        
+        void setDisplayedInGUI(const bool displayedInGUI);
+        
     protected:
         CaretDataFile(const CaretDataFile& cdf);
 
@@ -76,6 +80,9 @@ namespace caret {
         void copyDataCaretDataFile(const CaretDataFile& cdf);
         
         DataFileTypeEnum::Enum dataFileType;
+        
+        /** transient that is set to indicate that this file is displayed in the GUI */
+        bool displayedInGuiFlag;
         
         /** A counter that is used when creating default file names */
         static int64_t defaultFileNameCounter;

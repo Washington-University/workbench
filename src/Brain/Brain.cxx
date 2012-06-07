@@ -52,6 +52,7 @@
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "MetricFile.h"
+#include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
@@ -1694,6 +1695,86 @@ Brain::setCurrentDirectory(const AString& currentDirectory)
 {
     this->currentDirectory = currentDirectory;
 }
+
+/**
+ * Determine all loaded data files that are displayed.
+ * A file is 'displayed' if it is selected in 
+ * any tab (whether or not the tab is visible).
+ * The file may be displayed in a model (such as
+ * surface or surface montage, selected in an 
+ * overlay, or displayed as borders/foci.
+ *
+ * After calling this method, a method in 
+ * CaretDataFile may be called that indicates if
+ * the file is displayed in the graphical user-interface.
+ */
+void 
+Brain::determineDisplayedDataFiles()
+{
+    /*
+     * Get all browser tabs.
+     */
+    EventBrowserTabGetAll getAllTabsEvent;
+    EventManager::get()->sendEvent(getAllTabsEvent.getPointer());
+    
+    std::set<const CaretDataFile*> displayedDataFiles;
+    
+    /*
+     * Get files displayed in each tab.
+     */
+    const int32_t numberOfTabs = getAllTabsEvent.getNumberOfBrowserTabs();
+    for (int32_t i = 0; i < numberOfTabs; i++) {
+        BrowserTabContent* btc = getAllTabsEvent.getBrowserTab(i);
+        std::vector<CaretDataFile*> tabDataFiles;
+        btc->getFilesDisplayedInTab(tabDataFiles);
+        displayedDataFiles.insert(tabDataFiles.begin(),
+                                  tabDataFiles.end());
+    }
+    
+    /*
+     * See if any palette mappable files are displayed
+     */
+    bool havePaletteMappableFiles = false;
+    for (std::set<const CaretDataFile*>::iterator iter = displayedDataFiles.begin();
+         iter != displayedDataFiles.end();
+         iter++) {
+        const CaretMappableDataFile* mappableFile = dynamic_cast<const CaretMappableDataFile*>(*iter);
+        if (mappableFile != NULL) {
+            if (mappableFile->isMappedWithPalette()) {
+                havePaletteMappableFiles = true;
+                break;
+            }
+        }
+    }
+    
+    /*
+     * Get all loaded files.
+     */
+    std::vector<CaretDataFile*> dataFiles;
+    this->getAllDataFiles(dataFiles);
+    
+    /*
+     * Output only those data files that were found to be displayed.
+     */
+    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+         iter != dataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        bool displayFlag = false;
+        
+        if (cdf->getDataFileType() == DataFileTypeEnum::PALETTE) {
+            if (havePaletteMappableFiles) {
+                displayFlag = true;
+            }
+        }
+        else if (displayedDataFiles.find(cdf) != displayedDataFiles.end()) {
+            displayFlag = true;
+        }
+        
+        cdf->setDisplayedInGUI(displayFlag);
+    }
+}
+
 
 /**
  * Get all loaded data files.

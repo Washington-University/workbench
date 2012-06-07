@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class CaretDataFile;
     class CaretMappableDataFile;
     class Model;
     class ModelSurface;
@@ -93,6 +94,8 @@ namespace caret {
         const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
         ModelSurfaceSelector* getSurfaceModelSelector();
+        
+        void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
         void update(const std::vector<Model*> modelDisplayControllers);
         

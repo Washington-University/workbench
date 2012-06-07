@@ -87,6 +87,8 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         ManageLoadedFilesDialog::previousSaveFileAddToSpecFileSelection = prefs->isDataFileAddToSpecFileEnabled();
     }
     this->brain = brain;
+    this->brain->determineDisplayedDataFiles();
+    
     this->isQuittingWorkbench = isQuittingWorkbench;
     
     this->setOkButtonText("");
@@ -111,19 +113,29 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     gridLayout->addWidget(new QLabel("File Type"),
                           gridRow,
                           COLUMN_FILE_TYPE);
-    gridLayout->addWidget(new QLabel("Mod"),
+    gridLayout->addWidget(new QLabel("Displayed"),
+                          gridRow,
+                          COLUMN_DISPLAYED);
+    gridLayout->addWidget(new QLabel("Modified"),
                           gridRow,
                           COLUMN_MODIFIED);
     gridLayout->addWidget(new QLabel("Metadata"),
                           gridRow,
                           COLUMN_METADATA);
-    gridLayout->addWidget(new QLabel("Remove\nFile"),
+    
+    QLabel* removeFileLabel = new QLabel("Remove\nFile");
+    removeFileLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(removeFileLabel,
                           gridRow,
                           COLUMN_REMOVE_BUTTON);
-    gridLayout->addWidget(new QLabel("Remove\nMap"),
+    QLabel* removeMapLabel = new QLabel("Remove\nMap");
+    removeMapLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(removeMapLabel,
                           gridRow,
                           COLUMN_REMOVE_MAP_BUTTON);
-    gridLayout->addWidget(new QLabel("Choose\nFile"),
+    QLabel* chooseFileLabel = new QLabel("Choose\nFile");
+    chooseFileLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(chooseFileLabel,
                           gridRow,
                           COLUMN_FILE_NAME_BUTTON);
     gridLayout->addWidget(new QLabel("File Name"),
@@ -140,9 +152,13 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     
     const int32_t numFiles = static_cast<int32_t>(caretDataFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
+        CaretDataFile* cdf = caretDataFiles[i];
+        const bool isDisplayed = cdf->isDisplayedInGUI();
+        
         ManageFileRow* fileRow = new ManageFileRow(this,
                                                    this->brain,
-                                                   caretDataFiles[i]);
+                                                   cdf,
+                                                   isDisplayed);
         this->fileRows.push_back(fileRow);
         
         gridRow = gridLayout->rowCount();
@@ -155,21 +171,30 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         gridLayout->addWidget(fileRow->fileTypeLabel,
                               gridRow,
                               COLUMN_FILE_TYPE);
+        gridLayout->addWidget(fileRow->displayedLabel,
+                              gridRow,
+                              COLUMN_DISPLAYED,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->modifiedLabel,
                               gridRow,
-                              COLUMN_MODIFIED);
+                              COLUMN_MODIFIED,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->metaDataToolButton,
                               gridRow,
-                              COLUMN_METADATA);
+                              COLUMN_METADATA,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->removeFileToolButton,
                               gridRow,
-                              COLUMN_REMOVE_BUTTON);
+                              COLUMN_REMOVE_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->removeMapToolButton,
                               gridRow,
-                              COLUMN_REMOVE_MAP_BUTTON);
+                              COLUMN_REMOVE_MAP_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->fileNameToolButton,
                               gridRow,
-                              COLUMN_FILE_NAME_BUTTON);
+                              COLUMN_FILE_NAME_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->fileNameLineEdit,
                               gridRow,
                               COLUMN_FILE_NAME);
@@ -297,7 +322,8 @@ ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
  */
 ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
                              Brain* brain,
-                             CaretDataFile* caretDataFile)
+                             CaretDataFile* caretDataFile,
+                             const bool caretDataFileDisplayedFlag)
 : QObject(parentWidget)
 {
     this->brain = brain;
@@ -314,6 +340,11 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     }
     
     this->fileTypeLabel = new QLabel(DataFileTypeEnum::toGuiName(caretDataFile->getDataFileType()));
+    
+    this->displayedLabel = new QLabel("   ");
+    if (caretDataFileDisplayedFlag) {
+        this->displayedLabel->setText("Yes");
+    }
     
     this->modifiedLabel = new QLabel("   ");
     if (this->caretDataFile->isModified()) {
@@ -366,6 +397,7 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->widgetGroup->add(this->saveCheckBox);
     this->widgetGroup->add(this->structureLabel);
     this->widgetGroup->add(this->fileTypeLabel);
+    this->widgetGroup->add(this->displayedLabel);
     this->widgetGroup->add(this->modifiedLabel);
     this->widgetGroup->add(this->metaDataToolButton);
     this->widgetGroup->add(this->removeFileToolButton);
