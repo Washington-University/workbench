@@ -80,7 +80,7 @@ void OperationCiftiROIAverage::useParameters(OperationParameters* myParams, Prog
         throw OperationException("error opening output file for writing");
     }
     int numCols = myCifti->getNumberOfColumns();
-    vector<float> accum(numCols, 0.0f);
+    vector<double> accum(numCols, 0.0);
     int accumCount = 0;
     OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(3);
     if (leftRoiOpt->m_present)
@@ -116,7 +116,7 @@ void OperationCiftiROIAverage::useParameters(OperationParameters* myParams, Prog
     }
 }
 
-void OperationCiftiROIAverage::processSurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi, vector<float>& accum, int& accumCount)
+void OperationCiftiROIAverage::processSurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi, vector<double>& accum, int& accumCount)
 {
     int numCols = myCifti->getNumberOfColumns();
     int numNodes = myRoi->getNumberOfNodes();
@@ -142,7 +142,7 @@ void OperationCiftiROIAverage::processSurfaceComponent(const CiftiFile* myCifti,
     }
 }
 
-void OperationCiftiROIAverage::processVolume(const CiftiFile* myCifti, const VolumeFile* myRoi, vector<float>& accum, int& accumCount)
+void OperationCiftiROIAverage::processVolume(const CiftiFile* myCifti, const VolumeFile* myRoi, vector<double>& accum, int& accumCount)
 {
     int numCols = myCifti->getNumberOfColumns();
     const CiftiXML& myXml = myCifti->getCiftiXML();

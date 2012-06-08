@@ -68,9 +68,7 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Averages rows within the ROI(s), across all files, equal weight for each matching row.")
     );
     return ret;
 }
@@ -106,7 +104,7 @@ void AlgorithmCiftiAverageDenseROI::useParameters(OperationParameters* myParams,
     fstream textFile(listFileName.toLocal8Bit().constData(), fstream::in);
     if (!textFile.good())
     {
-        throw AlgorithmException("error opening output file for reading");
+        throw AlgorithmException("error opening input file for reading");
     }
     vector<const CiftiInterface*> ciftiList;
     try
