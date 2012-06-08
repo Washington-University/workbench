@@ -53,6 +53,7 @@ namespace caret {
     class InformationDisplayDialog;
     class MapScalarDataColorMappingEditorDialog;
     class PreferencesDialog;
+    class SceneDialog;
     class ConnectivityLoaderControl;
     
     /**
@@ -106,6 +107,7 @@ namespace caret {
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
                 
+        void processShowSceneDialog(BrainBrowserWindow* browserWindow);
         
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
@@ -168,6 +170,8 @@ namespace caret {
         PreferencesDialog* preferencesDialog;       
         
         InformationDisplayDialog* informationDisplayDialog;
+        
+        SceneDialog* sceneDialog;
         
         WuQWebView* connectomeDatabaseWebView;
         

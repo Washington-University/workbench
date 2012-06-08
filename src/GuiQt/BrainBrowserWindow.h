@@ -137,7 +137,9 @@ namespace caret {
         void processConnectToConnectomeDataBase();
         
         void processHcpWebsiteInBrowser();
-                                       
+                
+        void processShowSceneDialog();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -220,6 +222,8 @@ namespace caret {
         QAction* exitProgramAction;
         
         QAction* showToolBarAction;
+        
+        QAction* showSceneDialogAction;
         
         QActionGroup* viewScreenActionGroup;
         QAction* viewScreenNormalAction;

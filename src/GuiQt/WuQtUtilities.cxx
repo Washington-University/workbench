@@ -281,6 +281,9 @@ WuQtUtilities::moveWindowToOffset(QWidget* parentWindow,
  * Place a dialog next to its parent.  May not work correctly with
  * multi-screen systems.
  *
+ * MUST BE CALLED after a window is displayed since the given window
+ * may not have its geometry (size) set until AFTER it is displayed.
+ *
  * It will stop after the first one of these actions that is successful:
  *   1) Put window on right of parent if all of window will be visible.
  *   2) Put window on left of parent if all of window will be visible.
@@ -304,6 +307,7 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     
     //int x = px + pw + 1;
     int y = py + ph - window->height() - 20;
+   // int y = py;
     const int windowWidth = window->width();
 
     QDesktopWidget* dw = QApplication::desktop();

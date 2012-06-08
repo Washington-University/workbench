@@ -143,6 +143,26 @@ SceneFile::getSceneAtIndex(const int32_t indx)
 }
 
 /**
+ * Remove the given scene.
+ * @param scene
+ *    Scene that should be removed.
+ */
+void 
+SceneFile::removeScene(Scene* scene)
+{
+    CaretAssert(scene);
+    std::vector<Scene*>::iterator iter = std::find(m_scenes.begin(),
+                                                   m_scenes.end(),
+                                                   scene);
+    if (iter != m_scenes.end()) {
+        m_scenes.erase(iter);
+        delete scene;
+        setModified();
+    }
+}
+
+
+/**
  * Remove the scene at the given index.
  * @param indx
  *     Index of the scene.
@@ -151,7 +171,8 @@ void
 SceneFile::removeSceneAtIndex(const int32_t indx)
 {
     CaretAssertVectorIndex(m_scenes, indx);
-    m_scenes.erase(m_scenes.begin() + indx);
+    Scene* scene = getSceneAtIndex(indx);
+    removeScene(scene);
 }
 
 /**

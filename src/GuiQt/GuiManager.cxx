@@ -52,6 +52,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "SceneDialog.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"
@@ -77,9 +78,13 @@ GuiManager::GuiManager(QObject* parent)
     this->informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
+    this->sceneDialog = NULL;
     
     this->cursorManager = new CursorManager();
     
+    /*
+     * Information window.
+     */
     QIcon infoDisplayIcon;
     const bool infoDisplayIconValid =
     WuQtUtilities::loadIcon(":/toolbar_info_icon.png", 
@@ -107,7 +112,7 @@ GuiManager::GuiManager(QObject* parent)
     this->showHideInfoWindowSelected(this->informationDisplayDialogEnabledAction->isChecked());
     this->informationDisplayDialogEnabledAction->setIconText("Info"); 
     this->informationDisplayDialogEnabledAction->blockSignals(false);
-    
+        
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
@@ -751,6 +756,34 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
                 d->hide();
             }
         }
+    }
+}
+
+/**
+ * Show the scene dialog.  If dialog needs to be created, use the
+ * given window as the parent.
+ * @param browserWindow
+ *    Parent of scene dialog if it needs to be created.
+ */
+void 
+GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindow)
+{
+    bool wasCreatedFlag = false;
+
+    if (this->sceneDialog == NULL) {
+            this->sceneDialog = new SceneDialog(browserWindow);
+            this->nonModalDialogs.push_back(this->sceneDialog);
+//            this->sceneDialog->resize(600, 200);
+            this->sceneDialog->setSavePositionForNextTime(true);
+        wasCreatedFlag = true;
+    }
+    this->sceneDialog->setVisible(true);
+    this->sceneDialog->show();
+    this->sceneDialog->activateWindow();
+    
+    if (wasCreatedFlag) {
+        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                this->sceneDialog);
     }
 }
 

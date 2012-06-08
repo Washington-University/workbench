@@ -300,6 +300,41 @@ BrainBrowserWindow::createActionsUsedByToolBar()
         this->featuresToolBoxAction->setIconText("LT");
     }
     
+    /*
+     * Scene window.
+     */
+    QIcon clapBoardIcon;
+    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/toolbar_clapboard_icon.png", 
+                                                            clapBoardIcon);
+    
+    this->showSceneDialogAction = WuQtUtilities::createAction("Scenes...",
+                                                          "Displays the Scene Window",
+                                                          this,
+                                                          this,
+                                                          SLOT(processShowSceneDialog()));
+    if (clapBoardIconValid) {
+        this->showSceneDialogAction->setIcon(clapBoardIcon);
+        this->showSceneDialogAction->setIconVisibleInMenu(false);
+    }
+    else {
+        this->showSceneDialogAction->setIconText("Scenes");
+    }
+    this->showSceneDialogAction->setCheckable(false);
+    //    this->sceneDialogAction->blockSignals(true);
+    //    this->sceneDialogAction->setCheckable(true);
+    //    this->sceneDialogAction->setChecked(false);
+    //    this->showHideSceneWindow(this->sceneDialogAction->isChecked());
+    //    this->sceneDialogAction->blockSignals(false);
+
+}
+
+/**
+ * Show the scene dialog.
+ */
+void 
+BrainBrowserWindow::processShowSceneDialog()
+{
+    GuiManager::get()->processShowSceneDialog(this);
 }
 
 /**
@@ -989,6 +1024,7 @@ BrainBrowserWindow::createMenuWindow()
     menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
     menu->addAction(this->informationDialogAction);
+    menu->addAction(this->showSceneDialogAction);
     menu->addSeparator();
     menu->addAction(this->bringAllToFrontAction);
     

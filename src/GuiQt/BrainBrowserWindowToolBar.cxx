@@ -184,6 +184,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* informationDialogToolButton = new QToolButton();
     informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
+    QToolButton* sceneDialogToolButton = new QToolButton();
+    sceneDialogToolButton->setDefaultAction(parentBrainBrowserWindow->showSceneDialogAction);
+    
     /*
      * Toolbar action and tool button at right of the tab bar
      */
@@ -229,6 +232,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addWidget(this->tabBar, 100);
 //    tabBarLayout->addStretch();
     tabBarLayout->addWidget(informationDialogToolButton);
+    tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(overlayToolBoxToolButton);
     tabBarLayout->addWidget(layersToolBoxToolButton);

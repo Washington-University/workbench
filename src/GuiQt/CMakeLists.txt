@@ -61,6 +61,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
+SceneDialog.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
 SplashScreen.h
@@ -152,6 +153,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
+SceneDialog.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
 SplashScreen.h
@@ -240,6 +242,7 @@ PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
+SceneDialog.cxx
 SpecFileCreateAddToDialog.cxx
 SpecFileDialog.cxx
 SplashScreen.cxx
@@ -309,6 +312,7 @@ ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Palette
+${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )

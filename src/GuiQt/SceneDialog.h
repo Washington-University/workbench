@@ -1,5 +1,5 @@
-#ifndef __SCENE_FILE__H_
-#define __SCENE_FILE__H_
+#ifndef __SCENE_DIALOG__H_
+#define __SCENE_DIALOG__H_
 
 /*LICENSE_START*/
 /*
@@ -35,80 +35,77 @@
 /*LICENSE_END*/
 
 
-#include "CaretDataFile.h"
+#include "WuQDialogNonModal.h"
+
+class QComboBox;
+class QListWidget;
+class QPushButton;
 
 namespace caret {
 
     class Scene;
+    class SceneFile;
     
-    class SceneFile : public CaretDataFile {
+    class SceneDialog : public WuQDialogNonModal {
+        Q_OBJECT
         
     public:
-        SceneFile();
+        SceneDialog(QWidget* parent = 0);
         
-        virtual ~SceneFile();
+        virtual ~SceneDialog();
+        
+        void updateDialog();
         
     private:
-        SceneFile(const SceneFile&);
+        SceneDialog(const SceneDialog&);
 
-        SceneFile& operator=(const SceneFile&);
+        SceneDialog& operator=(const SceneDialog&);
         
+    private slots:
+        void sceneFileSelected();
+        
+        void sceneSelected();
+        
+        void newSceneFileButtonClicked();
+        
+        void addNewSceneButtonClicked();
+                
+        void deleteSceneButtonClicked();
+        
+        void showSceneButtonClicked();
+
     public:
-
-        void clear();
-        
-        void readFile(const AString& filename) throw (DataFileException);
-        
-        void writeFile(const AString& filename) throw (DataFileException);
-        
-        bool isEmpty() const;
-
-        void addScene(Scene* scene);
-        
-        int32_t getNumberOfScenes() const;
-        
-        Scene* getSceneAtIndex(const int32_t indx);
-        
-        void removeScene(Scene* scene);
-        
-        void removeSceneAtIndex(const int32_t indx);
-        
-        StructureEnum::Enum getStructure() const;
-        
-        void setStructure(const StructureEnum::Enum structure);
-        
-        GiftiMetaData* getFileMetaData();
-        
-        const GiftiMetaData* getFileMetaData() const;
-        
 
         // ADD_NEW_METHODS_HERE
 
-        /** XML Tag for scene file */
-        static const AString XML_TAG_SCENE_FILE;
-        
-        /** XML Tag for Version attribute */
-        static const AString XML_ATTRIBUTE_VERSION;
-        
     private:
 
-        /** the scenes*/
-        std::vector<Scene*> m_scenes;
-
-        /** the metadata */
-        GiftiMetaData* m_metadata;
-
+        SceneFile* getSelectedSceneFile();
+        
+        Scene* getSelectedScene();
+        
+        void loadSceneFileComboBox(SceneFile* selectedSceneFileIn);
+        
+        void loadSceneListWidget(Scene* selectedSceneIn);
+        
         // ADD_NEW_MEMBERS_HERE
 
-        /** Version of this SceneFile */
-        static const float sceneFileVersion;
+        QComboBox* m_sceneFileSelectionComboBox;
+        
+        QPushButton* m_addNewScenePushButton;
+        
+        QPushButton* m_deleteScenePushButton;
+        
+        QPushButton* m_showScenePushButton;
+        
+        QListWidget* m_sceneSelectionListWidget;
+        
+
     };
     
-#ifdef __SCENE_FILE_DECLARE__
-    const AString SceneFile::XML_TAG_SCENE_FILE = "SceneFile";
-    const AString SceneFile::XML_ATTRIBUTE_VERSION = "Version";
-    const float SceneFile::sceneFileVersion = 1.0;
-#endif // __SCENE_FILE_DECLARE__
+#ifdef __SCENE_DIALOG_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__SCENE_FILE__H_
+#endif  //__SCENE_DIALOG__H_
