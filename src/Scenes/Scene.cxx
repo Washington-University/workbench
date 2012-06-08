@@ -96,6 +96,15 @@ Scene::getSceneAttributes()
     return m_sceneAttributes;
 }
 
+void 
+Scene::addSceneClass(SceneClass* sceneClass)
+{
+    if (sceneClass != NULL) {
+        m_sceneClasses.push_back(sceneClass);
+    }
+}
+
+
 /**
  * @return Number of classes contained in the scene
  */
@@ -158,6 +167,8 @@ Scene::writeAsXML(XmlWriter& xmlWriter,
     
     xmlWriter.writeElementCData(XML_TAG_SCENE_NAME, 
                                 m_sceneName);
+    
+    m_sceneAttributes->writeAsXML(xmlWriter);
     
     const int32_t numClasses = getNumberOfSceneClasses();
     for (int32_t i = 0; i < numClasses; i++) {

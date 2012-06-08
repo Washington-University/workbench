@@ -149,7 +149,9 @@ void SceneClass::addBoolean(const AString& name,
  */
 void SceneClass::addClass(SceneClass* sceneClass)
 {
-    m_childClasses.push_back(sceneClass);    
+    if (sceneClass != NULL) {
+        m_childClasses.push_back(sceneClass);    
+    }
 }
 /**
  * Add a child enumerated type value to the class.

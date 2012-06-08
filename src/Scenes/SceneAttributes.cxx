@@ -36,6 +36,8 @@
 #include "SceneAttributes.h"
 #undef __SCENE_ATTRIBUTES_DECLARE__
 
+#include "XmlWriter.h"
+
 using namespace caret;
 
 
@@ -69,3 +71,22 @@ SceneAttributes::getSceneType() const
 {
     return m_sceneType;
 }
+
+/**
+ * Write the Scene Primitive to XML.
+ * 
+ * @param xmlWriter
+ *    Writer that generates XML.
+ * @throws
+ *    XmlException if there is an error.
+ */
+void 
+SceneAttributes::writeAsXML(XmlWriter& xmlWriter) const throw (XmlException)
+{
+    xmlWriter.writeStartElement(XML_TAG_SCENE_ATTRIBUTES);
+    
+    xmlWriter.writeElementCharacters(XML_TAG_SCENE_TYPE, SceneTypeEnum::toName(m_sceneType));
+    
+    xmlWriter.writeEndElement();
+}
+

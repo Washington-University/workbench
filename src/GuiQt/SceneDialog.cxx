@@ -44,7 +44,11 @@
 #undef __SCENE_DIALOG_DECLARE__
 
 #include "Brain.h"
+#include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "SceneAttributes.h"
 #include "SceneFile.h"
 #include "Scene.h"
 #include "WuQDataEntryDialog.h"
@@ -152,6 +156,9 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Update the dialog.
      */
     updateDialog();
+    
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -159,7 +166,7 @@ SceneDialog::SceneDialog(QWidget* parent)
  */
 SceneDialog::~SceneDialog()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -369,6 +376,10 @@ SceneDialog::addNewSceneButtonClicked()
             
             newScene = new Scene(sceneType);
             newScene->setSceneName(newSceneName);
+            
+            SceneAttributes* sceneAtributes = newScene->getSceneAttributes();
+            newScene->addSceneClass(GuiManager::get()->saveToScene(*sceneAtributes));
+            
             sceneFile->addScene(newScene);
         }
     }
@@ -408,5 +419,23 @@ SceneDialog::showSceneButtonClicked()
     }
 }
 
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+SceneDialog::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+
+        updateDialog();
+        uiEvent->setEventProcessed();
+    }
+}
 
 

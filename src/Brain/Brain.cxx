@@ -59,6 +59,7 @@
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SceneClass.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -2102,4 +2103,43 @@ Brain::getDisplayPropertiesInformation() const
     return this->displayPropertiesInformation;
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+Brain::saveToScene(const SceneAttributes& sceneAttributes)
+{
+    SceneClass* sceneClass = new SceneClass("Brain",
+                                            1);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+Brain::restoreFromScene(const SceneAttributes& sceneAttributes,
+                              const SceneClass& sceneClass)
+{
+    
+}
 

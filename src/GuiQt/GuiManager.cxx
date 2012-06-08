@@ -52,6 +52,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "SceneClass.h"
 #include "SceneDialog.h"
 #include "SessionManager.h"
 
@@ -1040,4 +1041,53 @@ GuiManager::getCursorManager() const
     return this->cursorManager;
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+GuiManager::saveToScene(const SceneAttributes& sceneAttributes)
+{
+    SceneClass* sceneClass = new SceneClass("GuiManager",
+                                            1);
+    
+    sceneClass->addClass(getBrain()->saveToScene(sceneAttributes));
+    
+    const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    for (int32_t i = 0; i < numBrowserWindows; i++) {
+        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        if (bbw != NULL) {
+            sceneClass->addClass(bbw->saveToScene(sceneAttributes));
+        }
+    }
+
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+GuiManager::restoreFromScene(const SceneAttributes& sceneAttributes,
+                        const SceneClass& sceneClass)
+{
+    
+}
 

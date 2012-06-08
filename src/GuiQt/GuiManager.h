@@ -34,6 +34,7 @@
 #include <QObject>
 
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "TimeCourseDialog.h"
 #include "WuQWebView.h"
 
@@ -59,7 +60,7 @@ namespace caret {
     /**
      * Manages the graphical user-interface.
      */
-    class GuiManager : public QObject, public EventListenerInterface {
+    class GuiManager : public QObject, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
         
@@ -120,7 +121,12 @@ namespace caret {
         TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);
         void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
-        void updateAnimationStartTime(double value);        
+        void updateAnimationStartTime(double value); 
+        
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes);
+        
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass);
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();

@@ -87,28 +87,28 @@ SceneObjectDataTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INVALID, 
-                                    "SCENE_INVALID", 
-                                    "Invalid Value"));
+                                    "SceneInvalid", 
+                                    "Invalid"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_BOOLEAN, 
-                                    "SCENE_BOOLEAN", 
+                                    "SceneBoolean", 
                                     "Boolean"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_CLASS, 
-                                    "SCENE_CLASS", 
-                                    "Class Instance"));
+                                    "SceneClass", 
+                                    "Class"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_ENUMERATED_TYPE, 
-                                    "SCENE_ENUMERATED_TYPE", 
-                                    "Enumerated Type"));
+                                    "SceneEnumeratedType", 
+                                    "EnumeratedType"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_FLOAT, 
-                                    "SCENE_FLOAT", 
+                                    "SceneFloat", 
                                     "Float"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INTEGER, 
-                                    "SCENE_INTEGER", 
-                                    "Integer 32-Bit"));
+                                    "SceneInteger32", 
+                                    "Integer32"));
     
 }
 

@@ -35,6 +35,7 @@
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
+#include "SceneableInterface.h"
 
 class QAction;
 class QActionGroup;
@@ -52,7 +53,7 @@ namespace caret {
      * brain models.  It may contain multiple tabs
      * with each tab displaying brain models.
      */ 
-    class BrainBrowserWindow : public QMainWindow  {
+    class BrainBrowserWindow : public QMainWindow, public SceneableInterface  {
         Q_OBJECT
         
     public:
@@ -86,6 +87,10 @@ namespace caret {
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes);
+        
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass);
     protected:
         void closeEvent(QCloseEvent* event);
         

@@ -67,6 +67,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
+#include "SceneClass.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
@@ -2254,5 +2255,46 @@ BrainBrowserWindow::processHcpWebsiteInBrowser()
     QUrl url("https://humanconnectome.org");
     QDesktopServices::openUrl(url);
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes)
+{
+    SceneClass* sceneClass = new SceneClass("BrainBrowserWindow",
+                                            1);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainBrowserWindow::restoreFromScene(const SceneAttributes& sceneAttributes,
+                             const SceneClass& sceneClass)
+{
+    
+}
+
 
 

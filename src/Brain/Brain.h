@@ -32,6 +32,7 @@
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -64,7 +65,7 @@ namespace caret {
     class SpecFile;
     class VolumeFile;
     
-    class Brain : public CaretObject, public EventListenerInterface {
+    class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
 
     public:
         Brain();
@@ -205,6 +206,10 @@ namespace caret {
         
         const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes);
+        
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass);
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         

@@ -62,6 +62,8 @@ namespace caret {
 
         SceneAttributes* getSceneAttributes();
 
+        void addSceneClass(SceneClass* sceneClass);
+        
         int32_t getNumberOfSceneClasses() const;
         
         const SceneClass* getSceneClassAtIndex(const int32_t indx) const;

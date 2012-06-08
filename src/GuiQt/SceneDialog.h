@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QComboBox;
@@ -46,7 +46,7 @@ namespace caret {
     class Scene;
     class SceneFile;
     
-    class SceneDialog : public WuQDialogNonModal {
+    class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
         
     public:
@@ -55,6 +55,8 @@ namespace caret {
         virtual ~SceneDialog();
         
         void updateDialog();
+        
+        void receiveEvent(Event* event);
         
     private:
         SceneDialog(const SceneDialog&);

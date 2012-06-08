@@ -58,7 +58,7 @@ SceneObject::SceneObject(const QString& name,
                          const SceneObjectDataTypeEnum::Enum dataType)
 : CaretObject(), m_name(name), m_dataType(dataType)
 {
-    CaretAssert(name.isEmpty());
+    CaretAssert(name.isEmpty() == false);
 }
 
 /**
