@@ -50,5 +50,6 @@ SceneTypeEnum.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Xml
 )
 

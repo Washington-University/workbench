@@ -50,8 +50,6 @@ namespace caret {
         
         virtual ~SceneClass();
         
-    public:
-
         int32_t getVersionNumber() const;
         
         void addBoolean(const AString& name,
@@ -88,6 +86,8 @@ namespace caret {
         
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
+        
+        virtual void writeAsXML(XmlWriter& xmlWriter) const throw (XmlException);
         
         // ADD_NEW_METHODS_HERE
 

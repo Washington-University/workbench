@@ -69,6 +69,8 @@ namespace caret {
         /** @return Value as a string data type */
         virtual AString stringValue() const = 0;
                 
+        virtual void writeAsXML(XmlWriter& xmlWriter) const throw (XmlException);
+        
     private:
 
         // ADD_NEW_MEMBERS_HERE

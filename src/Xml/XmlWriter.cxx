@@ -218,6 +218,34 @@ XmlWriter::writeElementCharacters(const AString& localName, const AString& text)
 }
 
 /**
+ * Write an element on one line.
+ *
+ * @param localName - local name of tag to write.
+ * @param attributes - attribute for element.
+ * @param text - text to write.
+ * @throws XmlException if an I/O error occurs.
+ */
+void
+XmlWriter::writeElementCharacters(const AString& localName, 
+                                  const XmlAttributes& attributes,
+                                  const AString& text)
+throw(XmlException) {
+    this->writeIndentation();
+    this->writeTextToOutputStream("<" + localName);
+    int32_t numAtts = attributes.getNumberOfAttributes();
+    for (int32_t i = 0; i < numAtts; i++) {
+        this->writeTextToOutputStream(" "
+                                      + attributes.getName(i)
+                                      + "=\""
+                                      + attributes.getValue(i)
+                                      + "\"");
+    }
+    this->writeTextToOutputStream(">");
+    this->writeCharacters(text);
+    this->writeTextToOutputStream("</" + localName + ">\n");
+}
+
+/**
  * Write a CData section on one line.
  *
  * @param localName - local name of tag to write.

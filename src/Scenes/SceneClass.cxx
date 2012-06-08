@@ -42,6 +42,7 @@
 #include "SceneFloat.h"
 #include "SceneInteger.h"
 #include "SceneString.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -377,6 +378,47 @@ SceneClass::getClass(const AString& name) const
     }
     
     return NULL;
+}
+
+/**
+ * Write the Scene Class to XML.
+ * 
+ * @param xmlWriter
+ *    Writer that generates XML.
+ * @throws
+ *    XmlException if there is an error.
+ */
+void 
+SceneClass::writeAsXML(XmlWriter& xmlWriter) const throw (XmlException)
+{
+    XmlAttributes atts;
+    atts.addAttribute(XML_ATTRIBUTE_NAME, this->getName());
+    
+    xmlWriter.writeStartElement(SceneObjectDataTypeEnum::toName(this->getDataType()),
+                                atts);
+    
+    for (std::vector<SceneEnumeratedType*>::const_iterator iter = m_childEnumeratedTypes.begin();
+         iter != m_childEnumeratedTypes.end();
+         iter++) {
+        SceneObject* so = *iter;
+        so->writeAsXML(xmlWriter);
+    }
+    
+    for (std::vector<ScenePrimitive*>::const_iterator iter = m_childPrimitives.begin();
+         iter != m_childPrimitives.end();
+         iter++) {
+        SceneObject* so = *iter;
+        so->writeAsXML(xmlWriter);
+    }
+    
+    for (std::vector<SceneClass*>::const_iterator iter = m_childClasses.begin();
+         iter != m_childClasses.end();
+         iter++) {
+        SceneObject* so = *iter;
+        so->writeAsXML(xmlWriter);
+    }
+    
+    xmlWriter.writeEndElement();
 }
 
 

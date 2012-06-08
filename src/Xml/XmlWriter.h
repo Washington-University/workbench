@@ -77,19 +77,19 @@ namespace caret {
         void writeElementCharacters(const AString& localName, const int* values, const int32_t num);
         
         
-        void writeElementCharacters(const AString& localName, const AString& text)
-        throw(XmlException);
+        void writeElementCharacters(const AString& localName, const AString& text) throw(XmlException);
         
-        void writeElementCData(const AString& localName, const AString& text)
-        throw(XmlException);
+        void writeElementCharacters(const AString& localName, 
+                                    const XmlAttributes& attributes,
+                                    const AString& text) throw(XmlException);
+        
+        void writeElementCData(const AString& localName, const AString& text) throw(XmlException);
         
         void writeElementCData(const AString& localName,
                                const XmlAttributes& attributes,
-                               const AString& text)
-        throw(XmlException);
+                               const AString& text) throw(XmlException);
         
-        void writeElementNoSpace(const AString& localName, const AString& text)
-        throw(XmlException);
+        void writeElementNoSpace(const AString& localName, const AString& text) throw(XmlException);
         void writeStartElement(const AString& localName) throw(XmlException);
         
         void writeStartElement(const AString& localName,
