@@ -54,6 +54,7 @@ Gifti
 Cifti
 Nifti
 FilesBase
+Scenes
 Xml
 Common
 ${QT_LIBRARIES}

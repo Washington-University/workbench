@@ -95,8 +95,8 @@ namespace caret {
     };
     
 #ifdef __SCENE_OBJECT_DECLARE__
-    const AString SceneObject::XML_ATTRIBUTE_NAME = "name";
-    const AString SceneObject::XML_ATTRIBUTE_DATA_TYPE = "dataType";
+    const AString SceneObject::XML_ATTRIBUTE_NAME = "Name";
+    const AString SceneObject::XML_ATTRIBUTE_DATA_TYPE = "DataType";
 #endif // __SCENE_OBJECT_DECLARE__
 
 } // namespace

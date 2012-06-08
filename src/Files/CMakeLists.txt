@@ -42,6 +42,7 @@ MetricFile.h
 MetricSmoothingObject.h
 PaletteFile.h
 RgbaFile.h
+SceneFile.h
 SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
@@ -85,6 +86,7 @@ MetricFile.cxx
 MetricSmoothingObject.cxx
 PaletteFile.cxx
 RgbaFile.cxx
+SceneFile.cxx
 SpecFile.cxx
 SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
@@ -116,6 +118,7 @@ ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )

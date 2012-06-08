@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -123,7 +124,8 @@ Scene::getSceneClassAtIndex(const int32_t indx) const
  *    Name of the scene class.
  * @return Scene class with the given name or NULL if not found.
  */
-const SceneClass* Scene::getSceneClassWithName(const AString& sceneClassName) const
+const SceneClass* 
+Scene::getSceneClassWithName(const AString& sceneClassName) const
 {
     const int32_t numberOfSceneClasses = this->getNumberOfSceneClasses();
     for (int32_t i = 0; i < numberOfSceneClasses; i++) {
@@ -135,5 +137,54 @@ const SceneClass* Scene::getSceneClassWithName(const AString& sceneClassName) co
     return NULL;
 }
 
+/**
+ * Write the scene as XML.
+ * @param xmlWriter
+ *    The XML writer.
+ * @param sceneIndex
+ *    Index of the scene.
+ * @throws
+ *     XmlException if there is an error.
+ */
+void 
+Scene::writeAsXML(XmlWriter& xmlWriter,
+                  const int32_t sceneIndex) throw (XmlException)
+{
+    XmlAttributes atts;
+    atts.addAttribute(XML_ATTRIBUTE_SCENE_INDEX, sceneIndex);
+    
+    xmlWriter.writeStartElement(XML_TAG_SCENE,
+                                atts);
+    
+    xmlWriter.writeElementCData(XML_TAG_SCENE_NAME, 
+                                m_sceneName);
+    
+    const int32_t numClasses = getNumberOfSceneClasses();
+    for (int32_t i = 0; i < numClasses; i++) {
+        m_sceneClasses[i]->writeAsXML(xmlWriter);
+    }
+    
+    xmlWriter.writeEndElement();
+}
+
+/**
+ * @return name of scene
+ */
+AString
+Scene::getSceneName() const
+{
+    return m_sceneName;
+}
+
+/**
+ * Set name of scene
+ * @param sceneName
+ *    New value for name of scene
+ */
+void
+Scene::setSceneName(const AString& sceneName)
+{
+    m_sceneName = sceneName;
+}
 
 

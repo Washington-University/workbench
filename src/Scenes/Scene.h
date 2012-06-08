@@ -37,10 +37,12 @@
 
 #include "CaretObject.h"
 #include "SceneTypeEnum.h"
+#include "XmlException.h"
 
 namespace caret {
     class SceneAttributes;
     class SceneClass;
+    class XmlWriter;
     
     class Scene : public CaretObject {
         
@@ -66,9 +68,27 @@ namespace caret {
 
         const SceneClass* getSceneClassWithName(const AString& sceneClassName) const;
         
+        void writeAsXML(XmlWriter& xmlWriter,
+                        const int32_t sceneIndex) throw (XmlException);
+        
      
+        AString getSceneName() const;
+
+        void setSceneName(const AString& sceneName);
+
+
         // ADD_NEW_METHODS_HERE
 
+        /** XML Tag for scene */
+        static const AString XML_TAG_SCENE;
+        
+        /** XML Tag for scene name */
+        static const AString XML_TAG_SCENE_NAME;
+        
+        /** XML Attributes for scene index */
+        static const AString XML_ATTRIBUTE_SCENE_INDEX;
+        
+        
     private:
 
         /** Attributes of the scene*/
@@ -78,12 +98,18 @@ namespace caret {
         std::vector<SceneClass*> m_sceneClasses;
 
 
+        /** name of scene*/
+        AString m_sceneName;
+
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __SCENE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString Scene::XML_TAG_SCENE = "Scene";
+    const AString Scene::XML_TAG_SCENE_NAME = "SceneName";
+    const AString Scene::XML_ATTRIBUTE_SCENE_INDEX = "SceneIndex";
 #endif // __SCENE_DECLARE__
 
 } // namespace

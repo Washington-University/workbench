@@ -57,6 +57,7 @@ namespace caret {
     class ModelWholeBrain;
     class PaletteFile;
     class RgbaFile;
+    class SceneFile;
     class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -131,6 +132,14 @@ namespace caret {
         
         const PaletteFile* getPaletteFile() const;
 
+        SceneFile* addSceneFile();
+        
+        int32_t getNumberOfSceneFiles() const;
+        
+        SceneFile* getSceneFile(const int32_t indx);
+        
+        const SceneFile* getSceneFile(const int32_t indx) const;
+        
         SpecFile* getSpecFile();
         
         int32_t getNumberOfVolumeFiles() const;
@@ -245,6 +254,8 @@ namespace caret {
         std::vector<BorderFile*> borderFiles;
         
         std::vector<FociFile*> fociFiles;
+        
+        std::vector<SceneFile*> sceneFiles;
         
         PaletteFile* paletteFile;
         

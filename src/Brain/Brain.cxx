@@ -59,6 +59,7 @@
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
@@ -268,6 +269,14 @@ Brain::resetBrain()
     this->paletteFile->clear();
     
     this->connectivityLoaderManager->reset();
+    
+    for (std::vector<SceneFile*>::iterator sfi = this->sceneFiles.begin();
+         sfi != this->sceneFiles.end();
+         sfi++) {
+        SceneFile* sf = *sfi;
+        delete sf;
+    }
+    this->sceneFiles.clear();
     
     this->specFile->clear();
     
@@ -777,9 +786,17 @@ Brain::readPaletteFile(const AString& /*filename*/) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
+Brain::readSceneFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading not implemented for: scene");
+    SceneFile* sf = new SceneFile;
+    try {
+        sf->readFile(filename);
+        this->sceneFiles.push_back(sf);
+    }
+    catch (DataFileException& dfe) {
+        delete sf;
+        throw dfe;
+    }
 }
 
 /**
@@ -1190,6 +1207,48 @@ Brain::getFociFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(this->fociFiles, indx);
     return this->fociFiles[indx];
+}
+
+/**
+ * @return A new scene file that has been added to the brain.
+ */
+SceneFile* 
+Brain::addSceneFile()
+{
+    SceneFile* sf = new SceneFile();
+    this->sceneFiles.push_back(sf);
+    return sf;
+}
+
+/**
+ * @return Number of scene files.
+ */
+int32_t 
+Brain::getNumberOfSceneFiles() const
+{
+    return this->sceneFiles.size();
+}
+
+/**
+ * @return The scene file.
+ * @param indx Index of the scene file.
+ */
+SceneFile* 
+Brain::getSceneFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(this->sceneFiles, indx);
+    return this->sceneFiles[indx];
+}
+
+/**
+ * @return The scene file.
+ * @param indx Index of the scene file.
+ */
+const SceneFile* 
+Brain::getSceneFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(this->sceneFiles, indx);
+    return this->sceneFiles[indx];
 }
 
 /*
@@ -1810,6 +1869,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
     allDataFilesOut.push_back(this->paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                              this->sceneFiles.begin(),
+                              this->sceneFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            this->volumeFiles.begin(),
                            this->volumeFiles.end());    
 }
@@ -1923,6 +1986,17 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         if (this->paletteFile != NULL) {
             throw DataFileException("Cannot remove PaletteFile at this time.");
         }
+    }
+    
+    std::vector<SceneFile*>::iterator sceneIterator = std::find(this->sceneFiles.begin(),
+                                                                this->sceneFiles.end(),
+                                                                caretDataFile);
+    if (sceneIterator != this->sceneFiles.end()) {
+        SceneFile* sceneFile = *sceneIterator;
+        delete sceneFile;
+        this->sceneFiles.erase(sceneIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
     }
     
     std::vector<VolumeFile*>::iterator volumeIterator = 
