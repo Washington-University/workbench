@@ -280,7 +280,7 @@ VolumeSurfaceOutlineColorOrTabModel::setBrowserTabIndex(const int32_t browserTab
 VolumeSurfaceOutlineColorOrTabModel::Item::Item(const CaretColorEnum::Enum color)
 {
     this->color = color;
-    this->browserTabIndex = NULL;
+    this->browserTabIndex = 0;
     this->itemType = ITEM_TYPE_COLOR;
 }
 
