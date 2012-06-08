@@ -91,6 +91,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 switch (myComponent->m_paramList[i]->getType())
                 {
+                case OperationParametersEnum::STRING:
                 case OperationParametersEnum::INT:
                 case OperationParametersEnum::DOUBLE:
                     break;//it is probably a negative number, so don't throw an exception unless it fails to parse as one
