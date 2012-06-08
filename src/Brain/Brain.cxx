@@ -1436,6 +1436,9 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     
     CaretDataFile* caretDataFileRead = NULL;
     
+    ElapsedTimer et;
+    et.start();
+    
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
             this->readBorderFile(dataFileName);
@@ -1479,6 +1482,13 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             break;
     }    
     
+    AString msg = ("Time to read " 
+                   + dataFileName 
+                   + " was " 
+                   + AString::number(et.getElapsedTimeSeconds())
+                   + " seconds.");
+    CaretLogInfo(msg);
+
     if (addDataFileToSpecFile) {
         const AString specFileName = this->specFile->getFileName();
         if (specFileName.isEmpty() == false) {

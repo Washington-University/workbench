@@ -24,7 +24,6 @@
 
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
-#include "ElapsedTimer.h"
 #include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
@@ -146,19 +145,10 @@ GiftiTypeFile::isEmpty() const
 void 
 GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
-    ElapsedTimer et;
-    et.start();
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->setFileName(filename);
     this->clearModified();
-    
-    AString msg = ("Time to read " 
-                   + filename 
-                   + " was " 
-                   + AString::number(et.getElapsedTimeSeconds())
-                   + " seconds.");
-    CaretLogInfo(msg);
 }
 
 /**
