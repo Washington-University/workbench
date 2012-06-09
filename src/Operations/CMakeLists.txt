@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Operations
 OperationAddToSpecFile.h
 OperationBackendAverageDenseROI.h
+OperationBackendAverageROICorrelation.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiROIAverage.h
@@ -32,6 +33,7 @@ OperationVolumePalette.h
 
 OperationAddToSpecFile.cxx
 OperationBackendAverageDenseROI.cxx
+OperationBackendAverageROICorrelation.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiROIAverage.cxx
