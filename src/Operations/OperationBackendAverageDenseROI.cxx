@@ -116,7 +116,7 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
             vector<float> rowScratch(rowSize);
             for (int i = 0; i < numCifti; ++i)
             {
-                if (baseXML != ciftiList[i]->getCiftiXML())//equality testing is smart, compares mapping equivalence, despite potential ambiguity
+                if (baseXML != ciftiList[i]->getCiftiXML())//equality testing is smart, compares mapping equivalence, despite multiple ways to specify some mappings
                 {
                     throw OperationException("error, cifti header of file #" + AString::number(i + 1) + " doesn't match");
                 }

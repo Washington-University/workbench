@@ -266,7 +266,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
         for (int i = 0; i < colSize; ++i)
         {
             int myRow;
-    #pragma omp critical
+#pragma omp critical
             {
                 myRow = curRow;//force sequential reading
                 ++curRow;
