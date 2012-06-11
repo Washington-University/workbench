@@ -27,6 +27,9 @@
 #include "DisplayPropertiesInformation.h"
 #undef __DISPLAY_PROPERTIES_INFORMATION_DECLARE__
 
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+
 using namespace caret;
 
 
@@ -172,6 +175,83 @@ void
 DisplayPropertiesInformation::setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color)
 {
     this->identificationContralateralSymbolColor = color;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes,
+                   const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "DisplayPropertiesInformation",
+                                            1);
+    
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            sceneClass->addBoolean("contralateralIdentificationEnabled", 
+                                   this->contralateralIdentificationEnabled);
+            sceneClass->addEnumeratedType("identificationSymbolColor", 
+                                          CaretColorEnum::toName(this->identificationSymbolColor));
+            sceneClass->addEnumeratedType("identificationContralateralSymbolColor", 
+                                          CaretColorEnum::toName(this->identificationContralateralSymbolColor));
+            sceneClass->addFloat("identifcationSymbolSize", 
+                                 this->identifcationSymbolSize);
+            sceneClass->addBoolean("volumeIdentificationEnabled", 
+                                   this->volumeIdentificationEnabled);
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttributes,
+                        const SceneClass& sceneClass)
+{
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            this->contralateralIdentificationEnabled = sceneClass.getBooleanValue("contralateralIdentificationEnabled",
+                                                                                  false);
+            this->volumeIdentificationEnabled = sceneClass.getBooleanValue("volumeIdentificationEnabled",
+                                                                                  true);
+            this->identifcationSymbolSize = sceneClass.getFloatValue("identifcationSymbolSize",
+                                                                                  3.5);
+            this->identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationSymbolColor",
+                                                                                                         "CaretColorEnum::GREEN"),
+                                                                       NULL);
+            this->identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationContralateralSymbolColor",
+                                                                                                         "CaretColorEnum::BLUE"),
+                                                                       NULL);
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
 }
 
 

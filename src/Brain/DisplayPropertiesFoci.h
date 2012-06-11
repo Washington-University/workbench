@@ -105,6 +105,12 @@ namespace caret {
         bool isPasteOntoSurface(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex) const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass);
+        
     private:
         DisplayPropertiesFoci(const DisplayPropertiesFoci&);
 

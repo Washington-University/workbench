@@ -27,12 +27,13 @@
 
 
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class Brain;
     
-    class DisplayProperties : public CaretObject {
+    class DisplayProperties : public CaretObject, public SceneableInterface {
         
     protected:
         DisplayProperties(Brain* brain);
@@ -55,6 +56,11 @@ namespace caret {
          */
         virtual void update() = 0;
 
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+                                        const AString& instanceName) = 0;
+        
+        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
+                                      const SceneClass& sceneClass) = 0;
     private:
         DisplayProperties(const DisplayProperties&);
 

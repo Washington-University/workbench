@@ -91,33 +91,33 @@ SceneObjectDataTypeEnum::initialize()
 
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INVALID, 
                                                "SCENE_INVALID", 
-                                               "Invalid",
-                                               "Invalid"));
+                                               "invalid",
+                                               "invalid"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_BOOLEAN, 
                                                "SCENE_BOOLEAN", 
-                                               "Boolean",
-                                               "Boolean"));
+                                               "boolean",
+                                               "boolean"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_CLASS, 
                                                "SCENE_CLASS", 
-                                               "Class",
-                                               "Class"));
+                                               "class",
+                                               "class"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_ENUMERATED_TYPE, 
                                                "SCENE_ENUMERATED_TYPE", 
-                                               "EnumeratedType",
-                                               "EnumeratedType"));
+                                               "enumeratedType",
+                                               "enumeratedType"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_FLOAT, 
                                                "SCENE_FLOAT", 
-                                               "Float",
-                                               "Float"));
+                                               "float",
+                                               "float"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INTEGER, 
                                                "SCENE_INTEGER", 
-                                               "Integer",
-                                               "Integer"));
+                                               "integer",
+                                               "integer"));
     
 }
 

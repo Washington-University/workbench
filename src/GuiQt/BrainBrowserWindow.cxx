@@ -67,6 +67,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -2275,6 +2276,12 @@ BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrainBrowserWindow",
                                             1);
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
     
     return sceneClass;
 }
@@ -2295,6 +2302,12 @@ void
 BrainBrowserWindow::restoreFromScene(const SceneAttributes& sceneAttributes,
                              const SceneClass& sceneClass)
 {
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
     
 }
 

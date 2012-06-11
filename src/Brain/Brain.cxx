@@ -59,6 +59,7 @@
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
@@ -2123,6 +2124,22 @@ Brain::saveToScene(const SceneAttributes& sceneAttributes,
                                             "Brain",
                                             1);
     
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+
+    sceneClass->addClass(this->displayPropertiesBorders->saveToScene(sceneAttributes, 
+                                                                     "displayPropertiesBorders"));
+    sceneClass->addClass(this->displayPropertiesFoci->saveToScene(sceneAttributes, 
+                                             "displayPropertiesFoci"));
+    sceneClass->addClass(this->displayPropertiesInformation->saveToScene(sceneAttributes, 
+                                                    "displayPropertiesInformation"));
+    sceneClass->addClass(this->displayPropertiesVolume->saveToScene(sceneAttributes, 
+                                               "displayPropertiesVolume"));
+    
     return sceneClass;
 }
 
@@ -2142,6 +2159,12 @@ void
 Brain::restoreFromScene(const SceneAttributes& sceneAttributes,
                               const SceneClass& sceneClass)
 {
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
     
 }
 

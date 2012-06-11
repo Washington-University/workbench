@@ -154,9 +154,16 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                                 dataTypeName);
         attributes.addAttribute(SceneXmlElements::OBJECT_NAME_ATTRIBUTE, 
                                 primitive->getName());
-        m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
-                                      attributes,
-                                      primitive->stringValue());
+        if (primitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
+            m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
+                                          attributes,
+                                          primitive->stringValue());
+        }
+        else {
+            m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_TAG, 
+                                               attributes,
+                                               primitive->stringValue());
+        }
     }
     
     /*

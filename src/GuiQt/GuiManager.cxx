@@ -52,6 +52,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneDialog.h"
 #include "SessionManager.h"
@@ -1073,6 +1074,13 @@ GuiManager::saveToScene(const SceneAttributes& sceneAttributes,
         }
     }
 
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
+    
     return sceneClass;
 }
 
@@ -1092,6 +1100,12 @@ void
 GuiManager::restoreFromScene(const SceneAttributes& sceneAttributes,
                         const SceneClass& sceneClass)
 {
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
     
 }
 

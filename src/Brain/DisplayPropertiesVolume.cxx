@@ -35,6 +35,8 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "ModelSurface.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
 #include "StructureEnum.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
@@ -292,4 +294,59 @@ DisplayPropertiesVolume::addSurfaceOutline(Surface* surface,
             }
         }
     }
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+DisplayPropertiesVolume::saveToScene(const SceneAttributes& sceneAttributes,
+                   const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "DisplayPropertiesVolume",
+                                            1);
+    
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+DisplayPropertiesVolume::restoreFromScene(const SceneAttributes& sceneAttributes,
+                        const SceneClass& sceneClass)
+{
+    switch (sceneAttributes.getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
 }
