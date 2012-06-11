@@ -1,5 +1,5 @@
-#ifndef __SCENE_ATTRIBUTES__H_
-#define __SCENE_ATTRIBUTES__H_
+#ifndef __SCENE_WRITER_XML__H_
+#define __SCENE_WRITER_XML__H_
 
 /*LICENSE_START*/
 /*
@@ -35,24 +35,38 @@
 /*LICENSE_END*/
 
 
-#include "CaretObject.h"
-#include "SceneTypeEnum.h"
+#include "SceneWriterInterface.h"
 
 namespace caret {
+
+    class SceneClass;
+    class XmlWriter;
     
-    class SceneAttributes : public CaretObject {
+    class SceneWriterXml : public SceneWriterInterface {
         
     public:
-        SceneAttributes(const SceneTypeEnum::Enum sceneType);
+        SceneWriterXml(XmlWriter& xmlWriter);
         
-        virtual ~SceneAttributes();
+        virtual ~SceneWriterXml();
         
-        SceneTypeEnum::Enum getSceneType() const;
+        /**
+         * Write the given scene.
+         * @param scene
+         *    Scene that is written.
+         * @param sceneIndex
+         *    Index of the scene.
+         * @throws SceneException
+         *    If there is an error writing the scene.
+         */
+        virtual void writeScene(const Scene& scene,
+                                const int32_t sceneIndex);
         
     private:
-        SceneAttributes(const SceneAttributes&);
+        SceneWriterXml(const SceneWriterXml&);
 
-        SceneAttributes& operator=(const SceneAttributes&);
+        SceneWriterXml& operator=(const SceneWriterXml&);
+        
+        void writeSceneClass(const SceneClass& sceneClass);
         
     public:
 
@@ -60,14 +74,14 @@ namespace caret {
 
     private:
 
-        const SceneTypeEnum::Enum m_sceneType;
-        
         // ADD_NEW_MEMBERS_HERE
 
+        XmlWriter& m_xmlWriter;
     };
     
-#ifdef __SCENE_ATTRIBUTES_DECLARE__
-#endif // __SCENE_ATTRIBUTES_DECLARE__
+#ifdef __SCENE_WRITER_XML_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __SCENE_WRITER_XML_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ATTRIBUTES__H_
+#endif  //__SCENE_WRITER_XML__H_

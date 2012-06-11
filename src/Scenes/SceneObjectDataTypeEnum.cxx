@@ -54,18 +54,21 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param xmlName
+ *    Name used by XML.
  */
 SceneObjectDataTypeEnum::SceneObjectDataTypeEnum(const Enum enumValue,
                            const AString& name,
-                           const AString& guiName)
+                           const AString& guiName,
+                                                 const AString& xmlName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->xmlName = xmlName;
 }
 
 /**
@@ -87,28 +90,34 @@ SceneObjectDataTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INVALID, 
-                                    "SceneInvalid", 
-                                    "Invalid"));
+                                               "SCENE_INVALID", 
+                                               "Invalid",
+                                               "Invalid"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_BOOLEAN, 
-                                    "SceneBoolean", 
-                                    "Boolean"));
+                                               "SCENE_BOOLEAN", 
+                                               "Boolean",
+                                               "Boolean"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_CLASS, 
-                                    "SceneClass", 
-                                    "Class"));
+                                               "SCENE_CLASS", 
+                                               "Class",
+                                               "Class"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_ENUMERATED_TYPE, 
-                                    "SceneEnumeratedType", 
-                                    "EnumeratedType"));
+                                               "SCENE_ENUMERATED_TYPE", 
+                                               "EnumeratedType",
+                                               "EnumeratedType"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_FLOAT, 
-                                    "SceneFloat", 
-                                    "Float"));
+                                               "SCENE_FLOAT", 
+                                               "Float",
+                                               "Float"));
     
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_INTEGER, 
-                                    "SceneInteger32", 
-                                    "Integer32"));
+                                               "SCENE_INTEGER", 
+                                               "Integer",
+                                               "Integer"));
     
 }
 
@@ -366,4 +375,84 @@ SceneObjectDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
+
+/**
+ * Get all of the XML names of the enumerated type values.
+ *
+ * @param allNames
+ *     A vector that is OUTPUT containing all of the XML names of the enumerated values.
+ * @param isSorted
+ *     If true, the names are sorted in alphabetical order.
+ */
+void
+SceneObjectDataTypeEnum::getAllXmlNames(std::vector<AString>& allXmlNames, const bool isSorted)
+{
+    if (initializedFlag == false) initialize();
+    
+    allXmlNames.clear();
+    
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        allXmlNames.push_back(SceneObjectDataTypeEnum::toXmlName(iter->enumValue));
+    }
+    
+    if (isSorted) {
+        std::sort(allXmlNames.begin(), allXmlNames.end());
+    }
+}
+
+/**
+ * Get an XML string representation of the enumerated type.
+ * @param enumValue 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+SceneObjectDataTypeEnum::toXmlName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const SceneObjectDataTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->xmlName;
+}
+
+/**
+ * Get an enumerated value corresponding to its XML name.
+ * @param xmlName 
+ *     XML name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+SceneObjectDataTypeEnum::Enum 
+SceneObjectDataTypeEnum::fromXmlName(const AString& xmlName, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue = SCENE_INVALID;
+    
+    for (std::vector<SceneObjectDataTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SceneObjectDataTypeEnum& d = *iter;
+        if (d.xmlName == xmlName) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("Name " + xmlName + "failed to match enumerated value for type SceneObjectDataTypeEnum"));
+    }
+    return enumValue;
+}
+
 

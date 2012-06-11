@@ -37,12 +37,10 @@
 
 #include "CaretObject.h"
 #include "SceneTypeEnum.h"
-#include "XmlException.h"
 
 namespace caret {
     class SceneAttributes;
     class SceneClass;
-    class XmlWriter;
     
     class Scene : public CaretObject {
         
@@ -58,39 +56,25 @@ namespace caret {
         
     public:
 
-        const SceneAttributes* getSceneAttributes() const;
+        const SceneAttributes* getAttributes() const;
 
-        SceneAttributes* getSceneAttributes();
+        SceneAttributes* getAttributes();
 
-        void addSceneClass(SceneClass* sceneClass);
+        void addClass(SceneClass* sceneClass);
         
-        int32_t getNumberOfSceneClasses() const;
+        int32_t getNumberOfClasses() const;
         
-        const SceneClass* getSceneClassAtIndex(const int32_t indx) const;
+        const SceneClass* getClassAtIndex(const int32_t indx) const;
 
-        const SceneClass* getSceneClassWithName(const AString& sceneClassName) const;
+        const SceneClass* getClassWithName(const AString& sceneClassName) const;
         
-        void writeAsXML(XmlWriter& xmlWriter,
-                        const int32_t sceneIndex) throw (XmlException);
-        
-     
-        AString getSceneName() const;
+        AString getName() const;
 
-        void setSceneName(const AString& sceneName);
+        void setName(const AString& sceneName);
 
 
         // ADD_NEW_METHODS_HERE
 
-        /** XML Tag for scene */
-        static const AString XML_TAG_SCENE;
-        
-        /** XML Tag for scene name */
-        static const AString XML_TAG_SCENE_NAME;
-        
-        /** XML Attributes for scene index */
-        static const AString XML_ATTRIBUTE_SCENE_INDEX;
-        
-        
     private:
 
         /** Attributes of the scene*/
@@ -109,9 +93,6 @@ namespace caret {
     };
     
 #ifdef __SCENE_DECLARE__
-    const AString Scene::XML_TAG_SCENE = "Scene";
-    const AString Scene::XML_TAG_SCENE_NAME = "SceneName";
-    const AString Scene::XML_ATTRIBUTE_SCENE_INDEX = "SceneIndex";
 #endif // __SCENE_DECLARE__
 
 } // namespace

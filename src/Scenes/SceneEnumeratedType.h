@@ -47,9 +47,7 @@ namespace caret {
         
         virtual ~SceneEnumeratedType();
         
-        AString getEnumeratedValueAsString() const;
-        
-        virtual void writeAsXML(XmlWriter& xmlWriter) const throw (XmlException);
+        AString stringValue() const;
         
     private:
         SceneEnumeratedType(const SceneEnumeratedType&);

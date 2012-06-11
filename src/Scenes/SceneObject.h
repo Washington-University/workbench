@@ -37,12 +37,9 @@
 
 #include "CaretObject.h"
 #include "SceneObjectDataTypeEnum.h"
-#include "XmlException.h"
 
 namespace caret {
 
-    class XmlWriter;
-    
     class SceneObject : public CaretObject {
         
     public:
@@ -51,22 +48,6 @@ namespace caret {
         QString getName() const;
         
         SceneObjectDataTypeEnum::Enum getDataType() const;
-        
-        /**
-         * Write the SceneObject to XML.
-         * 
-         * @param xmlWriter
-         *    Writer that generates XML.
-         * @throws
-         *    XmlException if there is an error.
-         */
-        virtual void writeAsXML(XmlWriter& xmlWriter) const throw (XmlException) = 0;
-        
-        /** Attribute name for 'name' in XML */
-        static const AString XML_ATTRIBUTE_NAME;
-        
-        /** Attribute name for 'data type' in XML */
-        static const AString XML_ATTRIBUTE_DATA_TYPE;
         
     protected:
         SceneObject(const QString& name,
@@ -95,8 +76,6 @@ namespace caret {
     };
     
 #ifdef __SCENE_OBJECT_DECLARE__
-    const AString SceneObject::XML_ATTRIBUTE_NAME = "Name";
-    const AString SceneObject::XML_ATTRIBUTE_DATA_TYPE = "DataType";
 #endif // __SCENE_OBJECT_DECLARE__
 
 } // namespace

@@ -44,6 +44,7 @@
 #include "FileAdapter.h"
 #include "GiftiMetaData.h"
 #include "Scene.h"
+#include "SceneWriterXml.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -291,9 +292,11 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write scenes
         //
+        SceneWriterXml sceneWriter(xmlWriter);
         const int32_t numScenes = this->getNumberOfScenes();
         for (int32_t i = 0; i < numScenes; i++) {
-            m_scenes[i]->writeAsXML(xmlWriter, i);
+            sceneWriter.writeScene(*m_scenes[i], 
+                                   i);
         }
         
         xmlWriter.writeEndElement();

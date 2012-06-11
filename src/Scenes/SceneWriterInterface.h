@@ -1,5 +1,5 @@
-#ifndef __SCENE_ATTRIBUTES__H_
-#define __SCENE_ATTRIBUTES__H_
+#ifndef __SCENE_WRITER_INTERFACE__H_
+#define __SCENE_WRITER_INTERFACE__H_
 
 /*LICENSE_START*/
 /*
@@ -34,25 +34,39 @@
  */
 /*LICENSE_END*/
 
+/**
+ * \class caret::SceneWriterInterface 
+ * \brief Interface for classes that write scenes.
+ */
 
-#include "CaretObject.h"
-#include "SceneTypeEnum.h"
+#include "SceneException.h"
 
 namespace caret {
+
+    class Scene;
     
-    class SceneAttributes : public CaretObject {
-        
+    class SceneWriterInterface {
+
+    protected:
+        SceneWriterInterface() { }
+
     public:
-        SceneAttributes(const SceneTypeEnum::Enum sceneType);
+        virtual ~SceneWriterInterface() { }
         
-        virtual ~SceneAttributes();
-        
-        SceneTypeEnum::Enum getSceneType() const;
+        /**
+         * Write the given scene.
+         * @param scene
+         *    Scene that is written.
+         * @throws ???
+         *    Implementing classes may throw exceptions.
+         */
+        virtual void writeScene(const Scene& scene,
+                                const int32_t sceneIndex) = 0;
         
     private:
-        SceneAttributes(const SceneAttributes&);
+        SceneWriterInterface(const SceneWriterInterface&);
 
-        SceneAttributes& operator=(const SceneAttributes&);
+        SceneWriterInterface& operator=(const SceneWriterInterface&);
         
     public:
 
@@ -60,14 +74,13 @@ namespace caret {
 
     private:
 
-        const SceneTypeEnum::Enum m_sceneType;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __SCENE_ATTRIBUTES_DECLARE__
-#endif // __SCENE_ATTRIBUTES_DECLARE__
+#ifdef __SCENE_WRITER_INTERFACE_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __SCENE_WRITER_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ATTRIBUTES__H_
+#endif  //__SCENE_WRITER_INTERFACE__H_

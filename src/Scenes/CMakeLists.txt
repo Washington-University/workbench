@@ -22,6 +22,7 @@ SceneAttributes.h
 SceneBoolean.h
 SceneClass.h
 SceneEnumeratedType.h
+SceneException.h
 SceneFloat.h
 SceneInteger.h
 SceneObject.h
@@ -29,6 +30,9 @@ SceneObjectDataTypeEnum.h
 ScenePrimitive.h
 SceneString.h
 SceneTypeEnum.h
+SceneWriterInterface.h
+SceneWriterXml.h
+SceneXmlElements.h
 SceneableInterface.h
 
 Scene.cxx
@@ -36,6 +40,7 @@ SceneAttributes.cxx
 SceneBoolean.cxx
 SceneClass.cxx
 SceneEnumeratedType.cxx
+SceneException.cxx
 SceneFloat.cxx
 SceneInteger.cxx
 SceneObject.cxx
@@ -43,6 +48,7 @@ SceneObjectDataTypeEnum.cxx
 ScenePrimitive.cxx
 SceneString.cxx
 SceneTypeEnum.cxx
+SceneWriterXml.cxx
 )
 
 #

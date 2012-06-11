@@ -267,7 +267,7 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
         for (int32_t i = 0; i < numScenes; i++) {
             Scene* scene = sceneFile->getSceneAtIndex(i);
             
-            QListWidgetItem* lwi = new QListWidgetItem(scene->getSceneName());
+            QListWidgetItem* lwi = new QListWidgetItem(scene->getName());
             lwi->setData(Qt::UserRole,
                          qVariantFromValue((void*)scene));
             
@@ -375,10 +375,11 @@ SceneDialog::addNewSceneButtonClicked()
                                                                        &isValidType);
             
             newScene = new Scene(sceneType);
-            newScene->setSceneName(newSceneName);
+            newScene->setName(newSceneName);
             
-            SceneAttributes* sceneAtributes = newScene->getSceneAttributes();
-            newScene->addSceneClass(GuiManager::get()->saveToScene(*sceneAtributes));
+            SceneAttributes* sceneAtributes = newScene->getAttributes();
+            newScene->addClass(GuiManager::get()->saveToScene(*sceneAtributes,
+                                                              "guiManager"));
             
             sceneFile->addScene(newScene);
         }
@@ -395,7 +396,7 @@ SceneDialog::deleteSceneButtonClicked()
 {
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
-        const AString sceneName = scene->getSceneName();
+        const AString sceneName = scene->getName();
         const AString msg = ("Are you sure you want to delete scene named: "
                              + sceneName);
         if (WuQMessageBox::warningYesNo(m_deleteScenePushButton,

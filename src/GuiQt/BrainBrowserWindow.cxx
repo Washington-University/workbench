@@ -2269,9 +2269,11 @@ BrainBrowserWindow::processHcpWebsiteInBrowser()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes)
+BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes,
+                                const AString& instanceName)
 {
-    SceneClass* sceneClass = new SceneClass("BrainBrowserWindow",
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainBrowserWindow",
                                             1);
     
     return sceneClass;

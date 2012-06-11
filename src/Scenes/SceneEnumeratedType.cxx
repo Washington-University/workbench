@@ -36,9 +36,6 @@
 #include "SceneEnumeratedType.h"
 #undef __SCENE_ENUMERATED_TYPE_DECLARE__
 
-#include "XmlAttributes.h"
-#include "XmlWriter.h"
-
 using namespace caret;
 
 
@@ -72,29 +69,8 @@ SceneEnumeratedType::~SceneEnumeratedType()
  * enumerated type.
  */
 AString 
-SceneEnumeratedType::getEnumeratedValueAsString() const
+SceneEnumeratedType::stringValue() const
 {
     return m_enumeratedValueAsString;
-}
-
-/**
- * Write the Scene Enumerated Type to XML.
- * 
- * @param xmlWriter
- *    Writer that generates XML.
- * @throws
- *    XmlException if there is an error.
- */
-void 
-SceneEnumeratedType::writeAsXML(XmlWriter& xmlWriter) const throw (XmlException)
-{
-    XmlAttributes atts;
-    atts.addAttribute(XML_ATTRIBUTE_NAME, this->getName());
-    
-    const AString elementName = SceneObjectDataTypeEnum::toName(this->getDataType());
-    
-    xmlWriter.writeElementCData(elementName, 
-                                atts, 
-                                m_enumeratedValueAsString);
 }
 

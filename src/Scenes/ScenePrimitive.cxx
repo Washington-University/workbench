@@ -36,9 +36,6 @@
 #include "ScenePrimitive.h"
 #undef __SCENE_PRIMITIVE_DECLARE__
 
-#include "XmlAttributes.h"
-#include "XmlWriter.h"
-
 using namespace caret;
 
 
@@ -71,34 +68,5 @@ ScenePrimitive::ScenePrimitive(const QString& name,
 ScenePrimitive::~ScenePrimitive()
 {
     
-}
-
-/**
- * Write the Scene Primitive to XML.
- * 
- * @param xmlWriter
- *    Writer that generates XML.
- * @throws
- *    XmlException if there is an error.
- */
-void 
-ScenePrimitive::writeAsXML(XmlWriter& xmlWriter) const throw (XmlException)
-{
-    XmlAttributes atts;
-    atts.addAttribute(XML_ATTRIBUTE_NAME, this->getName());
-    
-    const AString elementName = SceneObjectDataTypeEnum::toName(this->getDataType());
-    const AString elementText = this->stringValue();
-    
-    if (this->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
-        xmlWriter.writeElementCData(elementName, 
-                                    atts, 
-                                    elementText);
-    }
-    else {
-        xmlWriter.writeElementCharacters(elementName, 
-                                         atts, 
-                                         elementText);
-    }
 }
 

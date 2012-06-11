@@ -39,7 +39,6 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -71,7 +70,7 @@ Scene::~Scene()
 {
     delete m_sceneAttributes;
 
-    const int32_t numberOfSceneClasses = this->getNumberOfSceneClasses();
+    const int32_t numberOfSceneClasses = this->getNumberOfClasses();
     for (int32_t i = 0; i < numberOfSceneClasses; i++) {
         delete m_sceneClasses[i];
     }
@@ -82,7 +81,7 @@ Scene::~Scene()
  * @return Attributes of the scene
  */
 const SceneAttributes*
-Scene::getSceneAttributes() const
+Scene::getAttributes() const
 {
     return m_sceneAttributes;
 }
@@ -91,13 +90,13 @@ Scene::getSceneAttributes() const
  * @return Attributes of the scene
  */
 SceneAttributes*
-Scene::getSceneAttributes()
+Scene::getAttributes()
 {
     return m_sceneAttributes;
 }
 
 void 
-Scene::addSceneClass(SceneClass* sceneClass)
+Scene::addClass(SceneClass* sceneClass)
 {
     if (sceneClass != NULL) {
         m_sceneClasses.push_back(sceneClass);
@@ -109,7 +108,7 @@ Scene::addSceneClass(SceneClass* sceneClass)
  * @return Number of classes contained in the scene
  */
 int32_t 
-Scene::getNumberOfSceneClasses() const
+Scene::getNumberOfClasses() const
 {
     return m_sceneClasses.size();
 }
@@ -121,7 +120,7 @@ Scene::getNumberOfSceneClasses() const
  * @return Scene class at the given index.
  */
 const SceneClass* 
-Scene::getSceneClassAtIndex(const int32_t indx) const
+Scene::getClassAtIndex(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_sceneClasses, indx);
     return m_sceneClasses[indx];
@@ -134,9 +133,9 @@ Scene::getSceneClassAtIndex(const int32_t indx) const
  * @return Scene class with the given name or NULL if not found.
  */
 const SceneClass* 
-Scene::getSceneClassWithName(const AString& sceneClassName) const
+Scene::getClassWithName(const AString& sceneClassName) const
 {
-    const int32_t numberOfSceneClasses = this->getNumberOfSceneClasses();
+    const int32_t numberOfSceneClasses = this->getNumberOfClasses();
     for (int32_t i = 0; i < numberOfSceneClasses; i++) {
         if (m_sceneClasses[i]->getName() == sceneClassName) {
             return m_sceneClasses[i];
@@ -147,42 +146,10 @@ Scene::getSceneClassWithName(const AString& sceneClassName) const
 }
 
 /**
- * Write the scene as XML.
- * @param xmlWriter
- *    The XML writer.
- * @param sceneIndex
- *    Index of the scene.
- * @throws
- *     XmlException if there is an error.
- */
-void 
-Scene::writeAsXML(XmlWriter& xmlWriter,
-                  const int32_t sceneIndex) throw (XmlException)
-{
-    XmlAttributes atts;
-    atts.addAttribute(XML_ATTRIBUTE_SCENE_INDEX, sceneIndex);
-    
-    xmlWriter.writeStartElement(XML_TAG_SCENE,
-                                atts);
-    
-    xmlWriter.writeElementCData(XML_TAG_SCENE_NAME, 
-                                m_sceneName);
-    
-    m_sceneAttributes->writeAsXML(xmlWriter);
-    
-    const int32_t numClasses = getNumberOfSceneClasses();
-    for (int32_t i = 0; i < numClasses; i++) {
-        m_sceneClasses[i]->writeAsXML(xmlWriter);
-    }
-    
-    xmlWriter.writeEndElement();
-}
-
-/**
  * @return name of scene
  */
 AString
-Scene::getSceneName() const
+Scene::getName() const
 {
     return m_sceneName;
 }
@@ -193,7 +160,7 @@ Scene::getSceneName() const
  *    New value for name of scene
  */
 void
-Scene::setSceneName(const AString& sceneName)
+Scene::setName(const AString& sceneName)
 {
     m_sceneName = sceneName;
 }

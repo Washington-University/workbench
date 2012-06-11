@@ -2116,9 +2116,11 @@ Brain::getDisplayPropertiesInformation() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-Brain::saveToScene(const SceneAttributes& sceneAttributes)
+Brain::saveToScene(const SceneAttributes& sceneAttributes,
+                   const AString& instanceName)
 {
-    SceneClass* sceneClass = new SceneClass("Brain",
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "Brain",
                                             1);
     
     return sceneClass;

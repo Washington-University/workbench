@@ -1054,18 +1054,22 @@ GuiManager::getCursorManager() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-GuiManager::saveToScene(const SceneAttributes& sceneAttributes)
+GuiManager::saveToScene(const SceneAttributes& sceneAttributes,
+                        const AString& instanceName)
 {
-    SceneClass* sceneClass = new SceneClass("GuiManager",
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "GuiManager",
                                             1);
     
-    sceneClass->addClass(getBrain()->saveToScene(sceneAttributes));
+    sceneClass->addClass(getBrain()->saveToScene(sceneAttributes,
+                                                 "brain"));
     
     const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
     for (int32_t i = 0; i < numBrowserWindows; i++) {
         BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
         if (bbw != NULL) {
-            sceneClass->addClass(bbw->saveToScene(sceneAttributes));
+            sceneClass->addClass(bbw->saveToScene(sceneAttributes,
+                                                  "brainBrowserWindows"));
         }
     }
 

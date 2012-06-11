@@ -206,7 +206,8 @@ namespace caret {
         
         const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
         
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes);
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+                                        const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
                                       const SceneClass& sceneClass);

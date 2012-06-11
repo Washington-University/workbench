@@ -75,6 +75,10 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toXmlName(Enum enumValue);
+    
+    static Enum fromXmlName(const AString& xmlName, bool* isValidOut);
+    
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
@@ -85,10 +89,13 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static void getAllXmlNames(std::vector<AString>& allXmlNames, const bool isSorted);
+    
 private:
     SceneObjectDataTypeEnum(const Enum enumValue, 
                  const AString& name,
-                 const AString& guiName);
+                 const AString& guiName,
+                            const AString& xmlName);
 
     static const SceneObjectDataTypeEnum* findData(const Enum enumValue);
 
@@ -115,6 +122,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Name used in XML */
+    AString xmlName;
 };
 
 #ifdef __SCENE_OBJECT_DATA_TYPE_ENUM_DECLARE__

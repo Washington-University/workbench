@@ -41,6 +41,8 @@
  *       
  */
 
+#include "AString.h"
+
 namespace caret {
 
     class SceneAttributes;
@@ -66,7 +68,8 @@ namespace caret {
          *    this object.  Under some circumstances a NULL pointer may be
          *    returned.  Caller will take ownership of returned object.
          */
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes) = 0;
+        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+                                        const AString& instanceName) = 0;
         
         /**
          * Restore the state of an instance of a class.

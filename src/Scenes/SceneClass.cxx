@@ -42,7 +42,6 @@
 #include "SceneFloat.h"
 #include "SceneInteger.h"
 #include "SceneString.h"
-#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -72,6 +71,8 @@ using namespace caret;
  *
  * @param name
  *     Name of the instance saved to this scene class.
+ * @param className
+ *     Name of the class, NOT instance.
  * @param versionNumber
  *     Version number of the class that is saved to this
  *     scene class.  Since a class may change over time,
@@ -79,9 +80,11 @@ using namespace caret;
  *     of scenes saved prior to changes made to a class.
  */
 SceneClass::SceneClass(const AString& name,
+                       const AString& className,
                        const int32_t versionNumber)
 : SceneObject(name,
               SceneObjectDataTypeEnum::SCENE_CLASS),
+  m_className(className),
   m_versionNumber(versionNumber)
 {
     
@@ -113,6 +116,16 @@ SceneClass::~SceneClass()
     }
     m_childEnumeratedTypes.clear();
 }
+
+/**
+ * @return Name of the class (NOT the instance).
+ */
+AString 
+SceneClass::getClassName() const
+{
+    return m_className;
+}
+
 
 /**
  * @return The version number of this scene class instance.
@@ -258,7 +271,7 @@ SceneClass::getEnumeratedTypeValue(const AString& name,
          iter++) {
         const SceneEnumeratedType* enumType = *iter;
         if (enumType->getName() == name) {
-            return enumType->getEnumeratedValueAsString();
+            return enumType->stringValue();
         }
     }
     
@@ -383,44 +396,66 @@ SceneClass::getClass(const AString& name) const
 }
 
 /**
- * Write the Scene Class to XML.
- * 
- * @param xmlWriter
- *    Writer that generates XML.
- * @throws
- *    XmlException if there is an error.
+ * @return Number of primitives in the class.
  */
-void 
-SceneClass::writeAsXML(XmlWriter& xmlWriter) const throw (XmlException)
+int32_t 
+SceneClass::getNumberOfPrimitives() const
 {
-    XmlAttributes atts;
-    atts.addAttribute(XML_ATTRIBUTE_NAME, this->getName());
-    
-    xmlWriter.writeStartElement(SceneObjectDataTypeEnum::toName(this->getDataType()),
-                                atts);
-    
-    for (std::vector<SceneEnumeratedType*>::const_iterator iter = m_childEnumeratedTypes.begin();
-         iter != m_childEnumeratedTypes.end();
-         iter++) {
-        SceneObject* so = *iter;
-        so->writeAsXML(xmlWriter);
-    }
-    
-    for (std::vector<ScenePrimitive*>::const_iterator iter = m_childPrimitives.begin();
-         iter != m_childPrimitives.end();
-         iter++) {
-        SceneObject* so = *iter;
-        so->writeAsXML(xmlWriter);
-    }
-    
-    for (std::vector<SceneClass*>::const_iterator iter = m_childClasses.begin();
-         iter != m_childClasses.end();
-         iter++) {
-        SceneObject* so = *iter;
-        so->writeAsXML(xmlWriter);
-    }
-    
-    xmlWriter.writeEndElement();
+    return m_childPrimitives.size();
+}
+
+/**
+ * @return Primitive at the given index.
+ * @param indx
+ *    Index of the primitive.
+ */
+const ScenePrimitive* 
+SceneClass::getPrimitiveAtIndex(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_childPrimitives, indx);
+    return m_childPrimitives[indx];
+}
+
+/**
+ * @return Number of enumerated types in the class.
+ */
+int32_t 
+SceneClass::getNumberOfEnumeratedTypes() const
+{
+    return m_childEnumeratedTypes.size();
+}
+
+/**
+ * @return Primitive at the given index.
+ * @param indx
+ *    Index of the primitive.
+ */
+const SceneEnumeratedType* 
+SceneClass::getEnumeratedTypeAtIndex(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_childEnumeratedTypes, indx);
+    return m_childEnumeratedTypes[indx];
+}
+
+/**
+ * @return Number of classes in the class.
+ */
+int32_t 
+SceneClass::getNumberOfClasses() const
+{
+    return m_childClasses.size();
+}
+
+/**
+ * @return Primitive at the given index.
+ * @param indx
+ *    Index of the primitive.
+ */
+const SceneClass* 
+SceneClass::getClassAtIndex(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_childClasses, indx);
+    return m_childClasses[indx];
 }
 
 

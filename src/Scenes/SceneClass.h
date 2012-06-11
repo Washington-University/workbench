@@ -46,9 +46,12 @@ namespace caret {
         
     public:
         SceneClass(const AString& name,
+                   const AString& className,
                    const int32_t versionNumber);
         
         virtual ~SceneClass();
+        
+        AString getClassName() const;
         
         int32_t getVersionNumber() const;
         
@@ -87,7 +90,17 @@ namespace caret {
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
         
-        virtual void writeAsXML(XmlWriter& xmlWriter) const throw (XmlException);
+        int32_t getNumberOfPrimitives() const;
+        
+        const ScenePrimitive* getPrimitiveAtIndex(const int32_t indx) const;
+        
+        int32_t getNumberOfEnumeratedTypes() const;
+        
+        const SceneEnumeratedType* getEnumeratedTypeAtIndex(const int32_t indx) const;
+        
+        int32_t getNumberOfClasses() const;
+        
+        const SceneClass* getClassAtIndex(const int32_t indx) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -97,6 +110,8 @@ namespace caret {
         SceneClass& operator=(const SceneClass&);
 
         const ScenePrimitive* getPrimitive(const AString& name) const;
+        
+        AString m_className;
         
         const int32_t m_versionNumber;
         
