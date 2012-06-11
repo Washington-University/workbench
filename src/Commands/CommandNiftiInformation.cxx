@@ -64,7 +64,7 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
 
         if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
         {
-            CiftiFile cf(fileName);
+            CiftiFile cf(fileName, ON_DISK);
             if(printHeader) {
                 CiftiHeader header;
                 cf.getHeader(header);
