@@ -86,13 +86,20 @@ SceneDialog::SceneDialog(QWidget* parent)
     QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
                      this, SLOT(sceneFileSelected()));
     QPushButton* newSceneFilePushButton = new QPushButton("New...");
+    newSceneFilePushButton->setAutoDefault(false);
     QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(newSceneFileButtonClicked()));
 
     /*
+     * Scene controls
+     */ 
+    QLabel* sceneLabel = new QLabel("Scenes");
+    
+    /*
      * Add new scene button
      */
     m_addNewScenePushButton = new QPushButton("Add...");
+    m_addNewScenePushButton->setAutoDefault(false);
     QObject::connect(m_addNewScenePushButton, SIGNAL(clicked()),
                      this, SLOT(addNewSceneButtonClicked()));
     
@@ -100,6 +107,7 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Delete new scene button
      */
     m_deleteScenePushButton = new QPushButton("Delete...");
+    m_deleteScenePushButton->setAutoDefault(false);
     QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
                      this, SLOT(deleteSceneButtonClicked()));
     
@@ -107,6 +115,7 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Show new scene button
      */
     m_showScenePushButton = new QPushButton("Show...");
+    m_showScenePushButton->setAutoDefault(false);
     QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
                      this, SLOT(showSceneButtonClicked()));
     
@@ -139,13 +148,19 @@ SceneDialog::SceneDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(m_sceneSelectionListWidget, row, 0, 1, 2);
+    gridLayout->addWidget(sceneLabel, row, 0, (Qt::AlignTop | Qt::AlignRight));
+    gridLayout->addWidget(m_sceneSelectionListWidget, row, 1);
     gridLayout->addLayout(sceneButtonLayout, row, 2);
     
     /*
      * No apply buton
      */
     setApplyButtonText("");
+    
+    /*
+     * No auto default button processing (Qt highlights button)
+     */
+    setAutoDefaultButtonProcessing(false);
     
     /*
      * Set the dialog's widget
