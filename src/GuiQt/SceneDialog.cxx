@@ -86,7 +86,6 @@ SceneDialog::SceneDialog(QWidget* parent)
     QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
                      this, SLOT(sceneFileSelected()));
     QPushButton* newSceneFilePushButton = new QPushButton("New...");
-    newSceneFilePushButton->setAutoDefault(false);
     QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(newSceneFileButtonClicked()));
 
@@ -99,7 +98,6 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Add new scene button
      */
     m_addNewScenePushButton = new QPushButton("Add...");
-    m_addNewScenePushButton->setAutoDefault(false);
     QObject::connect(m_addNewScenePushButton, SIGNAL(clicked()),
                      this, SLOT(addNewSceneButtonClicked()));
     
@@ -107,7 +105,6 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Delete new scene button
      */
     m_deleteScenePushButton = new QPushButton("Delete...");
-    m_deleteScenePushButton->setAutoDefault(false);
     QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
                      this, SLOT(deleteSceneButtonClicked()));
     
@@ -115,7 +112,6 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Show new scene button
      */
     m_showScenePushButton = new QPushButton("Show...");
-    m_showScenePushButton->setAutoDefault(false);
     QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
                      this, SLOT(showSceneButtonClicked()));
     
@@ -160,13 +156,18 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * No auto default button processing (Qt highlights button)
      */
-    setAutoDefaultButtonProcessing(false);
+//    setAutoDefaultButtonProcessing(false);
     
     /*
      * Set the dialog's widget
      */
     this->setCentralWidget(widget);
 
+    /*
+     * No auto default button processing (Qt highlights button)
+     */
+    disableAutoDefaultForAllPushButtons();
+    
     /*
      * Update the dialog.
      */
