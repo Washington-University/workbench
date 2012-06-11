@@ -582,7 +582,7 @@ WuQDialog::disableAutoDefaultForAllPushButtons()
     QListIterator<QPushButton*> allPushButtonsIterator(allPushButtons);
     while (allPushButtonsIterator.hasNext()) {
         QPushButton* pushButton = allPushButtonsIterator.next();
-        std::cout << "Disabling auto default for: " << qPrintable(pushButton->text()) << std::endl;
+        //std::cout << "Disabling auto default for: " << qPrintable(pushButton->text()) << std::endl;
         pushButton->setAutoDefault(false);
         pushButton->setDefault(false);
     }
