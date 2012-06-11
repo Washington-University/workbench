@@ -63,6 +63,8 @@ namespace caret  {
         
         void setAutoDefaultButtonProcessing(bool enabled);
         
+        void disableAutoDefaultForAllPushButtons();
+        
         static void beep();
         
         static void showWaitCursor();
@@ -95,6 +97,8 @@ namespace caret  {
                                                    QWidget* centralWidget,
                                                    QWidget* bottomWidget,
                                                    const bool allowInsertingIntoScrollArea);
+        
+        QList<QWidget*> m_userWidgets;
         
         QVBoxLayout* userWidgetLayout;
         
