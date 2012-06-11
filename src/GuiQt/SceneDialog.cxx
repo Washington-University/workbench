@@ -154,11 +154,6 @@ SceneDialog::SceneDialog(QWidget* parent)
     setApplyButtonText("");
     
     /*
-     * No auto default button processing (Qt highlights button)
-     */
-//    setAutoDefaultButtonProcessing(false);
-    
-    /*
      * Set the dialog's widget
      */
     this->setCentralWidget(widget);

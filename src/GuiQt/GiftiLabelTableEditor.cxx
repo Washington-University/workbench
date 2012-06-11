@@ -166,7 +166,11 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     
     this->setOkButtonText("Close");
     this->setCancelButtonText("");
-    this->setAutoDefaultButtonProcessing(false);
+    
+    /*
+     * No auto default button processing (Qt highlights button)
+     */
+    disableAutoDefaultForAllPushButtons();
 }
 
 /**
