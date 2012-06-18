@@ -43,6 +43,7 @@ MetricSmoothingObject.h
 PaletteFile.h
 RgbaFile.h
 SceneFile.h
+SignedDistanceHelper.h
 SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
@@ -87,6 +88,7 @@ MetricSmoothingObject.cxx
 PaletteFile.cxx
 RgbaFile.cxx
 SceneFile.cxx
+SignedDistanceHelper.cxx
 SpecFile.cxx
 SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
