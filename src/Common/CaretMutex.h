@@ -40,6 +40,29 @@ namespace caret {
    public:
       CaretMutexLocker(CaretMutex* theMutex);
    };
+   
+   //cheap object designed to enforce correct use of functions that may not be called by multiple threads in certain ways, for instance if each thread must have its own instance of an object
+   //if something tries to lock the mutex while it is locked, a CaretException is thrown
+   class CaretThrowMutex
+   {
+       bool m_inUse;
+       CaretThrowMutex(const CaretThrowMutex& rhs);//prevent copy, assignment
+       CaretThrowMutex& operator=(const CaretThrowMutex& rhs);
+   public:
+       CaretThrowMutex();
+       friend class CaretThrowMutexLocker;
+   };
+   
+   class CaretThrowMutexLocker
+   {
+       CaretThrowMutex* m_Mutex;
+       CaretThrowMutexLocker();//prevent default construction, copy, assign
+       CaretThrowMutexLocker(const CaretThrowMutexLocker& rhs);
+       CaretThrowMutexLocker& operator=(const CaretThrowMutexLocker& rhs);
+   public:
+       CaretThrowMutexLocker(CaretThrowMutex* theMutex, const char* message);//set the message to include in the exception
+       ~CaretThrowMutexLocker();
+   };
 
 }
 

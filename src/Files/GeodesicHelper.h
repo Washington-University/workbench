@@ -96,7 +96,7 @@ namespace caret {
         void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
         CaretPointer<GeodesicHelperBase> m_myBase;//mostly just for automatic memory management
-        CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
+        CaretThrowMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
     public:
         GeodesicHelper(const CaretPointer<GeodesicHelperBase>& baseIn);
         ~GeodesicHelper() {

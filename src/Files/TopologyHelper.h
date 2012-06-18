@@ -123,7 +123,7 @@ namespace caret {
     class TopologyHelper {
         CaretPointer<TopologyHelperBase> m_base;
         mutable CaretArray<int> m_markNodes, m_nodelist[2];//persistent, never cleared, only initialized once, saving bazillions of nanoseconds
-        mutable CaretMutex m_usingMarkNodes;
+        mutable CaretThrowMutex m_usingMarkNodes;
         bool m_neighborsSorted;
         int32_t m_numNodes, m_maxNeigh;
         const std::vector<TopologyHelperBase::NodeInfo>& m_nodeInfo;//references for convenience instead of using the m_base pointer

@@ -333,7 +333,7 @@ void TopologyHelper::getNodeNeighborsToDepth(const int32_t nodeNum, const int32_
     neighborsOut.reserve(expected);
     CaretArray<int32_t>* curlist = &(m_nodelist[0]), *nextlist = &(m_nodelist[1]), *templist;//using raw pointers instead of CaretArray::operator= because this is single threaded
     int32_t curNum = 1, nextNum = 0;//curnum gets initialized to 1 because it starts with the root node
-    CaretMutexLocker locked(&m_usingMarkNodes);//lock before possibly constructing this object's scratch space
+    CaretThrowMutexLocker locked(&m_usingMarkNodes, "TopologyHelper::getNodeNeighborsToDepth called concurrently on same instance");//lock before possibly constructing this object's scratch space
     checkArrays();
     m_markNodes[nodeNum] = 1;
     (*curlist)[0] = nodeNum;//just use iterative, because depth-first recursive does unneeded work, and has very little reason to ever be faster
