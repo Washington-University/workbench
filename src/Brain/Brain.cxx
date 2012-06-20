@@ -294,6 +294,25 @@ Brain::resetBrain()
 }
 
 /**
+ * Copy all display properties from the source tab to the target tab.
+ * @param sourceTabIndex
+ *    Index of source tab.
+ * @param targetTabIndex
+ *    Index of target tab.
+ */
+void 
+Brain::copyDisplayProperties(const int32_t sourceTabIndex,
+                             const int32_t targetTabIndex)
+{
+    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
+         iter != this->displayProperties.end();
+         iter++) {
+        (*iter)->copyDisplayProperties(sourceTabIndex,
+                                       targetTabIndex);
+    }
+}
+
+/**
  * Read a surface file.
  *
  * @param filename

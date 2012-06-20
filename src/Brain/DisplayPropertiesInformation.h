@@ -67,6 +67,9 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
                                       const SceneClass& sceneClass);
         
+        virtual void copyDisplayProperties(const int32_t sourceTabIndex,
+                                           const int32_t targetTabIndex);
+        
     private:
         DisplayPropertiesInformation(const DisplayPropertiesInformation&);
 

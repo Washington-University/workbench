@@ -254,4 +254,16 @@ DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttri
     
 }
 
+/**
+ * Copy the display properties from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which properties are copied.
+ * @param targetTabIndex
+ *    Index of tab to which properties are copied.
+ */
+void 
+DisplayPropertiesInformation::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
+                                                    const int32_t /*targetTabIndex*/)
+{
+}
 

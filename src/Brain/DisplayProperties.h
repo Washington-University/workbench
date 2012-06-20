@@ -56,6 +56,17 @@ namespace caret {
          */
         virtual void update() = 0;
 
+        /**
+         * Copy the display properties. 
+         *
+         * @param sourceTabIndex
+         *    Index of tab from which properties are copied.
+         * @param targetTabIndex
+         *    Index of tab to which properties are copied.
+         */
+        virtual void copyDisplayProperties(const int32_t sourceTabIndex,
+                                           const int32_t targetTabIndex) = 0;
+        
         virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
                                         const AString& instanceName) = 0;
         

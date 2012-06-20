@@ -126,7 +126,7 @@ DisplayPropertiesBorders::update()
  *    Index of tab to which properties are copied.
  */
 void 
-DisplayPropertiesBorders::copyDisplayPropertiesBorders(const int32_t sourceTabIndex,
+DisplayPropertiesBorders::copyDisplayProperties(const int32_t sourceTabIndex,
                                                      const int32_t targetTabIndex)
 {
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);

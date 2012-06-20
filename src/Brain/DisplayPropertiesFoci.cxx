@@ -93,7 +93,7 @@ DisplayPropertiesFoci::~DisplayPropertiesFoci()
  *    Index of tab to which properties are copied.
  */
 void 
-DisplayPropertiesFoci::copyDisplayPropertiesFoci(const int32_t sourceTabIndex,
+DisplayPropertiesFoci::copyDisplayProperties(const int32_t sourceTabIndex,
                                                  const int32_t targetTabIndex)
 {
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);

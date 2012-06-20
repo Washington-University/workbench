@@ -128,12 +128,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     if (model != NULL) {
         Brain* brain = model->getBrain();
         
-        DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
-        dpb->copyDisplayPropertiesBorders(tabToClone->getTabNumber(),
-                                          this->getTabNumber());
-        DisplayPropertiesFoci* dpf = brain->getDisplayPropertiesFoci();
-        dpf->copyDisplayPropertiesFoci(tabToClone->getTabNumber(),
-                                       this->getTabNumber());
+        brain->copyDisplayProperties(tabToClone->getTabNumber(), 
+                                     this->getTabNumber());
         
         const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
         for (int32_t i = 0; i < numBorderFiles; i++) {

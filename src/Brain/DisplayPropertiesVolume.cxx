@@ -297,6 +297,19 @@ DisplayPropertiesVolume::addSurfaceOutline(Surface* surface,
 }
 
 /**
+ * Copy the display properties from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which properties are copied.
+ * @param targetTabIndex
+ *    Index of tab to which properties are copied.
+ */
+void 
+DisplayPropertiesVolume::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
+                                                    const int32_t /*targetTabIndex*/)
+{
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

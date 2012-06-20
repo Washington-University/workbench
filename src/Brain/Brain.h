@@ -206,6 +206,9 @@ namespace caret {
         
         const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
         
+        void copyDisplayProperties(const int32_t sourceTabIndex,
+                                   const int32_t targetTabIndex);
+        
         virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
                                         const AString& instanceName);
         
