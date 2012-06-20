@@ -327,3 +327,54 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
     return surface;
 }
 
+/**
+ * For a structure model, copy the transformations from one window of
+ * the structure model to another window.
+ *
+ * @param controllerSource        Source structure model
+ * @param windowTabNumberSource   windowTabNumber of source transformation.
+ * @param windowTabNumberTarget   windowTabNumber of target transformation.
+ *
+ */
+void
+ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
+                                         const int32_t windowTabNumberSource,
+                                         const int32_t windowTabNumberTarget)
+{
+    if (this == &controllerSource) {
+        if (windowTabNumberSource == windowTabNumberTarget) {
+            return;
+        }
+    }
+    
+    CaretAssertArrayIndex(this->translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumberTarget);
+    CaretAssertArrayIndex(controllerSource->translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumberSource);
+    
+    Model::copyTransformationsAndViews(controllerSource, windowTabNumberSource, windowTabNumberTarget);
+    
+    const ModelSurfaceMontage* modelSurfaceMontage = dynamic_cast<const ModelSurfaceMontage*>(&controllerSource);
+    if (modelSurfaceMontage == NULL) {
+        return;
+    }
+  
+    this->leftSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->leftSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    
+    this->leftSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->leftSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+
+    this->rightSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->rightSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    
+    this->rightSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    
+    this->dualConfigurationEnabled[windowTabNumberTarget] = modelSurfaceMontage->dualConfigurationEnabled[windowTabNumberSource];
+    
+//    this->setSliceViewPlane(windowTabNumberTarget, 
+//                            modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
+}

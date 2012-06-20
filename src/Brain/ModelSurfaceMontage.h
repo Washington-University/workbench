@@ -74,6 +74,10 @@ namespace caret {
         void setDualConfigurationEnabled(const int tabIndex,
                                          const bool enabled);
         
+        virtual void copyTransformationsAndViews(const Model& controller,
+                                                 const int32_t windowTabNumberSource,
+                                                 const int32_t windowTabNumberTarget);
+        
     private:
         ModelSurfaceMontage(const ModelSurfaceMontage&);
         
