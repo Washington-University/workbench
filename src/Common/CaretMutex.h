@@ -25,10 +25,36 @@
 #ifndef __CARET_MUTEX_H__
 #define __CARET_MUTEX_H__
 
+#include "CaretOMP.h"
+
 #include <QMutex>
 
 namespace caret {
 
+//omp mutexes are faster than QMutex, especially without contention
+#ifdef CARET_OMP
+    class CaretMutex
+    {
+        omp_lock_t m_lock;
+        CaretMutex(const CaretMutex& rhs);//disallow copy, assign
+        CaretMutex& operator=(const CaretMutex& rhs);
+    public:
+        CaretMutex() { omp_init_lock(&m_lock); }
+        ~CaretMutex() { omp_destroy_lock(&m_lock); }
+        friend class CaretMutexLocker;
+    };
+    
+    class CaretMutexLocker
+    {
+        CaretMutex* m_mutex;
+        CaretMutexLocker();//disallow default construction, assign
+        CaretMutexLocker& operator=(const CaretMutexLocker& rhs);
+        public:
+        CaretMutexLocker(CaretMutex* mutex) { m_mutex = mutex; omp_set_lock(&(m_mutex->m_lock)); }
+        ~CaretMutexLocker() { omp_unset_lock(&(m_mutex->m_lock)); }
+    };
+#else
+//if we don't have openmp, fall back to CaretMutex
    class CaretMutex : public QMutex
    {
    public:
@@ -41,28 +67,7 @@ namespace caret {
       CaretMutexLocker(CaretMutex* theMutex);
    };
    
-   //cheap object designed to enforce correct use of functions that may not be called by multiple threads in certain ways, for instance if each thread must have its own instance of an object
-   //if something tries to lock the mutex while it is locked, a CaretException is thrown
-   class CaretThrowMutex
-   {
-       bool m_inUse;
-       CaretThrowMutex(const CaretThrowMutex& rhs);//prevent copy, assignment
-       CaretThrowMutex& operator=(const CaretThrowMutex& rhs);
-   public:
-       CaretThrowMutex();
-       friend class CaretThrowMutexLocker;
-   };
-   
-   class CaretThrowMutexLocker
-   {
-       CaretThrowMutex* m_Mutex;
-       CaretThrowMutexLocker();//prevent default construction, copy, assign
-       CaretThrowMutexLocker(const CaretThrowMutexLocker& rhs);
-       CaretThrowMutexLocker& operator=(const CaretThrowMutexLocker& rhs);
-   public:
-       CaretThrowMutexLocker(CaretThrowMutex* theMutex, const char* message);//set the message to include in the exception
-       ~CaretThrowMutexLocker();
-   };
+#endif
 
 }
 

@@ -175,7 +175,7 @@ void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, 
     nodesOut.clear();
     distsOut.clear();
     if (node >= numNodes || maxdist < 0.0f || node < 0) return;
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//let sanity checks go multithreaded, as if it mattered
+    CaretMutexLocker locked(&inUse);//let sanity checks go multithreaded, as if it mattered
     dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
 }
 
@@ -184,7 +184,7 @@ void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, 
     nodesOut.clear();
     distsOut.clear();
     if (node >= numNodes || maxdist < 0.0f || node < 0) return;
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//we need the parents array to stay put, so don't scope this
+    CaretMutexLocker locked(&inUse);//we need the parents array to stay put, so don't scope this
     dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
     int32_t mysize = (int32_t)nodesOut.size();
     parentsOut.resize(mysize);
@@ -349,7 +349,7 @@ float** GeodesicHelper::getGeoAllToAll(const bool smooth)
         ++index;
         bytes = bytes >> 10;
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//don't sit there with memory allocated but locked out of computation, lock early - also before status messages
+    CaretMutexLocker locked(&inUse);//don't sit there with memory allocated but locked out of computation, lock early - also before status messages
     std::cout << "attempting to allocate " << bytes / 100 << "." << bytes % 100 << labels[index] << "...";
     std::cout.flush();
     int32_t i = -1, j;
@@ -587,7 +587,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, const 
     {
         return;
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//don't screw with member variables while in use
+    CaretMutexLocker locked(&inUse);//don't screw with member variables while in use
     float* temp = output;//swap out the output pointer to avoid allocation
     output = valuesOut;
     dijkstra(node, smoothflag);
@@ -600,7 +600,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, int32_
     {
         return;
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//don't screw with member variables while in use
+    CaretMutexLocker locked(&inUse);//don't screw with member variables while in use
     float* temp = output;//swap out the output pointer to avoid allocation
     int32_t* tempi = parent;
     output = valuesOut;
@@ -616,7 +616,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valu
     {
         return;
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");
+    CaretMutexLocker locked(&inUse);
     float* temp = output;//swap the output pointer to avoid copy
     valuesOut.resize(numNodes);
     output = valuesOut.data();
@@ -630,7 +630,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valu
     {
         return;
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");
+    CaretMutexLocker locked(&inUse);
     float* temp = output;//swap out the output pointer to avoid copying into the vector afterwards
     int32_t* tempi = parent;
     valuesOut.resize(numNodes);
@@ -753,7 +753,7 @@ void GeodesicHelper::getGeoToTheseNodes(const int32_t root, const std::vector<in
             return;
         }
     }
-    CaretThrowMutexLocker locked(&inUse, "GeodesicHelper used concurrently from same instance");//let sanity checks fail without locking
+    CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
     dijkstra(root, ofInterest, smoothflag);
     distsOut.resize(mysize);
     for (i = 0; i < mysize; ++i)

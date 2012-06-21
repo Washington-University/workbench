@@ -83,7 +83,7 @@ namespace caret {
         };
     private:
         CaretPointer<TopologyHelper> m_topoHelp;
-        CaretThrowMutex m_mutex;
+        CaretMutex m_mutex;
         CaretPointer<SignedDistanceHelperBase> m_base;
         CaretArray<int> m_triMarked;
         CaretArray<int> m_triMarkChanged;

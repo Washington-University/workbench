@@ -31,7 +31,7 @@ using namespace caret;
 
 float SignedDistanceHelper::dist(const float coord[3], WindingLogic myWinding)
 {
-    CaretThrowMutexLocker(&m_mutex, "SignedDistanceObject used concurrently from the same instance");
+    CaretMutexLocker locked(&m_mutex);
     CaretSimpleMinHeap<Oct<SignedDistanceHelperBase::TriVector>*, float> myHeap;
     myHeap.push(m_base->m_indexRoot, m_base->m_indexRoot->distToPoint(coord));
     ClosestPointInfo tempInfo, bestInfo;
@@ -86,7 +86,7 @@ float SignedDistanceHelper::dist(const float coord[3], WindingLogic myWinding)
 
 void SignedDistanceHelper::barycentricWeights(const float coord[3], vector<NodeWeight>& weightsOut)
 {
-    CaretThrowMutexLocker(&m_mutex, "SignedDistanceObject used concurrently from the same instance");
+    CaretMutexLocker locked(&m_mutex);
     CaretSimpleMinHeap<Oct<SignedDistanceHelperBase::TriVector>*, float> myHeap;
     myHeap.push(m_base->m_indexRoot, m_base->m_indexRoot->distToPoint(coord));
     ClosestPointInfo tempInfo, bestInfo;

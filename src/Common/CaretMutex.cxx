@@ -28,6 +28,8 @@
 
 using namespace caret;
 
+#ifndef CARET_OMP
+
 CaretMutexLocker::CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex)
 {
 }
@@ -36,20 +38,5 @@ CaretMutex::CaretMutex(QMutex::RecursionMode mode): QMutex(mode)
 {
 }
 
-CaretThrowMutex::CaretThrowMutex()
-{
-    m_inUse = false;
-}
-
-CaretThrowMutexLocker::CaretThrowMutexLocker(CaretThrowMutex* theMutex, const char* message)
-{
-    CaretAssert(theMutex != NULL);
-    m_Mutex = theMutex;
-    if (m_Mutex->m_inUse) throw CaretException(message);//don't bother making this atomic, we don't need it to be guaranteed to catch all problems
-    m_Mutex->m_inUse = true;
-}
-
-CaretThrowMutexLocker::~CaretThrowMutexLocker()
-{
-    m_Mutex->m_inUse = false;
-}
+#endif
+//the OMP versions are implemented in the header
