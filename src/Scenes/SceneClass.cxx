@@ -396,6 +396,30 @@ SceneClass::getClass(const AString& name) const
 }
 
 /**
+ * Find and return the scene's child class with the given name.
+ *
+ * @param name
+ *     Name of the child class.
+ * @return
+ *     Pointer to the class with the given name or NULL if
+ *     no child class exists with the given name.
+ */
+SceneClass* 
+SceneClass::getClass(const AString& name)
+{
+    for (std::vector<SceneClass*>::const_iterator iter = m_childClasses.begin();
+         iter != m_childClasses.end();
+         iter++) {
+        SceneClass* childClass = *iter;
+        if (childClass->getName() == name) {
+            return childClass;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * @return Number of primitives in the class.
  */
 int32_t 

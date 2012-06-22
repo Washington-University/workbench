@@ -78,6 +78,8 @@ namespace caret {
         
         const SceneClass* getClass(const AString& name) const;
         
+        SceneClass* getClass(const AString& name);
+        
         AString getEnumeratedTypeValue(const AString& name,
                                        const AString& defaultValue = "") const;
         
