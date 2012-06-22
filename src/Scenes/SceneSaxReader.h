@@ -104,7 +104,8 @@ namespace caret {
         Scene* m_scene;
         
         /** Stack for classes being read (a class may contain class) */
-        std::stack<SceneClass*> m_sceneClassStack;
+        //std::stack<SceneClass*> m_sceneClassStack;
+        std::stack<std::pair<SceneClass*, SceneObjectDataTypeEnum::Enum> > m_objectBeingReadStack;
         
         /** Object Type */
         SceneObjectDataTypeEnum::Enum m_objectBeingReadDataType;
