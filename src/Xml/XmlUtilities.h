@@ -50,6 +50,10 @@ namespace caret {
         static AString createInvalidChildElementMessage(const AString& parentElementName,
                                                         const AString& invalidChildElementName);
         
+        static AString createInvalidAttributeMessage(const AString& elementName,
+                                                     const AString& attributeName,
+                                                     const AString& invalidAttributeValue);
+        
         static AString createInvalidVersionMessage(const float supportedVersion,
                                                    const float invalidVersion);
         
