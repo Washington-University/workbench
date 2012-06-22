@@ -23,8 +23,6 @@
  */
 /*LICENSE_END*/
 
-#include <sstream>
-
 #include "CaretLogger.h"
 #include "Scene.h"
 #include "SceneClass.h"
@@ -129,11 +127,17 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException)
 {
+    /*
+     * Get attributes of the object element
+     */
     const AString objectTypeName  = attributes.getValue(SceneXmlElements::OBJECT_TYPE_ATTRIBUTE);
     const AString objectName      = attributes.getValue(SceneXmlElements::OBJECT_NAME_ATTRIBUTE);
     const AString objectClassName = attributes.getValue(SceneXmlElements::OBJECT_CLASS_ATTRIBUTE);
     const int32_t objectVersion   = attributes.getValueAsInt(SceneXmlElements::OBJECT_VERSION_ATTRIBUTE);
     
+    /*
+     * Get the type of the object
+     */
     bool validObjectType = false;
     const SceneObjectDataTypeEnum::Enum objectDataType = SceneObjectDataTypeEnum::fromXmlName(objectTypeName,
                                                                                               &validObjectType);
@@ -146,8 +150,7 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (Xm
         throw e;
     }
     
-    m_objectBeingReadDataType = objectDataType;
-    m_objectBeingReadName     = "";
+    m_objectBeingReadName = "";
     
     SceneClass* sceneClass = NULL;
     switch (objectDataType) {
@@ -156,7 +159,6 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (Xm
             sceneClass = new SceneClass(objectName,
                                         objectClassName,
                                         objectVersion);
-//            m_sceneClassStack.push(sceneClass);
         }
             break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
@@ -164,13 +166,15 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (Xm
         case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
         case SceneObjectDataTypeEnum::SCENE_STRING:
-            m_objectBeingReadDataType = objectDataType;
             m_objectBeingReadName     = objectName;
             break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
             break;
     }   
     
+    /*
+     * Track object being read to ensure proper parenting of children objects
+     */
     m_objectBeingReadStack.push(std::make_pair(sceneClass, objectDataType));
 }
 
@@ -187,22 +191,6 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_NONE:
             break;
         case STATE_SCENE:
-        {
-//            if (m_sceneClassStack.empty() == false) {
-//                SceneClass* sceneClass = m_sceneClassStack.top();
-//                m_sceneClassStack.pop();
-//                if (m_sceneClassStack.empty()) {
-//                    m_scene->addClass(sceneClass);
-//                    
-//                    std::cout 
-//                    << "Adding class named "
-//                    << qPrintable(sceneClass->getName())
-//                    << " to parent scene named "
-//                    << qPrintable(m_scene->getName())
-//                    << std::endl;
-//                }
-//            }
-        }
             break;
         case STATE_NAME:
             m_scene->setName(m_elementText);
@@ -214,39 +202,29 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
             m_objectBeingReadStack.pop();
 
             const AString stringValue = m_elementText;
-            std::cout << "Value for object " << qPrintable(m_objectBeingReadName) << "=" << qPrintable(stringValue) << std::endl;
             switch (objectDataType) {
                 case SceneObjectDataTypeEnum::SCENE_CLASS:
                 {
                     if (m_objectBeingReadStack.empty()) {
+                        /*
+                         * Parent must be the scene
+                         */
                         if (objectClass != NULL) {
-                            std::cout 
-                            << "Adding class named "
-                            << qPrintable(objectClass->getName())
-                            << " to parent scene named "
-                            << qPrintable(m_scene->getName())
-                            << std::endl;
-                            
                             m_scene->addClass(objectClass);
                         }
                     }
                     else {
+                        /*
+                         * Parent is another class
+                         */
                         SceneClass* parentSceneClass = m_objectBeingReadStack.top().first;
                         parentSceneClass->addClass(objectClass);
-                        
-                        std::cout 
-                        << "Adding class named "
-                        << qPrintable(objectClass->getName())
-                        << " to parent class named "
-                        << qPrintable(parentSceneClass->getName())
-                        << std::endl;
                     }
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                 {
                     const bool value = stringValue.toBool();
-                    //SceneClass* sc = m_sceneClassStack.top();
                     SceneClass *sc = m_objectBeingReadStack.top().first;
                     sc->addBoolean(m_objectBeingReadName, 
                                    value);
@@ -255,7 +233,6 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 case SceneObjectDataTypeEnum::SCENE_FLOAT:
                 {
                     const float value = stringValue.toFloat();
-                    //SceneClass* sc = m_sceneClassStack.top();
                     SceneClass *sc = m_objectBeingReadStack.top().first;
                     sc->addFloat(m_objectBeingReadName, 
                                  value);
@@ -263,7 +240,6 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     break;
                 case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
                 {
-                    //SceneClass* sc = m_sceneClassStack.top();
                     SceneClass *sc = m_objectBeingReadStack.top().first;
                     sc->addEnumeratedType(m_objectBeingReadName, 
                                           stringValue);
@@ -272,7 +248,6 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 case SceneObjectDataTypeEnum::SCENE_INTEGER:
                 {
                     const int32_t value = stringValue.toInt();
-                    //SceneClass* sc = m_sceneClassStack.top();
                     SceneClass *sc = m_objectBeingReadStack.top().first;
                     sc->addInteger(m_objectBeingReadName, 
                                    value);
@@ -280,7 +255,6 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:
                 {
-                    //SceneClass* sc = m_sceneClassStack.top();
                     SceneClass *sc = m_objectBeingReadStack.top().first;
                     sc->addString(m_objectBeingReadName, 
                                   stringValue);
@@ -290,22 +264,19 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     break;
             }    
             
-            if (m_objectBeingReadDataType != SceneObjectDataTypeEnum::SCENE_CLASS) {
-                m_objectBeingReadDataType = SceneObjectDataTypeEnum::SCENE_INVALID;
-                m_objectBeingReadName     = "";
-            }
+            m_objectBeingReadName = "";
         }
             break;
     }
     
-    //
-    // Clear out for new elements
-    //
+    /*
+     * Clear out for new elements
+     */
     m_elementText = "";
     
-    //
-    // Go to previous state
-    //
+    /*
+     * Go to previous state
+     */
     if (m_stateStack.empty()) {
         throw XmlSaxParserException("State stack is empty while reading Scene.");
     }
