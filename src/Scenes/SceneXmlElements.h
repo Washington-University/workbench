@@ -52,37 +52,37 @@ namespace caret {
     namespace SceneXmlElements {
         
         /** XML Tag for scene */
-        static const AString SCENE_TAG = "scene";
+        static const AString SCENE_TAG = "Scene";
         
         /** XML Tag for scene name */
-        static const AString SCENE_NAME_TAG = "name";
+        static const AString SCENE_NAME_TAG = "Name";
         
         /** XML Attribute for scene index */
-        static const AString SCENE_INDEX_ATTRIBUTE = "index";
+        static const AString SCENE_INDEX_ATTRIBUTE = "Index";
         
         /** XML Attribute for scene type */
-        static const AString SCENE_TYPE_ATTRIBUTE = "type";
+        static const AString SCENE_TYPE_ATTRIBUTE = "Type";
         
         /** XML Tag for scene object */
-        static const AString OBJECT_TAG = "object";
+        static const AString OBJECT_TAG = "Object";
         
         /** XML Attributes for scene object type */
-        static const AString OBJECT_TYPE_ATTRIBUTE = "type";
+        static const AString OBJECT_TYPE_ATTRIBUTE = "Type";
                 
         /** XML Attributes for scene object name */
-        static const AString OBJECT_NAME_ATTRIBUTE = "name";
+        static const AString OBJECT_NAME_ATTRIBUTE = "Name";
         
         /** 
          * XML Attributes for scene object class.  Required when
          * 'type' is a class and contains the name of the class.
          */
-        static const AString OBJECT_CLASS_ATTRIBUTE = "class";
+        static const AString OBJECT_CLASS_ATTRIBUTE = "Class";
         
         /** 
          * XML Attributes for scene object length.  Only valid when
          * 'type' is an array.
          */
-        //static const AString OBJECT_LENGTH_ATTRIBUTE = "length";
+        //static const AString OBJECT_LENGTH_ATTRIBUTE = "Length";
         
         /** 
          * XML Attributes for scene object version.  Only valid when
@@ -90,7 +90,7 @@ namespace caret {
          * members deleted, member's type changed, etc), the version
          * can be used to handle previous versions of a class.
          */
-        static const AString OBJECT_VERSION_ATTRIBUTE = "version";
+        static const AString OBJECT_VERSION_ATTRIBUTE = "Version";
         
         
     } // namespace SceneXmlElements

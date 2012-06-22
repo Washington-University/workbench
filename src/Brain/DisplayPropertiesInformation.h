@@ -27,9 +27,10 @@
 
 #include "CaretColorEnum.h"
 #include "DisplayProperties.h"
-
 namespace caret {
 
+    class SceneClassAssistant;
+    
     class DisplayPropertiesInformation : public DisplayProperties {
         
     public:
@@ -86,6 +87,7 @@ namespace caret {
         CaretColorEnum::Enum identificationContralateralSymbolColor;
         
 
+        SceneClassAssistant* sceneAssistant;
     };
     
 #ifdef __DISPLAY_PROPERTIES_INFORMATION_DECLARE__

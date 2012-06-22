@@ -41,10 +41,13 @@
 #undef __SCENE_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "FileAdapter.h"
 #include "GiftiMetaData.h"
 #include "Scene.h"
+#include "SceneFileSaxReader.h"
 #include "SceneWriterXml.h"
+#include "XmlSaxParser.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -226,7 +229,39 @@ SceneFile::getFileMetaData() const
 void 
 SceneFile::readFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading of scene files not implemented.");
+    SceneFileSaxReader saxReader(this);
+    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    try {
+        parser->parseFile(filename, &saxReader);
+    }
+    catch (const XmlSaxParserException& e) {
+        this->setFileName("");
+        
+        int lineNum = e.getLineNumber();
+        int colNum  = e.getColumnNumber();
+        
+        AString msg =
+        "Parse Error while reading "
+        + filename;
+        
+        if ((lineNum >= 0) && (colNum >= 0)) {
+            msg += (" line/col ("
+                    + AString::number(e.getLineNumber())
+                    + "/"
+                    + AString::number(e.getColumnNumber())
+                    + ")");
+        }
+        
+        msg += (": " + e.whatString());
+        
+        DataFileException dfe(msg);
+        CaretLogThrowing(dfe);
+        throw dfe;
+    }
+    
+    this->setFileName(filename);
+
+    this->clearModified();
 }
 
 /**

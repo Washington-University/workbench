@@ -29,6 +29,7 @@
 
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -50,6 +51,20 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
     this->identificationSymbolColor = CaretColorEnum::GREEN;
     this->identificationContralateralSymbolColor = CaretColorEnum::BLUE;
     this->identifcationSymbolSize = 3.5;
+    
+    this->sceneAssistant = new SceneClassAssistant();
+    
+    this->sceneAssistant->add("contralateralIdentificationEnabled",
+                              &this->contralateralIdentificationEnabled,
+                              this->contralateralIdentificationEnabled);
+    
+    this->sceneAssistant->add("volumeIdentificationEnabled",
+                              &this->volumeIdentificationEnabled,
+                              this->volumeIdentificationEnabled);
+    
+    this->sceneAssistant->add("identifcationSymbolSize",
+                              &this->identifcationSymbolSize,
+                              this->identifcationSymbolSize);
 }
 
 /**
@@ -57,7 +72,7 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
  */
 DisplayPropertiesInformation::~DisplayPropertiesInformation()
 {
-    
+    delete this->sceneAssistant;
 }
 
 /**
@@ -197,18 +212,21 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes
                                             "DisplayPropertiesInformation",
                                             1);
     
+    this->sceneAssistant->saveMembers(sceneAttributes, 
+                                      *sceneClass);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            sceneClass->addBoolean("contralateralIdentificationEnabled", 
-                                   this->contralateralIdentificationEnabled);
+//            sceneClass->addBoolean("contralateralIdentificationEnabled", 
+//                                   this->contralateralIdentificationEnabled);
             sceneClass->addEnumeratedType("identificationSymbolColor", 
                                           CaretColorEnum::toName(this->identificationSymbolColor));
             sceneClass->addEnumeratedType("identificationContralateralSymbolColor", 
                                           CaretColorEnum::toName(this->identificationContralateralSymbolColor));
-            sceneClass->addFloat("identifcationSymbolSize", 
-                                 this->identifcationSymbolSize);
-            sceneClass->addBoolean("volumeIdentificationEnabled", 
-                                   this->volumeIdentificationEnabled);
+//            sceneClass->addFloat("identifcationSymbolSize", 
+//                                 this->identifcationSymbolSize);
+//            sceneClass->addBoolean("volumeIdentificationEnabled", 
+//                                   this->volumeIdentificationEnabled);
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
@@ -233,14 +251,17 @@ void
 DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttributes,
                         const SceneClass& sceneClass)
 {
+    this->sceneAssistant->restoreMembers(sceneAttributes, 
+                                         sceneClass);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            this->contralateralIdentificationEnabled = sceneClass.getBooleanValue("contralateralIdentificationEnabled",
-                                                                                  false);
-            this->volumeIdentificationEnabled = sceneClass.getBooleanValue("volumeIdentificationEnabled",
-                                                                                  true);
-            this->identifcationSymbolSize = sceneClass.getFloatValue("identifcationSymbolSize",
-                                                                                  3.5);
+//            this->contralateralIdentificationEnabled = sceneClass.getBooleanValue("contralateralIdentificationEnabled",
+//                                                                                  false);
+//            this->volumeIdentificationEnabled = sceneClass.getBooleanValue("volumeIdentificationEnabled",
+//                                                                                  true);
+//            this->identifcationSymbolSize = sceneClass.getFloatValue("identifcationSymbolSize",
+//                                                                                  3.5);
             this->identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationSymbolColor",
                                                                                                          "CaretColorEnum::GREEN"),
                                                                        NULL);

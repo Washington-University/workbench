@@ -64,6 +64,9 @@ namespace caret {
          *    (full, generic, etc) and the attributes should be checked when
          *    saving the scene.
          *
+         * @param instanceName
+         *    Name of the class' instance.
+         *
          * @return Pointer to SceneClass object representing the state of 
          *    this object.  Under some circumstances a NULL pointer may be
          *    returned.  Caller will take ownership of returned object.
