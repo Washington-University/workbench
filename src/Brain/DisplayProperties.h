@@ -32,6 +32,8 @@
 namespace caret {
 
     class Brain;
+    class SceneClassAssistant;
+    
     
     class DisplayProperties : public CaretObject, public SceneableInterface {
         
@@ -81,7 +83,9 @@ namespace caret {
         virtual AString toString() const;
         
     protected:
-        Brain* brain;
+        Brain* m_brain;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __DISPLAY_PROPERTIES_DECLARE__

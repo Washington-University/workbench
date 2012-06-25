@@ -61,6 +61,7 @@
 #include "RgbaFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -108,6 +109,17 @@ Brain::Brain()
     this->isSpecFileBeingRead = false;
     this->fileReadingUsername = "";
     this->fileReadingPassword = "";
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add("displayPropertiesInformation", 
+                          "DisplayPropertiesInformation", 
+                          this->displayPropertiesInformation);
+    
+//    m_sceneAssistant->add("contralateralIdentificationEnabled",
+//                              &this->contralateralIdentificationEnabled,
+//                              this->contralateralIdentificationEnabled);
+    
 }
 
 /**
@@ -117,6 +129,8 @@ Brain::~Brain()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 
+    delete m_sceneAssistant;
+    
     for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
          iter != this->displayProperties.end();
          iter++) {
@@ -2143,6 +2157,9 @@ Brain::saveToScene(const SceneAttributes& sceneAttributes,
                                             "Brain",
                                             1);
     
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  *sceneClass);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -2154,8 +2171,8 @@ Brain::saveToScene(const SceneAttributes& sceneAttributes,
                                                                      "displayPropertiesBorders"));
     sceneClass->addClass(this->displayPropertiesFoci->saveToScene(sceneAttributes, 
                                              "displayPropertiesFoci"));
-    sceneClass->addClass(this->displayPropertiesInformation->saveToScene(sceneAttributes, 
-                                                    "displayPropertiesInformation"));
+//    sceneClass->addClass(this->displayPropertiesInformation->saveToScene(sceneAttributes, 
+//                                                    "displayPropertiesInformation"));
     sceneClass->addClass(this->displayPropertiesVolume->saveToScene(sceneAttributes, 
                                                "displayPropertiesVolume"));
     
@@ -2178,6 +2195,9 @@ void
 Brain::restoreFromScene(const SceneAttributes& sceneAttributes,
                               const SceneClass& sceneClass)
 {
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

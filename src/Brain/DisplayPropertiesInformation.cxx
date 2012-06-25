@@ -46,25 +46,23 @@ using namespace caret;
 DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
 : DisplayProperties(brain)
 {
-    this->contralateralIdentificationEnabled = false;
-    this->volumeIdentificationEnabled = true;
-    this->identificationSymbolColor = CaretColorEnum::GREEN;
-    this->identificationContralateralSymbolColor = CaretColorEnum::BLUE;
-    this->identifcationSymbolSize = 3.5;
+    m_contralateralIdentificationEnabled = false;
+    m_volumeIdentificationEnabled = true;
+    m_identificationSymbolColor = CaretColorEnum::GREEN;
+    m_identificationContralateralSymbolColor = CaretColorEnum::BLUE;
+    m_identifcationSymbolSize = 3.5;
     
-    this->sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("contralateralIdentificationEnabled",
+                              &m_contralateralIdentificationEnabled,
+                              m_contralateralIdentificationEnabled);
     
-    this->sceneAssistant->add("contralateralIdentificationEnabled",
-                              &this->contralateralIdentificationEnabled,
-                              this->contralateralIdentificationEnabled);
+    m_sceneAssistant->add("volumeIdentificationEnabled",
+                              &m_volumeIdentificationEnabled,
+                              m_volumeIdentificationEnabled);
     
-    this->sceneAssistant->add("volumeIdentificationEnabled",
-                              &this->volumeIdentificationEnabled,
-                              this->volumeIdentificationEnabled);
-    
-    this->sceneAssistant->add("identifcationSymbolSize",
-                              &this->identifcationSymbolSize,
-                              this->identifcationSymbolSize);
+    m_sceneAssistant->add("identifcationSymbolSize",
+                              &m_identifcationSymbolSize,
+                              m_identifcationSymbolSize);
 }
 
 /**
@@ -72,7 +70,6 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
  */
 DisplayPropertiesInformation::~DisplayPropertiesInformation()
 {
-    delete this->sceneAssistant;
 }
 
 /**
@@ -98,7 +95,7 @@ DisplayPropertiesInformation::update()
 bool 
 DisplayPropertiesInformation::isContralateralIdentificationEnabled() const
 {
-    return this->contralateralIdentificationEnabled;
+    return m_contralateralIdentificationEnabled;
 }
         
 /**
@@ -109,7 +106,7 @@ DisplayPropertiesInformation::isContralateralIdentificationEnabled() const
 void 
 DisplayPropertiesInformation::setContralateralIdentificationEnabled(const bool enabled)
 {
-    this->contralateralIdentificationEnabled = enabled;
+    m_contralateralIdentificationEnabled = enabled;
 }
 
 /**
@@ -118,7 +115,7 @@ DisplayPropertiesInformation::setContralateralIdentificationEnabled(const bool e
 bool 
 DisplayPropertiesInformation::isVolumeIdentificationEnabled() const
 {
-    return this->volumeIdentificationEnabled;
+    return m_volumeIdentificationEnabled;
 }
 
 /**
@@ -129,7 +126,7 @@ DisplayPropertiesInformation::isVolumeIdentificationEnabled() const
 void 
 DisplayPropertiesInformation::setVolumeIdentificationEnabled(const bool enabled)
 {
-    this->volumeIdentificationEnabled = enabled;
+    m_volumeIdentificationEnabled = enabled;
 }
 
 /**
@@ -138,7 +135,7 @@ DisplayPropertiesInformation::setVolumeIdentificationEnabled(const bool enabled)
 float 
 DisplayPropertiesInformation::getIdentificationSymbolSize() const
 {
-    return this->identifcationSymbolSize;
+    return m_identifcationSymbolSize;
 }
 
 /**
@@ -149,7 +146,7 @@ DisplayPropertiesInformation::getIdentificationSymbolSize() const
 void 
 DisplayPropertiesInformation::setIdentificationSymbolSize(const float symbolSize)
 {
-    this->identifcationSymbolSize = symbolSize;
+    m_identifcationSymbolSize = symbolSize;
 }
 
 /**
@@ -158,7 +155,7 @@ DisplayPropertiesInformation::setIdentificationSymbolSize(const float symbolSize
 CaretColorEnum::Enum 
 DisplayPropertiesInformation::getIdentificationSymbolColor() const
 {
-    return this->identificationSymbolColor;
+    return m_identificationSymbolColor;
 }
 
 /**
@@ -169,7 +166,7 @@ DisplayPropertiesInformation::getIdentificationSymbolColor() const
 void 
 DisplayPropertiesInformation::setIdentificationSymbolColor(const CaretColorEnum::Enum color)
 {
-    this->identificationSymbolColor = color;
+    m_identificationSymbolColor = color;
 }
 
 /**
@@ -178,7 +175,7 @@ DisplayPropertiesInformation::setIdentificationSymbolColor(const CaretColorEnum:
 CaretColorEnum::Enum 
 DisplayPropertiesInformation::getIdentificationContralateralSymbolColor() const
 {
-    return this->identificationContralateralSymbolColor;
+    return m_identificationContralateralSymbolColor;
 }
 
 /**
@@ -189,7 +186,7 @@ DisplayPropertiesInformation::getIdentificationContralateralSymbolColor() const
 void 
 DisplayPropertiesInformation::setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color)
 {
-    this->identificationContralateralSymbolColor = color;
+    m_identificationContralateralSymbolColor = color;
 }
 
 /**
@@ -212,21 +209,15 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes
                                             "DisplayPropertiesInformation",
                                             1);
     
-    this->sceneAssistant->saveMembers(sceneAttributes, 
+    m_sceneAssistant->saveMembers(sceneAttributes, 
                                       *sceneClass);
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-//            sceneClass->addBoolean("contralateralIdentificationEnabled", 
-//                                   this->contralateralIdentificationEnabled);
             sceneClass->addEnumeratedType("identificationSymbolColor", 
-                                          CaretColorEnum::toName(this->identificationSymbolColor));
+                                          CaretColorEnum::toName(m_identificationSymbolColor));
             sceneClass->addEnumeratedType("identificationContralateralSymbolColor", 
-                                          CaretColorEnum::toName(this->identificationContralateralSymbolColor));
-//            sceneClass->addFloat("identifcationSymbolSize", 
-//                                 this->identifcationSymbolSize);
-//            sceneClass->addBoolean("volumeIdentificationEnabled", 
-//                                   this->volumeIdentificationEnabled);
+                                          CaretColorEnum::toName(m_identificationContralateralSymbolColor));
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
@@ -251,21 +242,15 @@ void
 DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttributes,
                         const SceneClass& sceneClass)
 {
-    this->sceneAssistant->restoreMembers(sceneAttributes, 
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
                                          sceneClass);
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-//            this->contralateralIdentificationEnabled = sceneClass.getBooleanValue("contralateralIdentificationEnabled",
-//                                                                                  false);
-//            this->volumeIdentificationEnabled = sceneClass.getBooleanValue("volumeIdentificationEnabled",
-//                                                                                  true);
-//            this->identifcationSymbolSize = sceneClass.getFloatValue("identifcationSymbolSize",
-//                                                                                  3.5);
-            this->identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationSymbolColor",
+            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationSymbolColor",
                                                                                                          "CaretColorEnum::GREEN"),
                                                                        NULL);
-            this->identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationContralateralSymbolColor",
+            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationContralateralSymbolColor",
                                                                                                          "CaretColorEnum::BLUE"),
                                                                        NULL);
             break;

@@ -146,7 +146,9 @@ SceneClassAssistant::add(const AString& name,
  * @param sceneClass
  *     Handle (pointer to the pointer) that points to the class.
  *     If the value of the pointer (*sceneClass) is NULL, then
- *     the scene class is NOT added to the scene.
+ *     the scene class is NOT added to the scene.  This method
+ *     is best used when a member of a class is a pointer to
+ *     a class that implementes the SceneableInterface.
  */
 void 
 SceneClassAssistant::add(const AString& name,
@@ -154,6 +156,35 @@ SceneClassAssistant::add(const AString& name,
                          SceneableInterface** sceneClass)
 {
     CaretAssert(sceneClass);
+    
+    ClassData* cd = new ClassData(name,
+                                  className,
+                                  sceneClass);
+    m_dataStorage.push_back(cd);
+}
+
+/**
+ * Add a scene class.
+ * @param name
+ *     Name of class instance.
+ * @param className
+ *     Name of the class.
+ * @param sceneClass
+ *     Pointer to the class.  This method is best used when
+ *     a member of the class is not a pointer and implements
+ *     the SceneableInterface.
+ */
+void 
+SceneClassAssistant::add(const AString& name,
+                         const AString& className,
+                         SceneableInterface* sceneClass)
+{
+    CaretAssert(sceneClass);
+    
+    ClassData* cd = new ClassData(name,
+                                  className,
+                                  sceneClass);
+    m_dataStorage.push_back(cd);
 }
 
 /**
@@ -202,19 +233,26 @@ SceneClassAssistant::saveMembers(const SceneAttributes& sceneAttributes,
          iter != m_dataStorage.end();
          iter++) {
         Data* data = *iter;
-        data->save(sceneClass);
+        data->save(sceneAttributes,
+                   sceneClass);
     }
 }
 
 /* ========================================================================= */
-/* Data */
+/**
+ * \class caret::SceneClassAssistant::Data 
+ * \brief Base class for data added to a scene class.
+ */
 SceneClassAssistant::Data::Data(const AString& name) 
 : m_name(name) 
 {
 }
 
 /* ========================================================================= */
-/* FloatData */
+/**
+ * \class caret::SceneClassAssistant::FloatData 
+ * \brief Float data added to a scene class.
+ */
 
 /**
  * Constructor.
@@ -242,7 +280,7 @@ m_defaultValue(defaultValue)
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::FloatData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::FloatData::restore(const SceneAttributes& /*sceneAttributes*/,
                                         const SceneClass& sceneClass)
 {
     *m_dataPointer = sceneClass.getFloatValue(m_name, 
@@ -251,17 +289,23 @@ SceneClassAssistant::FloatData::restore(const SceneAttributes& sceneAttributes,
 
 /**
  * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class to which data is saved.
  */
 void 
-SceneClassAssistant::FloatData::save(SceneClass& sceneClass)
+SceneClassAssistant::FloatData::save(const SceneAttributes& /*sceneAttributes*/,
+                                     SceneClass& sceneClass)
 {
     sceneClass.addFloat(m_name, 
                         *m_dataPointer);
 }
 /* ========================================================================= */
-/* IntegerData */
+/**
+ * \class caret::SceneClassAssistant::IntegerData 
+ * \brief Integer data added to a scene class.
+ */
 
 /**
  * Constructor.
@@ -283,11 +327,13 @@ m_defaultValue(defaultValue)
 
 /**
  * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::IntegerData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::IntegerData::restore(const SceneAttributes& /*sceneAttributes*/,
                                           const SceneClass& sceneClass)
 {
     *m_dataPointer = sceneClass.getIntegerValue(m_name, 
@@ -296,18 +342,24 @@ SceneClassAssistant::IntegerData::restore(const SceneAttributes& sceneAttributes
 
 /**
  * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class to which data is saved.
  */
 void 
-SceneClassAssistant::IntegerData::save(SceneClass& sceneClass)
+SceneClassAssistant::IntegerData::save(const SceneAttributes& /*sceneAttributes*/,
+                                       SceneClass& sceneClass)
 {
     sceneClass.addInteger(m_name, 
                         *m_dataPointer);
 }
 
 /* ========================================================================= */
-/* BooleanData */
+/**
+ * \class caret::SceneClassAssistant::BooleanData 
+ * \brief Boolean data added to a scene class.
+ */
 
 /**
  * Constructor.
@@ -329,11 +381,13 @@ m_defaultValue(defaultValue)
 
 /**
  * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::BooleanData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::BooleanData::restore(const SceneAttributes& /*sceneAttributes*/,
                                           const SceneClass& sceneClass)
 {
     *m_dataPointer = sceneClass.getBooleanValue(m_name, 
@@ -342,39 +396,67 @@ SceneClassAssistant::BooleanData::restore(const SceneAttributes& sceneAttributes
 
 /**
  * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class to which data is saved.
  */
 void 
-SceneClassAssistant::BooleanData::save(SceneClass& sceneClass)
+SceneClassAssistant::BooleanData::save(const SceneAttributes& /*sceneAttributes*/,
+                                       SceneClass& sceneClass)
 {
     sceneClass.addBoolean(m_name, 
                           *m_dataPointer);
 }
 
 /* ========================================================================= */
-/* ClassData */
+/**
+ * \class caret::SceneClassAssistant::ClassData 
+ * \brief Class added to a scene class.
+ */
 
 /**
  * Constructor.
  * @param name
- *    Name of data.
- * @param dataPointer
- *    Pointer to data.
- * @param defaultValue
- *    Default value used when restoring and data with name not found.
+ *    Name of instance.
+ * @param className
+ *    Name of class
+ * @param sceneClassHandle
+ *    Handle (Pointer to pointer) of the class instance.
  */
 SceneClassAssistant::ClassData::ClassData(const AString& name,
                                             const AString& className,
                                             SceneableInterface** sceneClassHandle) 
 : Data(name), 
   m_className(className),
-  m_sceneClassHandle(sceneClassHandle)
+  m_sceneClassHandle(sceneClassHandle),
+  m_sceneClassPointer(NULL)
+{
+}
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of instance.
+ * @param className
+ *    Name of class
+ * @param sceneClassPointer
+ *    Handle (Pointer to pointer) of the class instance.
+ */
+SceneClassAssistant::ClassData::ClassData(const AString& name,
+                                          const AString& className,
+                                          SceneableInterface* sceneClassPointer) 
+: Data(name), 
+m_className(className),
+m_sceneClassHandle(NULL),
+m_sceneClassPointer(sceneClassPointer)
 {
 }
 
 /**
  * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class from  which data is restored.
  */
@@ -385,7 +467,9 @@ SceneClassAssistant::ClassData::restore(const SceneAttributes& sceneAttributes,
     const SceneClass* mySceneClass = sceneClass.getClass(m_name);
     
     if (mySceneClass != NULL) {
-        SceneableInterface* myClassInstance = *m_sceneClassHandle;
+        SceneableInterface* myClassInstance = ((m_sceneClassPointer != NULL) 
+                                               ? m_sceneClassPointer 
+                                               : *m_sceneClassHandle);
         if (myClassInstance != NULL) {
             myClassInstance->restoreFromScene(sceneAttributes, 
                                               *mySceneClass);
@@ -395,12 +479,19 @@ SceneClassAssistant::ClassData::restore(const SceneAttributes& sceneAttributes,
 
 /**
  * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
  * @param sceneClass
  *    Class to which data is saved.
  */
 void 
-SceneClassAssistant::ClassData::save(SceneClass& sceneClass)
+SceneClassAssistant::ClassData::save(const SceneAttributes& sceneAttributes,
+                                     SceneClass& sceneClass)
 {
-//    sceneClass.addBoolean(m_name, 
-//                          *m_dataPointer);
+    SceneableInterface* myClassInstance = ((m_sceneClassPointer != NULL) 
+                                           ? m_sceneClassPointer 
+                                           : *m_sceneClassHandle);
+    if (myClassInstance != NULL) {
+        sceneClass.addClass(myClassInstance->saveToScene(sceneAttributes, m_name));
+    }
 }

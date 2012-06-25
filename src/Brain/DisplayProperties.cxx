@@ -27,6 +27,8 @@
 #include "DisplayProperties.h"
 #undef __DISPLAY_PROPERTIES_DECLARE__
 
+#include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -43,7 +45,9 @@ using namespace caret;
 DisplayProperties::DisplayProperties(Brain* brain)
 : CaretObject()
 {
-    this->brain = brain;
+    m_brain = brain;
+
+    m_sceneAssistant = new SceneClassAssistant();
 }
 
 /**
@@ -51,7 +55,7 @@ DisplayProperties::DisplayProperties(Brain* brain)
  */
 DisplayProperties::~DisplayProperties()
 {
-    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -70,7 +74,7 @@ DisplayProperties::toString() const
 Brain* 
 DisplayProperties::getBrain()
 {
-    return this->brain;
+    return m_brain;
 }
 
 /**
@@ -79,6 +83,6 @@ DisplayProperties::getBrain()
 const Brain* 
 DisplayProperties::getBrain() const
 {
-    return this->brain;
+    return m_brain;
 }
 

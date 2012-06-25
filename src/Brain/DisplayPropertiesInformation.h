@@ -29,8 +29,6 @@
 #include "DisplayProperties.h"
 namespace caret {
 
-    class SceneClassAssistant;
-    
     class DisplayPropertiesInformation : public DisplayProperties {
         
     public:
@@ -76,18 +74,16 @@ namespace caret {
 
         DisplayPropertiesInformation& operator=(const DisplayPropertiesInformation&);
         
-        bool contralateralIdentificationEnabled;
+        bool m_contralateralIdentificationEnabled;
         
-        bool volumeIdentificationEnabled;
+        bool m_volumeIdentificationEnabled;
         
-        float identifcationSymbolSize;
+        float m_identifcationSymbolSize;
         
-        CaretColorEnum::Enum identificationSymbolColor;
+        CaretColorEnum::Enum m_identificationSymbolColor;
         
-        CaretColorEnum::Enum identificationContralateralSymbolColor;
+        CaretColorEnum::Enum m_identificationContralateralSymbolColor;
         
-
-        SceneClassAssistant* sceneAssistant;
     };
     
 #ifdef __DISPLAY_PROPERTIES_INFORMATION_DECLARE__

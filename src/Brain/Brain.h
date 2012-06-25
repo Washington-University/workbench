@@ -58,6 +58,7 @@ namespace caret {
     class ModelWholeBrain;
     class PaletteFile;
     class RgbaFile;
+    class SceneClassAssistant;
     class SceneFile;
     class Surface;
     class SurfaceFile;
@@ -319,6 +320,8 @@ namespace caret {
         AString fileReadingUsername;
         
         AString fileReadingPassword;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
 
 } // namespace

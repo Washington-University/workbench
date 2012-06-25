@@ -79,6 +79,10 @@ namespace caret {
                  const AString& className,
                  SceneableInterface** sceneClass);
         
+        void add(const AString& name,
+                 const AString& className,
+                 SceneableInterface* sceneClass);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -92,7 +96,8 @@ namespace caret {
             
             virtual void restore(const SceneAttributes& sceneAttributes,
                                  const SceneClass& sceneClass) = 0;
-            virtual void save(SceneClass& sceneClass) = 0;
+            virtual void save(const SceneAttributes& sceneAttributes,
+                              SceneClass& sceneClass) = 0;
         protected:
             const AString m_name;
             
@@ -108,7 +113,8 @@ namespace caret {
             
             void restore(const SceneAttributes& sceneAttributes,
                          const SceneClass& sceneClass);
-            void save(SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
             
         private:
             float* m_dataPointer;
@@ -125,7 +131,8 @@ namespace caret {
             
             void restore(const SceneAttributes& sceneAttributes,
                          const SceneClass& sceneClass);
-            void save(SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
             
         private:
             int32_t* m_dataPointer;
@@ -142,28 +149,35 @@ namespace caret {
             
             void restore(const SceneAttributes& sceneAttributes,
                          const SceneClass& sceneClass);
-            void save(SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
             
         private:
             bool* m_dataPointer;
             bool m_defaultValue; 
         };
         
-        class ClassData : Data {
+        class ClassData : public Data {
         public:
             ClassData(const AString& name,
                       const AString& className,
                       SceneableInterface** sceneClassHandle);
             
+            ClassData(const AString& name,
+                      const AString& className,
+                      SceneableInterface* sceneClassPointer);
+            
             virtual ~ClassData() { }
             
             void restore(const SceneAttributes& sceneAttributes,
                          const SceneClass& sceneClass);
-            void save(SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
             
         private:
             const AString m_className;
             SceneableInterface** m_sceneClassHandle;
+            SceneableInterface*  m_sceneClassPointer;
         };
         
         typedef std::vector<Data*> DataStorage;
