@@ -264,8 +264,9 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         if (this->connectivityLoaderFile->isYokeEnabled()) {
             enabledState = Qt::Checked;
         }
+        this->yokeCheckBox->blockSignals(true);
         this->yokeCheckBox->setCheckState(enabledState);
-        
+        this->yokeCheckBox->blockSignals(false);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
     }
     else {
@@ -447,8 +448,8 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
         double timeStepOffset;
         prefs->getAnimationStartTime(timeStepOffset);
         //NOTE!!
-        //currentValue is always the value in seconds starting from zero, NOT the spinbox value, which can have an offset
-        //to properly compare the two, add timeStepOffset.
+        //currentValue is always the value in seconds starting from zero, NOT the spinbox value, which can have an offset.
+        //To properly compare the two, add timeStepOffset.
         if (std::fabs((currentValue+timeStepOffset) - value) < 0.001) {
             std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
             return;

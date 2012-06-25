@@ -25,6 +25,7 @@
 #include <cmath>
 #include <sstream>
 
+#include "CaretOMP.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
 #include "PaletteColorMapping.h"
@@ -1163,7 +1164,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
-    
+#pragma omp CARET_PARFOR    
     for (int32_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         

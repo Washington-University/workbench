@@ -37,13 +37,12 @@ namespace caret {
                                  const int i);
 void setUpSignal(const char *object, const char *method);*/
 
-class TimeSeriesManagerForViewController : public QThread
+class TimeSeriesManagerForViewController : public QObject
 {
    Q_OBJECT
 public:
     TimeSeriesManagerForViewController(ConnectivityTimeSeriesViewController *ctsvc);
     virtual ~TimeSeriesManagerForViewController();
-    void run();
     void play();    
     void stop();
     void toggleAnimation();
@@ -55,17 +54,19 @@ public slots:
 signals:
     void doubleSpinBoxValueChanged(double);
     void doubleSpinBoxValueChanged(QDoubleSpinBox*,const double);
+    void start_timer(int);
+    void stop_timer();
 private:    
     bool m_isPlaying;
     ConnectivityTimeSeriesViewController *m_ctsvc;
     int64_t m_timeIndex;
     int64_t m_updateInterval;
-    bool m_stopThread;
     float m_timeStep;
     int64_t m_timePoints;
     QTimer *m_timer;
     QDoubleSpinBox *m_spinBox;
     double m_startTime;
+    QThread *thread;
 };
 
 

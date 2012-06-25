@@ -28,13 +28,14 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "QCoreApplication"
 #include "Brain.h"
 #include "QSpinBox"
 #include "SessionManager.h"
 #include "CaretPreferences.h"
 using namespace caret;
-TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(ConnectivityTimeSeriesViewController *ctsvc)
+TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(ConnectivityTimeSeriesViewController *ctsvc) : QObject(ctsvc)
 {
     m_ctsvc = ctsvc;    
     m_isPlaying = false;
@@ -42,8 +43,7 @@ TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(Connectiv
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
     
     m_timeIndex = 0;
-    m_updateInterval = 500; //200;
-    m_stopThread = false;
+    m_updateInterval = 500; //200;    
 
     ConnectivityLoaderFile *clf = m_ctsvc->getConnectivityLoaderFile();
     if(!clf) return;
@@ -57,18 +57,26 @@ TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(Connectiv
     prefs->getAnimationStartTime( time );
     this->setAnimationStartTime(time);
 
-
-
     QObject::connect(this, SIGNAL(doubleSpinBoxValueChanged(const double)),
-                     m_spinBox, SLOT(setValue(double)), Qt::QueuedConnection);
-    m_timer = new QTimer(this);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()), Qt::DirectConnection);
-    moveToThread(this);
+                     m_spinBox, SLOT(setValue(double)));
+    m_timer = new QTimer();
+
+    thread = new QThread(this);
+    m_timer->moveToThread(thread);    
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
+    connect(this,SIGNAL(start_timer(int)), m_timer, SLOT(start(int)));
+    connect(this,SIGNAL(stop_timer()), m_timer, SLOT(stop()));
+    connect(thread,SIGNAL(finished()), m_timer, SLOT(stop()));
+
+    thread->start();
+    
 }
 
 TimeSeriesManagerForViewController::~TimeSeriesManagerForViewController()
 {
     stop();
+    thread->exit();   
+    thread->wait();
     delete m_timer;
 }
 
@@ -83,42 +91,31 @@ void TimeSeriesManagerForViewController::getCurrentTime()
     if(m_timePoints<=m_timeIndex) m_timeIndex = 0;
 }
 
-void TimeSeriesManagerForViewController::run()
-{
-    getCurrentTime();
-    m_timer->start(m_updateInterval);
-    exec();
-
-}
-
 void TimeSeriesManagerForViewController::update()
 {
-    if(m_timeIndex<m_timePoints&&!(this->m_stopThread))
+    if(m_timeIndex<m_timePoints)
     {
+        stop();//prevent timer events from piling up if the CPU is bogging down        
+        QCoreApplication::instance()->processEvents();//give mouse events a chance to process
         emit doubleSpinBoxValueChanged((double)(m_timeIndex*m_timeStep)+m_startTime);
         m_timeIndex++;
-        //m_spinBox->thread()->wait(m_updateInterval-10);
+        play();
     }
     else {
-        m_timer->stop();
-        exit();
+        m_timeIndex=0;
+        stop();
     }
 }
 
 void TimeSeriesManagerForViewController::play()
 {
-    this->m_stopThread = false;
-    this->start();
+    emit start_timer(m_updateInterval);
 }
 
 void TimeSeriesManagerForViewController::stop()
 {
-    if(m_timer->isActive()) {
-        this->m_stopThread = true;
-    }
+    emit stop_timer();
 }
-
-
 
 void TimeSeriesManagerForViewController::toggleAnimation()
 {

@@ -190,6 +190,7 @@ ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<Co
     const int32_t numTimeSeriesViewControllers = static_cast<int32_t>(this->timeSeriesViewControllers.size());
     for (int32_t i = numTimeSeriesFiles; i < numTimeSeriesViewControllers; i++) {
         this->timeSeriesViewControllers[i]->setVisible(false);
+        this->timeSeriesViewControllers[i]->updateViewController(NULL);
     }    
 }
 

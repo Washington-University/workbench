@@ -37,6 +37,7 @@
 #include "GiftiLabelTable.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
+#include "CaretOMP.h"
 
 using namespace caret;
 
@@ -162,6 +163,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     /*
      * Color all scalars.
      */
+#pragma omp CARET_PARFOR
     for (int32_t i = 0; i < numberOfScalars; i++) {
         const int32_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
@@ -359,6 +361,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     /*
      * Color all scalars.
      */
+
+#pragma omp CARET_PARFOR
     for (int32_t i = 0; i < numberOfScalars; i++) {
         const int32_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
@@ -485,6 +489,7 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
      * Assign colors from labels to nodes
      */
     float labelRGBA[4];
+#pragma omp CARET_PARFOR
     for (int i = 0; i < numberOfIndices; i++) {
         const GiftiLabel* gl = labelTable->getLabel(labelIndices[i]);
         if (gl != NULL) {
