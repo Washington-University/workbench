@@ -98,8 +98,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      */
     const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : " ");
     this->enabledCheckBox = new QCheckBox(checkboxText);
-    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(enabledCheckBoxStateChanged(int)));
+    QObject::connect(this->enabledCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(enabledCheckBoxClicked(bool)));
     this->enabledCheckBox->setToolTip("Enables display of this overlay");
     
     /*
@@ -322,14 +322,13 @@ OverlayViewController::mapComboBoxSelected(int indx)
 
 /**
  * Called when enabled checkbox state is changed
- * @parm state
- *    New state (selection status).
+ * @parm checked
+ *    Checked status
  */
 void 
-OverlayViewController::enabledCheckBoxStateChanged(int state)
+OverlayViewController::enabledCheckBoxClicked(bool checked)
 {
-    const bool selected = (state == Qt::Checked);
-    overlay->setEnabled(selected);
+    overlay->setEnabled(checked);
     
     this->updateUserInterfaceAndGraphicsWindow();
 }

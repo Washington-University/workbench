@@ -70,7 +70,7 @@ namespace caret {
         
         void mapComboBoxSelected(int);
         
-        void enabledCheckBoxStateChanged(int);
+        void enabledCheckBoxClicked(bool);
         
         void colorBarActionTriggered(bool);
         
