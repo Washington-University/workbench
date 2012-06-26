@@ -35,6 +35,7 @@
 #include <QTextStream>
 
 #include <algorithm>
+#include <memory>
 
 #define __SCENE_FILE_DECLARE__
 #include "SceneFile.h"
