@@ -1,5 +1,3 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
 
 /*LICENSE_START*/
 /*
@@ -34,42 +32,53 @@
  */
 /*LICENSE_END*/
 
+#define __SCENE_OBJECT_ARRAY_DECLARE__
+#include "SceneObjectArray.h"
+#undef __SCENE_OBJECT_ARRAY_DECLARE__
 
-#include "SceneObject.h"
+using namespace caret;
 
-namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
-        
-    public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
-        
-        virtual ~SceneEnumeratedType();
-        
-        void setValue(const AString& enumeratedValueAsString);
-        
-        AString stringValue() const;
-        
-    private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
-
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
-        
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
-        // ADD_NEW_MEMBERS_HERE
-
-        AString m_enumeratedValueAsString;
-    };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+/**
+ * \class caret::SceneObjectArray 
+ * \brief Abstract class for arrays (and other containers).
+ */
 
-} // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+/**
+ * Constructor.
+ * @param name
+ *    Name of the item.
+ * @param dataType
+ *    Data type of the object.
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ */
+SceneObjectArray::SceneObjectArray(const QString& name,
+                                   const SceneObjectDataTypeEnum::Enum dataType,
+                                   const int32_t numberOfArrayElements)
+: SceneObject(name,
+              dataType),
+  m_numberOfArrayElements(numberOfArrayElements)
+{
+    
+}
+
+/**
+ * Destructor.
+ */
+SceneObjectArray::~SceneObjectArray()
+{
+    
+}
+
+/**
+ * @return  Number of elements in the array.
+ */
+int32_t 
+SceneObjectArray::getNumberOfArrayElements() const
+{
+    return m_numberOfArrayElements;
+}
+
+

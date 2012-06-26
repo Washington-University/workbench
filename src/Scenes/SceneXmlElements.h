@@ -66,6 +66,9 @@ namespace caret {
         /** XML Tag for scene object */
         static const AString OBJECT_TAG = "Object";
         
+        /** XML Tag for scene object arrays */
+        static const AString OBJECT_ARRAY_TAG = "ObjectArray";
+        
         /** XML Attributes for scene object type */
         static const AString OBJECT_TYPE_ATTRIBUTE = "Type";
                 
@@ -79,10 +82,19 @@ namespace caret {
         static const AString OBJECT_CLASS_ATTRIBUTE = "Class";
         
         /** 
-         * XML Attributes for scene object length.  Only valid when
-         * 'type' is an array.
+         * XML Attributes for scene object array length.
          */
-        //static const AString OBJECT_LENGTH_ATTRIBUTE = "Length";
+        static const AString OBJECT_ARRAY_LENGTH_ATTRIBUTE = "Length";
+        
+        /**
+         * XML Tag Element for array/map
+         */
+        static const AString OBJECT_ARRAY_ELEMENT_TAG = "Element";
+        
+        /**
+         * XML Attribute for element key
+         */
+        static const AString OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE = "Index";
         
         /** 
          * XML Attributes for scene object version.  Only valid when

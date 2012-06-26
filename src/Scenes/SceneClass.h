@@ -41,6 +41,7 @@ namespace caret {
 
     class SceneEnumeratedType;
     class ScenePrimitive;
+    class ScenePrimitiveArray;
     
     class SceneClass : public SceneObject {
         
@@ -58,6 +59,13 @@ namespace caret {
         void addBoolean(const AString& name,
                         const bool value);
         
+        void addBooleanArray(const AString& name,
+                             const bool values[],
+                             const int32_t arrayNumberOfElements);
+        
+        void addBooleanVector(const AString& name,
+                              const std::vector<bool>& values);
+        
         void addClass(SceneClass* sceneClass);
         
         void addEnumeratedType(const AString& name,
@@ -72,9 +80,15 @@ namespace caret {
         void addString(const AString& name,
                        const AString& value);
         
+        void addChild(SceneObject* sceneObject);
         
         bool getBooleanValue(const AString& name,
                              const bool defaultValue = false) const;
+        
+        void getBooleanArrayValue(const AString& name,
+                                  bool values[],
+                                  const int32_t arrayNumberOfElements,
+                                  const bool defaultValue = false) const;
         
         const SceneClass* getClass(const AString& name) const;
         
@@ -92,17 +106,9 @@ namespace caret {
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
         
-        int32_t getNumberOfPrimitives() const;
+        int32_t getNumberOfObjects() const;
         
-        const ScenePrimitive* getPrimitiveAtIndex(const int32_t indx) const;
-        
-        int32_t getNumberOfEnumeratedTypes() const;
-        
-        const SceneEnumeratedType* getEnumeratedTypeAtIndex(const int32_t indx) const;
-        
-        int32_t getNumberOfClasses() const;
-        
-        const SceneClass* getClassAtIndex(const int32_t indx) const;
+        const SceneObject* getObjectAtIndex(const int32_t indx) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -113,15 +119,13 @@ namespace caret {
 
         const ScenePrimitive* getPrimitive(const AString& name) const;
         
+        const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
+        
         AString m_className;
         
         const int32_t m_versionNumber;
         
-        std::vector<SceneClass*> m_childClasses;
-        
-        std::vector<ScenePrimitive*> m_childPrimitives;
-
-        std::vector<SceneEnumeratedType*> m_childEnumeratedTypes;
+        std::vector<SceneObject*> m_childObjects;
         
         // ADD_NEW_MEMBERS_HERE
         

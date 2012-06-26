@@ -70,6 +70,17 @@ SceneBoolean::~SceneBoolean()
 }
 
 /**
+ * Set the value.
+ * @param value
+ *    The new value.
+ */
+void 
+SceneBoolean::setValue(const bool value)
+{
+    m_value = value;
+}
+
+/**
  * @return The value as a boolean data type.
  */
 bool 

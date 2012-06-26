@@ -72,6 +72,17 @@ SceneFloat::~SceneFloat()
 }
 
 /**
+ * Set the value.
+ * @param value
+ *    The new value.
+ */
+void 
+SceneFloat::setValue(const float value)
+{
+    m_value = value;
+}
+
+/**
  * @return The value as a boolean data type.
  */
 bool 

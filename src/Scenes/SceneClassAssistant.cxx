@@ -188,6 +188,24 @@ SceneClassAssistant::add(const AString& name,
 }
 
 /**
+ * Add a boolean array member.
+ * @param name
+ *    Name of member.
+ * @param boolArrayAddress
+ *    Address of the array member.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void 
+SceneClassAssistant::add(const AString& name,
+                         bool* boolArrayAddress[],
+                         const int32_t numberOfElements,
+                         const bool defaultValue)
+{
+    
+}
+
+/**
  * Restore the members of a class.
  * 
  * @param sceneAttributes

@@ -70,6 +70,17 @@ SceneString::~SceneString()
 }
 
 /**
+ * Set the value.
+ * @param value
+ *   New value.
+ */
+void 
+SceneString::setValue(const AString& value)
+{
+    m_value = value;
+}
+
+/**
  * @return The value as a boolean data type.
  */
 bool 

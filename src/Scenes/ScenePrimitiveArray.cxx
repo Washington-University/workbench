@@ -1,5 +1,3 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
 
 /*LICENSE_START*/
 /*
@@ -34,42 +32,44 @@
  */
 /*LICENSE_END*/
 
+#define __SCENE_PRIMITIVE_ARRAY_DECLARE__
+#include "ScenePrimitiveArray.h"
+#undef __SCENE_PRIMITIVE_ARRAY_DECLARE__
 
-#include "SceneObject.h"
+using namespace caret;
 
-namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
-        
-    public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
-        
-        virtual ~SceneEnumeratedType();
-        
-        void setValue(const AString& enumeratedValueAsString);
-        
-        AString stringValue() const;
-        
-    private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
-
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
-        
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
-        // ADD_NEW_MEMBERS_HERE
-
-        AString m_enumeratedValueAsString;
-    };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+/**
+ * \class caret::ScenePrimitiveArray 
+ * \brief Abstract class for 'primitive' data types for scenes.
+ *
+ * Design loosely based upon Java.lang.Number but also including
+ * boolean and string values.
+ */
 
-} // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+/**
+ * Constructor.
+ * @param name
+ *    Name of primitive.
+ * @param dataType
+ *    Data type of the primitive.
+ */
+ScenePrimitiveArray::ScenePrimitiveArray(const QString& name,
+                               const SceneObjectDataTypeEnum::Enum dataType,
+                                         const int32_t numberOfArrayElements)
+: SceneObjectArray(name, 
+                   dataType,
+                   numberOfArrayElements)
+{
+    
+}
+
+/**
+ * Destructor.
+ */
+ScenePrimitiveArray::~ScenePrimitiveArray()
+{
+    
+}
+

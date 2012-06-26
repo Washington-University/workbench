@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -445,6 +446,10 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
                                             "DisplayPropertiesBorders",
                                             1);
     
+    sceneClass->addBooleanArray("m_displayStatusInTab", 
+                                m_displayStatusInTab, 
+                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -471,6 +476,10 @@ void
 DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttributes,
                         const SceneClass& sceneClass)
 {
+    sceneClass.getBooleanArrayValue("m_displayStatusInTab", 
+                                    m_displayStatusInTab, 
+                                    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

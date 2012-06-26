@@ -45,6 +45,8 @@ namespace caret {
         SceneBoolean(const AString& name,
                      const bool value);
         
+        void setValue(const bool value);
+        
         virtual ~SceneBoolean();
         
         virtual bool booleanValue() const;

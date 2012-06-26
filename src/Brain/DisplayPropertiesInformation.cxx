@@ -52,15 +52,15 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
     m_identificationContralateralSymbolColor = CaretColorEnum::BLUE;
     m_identifcationSymbolSize = 3.5;
     
-    m_sceneAssistant->add("contralateralIdentificationEnabled",
+    m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                               &m_contralateralIdentificationEnabled,
                               m_contralateralIdentificationEnabled);
     
-    m_sceneAssistant->add("volumeIdentificationEnabled",
+    m_sceneAssistant->add("m_volumeIdentificationEnabled",
                               &m_volumeIdentificationEnabled,
                               m_volumeIdentificationEnabled);
     
-    m_sceneAssistant->add("identifcationSymbolSize",
+    m_sceneAssistant->add("m_identifcationSymbolSize",
                               &m_identifcationSymbolSize,
                               m_identifcationSymbolSize);
 }
@@ -214,9 +214,9 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            sceneClass->addEnumeratedType("identificationSymbolColor", 
+            sceneClass->addEnumeratedType("m_identificationSymbolColor", 
                                           CaretColorEnum::toName(m_identificationSymbolColor));
-            sceneClass->addEnumeratedType("identificationContralateralSymbolColor", 
+            sceneClass->addEnumeratedType("m_identificationContralateralSymbolColor", 
                                           CaretColorEnum::toName(m_identificationContralateralSymbolColor));
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
@@ -247,10 +247,10 @@ DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttri
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationSymbolColor",
+            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("m_identificationSymbolColor",
                                                                                                          "CaretColorEnum::GREEN"),
                                                                        NULL);
-            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("identificationContralateralSymbolColor",
+            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
                                                                                                          "CaretColorEnum::BLUE"),
                                                                        NULL);
             break;

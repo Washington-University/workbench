@@ -83,6 +83,11 @@ namespace caret {
                  const AString& className,
                  SceneableInterface* sceneClass);
         
+        void add(const AString& name,
+                 bool* boolArrayAddress[],
+                 const int32_t numberOfElements,
+                 const bool defaultValue);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

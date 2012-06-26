@@ -38,6 +38,7 @@
 
 #include "CaretAssert.h"
 #include "SceneBoolean.h"
+#include "SceneBooleanArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneFloat.h"
 #include "SceneInteger.h"
@@ -95,26 +96,12 @@ SceneClass::SceneClass(const AString& name,
  */
 SceneClass::~SceneClass()
 {
-    for (std::vector<SceneClass*>::iterator iter = m_childClasses.begin();
-         iter != m_childClasses.end();
+    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
          iter++) {
         delete *iter;
     }
-    m_childClasses.clear();
-    
-    for (std::vector<ScenePrimitive*>::iterator iter = m_childPrimitives.begin();
-         iter != m_childPrimitives.end();
-         iter++) {
-        delete *iter;
-    }
-    m_childPrimitives.clear();
-
-    for (std::vector<SceneEnumeratedType*>::iterator iter = m_childEnumeratedTypes.begin();
-         iter != m_childEnumeratedTypes.end();
-         iter++) {
-        delete *iter;
-    }
-    m_childEnumeratedTypes.clear();
+    m_childObjects.clear();
 }
 
 /**
@@ -137,6 +124,18 @@ SceneClass::getVersionNumber() const
 }
 
 /**
+ * Add a child to this class.
+ * @param sceneObject
+ *     New child.
+ */
+void 
+SceneClass::addChild(SceneObject* sceneObject)
+{
+    CaretAssert(sceneObject);
+    m_childObjects.push_back(sceneObject);
+}
+
+/**
  * Add a child boolean value to the class.
  * 
  * @param name
@@ -144,12 +143,42 @@ SceneClass::getVersionNumber() const
  * @param value
  *    The value.
  */
-void SceneClass::addBoolean(const AString& name,
+void 
+SceneClass::addBoolean(const AString& name,
                             const bool value)
 {
-    m_childPrimitives.push_back(new SceneBoolean(name,
+    addChild(new SceneBoolean(name,
                                                  value));
 }
+
+/**
+ * Add a child boolean array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addBooleanArray(const AString& name,
+                       const bool values[],
+                       const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneBooleanArray(name,
+                                                      values,
+                                                      arrayNumberOfElements));
+}
+
+void 
+SceneClass::addBooleanVector(const AString& name,
+                             const std::vector<bool>& values)
+{
+    addChild(new SceneBooleanArray(name,
+                                                   values));
+}
+
 
 /**
  * Add a child class to the class.  NOTE: The given
@@ -163,7 +192,7 @@ void SceneClass::addBoolean(const AString& name,
 void SceneClass::addClass(SceneClass* sceneClass)
 {
     if (sceneClass != NULL) {
-        m_childClasses.push_back(sceneClass);    
+        addChild(sceneClass);    
     }
 }
 /**
@@ -177,7 +206,7 @@ void
 SceneClass::addEnumeratedType(const AString& name,
                               const AString& value)
 {
-    m_childEnumeratedTypes.push_back(new SceneEnumeratedType(name,
+    addChild(new SceneEnumeratedType(name,
                                                              value));
 }
 
@@ -193,7 +222,7 @@ SceneClass::addEnumeratedType(const AString& name,
 void SceneClass::addFloat(const AString& name,
                           const float value)
 {
-    m_childPrimitives.push_back(new SceneFloat(name,
+    addChild(new SceneFloat(name,
                                                value));
 }
 
@@ -208,7 +237,7 @@ void SceneClass::addFloat(const AString& name,
 void SceneClass::addInteger(const AString& name,
                             const int32_t value)
 {
-    m_childPrimitives.push_back(new SceneInteger(name,
+    addChild(new SceneInteger(name,
                                                  value));
 }
 
@@ -223,7 +252,7 @@ void SceneClass::addInteger(const AString& name,
 void SceneClass::addString(const AString& name,
                            const AString& value)
 {
-    m_childPrimitives.push_back(new SceneString(name,
+    addChild(new SceneString(name,
                                                 value));    
 }
 
@@ -251,6 +280,39 @@ SceneClass::getBooleanValue(const AString& name,
 }
 
 /**
+ * Get the values for the boolean array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ */
+void 
+SceneClass::getBooleanArrayValue(const AString& name,
+                                 bool values[],
+                                 const int32_t arrayNumberOfElements,
+                                 const bool defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->booleanValues(values, 
+                                      arrayNumberOfElements, 
+                                      defaultValue);
+    }
+    else {
+        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+            values[i] = defaultValue;
+        }
+    }
+}
+
+/**
  * Find and return the child enumerated type value with the given name.
  * If no enumerated type value matches the name, the given default
  * value is returned.
@@ -266,12 +328,15 @@ AString
 SceneClass::getEnumeratedTypeValue(const AString& name,
                                    const AString& defaultValue) const
 {
-    for (std::vector<SceneEnumeratedType*>::const_iterator iter = m_childEnumeratedTypes.begin();
-         iter != m_childEnumeratedTypes.end();
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
          iter++) {
-        const SceneEnumeratedType* enumType = *iter;
-        if (enumType->getName() == name) {
-            return enumType->stringValue();
+        const SceneObject* so = *iter;
+        const SceneEnumeratedType* st = dynamic_cast<const SceneEnumeratedType*>(so);
+        if (st != NULL) {
+            if (st->getName() == name) {
+                return st->stringValue();
+            }
         }
     }
     
@@ -359,12 +424,42 @@ SceneClass::getStringValue(const AString& name,
 const ScenePrimitive* 
 SceneClass::getPrimitive(const AString& name) const
 {
-    for (std::vector<ScenePrimitive*>::const_iterator iter = m_childPrimitives.begin();
-         iter != m_childPrimitives.end();
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
          iter++) {
-        const ScenePrimitive* primitive = *iter;
-        if (primitive->getName() == name) {
-            return primitive;
+        const SceneObject* so = *iter;
+        const ScenePrimitive* sp = dynamic_cast<const ScenePrimitive*>(so);
+        if (sp != NULL) {
+            if (sp->getName() == name) {
+                return sp;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Find and return the scene's child primitive array with the given name.
+ *
+ * @param name
+ *     Name of the child primitive.
+ * @return
+ *     Pointer to the primitive with the given name or NULL if
+ *     no primitive exists with the given name.
+ */
+const ScenePrimitiveArray* 
+SceneClass::getPrimitiveArray(const AString& name) const
+{
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        const SceneObject* so = *iter;
+        const ScenePrimitiveArray* spa = dynamic_cast<const ScenePrimitiveArray*>(so);
+        if (spa != NULL) {
+            if (spa->getName() == name) {
+                return spa;
+            }
         }
     }
     
@@ -383,12 +478,15 @@ SceneClass::getPrimitive(const AString& name) const
 const SceneClass* 
 SceneClass::getClass(const AString& name) const
 {
-    for (std::vector<SceneClass*>::const_iterator iter = m_childClasses.begin();
-         iter != m_childClasses.end();
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
          iter++) {
-        const SceneClass* childClass = *iter;
-        if (childClass->getName() == name) {
-            return childClass;
+        const SceneObject* so = *iter;
+        const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
+        if (sc != NULL) {
+            if (sc->getName() == name) {
+                return sc;
+            }
         }
     }
     
@@ -407,12 +505,15 @@ SceneClass::getClass(const AString& name) const
 SceneClass* 
 SceneClass::getClass(const AString& name)
 {
-    for (std::vector<SceneClass*>::const_iterator iter = m_childClasses.begin();
-         iter != m_childClasses.end();
+    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
          iter++) {
-        SceneClass* childClass = *iter;
-        if (childClass->getName() == name) {
-            return childClass;
+        SceneObject* so = *iter;
+        SceneClass* sc = dynamic_cast<SceneClass*>(so);
+        if (sc != NULL) {
+            if (sc->getName() == name) {
+                return sc;
+            }
         }
     }
     
@@ -420,66 +521,23 @@ SceneClass::getClass(const AString& name)
 }
 
 /**
- * @return Number of primitives in the class.
+ * @return Number of objects in the class.
  */
 int32_t 
-SceneClass::getNumberOfPrimitives() const
+SceneClass::getNumberOfObjects() const
 {
-    return m_childPrimitives.size();
+    return m_childObjects.size();
 }
 
 /**
- * @return Primitive at the given index.
+ * @return Object at the given index.
  * @param indx
- *    Index of the primitive.
+ *    Index of the object.
  */
-const ScenePrimitive* 
-SceneClass::getPrimitiveAtIndex(const int32_t indx) const
+const SceneObject* 
+SceneClass::getObjectAtIndex(const int32_t indx) const
 {
-    CaretAssertVectorIndex(m_childPrimitives, indx);
-    return m_childPrimitives[indx];
+    CaretAssertVectorIndex(m_childObjects, indx);
+    return m_childObjects[indx];
 }
-
-/**
- * @return Number of enumerated types in the class.
- */
-int32_t 
-SceneClass::getNumberOfEnumeratedTypes() const
-{
-    return m_childEnumeratedTypes.size();
-}
-
-/**
- * @return Primitive at the given index.
- * @param indx
- *    Index of the primitive.
- */
-const SceneEnumeratedType* 
-SceneClass::getEnumeratedTypeAtIndex(const int32_t indx) const
-{
-    CaretAssertVectorIndex(m_childEnumeratedTypes, indx);
-    return m_childEnumeratedTypes[indx];
-}
-
-/**
- * @return Number of classes in the class.
- */
-int32_t 
-SceneClass::getNumberOfClasses() const
-{
-    return m_childClasses.size();
-}
-
-/**
- * @return Primitive at the given index.
- * @param indx
- *    Index of the primitive.
- */
-const SceneClass* 
-SceneClass::getClassAtIndex(const int32_t indx) const
-{
-    CaretAssertVectorIndex(m_childClasses, indx);
-    return m_childClasses[indx];
-}
-
 

@@ -65,6 +65,16 @@ SceneEnumeratedType::~SceneEnumeratedType()
 }
 
 /**
+ * @param enumeratedValueAsString
+ *   New value.
+ */
+void 
+SceneEnumeratedType::setValue(const AString& enumeratedValueAsString)
+{
+    m_enumeratedValueAsString = enumeratedValueAsString;
+}
+
+/**
  * @return The string representing the value of the
  * enumerated type.
  */

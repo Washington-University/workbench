@@ -20,6 +20,7 @@ ADD_LIBRARY(Scenes
 Scene.h
 SceneAttributes.h
 SceneBoolean.h
+SceneBooleanArray.h
 SceneClass.h
 SceneClassAssistant.h
 SceneEnumeratedType.h
@@ -27,8 +28,10 @@ SceneException.h
 SceneFloat.h
 SceneInteger.h
 SceneObject.h
+SceneObjectArray.h
 SceneObjectDataTypeEnum.h
 ScenePrimitive.h
+ScenePrimitiveArray.h
 SceneSaxReader.h
 SceneString.h
 SceneTypeEnum.h
@@ -40,6 +43,7 @@ SceneableInterface.h
 Scene.cxx
 SceneAttributes.cxx
 SceneBoolean.cxx
+SceneBooleanArray.cxx
 SceneClass.cxx
 SceneClassAssistant.cxx
 SceneEnumeratedType.cxx
@@ -47,8 +51,10 @@ SceneException.cxx
 SceneFloat.cxx
 SceneInteger.cxx
 SceneObject.cxx
+SceneObjectArray.cxx
 SceneObjectDataTypeEnum.cxx
 ScenePrimitive.cxx
+ScenePrimitiveArray.cxx
 SceneSaxReader.cxx
 SceneString.cxx
 SceneTypeEnum.cxx

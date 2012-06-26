@@ -72,6 +72,17 @@ SceneInteger::~SceneInteger()
 }
 
 /**
+ * Set the value.
+ * @param value
+ *    The new value.
+ */
+void 
+SceneInteger::setValue(const int32_t value)
+{
+    m_value = value;
+}
+
+/**
  * @return The value as a boolean data type.
  */
 bool 

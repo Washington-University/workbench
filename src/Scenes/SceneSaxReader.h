@@ -41,6 +41,7 @@ namespace caret {
     class Scene;
     class SceneClass;
     class SceneObject;
+    class SceneObjectArray;
     class XmlAttributes;
     
     /**
@@ -80,13 +81,21 @@ namespace caret {
             STATE_NONE,
             /// processing Scene tag
             STATE_SCENE,
-            /// processing Name tag
-            STATE_NAME,
+            /// processing Scene Name tag
+            STATE_SCENE_NAME,
             /// processing Object tag
-            STATE_OBJECT
+            STATE_OBJECT,
+            /// processing Object Array tag
+            STATE_OBJECT_ARRAY,
+            /// processing Object Array element
+            STATE_OBJECT_ARRAY_ELEMENT
         };
         
         void processObjectStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        
+        void processObjectArrayStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        
+        void addChildToParentClass(SceneObject* sceneObject);
         
         /// file reading state
         STATE m_state;
@@ -102,12 +111,12 @@ namespace caret {
         
         /// Scene being read
         Scene* m_scene;
+
+        /// Stack containing object being read
+        std::stack<SceneObject*> m_objectBeingReadStack;
         
-        /** Stack for objects (float, class, etc.) being read (a class may contain class) */
-        std::stack<std::pair<SceneClass*, SceneObjectDataTypeEnum::Enum> > m_objectBeingReadStack;
-        
-        /** Name of object */
-        AString m_objectBeingReadName;        
+        /** Key of array element being read */
+        int32_t m_objectArrayBeingReadElementIndex;
     };
 
 } // namespace

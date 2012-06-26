@@ -1,5 +1,5 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
+#ifndef __SCENE_BOOLEAN_ARRAY_H__
+#define __SCENE_BOOLEAN_ARRAY_H__
 
 /*LICENSE_START*/
 /*
@@ -35,26 +35,46 @@
 /*LICENSE_END*/
 
 
-#include "SceneObject.h"
+#include "ScenePrimitiveArray.h"
 
 namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
+    class SceneBooleanArray : public ScenePrimitiveArray {
         
     public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
+        SceneBooleanArray(const AString& name,
+                               const bool values[],
+                               const int32_t numberOfArrayElements);
         
-        virtual ~SceneEnumeratedType();
+        SceneBooleanArray(const AString& name,
+                          const std::vector<bool>& values);
         
-        void setValue(const AString& enumeratedValueAsString);
+        SceneBooleanArray(const AString& name,
+                          const int numberOfArrayElements);
         
-        AString stringValue() const;
+        virtual ~SceneBooleanArray();
+        
+        void setValue(const int32_t arrayIndex,
+                      const bool value);
+        
+        virtual bool booleanValue(const int32_t arrayIndex) const;
+        
+        virtual float floatValue(const int32_t arrayIndex) const;
+        
+        virtual int32_t integerValue(const int32_t arrayIndex) const;
+        
+        virtual AString stringValue(const int32_t arrayIndex) const;
+        
+        virtual void booleanValues(bool valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const bool defaultValue) const;
+        
+        virtual void booleanValues(std::vector<bool>& valuesOut) const;
         
     private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
+        SceneBooleanArray(const SceneBooleanArray&);
 
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
+        SceneBooleanArray& operator=(const SceneBooleanArray&);
         
     public:
 
@@ -62,14 +82,15 @@ namespace caret {
 
     private:
 
+        std::vector<bool> m_values;
+        
         // ADD_NEW_MEMBERS_HERE
 
-        AString m_enumeratedValueAsString;
     };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
+#ifdef __SCENE_BOOLEAN_ARRAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+#endif // __SCENE_BOOLEAN_ARRAY_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+#endif  //__SCENE_BOOLEAN_ARRAY_H__

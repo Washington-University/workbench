@@ -36,11 +36,13 @@
 #include "SceneWriterXml.h"
 #undef __SCENE_WRITER_XML_DECLARE__
 
+#include "CaretAssert.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneEnumeratedType.h"
 #include "ScenePrimitive.h"
+#include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
 #include "XmlAttributes.h"
 #include "XmlWriter.h"
@@ -142,55 +144,72 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                                   attributes);
     
     /*
-     * Write primitives.
+     * Write objects.
      */
-    const int32_t numberOfPrimitives = sceneClass.getNumberOfPrimitives();
-    for (int32_t i = 0; i < numberOfPrimitives; i++) {
-        const ScenePrimitive* primitive = sceneClass.getPrimitiveAtIndex(i);
-        const AString& dataTypeName = SceneObjectDataTypeEnum::toXmlName(primitive->getDataType());
+    const int32_t numberOfObjects = sceneClass.getNumberOfObjects();
+    for (int32_t i = 0; i < numberOfObjects; i++) {
+        const SceneObject* sceneObject = sceneClass.getObjectAtIndex(i);
+        const AString& dataTypeName = SceneObjectDataTypeEnum::toXmlName(sceneObject->getDataType());
         
         XmlAttributes attributes;
         attributes.addAttribute(SceneXmlElements::OBJECT_TYPE_ATTRIBUTE, 
                                 dataTypeName);
         attributes.addAttribute(SceneXmlElements::OBJECT_NAME_ATTRIBUTE, 
-                                primitive->getName());
-        if (primitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
+                                sceneObject->getName());
+        const SceneEnumeratedType* sceneEnumeratedType = dynamic_cast<const SceneEnumeratedType*>(sceneObject);
+        const ScenePrimitive* scenePrimitive= dynamic_cast<const ScenePrimitive*>(sceneObject);
+        const ScenePrimitiveArray* scenePrimitiveArray = dynamic_cast<const ScenePrimitiveArray*>(sceneObject);
+        const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
+        if (scenePrimitive != NULL) {
+            if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
+                m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
+                                              attributes,
+                                              scenePrimitive->stringValue());
+            }
+            else {
+                m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_TAG, 
+                                                   attributes,
+                                                   scenePrimitive->stringValue());
+            }
+        }
+        else if (scenePrimitiveArray != NULL) {
+            const int32_t numberOfArrayElements = scenePrimitiveArray->getNumberOfArrayElements();
+            attributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE, 
+                                    numberOfArrayElements);
+            m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_TAG,
+                                          attributes);
+            
+            for (int32_t elementIndex = 0; elementIndex < numberOfArrayElements; elementIndex++) {
+                XmlAttributes elementAttributes;
+                elementAttributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
+                                               elementIndex);
+                if (scenePrimitiveArray->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
+                    m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
+                                                  elementAttributes,
+                                                  scenePrimitiveArray->stringValue(elementIndex));
+                }
+                else {
+                    m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
+                                                       elementAttributes,
+                                                       scenePrimitiveArray->stringValue(elementIndex));
+                }
+            }
+            
+            m_xmlWriter.writeEndElement();
+        }
+        else if (sceneClass != NULL) {
+            writeSceneClass(*sceneClass);
+        }
+        else if (sceneEnumeratedType != NULL) {
             m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
                                           attributes,
-                                          primitive->stringValue());
+                                          sceneEnumeratedType->stringValue());
         }
         else {
-            m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_TAG, 
-                                               attributes,
-                                               primitive->stringValue());
+            CaretAssertMessage(0, 
+                               ("Unknown scene object type="
+                                + dataTypeName));
         }
-    }
-    
-    /*
-     * Write enumerated types
-     */
-    const int32_t numberOfEnumeratedTypes = sceneClass.getNumberOfEnumeratedTypes();
-    for (int32_t i = 0; i < numberOfEnumeratedTypes; i++) {
-        const SceneEnumeratedType* enumeration = sceneClass.getEnumeratedTypeAtIndex(i);
-        const AString& dataTypeName = SceneObjectDataTypeEnum::toXmlName(enumeration->getDataType());
-        
-        XmlAttributes attributes;
-        attributes.addAttribute(SceneXmlElements::OBJECT_TYPE_ATTRIBUTE, 
-                                dataTypeName);
-        attributes.addAttribute(SceneXmlElements::OBJECT_NAME_ATTRIBUTE, 
-                                enumeration->getName());
-        m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
-                                      attributes,
-                                      enumeration->stringValue());
-    }
-    
-    /*
-     * Write classes
-     */
-    const int32_t numberOfClasses = sceneClass.getNumberOfClasses();
-    for (int32_t i = 0; i < numberOfClasses; i++) {
-        const SceneClass* childClass = sceneClass.getClassAtIndex(i);
-        writeSceneClass(*childClass);
     }
     
     /*

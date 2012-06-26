@@ -47,6 +47,8 @@ namespace caret {
         
         virtual ~SceneFloat();
         
+        void setValue(const float value);
+        
         virtual bool booleanValue() const;
         
         virtual float floatValue() const;

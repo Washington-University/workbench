@@ -1,5 +1,5 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
+#ifndef __SCENE_OBJECT_ARRAY__H_
+#define __SCENE_OBJECT_ARRAY__H_
 
 /*LICENSE_START*/
 /*
@@ -39,37 +39,37 @@
 
 namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
+    class SceneObjectArray : public SceneObject {
         
     public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
+        SceneObjectArray(const QString& name,
+                         const SceneObjectDataTypeEnum::Enum dataType,
+                         const int32_t numberOfArrayElements);
         
-        virtual ~SceneEnumeratedType();
-        
-        void setValue(const AString& enumeratedValueAsString);
-        
-        AString stringValue() const;
+        virtual ~SceneObjectArray();
         
     private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
+        SceneObjectArray(const SceneObjectArray&);
 
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
+        SceneObjectArray& operator=(const SceneObjectArray&);
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
-    private:
+
+        int32_t getNumberOfArrayElements() const;
+        
+    protected:
 
         // ADD_NEW_MEMBERS_HERE
 
-        AString m_enumeratedValueAsString;
+        const int32_t m_numberOfArrayElements;
     };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
+#ifdef __SCENE_OBJECT_ARRAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+#endif // __SCENE_OBJECT_ARRAY_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+#endif  //__SCENE_OBJECT_ARRAY__H_
