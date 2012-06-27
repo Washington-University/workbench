@@ -444,8 +444,9 @@ SurfaceFile::computeNormals(const bool averageNormals)
         
 #pragma omp CARET_PAR
         {
-#pragma omp CARET_FOR
-            for (int32_t i = 0; i < numCoords; i++) {
+			int32_t i = 0;
+#pragma omp CARET_FOR schedule(static,1000) private(i)
+            for (i = 0; i < numCoords; i++) {
                 const int32_t i3 = i * 3;
                 if (numContribute[i] > 0.0) {
                     MathFunctions::normalizeVector(normalPointer + i3);
@@ -464,8 +465,9 @@ SurfaceFile::computeNormals(const bool averageNormals)
             {
                 float tempVec[3];
                 CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
-    #pragma omp CARET_FOR
-                for (int32_t i = 0; i < numCoords; ++i)
+                int32_t i = 0; 
+#pragma omp CARET_FOR schedule(static,1000) private(i)
+                for (i = 0; i < numCoords; ++i)
                 {
                     int32_t i3 = i * 3;
                     tempVec[0] = 0.0f;
