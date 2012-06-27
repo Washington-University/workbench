@@ -163,9 +163,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     /*
      * Color all scalars.
      */
-	int32_t i = 0;
-#pragma omp CARET_PARFOR schedule(static,1000) private(i)
-	for (i = 0; i < numberOfScalars; i++) {
+	for (int32_t i = 0; i < numberOfScalars; i++) {
 
         const int32_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
@@ -363,9 +361,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     /*
      * Color all scalars.
      */
-	int32_t i = 0;
-#pragma omp CARET_PARFOR schedule(static,1000) private(i)
-	for (i = 0; i < numberOfScalars; i++) {
+	for (int32_t i = 0; i < numberOfScalars; i++) {
         const int32_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
         rgbaOut[i4+1] =  0.0;
@@ -491,9 +487,7 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
      * Assign colors from labels to nodes
      */
     float labelRGBA[4];
-	int32_t i = 0;
-#pragma omp CARET_PARFOR schedule(static,1000) private(i)
-	for (i = 0; i < numberOfIndices; i++) {
+	for (int32_t i = 0; i < numberOfIndices; i++) {
         const GiftiLabel* gl = labelTable->getLabel(labelIndices[i]);
         if (gl != NULL) {
             gl->getColor(labelRGBA);

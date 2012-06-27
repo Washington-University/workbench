@@ -1164,9 +1164,8 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
-	int32_t i = 0;
-#pragma omp CARET_PARFOR schedule(static,1000) private(i)
-    for (i = 0; i < numberOfData; i++) {
+
+    for (int32_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         
         /*
@@ -1272,9 +1271,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         mappingNegativeDenominator = 1.0;
     }
     
-	int32_t i = 0;
-	#pragma omp CARET_PARFOR schedule(static,1000) private(i)
-    for (i = 0; i < numberOfData; i++) {
+    for (int32_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         
         /*
