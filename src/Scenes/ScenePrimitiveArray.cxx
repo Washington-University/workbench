@@ -73,3 +73,222 @@ ScenePrimitiveArray::~ScenePrimitiveArray()
     
 }
 
+/**
+ * Load the array with boolean values.
+ * @param valuesOut
+ *    Array into which boolean values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::booleanValues(bool valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const bool defaultValue) const
+{    
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = booleanValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the boolean values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void 
+ScenePrimitiveArray::booleanValues(std::vector<bool>& valuesOut,
+                                   const bool defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     m_numberOfArrayElements);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = booleanValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the array with float values.
+ * @param valuesOut
+ *    Array into which boolean values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::floatValues(float valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const float defaultValue) const
+{    
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = floatValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the float values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void 
+ScenePrimitiveArray::floatValues(std::vector<float>& valuesOut,
+                                   const float defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     m_numberOfArrayElements);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = floatValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the array with integer values.
+ * @param valuesOut
+ *    Array into which boolean values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::integerValues(int32_t valuesOut[],
+                                 const int32_t arrayNumberOfElements,
+                                 const int32_t defaultValue) const
+{    
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = integerValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the integer values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void 
+ScenePrimitiveArray::integerValues(std::vector<int32_t>& valuesOut,
+                                 const int32_t defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     m_numberOfArrayElements);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = integerValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the array with string values.
+ * @param valuesOut
+ *    Array into which boolean values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::stringValues(AString valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const AString& defaultValue) const
+{    
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = stringValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the string values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void 
+ScenePrimitiveArray::stringValues(std::vector<AString>& valuesOut,
+                                   const AString& defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     m_numberOfArrayElements);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = stringValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+
+
+

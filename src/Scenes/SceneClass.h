@@ -71,14 +71,30 @@ namespace caret {
         void addEnumeratedType(const AString& name,
                                const AString& value);
         
+        void addEnumeratedTypeArray(const AString& name,
+                               const AString value[],
+                                    const int32_t arrayNumberOfElements);
+        
         void addFloat(const AString& name,
                       const float value);
+        
+        void addFloatArray(const AString& name,
+                             const float values[],
+                             const int32_t arrayNumberOfElements);
         
         void addInteger(const AString& name,
                         const int32_t value);
         
+        void addIntegerArray(const AString& name,
+                             const int32_t values[],
+                             const int32_t arrayNumberOfElements);
+        
         void addString(const AString& name,
                        const AString& value);
+        
+        void addStringArray(const AString& name,
+                             const AString values[],
+                             const int32_t arrayNumberOfElements);
         
         void addChild(SceneObject* sceneObject);
         
@@ -97,14 +113,34 @@ namespace caret {
         AString getEnumeratedTypeValue(const AString& name,
                                        const AString& defaultValue = "") const;
         
+        void getEnumeratedTypeArrayValue(const AString& name,
+                                AString values[],
+                                const int32_t arrayNumberOfElements,
+                                const AString& defaultValue) const;
+        
         float getFloatValue(const AString& name,
                              const float defaultValue = 0.0) const;
+        
+        void getFloatArrayValue(const AString& name,
+                                 float values[],
+                                 const int32_t arrayNumberOfElements,
+                                 const float defaultValue = 0.0) const;
         
         int32_t getIntegerValue(const AString& name,
                              const int32_t defaultValue = 0) const;
         
+        void getIntegerArrayValue(const AString& name,
+                                   int32_t values[],
+                                   const int32_t arrayNumberOfElements,
+                                   const int32_t defaultValue = 0.0) const;
+        
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
+        
+        void getStringArrayValue(const AString& name,
+                                     AString values[],
+                                     const int32_t arrayNumberOfElements,
+                                     const AString& defaultValue) const;
         
         int32_t getNumberOfObjects() const;
         

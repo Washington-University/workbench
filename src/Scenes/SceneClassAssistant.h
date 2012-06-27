@@ -83,10 +83,25 @@ namespace caret {
                  const AString& className,
                  SceneableInterface* sceneClass);
         
-        void add(const AString& name,
-                 bool* boolArrayAddress[],
-                 const int32_t numberOfElements,
-                 const bool defaultValue);
+        void addArray(const AString& name,
+                      bool* booleanArray,
+                      const int32_t numberOfElements,
+                      const bool defaultValue);
+        
+        void addArray(const AString& name,
+                      float* floatArray,
+                      const int32_t numberOfElements,
+                      const float defaultValue);
+        
+        void addArray(const AString& name,
+                      int32_t* integerArray,
+                      const int32_t numberOfElements,
+                      const int32_t defaultValue);
+        
+        void addArray(const AString& name,
+                      AString* stringArray,
+                      const int32_t numberOfElements,
+                      const AString& defaultValue);
         
         // ADD_NEW_METHODS_HERE
 
@@ -183,6 +198,118 @@ namespace caret {
             const AString m_className;
             SceneableInterface** m_sceneClassHandle;
             SceneableInterface*  m_sceneClassPointer;
+        };
+        
+        class ArrayData : public Data {
+        public:
+            ArrayData(const AString& name,
+                      const int32_t numberOfArrayElements);
+            
+            virtual ~ArrayData() {} 
+        protected:
+            int32_t m_numberOfArrayElements;
+        };
+        
+        class BooleanArrayData : public ArrayData {
+        public:
+            BooleanArrayData(const AString& name,
+                             bool* booleanArray,
+                             const int32_t numberOfArrayElements,
+                             const bool defaultValue);
+            
+            virtual ~BooleanArrayData() { }
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            bool* m_booleanArray;
+            bool m_defaultValue;
+        };
+        
+        class IntegerArrayData : public ArrayData {
+        public:
+            IntegerArrayData(const AString& name,
+                             int32_t* integerArray,
+                             const int32_t numberOfArrayElements,
+                             const int32_t defaultValue);
+            
+            virtual ~IntegerArrayData() { }
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            int32_t* m_integerArray;
+            int32_t m_defaultValue;
+        };
+        
+        class FloatArrayData : public ArrayData {
+        public:
+            FloatArrayData(const AString& name,
+                             float* floatArray,
+                             const int32_t numberOfArrayElements,
+                             const float defaultValue);
+            
+            virtual ~FloatArrayData() { }
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            float* m_floatArray;
+            float m_defaultValue;
+        };
+        
+        class StringArrayData : public ArrayData {
+        public:
+            StringArrayData(const AString& name,
+                           AString* stringArray,
+                           const int32_t numberOfArrayElements,
+                           const AString defaultValue);
+            
+            virtual ~StringArrayData() { }
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            AString* m_stringArray;
+            AString m_defaultValue;
+        };
+        
+        class BooleanVectorData : public Data {
+        public:
+            BooleanVectorData(const AString& name,
+                              std::vector<bool>& booleanVectorReference,
+                              const bool defaultValue);
+            
+            virtual~BooleanVectorData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            std::vector<bool>& m_booleanVectorReference;
+            const bool m_defaultValue; 
+        };
+        
+        class FloatVectorData : public Data {
+        public:
+            FloatVectorData(const AString& name,
+                            std::vector<float>* floatVectorPointer,
+                            const float defaultValue);
+            
+            virtual~FloatVectorData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            std::vector<float>* m_booleanVectorPointer;
+            const float m_defaultValue; 
         };
         
         typedef std::vector<Data*> DataStorage;

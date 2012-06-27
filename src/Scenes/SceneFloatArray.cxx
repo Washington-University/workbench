@@ -34,9 +34,9 @@
 
 #include <algorithm>
 
-#define __SCENE_BOOLEAN_ARRAY_DECLARE__
-#include "SceneBooleanArray.h"
-#undef __SCENE_BOOLEAN_ARRAY_DECLARE__
+#define __SCENE_FLOAT_ARRAY_DECLARE__
+#include "SceneFloatArray.h"
+#undef __SCENE_FLOAT_ARRAY_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -45,8 +45,8 @@ using namespace caret;
 
     
 /**
- * \class caret::SceneBooleanArray 
- * \brief For storage of a boolean value in a scene.
+ * \class caret::SceneFloatArray 
+ * \brief For storage of a float value in a scene.
  */
 
 /**
@@ -59,11 +59,11 @@ using namespace caret;
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
-                                     const bool values[],
+SceneFloatArray::SceneFloatArray(const AString& name,
+                                     const float values[],
                                      const int32_t numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_BOOLEAN,
+                 SceneObjectDataTypeEnum::SCENE_FLOAT,
                  numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
@@ -80,10 +80,10 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
  * @param values
  *   Value in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
-                                     const std::vector<bool>& values)
+SceneFloatArray::SceneFloatArray(const AString& name,
+                                     const std::vector<float>& values)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
+                      SceneObjectDataTypeEnum::SCENE_FLOAT,
                       values.size())
 {
     m_values = values;
@@ -97,10 +97,10 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
+SceneFloatArray::SceneFloatArray(const AString& name,
                                      const int numberOfArrayElements)
 : ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
+                      SceneObjectDataTypeEnum::SCENE_FLOAT,
                       numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
@@ -112,7 +112,7 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
 /**
  * Destructor.
  */
-SceneBooleanArray::~SceneBooleanArray()
+SceneFloatArray::~SceneFloatArray()
 {
     
 }
@@ -126,8 +126,8 @@ SceneBooleanArray::~SceneBooleanArray()
  *    Value of element.
  */
 void 
-SceneBooleanArray::setValue(const int32_t arrayIndex,
-                            const bool value)
+SceneFloatArray::setValue(const int32_t arrayIndex,
+                            const float value)
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
     m_values[arrayIndex] = value;
@@ -140,10 +140,11 @@ SceneBooleanArray::setValue(const int32_t arrayIndex,
  * @return The value.
  */
 bool 
-SceneBooleanArray::booleanValue(const int32_t arrayIndex) const
+SceneFloatArray::booleanValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    return m_values[arrayIndex];
+    const bool b = ((m_values[arrayIndex] != 0.0) ? true : false);
+    return b;
 }
 
 /** 
@@ -153,11 +154,10 @@ SceneBooleanArray::booleanValue(const int32_t arrayIndex) const
  * @return The value.
  */
 float 
-SceneBooleanArray::floatValue(const int32_t arrayIndex) const
+SceneFloatArray::floatValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const float f = (m_values[arrayIndex] ? 1.0 : 0.0);
-    return f;
+    return m_values[arrayIndex];
 }
 
 /** 
@@ -167,10 +167,18 @@ SceneBooleanArray::floatValue(const int32_t arrayIndex) const
  * @return The value.
  */
 int32_t 
-SceneBooleanArray::integerValue(const int32_t arrayIndex) const
+SceneFloatArray::integerValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const float i = (m_values[arrayIndex] ? 1 : 0);
+    const float f = m_values[arrayIndex];
+    if (f > std::numeric_limits<int32_t>::max()) {
+        return std::numeric_limits<int32_t>::max();
+    }
+    else if (f < std::numeric_limits<int32_t>::min()) {
+        return std::numeric_limits<int32_t>::min();
+    }
+    
+    const float i = static_cast<int32_t>(f);
     return i;
 }
 
@@ -181,10 +189,10 @@ SceneBooleanArray::integerValue(const int32_t arrayIndex) const
  * @return The value.
  */
 AString 
-SceneBooleanArray::stringValue(const int32_t arrayIndex) const
+SceneFloatArray::stringValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const AString s = (m_values[arrayIndex] ? "true" : "false");
+    const AString s = AString::number(m_values[arrayIndex]);
     return s;
 }
 

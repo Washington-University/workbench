@@ -40,9 +40,13 @@
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
 #include "SceneEnumeratedType.h"
+#include "SceneEnumeratedTypeArray.h"
 #include "SceneFloat.h"
+#include "SceneFloatArray.h"
 #include "SceneInteger.h"
+#include "SceneIntegerArray.h"
 #include "SceneString.h"
+#include "SceneStringArray.h"
 
 using namespace caret;
 
@@ -210,6 +214,26 @@ SceneClass::addEnumeratedType(const AString& name,
                                                              value));
 }
 
+/**
+ * Add a child enumerated type array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addEnumeratedTypeArray(const AString& name,
+                            const AString values[],
+                            const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneEnumeratedTypeArray(name,
+                                   values,
+                                   arrayNumberOfElements));
+}
+
 
 /**
  * Add a child float value to the class.
@@ -224,6 +248,26 @@ void SceneClass::addFloat(const AString& name,
 {
     addChild(new SceneFloat(name,
                                                value));
+}
+
+/**
+ * Add a child float array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addFloatArray(const AString& name,
+                            const float values[],
+                            const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneFloatArray(name,
+                                   values,
+                                   arrayNumberOfElements));
 }
 
 /**
@@ -242,6 +286,26 @@ void SceneClass::addInteger(const AString& name,
 }
 
 /**
+ * Add a child integer array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addIntegerArray(const AString& name,
+                          const int32_t values[],
+                          const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneIntegerArray(name,
+                                 values,
+                                 arrayNumberOfElements));
+}
+
+/**
  * Add a child string value to the class.
  * 
  * @param name
@@ -254,6 +318,26 @@ void SceneClass::addString(const AString& name,
 {
     addChild(new SceneString(name,
                                                 value));    
+}
+
+/**
+ * Add a child string type array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addStringArray(const AString& name,
+                                   const AString values[],
+                                   const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneEnumeratedTypeArray(name,
+                                          values,
+                                          arrayNumberOfElements));
 }
 
 /**
@@ -344,6 +428,45 @@ SceneClass::getEnumeratedTypeValue(const AString& name,
 }
 
 /**
+ * Get the values for the boolean array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ */
+void 
+SceneClass::getEnumeratedTypeArrayValue(const AString& name,
+                                        AString values[],
+                                        const int32_t arrayNumberOfElements,
+                                        const AString& defaultValue) const
+{
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        const SceneObject* so = *iter;
+        const SceneEnumeratedTypeArray* enumArray = dynamic_cast<const SceneEnumeratedTypeArray*>(so);
+        if (enumArray != NULL) {
+            if (enumArray->getName() == name) {
+                enumArray->stringValues(values,
+                                        arrayNumberOfElements,
+                                        defaultValue);
+                return;
+            }
+        }
+    }
+    
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
+    }
+}
+
+/**
  * Find and return the child float value with the given name.
  * If no primitive matches the name, the given default
  * value is returned.
@@ -364,6 +487,39 @@ SceneClass::getFloatValue(const AString& name,
         return primitive->floatValue();
     }
     return defaultValue;
+}
+
+/**
+ * Get the values for the float array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ */
+void 
+SceneClass::getFloatArrayValue(const AString& name,
+                               float values[],
+                               const int32_t arrayNumberOfElements,
+                               const float defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->floatValues(values, 
+                                      arrayNumberOfElements, 
+                                      defaultValue);
+    }
+    else {
+        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+            values[i] = defaultValue;
+        }
+    }
 }
 
 /**
@@ -390,6 +546,39 @@ SceneClass::getIntegerValue(const AString& name,
 }
 
 /**
+ * Get the values for the integer array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ */
+void 
+SceneClass::getIntegerArrayValue(const AString& name,
+                               int32_t values[],
+                               const int32_t arrayNumberOfElements,
+                               const int32_t defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->integerValues(values, 
+                                    arrayNumberOfElements, 
+                                    defaultValue);
+    }
+    else {
+        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+            values[i] = defaultValue;
+        }
+    }
+}
+
+/**
  * Find and return the child string value with the given name.
  * If no primitive matches the name, the given default
  * value is returned.
@@ -410,6 +599,39 @@ SceneClass::getStringValue(const AString& name,
         return primitive->stringValue();
     }
     return defaultValue;
+}
+
+/**
+ * Get the values for the string array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ */
+void 
+SceneClass::getStringArrayValue(const AString& name,
+                                AString values[],
+                                const int32_t arrayNumberOfElements,
+                                const AString& defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->stringValues(values, 
+                                      arrayNumberOfElements, 
+                                      defaultValue);
+    }
+    else {
+        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+            values[i] = defaultValue;
+        }
+    }
 }
 
 /**

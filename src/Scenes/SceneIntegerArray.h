@@ -1,5 +1,5 @@
-#ifndef __SCENE_BOOLEAN_ARRAY_H__
-#define __SCENE_BOOLEAN_ARRAY_H__
+#ifndef __SCENE_INTEGER_ARRAY_H__
+#define __SCENE_INTEGER_ARRAY_H__
 
 /*LICENSE_START*/
 /*
@@ -39,23 +39,23 @@
 
 namespace caret {
 
-    class SceneBooleanArray : public ScenePrimitiveArray {
+    class SceneIntegerArray : public ScenePrimitiveArray {
         
     public:
-        SceneBooleanArray(const AString& name,
-                               const bool values[],
+        SceneIntegerArray(const AString& name,
+                               const int32_t values[],
                                const int32_t numberOfArrayElements);
         
-        SceneBooleanArray(const AString& name,
-                          const std::vector<bool>& values);
+        SceneIntegerArray(const AString& name,
+                          const std::vector<int32_t>& values);
         
-        SceneBooleanArray(const AString& name,
+        SceneIntegerArray(const AString& name,
                           const int numberOfArrayElements);
         
-        virtual ~SceneBooleanArray();
+        virtual ~SceneIntegerArray();
         
         void setValue(const int32_t arrayIndex,
-                      const bool value);
+                      const int32_t value);
         
         virtual bool booleanValue(const int32_t arrayIndex) const;
         
@@ -66,9 +66,9 @@ namespace caret {
         virtual AString stringValue(const int32_t arrayIndex) const;
         
     private:
-        SceneBooleanArray(const SceneBooleanArray&);
+        SceneIntegerArray(const SceneIntegerArray&);
 
-        SceneBooleanArray& operator=(const SceneBooleanArray&);
+        SceneIntegerArray& operator=(const SceneIntegerArray&);
         
     public:
 
@@ -76,15 +76,15 @@ namespace caret {
 
     private:
 
-        std::vector<bool> m_values;
+        std::vector<int32_t> m_values;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __SCENE_BOOLEAN_ARRAY_DECLARE__
+#ifdef __SCENE_INTEGER_ARRAY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_BOOLEAN_ARRAY_DECLARE__
+#endif // __SCENE_INTEGER_ARRAY_DECLARE__
 
 } // namespace
-#endif  //__SCENE_BOOLEAN_ARRAY_H__
+#endif  //__SCENE_INTEGER_ARRAY_H__

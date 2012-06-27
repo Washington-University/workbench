@@ -90,27 +90,33 @@ namespace caret {
          */
         virtual AString stringValue(const int32_t arrayIndex) const = 0;
         
-        /**
-         * Load the array with boolean values.
-         * @param valuesOut
-         *    Array into which boolean values are loaded.
-         * @param arrayNumberOfElements
-         *    Number of elements in the array.  If this value is greater
-         *    than the number of elements in the scene, the remaining
-         *    elements will be filled with the default value
-         */
         virtual void booleanValues(bool valuesOut[],
                                    const int32_t arrayNumberOfElements,
-                                   const bool defaultValue) const = 0;
+                                   const bool defaultValue) const;
         
-        /**
-         * Load the vector with the values from the scene.
-         * @param valuesOut
-         *     Vector into which values are loaded.  The vector
-         *     will contain the number of elements that were saved
-         *     to the scene.
-         */
-        virtual void booleanValues(std::vector<bool>& valuesOut) const = 0;
+        virtual void booleanValues(std::vector<bool>& valuesOut,
+                                   const bool defaultValue) const;
+        
+        virtual void floatValues(float valuesOut[],
+                           const int32_t arrayNumberOfElements,
+                           const float defaultValue) const;
+        
+        virtual void floatValues(std::vector<float>& valuesOut,
+                                   const float defaultValue) const;
+        
+        virtual void integerValues(int32_t valuesOut[],
+                                 const int32_t arrayNumberOfElements,
+                                 const int32_t defaultValue) const;
+        
+        virtual void integerValues(std::vector<int32_t>& valuesOut,
+                                 const int32_t defaultValue) const;
+        
+        virtual void stringValues(AString valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const AString& defaultValue) const;
+        
+        virtual void stringValues(std::vector<AString>& valuesOut,
+                                   const AString& defaultValue) const;
         
         
     private:

@@ -191,18 +191,108 @@ SceneClassAssistant::add(const AString& name,
  * Add a boolean array member.
  * @param name
  *    Name of member.
- * @param boolArrayAddress
- *    Address of the array member.
+ * @param booleanArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
  * @param defaultValue
  *    Value used if the member is not found when restoring scene.
  */
 void 
-SceneClassAssistant::add(const AString& name,
-                         bool* boolArrayAddress[],
-                         const int32_t numberOfElements,
-                         const bool defaultValue)
+SceneClassAssistant::addArray(const AString& name,
+                              bool* booleanArray,
+                              const int32_t numberOfElements,
+                              const bool defaultValue)
 {
+    CaretAssert(booleanArray);
+    CaretAssert(numberOfElements >= 0);
     
+    BooleanArrayData* bad = new BooleanArrayData(name,
+                                                 booleanArray,
+                                                 numberOfElements,
+                                                 defaultValue);
+    m_dataStorage.push_back(bad);
+}
+
+/**
+ * Add a float array member.
+ * @param name
+ *    Name of member.
+ * @param floatArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void 
+SceneClassAssistant::addArray(const AString& name,
+                              float* floatArray,
+                              const int32_t numberOfElements,
+                              const float defaultValue)
+{
+    CaretAssert(floatArray);
+    CaretAssert(numberOfElements >= 0);
+    
+    FloatArrayData* fad = new FloatArrayData(name,
+                                                 floatArray,
+                                                 numberOfElements,
+                                                 defaultValue);
+    m_dataStorage.push_back(fad);
+}
+
+/**
+ * Add an integer array member.
+ * @param name
+ *    Name of member.
+ * @param integerArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void 
+SceneClassAssistant::addArray(const AString& name,
+                              int32_t* integerArray,
+                              const int32_t numberOfElements,
+                              const int32_t defaultValue)
+{
+    CaretAssert(integerArray);
+    CaretAssert(numberOfElements >= 0);
+    
+    IntegerArrayData* iad = new IntegerArrayData(name,
+                                                 integerArray,
+                                                 numberOfElements,
+                                                 defaultValue);
+    m_dataStorage.push_back(iad);
+}
+
+/**
+ * Add a string array member.
+ * @param name
+ *    Name of member.
+ * @param stringArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void 
+SceneClassAssistant::addArray(const AString& name,
+                              AString* stringArray,
+                              const int32_t numberOfElements,
+                              const AString& defaultValue)
+{
+    CaretAssert(stringArray);
+    CaretAssert(numberOfElements >= 0);
+    
+    StringArrayData* sad = new StringArrayData(name,
+                                                 stringArray,
+                                                 numberOfElements,
+                                                 defaultValue);
+    m_dataStorage.push_back(sad);
 }
 
 /**
@@ -425,6 +515,307 @@ SceneClassAssistant::BooleanData::save(const SceneAttributes& /*sceneAttributes*
 {
     sceneClass.addBoolean(m_name, 
                           *m_dataPointer);
+}
+
+
+
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::BooleanVectorData 
+ * \brief Boolean vector added to a scene class.
+ */
+SceneClassAssistant::ArrayData::ArrayData(const AString& name,
+          const int32_t numberOfArrayElements)
+: Data(name),
+ m_numberOfArrayElements(numberOfArrayElements)
+{
+    
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::BooleanArrayData 
+ * \brief Boolean array added to a scene class.
+ */
+SceneClassAssistant::BooleanArrayData::BooleanArrayData(const AString& name,
+                 bool* booleanArray,
+                 const int32_t numberOfArrayElements,
+                 const bool defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+ m_booleanArray(booleanArray),
+ m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::BooleanArrayData::restore(const SceneAttributes& sceneAttributes,
+                                               const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getBooleanArrayValue(m_name, 
+                                        m_booleanArray, 
+                                        m_numberOfArrayElements, 
+                                        m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::BooleanArrayData::save(const SceneAttributes& sceneAttributes,
+                                                 SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addBooleanArray(m_name, 
+                                   m_booleanArray, 
+                                   m_numberOfArrayElements);
+    }
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::IntegerArrayData 
+ * \brief Boolean array added to a scene class.
+ */
+SceneClassAssistant::IntegerArrayData::IntegerArrayData(const AString& name,
+                                                        int32_t* integerArray,
+                                                        const int32_t numberOfArrayElements,
+                                                        const int32_t defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+m_integerArray(integerArray),
+m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::IntegerArrayData::restore(const SceneAttributes& sceneAttributes,
+                                               const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getIntegerArrayValue(m_name, 
+                                        m_integerArray, 
+                                        m_numberOfArrayElements, 
+                                        m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& sceneAttributes,
+                                                 SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addIntegerArray(m_name, 
+                                   m_integerArray, 
+                                   m_numberOfArrayElements);
+    }
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::FloatArrayData 
+ * \brief Boolean array added to a scene class.
+ */
+SceneClassAssistant::FloatArrayData::FloatArrayData(const AString& name,
+                                                        float* floatArray,
+                                                        const int32_t numberOfArrayElements,
+                                                        const float defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+m_floatArray(floatArray),
+m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::FloatArrayData::restore(const SceneAttributes& sceneAttributes,
+                                               const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getFloatArrayValue(m_name, 
+                                        m_floatArray, 
+                                        m_numberOfArrayElements, 
+                                        m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::FloatArrayData::save(const SceneAttributes& sceneAttributes,
+                                                 SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addFloatArray(m_name, 
+                                   m_floatArray, 
+                                   m_numberOfArrayElements);
+    }
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::StringArrayData 
+ * \brief Boolean array added to a scene class.
+ */
+SceneClassAssistant::StringArrayData::StringArrayData(const AString& name,
+                                                    AString* stringArray,
+                                                    const int32_t numberOfArrayElements,
+                                                    const AString defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+m_stringArray(stringArray),
+m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::StringArrayData::restore(const SceneAttributes& sceneAttributes,
+                                             const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getStringArrayValue(m_name, 
+                                      m_stringArray, 
+                                      m_numberOfArrayElements, 
+                                      m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::StringArrayData::save(const SceneAttributes& sceneAttributes,
+                                               SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addStringArray(m_name, 
+                                 m_stringArray, 
+                                 m_numberOfArrayElements);
+    }
+}
+
+
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::BooleanVectorData 
+ * \brief Boolean vector added to a scene class.
+ */
+/**
+ * Constructor.
+ * @param name
+ *    Name of instance.
+ * @param booleanVectorPointer
+ *    Pointer to vector containing boolean data
+ * @param defaultValue
+ *    Default value used when restoring and data with name not found.
+ */
+SceneClassAssistant::BooleanVectorData::BooleanVectorData(const AString& name,
+                                                          std::vector<bool>& booleanVectorReference,
+                                                          const bool defaultValue)
+: Data(name),
+  m_booleanVectorReference(booleanVectorReference),
+  m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::BooleanVectorData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                                const SceneClass& sceneClass)
+{
+    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
+    if (numElements > 0) {
+        bool* boolArray = new bool[numElements];
+        
+        sceneClass.getBooleanArrayValue(m_name, 
+                                        boolArray, 
+                                        numElements, 
+                                        m_defaultValue);
+        
+        for (int32_t i = 0; i < numElements; i++) {
+            m_booleanVectorReference[i] = boolArray[i];
+        }
+        delete[] boolArray;
+    }
+}
+
+void 
+SceneClassAssistant::BooleanVectorData::save(const SceneAttributes& /*sceneAttributes*/,
+                                             SceneClass& sceneClass)
+{
+    /*
+     * std::vector<bool> is special case of vector. Cannot use &boolVector[0] for pointer address
+     */
+    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
+    if (numElements > 0) {
+        bool* boolArray = new bool[numElements];
+        for (int32_t i = 0; i < numElements; i++) {
+            boolArray[i] = m_booleanVectorReference[i];
+        }
+        sceneClass.addBooleanArray(m_name, 
+                                   boolArray, 
+                                   numElements);
+        delete[] boolArray;
+    }
 }
 
 /* ========================================================================= */

@@ -41,6 +41,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneEnumeratedType.h"
+#include "SceneEnumeratedTypeArray.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
@@ -157,6 +158,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         attributes.addAttribute(SceneXmlElements::OBJECT_NAME_ATTRIBUTE, 
                                 sceneObject->getName());
         const SceneEnumeratedType* sceneEnumeratedType = dynamic_cast<const SceneEnumeratedType*>(sceneObject);
+        const SceneEnumeratedTypeArray* sceneEnumeratedTypeArray = dynamic_cast<const SceneEnumeratedTypeArray*>(sceneObject);
         const ScenePrimitive* scenePrimitive= dynamic_cast<const ScenePrimitive*>(sceneObject);
         const ScenePrimitiveArray* scenePrimitiveArray = dynamic_cast<const ScenePrimitiveArray*>(sceneObject);
         const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
@@ -204,6 +206,24 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
             m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
                                           attributes,
                                           sceneEnumeratedType->stringValue());
+        }
+        else if (sceneEnumeratedTypeArray != NULL) {
+            const int32_t numberOfArrayElements = sceneEnumeratedTypeArray->getNumberOfArrayElements();
+            attributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE, 
+                                    numberOfArrayElements);
+            m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_TAG,
+                                          attributes);
+            
+            for (int32_t elementIndex = 0; elementIndex < numberOfArrayElements; elementIndex++) {
+                XmlAttributes elementAttributes;
+                elementAttributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
+                                               elementIndex);
+                m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
+                                                  elementAttributes,
+                                                  sceneEnumeratedTypeArray->stringValue(elementIndex));
+            }
+            
+            m_xmlWriter.writeEndElement();
         }
         else {
             CaretAssertMessage(0, 

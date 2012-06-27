@@ -86,6 +86,46 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         m_pointSizeInDisplayGroup[i] = defaultPointSize;
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
     }
+
+    m_sceneAssistant->addArray("m_displayStatusInTab", 
+                               m_displayStatusInTab,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                               false);
+
+    m_sceneAssistant->addArray("m_contralateralDisplayStatusInTab", 
+                               m_contralateralDisplayStatusInTab,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                               false);
+    
+    m_sceneAssistant->addArray("m_lineWidthInTab", 
+                               m_lineWidthInTab,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                               defaultLineSize);
+    
+    m_sceneAssistant->addArray("m_pointSizeInTab", 
+                               m_pointSizeInTab,
+                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                               defaultPointSize);
+    
+    m_sceneAssistant->addArray("m_displayStatusInDisplayGroup", 
+                               m_displayStatusInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                               false);
+    
+    m_sceneAssistant->addArray("m_contralateralDisplayStatusInDisplayGroup", 
+                               m_contralateralDisplayStatusInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                               false);
+    
+    m_sceneAssistant->addArray("m_lineWidthInDisplayGroup", 
+                               m_lineWidthInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                               defaultLineSize);
+    
+    m_sceneAssistant->addArray("m_pointSizeInDisplayGroup", 
+                               m_pointSizeInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                               defaultPointSize);
 }
 
 /**
@@ -446,9 +486,24 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
                                             "DisplayPropertiesBorders",
                                             1);
     
-    sceneClass->addBooleanArray("m_displayStatusInTab", 
-                                m_displayStatusInTab, 
-                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  *sceneClass);
+    
+    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        tabStringArray[i] = BorderDrawingTypeEnum::toName(m_drawingTypeInTab[i]);
+    }
+    sceneClass->addEnumeratedTypeArray("m_drawingTypeInTab", 
+                                       tabStringArray, 
+                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+
+    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        displayGroupStringArray[i] = BorderDrawingTypeEnum::toName(m_drawingTypeInDisplayGroup[i]);
+    }
+    sceneClass->addEnumeratedTypeArray("m_drawingTypeInDisplayGroup", 
+                                       displayGroupStringArray, 
+                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -476,9 +531,38 @@ void
 DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttributes,
                         const SceneClass& sceneClass)
 {
-    sceneClass.getBooleanArrayValue("m_displayStatusInTab", 
-                                    m_displayStatusInTab, 
-                                    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+
+    const AString defaultDrawingTypeString = BorderDrawingTypeEnum::toName(BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
+
+    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+    sceneClass.getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
+                                           tabStringArray, 
+                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                                           defaultDrawingTypeString);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        bool isValid = false;
+        m_drawingTypeInTab[i] = BorderDrawingTypeEnum::fromName(tabStringArray[i],
+                                                                &isValid);
+        if (isValid == false) {
+            m_drawingTypeInTab[i] = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+        }
+    }
+    
+    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
+    sceneClass.getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
+                                           displayGroupStringArray, 
+                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                                           defaultDrawingTypeString);
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        bool isValid = false;
+        m_drawingTypeInDisplayGroup[i] = BorderDrawingTypeEnum::fromName(displayGroupStringArray[i],
+                                                                &isValid);
+        if (isValid == false) {
+            m_drawingTypeInDisplayGroup[i] = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+        }
+    }
     
     switch (sceneAttributes.getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:

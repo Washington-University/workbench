@@ -34,9 +34,9 @@
 
 #include <algorithm>
 
-#define __SCENE_BOOLEAN_ARRAY_DECLARE__
-#include "SceneBooleanArray.h"
-#undef __SCENE_BOOLEAN_ARRAY_DECLARE__
+#define __SCENE_ENUMERATED_TYPE_ARRAY_DECLARE__
+#include "SceneEnumeratedTypeArray.h"
+#undef __SCENE_ENUMERATED_TYPE_ARRAY_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -45,7 +45,7 @@ using namespace caret;
 
     
 /**
- * \class caret::SceneBooleanArray 
+ * \class caret::SceneEnumeratedTypeArray 
  * \brief For storage of a boolean value in a scene.
  */
 
@@ -59,16 +59,16 @@ using namespace caret;
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
-                                     const bool values[],
-                                     const int32_t numberOfArrayElements)
-: ScenePrimitiveArray(name,
-                 SceneObjectDataTypeEnum::SCENE_BOOLEAN,
+SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
+                                                   const AString enumeratedValuesAsStrings[],
+                                                   const int32_t numberOfArrayElements)
+: SceneObjectArray(name,
+                 SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
                  numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
     for (int32_t i = 0; i < numberOfArrayElements; i++) {
-        m_values[i] = values[i];
+        m_values[i] = enumeratedValuesAsStrings[i];
     }
 }
 
@@ -80,13 +80,13 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
  * @param values
  *   Value in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
-                                     const std::vector<bool>& values)
-: ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
-                      values.size())
+SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
+                                                   const std::vector<AString>& enumeratedValuesAsStrings)
+: SceneObjectArray(name,
+                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
+                      enumeratedValuesAsStrings.size())
 {
-    m_values = values;
+    m_values = enumeratedValuesAsStrings;
 }
 
 /**
@@ -97,10 +97,10 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
  * @param numberOfArrayElements
  *   Number of values in the array.
  */
-SceneBooleanArray::SceneBooleanArray(const AString& name,
-                                     const int numberOfArrayElements)
-: ScenePrimitiveArray(name,
-                      SceneObjectDataTypeEnum::SCENE_BOOLEAN,
+SceneEnumeratedTypeArray::SceneEnumeratedTypeArray(const AString& name,
+                                                   const int numberOfArrayElements)
+: SceneObjectArray(name,
+                      SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE,
                       numberOfArrayElements)
 {
     m_values.resize(numberOfArrayElements);
@@ -112,7 +112,7 @@ SceneBooleanArray::SceneBooleanArray(const AString& name,
 /**
  * Destructor.
  */
-SceneBooleanArray::~SceneBooleanArray()
+SceneEnumeratedTypeArray::~SceneEnumeratedTypeArray()
 {
     
 }
@@ -126,52 +126,11 @@ SceneBooleanArray::~SceneBooleanArray()
  *    Value of element.
  */
 void 
-SceneBooleanArray::setValue(const int32_t arrayIndex,
-                            const bool value)
+SceneEnumeratedTypeArray::setValue(const int32_t arrayIndex,
+                                   const AString enumeratedValueAsString)
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
-    m_values[arrayIndex] = value;
-}
-
-/** 
- * Get the values as a boolean. 
- * @param arrayIndex
- *    Index of element.
- * @return The value.
- */
-bool 
-SceneBooleanArray::booleanValue(const int32_t arrayIndex) const
-{    
-    CaretAssertVectorIndex(m_values, arrayIndex);
-    return m_values[arrayIndex];
-}
-
-/** 
- * Get the values as a float. 
- * @param arrayIndex
- *    Index of element.
- * @return The value.
- */
-float 
-SceneBooleanArray::floatValue(const int32_t arrayIndex) const
-{    
-    CaretAssertVectorIndex(m_values, arrayIndex);
-    const float f = (m_values[arrayIndex] ? 1.0 : 0.0);
-    return f;
-}
-
-/** 
- * Get the values as a integer. 
- * @param arrayIndex
- *    Index of element.
- * @return The value.
- */
-int32_t 
-SceneBooleanArray::integerValue(const int32_t arrayIndex) const
-{    
-    CaretAssertVectorIndex(m_values, arrayIndex);
-    const float i = (m_values[arrayIndex] ? 1 : 0);
-    return i;
+    m_values[arrayIndex] = enumeratedValueAsString;
 }
 
 /** 
@@ -181,10 +140,38 @@ SceneBooleanArray::integerValue(const int32_t arrayIndex) const
  * @return The value.
  */
 AString 
-SceneBooleanArray::stringValue(const int32_t arrayIndex) const
+SceneEnumeratedTypeArray::stringValue(const int32_t arrayIndex) const
 {    
     CaretAssertVectorIndex(m_values, arrayIndex);
-    const AString s = (m_values[arrayIndex] ? "true" : "false");
-    return s;
+    return m_values[arrayIndex];
 }
+
+/**
+ * Load the array with string values of the enumerated type.
+ * @param valuesOut
+ *    Array into which string values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void 
+SceneEnumeratedTypeArray::stringValues(AString enumeratedValuesAsString[],
+                  const int32_t numberOfArrayElements,
+                  const AString defaultValue) const
+{
+    const int32_t numElem = std::min(numberOfArrayElements,
+                                     m_numberOfArrayElements);
+    for (int32_t i = 0; i < numElem; i++) {
+        enumeratedValuesAsString[i] = m_values[i];
+    }
+    
+    for (int32_t i = numElem; i < m_numberOfArrayElements; i++) {
+        enumeratedValuesAsString[i] = defaultValue;
+    }
+}
+
 
