@@ -66,6 +66,7 @@ void OperationMetricMask::useParameters(OperationParameters* myParams, ProgressO
         throw OperationException("mask metric must have the same number of nodes");
     }
     MetricFile* myMetricOut = myParams->getOutputMetric(3);//gets the output metric with key 2
+    myMetricOut->setStructure(myMetric->getStructure());
     OptionalParameter* columnSelect = myParams->getOptionalParameter(4);//gets optional parameter with key 3
     int columnNum = -1;
     if (columnSelect->m_present)
