@@ -32,6 +32,8 @@
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
+#include "SceneClass.h"
+#include "SceneException.h"
 #define __SPEC_FILE_DEFINE__
 #include "SpecFile.h"
 #undef __SPEC_FILE_DEFINE__
@@ -169,7 +171,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
             SpecFileDataFile* file = group->getFileInformation(i);
             this->addDataFile(group->getDataFileType(), 
                               file->getStructure(), 
-                              file->getFileName());
+                              file->getFileName(),
+                              file->isSelected());
         }
     }
     
@@ -185,6 +188,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
  *   Structure of data file (not all files use structure).
  * @param filename
  *   Name of the file.
+ * @param fileSelectionStatus
+ *   Selection status of the file.
  *
  * @throws DataFileException
  *   If data file type is UNKNOWN.
@@ -192,7 +197,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
 void 
 SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const StructureEnum::Enum structure,
-                      const AString& filename) throw (DataFileException)
+                      const AString& filename,
+                      const bool fileSelectionStatus) throw (DataFileException)
 {
     AString name = filename;
     
@@ -217,6 +223,7 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
             
             SpecFileDataFile* sfdf = new SpecFileDataFile(name,
                                                           structure);
+            sfdf->setSelected(fileSelectionStatus);
             dataFileTypeGroup->addFileInformation(sfdf);
             return;
         }
@@ -251,7 +258,43 @@ SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivi
         }
     }
 }
-                        
+
+/**
+ * Set the selection status of a data file.
+ * @param dataFileTypeName
+ *   Name of type of data file.
+ * @param structure
+ *   Name of Structure of data file (not all files use structure).
+ * @param filename
+ *   Name of the file.
+ * @param fileSelectionStatus
+ *   Selection status of file.
+ */
+void 
+SpecFile::setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
+                                 const StructureEnum::Enum structure,
+                                 const AString& filename,
+                                 const bool fileSelectionStatus)
+{    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (dataFileTypeGroup->getDataFileType() == dataFileType) {
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+                if (sfdf->getStructure() == structure) {
+                    if (sfdf->getFileName().endsWith(filename)) {
+                        sfdf->setSelected(fileSelectionStatus);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 /**
  * Add a data file to this spec file.
  * @param dataFileTypeName
@@ -260,6 +303,8 @@ SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivi
  *   Name of Structure of data file (not all files use structure).
  * @param filename
  *   Name of the file.
+ * @param fileSelectionStatus
+ *   Selection status of file.
  *
  * @throws DataFileException
  *   If data file type is UNKNOWN.
@@ -267,7 +312,8 @@ SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivi
 void 
 SpecFile::addDataFile(const AString& dataFileTypeName,
                  const AString& structureName,
-                 const AString& filename) throw (DataFileException)
+                      const AString& filename,
+                      const bool fileSelectionStatus) throw (DataFileException)
 {
     bool validType = false;
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromName(dataFileTypeName, &validType);
@@ -275,7 +321,8 @@ SpecFile::addDataFile(const AString& dataFileTypeName,
     StructureEnum::Enum structure = StructureEnum::fromGuiName(structureName, &validStructure);
     this->addDataFile(dataFileType,
                       structure,
-                      filename);
+                      filename,
+                      fileSelectionStatus);
 }
 
 
@@ -399,6 +446,48 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
     }
 
     this->setFileName(filename);
+    this->setAllFilesSelected(true);
+    
+    this->clearModified();
+}
+
+/**
+ * Read the spec file from a string containing the files content.
+ * @param string
+ *    String containing the file's content.
+ * @throws DataFileException
+ *    If there is an error reading the file from the string.
+ */
+void 
+SpecFile::readFileFromString(const AString& string) throw (DataFileException)
+{
+    SpecFileSaxReader saxReader(this);
+    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    try {
+        parser->parseString(string, &saxReader);
+    }
+    catch (const XmlSaxParserException& e) {
+        this->setFileName("");
+        
+        int lineNum = e.getLineNumber();
+        int colNum  = e.getColumnNumber();
+        
+        AString msg = "Parse Error while reading Spec File from string.";
+        
+        if ((lineNum >= 0) && (colNum >= 0)) {
+            msg += (" line/col ("
+                    + AString::number(e.getLineNumber())
+                    + "/"
+                    + AString::number(e.getColumnNumber())
+                    + ")");
+        }
+        
+        msg += (": " + e.whatString());
+        
+        DataFileException dfe(msg);
+        CaretLogThrowing(dfe);
+        throw dfe;
+    }
     
     this->clearModified();
 }
@@ -439,63 +528,70 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         //
         XmlWriter xmlWriter(*textStream);
         
-        //
-        // Write header info
-        //
-        xmlWriter.writeStartDocument("1.0");
-        
-        //
-        // Write GIFTI root element
-        //
-        XmlAttributes attributes;
-        
-        //attributes.addAttribute("xmlns:xsi",
-        //                        "http://www.w3.org/2001/XMLSchema-instance");
-        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
-        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
-        attributes.addAttribute(SpecFile::XML_ATTRIBUTE_VERSION,
-                                versionString);
-        xmlWriter.writeStartElement(SpecFile::XML_TAG_SPEC_FILE,
-                                           attributes);
-        
-        //
-        // Write Metadata
-        //
-        if (metadata != NULL) {
-            metadata->writeAsXML(xmlWriter);
-        }
-    
         /*
-         * Remove any files that are tagged for removal.
+         * Write the XML and include metadata
          */
-        this->removeFilesTaggedForRemoval();
+        this->writeFileContentToXML(xmlWriter, 
+                                    WRITE_META_DATA_YES,
+                                    WRITE_ALL_FILES);
         
-        //
-        // Write files
-        //
-        const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
-        for (int32_t i = 0; i < numGroups; i++) {
-            SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
-            const int32_t numFiles = group->getNumberOfFiles();
-            for (int32_t j = 0; j < numFiles; j++) {
-                SpecFileDataFile* file = group->getFileInformation(j);
-                
-                if (file->isRemovedFromSpecFileWhenWritten() == false) {
-                    XmlAttributes atts;
-                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
-                                      StructureEnum::toGuiName(file->getStructure()));
-                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
-                                      DataFileTypeEnum::toName(group->getDataFileType()));
-                    xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
-                                                atts);
-                    xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
-                    xmlWriter.writeEndElement();
-                }
-            }
-        }
-        
-        xmlWriter.writeEndElement();
-        xmlWriter.writeEndDocument();
+//        //
+//        // Write header info
+//        //
+//        xmlWriter.writeStartDocument("1.0");
+//        
+//        //
+//        // Write GIFTI root element
+//        //
+//        XmlAttributes attributes;
+//        
+//        //attributes.addAttribute("xmlns:xsi",
+//        //                        "http://www.w3.org/2001/XMLSchema-instance");
+//        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+//        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+//        attributes.addAttribute(SpecFile::XML_ATTRIBUTE_VERSION,
+//                                versionString);
+//        xmlWriter.writeStartElement(SpecFile::XML_TAG_SPEC_FILE,
+//                                           attributes);
+//        
+//        //
+//        // Write Metadata
+//        //
+//        if (metadata != NULL) {
+//            metadata->writeAsXML(xmlWriter);
+//        }
+//    
+//        /*
+//         * Remove any files that are tagged for removal.
+//         */
+//        this->removeFilesTaggedForRemoval();
+//        
+//        //
+//        // Write files
+//        //
+//        const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
+//        for (int32_t i = 0; i < numGroups; i++) {
+//            SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+//            const int32_t numFiles = group->getNumberOfFiles();
+//            for (int32_t j = 0; j < numFiles; j++) {
+//                SpecFileDataFile* file = group->getFileInformation(j);
+//                
+//                if (file->isRemovedFromSpecFileWhenWritten() == false) {
+//                    XmlAttributes atts;
+//                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
+//                                      StructureEnum::toGuiName(file->getStructure()));
+//                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
+//                                      DataFileTypeEnum::toName(group->getDataFileType()));
+//                    xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
+//                                                atts);
+//                    xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
+//                    xmlWriter.writeEndElement();
+//                }
+//            }
+//        }
+//        
+//        xmlWriter.writeEndElement();
+//        xmlWriter.writeEndDocument();
         
         file.close();
         
@@ -508,6 +604,131 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         throw DataFileException(e);
     }
 }
+
+/**
+ * Write the file's content to the XML Writer.
+ * @param xmlWriter
+ *    XML Writer to which file content is written.
+ * @param writeMetaDataStatus
+ *    Yes of no to write metadata.
+ * @throws DataFileException
+ *    If there is an error writing to the XML writer.
+ */
+void 
+SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
+                                const WriteMetaDataType writeMetaDataStatus,
+                                const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
+{    
+    //
+    // Write header info
+    //
+    xmlWriter.writeStartDocument("1.0");
+    
+    //
+    // Write GIFTI root element
+    //
+    XmlAttributes attributes;
+    
+    //attributes.addAttribute("xmlns:xsi",
+    //                        "http://www.w3.org/2001/XMLSchema-instance");
+    //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+    //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+    attributes.addAttribute(SpecFile::XML_ATTRIBUTE_VERSION,
+                            SpecFile::getFileVersionAsString());
+    xmlWriter.writeStartElement(SpecFile::XML_TAG_SPEC_FILE,
+                                attributes);
+    
+    //
+    // Write Metadata
+    //
+    if (writeMetaDataStatus == WRITE_META_DATA_YES) {
+        if (metadata != NULL) {
+            metadata->writeAsXML(xmlWriter);
+        }
+    }
+    
+    /*
+     * Remove any files that are tagged for removal.
+     */
+    this->removeFilesTaggedForRemoval();
+    
+    //
+    // Write files
+    //
+    const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
+    for (int32_t i = 0; i < numGroups; i++) {
+        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+        const int32_t numFiles = group->getNumberOfFiles();
+        for (int32_t j = 0; j < numFiles; j++) {
+            SpecFileDataFile* file = group->getFileInformation(j);
+            
+            if (file->isRemovedFromSpecFileWhenWritten() == false) {
+                bool writeIt = true;
+                switch (writeFilesSelectedStatus) {
+                    case WRITE_ALL_FILES:
+                        break;
+                    case WRITE_SELECTED_FILES:
+                        writeIt = file->isSelected();
+                        break;
+                }
+                
+                if (writeIt) {
+                    XmlAttributes atts;
+                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
+                                      StructureEnum::toGuiName(file->getStructure()));
+                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
+                                      DataFileTypeEnum::toName(group->getDataFileType()));
+                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_SELECTED, 
+                                      file->isSelected());
+                    xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
+                                                atts);
+                    xmlWriter.writeCharacters("      " 
+                                              + file->getFileName() 
+                                              + "\n");
+                    xmlWriter.writeEndElement();
+                }
+            }
+        }
+    }
+    
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
+}
+
+/**
+ * Write the file to a XML string.
+ * @param writeMetaDataStatus
+ *    Write the metadata to the file.
+ * @return 
+ *    String containing XML.
+ * @throws DataFileException
+ *    If error writing to XML.
+ */
+AString 
+SpecFile::writeFileToString(const WriteMetaDataType writeMetaDataStatus,
+                            const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
+{    
+    /*
+     * Create a TextStream that writes to a string.
+     */
+    AString xmlString;
+    QTextStream textStream(&xmlString);
+    
+    /*
+     * Create the xml writer
+     */
+    XmlWriter xmlWriter(textStream);
+
+    /*
+     * Write file to XML.
+     */
+    this->writeFileContentToXML(xmlWriter,
+                                writeMetaDataStatus,
+                                writeFilesSelectedStatus);
+    
+    return xmlString;
+}
+
 
 /**
  * If any files are marked for removal from SpecFile, remove them.
@@ -635,7 +856,66 @@ SpecFile::getFileVersion()
 AString 
 SpecFile::getFileVersionAsString()
 {
-    return AString::number(SpecFile::specFileVersion);
+    return AString::number(SpecFile::specFileVersion, 'f', 1);
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "SpecFile",
+                                            1);
+    
+    try {
+        sceneClass->addString("specFileName",
+                              this->getFileNameNoPath());
+        sceneClass->addString("specFileContent",
+                              this->writeFileToString(WRITE_META_DATA_NO,
+                                                      WRITE_SELECTED_FILES));
+    }
+    catch (const DataFileException& dfe) {
+        throw SceneException(dfe);
+    }
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                           const SceneClass* sceneClass)
+{
+    const AString name = sceneClass->getStringValue("specFileName");
+    const AString specFileContent = sceneClass->getStringValue("specFileContent");
+    
+    std::cout << "Spec File Name: " << qPrintable(name) << std::endl;
+    std::cout << "Spec File content in scene: " << qPrintable(specFileContent) << std::endl;
 }
 
 

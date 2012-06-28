@@ -42,10 +42,13 @@
 #include "CursorManager.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditorShow.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -55,6 +58,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneDialog.h"
+#include "SceneException.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"
@@ -1055,7 +1059,7 @@ GuiManager::getCursorManager() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-GuiManager::saveToScene(const SceneAttributes& sceneAttributes,
+GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
                         const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -1074,7 +1078,7 @@ GuiManager::saveToScene(const SceneAttributes& sceneAttributes,
         }
     }
 
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
@@ -1097,15 +1101,24 @@ GuiManager::saveToScene(const SceneAttributes& sceneAttributes,
  *     saved and should be restored.
  */
 void 
-GuiManager::restoreFromScene(const SceneAttributes& sceneAttributes,
-                        const SceneClass& sceneClass)
+GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
 {
-    switch (sceneAttributes.getSceneType()) {
+    if (sceneClass == NULL) {
+        return;
+    }
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }    
+        
+    getBrain()->restoreFromScene(sceneAttributes, 
+                                 sceneClass->getClass("brain"));
     
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

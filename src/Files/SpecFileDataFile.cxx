@@ -46,7 +46,7 @@ using namespace caret;
  *    Structure file represents (not all files have structure).
  */
 SpecFileDataFile::SpecFileDataFile(const AString& filename,
-                                     const StructureEnum::Enum structure)
+                                   const StructureEnum::Enum structure)
 : CaretObject()
 {
     this->removeFromSpecFileWhenWritten = false;

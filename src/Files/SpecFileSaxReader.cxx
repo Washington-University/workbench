@@ -121,6 +121,8 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
              this->state = STATE_DATA_FILE;
              this->fileAttributeStructureName = attributes.getValue(SpecFile::XML_ATTRIBUTE_STRUCTURE);
              this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE);
+             this->fileAttributeSelectionStatus = attributes.getValueAsBoolean(SpecFile::XML_ATTRIBUTE_SELECTED,
+                                                                               false);
          }
          else {
              const AString msg =
@@ -174,9 +176,12 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                const AString filename = this->elementText.trimmed();
                this->specFile->addDataFile(this->fileAttributeTypeName, 
                                            this->fileAttributeStructureName, 
-                                           filename);
+                                           filename,
+                                           this->fileAttributeSelectionStatus);
+               
                this->fileAttributeTypeName = "";
                this->fileAttributeStructureName = "";
+               this->fileAttributeSelectionStatus = false;
            }
            catch (const DataFileException& e) {
                throw XmlSaxParserException(e);

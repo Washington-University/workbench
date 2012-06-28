@@ -2270,13 +2270,13 @@ BrainBrowserWindow::processHcpWebsiteInBrowser()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes,
+BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                 const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrainBrowserWindow",
                                             1);
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
@@ -2299,10 +2299,10 @@ BrainBrowserWindow::saveToScene(const SceneAttributes& sceneAttributes,
  *     saved and should be restored.
  */
 void 
-BrainBrowserWindow::restoreFromScene(const SceneAttributes& sceneAttributes,
-                             const SceneClass& sceneClass)
+BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
 {
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:

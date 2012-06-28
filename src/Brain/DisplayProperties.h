@@ -69,11 +69,11 @@ namespace caret {
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex) = 0;
         
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName) = 0;
         
-        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
-                                      const SceneClass& sceneClass) = 0;
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) = 0;
     private:
         DisplayProperties(const DisplayProperties&);
 

@@ -157,6 +157,8 @@ namespace caret {
         
         const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
         
+        void logMissing(const AString& missingInfo) const;
+        
         AString m_className;
         
         const int32_t m_versionNumber;

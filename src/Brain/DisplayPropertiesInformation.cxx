@@ -202,7 +202,7 @@ DisplayPropertiesInformation::setIdentificationContralateralSymbolColor(const Ca
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes,
+DisplayPropertiesInformation::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -210,14 +210,15 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes
                                             1);
     
     m_sceneAssistant->saveMembers(sceneAttributes, 
-                                      *sceneClass);
+                                      sceneClass);
     
-    switch (sceneAttributes.getSceneType()) {
+    sceneClass->addEnumeratedType("m_identificationSymbolColor", 
+                                  CaretColorEnum::toName(m_identificationSymbolColor));
+    sceneClass->addEnumeratedType("m_identificationContralateralSymbolColor", 
+                                  CaretColorEnum::toName(m_identificationContralateralSymbolColor));
+    
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            sceneClass->addEnumeratedType("m_identificationSymbolColor", 
-                                          CaretColorEnum::toName(m_identificationSymbolColor));
-            sceneClass->addEnumeratedType("m_identificationContralateralSymbolColor", 
-                                          CaretColorEnum::toName(m_identificationContralateralSymbolColor));
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
@@ -239,18 +240,18 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes& sceneAttributes
  *     saved and should be restored.
  */
 void 
-DisplayPropertiesInformation::restoreFromScene(const SceneAttributes& sceneAttributes,
-                        const SceneClass& sceneClass)
+DisplayPropertiesInformation::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                          sceneClass);
     
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("m_identificationSymbolColor",
+            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationSymbolColor",
                                                                                                          "CaretColorEnum::GREEN"),
                                                                        NULL);
-            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass.getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
+            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
                                                                                                          "CaretColorEnum::BLUE"),
                                                                        NULL);
             break;

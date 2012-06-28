@@ -49,6 +49,8 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneException.h"
 #include "SceneFile.h"
 #include "Scene.h"
 #include "WuQDataEntryDialog.h"
@@ -368,31 +370,37 @@ SceneDialog::addNewSceneButtonClicked()
     SceneFile* sceneFile = getSelectedSceneFile();
     Scene* newScene = NULL;
     if (sceneFile != NULL) {
-        WuQDataEntryDialog newSceneDialog("New Scene",
-                                         this);
-        AString newSceneName = "Scene X";
-        QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("New Scene Name", 
-                                                                          newSceneName);
-        newSceneNameLineEdit->selectAll();
-        
-        QStringList newSceneTypes;
-        newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_FULL));
-        newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_GENERIC));
-        QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
-        if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-            newSceneName = newSceneNameLineEdit->text();
-            bool isValidType = false;
-            SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
-                                                                       &isValidType);
+        try {
+            WuQDataEntryDialog newSceneDialog("New Scene",
+                                              this);
+            AString newSceneName = "Scene X";
+            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("New Scene Name", 
+                                                                               newSceneName);
+            newSceneNameLineEdit->selectAll();
             
-            newScene = new Scene(sceneType);
-            newScene->setName(newSceneName);
-            
-            SceneAttributes* sceneAtributes = newScene->getAttributes();
-            newScene->addClass(GuiManager::get()->saveToScene(*sceneAtributes,
-                                                              "guiManager"));
-            
-            sceneFile->addScene(newScene);
+            QStringList newSceneTypes;
+            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_FULL));
+            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_GENERIC));
+            QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
+            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
+                newSceneName = newSceneNameLineEdit->text();
+                bool isValidType = false;
+                SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
+                                                                           &isValidType);
+                
+                newScene = new Scene(sceneType);
+                newScene->setName(newSceneName);
+                
+                SceneAttributes* sceneAtributes = newScene->getAttributes();
+                newScene->addClass(GuiManager::get()->saveToScene(sceneAtributes,
+                                                                  "guiManager"));
+                
+                sceneFile->addScene(newScene);
+            }
+        }
+        catch (const SceneException& se) {
+            WuQMessageBox::errorOk(this, 
+                                   se.whatString());
         }
     }
     
@@ -427,7 +435,20 @@ SceneDialog::showSceneButtonClicked()
 {
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
-        
+        try {
+            const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
+            if (guiManagerClass->getName() != "guiManager") {
+                throw SceneException("Top level scene class should be guiManager but it is: "
+                                     + guiManagerClass->getName());
+            }
+            const SceneAttributes* sceneAttributes = scene->getAttributes();
+            GuiManager::get()->restoreFromScene(sceneAttributes, 
+                                                guiManagerClass);
+        }
+        catch (const SceneException& se) {
+            WuQMessageBox::errorOk(this, 
+                                   se.whatString());
+        }
     }
 }
 

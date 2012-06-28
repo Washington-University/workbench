@@ -87,11 +87,11 @@ namespace caret {
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
-        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
-                                      const SceneClass& sceneClass);
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     protected:
         void closeEvent(QCloseEvent* event);
         

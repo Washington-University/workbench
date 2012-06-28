@@ -322,14 +322,14 @@ DisplayPropertiesVolume::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-DisplayPropertiesVolume::saveToScene(const SceneAttributes& sceneAttributes,
+DisplayPropertiesVolume::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "DisplayPropertiesVolume",
                                             1);
     
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
@@ -352,10 +352,10 @@ DisplayPropertiesVolume::saveToScene(const SceneAttributes& sceneAttributes,
  *     saved and should be restored.
  */
 void 
-DisplayPropertiesVolume::restoreFromScene(const SceneAttributes& sceneAttributes,
-                        const SceneClass& sceneClass)
+DisplayPropertiesVolume::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
 {
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:

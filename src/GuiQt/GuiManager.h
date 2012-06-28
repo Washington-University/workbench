@@ -123,11 +123,11 @@ namespace caret {
         void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void updateAnimationStartTime(double value); 
         
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
-        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
-                                      const SceneClass& sceneClass);
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();

@@ -308,15 +308,15 @@ SceneClassAssistant::addArray(const AString& name,
  *     saved and should be restored.
  */
 void 
-SceneClassAssistant::restoreMembers(const SceneAttributes& sceneAttributes,
-                                    const SceneClass& sceneClass)
+SceneClassAssistant::restoreMembers(const SceneAttributes* sceneAttributes,
+                                    const SceneClass* sceneClass)
 {
     for (DataStorageIterator iter = m_dataStorage.begin();
          iter != m_dataStorage.end();
          iter++) {
         Data* data = *iter;
-        data->restore(sceneAttributes,
-                      sceneClass);
+        data->restore(*sceneAttributes,
+                      *sceneClass);
     }
 }
 
@@ -334,15 +334,15 @@ SceneClassAssistant::restoreMembers(const SceneAttributes& sceneAttributes,
  */
 
 void 
-SceneClassAssistant::saveMembers(const SceneAttributes& sceneAttributes,
-                                 SceneClass& sceneClass)
+SceneClassAssistant::saveMembers(const SceneAttributes* sceneAttributes,
+                                 SceneClass* sceneClass)
 {
     for (DataStorageIterator iter = m_dataStorage.begin();
          iter != m_dataStorage.end();
          iter++) {
         Data* data = *iter;
-        data->save(sceneAttributes,
-                   sceneClass);
+        data->save(*sceneAttributes,
+                   *sceneClass);
     }
 }
 
@@ -558,7 +558,7 @@ SceneClassAssistant::BooleanArrayData::BooleanArrayData(const AString& name,
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::BooleanArrayData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::BooleanArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                const SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -576,7 +576,7 @@ SceneClassAssistant::BooleanArrayData::restore(const SceneAttributes& sceneAttri
  * @param sceneClass
  *    Class from  which data is restored.
  */
-void SceneClassAssistant::BooleanArrayData::save(const SceneAttributes& sceneAttributes,
+void SceneClassAssistant::BooleanArrayData::save(const SceneAttributes& /*sceneAttributes*/,
                                                  SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -611,7 +611,7 @@ m_defaultValue(defaultValue)
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::IntegerArrayData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::IntegerArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                const SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -629,7 +629,7 @@ SceneClassAssistant::IntegerArrayData::restore(const SceneAttributes& sceneAttri
  * @param sceneClass
  *    Class from  which data is restored.
  */
-void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& sceneAttributes,
+void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& /*sceneAttributes*/,
                                                  SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -664,7 +664,7 @@ m_defaultValue(defaultValue)
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::FloatArrayData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::FloatArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                const SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -682,7 +682,7 @@ SceneClassAssistant::FloatArrayData::restore(const SceneAttributes& sceneAttribu
  * @param sceneClass
  *    Class from  which data is restored.
  */
-void SceneClassAssistant::FloatArrayData::save(const SceneAttributes& sceneAttributes,
+void SceneClassAssistant::FloatArrayData::save(const SceneAttributes& /*sceneAttributes*/,
                                                  SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -717,7 +717,7 @@ m_defaultValue(defaultValue)
  *    Class from  which data is restored.
  */
 void 
-SceneClassAssistant::StringArrayData::restore(const SceneAttributes& sceneAttributes,
+SceneClassAssistant::StringArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
                                              const SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -735,7 +735,7 @@ SceneClassAssistant::StringArrayData::restore(const SceneAttributes& sceneAttrib
  * @param sceneClass
  *    Class from  which data is restored.
  */
-void SceneClassAssistant::StringArrayData::save(const SceneAttributes& sceneAttributes,
+void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAttributes*/,
                                                SceneClass& sceneClass)
 {
     if (m_numberOfArrayElements > 0) {
@@ -867,7 +867,7 @@ m_sceneClassPointer(sceneClassPointer)
  * @param sceneAttributes
  *    Attributes for the scene.
  * @param sceneClass
- *    Class from  which data is restored.
+ *    Parent scene class from which data is restored.
  */
 void 
 SceneClassAssistant::ClassData::restore(const SceneAttributes& sceneAttributes,
@@ -880,8 +880,8 @@ SceneClassAssistant::ClassData::restore(const SceneAttributes& sceneAttributes,
                                                ? m_sceneClassPointer 
                                                : *m_sceneClassHandle);
         if (myClassInstance != NULL) {
-            myClassInstance->restoreFromScene(sceneAttributes, 
-                                              *mySceneClass);
+            myClassInstance->restoreFromScene(&sceneAttributes, 
+                                              mySceneClass);
         }
     }
 }
@@ -901,6 +901,6 @@ SceneClassAssistant::ClassData::save(const SceneAttributes& sceneAttributes,
                                            ? m_sceneClassPointer 
                                            : *m_sceneClassHandle);
     if (myClassInstance != NULL) {
-        sceneClass.addClass(myClassInstance->saveToScene(sceneAttributes, m_name));
+        sceneClass.addClass(myClassInstance->saveToScene(&sceneAttributes, m_name));
     }
 }

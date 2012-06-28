@@ -71,7 +71,7 @@ namespace caret {
          *    this object.  Under some circumstances a NULL pointer may be
          *    returned.  Caller will take ownership of returned object.
          */
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName) = 0;
         
         /**
@@ -83,11 +83,11 @@ namespace caret {
          *    restoring the scene.
          *
          * @param sceneClass
-         *     SceneClass containing the state that was previously 
-         *     saved and should be restored.
+         *     sceneClass for the instance of a class that implements
+         *     this interface.  May be NULL for some types of scenes.
          */
-        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
-                                      const SceneClass& sceneClass) = 0;
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) = 0;
         
     private:
         SceneableInterface(const SceneableInterface&);

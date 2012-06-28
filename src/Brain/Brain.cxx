@@ -62,6 +62,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SceneException.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -112,14 +113,21 @@ Brain::Brain()
     
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_sceneAssistant->add("displayPropertiesBorders", 
+                          "DisplayPropertiesBorders", 
+                          this->displayPropertiesBorders);
+    
+    m_sceneAssistant->add("displayPropertiesFoci", 
+                          "DisplayPropertiesFoci", 
+                          this->displayPropertiesFoci);
+    
     m_sceneAssistant->add("displayPropertiesInformation", 
                           "DisplayPropertiesInformation", 
                           this->displayPropertiesInformation);
     
-//    m_sceneAssistant->add("contralateralIdentificationEnabled",
-//                              &this->contralateralIdentificationEnabled,
-//                              this->contralateralIdentificationEnabled);
-    
+    m_sceneAssistant->add("displayPropertiesVolume", 
+                          "DisplayPropertiesVolume", 
+                          this->displayPropertiesVolume);
 }
 
 /**
@@ -1542,7 +1550,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             }
             this->specFile->addDataFile(dataFileType, 
                                         dataFileStructure, 
-                                        relativePathDataFileName);
+                                        relativePathDataFileName,
+                                        true);
             this->specFile->writeFile(specFileName);
         }
     }
@@ -1954,7 +1963,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
             if (fileInfo.exists()) {
                 this->specFile->addDataFile(caretDataFile->getDataFileType(), 
                                             caretDataFile->getStructure(), 
-                                            caretDataFile->getFileName());
+                                            caretDataFile->getFileName(),
+                                            true);
                 this->specFile->writeFile(specFileName);
             }
         }
@@ -2057,6 +2067,10 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     }
     
     if (wasRemoved) {
+        this->specFile->setFileSelectionStatus(caretDataFile->getDataFileType(), 
+                                               caretDataFile->getStructure(), 
+                                               caretDataFile->getFileNameNoPath(), 
+                                               false);
         this->updateVolumeSliceController();
         this->updateWholeBrainController();
         this->updateSurfaceMontageController();
@@ -2150,32 +2164,26 @@ Brain::getDisplayPropertiesInformation() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-Brain::saveToScene(const SceneAttributes& sceneAttributes,
+Brain::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "Brain",
                                             1);
     
-    m_sceneAssistant->saveMembers(sceneAttributes, 
-                                  *sceneClass);
+    sceneClass->addClass(this->specFile->saveToScene(sceneAttributes, 
+                                                     "specFile"));
     
-    switch (sceneAttributes.getSceneType()) {
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }
 
-    sceneClass->addClass(this->displayPropertiesBorders->saveToScene(sceneAttributes, 
-                                                                     "displayPropertiesBorders"));
-    sceneClass->addClass(this->displayPropertiesFoci->saveToScene(sceneAttributes, 
-                                             "displayPropertiesFoci"));
-//    sceneClass->addClass(this->displayPropertiesInformation->saveToScene(sceneAttributes, 
-//                                                    "displayPropertiesInformation"));
-    sceneClass->addClass(this->displayPropertiesVolume->saveToScene(sceneAttributes, 
-                                               "displayPropertiesVolume"));
-    
     return sceneClass;
 }
 
@@ -2188,17 +2196,24 @@ Brain::saveToScene(const SceneAttributes& sceneAttributes,
  *    restoring the scene.
  *
  * @param sceneClass
- *     SceneClass containing the state that was previously 
- *     saved and should be restored.
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
  */
 void 
-Brain::restoreFromScene(const SceneAttributes& sceneAttributes,
-                              const SceneClass& sceneClass)
+Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    this->specFile->restoreFromScene(sceneAttributes, 
+                                     sceneClass->getClass("specFile"));
+    
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:

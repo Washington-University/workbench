@@ -90,12 +90,12 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
     m_sceneAssistant->addArray("m_displayStatusInTab", 
                                m_displayStatusInTab,
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               false);
+                               m_displayStatusInTab[0]);
 
     m_sceneAssistant->addArray("m_contralateralDisplayStatusInTab", 
                                m_contralateralDisplayStatusInTab,
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               false);
+                               m_contralateralDisplayStatusInTab[0]);
     
     m_sceneAssistant->addArray("m_lineWidthInTab", 
                                m_lineWidthInTab,
@@ -110,12 +110,12 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
     m_sceneAssistant->addArray("m_displayStatusInDisplayGroup", 
                                m_displayStatusInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
-                               false);
+                               m_displayStatusInDisplayGroup[0]);
     
     m_sceneAssistant->addArray("m_contralateralDisplayStatusInDisplayGroup", 
                                m_contralateralDisplayStatusInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
-                               false);
+                               m_contralateralDisplayStatusInDisplayGroup[0]);
     
     m_sceneAssistant->addArray("m_lineWidthInDisplayGroup", 
                                m_lineWidthInDisplayGroup,
@@ -479,7 +479,7 @@ DisplayPropertiesBorders::setDrawingType(const DisplayGroupEnum::Enum  displayGr
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
+DisplayPropertiesBorders::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -487,7 +487,7 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
                                             1);
     
     m_sceneAssistant->saveMembers(sceneAttributes, 
-                                  *sceneClass);
+                                  sceneClass);
     
     AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -505,7 +505,7 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
                                        displayGroupStringArray, 
                                        DisplayGroupEnum::NUMBER_OF_GROUPS);
     
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
@@ -528,8 +528,8 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes& sceneAttributes,
  *     saved and should be restored.
  */
 void 
-DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttributes,
-                        const SceneClass& sceneClass)
+DisplayPropertiesBorders::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
@@ -537,7 +537,7 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttribute
     const AString defaultDrawingTypeString = BorderDrawingTypeEnum::toName(BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
 
     AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-    sceneClass.getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
+    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
                                            tabStringArray, 
                                            BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                                            defaultDrawingTypeString);
@@ -551,7 +551,7 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttribute
     }
     
     AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
-    sceneClass.getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
+    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
                                            displayGroupStringArray, 
                                            DisplayGroupEnum::NUMBER_OF_GROUPS, 
                                            defaultDrawingTypeString);
@@ -564,7 +564,7 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes& sceneAttribute
         }
     }
     
-    switch (sceneAttributes.getSceneType()) {
+    switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:

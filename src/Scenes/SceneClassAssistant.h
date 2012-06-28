@@ -50,11 +50,11 @@ namespace caret {
         
         virtual ~SceneClassAssistant();
         
-        void restoreMembers(const SceneAttributes& sceneAttributes,
-                            const SceneClass& sceneClass);
+        void restoreMembers(const SceneAttributes* sceneAttributes,
+                            const SceneClass* sceneClass);
         
-        void saveMembers(const SceneAttributes& sceneAttributes,
-                         SceneClass& sceneClass);
+        void saveMembers(const SceneAttributes* sceneAttributes,
+                         SceneClass* sceneClass);
         
     private:
         SceneClassAssistant(const SceneClassAssistant&);

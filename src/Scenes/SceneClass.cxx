@@ -37,6 +37,7 @@
 #undef __SCENE_CLASS_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
 #include "SceneEnumeratedType.h"
@@ -424,6 +425,7 @@ SceneClass::getEnumeratedTypeValue(const AString& name,
         }
     }
     
+    logMissing("Scene Enumerated Type not found: " + name);
     return defaultValue;
 }
 
@@ -464,6 +466,7 @@ SceneClass::getEnumeratedTypeArrayValue(const AString& name,
     for (int32_t i = 0; i < arrayNumberOfElements; i++) {
         values[i] = defaultValue;
     }
+    logMissing("Scene Enumerated Array Type not found: " + name);
 }
 
 /**
@@ -658,6 +661,8 @@ SceneClass::getPrimitive(const AString& name) const
         }
     }
     
+    logMissing("Scene Primitive Type not found: " + name);
+    
     return NULL;
 }
 
@@ -685,6 +690,7 @@ SceneClass::getPrimitiveArray(const AString& name) const
         }
     }
     
+    logMissing("Scene Primitive Array not found: " + name);
     return NULL;
 }
 
@@ -711,6 +717,8 @@ SceneClass::getClass(const AString& name) const
             }
         }
     }
+    
+    logMissing("Scene Class not found: " + name);
     
     return NULL;
 }
@@ -739,6 +747,8 @@ SceneClass::getClass(const AString& name)
         }
     }
     
+    logMissing("Scene Class not found: " + name);
+    
     return NULL;
 }
 
@@ -762,4 +772,18 @@ SceneClass::getObjectAtIndex(const int32_t indx) const
     CaretAssertVectorIndex(m_childObjects, indx);
     return m_childObjects[indx];
 }
+
+/**
+ * Log a missing object message to the Caret Logger.
+ * This is done through a method so that the level
+ * can easily be changed.
+ * @param missionInfo
+ *    Information about missing object.
+ */
+void 
+SceneClass::logMissing(const AString& missingInfo) const
+{
+    CaretLogSevere(missingInfo);
+}
+
 

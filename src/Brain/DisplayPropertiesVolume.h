@@ -53,11 +53,11 @@ namespace caret {
         
         void selectSurfacesAfterSpecFileLoaded(const bool searchForTabs);
         
-        virtual SceneClass* saveToScene(const SceneAttributes& sceneAttributes,
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
-        virtual void restoreFromScene(const SceneAttributes& sceneAttributes,
-                                      const SceneClass& sceneClass);
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
