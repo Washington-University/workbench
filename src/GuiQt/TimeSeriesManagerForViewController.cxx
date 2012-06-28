@@ -78,6 +78,7 @@ TimeSeriesManagerForViewController::~TimeSeriesManagerForViewController()
     thread->exit();   
     thread->wait();
     delete m_timer;
+    delete thread;
 }
 
 void TimeSeriesManagerForViewController::getCurrentTime()
