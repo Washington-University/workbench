@@ -32,7 +32,7 @@
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
 #include "SceneFloat.h"
-#include "SceneFLoatArray.h"
+#include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
 #include "SceneSaxReader.h"

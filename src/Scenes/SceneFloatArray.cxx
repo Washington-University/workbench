@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <limits>
 
 #define __SCENE_FLOAT_ARRAY_DECLARE__
 #include "SceneFloatArray.h"
