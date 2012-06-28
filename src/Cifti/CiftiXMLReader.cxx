@@ -416,33 +416,36 @@ void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap,
 {
     bool haveName = false, haveLabelTable = false;
     xml.readNext();
-    while (!xml.hasError() && xml.isStartElement())
+    while (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
     {
-        if (xml.name() == "MapName")
+        if (xml.isStartElement())
         {
-            if (haveName)
+            if (xml.name() == "MapName")
             {
-                xml.raiseError("MapName specified more than once in NamedMap");
+                if (haveName)
+                {
+                    xml.raiseError("MapName specified more than once in NamedMap");
+                    break;
+                }
+                namedMap.m_mapName = xml.readElementText();
+                haveName = true;
+            } else if (xml.name() == "LabelTable") {
+                if (haveLabelTable)
+                {
+                    xml.raiseError("LabelTable specified more than once in NamedMap");
+                    break;
+                }
+                namedMap.m_labelTable.grabNew(new GiftiLabelTable());
+                namedMap.m_labelTable->readFromQXmlStreamReader(xml);
+                haveLabelTable = true;
+            } else {
+                xml.raiseError("unrecognized element in NamedMap: " + xml.name().toString());
                 break;
             }
-            namedMap.m_mapName = xml.readElementText();
-            xml.readNext();
-            haveName = true;
-        } else if (xml.name() == "LabelTable") {
-            if (haveLabelTable)
-            {
-                xml.raiseError("LabelTable specified more than once in NamedMap");
-                break;
-            }
-            namedMap.m_labelTable.grabNew(new GiftiLabelTable());
-            namedMap.m_labelTable->readFromQXmlStreamReader(xml);
-            xml.readNext();
-            haveLabelTable = true;
-        } else {
-            xml.raiseError("unrecognized element in NamedMap: " + xml.name().toString());
         }
+        xml.readNext();
     }
-    if (!xml.hasError() && (!haveName || (!haveLabelTable && needLabels)))
+    if (!xml.hasError() && (!haveName))
     {
         xml.raiseError("NamedMap element is missing MapName element");
     }

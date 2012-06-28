@@ -22,6 +22,7 @@ OperationBackendAverageDenseROI.h
 OperationBackendAverageROICorrelation.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
+OperationCiftiConvertToScalar.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
 OperationException.h
@@ -36,6 +37,7 @@ OperationBackendAverageDenseROI.cxx
 OperationBackendAverageROICorrelation.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
+OperationCiftiConvertToScalar.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
 OperationException.cxx

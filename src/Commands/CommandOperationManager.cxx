@@ -52,6 +52,7 @@
 #include "OperationBackendAverageROICorrelation.h"
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
+#include "OperationCiftiConvertToScalar.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
 #include "OperationMetricMask.h"
@@ -136,6 +137,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
