@@ -1,8 +1,34 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+/*LICENSE_END*/
+
 #include <stdio.h>
 #include <QtCore>
 #include "CiftiXMLElements.h"
 #include "iostream"
 #include "CiftiXMLReader.h"
+#include "GiftiLabelTable.h"
 
 using namespace caret;
 
@@ -226,9 +252,13 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
         else if(indicesMapToDataType == "CIFTI_TYPE_FIBERS") matrixIndicesMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_FIBERS;
         else if(indicesMapToDataType == "CIFTI_INDEX_TYPE_PARCELS") matrixIndicesMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_PARCELS;
         else if(indicesMapToDataType == "CIFTI_INDEX_TYPE_TIME_POINTS") matrixIndicesMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_TIME_POINTS;
+        else if(indicesMapToDataType == "CIFTI_INDEX_TYPE_SCALARS") matrixIndicesMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_SCALARS;
+        else if(indicesMapToDataType == "CIFTI_INDEX_TYPE_LABELS") matrixIndicesMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_LABELS;
         else xml.raiseError("Error, unrecognized value for BrainModel, indicesMapToDataType.");
     }
     else xml.raiseError("MatrixIndicesMap does not contain IndicesMapToDataType value\n");
+    
+    bool needLabels = (matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS);
 
     if(attributes.hasAttribute("TimeStep")) matrixIndicesMap.m_timeStep = attributes.value("TimeStep").toString().toFloat();
     //else xml.raiseError("MatrixIndicesMap does not contain timeStep Value.");
@@ -257,9 +287,24 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
             QString elementName = xml.name().toString();
             if(elementName == "BrainModel")
             {
+                if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+                {
+                    xml.raiseError("BrainModel element found in incorrect mapping type");
+                    break;
+                }
                 matrixIndicesMap.m_brainModels.push_back(CiftiBrainModelElement());
                 parseBrainModel(xml,matrixIndicesMap.m_brainModels.back());
                 xml.readNext();//read next element after brainmodel end element
+            } else if (elementName == "NamedMap") {
+                if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
+                    matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
+                {
+                    xml.raiseError("NamedMap element found in incorrect mapping type");
+                    break;
+                }
+                matrixIndicesMap.m_namedMaps.push_back(CiftiNamedMapElement());
+                parseNamedMap(xml, matrixIndicesMap.m_namedMaps.back(), needLabels);
+                xml.readNext();
             }
             else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
         }
@@ -364,6 +409,50 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
     if(!xml.isEndElement() || (xml.name().toString() != "BrainModel"))
     {
         xml.raiseError("End element for brain Model not found.");
+    }
+}
+
+void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap, const bool needLabels)
+{
+    bool haveName = false, haveLabelTable = false;
+    xml.readNext();
+    while (!xml.hasError() && xml.isStartElement())
+    {
+        if (xml.name() == "MapName")
+        {
+            if (haveName)
+            {
+                xml.raiseError("MapName specified more than once in NamedMap");
+                break;
+            }
+            namedMap.m_mapName = xml.readElementText();
+            xml.readNext();
+            haveName = true;
+        } else if (xml.name() == "LabelTable") {
+            if (haveLabelTable)
+            {
+                xml.raiseError("LabelTable specified more than once in NamedMap");
+                break;
+            }
+            namedMap.m_labelTable.grabNew(new GiftiLabelTable());
+            namedMap.m_labelTable->readFromQXmlStreamReader(xml);
+            xml.readNext();
+            haveLabelTable = true;
+        } else {
+            xml.raiseError("unrecognized element in NamedMap: " + xml.name().toString());
+        }
+    }
+    if (!xml.hasError() && (!haveName || (!haveLabelTable && needLabels)))
+    {
+        xml.raiseError("NamedMap element is missing MapName element");
+    }
+    if (!xml.hasError() && !haveLabelTable && needLabels)
+    {
+        xml.raiseError("NamedMap element is missing LabelTable element while type is CIFTI_INDEX_TYPE_LABELS");
+    }
+    if (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
+    {
+        xml.raiseError("unexpected element in NamedMap: " + xml.name().toString());
     }
 }
 

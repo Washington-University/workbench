@@ -24,6 +24,7 @@
 /*LICENSE_END*/
 #include "CiftiXMLElements.h"
 #include "CiftiFileException.h"
+#include "GiftiLabelTable.h"
 
 using namespace caret;
 using namespace std;
@@ -129,13 +130,24 @@ bool CiftiMatrixIndicesMapElement::operator==(const CiftiMatrixIndicesMapElement
                 if (timestep != rhtimestep && (timestep == 0.0f || rhtimestep == 0.0f || timestep / rhtimestep < TOLERANCE || rhtimestep / timestep < TOLERANCE)) return false;
             }
             break;
+        case CIFTI_INDEX_TYPE_LABELS:
+        case CIFTI_INDEX_TYPE_SCALARS:
+            {
+                size_t size = m_namedMaps.size();
+                if (rhs.m_namedMaps.size() != size) return false;
+                vector<bool> used(size, false);
+                for (size_t i = 0; i < size; ++i)
+                {
+                    if (m_namedMaps[i] != rhs.m_namedMaps[i]) return false;
+                }
+            }
+            break;
     }
     return true;
 }
 
 bool CiftiBrainModelElement::operator==(const caret::CiftiBrainModelElement& rhs) const
 {
-    if (this == &rhs) return true;//compare pointers to skip checking object against itself
     if (m_indexOffset != rhs.m_indexOffset) return false;
     if (m_indexCount != rhs.m_indexCount) return false;
     if (m_modelType != rhs.m_modelType) return false;
@@ -186,4 +198,31 @@ bool CiftiBrainModelElement::operator==(const caret::CiftiBrainModelElement& rhs
             break;
     }
     return true;
+}
+
+bool CiftiNamedMapElement::operator==(const CiftiNamedMapElement& rhs) const
+{
+    if (m_mapName != rhs.m_mapName) return false;
+    if (m_labelTable == NULL)
+    {
+        if (rhs.m_labelTable != NULL) return false;
+    } else {
+        if (rhs.m_labelTable == NULL) return false;
+        if (!m_labelTable->matches(*(rhs.m_labelTable))) return false;
+    }
+    return true;
+}
+
+CiftiNamedMapElement::CiftiNamedMapElement(const CiftiNamedMapElement& rhs)
+{
+    m_mapName = rhs.m_mapName;
+    m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
+}
+
+CiftiNamedMapElement& CiftiNamedMapElement::operator=(const CiftiNamedMapElement& rhs)
+{
+    if (this == &rhs) return *this;
+    m_mapName = rhs.m_mapName;
+    m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
+    return *this;
 }

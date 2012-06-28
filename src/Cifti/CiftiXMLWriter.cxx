@@ -24,7 +24,7 @@
 /*LICENSE_END*/
 
 #include "CiftiXMLWriter.h"
-#include "iostream"
+#include "GiftiLabelTable.h"
 
 using namespace caret;
 
@@ -117,7 +117,7 @@ void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
 }
 
 void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
-{     
+{
     xml.writeStartElement("MatrixIndicesMap");
     //TODO
     //xml.writeAttribute("AppliesToMatrixDimension", QString::number(matrixIndicesMap.m_appliesToMatrixDimension));
@@ -126,9 +126,10 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_FIBERS) indicesMapToDataType = "CIFTI_INDEX_TYPE_FIBERS";
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) indicesMapToDataType = "CIFTI_INDEX_TYPE_PARCELS";
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS) indicesMapToDataType = "CIFTI_INDEX_TYPE_TIME_POINTS";
+    else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS) indicesMapToDataType = "CIFTI_INDEX_TYPE_SCALARS";
+    else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) indicesMapToDataType = "CIFTI_INDEX_TYPE_LABELS";
 
     xml.writeAttribute("IndicesMapToDataType",indicesMapToDataType);
-
 
     QString timeStepUnits;
 
@@ -156,6 +157,10 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
     for(unsigned int i=0;i<matrixIndicesMap.m_brainModels.size();i++)
     {
         writeBrainModel(xml, matrixIndicesMap.m_brainModels[i]);
+    }
+    for (size_t i = 0; i < matrixIndicesMap.m_namedMaps.size(); ++i)
+    {
+        writeNamedMap(xml, matrixIndicesMap.m_namedMaps[i]);
     }
     xml.writeEndElement();
 }
@@ -211,6 +216,19 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
         xml.writeEndElement();//voxelIndicesIJK
     }
 
+    xml.writeEndElement();
+}
+
+void caret::writeNamedMap(QXmlStreamWriter& xml, CiftiNamedMapElement& namedMap)
+{
+    xml.writeStartElement("NamedMap");
+    xml.writeStartElement("MapName");
+    xml.writeCDATA(namedMap.m_mapName);
+    xml.writeEndElement();
+    if (namedMap.m_labelTable != NULL)
+    {
+        namedMap.m_labelTable->writeAsXML(xml);
+    }
     xml.writeEndElement();
 }
 

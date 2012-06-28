@@ -253,10 +253,46 @@ namespace caret {
         bool addVolumeModelToColumns(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
         ///set rows to be of type timepoints
-        void resetRowsToTimepoints(const float& timestep, const int& timepoints);
+        void resetRowsToTimepoints(const float& timestep, const int& numTimepoints);
         
         ///set columns to be of type timepoints
-        void resetColumnsToTimepoints(const float& timestep, const int& timepoints);
+        void resetColumnsToTimepoints(const float& timestep, const int& numTimepoints);
+        
+        ///set rows to be of type scalars
+        void resetRowsToScalars(const int& numMaps);
+        
+        ///set columns to be of type scalars
+        void resetColumnsToScalars(const int& numMaps);
+        
+        ///set rows to be of type labels
+        void resetRowsToLabels(const int& numMaps);
+        
+        ///set columns to be of type labels
+        void resetColumnsToLabels(const int& numMaps);
+        
+        ///get the map name for an index along a column
+        AString getMapNameForColumnIndex(const int& index) const;
+        
+        ///get the map name for an index along a row
+        AString getMapNameForRowIndex(const int& index) const;
+        
+        ///get the label table for an index along a column
+        const GiftiLabelTable* getLabelTableForColumnIndex(const int& index) const;
+        
+        ///get the label table for an index along a row
+        const GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
+        
+        ///set the map name for an index along a column
+        bool setMapNameForColumnIndex(const int& index, const AString& name);
+        
+        ///set the map name for an index along a row
+        bool setMapNameForRowIndex(const int& index, const AString& name);
+        
+        ///set the label table for an index along a column
+        bool setLabelTableForColumnIndex(const int& index, const GiftiLabelTable& labelTable);
+        
+        ///set the label table for an index along a row
+        bool setLabelTableForRowIndex(const int& index, const GiftiLabelTable& labelTable);
         
         ///set the column map to also apply to rows
         void applyColumnMapToRows();
@@ -314,10 +350,16 @@ namespace caret {
         int64_t getVolumeIndex(const int64_t* ijk, const int& myMapIndex) const;
         int64_t getVolumeIndex(const float* xyz, const int& myMapIndex) const;
         int64_t getTimestepIndex(const float& seconds, const int& myMapIndex) const;
+        
+        ///boilerplate for map information
         bool getTimestep(float& seconds, const int& myMapIndex) const;
         bool setTimestep(const float& seconds, const int& myMapIndex);
+        AString getMapName(const int& index, const int& myMapIndex) const;
+        bool setMapName(const int& index, const AString& name, const int& myMapIndex);
+        const GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;
+        bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
-        ///some boilerplate to build mappings
+        ///some boilerplate to retrieve mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
         bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const int& myMapIndex) const;
         bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
@@ -327,9 +369,12 @@ namespace caret {
         ///boilerplate for has data
         bool hasVolumeData(const int& myMapIndex) const;
         
+        ///boilerplate to create mappings
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
         bool addVolumeModel(const int& myMapIndex, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        
+        ///miscellaneous
         bool checkVolumeIndices(const std::vector<voxelIndexType>& ijkList) const;
         bool checkSurfaceNodes(const std::vector<int64_t>& nodeList, const int& numberOfNodes) const;
         void applyDimensionHelper(const int& from, const int& to);

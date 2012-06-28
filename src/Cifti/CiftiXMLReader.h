@@ -38,6 +38,7 @@ void parseLabelTable(QXmlStreamReader &xml, std::vector <CiftiLabelElement> &lab
 void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label);
 void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
 void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel);
+void parseNamedMap(QXmlStreamReader &xml, CiftiNamedMapElement &namedMap, const bool needLabels);
 void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume);
 void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
 

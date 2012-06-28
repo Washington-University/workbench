@@ -26,12 +26,15 @@
 #define __CIFTI_XML_ELEMENTS
 #include <QtCore>
 #include <vector>
+#include "AString.h"
+#include "CaretPointer.h"
 #include "nifti2.h"
 #include "StructureEnum.h"
 /* Cifti Defines */
 
 namespace caret {
 
+class GiftiLabelTable;
 /*! ModelType */
 enum ModelType {
     CIFTI_MODEL_TYPE_SURFACE=1,/*!< CIFTI_MODEL_TYPE_SURFACE*/
@@ -44,7 +47,9 @@ enum IndicesMapToDataType {
     CIFTI_INDEX_TYPE_BRAIN_MODELS=1,/*!< CIFTI_INDEX_TYPE_BRAIN_MODELS*/
     CIFTI_INDEX_TYPE_FIBERS=2,/*!< CIFTI_INDEX_TYPE_FIBERS*/
     CIFTI_INDEX_TYPE_PARCELS=3,/*!< CIFTI_INDEX_TYPE_PARCELS*/
-    CIFTI_INDEX_TYPE_TIME_POINTS=4/*!< CIFTI_INDEX_TYPE_TIME_POINTS*/
+    CIFTI_INDEX_TYPE_TIME_POINTS=4,/*!< CIFTI_INDEX_TYPE_TIME_POINTS*/
+    CIFTI_INDEX_TYPE_SCALARS=5,
+    CIFTI_INDEX_TYPE_LABELS=6
 };
 
 typedef int voxelIndexType;
@@ -67,6 +72,17 @@ public:
     bool operator==(const CiftiBrainModelElement& rhs) const;
 };
 
+struct CiftiNamedMapElement
+{
+    AString m_mapName;
+    CaretPointer<GiftiLabelTable> m_labelTable;
+    CiftiNamedMapElement() { }
+    CiftiNamedMapElement(const CiftiNamedMapElement& rhs);//to turn copy and assignment into a deep copy of the label table
+    CiftiNamedMapElement& operator=(const CiftiNamedMapElement& rhs);
+    bool operator==(const CiftiNamedMapElement& rhs) const;
+    bool operator!=(const CiftiNamedMapElement& rhs) const { return !(*this == rhs); }
+};
+
 /// Cifti Matrix Indices Map XML Element
 class CiftiMatrixIndicesMapElement
 {
@@ -85,6 +101,7 @@ public:
     int m_timeStepUnits;/*!< Indicates units of TimeStep. */
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
+    std::vector<CiftiNamedMapElement> m_namedMaps;
     bool operator==(const CiftiMatrixIndicesMapElement& rhs) const;
 };
 
@@ -126,7 +143,7 @@ public:
 /// Cifti Matrix XML Element
 class CiftiMatrixElement {
 public:
-    std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO, this may be better as a hash
+    std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO: replace this with GiftiLabelTable (or remove? not being used for anything)
     QHash<QString, QString> m_userMetaData;/*!< User Meta Data*/
     std::vector<CiftiMatrixIndicesMapElement> m_matrixIndicesMap;/*!< Vector array of one or more Matrix Indices Map Elements*/
     std::vector<CiftiVolumeElement> m_volume;/*!< Volume Element*/

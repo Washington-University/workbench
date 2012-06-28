@@ -38,6 +38,7 @@ void writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &lab
 void writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label);
 void writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
 void writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel);
+void writeNamedMap(QXmlStreamWriter& xml, CiftiNamedMapElement& namedMap);
 void writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume);
 void writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
 void getModelTypeString(int modelType, QString &modelTypeString);
