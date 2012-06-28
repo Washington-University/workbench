@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "AString.h"
 #include "CaretObject.h"
 #include "TracksModificationInterface.h"
 
@@ -36,7 +36,8 @@
 #include <vector>
 #include <stdint.h>
 
-#include <AString.h>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
 namespace caret {
 
@@ -56,7 +57,9 @@ public:
     GiftiLabelTable(const GiftiLabelTable& glt);
 
     GiftiLabelTable& operator=(const GiftiLabelTable& glt);
-
+    
+    bool matches(const GiftiLabelTable& rhs, const bool checkColors = false, const bool checkCoords = false) const;
+    
     virtual ~GiftiLabelTable();
 
 private:
@@ -170,6 +173,8 @@ public:
 
     void writeAsXML(XmlWriter& xmlWriter) throw (GiftiException);
 
+    void writeAsXML(QXmlStreamWriter& xmlWriter);
+
     AString toString() const;
 
     AString toFormattedString(const AString& indentation);
@@ -179,6 +184,8 @@ public:
 
     void readFromXmlString(const AString& s)
             throw (GiftiException);
+
+    void readFromQXmlStreamReader(QXmlStreamReader& xml);
 
     void setModified();
 

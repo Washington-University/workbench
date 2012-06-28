@@ -172,6 +172,8 @@ public:
     void setCount(const int32_t count);
 
     void incrementCount();
+    
+    bool matches(const GiftiLabel& rhs, const bool checkColor = false, const bool checkCoord = false) const;
 
 private:
     /**tracks modification status (DO NOT CLONE) */

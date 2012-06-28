@@ -1151,6 +1151,54 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
     }
 }
 
+void
+GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter)
+{
+    try {
+        //
+        // Write the label tag
+        //
+        xmlWriter.writeStartElement(GiftiXmlElements::TAG_LABEL_TABLE);
+        
+        //
+        // Write the labels
+        //
+        std::set<int32_t> keys = this->getKeys();
+        for (std::set<int32_t>::const_iterator iter = keys.begin();
+             iter != keys.end();
+             iter++) {
+            int key = *iter;
+            const GiftiLabel* label = this->getLabel(key);
+            
+            if (label != NULL) {
+                xmlWriter.writeStartElement(GiftiXmlElements::TAG_LABEL);
+                XmlAttributes attributes;
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_KEY,
+                                        AString::number(key));
+                
+                float* rgba = label->getColor();
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_RED,
+                                        AString::number(rgba[0]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN,
+                                        AString::number(rgba[1]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE,
+                                        AString::number(rgba[2]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
+                                        AString::number(rgba[3]));
+                xmlWriter.writeCDATA(label->getName());
+                delete[] rgba;
+            }
+        }
+        
+        //
+        // Write the closing label tag
+        //
+        xmlWriter.writeEndElement();
+    }
+    catch (XmlException& e) {
+        throw GiftiException(e);
+    }
+}
 
 /**
  * Convert to a string.
@@ -1215,6 +1263,46 @@ GiftiLabelTable::readFromXmlString(const AString& /*s*/)
             throw (GiftiException)
 {
     CaretAssertMessage(0, "Not implemented yet!");
+}
+
+void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
+{
+    clear();
+    if (xml.name() != GiftiXmlElements::TAG_LABEL_TABLE || !xml.isStartElement())
+    {//TODO: try to recover instead of erroring?
+        xml.raiseError("tried to read GiftiLabelTable when current element is not " + GiftiXmlElements::TAG_LABEL_TABLE);
+        return;
+    }
+    xml.readNext();
+    while (!xml.hasError() && xml.isStartElement() && xml.name() == GiftiXmlElements::TAG_LABEL)
+    {
+        int key;
+        float rgba[4];
+        QXmlStreamAttributes myAttrs = xml.attributes();
+        bool ok = false;
+        QString temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_KEY).toString();
+        key = temp.toInt(&ok);
+        if (!ok) xml.raiseError("key attribute missing or noninteger");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_RED).toString();
+        rgba[0] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("red attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN).toString();
+        rgba[1] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("green attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE).toString();
+        rgba[2] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("blue attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA).toString();
+        if (temp == "")
+        {
+            rgba[3] = 1.0f;
+        } else {
+            rgba[3] = temp.toFloat(&ok);
+            if (!ok) xml.raiseError("alpha attribute not a number");
+        }
+        temp = xml.readElementText();
+        setLabel(key, temp, rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
 }
 
 /**
@@ -1302,4 +1390,16 @@ void GiftiLabelTable::getKeys(std::vector<int32_t>& keysOut) const
          iter++) {
         keysOut.push_back(iter->first);
     }
+}
+
+bool GiftiLabelTable::matches(const GiftiLabelTable& rhs, const bool checkColors, const bool checkCoords) const
+{
+    if (labelsMap.size() != rhs.labelsMap.size()) return false;
+    for (LABELS_MAP::const_iterator iter = labelsMap.begin(); iter != labelsMap.end(); ++iter)
+    {
+        LABELS_MAP::const_iterator riter = rhs.labelsMap.find(iter->first);
+        if (riter == rhs.labelsMap.end()) return false;
+        if (!iter->second->matches(*(riter->second), checkColors, checkCoords)) return false;
+    }
+    return true;
 }
