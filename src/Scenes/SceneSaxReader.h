@@ -116,7 +116,7 @@ namespace caret {
         std::stack<SceneObject*> m_objectBeingReadStack;
         
         /** Key of array element being read */
-        int32_t m_objectArrayBeingReadElementIndex;
+        std::stack<int32_t> m_objectArrayBeingReadElementIndexStack;
     };
 
 } // namespace

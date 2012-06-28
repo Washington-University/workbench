@@ -40,6 +40,7 @@
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
 #include "ScenePrimitive.h"
@@ -162,6 +163,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         const ScenePrimitive* scenePrimitive= dynamic_cast<const ScenePrimitive*>(sceneObject);
         const ScenePrimitiveArray* scenePrimitiveArray = dynamic_cast<const ScenePrimitiveArray*>(sceneObject);
         const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
+        const SceneClassArray* sceneClassArray = dynamic_cast<const SceneClassArray*>(sceneObject);
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
@@ -201,6 +203,25 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         }
         else if (sceneClass != NULL) {
             writeSceneClass(*sceneClass);
+        }
+        else if (sceneClassArray != NULL) {
+            const int32_t numberOfArrayElements = sceneClassArray->getNumberOfArrayElements();
+            attributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE, 
+                                    numberOfArrayElements);
+            m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_TAG,
+                                          attributes);
+            
+            for (int32_t elementIndex = 0; elementIndex < numberOfArrayElements; elementIndex++) {
+                XmlAttributes elementAttributes;
+                elementAttributes.addAttribute(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
+                                               elementIndex);
+                m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG,
+                                              elementAttributes);
+                writeSceneClass(*sceneClassArray->getValue(i));
+                m_xmlWriter.writeEndElement();
+            }
+            
+            m_xmlWriter.writeEndElement();
         }
         else if (sceneEnumeratedType != NULL) {
             m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 

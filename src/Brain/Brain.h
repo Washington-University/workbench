@@ -150,8 +150,6 @@ namespace caret {
         
         const VolumeFile* getVolumeFile(const int32_t volumeFileIndex) const;
         
-        void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
-        
         void resetBrain();
         
         void receiveEvent(Event* event);
@@ -216,6 +214,19 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
     private:
+        enum ResetBrainKeepSceneFiles {
+            RESET_BRAIN_KEEP_SCENE_FILES_NO,
+            RESET_BRAIN_KEEP_SCENE_FILES_YES
+        };
+        
+        void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
+        
+        bool loadSpecFile(SpecFile* specFile,
+                          const ResetBrainKeepSceneFiles keepSceneFiles,
+                          AString& errorMessageOut);
+        
+        void resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles);
+        
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
@@ -252,6 +263,9 @@ namespace caret {
         void readSceneFile(const AString& filename) throw (DataFileException);
         
         AString updateFileNameForReadingAndWriting(const AString& filename);
+        
+        void setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
+                                             const bool selectedStatus);
         
         void updateVolumeSliceController();
         

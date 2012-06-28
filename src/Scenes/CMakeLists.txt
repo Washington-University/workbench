@@ -22,6 +22,7 @@ SceneAttributes.h
 SceneBoolean.h
 SceneBooleanArray.h
 SceneClass.h
+SceneClassArray.h
 SceneClassAssistant.h
 SceneEnumeratedTypeArray.h
 SceneEnumeratedType.h
@@ -49,6 +50,7 @@ SceneAttributes.cxx
 SceneBoolean.cxx
 SceneBooleanArray.cxx
 SceneClass.cxx
+SceneClassArray.cxx
 SceneClassAssistant.cxx
 SceneEnumeratedTypeArray.cxx
 SceneEnumeratedType.cxx

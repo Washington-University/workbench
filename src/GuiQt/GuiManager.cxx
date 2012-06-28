@@ -1066,8 +1066,8 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             "GuiManager",
                                             1);
     
-    sceneClass->addClass(getBrain()->saveToScene(sceneAttributes,
-                                                 "brain"));
+    sceneClass->addClass(SessionManager::get()->saveToScene(sceneAttributes, 
+                                                            "m_sessionManager"));
     
     const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
     for (int32_t i = 0; i < numBrowserWindows; i++) {
@@ -1114,8 +1114,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }    
         
-    getBrain()->restoreFromScene(sceneAttributes, 
-                                 sceneClass->getClass("brain"));
+    SessionManager::get()->restoreFromScene(sceneAttributes, sceneClass->getClass("m_sessionManager"));
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

@@ -916,6 +916,14 @@ SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
     
     std::cout << "Spec File Name: " << qPrintable(name) << std::endl;
     std::cout << "Spec File content in scene: " << qPrintable(specFileContent) << std::endl;
+
+    try {
+        this->readFileFromString(specFileContent);
+        this->setFileName(name);
+    }
+    catch (const DataFileException& dfe) {
+        throw SceneException(dfe);
+    }
 }
 
 

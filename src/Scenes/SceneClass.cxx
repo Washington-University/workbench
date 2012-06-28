@@ -40,6 +40,7 @@
 #include "CaretLogger.h"
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
+#include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
 #include "SceneFloat.h"
@@ -748,6 +749,64 @@ SceneClass::getClass(const AString& name)
     }
     
     logMissing("Scene Class not found: " + name);
+    
+    return NULL;
+}
+
+/**
+ * Find and return the scene's child class array with the given name.
+ *
+ * @param name
+ *     Name of the child class array.
+ * @return
+ *     Pointer to the class array with the given name or NULL if
+ *     no child class array exists with the given name.
+ */
+SceneClassArray* 
+SceneClass::getClassArray(const AString& name)
+{
+    for (std::vector<SceneObject*>::iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        SceneObject* so = *iter;
+        SceneClassArray* sca = dynamic_cast<SceneClassArray*>(so);
+        if (sca != NULL) {
+            if (sca->getName() == name) {
+                return sca;
+            }
+        }
+    }
+    
+    logMissing("Scene Class not found: " + name);
+    
+    return NULL;
+}
+
+/**
+ * Find and return the scene's child class array with the given name.
+ *
+ * @param name
+ *     Name of the child class array.
+ * @return
+ *     Pointer to the class array with the given name or NULL if
+ *     no child class array exists with the given name.
+ */
+const SceneClassArray* 
+SceneClass::getClassArray(const AString& name) const
+{
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        const SceneObject* so = *iter;
+        const SceneClassArray* sca = dynamic_cast<const SceneClassArray*>(so);
+        if (sca != NULL) {
+            if (sca->getName() == name) {
+                return sca;
+            }
+        }
+    }
+    
+    logMissing("Scene Class Array not found: " + name);
     
     return NULL;
 }

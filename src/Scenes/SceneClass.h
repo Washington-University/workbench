@@ -39,6 +39,7 @@
 
 namespace caret {
 
+    class SceneClassArray;
     class SceneEnumeratedType;
     class ScenePrimitive;
     class ScenePrimitiveArray;
@@ -109,6 +110,10 @@ namespace caret {
         const SceneClass* getClass(const AString& name) const;
         
         SceneClass* getClass(const AString& name);
+        
+        const SceneClassArray* getClassArray(const AString& name) const;
+        
+        SceneClassArray* getClassArray(const AString& name);
         
         AString getEnumeratedTypeValue(const AString& name,
                                        const AString& defaultValue = "") const;

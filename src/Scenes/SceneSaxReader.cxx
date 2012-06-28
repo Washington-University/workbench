@@ -29,6 +29,7 @@
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
 #include "SceneFloat.h"
@@ -76,8 +77,6 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
                              const AString& qName,
                              const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-    m_objectArrayBeingReadElementIndex = -1;
-    
     const STATE previousState = m_state;
     switch (m_state) {
         case STATE_NONE:
@@ -131,9 +130,9 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
             break;
         case STATE_OBJECT_ARRAY:
             if (qName == SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG) {
-                m_objectArrayBeingReadElementIndex = attributes.getValueAsInt(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
+                const int32_t elementIndex = attributes.getValueAsInt(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
                                                                             -1);
-                if (m_objectArrayBeingReadElementIndex < 0) {
+                if (elementIndex < 0) {
                     AString msg = XmlUtilities::createInvalidAttributeMessage(qName, 
                                                                               SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE, 
                                                                               attributes.getValue(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE));
@@ -142,6 +141,7 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
                     CaretLogThrowing(e);
                     throw e;
                 }
+                m_objectArrayBeingReadElementIndexStack.push(elementIndex);
                 m_state = STATE_OBJECT_ARRAY_ELEMENT;
             }
             else {
@@ -153,6 +153,17 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
             }
             break;
         case STATE_OBJECT_ARRAY_ELEMENT:
+            if (qName == SceneXmlElements::OBJECT_TAG) {
+                m_state = STATE_OBJECT;
+                processObjectStartTag(attributes);
+            }
+            else {
+                const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
+                                                                                   qName);
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
+            }
             break;
     }
     
@@ -284,7 +295,8 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes) thro
     SceneObject* sceneObject = NULL;
     switch (objectDataType) {
         case SceneObjectDataTypeEnum::SCENE_CLASS:
-            CaretAssertMessage(0, "Arrays of classes not supported.");
+            sceneObject = new SceneClassArray(objectName,
+                                              objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             sceneObject = new SceneBooleanArray(objectName, 
@@ -360,8 +372,14 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                          */
                         CaretAssert(m_objectBeingReadStack.empty() == false);
                         SceneClass* parentSceneClass = dynamic_cast<SceneClass*>(m_objectBeingReadStack.top());
-                        CaretAssert(parentSceneClass);
-                        parentSceneClass->addClass(sceneClass);
+                        SceneClassArray* parentSceneClassArray = dynamic_cast<SceneClassArray*>(m_objectBeingReadStack.top());
+                        if (parentSceneClass != NULL) {
+                            parentSceneClass->addClass(sceneClass);
+                        }
+                        else if (parentSceneClassArray != NULL) {
+                            parentSceneClassArray->setValue(m_objectArrayBeingReadElementIndexStack.top(), 
+                                                            sceneClass);
+                        }
                     }
                 }
                     break;
@@ -450,18 +468,20 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 {
                     SceneBooleanArray* booleanArray = dynamic_cast<SceneBooleanArray*>(sceneArray);
                     CaretAssert(booleanArray);
-                    booleanArray->setValue(m_objectArrayBeingReadElementIndex,
+                    booleanArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
                                            stringValue.toBool());
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_CLASS:
-                    CaretAssertMessage(0, "Reading of scene class arrays not implemented yet.");
+                    /*
+                     * Nothing to do here, handled in "case STATE_OBJECT" above
+                     */
                     break;
                 case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
                 {
                     SceneEnumeratedTypeArray* enumeratedArray = dynamic_cast<SceneEnumeratedTypeArray*>(sceneArray);
                     CaretAssert(enumeratedArray);
-                    enumeratedArray->setValue(m_objectArrayBeingReadElementIndex,
+                    enumeratedArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
                                               stringValue);
                 }
                     break;
@@ -469,7 +489,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 {
                     SceneFloatArray* floatArray = dynamic_cast<SceneFloatArray*>(sceneArray);
                     CaretAssert(floatArray);
-                    floatArray->setValue(m_objectArrayBeingReadElementIndex,
+                    floatArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
                                            stringValue.toFloat());
                 }
                     break;
@@ -477,7 +497,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 {
                     SceneIntegerArray* integerArray = dynamic_cast<SceneIntegerArray*>(sceneArray);
                     CaretAssert(integerArray);
-                    integerArray->setValue(m_objectArrayBeingReadElementIndex,
+                    integerArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
                                            stringValue.toInt());
                 }
                     break;
@@ -490,11 +510,13 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 {
                     SceneStringArray* stringArray = dynamic_cast<SceneStringArray*>(sceneArray);
                     CaretAssert(stringArray);
-                    stringArray->setValue(m_objectArrayBeingReadElementIndex,
+                    stringArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
                                            stringValue);
                 }
                     break;
             }
+            
+            m_objectArrayBeingReadElementIndexStack.pop();
             
         }
             break;
