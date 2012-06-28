@@ -216,13 +216,13 @@ bool CiftiNamedMapElement::operator==(const CiftiNamedMapElement& rhs) const
 CiftiNamedMapElement::CiftiNamedMapElement(const CiftiNamedMapElement& rhs)
 {
     m_mapName = rhs.m_mapName;
-    m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
+    if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
 }
 
 CiftiNamedMapElement& CiftiNamedMapElement::operator=(const CiftiNamedMapElement& rhs)
 {
     if (this == &rhs) return *this;
     m_mapName = rhs.m_mapName;
-    m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
+    if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
     return *this;
 }
