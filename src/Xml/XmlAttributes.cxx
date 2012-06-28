@@ -315,8 +315,10 @@ XmlAttributes::getValueAsBoolean(const AString& name,
 {
     int index = getIndex(name);
     if (index == -1) return defaultValue;
-    const bool value = name.toBool();
-    return value;
+    CaretAssertVectorIndex(this->values, index);
+    AString value = this->values.at(index);
+    const bool boolValue = value.toBool();
+    return boolValue;
 }
 
 
