@@ -1671,8 +1671,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         bs->initializeOverlays();
     }
     
-    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded(false);
-  
 /*
     EventBrowserTabGetAll getAllTabs;
     EventManager::get()->sendEvent(getAllTabs.getPointer());
@@ -1783,8 +1781,6 @@ Brain::loadSpecFile(SpecFile* specFile,
         BrainStructure* bs = *iter;
         bs->initializeOverlays();
     }
-    
-    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded(false);    
     
     this->isSpecFileBeingRead = false;
     

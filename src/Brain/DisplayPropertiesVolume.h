@@ -25,14 +25,11 @@
  * 
  */ 
 
-
-#include "CaretColorEnum.h"
 #include "DisplayProperties.h"
 
 namespace caret {
 
     class Surface;
-    class VolumeSurfaceOutlineModel;
     
     class DisplayPropertiesVolume : public DisplayProperties {
         
@@ -44,14 +41,6 @@ namespace caret {
         void reset();
         
         void update();
-        
-        static const int32_t MAXIMUM_NUMBER_OF_SURFACE_OUTLINES;
-        
-        VolumeSurfaceOutlineModel* getSurfaceOutlineSelection(const int32_t indx);
-        
-        const VolumeSurfaceOutlineModel* getSurfaceOutlineSelection(const int32_t indx) const;
-        
-        void selectSurfacesAfterSpecFileLoaded(const bool searchForTabs);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -67,18 +56,9 @@ namespace caret {
 
         DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
         
-    private:
-        void addSurfaceOutline(Surface* surface,
-                               const float thickness,
-                               const int32_t browserTabIndex,
-                               const CaretColorEnum::Enum color,
-                               int32_t& outlineIndex);
-        
-        std::vector<VolumeSurfaceOutlineModel*> volumeSurfaceOutlineModels;
     };
     
 #ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
-    const int32_t DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES = 10;
 #endif // __DISPLAY_PROPERTIES_VOLUME_DECLARE__
 
 } // namespace

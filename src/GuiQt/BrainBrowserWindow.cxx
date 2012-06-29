@@ -1550,8 +1550,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
     if (createDefaultTabsFlag) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
-        
-        GuiManager::get()->getBrain()->getDisplayPropertiesVolume()->selectSurfacesAfterSpecFileLoaded(true);
     }
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
