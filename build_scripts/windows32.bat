@@ -17,7 +17,8 @@ REM
 REM Grab the latest Sources
 REM
 c:\cygwin\bin\git.exe reset --hard HEAD
-c:\cygwin\bin\git.exe pull -u
+c:\cygwin\bin\git.exe fetch
+c:\cygwin\bin\git.exe reset --hard origin/master
 
 REM
 REM Build caret
