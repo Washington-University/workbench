@@ -45,11 +45,11 @@ namespace caret {
         
     public:
         SceneClassArray(const AString& name,
-                        const SceneClass* values[],
+                        SceneClass* values[],
                         const int32_t numberOfArrayElements);
         
         SceneClassArray(const AString& name,
-                          const std::vector<const SceneClass*>& values);
+                        const std::vector<SceneClass*>& values);
         
         SceneClassArray(const AString& name,
                           const int numberOfArrayElements);
@@ -58,8 +58,6 @@ namespace caret {
         
         void setValue(const int32_t arrayIndex,
                       SceneClass* sceneClass);
-        
-//        SceneClass* getValue(const int32_t arrayIndex);
         
         const SceneClass* getValue(const int32_t arrayIndex) const;
         
@@ -76,7 +74,7 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
         
-        std::vector<const SceneClass*> m_values;
+        std::vector<SceneClass*> m_values;
 
     };
     

@@ -914,9 +914,6 @@ SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
     const AString name = sceneClass->getStringValue("specFileName");
     const AString specFileContent = sceneClass->getStringValue("specFileContent");
     
-    std::cout << "Spec File Name: " << qPrintable(name) << std::endl;
-    std::cout << "Spec File content in scene: " << qPrintable(specFileContent) << std::endl;
-
     try {
         this->readFileFromString(specFileContent);
         this->setFileName(name);

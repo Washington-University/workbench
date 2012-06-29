@@ -37,6 +37,7 @@
 #undef __SCENE_CLASS_ARRAY_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -58,7 +59,7 @@ using namespace caret;
  *    Number of elements in the array.
  */
 SceneClassArray::SceneClassArray(const AString& name,
-                const SceneClass* values[],
+                SceneClass* values[],
                 const int32_t numberOfArrayElements)
 : SceneObjectArray(name,
                    SceneObjectDataTypeEnum::SCENE_CLASS,
@@ -79,7 +80,7 @@ SceneClassArray::SceneClassArray(const AString& name,
  *    Vector containing values for the array.
  */
 SceneClassArray::SceneClassArray(const AString& name,
-                const std::vector<const SceneClass*>& values)
+                const std::vector<SceneClass*>& values)
 : SceneObjectArray(name,
                    SceneObjectDataTypeEnum::SCENE_CLASS,
                    values.size())
@@ -104,7 +105,7 @@ SceneClassArray::SceneClassArray(const AString& name,
     m_values.resize(numberOfArrayElements);
     std::fill(m_values.begin(),
               m_values.end(),
-              (const SceneClass*)NULL);
+              (SceneClass*)NULL);
 }
 
 /**
@@ -112,7 +113,12 @@ SceneClassArray::SceneClassArray(const AString& name,
  */
 SceneClassArray::~SceneClassArray()
 {
-    
+    for (std::vector<SceneClass*>::iterator iter = m_values.begin();
+         iter != m_values.end();
+         iter++) {
+        delete *iter;
+    }
+    m_values.clear();
 }
 
 /**

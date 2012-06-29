@@ -432,7 +432,7 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             "SessionManager",
                                             1);
     
-    std::vector<const SceneClass*> brainSceneClasses;
+    std::vector<SceneClass*> brainSceneClasses;
     const int32_t numBrains = m_brains.size();
     for (int32_t i = 0; i < numBrains; i++) {
         brainSceneClasses.push_back(m_brains[i]->saveToScene(sceneAttributes, 
