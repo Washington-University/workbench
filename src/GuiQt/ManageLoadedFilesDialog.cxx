@@ -246,19 +246,28 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
             }
         }
         
+        if (isSavingFiles == false) {
+            WuQMessageBox::errorOk(this, 
+                                   "No files are selected for saving.");
+            return;
+        }
+        
         previousSaveFileAddToSpecFileSelection = this->addSavedFilesToSpecFileCheckBox->isChecked();
         
-        if (isSavingFiles) {
-            if (this->addSavedFilesToSpecFileCheckBox->isChecked()) {
-                SpecFile* specFile = this->brain->getSpecFile();
-                FileInformation fileInfo(specFile->getFileName());
-                if (fileInfo.exists() == false) {
-                    SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
-                                                                        this);
-                    
-                    if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Rejected) {
-                        return;
-                    }
+        bool addSavedFilesToSpecFileFlag = previousSaveFileAddToSpecFileSelection;
+        if (addSavedFilesToSpecFileFlag) {
+            SpecFile* specFile = this->brain->getSpecFile();
+            FileInformation fileInfo(specFile->getFileName());
+            if (fileInfo.exists() == false) {
+                SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
+                                                                    SpecFileCreateAddToDialog::MODE_SAVE,
+                                                                    this);
+                
+                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
+                    addSavedFilesToSpecFileFlag = createAddToSpecFileDialog.isAddToSpecFileSelected();
+                }
+                else {
+                    return;
                 }
             }
         }

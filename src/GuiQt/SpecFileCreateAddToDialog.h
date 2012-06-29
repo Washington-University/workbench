@@ -36,9 +36,8 @@
 
 #include "WuQDialogModal.h"
 
-class QCheckBox;
 class QLineEdit;
-class QToolButton;
+class QPushButton;
 
 namespace caret {
     class Brain;
@@ -48,7 +47,13 @@ namespace caret {
         Q_OBJECT
         
     public:
+        enum FileOpenSaveMode {
+            MODE_OPEN,
+            MODE_SAVE
+        };
+        
         SpecFileCreateAddToDialog(Brain* brain,
+                                  const FileOpenSaveMode mode,
                                   QWidget* parent = 0);
         
         virtual ~SpecFileCreateAddToDialog();
@@ -61,6 +66,8 @@ namespace caret {
     protected:
         void okButtonPressed();
         
+        virtual void userButtonPressed(QPushButton* userPushButton);        
+        
     private:
         SpecFileCreateAddToDialog(const SpecFileCreateAddToDialog&);
 
@@ -68,11 +75,13 @@ namespace caret {
         
         SpecFile* m_specFile;
         
-        QCheckBox* m_createAddSpecFileCheckBox;
-        
         QLineEdit* m_specFileNameLineEdit;
         
+        QPushButton* m_skipPushButton;
+        
         bool m_isSpecFileValid;
+        
+        bool m_addFilesToSpecFileFlag;
     };
     
 #ifdef __SPEC_FILE_CREATE_ADD_TO_DIALOG_DECLARE__

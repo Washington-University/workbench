@@ -1225,6 +1225,7 @@ BrainBrowserWindow::processDataFileOpen()
                     }
                     else {
                         SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
+                                                                            SpecFileCreateAddToDialog::MODE_OPEN,
                                                                             this);
                         
                         if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {

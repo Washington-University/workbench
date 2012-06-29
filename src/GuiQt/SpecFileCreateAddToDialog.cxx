@@ -61,13 +61,20 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param brain
+ *    Brain that contains or will contain a spec file.
+ * @param mode
+ *    Indicates opening or saving a file
+ * @param parent
+ *    Parent widget on which this dialog is displayed.
  */
 SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
+                                                     const FileOpenSaveMode mode,
                                                      QWidget* parent)
 : WuQDialogModal("Choose a Spec File",
                  parent)
 {
-    const bool showAddCheckBox = false;
+    m_addFilesToSpecFileFlag = false;
     
     m_specFile = brain->getSpecFile();
     const QString specFileName = m_specFile->getFileName();
@@ -75,66 +82,60 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
     FileInformation fileInfo(specFileName);
     m_isSpecFileValid = fileInfo.exists();
     
-    QString checkBoxText = "Add data file(s) to the Spec File";
-    if (m_isSpecFileValid == false) {
-        checkBoxText = "Create Spec File and add data file(s) to the Spec File";
-    }
-    
-    m_createAddSpecFileCheckBox = new QCheckBox(checkBoxText);
     m_specFileNameLineEdit      = new QLineEdit();
     m_specFileNameLineEdit->setMinimumWidth(500);
     m_specFileNameLineEdit->setReadOnly(true);
 
-    QWidget* fileLabelOrToolButtonWidget = NULL;
-    if (m_isSpecFileValid) {
-        QLabel* fileLabel = new QLabel("Choose Spec File: ");
-        fileLabelOrToolButtonWidget = fileLabel;
-        m_specFileNameLineEdit->setText(specFileName);
-        m_specFileNameLineEdit->end(false);
-    }
-    else {
-        QAction* fileAction = WuQtUtilities::createAction("Spec File...", 
-                                                          "Choose Spec File", 
-                                                          this, 
-                                                          this, 
-                                                          SLOT(fileButtonClicked()));
-        QToolButton* fileToolButton = new QToolButton();
-        fileToolButton->setDefaultAction(fileAction);
-        fileLabelOrToolButtonWidget = fileToolButton;
-    }
+    QAction* fileAction = WuQtUtilities::createAction("Spec File...", 
+                                                      "Choose Spec File", 
+                                                      this, 
+                                                      this, 
+                                                      SLOT(fileButtonClicked()));
+    QToolButton* fileToolButton = new QToolButton();
+    fileToolButton->setDefaultAction(fileAction);
     
-    QLabel* instructionsLabel = new QLabel("There is no spec file.  Press the <B>Choose Spec File</B> button to navigate the "
-                                           "the file system, choose an existing Spec File or enter the name of a new "
-                                           "Spec File in the desired directory, and press the <B>Continue</B> button.  Otherwise,"
-                                           "press the <B>Cancel</B> button and uncheck the Add To Spec File option on "
-                                           "the previous Open or Save window.");
-    instructionsLabel->setWordWrap(true);
-    if (showAddCheckBox) {
-        instructionsLabel->setVisible(false);
+    QString instructionsText;
+    switch (mode) {
+        case MODE_OPEN:
+            instructionsText = ("<html>"
+                                "The checkbox labeled <B>Add Opened Data File to Spec File</B> at the "
+                                "bottom of the file selection dialog "
+                                "from which you selected files is checked but there is no Spec File.  You can:"
+                                "<UL>"
+                                "<LI> Press the <B>Spec File</B> button to use a file selection dialog to "
+                                "choose an existing spec file or enter the name of a new spec file."
+                                "<LI> Press the <B>Skip</B> button to load the files that you selected "
+                                "without creating a Spec File."
+                                "<LI> Press the <B>Cancel</B> button to cancel file loading."
+                                "</UL>"
+                                "</html>");
+            break;
+        case MODE_SAVE:
+            instructionsText = ("<html>"
+                                "The checkbox labeled <B>Add Saved Files to Spec File</B>box at the "
+                                "bottom of the Manage and Save Loaded Files dialog is checked but "
+                                "there is no Spec File.  You can:"
+                                "<UL>"
+                                "<LI> Press the <B>Spec File</B> button to use a file selection dialog to "
+                                "choose an existing spec file or enter the name of a new spec file."
+                                "<LI> Press the <B>Skip</B> button to save the files "
+                                "without creating a Spec File."
+                                "<LI> Press the <B>Cancel</B> button to cancel file saving."
+                                "</UL>"
+                                "</html>");
+            break;
     }
+    QLabel* instructionsLabel = new QLabel(instructionsText);
+    instructionsLabel->setWordWrap(true);
     
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->addWidget(instructionsLabel, 0, 0, 1, 2);
-    gridLayout->addWidget(m_createAddSpecFileCheckBox, 1, 0, 1, 2);
-    gridLayout->addWidget(fileLabelOrToolButtonWidget, 2, 0);
+    gridLayout->addWidget(fileToolButton, 2, 0);
     gridLayout->addWidget(m_specFileNameLineEdit, 2, 1);
     setCentralWidget(widget);
-
-    if (dynamic_cast<QToolButton*>(fileLabelOrToolButtonWidget) != NULL) {
-        QObject::connect(m_createAddSpecFileCheckBox, SIGNAL(toggled(bool)),
-                         fileLabelOrToolButtonWidget, SLOT(setEnabled(bool)));
-    }
-    QObject::connect(m_createAddSpecFileCheckBox, SIGNAL(toggled(bool)),
-                     m_specFileNameLineEdit, SLOT(setEnabled(bool)));
-    m_createAddSpecFileCheckBox->setChecked(true);
     
-    /*
-     * May not need checkbox any longer
-     */
-    if (showAddCheckBox == false) {
-        m_createAddSpecFileCheckBox->setVisible(false);
-    }
+    m_skipPushButton = addUserPushButton("Skip");
     
     setOkButtonText("Continue");
 }
@@ -191,12 +192,24 @@ SpecFileCreateAddToDialog::fileButtonClicked()
 }
 
 /**
+ * Called when an extra button is pressed.
+ */
+void 
+SpecFileCreateAddToDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_skipPushButton) {
+//        accept();
+        WuQDialogModal::okButtonPressed();
+    }
+}
+
+
+/**
  * Called the OK button is pressed.
  */
 void 
 SpecFileCreateAddToDialog::okButtonPressed()
 {
-    if (m_createAddSpecFileCheckBox->isChecked()) {
         if (m_isSpecFileValid == false) {
             QString specFileName = m_specFileNameLineEdit->text().trimmed();
             if (specFileName.isEmpty()) {
@@ -234,9 +247,10 @@ SpecFileCreateAddToDialog::okButtonPressed()
                     return;
                 }
             }
+            
+            m_addFilesToSpecFileFlag = true;
         }
-    }
-    
+
     WuQDialogModal::okButtonPressed();
 }
 
@@ -246,7 +260,7 @@ SpecFileCreateAddToDialog::okButtonPressed()
 bool 
 SpecFileCreateAddToDialog::isAddToSpecFileSelected() const
 {
-    return m_createAddSpecFileCheckBox->isChecked();
+    return m_addFilesToSpecFileFlag;
 }
 
 
