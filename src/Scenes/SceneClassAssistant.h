@@ -76,6 +76,10 @@ namespace caret {
                  const bool defaultValue);
         
         void add(const AString& name,
+                 AString* stringAddress,
+                 const AString& defaultValue);
+        
+        void add(const AString& name,
                  const AString& className,
                  SceneableInterface** sceneClass);
         
@@ -175,6 +179,24 @@ namespace caret {
         private:
             bool* m_dataPointer;
             bool m_defaultValue; 
+        };
+        
+        class StringData : public Data {
+        public:
+            StringData(const AString& name,
+                        AString* dataPointer,
+                        const AString& defaultValue);
+            
+            virtual ~StringData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+            
+        private:
+            AString* m_dataPointer;
+            AString m_defaultValue; 
         };
         
         class ClassData : public Data {

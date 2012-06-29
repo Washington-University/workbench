@@ -217,7 +217,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                                                elementIndex);
                 m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG,
                                               elementAttributes);
-                writeSceneClass(*sceneClassArray->getValue(i));
+                writeSceneClass(*sceneClassArray->getValue(elementIndex));
                 m_xmlWriter.writeEndElement();
             }
             

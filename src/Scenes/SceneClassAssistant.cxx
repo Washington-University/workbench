@@ -138,6 +138,27 @@ SceneClassAssistant::add(const AString& name,
 }
 
 /**
+ * Add a string member.
+ * @param name
+ *    Name of member.
+ * @param stringAddress
+ *    Address of the member.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void 
+SceneClassAssistant::add(const AString& name,
+                         AString* stringAddress,
+                         const AString& defaultValue)
+{
+    StringData* sd = new StringData(name,
+                                      stringAddress,
+                                      defaultValue);
+    m_dataStorage.push_back(sd);
+    
+}
+
+/**
  * Add a scene class.
  * @param name
  *     Name of class instance.
@@ -514,6 +535,60 @@ SceneClassAssistant::BooleanData::save(const SceneAttributes& /*sceneAttributes*
                                        SceneClass& sceneClass)
 {
     sceneClass.addBoolean(m_name, 
+                          *m_dataPointer);
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::StringData 
+ * \brief String data added to a scene class.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of data.
+ * @param dataPointer
+ *    Pointer to data.
+ * @param defaultValue
+ *    Default value used when restoring and data with name not found.
+ */
+SceneClassAssistant::StringData::StringData(const AString& name,
+                                              AString* dataPointer,
+                                              const AString& defaultValue) 
+: Data(name), 
+m_dataPointer(dataPointer),
+m_defaultValue(defaultValue) 
+{
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::StringData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                          const SceneClass& sceneClass)
+{
+    *m_dataPointer = sceneClass.getStringValue(m_name, 
+                                                m_defaultValue);
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class to which data is saved.
+ */
+void 
+SceneClassAssistant::StringData::save(const SceneAttributes& /*sceneAttributes*/,
+                                       SceneClass& sceneClass)
+{
+    sceneClass.addString(m_name, 
                           *m_dataPointer);
 }
 

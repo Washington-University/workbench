@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "ModelTypeEnum.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
@@ -42,11 +43,12 @@ namespace caret {
     class ModelYokingGroup;
     class OverlaySet;
     class Palette;
+    class SceneClassAssistant;
     class Surface;
     class VolumeSurfaceOutlineSetModel;
     
     /// Maintains content in a brower's tab
-    class BrowserTabContent : public CaretObject, public EventListenerInterface {
+    class BrowserTabContent : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         BrowserTabContent(const int32_t tabNumber);
@@ -128,48 +130,56 @@ namespace caret {
         
         void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
         /** Number of this tab */
-        int32_t tabNumber;
+        int32_t m_tabNumber;
         
         /** Selected surface model */
-        ModelSurfaceSelector* surfaceModelSelector;
+        ModelSurfaceSelector* m_surfaceModelSelector;
         
         /** Selected model type */
-        ModelTypeEnum::Enum selectedModelType;
+        ModelTypeEnum::Enum m_selectedModelType;
         
         /** All surface models */
-        std::vector<ModelSurface*> allSurfaceModels;
+        std::vector<ModelSurface*> m_allSurfaceModels;
         
         /** The volume model */
-        ModelVolume* volumeModel;
+        ModelVolume* m_volumeModel;
         
         /** The whole brain model */
-        ModelWholeBrain* wholeBrainModel;
+        ModelWholeBrain* m_wholeBrainModel;
         
         /** The surface montage model */
-        ModelSurfaceMontage* surfaceMontageModel;
+        ModelSurfaceMontage* m_surfaceMontageModel;
         
         /** 
          * Name requested by user interface - reflects contents 
          * such as Surface, Volume Slices, etc
          */
-        AString guiName;
+        AString m_guiName;
         
         /**
          * User can set the name of the tab.
          */
-        AString userName;
+        AString m_userName;
         
         /** Controls yoking */
-        ModelYokingGroup* selectedYokingGroup;
+        ModelYokingGroup* m_selectedYokingGroup;
         
         /** Volume Surface Outlines */
-        VolumeSurfaceOutlineSetModel* volumeSurfaceOutlineSetModel;
+        VolumeSurfaceOutlineSetModel* m_volumeSurfaceOutlineSetModel;
+        
+        /** Assists with creating/restoring scenes */
+        SceneClassAssistant* m_sceneClassAssistant;
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

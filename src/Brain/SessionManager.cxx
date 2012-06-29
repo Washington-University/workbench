@@ -432,25 +432,31 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             "SessionManager",
                                             1);
     
+    /*
+     * Save brains
+     */
     std::vector<SceneClass*> brainSceneClasses;
     const int32_t numBrains = m_brains.size();
     for (int32_t i = 0; i < numBrains; i++) {
         brainSceneClasses.push_back(m_brains[i]->saveToScene(sceneAttributes, 
                                                              "m_brains"));
     }
+    sceneClass->addChild(new SceneClassArray("m_brains",
+                                             brainSceneClasses));
     
-    SceneClassArray* brainArray = new SceneClassArray("m_brains",
-                                                      brainSceneClasses);
-    sceneClass->addChild(brainArray);
-    
-//    if (isSaveSpecFile) {
-//        sceneClass->addClass(m_specFile->saveToScene(sceneAttributes, 
-//                                                         "specFile"));
-//    }
-//    
-//    m_sceneAssistant->saveMembers(sceneAttributes, 
-//                                  sceneClass);
-    
+    /*
+     * Save browser tabs
+     */
+    std::vector<SceneClass*> browserTabSceneClasses;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        BrowserTabContent* btc = m_browserTabs[i];
+        if (btc != NULL) {
+            browserTabSceneClasses.push_back(btc->saveToScene(sceneAttributes, 
+                                                              "m_browserTabs"));
+        }
+    }
+    sceneClass->addChild(new SceneClassArray("m_browserTabs",
+                                             browserTabSceneClasses));
     
     return sceneClass;
 }
@@ -482,6 +488,9 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
+    /*
+     * Restore brains
+     */
     const SceneClassArray* brainArray = sceneClass->getClassArray("m_brains");
     const int32_t numBrainClasses = brainArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numBrainClasses; i++) {
@@ -498,28 +507,23 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-//    
-//    AString readSpecFileErrorMessage;
-//    if (isLoadFiles) {
-//        SpecFile specFile;
-//        specFile.restoreFromScene(sceneAttributes, 
-//                                  sceneClass->getClass("specFile"));
-//        
-//        m_loadSpecFile(&specFile, 
-//                           RESET_BRAIN_KEEP_SCENE_FILES_YES, 
-//                           readSpecFileErrorMessage);
-//    }
-//    
-//    m_sceneAssistant->restoreMembers(sceneAttributes, 
-//                                     sceneClass);
-//    
-//    switch (sceneAttributes->getSceneType()) {
-//        case SceneTypeEnum::SCENE_TYPE_FULL:
-//            break;
-//        case SceneTypeEnum::SCENE_TYPE_GENERIC:
-//            break;
-//    }
-    
+    /*
+     * Restore tabs
+     */
+    const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
+    const int32_t numBrowserTabClasses = browserTabArray->getNumberOfArrayElements();
+    for (int32_t i = 0; i < numBrowserTabClasses; i++) {
+        const SceneClass* browserTabClass = browserTabArray->getValue(i);
+        BrowserTabContent* btc = new BrowserTabContent(-1);
+        btc->restoreFromScene(sceneAttributes, 
+                              browserTabClass);
+        const int32_t tabIndex = btc->getTabNumber();
+        CaretAssert(tabIndex >= 0);
+        if (m_browserTabs[tabIndex] != NULL) {
+            delete m_browserTabs[tabIndex];
+        }
+        m_browserTabs[tabIndex] = btc;
+    }
 }
 
 
