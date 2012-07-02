@@ -60,6 +60,7 @@
 #include "CursorDisplayScoped.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowContentGet.h"
@@ -81,6 +82,10 @@
 #include "ModelWholeBrain.h"
 #include "ModelYokingGroup.h"
 #include "OverlaySet.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneIntegerArray.h"
+#include "ScenePrimitiveArray.h"
 #include "SessionManager.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
@@ -959,7 +964,7 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
     this->updateToolBar();
     this->updateToolBox();
     emit viewedModelChanged();
-    this->updateGraphicsWindow(); // yes, do a second time
+    this->updateGraphicsWindow();
 }
 
 void 
@@ -4578,6 +4583,101 @@ BrainBrowserWindowToolBar::getDisplayedModelController()
     
     return mdc;
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainBrowserWindowToolBar::saveToScene(const SceneAttributes* sceneAttributes,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainBrowserWindowToolBar",
+                                            1);
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
+    
+    
+    const int numTabs = this->tabBar->count();
+    if (numTabs > 0) {
+        SceneIntegerArray* sceneTabIndexArray = new SceneIntegerArray("tabIndices",
+                                                                      numTabs);
+        for (int32_t i = 0; i < numTabs; i++) {
+            BrowserTabContent* btc = this->getTabContentFromTab(i);
+            const int32_t tabIndex = btc->getTabNumber();
+            sceneTabIndexArray->setValue(i,
+                                         tabIndex);
+        }
+        sceneClass->addChild(sceneTabIndexArray);
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                     const SceneClass* sceneClass)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
+    
+    /*
+     * Close all tabs
+     */
+    const int32_t numberOfOpenTabs = this->tabBar->count();
+    for (int32_t iClose = (numberOfOpenTabs - 1); iClose >= 0; iClose--) {
+        this->tabBar->removeTab(iClose);
+    }
+    
+    /*
+     * Create new tabs
+     */
+    const ScenePrimitiveArray* sceneTabIndexArray = sceneClass->getPrimitiveArray("tabIndices");
+    if (sceneTabIndexArray != NULL) {
+        const int32_t numValidTabs = sceneTabIndexArray->getNumberOfArrayElements();
+        for (int32_t iTab = 0; iTab < numValidTabs; iTab++) {
+            const int32_t tabIndex = sceneTabIndexArray->integerValue(iTab);
+            
+            EventBrowserTabGet getTabContent(tabIndex);
+            EventManager::get()->sendEvent(getTabContent.getPointer());
+            if (getTabContent.isError() == false) {
+                BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+                this->addNewTab(tabContent);
+            }
+        }
+        
+    }
+}
+
 
 
 

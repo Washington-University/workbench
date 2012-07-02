@@ -199,7 +199,7 @@ namespace caret {
         
         BrainOpenGLWidget* openGLWidget;
         
-        BrainBrowserWindowToolBar* toolbar;
+        BrainBrowserWindowToolBar* m_toolbar;
         
         QAction* aboutWorkbenchAction;
         

@@ -147,6 +147,10 @@ namespace caret {
                                      const int32_t arrayNumberOfElements,
                                      const AString& defaultValue) const;
         
+        const ScenePrimitive* getPrimitive(const AString& name) const;
+        
+        const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
+        
         int32_t getNumberOfObjects() const;
         
         const SceneObject* getObjectAtIndex(const int32_t indx) const;
@@ -158,10 +162,6 @@ namespace caret {
         
         SceneClass& operator=(const SceneClass&);
 
-        const ScenePrimitive* getPrimitive(const AString& name) const;
-        
-        const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
-        
         void logMissing(const AString& missingInfo) const;
         
         AString m_className;

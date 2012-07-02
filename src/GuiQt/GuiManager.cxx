@@ -24,6 +24,7 @@
  */
 
 #include <algorithm>
+#include <list>
 
 #include <QAction>
 #include <QApplication>
@@ -57,6 +58,7 @@
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneDialog.h"
 #include "SceneException.h"
 #include "SessionManager.h"
@@ -266,10 +268,10 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
     }
     
     if (isBrowserWindowAllowedToClose) {
-        for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-            if (this->brainBrowserWindows[i] == brainBrowserWindow) {
-                this->reparentNonModalDialogs(this->brainBrowserWindows[i]);
-                this->brainBrowserWindows[i] = NULL;
+        for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+            if (m_brainBrowserWindows[i] == brainBrowserWindow) {
+                this->reparentNonModalDialogs(m_brainBrowserWindows[i]);
+                m_brainBrowserWindows[i] = NULL;
             }
         }
     }
@@ -286,8 +288,8 @@ int32_t
 GuiManager::getNumberOfOpenBrainBrowserWindows() const
 {
     int32_t numberOfWindows = 0;
-    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        if (this->brainBrowserWindows[i] != NULL) {
+    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
             numberOfWindows++;
         }
     }
@@ -306,10 +308,10 @@ GuiManager::getAllOpenBrainBrowserWindows() const
 { 
     std::vector<BrainBrowserWindow*> windows;
     
-    int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
-        if (this->brainBrowserWindows[i] != NULL) {
-            windows.push_back(this->brainBrowserWindows[i]);
+        if (m_brainBrowserWindows[i] != NULL) {
+            windows.push_back(m_brainBrowserWindows[i]);
         }
     }
     
@@ -331,8 +333,8 @@ GuiManager::getAllOpenBrainBrowserWindows() const
 BrainBrowserWindow* 
 GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
 {
-    if (browserWindowIndex < static_cast<int32_t>(this->brainBrowserWindows.size())) {
-        return this->brainBrowserWindows[browserWindowIndex];
+    if (browserWindowIndex < static_cast<int32_t>(m_brainBrowserWindows.size())) {
+        return m_brainBrowserWindows[browserWindowIndex];
     }
     return NULL;
 }
@@ -359,9 +361,9 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     int32_t windowIndex = -1;
     
-    int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
-        if (this->brainBrowserWindows[i] == NULL) {
+        if (m_brainBrowserWindows[i] == NULL) {
             windowIndex = i;
             break;
         }
@@ -370,13 +372,13 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     BrainBrowserWindow* bbw = NULL; 
     
     if (windowIndex < 0) {
-        windowIndex = this->brainBrowserWindows.size();
+        windowIndex = m_brainBrowserWindows.size();
         bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
-        this->brainBrowserWindows.push_back(bbw);
+        m_brainBrowserWindows.push_back(bbw);
     }
     else {
         bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
-        this->brainBrowserWindows[windowIndex] = bbw;
+        m_brainBrowserWindows[windowIndex] = bbw;
     }
     
     if (parent != NULL) {
@@ -496,13 +498,13 @@ GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowInde
                                                  const bool allowInvalidBrowserWindowIndex)
 {
     if (allowInvalidBrowserWindowIndex) {
-        if (browserWindowIndex >= static_cast<int32_t>(this->brainBrowserWindows.size())) {
+        if (browserWindowIndex >= static_cast<int32_t>(m_brainBrowserWindows.size())) {
             return NULL;
         }
     }
     
-    CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
-    BrainBrowserWindow* browserWindow = brainBrowserWindows[browserWindowIndex];
+    CaretAssertVectorIndex(m_brainBrowserWindows, browserWindowIndex);
+    BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
     if (allowInvalidBrowserWindowIndex) {
         if (browserWindow == NULL) {
             return NULL;
@@ -521,10 +523,10 @@ GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowInde
 void 
 GuiManager::processBringAllWindowsToFront()
 {
-    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        if (this->brainBrowserWindows[i] != NULL) {
-            this->brainBrowserWindows[i]->show();
-            this->brainBrowserWindows[i]->activateWindow();
+    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            m_brainBrowserWindows[i]->show();
+            m_brainBrowserWindows[i]->activateWindow();
         }
     }
 }
@@ -615,8 +617,8 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(mapEditEvent);
         
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
-        CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
-        BrainBrowserWindow* browserWindow = this->brainBrowserWindows[browserWindowIndex];
+        CaretAssertVectorIndex(m_brainBrowserWindows, browserWindowIndex);
+        BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
         CaretAssert(browserWindow);
         
         CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
@@ -675,9 +677,9 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
 {
     tabContents.clear();
     
-    const int32_t numWindows = this->brainBrowserWindows.size();
+    const int32_t numWindows = m_brainBrowserWindows.size();
     for (int32_t i = 0; i < numWindows; i++) {
-        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        BrainBrowserWindow* bbw = m_brainBrowserWindows[i];
         if (bbw != NULL) {
             if (bbw != browserWindow) {
                 std::vector<BrowserTabContent*> tabs;
@@ -710,9 +712,9 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
 void 
 GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
 {
-    const int32_t numWindows = this->brainBrowserWindows.size();
+    const int32_t numWindows = m_brainBrowserWindows.size();
     for (int32_t i = 0; i < numWindows; i++) {
-        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        BrainBrowserWindow* bbw = m_brainBrowserWindows[i];
         if (bbw != browserWindow) {
             this->allowBrowserWindowsToCloseWithoutConfirmation = true;
             bbw->close();
@@ -744,10 +746,10 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
 {
     BrainBrowserWindow* firstBrainBrowserWindow = NULL;
     
-    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        if (this->brainBrowserWindows[i] != NULL) {
-            if (this->brainBrowserWindows[i] != closingBrainBrowserWindow) {
-                firstBrainBrowserWindow = this->brainBrowserWindows[i];
+    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            if (m_brainBrowserWindows[i] != closingBrainBrowserWindow) {
+                firstBrainBrowserWindow = m_brainBrowserWindows[i];
                 break;
             }
         }
@@ -946,10 +948,10 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
     if(timeCourseDialogs.contains(id)) return timeCourseDialogs.value(id);
     BrainBrowserWindow* browserWindow = NULL;
 
-    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        if (this->brainBrowserWindows[i] != NULL && this->brainBrowserWindows[i]->isVisible()) {
-            if (this->brainBrowserWindows[i] != NULL) {
-                browserWindow = this->brainBrowserWindows[i];
+    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+        if (m_brainBrowserWindows[i] != NULL && m_brainBrowserWindows[i]->isVisible()) {
+            if (m_brainBrowserWindows[i] != NULL) {
+                browserWindow = m_brainBrowserWindows[i];
                 break;
             }
         }
@@ -1017,10 +1019,10 @@ GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowI
 {
     bool valid = false;
     
-    const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     if ((browserWindowIndex >= 0) 
         && (browserWindowIndex < numBrowserWindows)) {
-        BrainBrowserWindow* bbw = this->brainBrowserWindows[browserWindowIndex];
+        BrainBrowserWindow* bbw = m_brainBrowserWindows[browserWindowIndex];
         if (bbw != NULL) {
             QImage image = bbw->captureImageOfGraphicsArea(imageSizeX, imageSizeY);
             imageFileOut.setFromQImage(image);
@@ -1066,17 +1068,28 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             "GuiManager",
                                             1);
     
+    /*
+     * Save session manager (brain, etc)
+     */
     sceneClass->addClass(SessionManager::get()->saveToScene(sceneAttributes, 
                                                             "m_sessionManager"));
     
-    const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+
+    /*
+     * Save windows
+     */
+    std::vector<SceneClass*> browserWindowClasses;
+    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numBrowserWindows; i++) {
-        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        BrainBrowserWindow* bbw = m_brainBrowserWindows[i];
         if (bbw != NULL) {
-            sceneClass->addClass(bbw->saveToScene(sceneAttributes,
-                                                  "brainBrowserWindows"));
+            browserWindowClasses.push_back(bbw->saveToScene(sceneAttributes,
+                                                  "m_brainBrowserWindows"));
         }
     }
+    SceneClassArray* browserWindowArray = new SceneClassArray("m_brainBrowserWindows",
+                                                              browserWindowClasses);
+    sceneClass->addChild(browserWindowArray);
 
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -1114,7 +1127,55 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }    
         
+    /*
+     * Restore session manager
+     */
     SessionManager::get()->restoreFromScene(sceneAttributes, sceneClass->getClass("m_sessionManager"));
+    
+    /*
+     * Get open windows
+     */
+    std::list<BrainBrowserWindow*> availableWindows;
+    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
+    for (int32_t i = 0; i < numBrowserWindows; i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            availableWindows.push_back(m_brainBrowserWindows[i]);
+        }
+    }
+    
+    /*
+     * Restore windows
+     */
+    const SceneClassArray* browserWindowArray = sceneClass->getClassArray("m_brainBrowserWindows");
+    if (browserWindowArray != NULL) {
+        const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numBrowserClasses; i++) {
+            const SceneClass* browserClass = browserWindowArray->getValue(i);
+            BrainBrowserWindow* bbw = NULL;
+            if (availableWindows.empty() == false) {
+                bbw = availableWindows.front();
+                availableWindows.pop_front();
+            }
+            else {
+                bbw = newBrainBrowserWindow(NULL, 
+                                            NULL);
+            }
+            if (bbw != NULL) {
+                bbw->restoreFromScene(sceneAttributes, 
+                                      browserClass);
+            }
+        }
+    }
+    
+    /*
+     * Close windows not needed
+     */
+    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
+         iter != availableWindows.end();
+         iter++) {
+        BrainBrowserWindow* bbw = *iter;
+        bbw->close();
+    }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

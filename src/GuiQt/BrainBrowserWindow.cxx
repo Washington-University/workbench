@@ -177,25 +177,25 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->featuresToolBoxAction->setChecked(true);
     this->featuresToolBoxAction->blockSignals(false);
     
-    this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
+    m_toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
                                                   this->overlayToolBoxAction,
                                                   this->featuresToolBoxAction,
                                                   this);
-    this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
-    this->addToolBar(this->toolbar);
+    this->showToolBarAction = m_toolbar->toolBarToolButtonAction;
+    this->addToolBar(m_toolbar);
     
     this->createActions();
     
     this->createMenus();
      
-    this->toolbar->updateToolBar();
+    m_toolbar->updateToolBar();
 
     this->processShowOverlayToolBox(this->overlayToolBoxAction->isChecked());
     this->processHideFeaturesToolBox();
     
     if (browserTabContent == NULL) {
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
     }
 }
 
@@ -240,7 +240,7 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
      */
     GuiManager* guiManager = GuiManager::get();
     if (guiManager->allowBrainBrowserWindowToClose(this,
-                                                   this->toolbar->tabBar->count())) {
+                                                   m_toolbar->tabBar->count())) {
         event->accept();
     }
     else {
@@ -346,7 +346,7 @@ BrainBrowserWindow::processShowSceneDialog()
 void 
 BrainBrowserWindow::createActions()
 {
-    CaretAssert(this->toolbar);
+    CaretAssert(m_toolbar);
     
     GuiManager* guiManager = GuiManager::get();
     
@@ -418,7 +418,7 @@ BrainBrowserWindow::createActions()
                                 "Close the active tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_W,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(closeSelectedTab()));
     
     this->closeWindowAction = 
@@ -493,7 +493,7 @@ BrainBrowserWindow::createActions()
                                 "Move to the next tab",
                                 Qt::CTRL + Qt::Key_Right,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(nextTab()));
     
     this->previousTabAction =
@@ -501,21 +501,21 @@ BrainBrowserWindow::createActions()
                                 "Move to the previous tab",
                                 Qt::CTRL + Qt::Key_Left,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(previousTab()));
     
     this->renameSelectedTabAction =
     WuQtUtilities::createAction("Rename Selected Tab...",
                                 "Change the name of the selected tab",
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(renameTab()));
     
     this->moveTabsInWindowToNewWindowsAction =
     WuQtUtilities::createAction("Move All Tabs in Current Window to New Windows",
                                 "Move all but the left most tab to new windows",
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(moveTabsToNewWindows()));
     
     this->moveTabsFromAllWindowsToOneWindowAction =
@@ -792,7 +792,7 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         delete sfd;
         sfd = NULL;
         
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
         
         if (errorMessages.isEmpty() == false) {
             QMessageBox::critical(this, 
@@ -1549,7 +1549,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
     if (createDefaultTabsFlag) {
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
     }
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
@@ -1672,7 +1672,7 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
         this->restoreWindowComponentStatus(this->normalWindowComponentStatus);
     }
     
-    this->toolbar->updateToolBar();
+    m_toolbar->updateToolBar();
     if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
         this->overlayToolBoxAction->blockSignals(true);
         this->overlayToolBoxAction->setChecked(true);
@@ -1760,7 +1760,7 @@ void
 BrainBrowserWindow::processNewTab()
 {
     BrowserTabContent* previousTabContent = this->getBrowserTabContent();
-    this->toolbar->addNewTabCloneContent(previousTabContent);
+    m_toolbar->addNewTabCloneContent(previousTabContent);
     
 //    /*
 //     * Wait cursor
@@ -1770,8 +1770,8 @@ BrainBrowserWindow::processNewTab()
 //    
 //    BrowserTabContent* previousTabContent = this->getBrowserTabContent();
 //    
-//    this->toolbar->addNewTab();
-//    this->toolbar->updateToolBar();
+//    m_toolbar->addNewTab();
+//    m_toolbar->updateToolBar();
 //
 //    if (previousTabContent != NULL) {
 //        /*
@@ -1804,8 +1804,8 @@ BrainBrowserWindow::processMoveAllTabsToOneWindow()
     
     const int32_t numOtherTabs = static_cast<int32_t>(otherTabContent.size());
     for (int32_t i = 0; i < numOtherTabs; i++) {
-        this->toolbar->addNewTab(otherTabContent[i]);
-        this->toolbar->updateToolBar();
+        m_toolbar->addNewTab(otherTabContent[i]);
+        m_toolbar->updateToolBar();
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -1829,7 +1829,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
      * Allow movement of tab to new window ONLY if this window
      * contains more than one tab.
      */
-    if (this->toolbar->tabBar->count() > 1) {
+    if (m_toolbar->tabBar->count() > 1) {
         QAction* toNewWindowAction = new QAction("New Window",
                                                  this->moveSelectedTabToWindowMenu);
         toNewWindowAction->setData(qVariantFromValue((void*)NULL));
@@ -1871,8 +1871,8 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
         
             
         if (moveToBrowserWindow != NULL) {
-            this->toolbar->removeTabWithContent(btc);
-            moveToBrowserWindow->toolbar->addNewTab(btc);
+            m_toolbar->removeTabWithContent(btc);
+            moveToBrowserWindow->m_toolbar->addNewTab(btc);
         }
         else {
             EventBrowserWindowNew newWindow(this,
@@ -1885,10 +1885,10 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
                                       newWindow.getErrorMessage());
                 return;
             }
-            this->toolbar->removeTabWithContent(btc);
+            m_toolbar->removeTabWithContent(btc);
         }
         
-        if (this->toolbar->tabBar->count() <= 0) {
+        if (m_toolbar->tabBar->count() <= 0) {
             this->close();
         }
         
@@ -2178,7 +2178,7 @@ BrainBrowserWindow::shrinkToolbox()
 void 
 BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent)
 {
-    this->toolbar->removeAndReturnAllTabs(allTabContent);
+    m_toolbar->removeAndReturnAllTabs(allTabContent);
 }
 
 /**
@@ -2188,7 +2188,7 @@ BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allT
 BrowserTabContent* 
 BrainBrowserWindow::getBrowserTabContent()
 {
-    return this->toolbar->getTabContentFromSelectedTab();
+    return m_toolbar->getTabContentFromSelectedTab();
 }
 
 /**
@@ -2275,6 +2275,10 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrainBrowserWindow",
                                             1);
+    
+    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes, 
+                                                "m_toolbar"));
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -2301,6 +2305,9 @@ void
 BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                              const SceneClass* sceneClass)
 {
+    m_toolbar->restoreFromScene(sceneAttributes, 
+                                sceneClass->getClass("m_toolbar"));
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

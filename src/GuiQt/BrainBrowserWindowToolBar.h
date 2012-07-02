@@ -32,6 +32,7 @@
 
 #include "EventListenerInterface.h"
 #include "ModelTypeEnum.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 class QAbstractButton;
@@ -57,12 +58,14 @@ namespace caret {
     class Model;
     class ModelSurface;
     class ModelVolumeInterface;
+    class SceneAttributes;
+    class SceneClass;
     class Surface;
     class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
     class WuQWidgetObjectGroup;
     
-    class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface   {
+    class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface, public SceneableInterface   {
       
         Q_OBJECT
         
@@ -83,6 +86,12 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     signals:
         void viewedModelChanged();
         

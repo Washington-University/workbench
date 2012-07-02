@@ -48,6 +48,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "VolumeSurfaceOutlineSetModel.h"
 
 
 using namespace caret;
@@ -508,21 +509,32 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
+     * Remove all tabs
+     */
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        if (m_browserTabs[iTab] != NULL) {
+            delete m_browserTabs[iTab];
+            m_browserTabs[iTab] = NULL;
+        }
+    }
+    
+    /*
      * Restore tabs
      */
     const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
     const int32_t numBrowserTabClasses = browserTabArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numBrowserTabClasses; i++) {
         const SceneClass* browserTabClass = browserTabArray->getValue(i);
-        BrowserTabContent* btc = new BrowserTabContent(-1);
-        btc->restoreFromScene(sceneAttributes, 
+        
+        BrowserTabContent* tab = new BrowserTabContent(i);
+        tab->restoreFromScene(sceneAttributes, 
                               browserTabClass);
-        const int32_t tabIndex = btc->getTabNumber();
+        tab->update(m_modelDisplayControllers);
+        tab->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(m_brains[0], 
+                                                                             false);
+        const int32_t tabIndex = tab->getTabNumber();
         CaretAssert(tabIndex >= 0);
-        if (m_browserTabs[tabIndex] != NULL) {
-            delete m_browserTabs[tabIndex];
-        }
-        m_browserTabs[tabIndex] = btc;
+        m_browserTabs[tabIndex] = tab;
     }
 }
 

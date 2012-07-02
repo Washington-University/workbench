@@ -158,7 +158,7 @@ namespace caret {
          * As BrainBrowser windows are closed, some of
          * the elements may be NULL.
          */
-        std::vector<BrainBrowserWindow*> brainBrowserWindows;
+        std::vector<BrainBrowserWindow*> m_brainBrowserWindows;
         
         /** Name of application */
         QString nameOfApplication;

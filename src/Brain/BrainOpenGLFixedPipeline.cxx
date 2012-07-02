@@ -265,55 +265,60 @@ void
 BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent)
 {
-    this->browserTabContent= viewportContent->getBrowserTabContent();
-    Model* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
-    this->windowTabIndex = this->browserTabContent->getTabNumber();
-    int viewport[4];
-    viewportContent->getViewport(viewport);
-    
     ElapsedTimer et;
     et.start();
     
-    this->mode = mode;
+    this->browserTabContent= viewportContent->getBrowserTabContent();
+    Model* modelDisplayController = NULL;
     
-    this->checkForOpenGLError(modelDisplayController, "At beginning of drawModelInternal()");
-    
-    /*
-     * Update transformations with those from the yoked 
-     * group.  Does nothing if not yoked.
-     */
-    browserTabContent->updateTransformationsForYoking();
-    
-    if(modelDisplayController != NULL) {
-        CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
-                
-        ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
-        ModelSurfaceMontage* surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(modelDisplayController);
-        ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
-        ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
-        if (surfaceController != NULL) {
-            this->drawSurfaceController(surfaceController, viewport);
-        }
-        else if (surfaceMontageController != NULL) {
-            this->drawSurfaceMontageModel(browserTabContent, 
-                                          surfaceMontageController, 
-                                          viewport);
-        }
-        else if (volumeController != NULL) {
-            this->drawVolumeController(browserTabContent,
-                                       volumeController, viewport);
-        }
-        else if (wholeBrainController != NULL) {
-            this->drawWholeBrainController(browserTabContent,
-                                           wholeBrainController, viewport);
-        }
-        else {
-            CaretAssertMessage(0, "Unknown type of model display controller for drawing");
-        }
-        
+    if (this->browserTabContent != NULL) {
+        Model* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
+        this->windowTabIndex = this->browserTabContent->getTabNumber();
         int viewport[4];
         viewportContent->getViewport(viewport);
-        this->drawAllPalettes(modelDisplayController->getBrain());
+        
+        
+        this->mode = mode;
+        
+        this->checkForOpenGLError(modelDisplayController, "At beginning of drawModelInternal()");
+        
+        /*
+         * Update transformations with those from the yoked 
+         * group.  Does nothing if not yoked.
+         */
+        browserTabContent->updateTransformationsForYoking();
+        
+        if(modelDisplayController != NULL) {
+            CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+            
+            ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
+            ModelSurfaceMontage* surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(modelDisplayController);
+            ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
+            ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
+            if (surfaceController != NULL) {
+                this->drawSurfaceController(surfaceController, viewport);
+            }
+            else if (surfaceMontageController != NULL) {
+                this->drawSurfaceMontageModel(browserTabContent, 
+                                              surfaceMontageController, 
+                                              viewport);
+            }
+            else if (volumeController != NULL) {
+                this->drawVolumeController(browserTabContent,
+                                           volumeController, viewport);
+            }
+            else if (wholeBrainController != NULL) {
+                this->drawWholeBrainController(browserTabContent,
+                                               wholeBrainController, viewport);
+            }
+            else {
+                CaretAssertMessage(0, "Unknown type of model display controller for drawing");
+            }
+            
+            int viewport[4];
+            viewportContent->getViewport(viewport);
+            this->drawAllPalettes(modelDisplayController->getBrain());
+        }
     }
     
     glFlush();
