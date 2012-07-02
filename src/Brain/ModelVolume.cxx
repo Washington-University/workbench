@@ -31,6 +31,8 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "ModelVolume.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -46,11 +48,11 @@ ModelVolume::ModelVolume(Brain* brain)
                          ROTATION_ALLOWED_NO,
                          brain)
 {
-    this->initializeMembersModelVolume();
+    initializeMembersModelVolume();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i] = new OverlaySet(this);
+        m_overlaySet[i] = new OverlaySet(this);
     }
 }
 
@@ -61,7 +63,7 @@ ModelVolume::~ModelVolume()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete this->overlaySet[i];
+        delete m_overlaySet[i];
     }
 }
 
@@ -69,14 +71,14 @@ void
 ModelVolume::initializeMembersModelVolume()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
-        this->sliceViewMode[i]          = VolumeSliceViewModeEnum::ORTHOGONAL;
-        this->montageNumberOfColumns[i] = 3;
-        this->montageNumberOfRows[i]    = 4;
-        this->montageSliceSpacing[i]    = 5;
-        this->volumeSlicesSelected[i].reset();
+        m_sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
+        m_sliceViewMode[i]          = VolumeSliceViewModeEnum::ORTHOGONAL;
+        m_montageNumberOfColumns[i] = 3;
+        m_montageNumberOfRows[i]    = 4;
+        m_montageSliceSpacing[i]    = 5;
+        m_volumeSlicesSelected[i].reset();
     }
-    this->lastVolumeFile = NULL;
+    m_lastVolumeFile = NULL;
 }
 
 /**
@@ -141,7 +143,7 @@ ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 VolumeSliceViewPlaneEnum::Enum 
 ModelVolume::getSliceViewPlane(const int32_t windowTabNumber) const
 {    
-    return this->sliceViewPlane[windowTabNumber];
+    return m_sliceViewPlane[windowTabNumber];
 }
 
 /**
@@ -155,7 +157,7 @@ void
 ModelVolume::setSliceViewPlane(const int32_t windowTabNumber,
                       VolumeSliceViewPlaneEnum::Enum slicePlane)
 {   
-    this->sliceViewPlane[windowTabNumber] = slicePlane;
+    m_sliceViewPlane[windowTabNumber] = slicePlane;
 }
 
 /**
@@ -168,7 +170,7 @@ ModelVolume::setSliceViewPlane(const int32_t windowTabNumber,
 VolumeSliceViewModeEnum::Enum 
 ModelVolume::getSliceViewMode(const int32_t windowTabNumber) const
 {    
-    return this->sliceViewMode[windowTabNumber];
+    return m_sliceViewMode[windowTabNumber];
 }
 
 /**
@@ -182,7 +184,7 @@ void
 ModelVolume::setSliceViewMode(const int32_t windowTabNumber,
                       VolumeSliceViewModeEnum::Enum sliceViewMode)
 {    
-    this->sliceViewMode[windowTabNumber] = sliceViewMode;
+    m_sliceViewMode[windowTabNumber] = sliceViewMode;
 }
 
 /**
@@ -195,9 +197,9 @@ ModelVolume::setSliceViewMode(const int32_t windowTabNumber,
 VolumeSliceCoordinateSelection* 
 ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
-    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
-    return &this->volumeSlicesSelected[windowTabNumber];
+    const VolumeFile* vf = getUnderlayVolumeFile(windowTabNumber);
+    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
+    return &m_volumeSlicesSelected[windowTabNumber];
 }
 
 /**
@@ -210,9 +212,9 @@ ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 const VolumeSliceCoordinateSelection* 
 ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
-    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
-    return &this->volumeSlicesSelected[windowTabNumber];
+    const VolumeFile* vf = getUnderlayVolumeFile(windowTabNumber);
+    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
+    return &m_volumeSlicesSelected[windowTabNumber];
 }
 
 
@@ -227,7 +229,7 @@ ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 int32_t 
 ModelVolume::getMontageNumberOfColumns(const int32_t windowTabNumber) const
 {    
-    return this->montageNumberOfColumns[windowTabNumber];
+    return m_montageNumberOfColumns[windowTabNumber];
 }
 
 
@@ -242,7 +244,7 @@ void
 ModelVolume::setMontageNumberOfColumns(const int32_t windowTabNumber,
                                const int32_t montageNumberOfColumns)
 {    
-    this->montageNumberOfColumns[windowTabNumber] = montageNumberOfColumns;
+    m_montageNumberOfColumns[windowTabNumber] = montageNumberOfColumns;
 }
 
 /**
@@ -255,7 +257,7 @@ ModelVolume::setMontageNumberOfColumns(const int32_t windowTabNumber,
 int32_t 
 ModelVolume::getMontageNumberOfRows(const int32_t windowTabNumber) const
 {
-    return this->montageNumberOfRows[windowTabNumber];
+    return m_montageNumberOfRows[windowTabNumber];
 }
 
 /**
@@ -269,7 +271,7 @@ void
 ModelVolume::setMontageNumberOfRows(const int32_t windowTabNumber,
                             const int32_t montageNumberOfRows)
 {    
-    this->montageNumberOfRows[windowTabNumber] = montageNumberOfRows;
+    m_montageNumberOfRows[windowTabNumber] = montageNumberOfRows;
 }
 
 /**
@@ -282,7 +284,7 @@ ModelVolume::setMontageNumberOfRows(const int32_t windowTabNumber,
 int32_t 
 ModelVolume::getMontageSliceSpacing(const int32_t windowTabNumber) const
 {    
-    return this->montageSliceSpacing[windowTabNumber];
+    return m_montageSliceSpacing[windowTabNumber];
 }
 
 /**
@@ -296,7 +298,7 @@ void
 ModelVolume::setMontageSliceSpacing(const int32_t windowTabNumber,
                             const int32_t montageSliceSpacing)
 {
-    this->montageSliceSpacing[windowTabNumber] = montageSliceSpacing;
+    m_montageSliceSpacing[windowTabNumber] = montageSliceSpacing;
 }
 
 /**
@@ -307,9 +309,9 @@ ModelVolume::setMontageSliceSpacing(const int32_t windowTabNumber,
 void 
 ModelVolume::updateController(const int32_t windowTabNumber)
 {
-    VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+    VolumeFile* vf = getUnderlayVolumeFile(windowTabNumber);
     if (vf != NULL) {
-        this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
+        m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
     }
 }
 
@@ -320,7 +322,7 @@ ModelVolume::updateController(const int32_t windowTabNumber)
 void
 ModelVolume::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
+    m_volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
 
 /**
@@ -337,7 +339,7 @@ ModelVolume::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
-        if (this->getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+        if (getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
             for (int32_t windowTabNumber = 0; 
                  windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
@@ -349,22 +351,22 @@ ModelVolume::receiveEvent(Event* event)
                     highlighXYZ[2]
                 };
                 
-                switch (this->getSliceViewMode(windowTabNumber)) {
+                switch (getSliceViewMode(windowTabNumber)) {
                     case VolumeSliceViewModeEnum::MONTAGE:
                         /*
                          * For montage, do not allow slice in selected plane change
                          */
-                        switch (this->getSliceViewPlane(windowTabNumber)) {
+                        switch (getSliceViewPlane(windowTabNumber)) {
                             case VolumeSliceViewPlaneEnum::ALL:
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                sliceXYZ[0] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateParasagittal();
+                                sliceXYZ[0] = m_volumeSlicesSelected[windowTabNumber].getSliceCoordinateParasagittal();
                                 break;
                             case VolumeSliceViewPlaneEnum::CORONAL:
-                                sliceXYZ[1] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateCoronal();
+                                sliceXYZ[1] = m_volumeSlicesSelected[windowTabNumber].getSliceCoordinateCoronal();
                                 break;
                             case VolumeSliceViewPlaneEnum::AXIAL:
-                                sliceXYZ[2] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateAxial();
+                                sliceXYZ[2] = m_volumeSlicesSelected[windowTabNumber].getSliceCoordinateAxial();
                                 break;
                         }
                         break;
@@ -374,7 +376,7 @@ ModelVolume::receiveEvent(Event* event)
                         break;
                 }
                 
-                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(sliceXYZ);
+                m_volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(sliceXYZ);
             }
         }
         
@@ -392,10 +394,10 @@ ModelVolume::receiveEvent(Event* event)
 OverlaySet* 
 ModelVolume::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -408,10 +410,10 @@ ModelVolume::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelVolume::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -421,9 +423,9 @@ void
 ModelVolume::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i]->initializeOverlays();
+        m_overlaySet[i]->initializeOverlays();
         
-        VolumeFile* vf = this->overlaySet[i]->getUnderlayVolume();
+        VolumeFile* vf = m_overlaySet[i]->getUnderlayVolume();
         if (vf != NULL) {
             /*
              * Set montage slice spacing based upon slices
@@ -440,11 +442,11 @@ ModelVolume::initializeOverlays()
                     const int32_t sliceRange = (maxZ - minZ);
                     int32_t sliceSpacing = 1;
                     if (sliceRange > 0) {
-                        const int32_t numSlicesViewed = (this->montageNumberOfRows[i]
-                                                         * this->montageNumberOfColumns[i]);
+                        const int32_t numSlicesViewed = (m_montageNumberOfRows[i]
+                                                         * m_montageNumberOfColumns[i]);
                         sliceSpacing = (sliceRange / numSlicesViewed);
                     }
-                    this->montageSliceSpacing[i] = sliceSpacing;
+                    m_montageSliceSpacing[i] = sliceSpacing;
                 }
             }
         }
@@ -471,7 +473,7 @@ ModelVolume::copyTransformationsAndViews(const Model& controllerSource,
         }
     }
     
-    CaretAssertArrayIndex(this->translation,
+    CaretAssertArrayIndex(m_translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberTarget);
     CaretAssertArrayIndex(controllerSource->translation,
@@ -485,18 +487,18 @@ ModelVolume::copyTransformationsAndViews(const Model& controllerSource,
         return;
     }
     
-    this->setSliceViewPlane(windowTabNumberTarget, 
+    setSliceViewPlane(windowTabNumberTarget, 
                             modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
-    this->setSliceViewMode(windowTabNumberTarget,
+    setSliceViewMode(windowTabNumberTarget,
                            modelVolumeSource->getSliceViewMode(windowTabNumberSource));
-    this->setMontageNumberOfRows(windowTabNumberTarget,
+    setMontageNumberOfRows(windowTabNumberTarget,
                                  modelVolumeSource->getMontageNumberOfRows(windowTabNumberSource));
-    this->setMontageNumberOfColumns(windowTabNumberTarget,
+    setMontageNumberOfColumns(windowTabNumberTarget,
                                     modelVolumeSource->getMontageNumberOfColumns(windowTabNumberSource));
-    this->setMontageSliceSpacing(windowTabNumberTarget,
+    setMontageSliceSpacing(windowTabNumberTarget,
                                  modelVolumeSource->getMontageSliceSpacing(windowTabNumberSource));
     
-    this->getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
+    getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
                                                                          *modelVolumeSource->getSelectedVolumeSlices(windowTabNumberSource));
 /*
     const ModelVolume* modelVolumeSource = dynamic_cast<const ModelVolume*>(&controllerSource);
@@ -504,11 +506,89 @@ ModelVolume::copyTransformationsAndViews(const Model& controllerSource,
         return;
     }
 
-    this->sliceViewPlane[windowTabNumberTarget] = modelVolumeSource->sliceViewPlane[windowTabNumberSource];
-    this->sliceViewMode[windowTabNumberTarget] = modelVolumeSource->sliceViewMode[windowTabNumberSource];
-    this->montageNumberOfRows[windowTabNumberTarget] = modelVolumeSource->montageNumberOfRows[windowTabNumberSource];
-    this->montageNumberOfColumns[windowTabNumberTarget] = modelVolumeSource->montageNumberOfColumns[windowTabNumberSource];
-    this->montageSliceSpacing[windowTabNumberTarget] = modelVolumeSource->montageSliceSpacing[windowTabNumberSource];
+    m_sliceViewPlane[windowTabNumberTarget] = modelVolumeSource->sliceViewPlane[windowTabNumberSource];
+    m_sliceViewMode[windowTabNumberTarget] = modelVolumeSource->sliceViewMode[windowTabNumberSource];
+    m_montageNumberOfRows[windowTabNumberTarget] = modelVolumeSource->montageNumberOfRows[windowTabNumberSource];
+    m_montageNumberOfColumns[windowTabNumberTarget] = modelVolumeSource->montageNumberOfColumns[windowTabNumberSource];
+    m_montageSliceSpacing[windowTabNumberTarget] = modelVolumeSource->montageSliceSpacing[windowTabNumberSource];
                       
-    this->volumeSlicesSelected[windowTabNumberTarget].copySelections(modelVolumeSource->volumeSlicesSelected[windowTabNumberSource]);
-*/}
+    m_volumeSlicesSelected[windowTabNumberTarget].copySelections(modelVolumeSource->volumeSlicesSelected[windowTabNumberSource]);
+*/
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelVolume::saveToScene(const SceneAttributes* sceneAttributes,
+                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelVolume",
+                                            1);
+    saveTransformsAndOverlaysToScene(sceneAttributes,
+                                     sceneClass);
+    //    m_sceneAssistant->saveMembers(sceneAttributes, 
+    //                                  sceneClass);
+    //    
+    //    sceneClass->addString("m_selectedMapFile",
+    //                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelVolume::restoreFromScene(const SceneAttributes* sceneAttributes,
+                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
+                                          sceneClass);
+    
+    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    //                                     sceneClass);
+    //    
+    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+    //                                                                   "");
+    //    if (selectedMapFileName.isEmpty() == false) {
+    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+    //             iter != m_mapFiles.end();
+    //             iter++) {
+    //            const AString fileName = (*iter)->getFileNameNoPath();
+    //            if (fileName == selectedMapFileName) {
+    //                CaretMappableDataFile* mapFile = *iter;
+    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+    //                if (mapIndex >= 0) {
+    //                    m_selectedMapFile = mapFile;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
+}

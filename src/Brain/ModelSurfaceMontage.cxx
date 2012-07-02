@@ -36,6 +36,8 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -51,12 +53,12 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    this->initializeMembersModelSurfaceMontage();
+    initializeMembersModelSurfaceMontage();
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i] = new OverlaySet(this);
+        m_overlaySet[i] = new OverlaySet(this);
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->leftView(i);
+        leftView(i);
     }
 }
 
@@ -68,11 +70,11 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
     EventManager::get()->removeAllEventsFromListener(this);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete this->overlaySet[i];
-        delete this->leftSurfaceSelectionModel[i];
-        delete this->leftSecondSurfaceSelectionModel[i];
-        delete this->rightSurfaceSelectionModel[i];
-        delete this->rightSecondSurfaceSelectionModel[i];
+        delete m_overlaySet[i];
+        delete m_leftSurfaceSelectionModel[i];
+        delete m_leftSecondSurfaceSelectionModel[i];
+        delete m_rightSurfaceSelectionModel[i];
+        delete m_rightSecondSurfaceSelectionModel[i];
     }    
 }
 
@@ -91,11 +93,11 @@ void
 ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        this->leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        this->rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-        this->rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-        this->dualConfigurationEnabled[i] = false;
+        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_dualConfigurationEnabled[i] = false;
     }
 }
 
@@ -105,10 +107,10 @@ ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
 bool 
 ModelSurfaceMontage::isDualConfigurationEnabled(const int tabIndex) const
 {
-    CaretAssertArrayIndex(this->dualConfigurationEnabled, 
+    CaretAssertArrayIndex(m_dualConfigurationEnabled, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->dualConfigurationEnabled[tabIndex];
+    return m_dualConfigurationEnabled[tabIndex];
 }
 
 /**
@@ -122,11 +124,11 @@ void
 ModelSurfaceMontage::setDualConfigurationEnabled(const int tabIndex,
                                                  const bool enabled)
 {
-    CaretAssertArrayIndex(this->dualConfigurationEnabled, 
+    CaretAssertArrayIndex(m_dualConfigurationEnabled, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
 
-    this->dualConfigurationEnabled[tabIndex] = enabled;
+    m_dualConfigurationEnabled[tabIndex] = enabled;
 }
 
 /**
@@ -137,10 +139,10 @@ ModelSurfaceMontage::setDualConfigurationEnabled(const int tabIndex,
 SurfaceSelectionModel*
 ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->leftSurfaceSelectionModel, 
+    CaretAssertArrayIndex(m_leftSurfaceSelectionModel, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->leftSurfaceSelectionModel[tabIndex];
+    return m_leftSurfaceSelectionModel[tabIndex];
 }
 
 /**
@@ -151,10 +153,10 @@ ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
 SurfaceSelectionModel*
 ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->leftSecondSurfaceSelectionModel, 
+    CaretAssertArrayIndex(m_leftSecondSurfaceSelectionModel, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->leftSecondSurfaceSelectionModel[tabIndex];
+    return m_leftSecondSurfaceSelectionModel[tabIndex];
 }
 
 /**
@@ -165,10 +167,10 @@ ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
 SurfaceSelectionModel*
 ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->rightSurfaceSelectionModel, 
+    CaretAssertArrayIndex(m_rightSurfaceSelectionModel, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->rightSurfaceSelectionModel[tabIndex];
+    return m_rightSurfaceSelectionModel[tabIndex];
 }
 
 /**
@@ -179,10 +181,10 @@ ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
 SurfaceSelectionModel*
 ModelSurfaceMontage::getRightSecondSurfaceSelectionModel(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->rightSecondSurfaceSelectionModel, 
+    CaretAssertArrayIndex(m_rightSecondSurfaceSelectionModel, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->rightSecondSurfaceSelectionModel[tabIndex];
+    return m_rightSecondSurfaceSelectionModel[tabIndex];
 }
 
 /**
@@ -222,15 +224,15 @@ ModelSurfaceMontage::setDefaultScalingToFitWindow()
 {
     /*
     BoundingBox bounds;
-    this->surface->getBounds(bounds);
+    m_surface->getBounds(bounds);
     
     float bigY = std::max(std::abs(bounds.getMinY()), bounds.getMaxY());
     float percentScreenY = BrainOpenGL::getModelViewingHalfWindowHeight() * 0.90f;
     float scale = percentScreenY / bigY;
-    this->defaultModelScaling = scale;
+    m_defaultModelScaling = scale;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->setScaling(i, this->defaultModelScaling);
+        m_setScaling(i, m_defaultModelScaling);
     }
     */
 }
@@ -245,7 +247,7 @@ void
 ModelSurfaceMontage::resetView(const int32_t windowTabNumber)
 {
     Model::resetView(windowTabNumber);
-    this->leftView(windowTabNumber);    
+    leftView(windowTabNumber);    
 }
 
 /**
@@ -258,10 +260,10 @@ ModelSurfaceMontage::resetView(const int32_t windowTabNumber)
 OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -274,10 +276,10 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -287,7 +289,7 @@ void
 ModelSurfaceMontage::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i]->initializeOverlays();
+        m_overlaySet[i]->initializeOverlays();
     }
 }
 
@@ -311,10 +313,10 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
     SurfaceSelectionModel* selectionModel = NULL;
     switch (structure) {
         case StructureEnum::CORTEX_LEFT:
-            selectionModel = this->getLeftSurfaceSelectionModel(windowTabNumber);
+            selectionModel = getLeftSurfaceSelectionModel(windowTabNumber);
             break;
         case StructureEnum::CORTEX_RIGHT:
-            selectionModel = this->getRightSurfaceSelectionModel(windowTabNumber);
+            selectionModel = getRightSurfaceSelectionModel(windowTabNumber);
             break;
         default:
             break;
@@ -347,7 +349,7 @@ ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
         }
     }
     
-    CaretAssertArrayIndex(this->translation,
+    CaretAssertArrayIndex(m_translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberTarget);
     CaretAssertArrayIndex(controllerSource->translation,
@@ -361,20 +363,97 @@ ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
         return;
     }
   
-    this->leftSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-                                modelSurfaceMontage->leftSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    m_leftSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->m_leftSurfaceSelectionModel[windowTabNumberSource]->getSurface());
     
-    this->leftSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-                                modelSurfaceMontage->leftSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    m_leftSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->m_leftSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
 
-    this->rightSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-                                modelSurfaceMontage->rightSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    m_rightSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->m_rightSurfaceSelectionModel[windowTabNumberSource]->getSurface());
     
-    this->rightSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-                                modelSurfaceMontage->rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
+    m_rightSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
+                                modelSurfaceMontage->m_rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
     
-    this->dualConfigurationEnabled[windowTabNumberTarget] = modelSurfaceMontage->dualConfigurationEnabled[windowTabNumberSource];
+    m_dualConfigurationEnabled[windowTabNumberTarget] = modelSurfaceMontage->m_dualConfigurationEnabled[windowTabNumberSource];
     
-//    this->setSliceViewPlane(windowTabNumberTarget, 
+//    m_setSliceViewPlane(windowTabNumberTarget, 
 //                            modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelSurfaceMontage::saveToScene(const SceneAttributes* sceneAttributes,
+                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelSurfaceMontage",
+                                            1);
+    saveTransformsAndOverlaysToScene(sceneAttributes,
+                                     sceneClass);
+    //    m_sceneAssistant->saveMembers(sceneAttributes, 
+    //                                  sceneClass);
+    //    
+    //    sceneClass->addString("m_selectedMapFile",
+    //                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelSurfaceMontage::restoreFromScene(const SceneAttributes* sceneAttributes,
+                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
+                                          sceneClass);
+    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    //                                     sceneClass);
+    //    
+    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+    //                                                                   "");
+    //    if (selectedMapFileName.isEmpty() == false) {
+    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+    //             iter != m_mapFiles.end();
+    //             iter++) {
+    //            const AString fileName = (*iter)->getFileNameNoPath();
+    //            if (fileName == selectedMapFileName) {
+    //                CaretMappableDataFile* mapFile = *iter;
+    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+    //                if (mapIndex >= 0) {
+    //                    m_selectedMapFile = mapFile;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
 }

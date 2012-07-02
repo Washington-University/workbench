@@ -32,6 +32,9 @@
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "ModelSurface.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "Surface.h"
 #include <algorithm>
 
@@ -51,9 +54,9 @@ using namespace caret;
 ModelSurfaceSelector::ModelSurfaceSelector()
 : CaretObject()
 {
-    this->defaultStructure = StructureEnum::ALL;
-    this->selectedStructure = StructureEnum::ALL;
-    this->selectedSurfaceController = NULL;
+    m_defaultStructure = StructureEnum::ALL;
+    m_selectedStructure = StructureEnum::ALL;
+    m_selectedSurfaceController = NULL;
 }
 
 /**
@@ -71,7 +74,7 @@ ModelSurface*
 ModelSurfaceSelector::getSelectedSurfaceController()
 {
     this->updateSelector();
-    return this->selectedSurfaceController;
+    return m_selectedSurfaceController;
 }
 
 /**
@@ -81,7 +84,7 @@ StructureEnum::Enum
 ModelSurfaceSelector::getSelectedStructure()
 {
     this->updateSelector();
-    return this->selectedStructure;
+    return m_selectedStructure;
 }
 
 /**
@@ -94,9 +97,9 @@ void
 ModelSurfaceSelector::setSelectedSurfaceController(
                                                                ModelSurface* surfaceController)
 {
-    this->selectedSurfaceController = surfaceController;
-    if (this->selectedStructure != StructureEnum::ALL) {
-        this->selectedStructure = surfaceController->getSurface()->getStructure();
+    m_selectedSurfaceController = surfaceController;
+    if (m_selectedStructure != StructureEnum::ALL) {
+        m_selectedStructure = surfaceController->getSurface()->getStructure();
     }
     this->updateSelector();
 }
@@ -110,7 +113,7 @@ ModelSurfaceSelector::setSelectedSurfaceController(
 void 
 ModelSurfaceSelector::setSelectedStructure(const StructureEnum::Enum selectedStructure)
 {
-    this->selectedStructure = selectedStructure;
+    m_selectedStructure = selectedStructure;
     this->updateSelector();
 }
 
@@ -126,8 +129,8 @@ ModelSurfaceSelector::getSelectableStructures(
 {
     selectableStructuresOut.clear();
     selectableStructuresOut.insert(selectableStructuresOut.end(),
-                                  this->availableStructures.begin(),
-                                  this->availableStructures.end());
+                                  m_availableStructures.begin(),
+                                  m_availableStructures.end());
 }
 
 /**
@@ -142,8 +145,8 @@ ModelSurfaceSelector::getSelectableSurfaceControllers(
 {
     selectableSurfaceControllersOut.clear();
     selectableSurfaceControllersOut.insert(selectableSurfaceControllersOut.end(),
-                                           this->availableSurfaceControllers.begin(),
-                                           this->availableSurfaceControllers.end());
+                                           m_availableSurfaceControllers.begin(),
+                                           m_availableSurfaceControllers.end());
 }
 
 /**
@@ -152,14 +155,14 @@ ModelSurfaceSelector::getSelectableSurfaceControllers(
 void 
 ModelSurfaceSelector::updateSelector(const std::vector<Model*> modelDisplayControllers)
 {
-    this->allSurfaceControllers.clear();
+    m_allSurfaceControllers.clear();
     for (std::vector<Model*>::const_iterator iter = modelDisplayControllers.begin();
          iter != modelDisplayControllers.end();
          iter++) {
         ModelSurface* surfaceController =
         dynamic_cast<ModelSurface*>(*iter);
         if (surfaceController != NULL) {
-            this->allSurfaceControllers.push_back(surfaceController);
+            m_allSurfaceControllers.push_back(surfaceController);
         }
     }
     
@@ -179,8 +182,8 @@ ModelSurfaceSelector::updateSelector()
     /*
      * Find the ALL surface controllers and structures
      */
-    for (std::vector<ModelSurface*>::const_iterator iter = allSurfaceControllers.begin();
-         iter != allSurfaceControllers.end();
+    for (std::vector<ModelSurface*>::const_iterator iter = m_allSurfaceControllers.begin();
+         iter != m_allSurfaceControllers.end();
          iter++) {
         ModelSurface* surfaceController = *iter;
         const Surface* surface = surfaceController->getSurface();
@@ -204,104 +207,104 @@ ModelSurfaceSelector::updateSelector()
     /*
      * Determine which structures are available.
      */
-    this->availableStructures.clear();
-    this->availableStructures.push_back(StructureEnum::ALL);
+    m_availableStructures.clear();
+    m_availableStructures.push_back(StructureEnum::ALL);
     if (haveCerebellum) {
-        this->availableStructures.push_back(StructureEnum::CEREBELLUM);    
+        m_availableStructures.push_back(StructureEnum::CEREBELLUM);    
     }
     if (haveCortexLeft) {
-        this->availableStructures.push_back(StructureEnum::CORTEX_LEFT);    
+        m_availableStructures.push_back(StructureEnum::CORTEX_LEFT);    
     }
     if (haveCortexRight) {
-        this->availableStructures.push_back(StructureEnum::CORTEX_RIGHT);    
+        m_availableStructures.push_back(StructureEnum::CORTEX_RIGHT);    
     }
     
     /*
      * Update the structure selection.
      */
-    if (std::find(this->availableStructures.begin(),
-                  this->availableStructures.end(),
-                  this->selectedStructure) == this->availableStructures.end()) {
-        if (this->availableStructures.empty() == false) {
-            this->selectedStructure = this->availableStructures[0];
+    if (std::find(m_availableStructures.begin(),
+                  m_availableStructures.end(),
+                  m_selectedStructure) == m_availableStructures.end()) {
+        if (m_availableStructures.empty() == false) {
+            m_selectedStructure = m_availableStructures[0];
         }
         else {
-            this->selectedStructure = defaultStructure;
+            m_selectedStructure = m_defaultStructure;
         }
     }
     
     /*
      * Update the available surface controllers.
      */
-    this->availableSurfaceControllers.clear();
-    for (std::vector<ModelSurface*>::iterator iter = allSurfaceControllers.begin();
-         iter != allSurfaceControllers.end();
+    m_availableSurfaceControllers.clear();
+    for (std::vector<ModelSurface*>::iterator iter = m_allSurfaceControllers.begin();
+         iter != m_allSurfaceControllers.end();
          iter++) {
         ModelSurface* surfaceController = *iter;
         const Surface* surface = surfaceController->getSurface();
         const StructureEnum::Enum structure = surface->getStructure();
         
         bool useIt = false;
-        if (this->selectedStructure == StructureEnum::ALL) {
+        if (m_selectedStructure == StructureEnum::ALL) {
             useIt = true;
         }
-        else if (this->selectedStructure == structure) {
+        else if (m_selectedStructure == structure) {
             useIt = true;
         }
             
         if (useIt) {
-            this->availableSurfaceControllers.push_back(surfaceController);
+            m_availableSurfaceControllers.push_back(surfaceController);
         }
     }
     
     /*
      * Update the surface selection.
      */
-    if (std::find(this->availableSurfaceControllers.begin(),
-                  this->availableSurfaceControllers.end(),
-                  this->selectedSurfaceController) == this->availableSurfaceControllers.end()) {
+    if (std::find(m_availableSurfaceControllers.begin(),
+                  m_availableSurfaceControllers.end(),
+                  m_selectedSurfaceController) == m_availableSurfaceControllers.end()) {
         /*
          * Selected controller is not found.
          */
-        this->selectedSurfaceController = NULL;
+        m_selectedSurfaceController = NULL;
 
         /*
          * First, see if a previous controller for structure still exists, if so, use it.
          */
         std::map<StructureEnum::Enum, ModelSurface*>::iterator iter =
-        this->previousSelectedSurfaceController.find(this->selectedStructure);
-        if (iter != this->previousSelectedSurfaceController.end()) {
+        m_previousSelectedSurfaceController.find(m_selectedStructure);
+        if (iter != m_previousSelectedSurfaceController.end()) {
             ModelSurface* previousController = iter->second;
-            if (std::find(this->availableSurfaceControllers.begin(),
-                          this->availableSurfaceControllers.end(),
-                          previousController) != this->availableSurfaceControllers.end()) {
-                this->selectedSurfaceController = previousController;
+            if (std::find(m_availableSurfaceControllers.begin(),
+                          m_availableSurfaceControllers.end(),
+                          previousController) != m_availableSurfaceControllers.end()) {
+                m_selectedSurfaceController = previousController;
             }
         }
 
         /*
          * Still not found?
          */
-        if (this->selectedSurfaceController == NULL) {
+        if (m_selectedSurfaceController == NULL) {
             /*
              * Default to first
              */
-            if (this->availableSurfaceControllers.empty() == false) {
-                this->selectedSurfaceController = this->availableSurfaceControllers[0];
+            if (m_availableSurfaceControllers.empty() == false) {
+                m_selectedSurfaceController = m_availableSurfaceControllers[0];
                 
                 /*
                  * Try to find and used the volume interaction surface.
                  */
-                Brain* brain = this->selectedSurfaceController->getBrain();
+                Brain* brain = m_selectedSurfaceController->getBrain();
                 if (brain != NULL) {
-                    BrainStructure* brainStructure = brain->getBrainStructure(this->selectedStructure, false);
+                    BrainStructure* brainStructure = brain->getBrainStructure(m_selectedStructure, false);
                     if (brainStructure != NULL) {
                         const Surface* volInteractSurface = brainStructure->getVolumeInteractionSurface();
                         if (volInteractSurface != NULL) {
-                            const int numSurfaceControllers = static_cast<int32_t>(this->availableSurfaceControllers.size());
+                            const int numSurfaceControllers = static_cast<int32_t>(m_availableSurfaceControllers.size());
                             for (int32_t i = 0; i < numSurfaceControllers; i++) {
-                                if (this->availableSurfaceControllers[i]->getSurface() == volInteractSurface) {
-                                    this->selectedSurfaceController = this->availableSurfaceControllers[i];
+                                if (m_availableSurfaceControllers[i]->getSurface() == volInteractSurface) {
+                                    m_selectedSurfaceController = m_availableSurfaceControllers[i];
                                     break;
                                 }
                             }
@@ -315,8 +318,8 @@ ModelSurfaceSelector::updateSelector()
     /*
      * Save controller for retrieval later.
      */
-    if (this->selectedSurfaceController != NULL) {
-        this->previousSelectedSurfaceController[this->selectedStructure] = this->selectedSurfaceController;
+    if (m_selectedSurfaceController != NULL) {
+        m_previousSelectedSurfaceController[m_selectedStructure] = m_selectedSurfaceController;
     }
 }
 /**
@@ -327,11 +330,87 @@ AString
 ModelSurfaceSelector::toString() const
 {
     AString msg = "selectedStructure="
-    + StructureEnum::toName(this->selectedStructure)
+    + StructureEnum::toName(m_selectedStructure)
     + "selectedSurface=";
-    if (this->selectedSurfaceController != NULL) {
-        msg += this->selectedSurfaceController->getNameForGUI(false);
+    if (m_selectedSurfaceController != NULL) {
+        msg += m_selectedSurfaceController->getNameForGUI(false);
     }
     return msg;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelSurfaceSelector::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                               const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelSurfaceSelector",
+                                            1);
+    
+    sceneClass->addEnumeratedType("m_selectedStructure", 
+                                  StructureEnum::toName(m_selectedStructure));
+    if (m_selectedSurfaceController != NULL) {
+        const Surface* surface = m_selectedSurfaceController->getSurface();
+        if (surface != NULL) {
+            const AString filename = surface->getFileNameNoPath();
+            sceneClass->addString("surfaceFileName", 
+                                  filename);
+        }
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelSurfaceSelector::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                    const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_selectedStructure = StructureEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedStructure",
+                                                                                     StructureEnum::toName(StructureEnum::ALL)),
+                                                  NULL);
+    setSelectedStructure(m_selectedStructure);
+    
+    const AString surfaceFileName = sceneClass->getStringValue("surfaceFileName",
+                                                               "");
+    if (surfaceFileName.isEmpty() == false) {
+        for (std::vector<ModelSurface*>::iterator iter = m_availableSurfaceControllers.begin();
+             iter != m_availableSurfaceControllers.end();
+             iter++) {
+            const Surface* surface = (*iter)->getSurface();
+            if (surfaceFileName == surface->getFileNameNoPath()) {
+                setSelectedSurfaceController(*iter);
+            }
+        }
+    }
 }
 

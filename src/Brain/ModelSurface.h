@@ -56,6 +56,12 @@ namespace caret {
         
         void initializeOverlays();
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         ModelSurface(const ModelSurface&);
         
@@ -77,7 +83,7 @@ namespace caret {
         
     private:
         /**Surface that uses this model */
-        Surface* surface;
+        Surface* m_surface;
         
     };
 

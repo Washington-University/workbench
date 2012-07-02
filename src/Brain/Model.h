@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
 #include "Matrix4x4.h"
+#include "SceneableInterface.h"
 
 namespace caret {
     class Brain;
@@ -36,7 +37,7 @@ namespace caret {
     class OverlaySet;
     
     /// Base class for controlling a model
-    class Model : public CaretObject {
+    class Model : public CaretObject, public SceneableInterface {
         
     protected:
         enum YokingAllowedType {
@@ -157,36 +158,48 @@ namespace caret {
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const = 0;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName) = 0;
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) = 0;
+        
     private:
         void resetViewPrivate(const int windowTabNumber);
         
     protected:
-        /** Brain which contains the controller */
-        Brain* brain;
+        void saveTransformsAndOverlaysToScene(const SceneAttributes* sceneAttributes,
+                                   SceneClass* sceneClass);
         
-        float defaultModelScaling;
+        void restoreTransformsAndOverlaysFromScene(const SceneAttributes* sceneAttributes,
+                                        const SceneClass* sceneClass);
+        
+        /** Brain which contains the controller */
+        Brain* m_brain;
+        
+        float m_defaultModelScaling;
         
         /** 
          * The viewing rotation matrix. In most cases, the second dimension is zero.
          * The second dimension equal to one is used only for a right surface that
          * is lateral/medial yoked.
          */
-        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT];
+        Matrix4x4 m_viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT];
         
         /**translation. */
-        float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT][3];
+        float m_translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT][3];
         
         /**scaling. */
-        float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
-        ModelTypeEnum::Enum controllerType;
+        ModelTypeEnum::Enum m_controllerType;
         
-        YokingAllowedType allowsYokingStatus;
+        YokingAllowedType m_allowsYokingStatus;
         
-        RotationAllowedType allowsRotationStatus;
+        RotationAllowedType m_allowsRotationStatus;
         
-        bool isYokingController;
+        bool m_isYokingController;
     };
 
 } // namespace

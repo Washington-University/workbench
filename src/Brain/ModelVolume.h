@@ -94,6 +94,12 @@ namespace caret {
                                                  const int32_t windowTabNumberSource,
                                                  const int32_t windowTabNumberTarget);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         ModelVolume(const ModelVolume&);
         
@@ -109,26 +115,26 @@ namespace caret {
         
     private:
         /** Axis of slice being viewed */
-        VolumeSliceViewPlaneEnum::Enum sliceViewPlane[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Type of slice viewing */
-        VolumeSliceViewModeEnum::Enum sliceViewMode[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        VolumeSliceViewModeEnum::Enum m_sliceViewMode[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Number of montage rows */
-        int32_t montageNumberOfRows[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_montageNumberOfRows[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Number of montage columns */
-        int32_t montageNumberOfColumns[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_montageNumberOfColumns[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Montage slice spacing */
-        int32_t montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        mutable VolumeSliceCoordinateSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        VolumeFile* lastVolumeFile;
+        VolumeFile* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
-        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
 

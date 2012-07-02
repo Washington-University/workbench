@@ -527,11 +527,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         const SceneClass* browserTabClass = browserTabArray->getValue(i);
         
         BrowserTabContent* tab = new BrowserTabContent(i);
-        tab->restoreFromScene(sceneAttributes, 
-                              browserTabClass);
         tab->update(m_modelDisplayControllers);
         tab->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(m_brains[0], 
                                                                              false);
+        tab->restoreFromScene(sceneAttributes, 
+                              browserTabClass);
         const int32_t tabIndex = tab->getTabNumber();
         CaretAssert(tabIndex >= 0);
         m_browserTabs[tabIndex] = tab;

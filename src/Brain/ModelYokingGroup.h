@@ -103,6 +103,12 @@ namespace caret {
         
         bool isVolumeYoking() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
@@ -116,28 +122,28 @@ namespace caret {
         void initializeMembersModelYoking();
         
         /** Axis of slice being viewed */
-        VolumeSliceViewPlaneEnum::Enum sliceViewPlane;
+        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
         
         /** Type of slice viewing */
-        VolumeSliceViewModeEnum::Enum sliceViewMode;
+        VolumeSliceViewModeEnum::Enum m_sliceViewMode;
         
         /** Number of montage rows */
-        int32_t montageNumberOfRows;
+        int32_t m_montageNumberOfRows;
         
         /** Number of montage columns */
-        int32_t montageNumberOfColumns;
+        int32_t m_montageNumberOfColumns;
         
         /** Montage slice spacing */
-        int32_t montageSliceSpacing;
+        int32_t m_montageSliceSpacing;
         
         /** Selected volume slices */
-        mutable VolumeSliceCoordinateSelection volumeSlicesSelected;
+        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected;
         
         /** Name of yoking */
-        AString yokingName;
+        AString m_yokingName;
         
         /** Type of yoking */
-        YokingType yokingType;
+        YokingType m_yokingType;
     };
 
 } // namespace

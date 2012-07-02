@@ -78,6 +78,12 @@ namespace caret {
                                                  const int32_t windowTabNumberSource,
                                                  const int32_t windowTabNumberTarget);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         ModelSurfaceMontage(const ModelSurfaceMontage&);
         
@@ -85,18 +91,18 @@ namespace caret {
         
         void initializeMembersModelSurfaceMontage();
 
-        SurfaceSelectionModel* leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        SurfaceSelectionModel* m_leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* leftSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        SurfaceSelectionModel* m_leftSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* rightSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        SurfaceSelectionModel* m_rightSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* rightSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        SurfaceSelectionModel* m_rightSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool dualConfigurationEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_dualConfigurationEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
         /** Overlays sets for this model and for each tab */
-        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
 

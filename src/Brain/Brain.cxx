@@ -61,6 +61,7 @@
 #include "RgbaFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "SceneException.h"
 #include "SceneFile.h"
@@ -2327,6 +2328,24 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                   sceneClass);
     
 
+    /*
+     * Save all models
+     */
+    std::vector<SceneClass*> modelClassVector;
+    EventModelGetAll getAllModels;
+    EventManager::get()->sendEvent(getAllModels.getPointer());
+    std::vector<Model*> allModels = getAllModels.getModels();
+    for (std::vector<Model*>::iterator iter = allModels.begin();
+         iter != allModels.end();
+         iter++) {
+        Model* mdc = *iter;
+        modelClassVector.push_back(mdc->saveToScene(sceneAttributes,
+                                                    "model"));
+    }
+    SceneClassArray* modelsClassArray = new SceneClassArray("models",
+                                                            modelClassVector);
+    sceneClass->addChild(modelsClassArray);
+    
     return sceneClass;
 }
 
@@ -2372,6 +2391,10 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
+    
+    /*
+     * Restore all models
+     */
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:

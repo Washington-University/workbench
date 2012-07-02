@@ -247,13 +247,14 @@ DisplayPropertiesInformation::restoreFromScene(const SceneAttributes* sceneAttri
                                          sceneClass);
     
     switch (sceneAttributes->getSceneType()) {
+            
         case SceneTypeEnum::SCENE_TYPE_FULL:
             m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationSymbolColor",
-                                                                                                         "CaretColorEnum::GREEN"),
-                                                                       NULL);
+                                                                                                      CaretColorEnum::toName(CaretColorEnum::GREEN)),
+                                                                   NULL);
             m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
-                                                                                                         "CaretColorEnum::BLUE"),
-                                                                       NULL);
+                                                                                                                   CaretColorEnum::toName(CaretColorEnum::BLUE)),
+                                                                                NULL);
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;

@@ -41,6 +41,8 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "RgbaFile.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 
@@ -62,12 +64,12 @@ Overlay::Overlay(BrainStructure* brainStructure)
 {
     CaretAssert(brainStructure);
     
-    this->volumeController  = NULL;
-    this->wholeBrainController  = NULL;
-    this->surfaceMontageController = NULL;
+    m_volumeController  = NULL;
+    m_wholeBrainController  = NULL;
+    m_surfaceMontageController = NULL;
     
-    this->initializeOverlay(NULL,
-                            brainStructure);
+    initializeOverlay(NULL,
+                      brainStructure);
 }
 
 /**
@@ -80,11 +82,11 @@ Overlay::Overlay(ModelVolume* modelDisplayControllerVolume)
 {
     CaretAssert(modelDisplayControllerVolume);
     
-    this->volumeController  = modelDisplayControllerVolume;
-    this->wholeBrainController  = NULL;
-    this->surfaceMontageController = NULL;
+    m_volumeController  = modelDisplayControllerVolume;
+    m_wholeBrainController  = NULL;
+    m_surfaceMontageController = NULL;
     
-    this->initializeOverlay(this->volumeController,
+    initializeOverlay(m_volumeController,
                             NULL);
 }
 
@@ -98,11 +100,11 @@ Overlay::Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain)
 {
     CaretAssert(modelDisplayControllerWholeBrain);
     
-    this->volumeController  = NULL;
-    this->wholeBrainController  = modelDisplayControllerWholeBrain;
-    this->surfaceMontageController = NULL;
+    m_volumeController  = NULL;
+    m_wholeBrainController  = modelDisplayControllerWholeBrain;
+    m_surfaceMontageController = NULL;
     
-    this->initializeOverlay(this->wholeBrainController,
+    initializeOverlay(m_wholeBrainController,
                             NULL);
 }
 
@@ -116,11 +118,11 @@ Overlay::Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
 {
     CaretAssert(modelDisplayControllerSurfaceMontage);
     
-    this->volumeController  = NULL;
-    this->wholeBrainController  = NULL;
-    this->surfaceMontageController = modelDisplayControllerSurfaceMontage;
+    m_volumeController  = NULL;
+    m_wholeBrainController  = NULL;
+    m_surfaceMontageController = modelDisplayControllerSurfaceMontage;
     
-    this->initializeOverlay(this->surfaceMontageController,
+    initializeOverlay(m_surfaceMontageController,
                             NULL);
 }
 
@@ -134,11 +136,11 @@ Overlay::Overlay(ModelYokingGroup* /*modelDisplayControllerYokingGroup*/)
 {
 //    CaretAssert(modelDisplayControllerYokingGroup);
     
-    this->volumeController  = NULL;
-    this->wholeBrainController  = NULL;
-    this->surfaceMontageController = NULL;
+    m_volumeController  = NULL;
+    m_wholeBrainController  = NULL;
+    m_surfaceMontageController = NULL;
     
-    this->initializeOverlay(NULL,
+    initializeOverlay(NULL,
                             NULL);
 }
 
@@ -151,25 +153,31 @@ void
 Overlay::initializeOverlay(Model* modelDisplayController,
                            BrainStructure* brainStructure)
 {
-    this->brainStructure = brainStructure;
+    m_brainStructure = brainStructure;
     
     if (modelDisplayController == NULL) {
-        CaretAssert(this->brainStructure != NULL);
+        CaretAssert(m_brainStructure != NULL);
     }
-    else if (this->brainStructure == NULL) {
+    else if (m_brainStructure == NULL) {
         CaretAssert(modelDisplayController != NULL);
     }
     else {
         CaretAssertMessage(0, "Both mode and brain structure are NULL");
     }
     
-    this->brainStructure = brainStructure;
+    m_brainStructure = brainStructure;
     
-    this->opacity = 1.0;
+    m_opacity = 1.0;
     
-    this->name = "Overlay ";
-    this->enabled = true;
-    this->paletteDisplayedFlag = false;
+    m_name = "Overlay ";
+    m_enabled = true;
+    m_paletteDisplayedFlag = false;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_opacity", &m_opacity, m_opacity);
+    m_sceneAssistant->add("m_enabled", &m_enabled, m_enabled);
+    m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag, m_paletteDisplayedFlag);
+    m_sceneAssistant->add("m_selectedMapUniqueID", &m_selectedMapUniqueID, m_selectedMapUniqueID);
 }
 
 /**
@@ -177,7 +185,7 @@ Overlay::initializeOverlay(Model* modelDisplayController,
  */
 Overlay::~Overlay()
 {
-    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -189,7 +197,7 @@ Overlay::~Overlay()
 void 
 Overlay::setOverlayNumber(const int32_t overlayIndex)
 {    
-    this->name = "Overlay " + AString::number(overlayIndex + 1);
+    m_name = "Overlay " + AString::number(overlayIndex + 1);
 }
 
 /**
@@ -200,7 +208,7 @@ Overlay::setOverlayNumber(const int32_t overlayIndex)
 float 
 Overlay::getOpacity() const
 {
-    return this->opacity;
+    return m_opacity;
 }
 
 /**
@@ -212,13 +220,13 @@ Overlay::getOpacity() const
 void 
 Overlay::setOpacity(const float opacity)
 {
-    this->opacity = opacity;
+    m_opacity = opacity;
 }
 
 AString 
 Overlay::getName() const
 {
-    return this->name;
+    return m_name;
 }
 
 /**
@@ -237,7 +245,7 @@ Overlay::toString() const
 bool 
 Overlay::isEnabled() const
 {
-    return this->enabled;
+    return m_enabled;
 }
 
 /**
@@ -248,7 +256,7 @@ Overlay::isEnabled() const
 void 
 Overlay::setEnabled(const bool enabled)
 {
-    this->enabled = enabled;
+    m_enabled = enabled;
 }
 
 /**
@@ -268,18 +276,18 @@ Overlay::copyData(const Overlay* overlay)
      *    overlayIndex
      *
      */
-    this->brainStructure = brainStructure;
-    this->volumeController  = overlay->volumeController;
-    this->wholeBrainController = overlay->wholeBrainController;
-    this->surfaceMontageController = overlay->surfaceMontageController;
+    m_brainStructure = overlay->m_brainStructure;
+    m_volumeController  = overlay->m_volumeController;
+    m_wholeBrainController = overlay->m_wholeBrainController;
+    m_surfaceMontageController = overlay->m_surfaceMontageController;
     
-    this->opacity = overlay->opacity;
-    this->enabled = overlay->enabled;
+    m_opacity = overlay->m_opacity;
+    m_enabled = overlay->m_enabled;
     
-    this->mapFiles = overlay->mapFiles;
-    this->selectedMapFile = overlay->selectedMapFile;
-    this->selectedMapUniqueID = overlay->selectedMapUniqueID;
-    this->paletteDisplayedFlag = overlay->paletteDisplayedFlag;
+    m_mapFiles = overlay->m_mapFiles;
+    m_selectedMapFile = overlay->m_selectedMapFile;
+    m_selectedMapUniqueID = overlay->m_selectedMapUniqueID;
+    m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
 }
 
 /**
@@ -292,17 +300,17 @@ Overlay::swapData(Overlay* overlay)
 {
     Overlay* swapOverlay = NULL;
     
-    if (this->brainStructure != NULL) {
-        swapOverlay = new Overlay(this->brainStructure);
+    if (m_brainStructure != NULL) {
+        swapOverlay = new Overlay(m_brainStructure);
     }
-    else if (this->volumeController != NULL) {
-        swapOverlay = new Overlay(this->volumeController);
+    else if (m_volumeController != NULL) {
+        swapOverlay = new Overlay(m_volumeController);
     }
-    else if (this->wholeBrainController != NULL) {
-        swapOverlay = new Overlay(this->wholeBrainController);
+    else if (m_wholeBrainController != NULL) {
+        swapOverlay = new Overlay(m_wholeBrainController);
     }
-    else if (this->surfaceMontageController != NULL) {
-        swapOverlay = new Overlay(this->surfaceMontageController);
+    else if (m_surfaceMontageController != NULL) {
+        swapOverlay = new Overlay(m_surfaceMontageController);
     }
     else {
         CaretAssertMessage(0, "Unknown overlay type");
@@ -311,7 +319,7 @@ Overlay::swapData(Overlay* overlay)
     swapOverlay->copyData(overlay);
     
     overlay->copyData(this);
-    this->copyData(swapOverlay);
+    copyData(swapOverlay);
     
     delete swapOverlay;
 }
@@ -332,7 +340,7 @@ Overlay::getSelectionData(DataFileTypeEnum::Enum& mapDataFileTypeOut,
     std::vector<CaretMappableDataFile*> allFiles;
     CaretMappableDataFile* selectedFile;
     int32_t selectedIndex;
-    this->getSelectionData(allFiles,
+    getSelectionData(allFiles,
                            selectedFile,
                            selectedMapUniqueIDOut,
                            selectedIndex);
@@ -362,7 +370,7 @@ Overlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
     std::vector<CaretMappableDataFile*> mapFiles;
     AString mapUniqueID;
     
-    this->getSelectionData(mapFiles, 
+    getSelectionData(mapFiles, 
                            selectedMapFileOut, 
                            mapUniqueID, 
                            selectedMapIndexOut);
@@ -408,22 +416,22 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      * match the structure of the displayed surface.
      */
     StructureEnum::Enum selectedSurfaceStructure = StructureEnum::ALL;
-    if (this->brainStructure != NULL) {
-        selectedSurfaceStructure = this->brainStructure->getStructure();
+    if (m_brainStructure != NULL) {
+        selectedSurfaceStructure = m_brainStructure->getStructure();
         showSurfaceMapFiles = true;
     }
     
     /*
      * If a volume is selected, restrict selections to volume files.
      */
-    if (this->volumeController != NULL) {
+    if (m_volumeController != NULL) {
         showVolumeMapFiles = true;
     }
     
     /*
      * If whole brain is selected, show surface and volume files.
      */
-    if (this->wholeBrainController != NULL) {
+    if (m_wholeBrainController != NULL) {
         showSurfaceMapFiles = true;
         showVolumeMapFiles = true;
     }
@@ -431,7 +439,7 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     /*
      * If surface montage is selected, show surface files
      */
-    if (this->surfaceMontageController != NULL) {
+    if (m_surfaceMontageController != NULL) {
         showSurfaceMapFiles = true;
     }
     
@@ -480,32 +488,32 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      */
     if (std::find(mapFilesOut.begin(), 
                   mapFilesOut.end(),
-                  this->selectedMapFile) == mapFilesOut.end()) {
-        this->selectedMapFile = NULL;
+                  m_selectedMapFile) == mapFilesOut.end()) {
+        m_selectedMapFile = NULL;
     }
     
     /*
      * If selected data file is valid, see if selected
      * map is still valid.  If not, use first map.
      */
-    if (this->selectedMapFile != NULL) {
-        const int32_t mapIndex = this->selectedMapFile->getMapIndexFromUniqueID(this->selectedMapUniqueID);
+    if (m_selectedMapFile != NULL) {
+        const int32_t mapIndex = m_selectedMapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
         if (mapIndex < 0) {
-            this->selectedMapUniqueID = this->selectedMapFile->getMapUniqueID(0);
+            m_selectedMapUniqueID = m_selectedMapFile->getMapUniqueID(0);
         }
     }
     else {
         /*
          * Look for a file that contains the selected map unique ID.
          */
-        if (this->selectedMapUniqueID.isEmpty() == false) {
+        if (m_selectedMapUniqueID.isEmpty() == false) {
             for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
                  iter != mapFilesOut.end();
                  iter++) {
                 CaretMappableDataFile* mapTypeFile = *iter;
-                const int32_t mapIndex = mapTypeFile->getMapIndexFromUniqueID(this->selectedMapUniqueID);
+                const int32_t mapIndex = mapTypeFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
                 if (mapIndex >= 0) {
-                    this->selectedMapFile = mapTypeFile;
+                    m_selectedMapFile = mapTypeFile;
                     break;
                 }
             }
@@ -514,25 +522,25 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         /*
          * Use first map in first file that has one or more maps.
          */
-        if (this->selectedMapFile == NULL) {
+        if (m_selectedMapFile == NULL) {
             if (mapFilesOut.empty() == false) {
                 for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
                      iter != mapFilesOut.end();
                      iter++) {
                     CaretMappableDataFile* mapTypeFile = *iter;
                     if (mapTypeFile->getNumberOfMaps() > 0) {
-                        this->selectedMapFile = mapTypeFile;
-                        this->selectedMapUniqueID = mapTypeFile->getMapUniqueID(0);
+                        m_selectedMapFile = mapTypeFile;
+                        m_selectedMapUniqueID = mapTypeFile->getMapUniqueID(0);
                     }
                 }
             }
         }
     }
     
-    selectedMapFileOut = this->selectedMapFile;
+    selectedMapFileOut = m_selectedMapFile;
     if (selectedMapFileOut != NULL) {
-        selectedMapUniqueIDOut = this->selectedMapUniqueID;
-        selectedMapIndexOut = this->selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
+        selectedMapUniqueIDOut = m_selectedMapUniqueID;
+        selectedMapIndexOut = m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
     }
 }
 
@@ -547,8 +555,8 @@ void
 Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                           const int32_t selectedMapIndex)
 {
-    this->selectedMapFile = selectedMapFile;
-    this->selectedMapUniqueID = selectedMapFile->getMapUniqueID(selectedMapIndex);    
+    m_selectedMapFile = selectedMapFile;
+    m_selectedMapUniqueID = selectedMapFile->getMapUniqueID(selectedMapIndex);    
 }
 
 /**
@@ -557,7 +565,7 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
 bool 
 Overlay::isPaletteDisplayEnabled() const
 {
-    return this->paletteDisplayedFlag;
+    return m_paletteDisplayedFlag;
 }
 
 /**
@@ -568,7 +576,80 @@ Overlay::isPaletteDisplayEnabled() const
 void 
 Overlay::setPaletteDisplayEnabled(const bool enabled)
 {
-    this->paletteDisplayedFlag = enabled;
+    m_paletteDisplayedFlag = enabled;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+Overlay::saveToScene(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "Overlay",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+    sceneClass->addString("m_selectedMapFile",
+                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                       const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
+    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+                                                                   "");
+    if (selectedMapFileName.isEmpty() == false) {
+        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+             iter != m_mapFiles.end();
+             iter++) {
+            const AString fileName = (*iter)->getFileNameNoPath();
+            if (fileName == selectedMapFileName) {
+                CaretMappableDataFile* mapFile = *iter;
+                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+                if (mapIndex >= 0) {
+                    m_selectedMapFile = mapFile;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 

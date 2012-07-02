@@ -35,6 +35,8 @@
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -50,11 +52,11 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    this->initializeMembersModelWholeBrain();
+    initializeMembersModelWholeBrain();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i] = new OverlaySet(this);
+        m_overlaySet[i] = new OverlaySet(this);
     }
 }
 
@@ -65,7 +67,7 @@ ModelWholeBrain::~ModelWholeBrain()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete this->overlaySet[i];
+        delete m_overlaySet[i];
     }
 }
 
@@ -76,13 +78,13 @@ void
 ModelWholeBrain::initializeMembersModelWholeBrain()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
-        this->cerebellumEnabled[i] = true;
-        this->leftEnabled[i] = true;
-        this->rightEnabled[i] = true;
-        this->leftRightSeparation[i] = 0.0;
-        this->cerebellumSeparation[i] = 0.0;        
-        this->volumeSlicesSelected[i].reset();
+        m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
+        m_cerebellumEnabled[i] = true;
+        m_leftEnabled[i] = true;
+        m_rightEnabled[i] = true;
+        m_leftRightSeparation[i] = 0.0;
+        m_cerebellumSeparation[i] = 0.0;        
+        m_volumeSlicesSelected[i].reset();
     }
 }
 
@@ -94,12 +96,12 @@ ModelWholeBrain::initializeMembersModelWholeBrain()
 void 
 ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut)
 {
-    this->updateController();
+    updateController();
     
     surfaceTypesOut.clear();
     surfaceTypesOut.insert(surfaceTypesOut.end(),
-                           this->availableSurfaceTypes.begin(),
-                           this->availableSurfaceTypes.end());
+                           m_availableSurfaceTypes.begin(),
+                           m_availableSurfaceTypes.end());
 }
 /**
  *
@@ -108,8 +110,8 @@ ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& su
 SurfaceTypeEnum::Enum 
 ModelWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
 {
-    this->updateController();
-    return this->selectedSurfaceType[windowTabNumber];    
+    updateController();
+    return m_selectedSurfaceType[windowTabNumber];    
 }
 
 /**
@@ -157,10 +159,10 @@ ModelWholeBrain::updateController()
     /*
      * Set the available surface types.
      */
-    this->availableSurfaceTypes.clear();
+    m_availableSurfaceTypes.clear();
     for (int i = 0; i < numEnumTypes; i++) {
         if (surfaceTypeValid[i]) {
-            this->availableSurfaceTypes.push_back(allSurfaceTypes[i]);
+            m_availableSurfaceTypes.push_back(allSurfaceTypes[i]);
         }
     }
     
@@ -170,20 +172,20 @@ ModelWholeBrain::updateController()
      * Update the selected surface and volume types.
      */
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        if (std::find(this->availableSurfaceTypes.begin(),
-                      this->availableSurfaceTypes.end(),
-                      this->selectedSurfaceType[i]) == availableSurfaceTypes.end()) {
-            if (this->availableSurfaceTypes.empty() == false) {
-                this->selectedSurfaceType[i] = this->availableSurfaceTypes[0];
+        if (std::find(m_availableSurfaceTypes.begin(),
+                      m_availableSurfaceTypes.end(),
+                      m_selectedSurfaceType[i]) == m_availableSurfaceTypes.end()) {
+            if (m_availableSurfaceTypes.empty() == false) {
+                m_selectedSurfaceType[i] = m_availableSurfaceTypes[0];
             }
             else {
-                this->selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
+                m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
             }
         }
         
-        VolumeFile* vf = this->getUnderlayVolumeFile(i);
+        VolumeFile* vf = getUnderlayVolumeFile(i);
         if (vf != NULL) {
-            this->volumeSlicesSelected[i].updateForVolumeFile(vf);
+            m_volumeSlicesSelected[i].updateForVolumeFile(vf);
         }
     }
 }
@@ -199,7 +201,7 @@ void
 ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
                                                          const SurfaceTypeEnum::Enum surfaceType)
 {
-    this->selectedSurfaceType[windowTabNumber] = surfaceType;
+    m_selectedSurfaceType[windowTabNumber] = surfaceType;
     
     /*
      * If surface type is neither anatomical nor reconstruction,
@@ -211,12 +213,12 @@ ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
         case SurfaceTypeEnum::RECONSTRUCTION:
             break;
         default:
-            this->volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
-            this->volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
-            this->volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
+            m_volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
+            m_volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
+            m_volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
             break;
     }
-    this->updateController();
+    updateController();
 }
 
 /**
@@ -225,7 +227,7 @@ ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
 bool 
 ModelWholeBrain::isLeftEnabled(const int32_t windowTabNumber) const
 {
-    return this->leftEnabled[windowTabNumber];
+    return m_leftEnabled[windowTabNumber];
 }
 
 /**
@@ -239,7 +241,7 @@ void
 ModelWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
                                                  const bool enabled)
 {
-    this->leftEnabled[windowTabNumber] = enabled;
+    m_leftEnabled[windowTabNumber] = enabled;
 }
 
 /**
@@ -248,7 +250,7 @@ ModelWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
 bool 
 ModelWholeBrain::isRightEnabled(const int32_t windowTabNumber) const
 {
-    return this->rightEnabled[windowTabNumber];    
+    return m_rightEnabled[windowTabNumber];    
 }
 
 /**
@@ -262,7 +264,7 @@ void
 ModelWholeBrain::setRightEnabled(const int32_t windowTabNumber,
                                                   const bool enabled)
 {
-    this->rightEnabled[windowTabNumber] = enabled;
+    m_rightEnabled[windowTabNumber] = enabled;
 }
 
 /**
@@ -271,7 +273,7 @@ ModelWholeBrain::setRightEnabled(const int32_t windowTabNumber,
 bool 
 ModelWholeBrain::isCerebellumEnabled(const int32_t windowTabNumber) const
 {
-    return this->cerebellumEnabled[windowTabNumber];
+    return m_cerebellumEnabled[windowTabNumber];
 }
 
 /**
@@ -285,7 +287,7 @@ void
 ModelWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
                                                        const bool enabled)
 {
-    this->cerebellumEnabled[windowTabNumber] = enabled;
+    m_cerebellumEnabled[windowTabNumber] = enabled;
 }
 
 /**
@@ -294,7 +296,7 @@ ModelWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
 float 
 ModelWholeBrain::getLeftRightSeparation(const int32_t windowTabNumber) const
 {
-    return this->leftRightSeparation[windowTabNumber];
+    return m_leftRightSeparation[windowTabNumber];
 }
 
 /**
@@ -308,7 +310,7 @@ void
 ModelWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
                             const float separation)
 {
-    this->leftRightSeparation[windowTabNumber] = separation;
+    m_leftRightSeparation[windowTabNumber] = separation;
 }
 
 /**
@@ -317,7 +319,7 @@ ModelWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
 float 
 ModelWholeBrain::getCerebellumSeparation(const int32_t windowTabNumber) const
 {
-    return this->cerebellumSeparation[windowTabNumber];
+    return m_cerebellumSeparation[windowTabNumber];
 }
 
 /**
@@ -331,7 +333,7 @@ void
 ModelWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
                                                          const float separation)
 {
-    this->cerebellumSeparation[windowTabNumber] = separation;
+    m_cerebellumSeparation[windowTabNumber] = separation;
 }
 
 /**
@@ -344,8 +346,8 @@ ModelWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
 VolumeSliceCoordinateSelection* 
 ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
-    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(this->getUnderlayVolumeFile(windowTabNumber));
-    return &this->volumeSlicesSelected[windowTabNumber];
+    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(getUnderlayVolumeFile(windowTabNumber));
+    return &m_volumeSlicesSelected[windowTabNumber];
 }
 
 /**
@@ -358,9 +360,9 @@ ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
 const VolumeSliceCoordinateSelection* 
 ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
-    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
-    return &this->volumeSlicesSelected[windowTabNumber];
+    const VolumeFile* vf = getUnderlayVolumeFile(windowTabNumber);
+    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
+    return &m_volumeSlicesSelected[windowTabNumber];
 }
 
 
@@ -419,7 +421,7 @@ ModelWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 void
 ModelWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
+    m_volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
 
 /**
@@ -437,7 +439,7 @@ ModelWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
                                                      const int32_t windowTabNumber)
 
 {
-    const SurfaceTypeEnum::Enum surfaceType = this->getSelectedSurfaceType(windowTabNumber);
+    const SurfaceTypeEnum::Enum surfaceType = getSelectedSurfaceType(windowTabNumber);
     std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum> key = 
         std::make_pair(structure, 
                        surfaceType);
@@ -445,12 +447,12 @@ ModelWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
     /*
      * Get the currently selected surface.
      */
-    Surface* s = this->selectedSurface[windowTabNumber][key];
+    Surface* s = m_selectedSurface[windowTabNumber][key];
     
     /*
      * See if currently selected surface is valid.
      */
-    BrainStructure* brainStructure = this->brain->getBrainStructure(structure, 
+    BrainStructure* brainStructure = m_brain->getBrainStructure(structure, 
                                                                     false);
     if (brainStructure == NULL) {
         return NULL;
@@ -474,7 +476,7 @@ ModelWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
         }
     }
     
-    this->selectedSurface[windowTabNumber][key] = s;
+    m_selectedSurface[windowTabNumber][key] = s;
     
     return s;
 }
@@ -496,12 +498,12 @@ ModelWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
                                                           const int32_t windowTabNumber,
                                                           Surface* surface)
 {
-    const SurfaceTypeEnum::Enum surfaceType = this->getSelectedSurfaceType(windowTabNumber);
+    const SurfaceTypeEnum::Enum surfaceType = getSelectedSurfaceType(windowTabNumber);
     std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum> key = 
     std::make_pair(structure, 
                    surfaceType);
     
-    this->selectedSurface[windowTabNumber][key] = surface;
+    m_selectedSurface[windowTabNumber][key] = surface;
 }
 
 /**
@@ -518,13 +520,13 @@ ModelWholeBrain::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
         
-        if (this->getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+        if (getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
         
             for (int32_t windowTabNumber = 0; 
                  windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
                  windowTabNumber++) {
-                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
+                m_volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
             }
         }
         
@@ -542,10 +544,10 @@ ModelWholeBrain::receiveEvent(Event* event)
 OverlaySet* 
 ModelWholeBrain::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -558,10 +560,10 @@ ModelWholeBrain::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelWholeBrain::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(this->overlaySet, 
+    CaretAssertArrayIndex(m_overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return this->overlaySet[tabIndex];
+    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -571,9 +573,85 @@ void
 ModelWholeBrain::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i]->initializeOverlays();
+        m_overlaySet[i]->initializeOverlays();
     }
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelWholeBrain::saveToScene(const SceneAttributes* sceneAttributes,
+                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelWholeBrain",
+                                            1);
+    saveTransformsAndOverlaysToScene(sceneAttributes,
+                                     sceneClass);
+    //    m_sceneAssistant->saveMembers(sceneAttributes, 
+    //                                  sceneClass);
+    //    
+    //    sceneClass->addString("m_selectedMapFile",
+    //                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelWholeBrain::restoreFromScene(const SceneAttributes* sceneAttributes,
+                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
+                                          sceneClass);
+    
+    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    //                                     sceneClass);
+    //    
+    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+    //                                                                   "");
+    //    if (selectedMapFileName.isEmpty() == false) {
+    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+    //             iter != m_mapFiles.end();
+    //             iter++) {
+    //            const AString fileName = (*iter)->getFileNameNoPath();
+    //            if (fileName == selectedMapFileName) {
+    //                CaretMappableDataFile* mapFile = *iter;
+    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+    //                if (mapIndex >= 0) {
+    //                    m_selectedMapFile = mapFile;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
+}
 
 

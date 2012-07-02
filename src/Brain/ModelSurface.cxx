@@ -36,6 +36,8 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -53,10 +55,10 @@ ModelSurface::ModelSurface(Brain* brain,
                          brain)
 {
     CaretAssert(surface);
-    this->initializeMembersModelSurface();
-    this->surface = surface;
+    initializeMembersModelSurface();
+    m_surface = surface;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->lateralView(i);
+        lateralView(i);
     }
     
     EventManager::get()->addEventListener(this, 
@@ -89,7 +91,7 @@ ModelSurface::receiveEvent(Event* event)
         /*
          * Looking this controller?
          */
-        if (getSurfaceControllerEvent->getSurface() == this->getSurface()) {
+        if (getSurfaceControllerEvent->getSurface() == getSurface()) {
             getSurfaceControllerEvent->setModelSurface(this);
             getSurfaceControllerEvent->setEventProcessed();
         }
@@ -102,7 +104,7 @@ ModelSurface::receiveEvent(Event* event)
 void
 ModelSurface::initializeMembersModelSurface()
 {
-    this->surface = NULL;
+    m_surface = NULL;
 }
 
 /**
@@ -112,7 +114,7 @@ ModelSurface::initializeMembersModelSurface()
 Surface*
 ModelSurface::getSurface()
 {
-    return this->surface;
+    return m_surface;
 }
 
 /**
@@ -122,7 +124,7 @@ ModelSurface::getSurface()
 const Surface*
 ModelSurface::getSurface() const
 {
-    return this->surface;
+    return m_surface;
 }
 
 /**
@@ -138,11 +140,11 @@ ModelSurface::getNameForGUI(const bool includeStructureFlag) const
 {
     AString name;
     if (includeStructureFlag) {
-        const StructureEnum::Enum structure = this->surface->getStructure();
+        const StructureEnum::Enum structure = m_surface->getStructure();
         name += StructureEnum::toGuiName(structure);
         name += " ";
     }
-    name += this->surface->getFileNameNoPath();
+    name += m_surface->getFileNameNoPath();
     return name;
 }
 
@@ -153,7 +155,7 @@ ModelSurface::getNameForGUI(const bool includeStructureFlag) const
 AString 
 ModelSurface::getNameForBrowserTab() const
 {
-    const StructureEnum::Enum structure = this->surface->getStructure();
+    const StructureEnum::Enum structure = m_surface->getStructure();
     const AString name = StructureEnum::toGuiName(structure);
     return name;
 }
@@ -166,15 +168,15 @@ void
 ModelSurface::setDefaultScalingToFitWindow()
 {
     BoundingBox bounds;
-    this->surface->getBounds(bounds);
+    m_surface->getBounds(bounds);
     
     float bigY = std::max(std::abs(bounds.getMinY()), bounds.getMaxY());
     float percentScreenY = BrainOpenGL::getModelViewingHalfWindowHeight() * 0.90f;
     float scale = percentScreenY / bigY;
-    this->defaultModelScaling = scale;
+    m_defaultModelScaling = scale;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->setScaling(i, this->defaultModelScaling);
+        setScaling(i, m_defaultModelScaling);
     }
 }
 
@@ -188,7 +190,7 @@ void
 ModelSurface::resetView(const int32_t windowTabNumber)
 {
     Model::resetView(windowTabNumber);
-    this->lateralView(windowTabNumber);    
+    lateralView(windowTabNumber);    
 }
 
 /**
@@ -202,13 +204,13 @@ ModelSurface::resetView(const int32_t windowTabNumber)
 void
 ModelSurface::lateralView(const int32_t windowTabNumber)
 {
-    if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
-        switch (this->surface->getStructure()) {
+    if (m_surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
+        switch (m_surface->getStructure()) {
             case StructureEnum::CORTEX_LEFT:
-                this->leftView(windowTabNumber);
+                leftView(windowTabNumber);
                 break;
             case StructureEnum::CORTEX_RIGHT:
-                this->rightView(windowTabNumber);
+                rightView(windowTabNumber);
                 break;
             default:
                 break;
@@ -227,13 +229,13 @@ ModelSurface::lateralView(const int32_t windowTabNumber)
 void
 ModelSurface::medialView(const int32_t windowTabNumber)
 {
-    if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
-        switch (this->surface->getStructure()) {
+    if (m_surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
+        switch (m_surface->getStructure()) {
             case StructureEnum::CORTEX_LEFT:
-                this->rightView(windowTabNumber);
+                rightView(windowTabNumber);
                 break;
             case StructureEnum::CORTEX_RIGHT:
-                this->leftView(windowTabNumber);
+                leftView(windowTabNumber);
                 break;
             default:
                 break;
@@ -251,8 +253,8 @@ ModelSurface::medialView(const int32_t windowTabNumber)
 OverlaySet* 
 ModelSurface::getOverlaySet(const int tabIndex)
 {
-    if (this->surface != NULL) {
-        BrainStructure* brainStructure = this->surface->getBrainStructure();
+    if (m_surface != NULL) {
+        BrainStructure* brainStructure = m_surface->getBrainStructure();
         if (brainStructure != NULL) {
             return brainStructure->getOverlaySet(tabIndex);
         }
@@ -271,8 +273,8 @@ ModelSurface::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelSurface::getOverlaySet(const int tabIndex) const
 {
-    if (this->surface != NULL) {
-        const BrainStructure* brainStructure = this->surface->getBrainStructure();
+    if (m_surface != NULL) {
+        const BrainStructure* brainStructure = m_surface->getBrainStructure();
         if (brainStructure != NULL) {
             return brainStructure->getOverlaySet(tabIndex);
         }
@@ -289,6 +291,83 @@ ModelSurface::initializeOverlays()
 {
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelSurface::saveToScene(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelSurface",
+                                            1);
+    
+    saveTransformsAndOverlaysToScene(sceneAttributes,
+                                     sceneClass);
+//    m_sceneAssistant->saveMembers(sceneAttributes, 
+//                                  sceneClass);
+//    
+//    sceneClass->addString("m_selectedMapFile",
+//                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelSurface::restoreFromScene(const SceneAttributes* sceneAttributes,
+                          const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
+                                          sceneClass);
+//    m_sceneAssistant->restoreMembers(sceneAttributes, 
+//                                     sceneClass);
+//    
+//    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+//                                                                   "");
+//    if (selectedMapFileName.isEmpty() == false) {
+//        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+//             iter != m_mapFiles.end();
+//             iter++) {
+//            const AString fileName = (*iter)->getFileNameNoPath();
+//            if (fileName == selectedMapFileName) {
+//                CaretMappableDataFile* mapFile = *iter;
+//                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+//                if (mapIndex >= 0) {
+//                    m_selectedMapFile = mapFile;
+//                    break;
+//                }
+//            }
+//        }
+//    }
+}
 
 
 

@@ -28,6 +28,8 @@
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "ModelYokingGroup.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -49,9 +51,9 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
         ((yokingType == YOKING_TYPE_SURFACE) ? ROTATION_ALLOWED_YES : ROTATION_ALLOWED_NO),
         brain)
 {
-    this->initializeMembersModelYoking();
-    this->yokingType = yokingType;
-    this->yokingName = yokingName;
+    initializeMembersModelYoking();
+    m_yokingType = yokingType;
+    m_yokingName = yokingName;
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
@@ -70,18 +72,18 @@ ModelYokingGroup::~ModelYokingGroup()
 AString 
 ModelYokingGroup::getYokingName() const
 {
-    return this->yokingName;
+    return m_yokingName;
 }
 
 void
 ModelYokingGroup::initializeMembersModelYoking()
 {
-        this->sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
-        this->sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
-        this->montageNumberOfColumns = 3;
-        this->montageNumberOfRows    = 4;
-        this->montageSliceSpacing    = 5;
-        this->volumeSlicesSelected.reset();
+        m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
+        m_sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
+        m_montageNumberOfColumns = 3;
+        m_montageNumberOfRows    = 4;
+        m_montageSliceSpacing    = 5;
+        m_volumeSlicesSelected.reset();
 }
 
 /**
@@ -119,7 +121,7 @@ ModelYokingGroup::getNameForBrowserTab() const
 VolumeSliceViewPlaneEnum::Enum 
 ModelYokingGroup::getSliceViewPlane(const int32_t /*windowTabNumber*/) const
 {    
-    return this->sliceViewPlane;
+    return m_sliceViewPlane;
 }
 
 /**
@@ -133,7 +135,7 @@ void
 ModelYokingGroup::setSliceViewPlane(const int32_t /*windowTabNumber*/,
                       VolumeSliceViewPlaneEnum::Enum slicePlane)
 {   
-    this->sliceViewPlane = slicePlane;
+    m_sliceViewPlane = slicePlane;
 }
 
 /**
@@ -146,7 +148,7 @@ ModelYokingGroup::setSliceViewPlane(const int32_t /*windowTabNumber*/,
 VolumeSliceViewModeEnum::Enum 
 ModelYokingGroup::getSliceViewMode(const int32_t /*windowTabNumber*/) const
 {    
-    return this->sliceViewMode;
+    return m_sliceViewMode;
 }
 
 /**
@@ -160,7 +162,7 @@ void
 ModelYokingGroup::setSliceViewMode(const int32_t /*windowTabNumber*/,
                       VolumeSliceViewModeEnum::Enum sliceViewMode)
 {    
-    this->sliceViewMode = sliceViewMode;
+    m_sliceViewMode = sliceViewMode;
 }
 
 /**
@@ -173,7 +175,7 @@ ModelYokingGroup::setSliceViewMode(const int32_t /*windowTabNumber*/,
 VolumeSliceCoordinateSelection* 
 ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/)
 {
-    return &this->volumeSlicesSelected;
+    return &m_volumeSlicesSelected;
 }
 
 /**
@@ -186,7 +188,7 @@ ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/)
 const VolumeSliceCoordinateSelection* 
 ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/) const
 {
-    return &this->volumeSlicesSelected;
+    return &m_volumeSlicesSelected;
 }
 
 
@@ -201,7 +203,7 @@ ModelYokingGroup::getSelectedVolumeSlices(const int32_t /*windowTabNumber*/) con
 int32_t 
 ModelYokingGroup::getMontageNumberOfColumns(const int32_t /*windowTabNumber*/) const
 {    
-    return this->montageNumberOfColumns;
+    return m_montageNumberOfColumns;
 }
 
 
@@ -216,7 +218,7 @@ void
 ModelYokingGroup::setMontageNumberOfColumns(const int32_t /*windowTabNumber*/,
                                const int32_t montageNumberOfColumns)
 {    
-    this->montageNumberOfColumns = montageNumberOfColumns;
+    m_montageNumberOfColumns = montageNumberOfColumns;
 }
 
 /**
@@ -229,7 +231,7 @@ ModelYokingGroup::setMontageNumberOfColumns(const int32_t /*windowTabNumber*/,
 int32_t 
 ModelYokingGroup::getMontageNumberOfRows(const int32_t /*windowTabNumber*/) const
 {
-    return this->montageNumberOfRows;
+    return m_montageNumberOfRows;
 }
 
 /**
@@ -243,7 +245,7 @@ void
 ModelYokingGroup::setMontageNumberOfRows(const int32_t /*windowTabNumber*/,
                             const int32_t montageNumberOfRows)
 {    
-    this->montageNumberOfRows = montageNumberOfRows;
+    m_montageNumberOfRows = montageNumberOfRows;
 }
 
 /**
@@ -256,7 +258,7 @@ ModelYokingGroup::setMontageNumberOfRows(const int32_t /*windowTabNumber*/,
 int32_t 
 ModelYokingGroup::getMontageSliceSpacing(const int32_t /*windowTabNumber*/) const
 {    
-    return this->montageSliceSpacing;
+    return m_montageSliceSpacing;
 }
 
 /**
@@ -270,7 +272,7 @@ void
 ModelYokingGroup::setMontageSliceSpacing(const int32_t /*windowTabNumber*/,
                             const int32_t montageSliceSpacing)
 {
-    this->montageSliceSpacing = montageSliceSpacing;
+    m_montageSliceSpacing = montageSliceSpacing;
 }
 
 /**
@@ -280,7 +282,7 @@ ModelYokingGroup::setMontageSliceSpacing(const int32_t /*windowTabNumber*/,
 void
 ModelYokingGroup::setSlicesToOrigin(const int32_t /*windowTabNumber*/)
 {
-    this->volumeSlicesSelected.selectSlicesAtOrigin();
+    m_volumeSlicesSelected.selectSlicesAtOrigin();
 }
 
 /**
@@ -340,7 +342,7 @@ ModelYokingGroup::copyTransformationsAndViews(const Model& controllerSource,
         }
     }
     
-    CaretAssertArrayIndex(this->translation,
+    CaretAssertArrayIndex(m_translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberTarget);
     CaretAssertArrayIndex(controllerSource->translation,
@@ -354,18 +356,18 @@ ModelYokingGroup::copyTransformationsAndViews(const Model& controllerSource,
         return;
     }
     
-    this->setSliceViewPlane(windowTabNumberTarget, 
+    setSliceViewPlane(windowTabNumberTarget, 
                             modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
-    this->setSliceViewMode(windowTabNumberTarget,
+    setSliceViewMode(windowTabNumberTarget,
                            modelVolumeSource->getSliceViewMode(windowTabNumberSource));
-    this->setMontageNumberOfRows(windowTabNumberTarget,
+    setMontageNumberOfRows(windowTabNumberTarget,
                                  modelVolumeSource->getMontageNumberOfRows(windowTabNumberSource));
-    this->setMontageNumberOfColumns(windowTabNumberTarget,
+    setMontageNumberOfColumns(windowTabNumberTarget,
                                     modelVolumeSource->getMontageNumberOfColumns(windowTabNumberSource));
-    this->setMontageSliceSpacing(windowTabNumberTarget,
+    setMontageSliceSpacing(windowTabNumberTarget,
                                  modelVolumeSource->getMontageSliceSpacing(windowTabNumberSource));
     
-    this->getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
+    getSelectedVolumeSlices(windowTabNumberTarget)->copySelections(
                                             *modelVolumeSource->getSelectedVolumeSlices(windowTabNumberSource));
 }
 
@@ -375,7 +377,7 @@ ModelYokingGroup::copyTransformationsAndViews(const Model& controllerSource,
 ModelYokingGroup::YokingType 
 ModelYokingGroup::getYokingType() const
 {
-    return this->yokingType;
+    return m_yokingType;
 }
 
 /**
@@ -384,7 +386,7 @@ ModelYokingGroup::getYokingType() const
 bool 
 ModelYokingGroup::isSurfaceYoking() const
 {
-    return (this->yokingType == YOKING_TYPE_SURFACE);
+    return (m_yokingType == YOKING_TYPE_SURFACE);
 }
 
 /**
@@ -393,7 +395,7 @@ ModelYokingGroup::isSurfaceYoking() const
 bool 
 ModelYokingGroup::isVolumeYoking() const
 {
-    return (this->yokingType == YOKING_TYPE_VOLUME);
+    return (m_yokingType == YOKING_TYPE_VOLUME);
 }
 
 /**
@@ -410,7 +412,7 @@ ModelYokingGroup::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
         
-        if (this->getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+        if (getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
             float sliceXYZ[3] = {
                 highlighXYZ[0],
@@ -418,22 +420,22 @@ ModelYokingGroup::receiveEvent(Event* event)
                 highlighXYZ[2]
             };
             
-            switch (this->sliceViewMode) {
+            switch (m_sliceViewMode) {
                 case VolumeSliceViewModeEnum::MONTAGE:
                     /*
                      * For montage, do not allow slice in selected plane change
                      */
-                    switch (this->sliceViewPlane) {
+                    switch (m_sliceViewPlane) {
                         case VolumeSliceViewPlaneEnum::ALL:
                             break;
                         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            sliceXYZ[0] = this->volumeSlicesSelected.getSliceCoordinateParasagittal();
+                            sliceXYZ[0] = m_volumeSlicesSelected.getSliceCoordinateParasagittal();
                             break;
                         case VolumeSliceViewPlaneEnum::CORONAL:
-                            sliceXYZ[1] = this->volumeSlicesSelected.getSliceCoordinateCoronal();
+                            sliceXYZ[1] = m_volumeSlicesSelected.getSliceCoordinateCoronal();
                             break;
                         case VolumeSliceViewPlaneEnum::AXIAL:
-                            sliceXYZ[2] = this->volumeSlicesSelected.getSliceCoordinateAxial();
+                            sliceXYZ[2] = m_volumeSlicesSelected.getSliceCoordinateAxial();
                             break;
                     }
                     break;
@@ -443,11 +445,88 @@ ModelYokingGroup::receiveEvent(Event* event)
                     break;
             }
             
-            this->volumeSlicesSelected.selectSlicesAtCoordinate(sliceXYZ);
+            m_volumeSlicesSelected.selectSlicesAtCoordinate(sliceXYZ);
         }
         
         idLocationEvent->setEventProcessed();
     }
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+ModelYokingGroup::saveToScene(const SceneAttributes* sceneAttributes,
+                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ModelYokingGroup",
+                                            1);
+    saveTransformsAndOverlaysToScene(sceneAttributes,
+                                     sceneClass);
+    //    m_sceneAssistant->saveMembers(sceneAttributes, 
+    //                                  sceneClass);
+    //    
+    //    sceneClass->addString("m_selectedMapFile",
+    //                          m_selectedMapFile->getFileNameNoPath());
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+ModelYokingGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
+                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
+                                          sceneClass);
+    
+    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    //                                     sceneClass);
+    //    
+    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+    //                                                                   "");
+    //    if (selectedMapFileName.isEmpty() == false) {
+    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
+    //             iter != m_mapFiles.end();
+    //             iter++) {
+    //            const AString fileName = (*iter)->getFileNameNoPath();
+    //            if (fileName == selectedMapFileName) {
+    //                CaretMappableDataFile* mapFile = *iter;
+    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+    //                if (mapIndex >= 0) {
+    //                    m_selectedMapFile = mapFile;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
+}
 

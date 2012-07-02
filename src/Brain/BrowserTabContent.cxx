@@ -992,6 +992,11 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
     
+    sceneClass->addEnumeratedType("m_selectedModelType", 
+                                  ModelTypeEnum::toName(m_selectedModelType));
+    sceneClass->addChild(m_surfaceModelSelector->saveToScene(sceneAttributes,
+                                                             "m_surfaceModelSelector"));
+    
     return sceneClass;
 }
 
@@ -1017,4 +1022,10 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
+    
+    m_selectedModelType = ModelTypeEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedModelType",
+                                                                                     ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID)),
+                                                                                                           NULL);
+    m_surfaceModelSelector->restoreFromScene(sceneAttributes, 
+                                             sceneClass->getClass("m_surfaceModelSelector"));
 }

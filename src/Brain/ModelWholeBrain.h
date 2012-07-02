@@ -100,6 +100,12 @@ namespace caret {
         
         void initializeOverlays();
                                             
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         ModelWholeBrain(const ModelWholeBrain&);
         
@@ -117,30 +123,30 @@ namespace caret {
         
     private:
         /** Type of surface for display */
-        mutable SurfaceTypeEnum::Enum selectedSurfaceType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable SurfaceTypeEnum::Enum m_selectedSurfaceType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Selected surface for structure/surface-type */
-        std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*> selectedSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*> m_selectedSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Available surface types */
-        std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
+        std::vector<SurfaceTypeEnum::Enum> m_availableSurfaceTypes;
         
-        bool leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool rightEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_rightEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool cerebellumEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_cerebellumEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float leftRightSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_leftRightSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        mutable VolumeSliceCoordinateSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        VolumeFile* lastVolumeFile;
+        VolumeFile* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
-        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
 

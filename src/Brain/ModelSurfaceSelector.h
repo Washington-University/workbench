@@ -28,6 +28,7 @@
 #include <map>
 
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -35,7 +36,7 @@ namespace caret {
     class Model;
     class ModelSurface;
     
-    class ModelSurfaceSelector : public CaretObject {
+    class ModelSurfaceSelector : public CaretObject, public SceneableInterface {
         
     public:
         ModelSurfaceSelector();
@@ -59,6 +60,12 @@ namespace caret {
         void updateSelector(const std::vector<Model*> modelDisplayControllers);
         
         AString toString() const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         ModelSurfaceSelector(const ModelSurfaceSelector&);
 
@@ -67,19 +74,19 @@ namespace caret {
         void updateSelector();
         
     private:
-        std::vector<StructureEnum::Enum> availableStructures;
+        std::vector<StructureEnum::Enum> m_availableStructures;
         
-        StructureEnum::Enum selectedStructure;
+        StructureEnum::Enum m_selectedStructure;
         
-        StructureEnum::Enum defaultStructure;
+        StructureEnum::Enum m_defaultStructure;
         
-        std::vector<ModelSurface*> allSurfaceControllers;
+        std::vector<ModelSurface*> m_allSurfaceControllers;
                             
-        std::vector<ModelSurface*> availableSurfaceControllers;
+        std::vector<ModelSurface*> m_availableSurfaceControllers;
         
-        ModelSurface* selectedSurfaceController;
+        ModelSurface* m_selectedSurfaceController;
         
-        std::map<StructureEnum::Enum, ModelSurface*> previousSelectedSurfaceController;
+        std::map<StructureEnum::Enum, ModelSurface*> m_previousSelectedSurfaceController;
     };
     
 #ifdef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__

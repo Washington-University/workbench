@@ -27,6 +27,7 @@
 
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
+#include "SceneableInterface.h"
 
 namespace caret {
     class BrainStructure;
@@ -37,8 +38,9 @@ namespace caret {
     class ModelVolume;
     class ModelWholeBrain;
     class ModelYokingGroup;
+    class SceneClassAssistant;
     
-    class Overlay : public CaretObject {
+    class Overlay : public CaretObject, public SceneableInterface {
         
     public:
         Overlay(BrainStructure* brainStructure);
@@ -89,6 +91,11 @@ namespace caret {
         
         void setPaletteDisplayEnabled(const bool enabled);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         Overlay(const Overlay&);
 
@@ -98,40 +105,43 @@ namespace caret {
                                BrainStructure* brainStructure);
         
         /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
-        BrainStructure* brainStructure;
+        BrainStructure* m_brainStructure;
         
         /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
-        ModelVolume* volumeController;
+        ModelVolume* m_volumeController;
         
         /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
-        ModelWholeBrain* wholeBrainController;
+        ModelWholeBrain* m_wholeBrainController;
         
         /** Surfaced Montage controller using this overlay (NULL if this overlay is not assigned to a surface montage controller) */
-        ModelSurfaceMontage* surfaceMontageController;
+        ModelSurfaceMontage* m_surfaceMontageController;
         
         /** Name of overlay (DO NOT COPY)*/
-        AString name;
+        AString m_name;
         
         /** Index of this overlay (DO NOT COPY)*/
-        int32_t overlayIndex;
+        int32_t m_overlayIndex;
         
         /** opacity for overlay */
-        float opacity;
+        float m_opacity;
         
         /** enabled status */
-        bool enabled;
+        bool m_enabled;
         
         /** available mappable files */
-        std::vector<CaretMappableDataFile*> mapFiles;
+        std::vector<CaretMappableDataFile*> m_mapFiles;
         
-        /* selected mappable file */
-        CaretMappableDataFile* selectedMapFile;
+        /** selected mappable file */
+        CaretMappableDataFile* m_selectedMapFile;
         
-        /* selected data file map unique id */
-        AString selectedMapUniqueID;
+        /** selected data file map unique id */
+        AString m_selectedMapUniqueID;
         
-        /* Display palette in graphics window */
-        bool paletteDisplayedFlag;
+        /** Display palette in graphics window */
+        bool m_paletteDisplayedFlag;
+        
+        /** helps with scene save/restore */
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __OVERLAY_DECLARE__
