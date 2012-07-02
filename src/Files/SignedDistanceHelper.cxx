@@ -575,7 +575,7 @@ SignedDistanceHelper::SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase
     }
 }
 
-SignedDistanceHelperBase::SignedDistanceHelperBase(SurfaceFile* mySurf)
+SignedDistanceHelperBase::SignedDistanceHelperBase(const SurfaceFile* mySurf)
 {
     m_surface = mySurf;
     m_topoHelp = mySurf->getTopologyHelper();

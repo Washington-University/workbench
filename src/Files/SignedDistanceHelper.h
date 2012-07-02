@@ -55,12 +55,12 @@ namespace caret {
         static const int NUM_TRIS_TO_TEST = 50;//test for whether to split leaf at this number
         static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
         Oct<TriVector>* m_indexRoot;
-        SurfaceFile* m_surface;
+        const SurfaceFile* m_surface;
         CaretPointer<TopologyHelper> m_topoHelp;
         SignedDistanceHelperBase();
         void addTriangle(Oct<TriVector>* thisOct, int32_t triangle, float minCoord[3], float maxCoord[3]);
     public:
-        SignedDistanceHelperBase(SurfaceFile* mySurf);
+        SignedDistanceHelperBase(const SurfaceFile* mySurf);
         friend class SignedDistanceHelper;
     };
     
