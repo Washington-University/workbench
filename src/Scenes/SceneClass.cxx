@@ -377,8 +377,9 @@ SceneClass::getBooleanValue(const AString& name,
  *    Number of elements in the array.
  * @param defaultValue
  *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
  */
-void 
+int32_t 
 SceneClass::getBooleanArrayValue(const AString& name,
                                  bool values[],
                                  const int32_t arrayNumberOfElements,
@@ -390,12 +391,14 @@ SceneClass::getBooleanArrayValue(const AString& name,
         primitiveArray->booleanValues(values, 
                                       arrayNumberOfElements, 
                                       defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
     }
-    else {
-        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
-            values[i] = defaultValue;
-        }
+
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
     }
+    
+    return 0;
 }
 
 /**
@@ -442,8 +445,9 @@ SceneClass::getEnumeratedTypeValue(const AString& name,
  *    Number of elements in the array.
  * @param defaultValue
  *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
  */
-void 
+int32_t 
 SceneClass::getEnumeratedTypeArrayValue(const AString& name,
                                         AString values[],
                                         const int32_t arrayNumberOfElements,
@@ -459,7 +463,7 @@ SceneClass::getEnumeratedTypeArrayValue(const AString& name,
                 enumArray->stringValues(values,
                                         arrayNumberOfElements,
                                         defaultValue);
-                return;
+                return enumArray->getNumberOfArrayElements();
             }
         }
     }
@@ -468,6 +472,8 @@ SceneClass::getEnumeratedTypeArrayValue(const AString& name,
         values[i] = defaultValue;
     }
     logMissing("Scene Enumerated Array Type not found: " + name);
+
+    return 0;
 }
 
 /**
@@ -505,8 +511,9 @@ SceneClass::getFloatValue(const AString& name,
  *    Number of elements in the array.
  * @param defaultValue
  *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
  */
-void 
+int32_t 
 SceneClass::getFloatArrayValue(const AString& name,
                                float values[],
                                const int32_t arrayNumberOfElements,
@@ -518,12 +525,13 @@ SceneClass::getFloatArrayValue(const AString& name,
         primitiveArray->floatValues(values, 
                                       arrayNumberOfElements, 
                                       defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
     }
-    else {
-        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
-            values[i] = defaultValue;
-        }
+
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
     }
+    return 0;
 }
 
 /**
@@ -561,8 +569,9 @@ SceneClass::getIntegerValue(const AString& name,
  *    Number of elements in the array.
  * @param defaultValue
  *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
  */
-void 
+int32_t 
 SceneClass::getIntegerArrayValue(const AString& name,
                                int32_t values[],
                                const int32_t arrayNumberOfElements,
@@ -574,12 +583,13 @@ SceneClass::getIntegerArrayValue(const AString& name,
         primitiveArray->integerValues(values, 
                                     arrayNumberOfElements, 
                                     defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
     }
-    else {
-        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
-            values[i] = defaultValue;
-        }
+
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
     }
+    return 0;
 }
 
 /**
@@ -617,8 +627,9 @@ SceneClass::getStringValue(const AString& name,
  *    Number of elements in the array.
  * @param defaultValue
  *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
  */
-void 
+int32_t 
 SceneClass::getStringArrayValue(const AString& name,
                                 AString values[],
                                 const int32_t arrayNumberOfElements,
@@ -630,12 +641,13 @@ SceneClass::getStringArrayValue(const AString& name,
         primitiveArray->stringValues(values, 
                                       arrayNumberOfElements, 
                                       defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
     }
-    else {
-        for (int32_t i = 0; i < arrayNumberOfElements; i++) {
-            values[i] = defaultValue;
-        }
+
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
     }
+    return 0;
 }
 
 /**

@@ -495,7 +495,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     const SceneClassArray* brainArray = sceneClass->getClassArray("m_brains");
     const int32_t numBrainClasses = brainArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numBrainClasses; i++) {
-        const SceneClass* brainClass = brainArray->getValue(i);
+        const SceneClass* brainClass = brainArray->getClassAtIndex(i);
         if (i < static_cast<int32_t>(m_brains.size())) {
             m_brains[i]->restoreFromScene(sceneAttributes, 
                                           brainClass);
@@ -524,7 +524,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
     const int32_t numBrowserTabClasses = browserTabArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numBrowserTabClasses; i++) {
-        const SceneClass* browserTabClass = browserTabArray->getValue(i);
+        const SceneClass* browserTabClass = browserTabArray->getClassAtIndex(i);
         
         BrowserTabContent* tab = new BrowserTabContent(i);
         tab->update(m_modelDisplayControllers);

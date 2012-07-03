@@ -994,7 +994,7 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (scalingClassArray != NULL) {
         const int32_t numSavedScaling = scalingClassArray->getNumberOfArrayElements();
         for (int32_t ism = 0; ism < numSavedScaling; ism++) {
-            const SceneClass* scalingClass = scalingClassArray->getValue(ism);
+            const SceneClass* scalingClass = scalingClassArray->getClassAtIndex(ism);
             const int32_t tabIndex = scalingClass->getIntegerValue("tabIndex", -1);
             if (tabIndex >= 0) {
                 m_scaling[tabIndex] = scalingClass->getFloatValue("scaling", 1.0);
@@ -1009,14 +1009,16 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (translationClassArray != NULL) {
         const int32_t numSavedTanslations = translationClassArray->getNumberOfArrayElements();
         for (int32_t ism = 0; ism < numSavedTanslations; ism++) {
-            const SceneClass* translationClass = translationClassArray->getValue(ism);
+            const SceneClass* translationClass = translationClassArray->getClassAtIndex(ism);
             const int32_t tabIndex = translationClass->getIntegerValue("tabIndex", -1);
             const int32_t viewingTransformIndex = translationClass->getIntegerValue("viewingTransformIndex", -1);
             if ((tabIndex >= 0)
                 && (viewingTransformIndex >= 0)) {
-                translationClass->getFloatArrayValue("translation", 
+                if (translationClass->getFloatArrayValue("translation", 
                                                      m_translation[tabIndex][viewingTransformIndex], 
-                                                     3);
+                                                         3) != 3) {
+                    setTranslation(tabIndex, (ViewingTransformIndex)viewingTransformIndex, 0.0, 0.0, 0.0);
+                }
             }
         }
     }
@@ -1028,16 +1030,20 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (rotationMatrixClassArray != NULL) {
         const int32_t numSavedMatrices = rotationMatrixClassArray->getNumberOfArrayElements();
         for (int32_t ism = 0; ism < numSavedMatrices; ism++) {
-            const SceneClass* rotationMatrixClass = rotationMatrixClassArray->getValue(ism);
+            const SceneClass* rotationMatrixClass = rotationMatrixClassArray->getClassAtIndex(ism);
             const int32_t tabIndex = rotationMatrixClass->getIntegerValue("tabIndex", -1);
             const int32_t viewingTransformIndex = rotationMatrixClass->getIntegerValue("viewingTransformIndex", -1);
             if ((tabIndex >= 0)
                 && (viewingTransformIndex >= 0)) {
                 float matrix[4][4];
-                rotationMatrixClass->getFloatArrayValue("matrix", 
+                if (rotationMatrixClass->getFloatArrayValue("matrix", 
                                                         (float*)matrix, 
-                                                        16);
-                m_viewingRotationMatrix[tabIndex][viewingTransformIndex].setMatrix(matrix);
+                                                            16) == 16) {
+                    m_viewingRotationMatrix[tabIndex][viewingTransformIndex].setMatrix(matrix);
+                }
+                else {
+                    m_viewingRotationMatrix[tabIndex][viewingTransformIndex].identity();
+                }
             }
         }
     }
@@ -1049,7 +1055,7 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (overlaySetClassArray != NULL) {
         const int32_t numSavedOverlaySets = overlaySetClassArray->getNumberOfArrayElements();
         for (int32_t i = 0; i < numSavedOverlaySets; i++) {
-            const SceneClass* overlaySceneClass = overlaySetClassArray->getValue(i);
+            const SceneClass* overlaySceneClass = overlaySetClassArray->getClassAtIndex(i);
             const int32_t tabIndex = overlaySceneClass->getIntegerValue("tabIndex",
                                                                         -1);
             const SceneClass* overlayClass = overlaySceneClass->getClass("overlaySet");

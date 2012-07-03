@@ -2410,7 +2410,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
              iter++) {
             Model* mdc = *iter;
             mdc->restoreFromScene(sceneAttributes, 
-                                  modelsClassArray->getValue(i));
+                                  modelsClassArray->getClassAtIndex(i));
         }
     }
     

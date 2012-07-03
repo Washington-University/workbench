@@ -377,7 +377,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                             parentSceneClass->addClass(sceneClass);
                         }
                         else if (parentSceneClassArray != NULL) {
-                            parentSceneClassArray->setValue(m_objectArrayBeingReadElementIndexStack.top(), 
+                            parentSceneClassArray->setClassAtIndex(m_objectArrayBeingReadElementIndexStack.top(), 
                                                             sceneClass);
                         }
                     }

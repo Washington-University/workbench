@@ -56,10 +56,10 @@ namespace caret {
         
         virtual ~SceneClassArray();
         
-        void setValue(const int32_t arrayIndex,
+        void setClassAtIndex(const int32_t arrayIndex,
                       SceneClass* sceneClass);
         
-        const SceneClass* getValue(const int32_t arrayIndex) const;
+        const SceneClass* getClassAtIndex(const int32_t arrayIndex) const;
         
     private:
         SceneClassArray(const SceneClassArray&);

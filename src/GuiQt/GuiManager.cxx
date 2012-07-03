@@ -1150,7 +1150,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (browserWindowArray != NULL) {
         const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
         for (int32_t i = 0; i < numBrowserClasses; i++) {
-            const SceneClass* browserClass = browserWindowArray->getValue(i);
+            const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
             BrainBrowserWindow* bbw = NULL;
             if (availableWindows.empty() == false) {
                 bbw = availableWindows.front();

@@ -102,7 +102,7 @@ namespace caret {
         bool getBooleanValue(const AString& name,
                              const bool defaultValue = false) const;
         
-        void getBooleanArrayValue(const AString& name,
+        int32_t getBooleanArrayValue(const AString& name,
                                   bool values[],
                                   const int32_t arrayNumberOfElements,
                                   const bool defaultValue = false) const;
@@ -118,7 +118,7 @@ namespace caret {
         AString getEnumeratedTypeValue(const AString& name,
                                        const AString& defaultValue = "") const;
         
-        void getEnumeratedTypeArrayValue(const AString& name,
+        int32_t getEnumeratedTypeArrayValue(const AString& name,
                                 AString values[],
                                 const int32_t arrayNumberOfElements,
                                 const AString& defaultValue) const;
@@ -126,7 +126,7 @@ namespace caret {
         float getFloatValue(const AString& name,
                              const float defaultValue = 0.0) const;
         
-        void getFloatArrayValue(const AString& name,
+        int32_t getFloatArrayValue(const AString& name,
                                  float values[],
                                  const int32_t arrayNumberOfElements,
                                  const float defaultValue = 0.0) const;
@@ -134,7 +134,7 @@ namespace caret {
         int32_t getIntegerValue(const AString& name,
                              const int32_t defaultValue = 0) const;
         
-        void getIntegerArrayValue(const AString& name,
+        int32_t getIntegerArrayValue(const AString& name,
                                    int32_t values[],
                                    const int32_t arrayNumberOfElements,
                                    const int32_t defaultValue = 0.0) const;
@@ -142,10 +142,10 @@ namespace caret {
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
         
-        void getStringArrayValue(const AString& name,
+        int32_t getStringArrayValue(const AString& name,
                                      AString values[],
                                      const int32_t arrayNumberOfElements,
-                                     const AString& defaultValue) const;
+                                     const AString& defaultValue = "") const;
         
         const ScenePrimitive* getPrimitive(const AString& name) const;
         

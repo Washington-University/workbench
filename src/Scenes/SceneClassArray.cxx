@@ -129,7 +129,7 @@ SceneClassArray::~SceneClassArray()
  *     New value for array element.
  */
 void 
-SceneClassArray::setValue(const int32_t arrayIndex,
+SceneClassArray::setClassAtIndex(const int32_t arrayIndex,
               SceneClass* sceneClass)
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
@@ -158,7 +158,7 @@ SceneClassArray::setValue(const int32_t arrayIndex,
  *     Class at the given array index.
  */
 const SceneClass* 
-SceneClassArray::getValue(const int32_t arrayIndex) const
+SceneClassArray::getClassAtIndex(const int32_t arrayIndex) const
 {
     CaretAssertVectorIndex(m_values, arrayIndex);
     return m_values[arrayIndex];
