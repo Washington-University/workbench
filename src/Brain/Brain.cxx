@@ -335,6 +335,15 @@ Brain::resetBrain()
 }
 
 /**
+ * Reset the brain structure but keep scene files.
+ */
+void 
+Brain::resetBrainKeepSceneFiles()
+{
+    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES);
+}
+
+/**
  * Copy all display properties from the source tab to the target tab.
  * @param sourceTabIndex
  *    Index of source tab.
@@ -1714,7 +1723,7 @@ Brain::loadSpecFile(SpecFile* specFile,
     
     CaretAssert(specFile);
     
-    this->resetBrain(keepSceneFiles);
+    this->resetBrainKeepSceneFiles();
     
     if (this->specFile != NULL) {
         delete this->specFile;

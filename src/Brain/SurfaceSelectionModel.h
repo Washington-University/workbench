@@ -28,6 +28,7 @@
 
 #include "CaretObject.h"
 
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "SurfaceTypeEnum.h"
 
@@ -36,7 +37,7 @@ namespace caret {
     class BrainStructure;
     class Surface;
     
-    class SurfaceSelectionModel : public CaretObject {
+    class SurfaceSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
         SurfaceSelectionModel();
@@ -57,6 +58,11 @@ namespace caret {
         
         std::vector<Surface*> getAvailableSurfaces() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         enum Mode {
             MODE_BRAIN_STRUCTURE,
@@ -70,17 +76,17 @@ namespace caret {
         
         void updateSelection() const;
         
-        mutable Surface* selectedSurface;
+        mutable Surface* m_selectedSurface;
         
-        BrainStructure* brainStructure;
+        BrainStructure* m_brainStructure;
         
-        Mode mode;
+        Mode m_mode;
         
         /** If empty, allow any structure, otherwise restrict to these structures */
-        std::vector<StructureEnum::Enum> allowableStructures;
+        std::vector<StructureEnum::Enum> m_allowableStructures;
         
         /** If empty, allow any surface type, otherwise restrict to these types */
-        std::vector<SurfaceTypeEnum::Enum> allowableSurfaceTypes;
+        std::vector<SurfaceTypeEnum::Enum> m_allowableSurfaceTypes;
     };
     
 #ifdef __SURFACE_SELECTION_MODEL_DECLARE__

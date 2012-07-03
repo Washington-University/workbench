@@ -152,6 +152,8 @@ namespace caret {
         
         void resetBrain();
         
+        void resetBrainKeepSceneFiles();
+        
         void receiveEvent(Event* event);
         
         ConnectivityLoaderManager* getConnectivityLoaderManager();

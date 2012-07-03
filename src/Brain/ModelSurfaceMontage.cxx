@@ -29,6 +29,7 @@
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "ModelSurfaceMontage.h"
@@ -37,6 +38,7 @@
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "SurfaceSelectionModel.h"
 
@@ -396,11 +398,108 @@ void
 ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
-    //    m_sceneAssistant->saveMembers(sceneAttributes, 
-    //                                  sceneClass);
-    //    
-    //    sceneClass->addString("m_selectedMapFile",
-    //                          m_selectedMapFile->getFileNameNoPath());
+    /*
+     * Get all browser tabs and only save transformations for tabs
+     * that are valid.
+     */ 
+    EventBrowserTabGetAll getAllTabs;
+    EventManager::get()->sendEvent(getAllTabs.getPointer());
+    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
+    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    
+    /*
+     * Left surface
+     */
+    std::vector<SceneClass*> leftSurfaceSceneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* leftSurfaceSceneClass = new SceneClass(("m_leftSurfaceSelectionModel["
+                                                            + AString::number(tabIndex)
+                                                            + "]"),
+                                                           "selectedSurface",
+                                                           1);
+        leftSurfaceSceneClass->addInteger("tabIndex", tabIndex);
+        leftSurfaceSceneClass->addChild(m_leftSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
+                                                                                           "m_leftSurfaceSelectionModel"));
+        leftSurfaceSceneVector.push_back(leftSurfaceSceneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("leftSurface",
+                                             leftSurfaceSceneVector));
+    /*
+     * Left second surface
+     */
+    std::vector<SceneClass*> leftSecondSurfaceSceneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* leftSecondSurfaceSceneClass = new SceneClass(("m_leftSecondSurfaceSelectionModel["
+                                                                  + AString::number(tabIndex)
+                                                                  + "]"),
+                                                                 "selectedSurface",
+                                                                 1);
+        leftSecondSurfaceSceneClass->addInteger("tabIndex", tabIndex);
+        leftSecondSurfaceSceneClass->addChild(m_leftSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                 "m_leftSecondSurfaceSelectionModel"));
+        leftSecondSurfaceSceneVector.push_back(leftSecondSurfaceSceneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("leftSecondSurface",
+                                             leftSecondSurfaceSceneVector));
+
+    /*
+     * Right surface
+     */
+    std::vector<SceneClass*> rightSurfaceSceneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* rightSurfaceSceneClass = new SceneClass(("m_rightSurfaceSelectionModel["
+                                                             + AString::number(tabIndex)
+                                                             + "]"),
+                                                            "selectedSurface",
+                                                            1);
+        rightSurfaceSceneClass->addInteger("tabIndex", tabIndex);
+        rightSurfaceSceneClass->addChild(m_rightSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
+                                                                                            "m_rightSurfaceSelectionModel"));
+        rightSurfaceSceneVector.push_back(rightSurfaceSceneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("rightSurface",
+                                             rightSurfaceSceneVector));
+
+    /*
+     * Right second surface
+     */
+    std::vector<SceneClass*> rightSecondSurfaceSceneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* rightSecondSurfaceSceneClass = new SceneClass(("m_rightSecondSurfaceSelectionModel["
+                                                                   + AString::number(tabIndex)
+                                                                   + "]"),
+                                                                  "selectedSurface",
+                                                                  1);
+        rightSecondSurfaceSceneClass->addInteger("tabIndex", tabIndex);
+        rightSecondSurfaceSceneClass->addChild(m_rightSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                  "m_rightSecondSurfaceSelectionModel"));
+        rightSecondSurfaceSceneVector.push_back(rightSecondSurfaceSceneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("rightSecondSurface",
+                                             rightSecondSurfaceSceneVector));
+    
+    /*
+     * Dual configuration selection
+     */
+    std::vector<SceneClass*> dualConfigurationSceneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* dualConfigurationSceneClass = new SceneClass(("m_dualConfigurationEnabled["
+                                                                   + AString::number(tabIndex)
+                                                                   + "]"),
+                                                                  "DualConfiguration",
+                                                                  1);
+        dualConfigurationSceneClass->addInteger("tabIndex", tabIndex);
+        dualConfigurationSceneClass->addBoolean("m_dualConfigurationEnabled", 
+                                                m_dualConfigurationEnabled[tabIndex]);
+        dualConfigurationSceneVector.push_back(dualConfigurationSceneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("dualConfiguration",
+                                             dualConfigurationSceneVector));
 }
 
 /**
@@ -418,26 +517,84 @@ void
 ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    /*
+     * Restore left surface
+     */
+    const SceneClassArray* leftSurfaceArray = sceneClass->getClassArray("leftSurface");
+    if (leftSurfaceArray != NULL) {
+        const int numLeftSurfaces = leftSurfaceArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numLeftSurfaces; i++) {
+            const SceneClass* surfaceClass = leftSurfaceArray->getClassAtIndex(i);
+            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
+            if (tabIndex >= 0) {
+                m_leftSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
+                                                                        surfaceClass->getClass("m_leftSurfaceSelectionModel"));
+            }
+        }
+    }
     
-    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
-    //                                     sceneClass);
-    //    
-    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
-    //                                                                   "");
-    //    if (selectedMapFileName.isEmpty() == false) {
-    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-    //             iter != m_mapFiles.end();
-    //             iter++) {
-    //            const AString fileName = (*iter)->getFileNameNoPath();
-    //            if (fileName == selectedMapFileName) {
-    //                CaretMappableDataFile* mapFile = *iter;
-    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-    //                if (mapIndex >= 0) {
-    //                    m_selectedMapFile = mapFile;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+    /*
+     * Restore right second surface
+     */
+    const SceneClassArray* leftSecondSurfaceArray = sceneClass->getClassArray("leftSecondSurface");
+    if (leftSecondSurfaceArray != NULL) {
+        const int numLeftSecondSurfaces = leftSecondSurfaceArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numLeftSecondSurfaces; i++) {
+            const SceneClass* surfaceClass = leftSecondSurfaceArray->getClassAtIndex(i);
+            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
+            if (tabIndex >= 0) {
+                m_leftSecondSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
+                                                                              surfaceClass->getClass("m_leftSecondSurfaceSelectionModel"));
+            }
+        }
+    }
+    
+    /*
+     * Restore right surface
+     */
+    const SceneClassArray* rightSurfaceArray = sceneClass->getClassArray("rightSurface");
+    if (rightSurfaceArray != NULL) {
+        const int numRightSurfaces = rightSurfaceArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numRightSurfaces; i++) {
+            const SceneClass* surfaceClass = rightSurfaceArray->getClassAtIndex(i);
+            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
+            if (tabIndex >= 0) {
+                m_rightSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
+                                                                         surfaceClass->getClass("m_rightSurfaceSelectionModel"));
+            }
+        }
+    }
+
+    /*
+     * Restore right second surface
+     */
+    const SceneClassArray* rightSecondSurfaceArray = sceneClass->getClassArray("rightSecondSurface");
+    if (rightSecondSurfaceArray != NULL) {
+        const int numRightSecondSurfaces = rightSecondSurfaceArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numRightSecondSurfaces; i++) {
+            const SceneClass* surfaceClass = rightSecondSurfaceArray->getClassAtIndex(i);
+            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
+            if (tabIndex >= 0) {
+                m_rightSecondSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
+                                                                               surfaceClass->getClass("m_rightSecondSurfaceSelectionModel"));
+            }
+        }
+    }
+    
+    /*
+     * Restore dual configuration selection
+     */
+    const SceneClassArray* dualConfigurationArray = sceneClass->getClassArray("dualConfiguration");
+    if (dualConfigurationArray != NULL) {
+        const int numDualConfiguration = dualConfigurationArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numDualConfiguration; i++) {
+            const SceneClass* dualConfigClass = dualConfigurationArray->getClassAtIndex(i);
+            const int tabIndex = dualConfigClass->getIntegerValue("tabIndex");
+            if (tabIndex >= 0) {
+                m_dualConfigurationEnabled[tabIndex] = dualConfigClass->getBooleanValue("m_dualConfigurationEnabled",
+                                                                                        false);
+            }
+        }
+    }
 }
 

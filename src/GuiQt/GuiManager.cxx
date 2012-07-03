@@ -1128,6 +1128,16 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     }    
         
     /*
+     * Close all tabs
+     */
+    Brain* brain = GuiManager::get()->getBrain();
+    brain->resetBrainKeepSceneFiles();
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
+    
+    /*
      * Restore session manager
      */
     SessionManager::get()->restoreFromScene(sceneAttributes, sceneClass->getClass("m_sessionManager"));

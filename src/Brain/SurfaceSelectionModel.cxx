@@ -32,6 +32,8 @@
 #include "BrainStructure.h"
 #include "EventManager.h"
 #include "EventSurfacesGet.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -52,7 +54,7 @@ using namespace caret;
 SurfaceSelectionModel::SurfaceSelectionModel()
 : CaretObject()
 {
-    this->mode = MODE_STRUCTURE;
+    m_mode = MODE_STRUCTURE;
 }
 
 /**
@@ -63,8 +65,8 @@ SurfaceSelectionModel::SurfaceSelectionModel()
 SurfaceSelectionModel::SurfaceSelectionModel(const StructureEnum::Enum structure)
 : CaretObject()
 {
-    this->allowableStructures.push_back(structure);
-    this->mode = MODE_STRUCTURE;
+    m_allowableStructures.push_back(structure);
+    m_mode = MODE_STRUCTURE;
 }
 
 /**
@@ -77,8 +79,8 @@ SurfaceSelectionModel::SurfaceSelectionModel(const StructureEnum::Enum structure
  */
 SurfaceSelectionModel::SurfaceSelectionModel(BrainStructure* brainStructure)
 {
-    this->brainStructure = brainStructure;
-    this->mode = MODE_BRAIN_STRUCTURE;
+    m_brainStructure = brainStructure;
+    m_mode = MODE_BRAIN_STRUCTURE;
 }
 
 /**
@@ -88,8 +90,8 @@ SurfaceSelectionModel::SurfaceSelectionModel(BrainStructure* brainStructure)
  */
 SurfaceSelectionModel::SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType)
 {
-    this->allowableSurfaceTypes.push_back(surfaceType);
-    this->mode = MODE_SURFACE_TYPE;
+    m_allowableSurfaceTypes.push_back(surfaceType);
+    m_mode = MODE_SURFACE_TYPE;
 }
 
 /**
@@ -106,8 +108,8 @@ SurfaceSelectionModel::~SurfaceSelectionModel()
 Surface* 
 SurfaceSelectionModel::getSurface()
 {
-    this->updateSelection();
-    return this->selectedSurface;
+    updateSelection();
+    return m_selectedSurface;
 }
 
 /**
@@ -116,8 +118,8 @@ SurfaceSelectionModel::getSurface()
 const Surface* 
 SurfaceSelectionModel::getSurface() const
 {
-    this->updateSelection();
-    return this->selectedSurface;
+    updateSelection();
+    return m_selectedSurface;
 }
 
 /**
@@ -128,7 +130,7 @@ SurfaceSelectionModel::getSurface() const
 void 
 SurfaceSelectionModel::setSurface(Surface* surface)
 {
-    this->selectedSurface = surface;
+    m_selectedSurface = surface;
 }
 
 /**
@@ -140,20 +142,20 @@ SurfaceSelectionModel::getAvailableSurfaces() const
 {
     std::vector<Surface*> surfaces;
     
-    switch (mode) {
+    switch (m_mode) {
         case MODE_BRAIN_STRUCTURE:
         {
-            const int32_t numSurfaces = this->brainStructure->getNumberOfSurfaces();
+            const int32_t numSurfaces = m_brainStructure->getNumberOfSurfaces();
             for (int32_t i = 0; i < numSurfaces; i++) {
-                surfaces.push_back(this->brainStructure->getSurface(i));
+                surfaces.push_back(m_brainStructure->getSurface(i));
             }
         }
             break;
         case MODE_STRUCTURE:
         {
             EventSurfacesGet getSurfacesEvent;
-            for (int32_t i = 0; i < static_cast<int32_t>(this->allowableStructures.size()); i++) {
-                getSurfacesEvent.addStructureConstraint(this->allowableStructures[i]);
+            for (int32_t i = 0; i < static_cast<int32_t>(m_allowableStructures.size()); i++) {
+                getSurfacesEvent.addStructureConstraint(m_allowableStructures[i]);
             }
             EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
             surfaces = getSurfacesEvent.getSurfaces();
@@ -169,9 +171,9 @@ SurfaceSelectionModel::getAvailableSurfaces() const
                  iter++) {
                 Surface* s = *iter;
                 const SurfaceTypeEnum::Enum surfaceType = s->getSurfaceType();
-                if (std::find(this->allowableSurfaceTypes.begin(),
-                              this->allowableSurfaceTypes.end(),
-                              surfaceType) != this->allowableSurfaceTypes.end()) {
+                if (std::find(m_allowableSurfaceTypes.begin(),
+                              m_allowableSurfaceTypes.end(),
+                              surfaceType) != m_allowableSurfaceTypes.end()) {
                     surfaces.push_back(s);
                 }
             }
@@ -190,21 +192,21 @@ SurfaceSelectionModel::getAvailableSurfaces() const
 void 
 SurfaceSelectionModel::updateSelection() const
 {
-    std::vector<Surface*> surfaces = this->getAvailableSurfaces();
+    std::vector<Surface*> surfaces = getAvailableSurfaces();
     
-    if (this->selectedSurface != NULL) {
+    if (m_selectedSurface != NULL) {
         if (std::find(surfaces.begin(),
                       surfaces.end(),
-                      this->selectedSurface) == surfaces.end()) {
-            this->selectedSurface = NULL;
+                      m_selectedSurface) == surfaces.end()) {
+            m_selectedSurface = NULL;
         }
     }
     
-    if (this->selectedSurface == NULL) {
+    if (m_selectedSurface == NULL) {
         if (surfaces.empty() == false) {
-            switch (mode) {
+            switch (m_mode) {
                 case MODE_BRAIN_STRUCTURE:
-                    this->selectedSurface = this->brainStructure->getVolumeInteractionSurface();
+                    m_selectedSurface = m_brainStructure->getVolumeInteractionSurface();
                     break;
                 case MODE_STRUCTURE:
                     break;
@@ -212,9 +214,80 @@ SurfaceSelectionModel::updateSelection() const
                     break;
             }
             
-            if (this->selectedSurface == NULL) {
-                this->selectedSurface = surfaces[0];
+            if (m_selectedSurface == NULL) {
+                m_selectedSurface = surfaces[0];
             }
         }
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+SurfaceSelectionModel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                  const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "SurfaceSelectionModel",
+                                            1);
+    
+    if (m_selectedSurface != NULL) {
+        sceneClass->addString("m_selectedSurface",
+                              m_selectedSurface->getFileNameNoPath());
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+SurfaceSelectionModel::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                       const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const AString& surfaceFileName = sceneClass->getStringValue("m_selectedSurface",
+                                                                "");
+    if (surfaceFileName.isEmpty() == false) {
+        std::vector<Surface*> surfaces = getAvailableSurfaces();
+        
+        for (std::vector<Surface*>::iterator iter = surfaces.begin();
+             iter != surfaces.end();
+             iter++) {
+            Surface* s = *iter;
+            if (s->getFileNameNoPath() == surfaceFileName) {
+                setSurface(s);
+                break;
+            }
+        }
+        
+    }
+}
+
+

@@ -303,14 +303,10 @@ ModelSurface::initializeOverlays()
  *    SceneClass to which model specific information is added.
  */
 void 
-ModelSurface::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
-                                                      SceneClass* sceneClass)
+ModelSurface::saveModelSpecificInformationToScene(const SceneAttributes* /*sceneAttributes*/,
+                                                      SceneClass* /*sceneClass*/)
 {
-    //    m_sceneAssistant->saveMembers(sceneAttributes, 
-    //                                  sceneClass);
-    //    
-    //    sceneClass->addString("m_selectedMapFile",
-    //                          m_selectedMapFile->getFileNameNoPath());
+    /* nothing to add to scene */
 }
 
 /**
@@ -325,29 +321,9 @@ ModelSurface::saveModelSpecificInformationToScene(const SceneAttributes* sceneAt
  *     sceneClass from which model specific information is obtained.
  */
 void 
-ModelSurface::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
-                                                           const SceneClass* sceneClass)
+ModelSurface::restoreModelSpecificInformationFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                                           const SceneClass* /*sceneClass*/)
 {
-    
-    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
-    //                                     sceneClass);
-    //    
-    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
-    //                                                                   "");
-    //    if (selectedMapFileName.isEmpty() == false) {
-    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-    //             iter != m_mapFiles.end();
-    //             iter++) {
-    //            const AString fileName = (*iter)->getFileNameNoPath();
-    //            if (fileName == selectedMapFileName) {
-    //                CaretMappableDataFile* mapFile = *iter;
-    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-    //                if (mapIndex >= 0) {
-    //                    m_selectedMapFile = mapFile;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+    /* nothing to restore from scene */
 }
 
