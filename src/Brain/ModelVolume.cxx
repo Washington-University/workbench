@@ -26,12 +26,14 @@
 #include "BrowserTabContent.h"
 #include "DisplayPropertiesInformation.h"
 #include "EventBrowserTabGet.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "ModelVolume.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "VolumeFile.h"
 
@@ -531,6 +533,37 @@ void
 ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
+    /*
+     * Get all browser tabs and only save transformations for tabs
+     * that are valid.
+     */ 
+    EventBrowserTabGetAll getAllTabs;
+    EventManager::get()->sendEvent(getAllTabs.getPointer());
+    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
+    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    
+    /*
+     * View plane
+     */
+    std::vector<SceneClass*> sliceViewPlaneVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        
+        SceneClass* slicePlaneClass = new SceneClass(("m_sliceViewPlane["
+                                                      + AString::number(tabIndex)
+                                                      + "]"),
+                                                      "SliceViewPlane",
+                                                     1);
+        slicePlaneClass->addInteger("tabIndex", tabIndex);
+        slicePlaneClass->addEnumeratedType("m_sliceViewPlane", 
+                                           VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane[tabIndex]));
+        
+        sliceViewPlaneVector.push_back(slicePlaneClass);
+    }
+    sceneClass->addChild(new SceneClassArray("sliceViewPlane",
+                                             sliceViewPlaneVector));
+    
+    
     //    m_sceneAssistant->saveMembers(sceneAttributes, 
     //                                  sceneClass);
     //    

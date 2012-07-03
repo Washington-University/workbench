@@ -236,6 +236,23 @@ SceneClass::addEnumeratedTypeArray(const AString& name,
                                    arrayNumberOfElements));
 }
 
+/**
+ * Add a child enumerated type array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The vector containing the values.
+ */
+void 
+SceneClass::addEnumeratedTypeVector(const AString& name,
+                                    const std::vector<AString>& values)
+{
+    addChild(new SceneEnumeratedTypeArray(name,
+                                          values));
+}
+
+
 
 /**
  * Add a child float value to the class.

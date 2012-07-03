@@ -76,6 +76,9 @@ namespace caret {
                                const AString value[],
                                     const int32_t arrayNumberOfElements);
         
+        void addEnumeratedTypeVector(const AString& name,
+                                     const std::vector<AString>& value);
+        
         void addFloat(const AString& name,
                       const float value);
         
