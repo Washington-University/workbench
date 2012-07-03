@@ -129,7 +129,7 @@ namespace caret {
         bool m_enabled;
         
         /** available mappable files */
-        std::vector<CaretMappableDataFile*> m_mapFiles;
+        //std::vector<CaretMappableDataFile*> m_mapFiles;
         
         /** selected mappable file */
         CaretMappableDataFile* m_selectedMapFile;

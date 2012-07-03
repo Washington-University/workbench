@@ -159,20 +159,20 @@ namespace caret {
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const = 0;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName) = 0;
+                                        const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass) = 0;
+                                      const SceneClass* sceneClass);
         
     private:
         void resetViewPrivate(const int windowTabNumber);
         
     protected:
-        void saveTransformsAndOverlaysToScene(const SceneAttributes* sceneAttributes,
-                                   SceneClass* sceneClass);
+        virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                 SceneClass* sceneClass) = 0;
         
-        void restoreTransformsAndOverlaysFromScene(const SceneAttributes* sceneAttributes,
-                                        const SceneClass* sceneClass);
+        virtual void restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                      const SceneClass* sceneClass) = 0;
         
         /** Brain which contains the controller */
         Brain* m_brain;
@@ -180,9 +180,7 @@ namespace caret {
         float m_defaultModelScaling;
         
         /** 
-         * The viewing rotation matrix. In most cases, the second dimension is zero.
-         * The second dimension equal to one is used only for a right surface that
-         * is lateral/medial yoked.
+         * Rotation matrix.
          */
         Matrix4x4 m_viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT];
         
@@ -193,7 +191,7 @@ namespace caret {
         float m_scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
-        ModelTypeEnum::Enum m_controllerType;
+        ModelTypeEnum::Enum m_modelType;
         
         YokingAllowedType m_allowsYokingStatus;
         

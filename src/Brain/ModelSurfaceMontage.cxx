@@ -382,40 +382,29 @@ ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
 }
 
 /**
- * Create a scene for an instance of a class.
+ * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
  *    (full, generic, etc) and the attributes should be checked when
  *    saving the scene.
  *
- * @param instanceName
- *    Name of the class' instance.
- *
- * @return Pointer to SceneClass object representing the state of 
- *    this object.  Under some circumstances a NULL pointer may be
- *    returned.  Caller will take ownership of returned object.
+ * @param sceneClass
+ *    SceneClass to which model specific information is added.
  */
-SceneClass* 
-ModelSurfaceMontage::saveToScene(const SceneAttributes* sceneAttributes,
-                          const AString& instanceName)
+void 
+ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                      SceneClass* sceneClass)
 {
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ModelSurfaceMontage",
-                                            1);
-    saveTransformsAndOverlaysToScene(sceneAttributes,
-                                     sceneClass);
     //    m_sceneAssistant->saveMembers(sceneAttributes, 
     //                                  sceneClass);
     //    
     //    sceneClass->addString("m_selectedMapFile",
     //                          m_selectedMapFile->getFileNameNoPath());
-    
-    return sceneClass;
 }
 
 /**
- * Restore the state of an instance of a class.
+ * Restore information specific to the type of model from the scene.
  * 
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -423,19 +412,13 @@ ModelSurfaceMontage::saveToScene(const SceneAttributes* sceneAttributes,
  *    restoring the scene.
  *
  * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.  May be NULL for some types of scenes.
+ *     sceneClass from which model specific information is obtained.
  */
 void 
-ModelSurfaceMontage::restoreFromScene(const SceneAttributes* sceneAttributes,
-                               const SceneClass* sceneClass)
+ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                           const SceneClass* sceneClass)
 {
-    if (sceneClass == NULL) {
-        return;
-    }
     
-    restoreTransformsAndOverlaysFromScene(sceneAttributes, 
-                                          sceneClass);
     //    m_sceneAssistant->restoreMembers(sceneAttributes, 
     //                                     sceneClass);
     //    
@@ -457,3 +440,4 @@ ModelSurfaceMontage::restoreFromScene(const SceneAttributes* sceneAttributes,
     //        }
     //    }
 }
+

@@ -790,7 +790,7 @@ OverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
                                              (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
         for (int32_t i = 0; i < numOverlays; i++) {
             m_overlays[i]->restoreFromScene(sceneAttributes, 
-                                            sceneClass);
+                                            overlayClassArray->getValue(i));
         }
     }
 }

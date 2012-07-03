@@ -49,6 +49,8 @@ namespace caret {
         
         void addBrowserTab(BrowserTabContent* browserTab);
         
+        std::vector<int32_t> getBrowserTabIndices() const;
+        
     private:
         EventBrowserTabGetAll(const EventBrowserTabGetAll&);
         

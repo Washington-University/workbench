@@ -177,7 +177,6 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_sceneAssistant->add("m_opacity", &m_opacity, m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled, m_enabled);
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag, m_paletteDisplayedFlag);
-    m_sceneAssistant->add("m_selectedMapUniqueID", &m_selectedMapUniqueID, m_selectedMapUniqueID);
 }
 
 /**
@@ -284,7 +283,7 @@ Overlay::copyData(const Overlay* overlay)
     m_opacity = overlay->m_opacity;
     m_enabled = overlay->m_enabled;
     
-    m_mapFiles = overlay->m_mapFiles;
+//    m_mapFiles = overlay->m_mapFiles;
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedMapUniqueID = overlay->m_selectedMapUniqueID;
     m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
@@ -604,8 +603,24 @@ Overlay::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
-    sceneClass->addString("m_selectedMapFile",
-                          m_selectedMapFile->getFileNameNoPath());
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* selectedMapFile = NULL;
+    AString selectedMapUniqueID;
+    int32_t selectedMapIndex;
+    getSelectionData(mapFiles, 
+                     selectedMapFile, 
+                     selectedMapUniqueID, 
+                     selectedMapIndex);
+    
+    if ((selectedMapFile != NULL) 
+        && (selectedMapIndex >= 0)) {
+        sceneClass->addString("selectedMapFile",
+                              selectedMapFile->getFileNameNoPath());
+        sceneClass->addString("selectedMapUniqueID",
+                              selectedMapUniqueID);
+        sceneClass->addString("selectedMapName",
+                              selectedMapFile->getMapName(selectedMapIndex));
+    }
     
     return sceneClass;
 }
@@ -630,22 +645,74 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    /*
+     * Making a call to getSelectionData() to get the availble
+     * map files
+     */
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* unusedSelectedMapFile = NULL;
+    AString unusedSelectedMapUniqueID;
+    int32_t unusedSelectedMapIndex;
+    getSelectionData(mapFiles, 
+                     unusedSelectedMapFile, 
+                     unusedSelectedMapUniqueID, 
+                     unusedSelectedMapIndex);
+    
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
-    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
+    const AString selectedMapFileName = sceneClass->getStringValue("selectedMapFile",
                                                                    "");
+    const AString selectedMapUniqueID = sceneClass->getStringValue("selectedMapUniqueID",
+                                                                   "");
+    const AString selectedMapName = sceneClass->getStringValue("selectedMapName",
+                                                                   "");
+    
     if (selectedMapFileName.isEmpty() == false) {
-        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-             iter != m_mapFiles.end();
-             iter++) {
-            const AString fileName = (*iter)->getFileNameNoPath();
-            if (fileName == selectedMapFileName) {
+        bool found = false;
+        
+        /*
+         * First try to find map by unique ID
+         */
+        if (selectedMapUniqueID.isEmpty() == false) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                 iter != mapFiles.end();
+                 iter++) {
                 CaretMappableDataFile* mapFile = *iter;
-                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-                if (mapIndex >= 0) {
-                    m_selectedMapFile = mapFile;
-                    break;
+                const AString fileName = mapFile->getFileNameNoPath();
+                if (fileName == selectedMapFileName) {
+                    CaretMappableDataFile* mapFile = *iter;
+                    const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+                    if (mapIndex >= 0) {
+                        setSelectionData(mapFile, 
+                                         mapIndex);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (found == false) {
+            /*
+             * If not found by unique ID, try to find map by name
+             */
+            if (selectedMapName.isEmpty() == false) {
+                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                     iter != mapFiles.end();
+                     iter++) {
+                    CaretMappableDataFile* mapFile = *iter;
+                    const AString fileName = mapFile->getFileNameNoPath();
+                    if (fileName == selectedMapFileName) {
+                        CaretMappableDataFile* mapFile = *iter;
+                        const int32_t mapIndex = mapFile->getMapIndexFromName(selectedMapName);
+                        if (mapIndex >= 0) {
+                            setSelectionData(mapFile, 
+                                             mapIndex);
+                            found = true;
+                            break;
+                        }
+                    }
                 }
             }
         }

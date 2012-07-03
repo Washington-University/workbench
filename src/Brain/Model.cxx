@@ -27,28 +27,35 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventManager.h"
 #include "Matrix4x4.h"
+#include "ModelSurface.h"
 #include "OverlaySet.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneException.h"
+#include "Surface.h"
 #include "UserView.h"
 
 using namespace caret;
 
 /**
  * Constructor.
- * @param controllerType Type of this controller.
- * @param allowsYokingStatus  This controller can be yoked.
- * @param allowsRotationStatus This controller can be rotated.
+ * @param m_modelType Type of this model.
+ * @param allowsYokingStatus  This model can be yoked.
+ * @param allowsRotationStatus This model can be rotated.
  *
  */
-Model::Model(const ModelTypeEnum::Enum controllerType,
-                                               const YokingAllowedType allowsYokingStatus,
-                                               const RotationAllowedType allowsRotationStatus,
-                                               Brain* brain)
+Model::Model(const ModelTypeEnum::Enum modelType,
+             const YokingAllowedType allowsYokingStatus,
+             const RotationAllowedType allowsRotationStatus,
+             Brain* brain)
     : CaretObject()
 {
     m_brain = brain;
     initializeMembersModel();
-    m_controllerType = controllerType;
+    m_modelType = modelType;
     m_allowsYokingStatus = allowsYokingStatus;
     m_allowsRotationStatus   = allowsRotationStatus;
     
@@ -60,7 +67,7 @@ Model::Model(const ModelTypeEnum::Enum controllerType,
      * Set this last in constructor or else resetViewPrivate() may
      * not function correctly.
      */
-    m_isYokingController = (controllerType ==
+    m_isYokingController = (m_modelType ==
                                 ModelTypeEnum::MODEL_TYPE_YOKING);
 }
 
@@ -79,12 +86,12 @@ Model::initializeMembersModel()
 }
 
 /**
- * @return The type of model controller.
+ * @return The type of model.
  */
 ModelTypeEnum::Enum 
 Model::getControllerType() const
 {
-    return m_controllerType; 
+    return m_modelType; 
 }
 
 /**
@@ -776,26 +783,154 @@ Model::getBrain()
 }
 
 /**
- * Save the transforms and overlays by adding them to the
- * given SceneClass.
- * 
+ * Create a scene for an instance of a class.
+ *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
  *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
+ *    saving the scene.
  *
- * @param sceneClass
- *     sceneClass containing the transforms and overlays.
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
  */
-void 
-Model::saveTransformsAndOverlaysToScene(const SceneAttributes* sceneAttributes,
-                                        SceneClass* sceneClass)
+SceneClass* 
+Model::saveToScene(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
 {
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "Model",
+                                            1);
+
+    sceneClass->addEnumeratedType("m_modelType", ModelTypeEnum::toName(m_modelType));
+    sceneClass->addFloat("m_defaultModelScaling", m_defaultModelScaling);
     
+    if (m_modelType == ModelTypeEnum::MODEL_TYPE_SURFACE) {
+        const ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(this);
+        CaretAssert(surfaceModel);
+        sceneClass->addString("surfaceName",
+                              surfaceModel->getSurface()->getFileNameNoPath());
+    }
+                          
+    
+    /*
+     * Get all browser tabs and only save transformations for tabs
+     * that are valid.
+     */ 
+    EventBrowserTabGetAll getAllTabs;
+    EventManager::get()->sendEvent(getAllTabs.getPointer());
+    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
+    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    
+    /*
+     * Save rotation matrices
+     */
+    std::vector<SceneClass*> rotationClassVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        for (int32_t ivt = 0; ivt < VIEWING_TRANSFORM_COUNT; ivt++) {
+            SceneClass* rotationSceneClass = new SceneClass(("m_viewingRotationMatrix["
+                                                             + AString::number(tabIndex)
+                                                             + "]["
+                                                             + AString::number(ivt)
+                                                             + "]"),
+                                                            "Matrix4x4",
+                                                            1);
+            float matrix[4][4];
+            m_viewingRotationMatrix[tabIndex][ivt].getMatrix(matrix);
+            rotationSceneClass->addInteger("tabIndex", tabIndex);
+            rotationSceneClass->addInteger("viewingTransformIndex", ivt);
+            rotationSceneClass->addFloatArray("matrix", (float*)matrix, 16);
+            
+            rotationClassVector.push_back(rotationSceneClass);
+        }
+        
+    }
+    SceneClassArray* rotationMatrixClassArray = new SceneClassArray("m_viewingRotationMatrix",
+                                                                    rotationClassVector);
+    sceneClass->addChild(rotationMatrixClassArray);
+    
+    /*
+     * Save translation
+     */
+    std::vector<SceneClass*> translationClassVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        for (int32_t ivt = 0; ivt < VIEWING_TRANSFORM_COUNT; ivt++) {
+            SceneClass* translationSceneClass = new SceneClass(("m_translation["
+                                                                + AString::number(tabIndex)
+                                                                + "]["
+                                                                + AString::number(ivt)
+                                                                + "]"),
+                                                               "Matrix4x4",
+                                                               1);
+            translationSceneClass->addInteger("tabIndex", tabIndex);
+            translationSceneClass->addInteger("viewingTransformIndex", ivt);
+            translationSceneClass->addFloatArray("translation", m_translation[tabIndex][ivt], 3);
+            
+            translationClassVector.push_back(translationSceneClass);
+        }
+        
+    }
+    SceneClassArray* translationClassArray = new SceneClassArray("m_translation",
+                                                                 translationClassVector);
+    sceneClass->addChild(translationClassArray);
+    
+    /*
+     * Save scaling
+     */
+    std::vector<SceneClass*> scalingClassVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* scalingSceneClass = new SceneClass(("m_scaling["
+                                                        + AString::number(tabIndex)
+                                                        + "]"),
+                                                       "Matrix4x4",
+                                                       1);
+        scalingSceneClass->addInteger("tabIndex", tabIndex);
+        scalingSceneClass->addFloat("scaling", m_scaling[tabIndex]);
+        
+        scalingClassVector.push_back(scalingSceneClass);
+    }
+    SceneClassArray* scalingClassArray = new SceneClassArray("m_scaling",
+                                                             scalingClassVector);
+    sceneClass->addChild(scalingClassArray);
+    
+    /*
+     * Save the overlays
+     */
+    std::vector<SceneClass*> overlaySetClassVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        SceneClass* overlaySetClass = new SceneClass(("modelOverlay["
+                                                      + AString::number(iat)
+                                                      + "]"),
+                                                     "OverlaySet",
+                                                     1);
+        overlaySetClass->addInteger("tabIndex",
+                                    tabIndex);
+        overlaySetClass->addChild(getOverlaySet(tabIndex)->saveToScene(sceneAttributes, 
+                                                                       "overlaySet"));
+        overlaySetClassVector.push_back(overlaySetClass);
+    }
+    SceneClassArray* overlaySetClassArray = new SceneClassArray("m_overlaySet",
+                                                                overlaySetClassVector);
+    sceneClass->addChild(overlaySetClassArray);
+    
+    /*
+     * Save information specific to the type of model
+     */
+    saveModelSpecificInformationToScene(sceneAttributes,                                         
+                                        sceneClass);
+    
+    return sceneClass;
 }
 
 /**
- * Restore the transforms and overlays from the given SceneClass.
+ * Restore the state of an instance of a class.
  * 
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -803,13 +938,136 @@ Model::saveTransformsAndOverlaysToScene(const SceneAttributes* sceneAttributes,
  *    restoring the scene.
  *
  * @param sceneClass
- *     sceneClass containing the transforms and overlays.
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
  */
 void 
-Model::restoreTransformsAndOverlaysFromScene(const SceneAttributes* sceneAttributes,
-                                             const SceneClass* sceneClass)
+Model::restoreFromScene(const SceneAttributes* sceneAttributes,
+                          const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+
+    const AString savedModelTypeString = sceneClass->getEnumeratedTypeValue("m_modelType",
+                                                                            ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID));
+    bool isValidModelTypeName = false;
+    const ModelTypeEnum::Enum savedModelType = ModelTypeEnum::fromName(savedModelTypeString,
+                                                                       &isValidModelTypeName);
+    if (savedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
+        throw SceneException("Invalid model type when restoring scene: "
+                             + savedModelTypeString);
+        return;
+    }
     
+    if (savedModelType != m_modelType) {
+        return;
+    }
+    
+    if (m_modelType == ModelTypeEnum::MODEL_TYPE_SURFACE) {
+        const AString surfaceName = sceneClass->getStringValue("surfaceName",
+                                                               "NOT-FOUND");
+        const ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(this);
+        CaretAssert(surfaceModel);        
+        if (surfaceName != surfaceModel->getSurface()->getFileNameNoPath()) {
+            return;
+        }
+    }
+    
+    /*
+     * Reset ALL transformation to defaults
+     */
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        resetView(iTab);
+    }
+    
+    /*
+     * Restore scaling
+     */
+    m_defaultModelScaling = sceneClass->getFloatValue("m_defaultModelScaling",
+                                                      1.0);
+    
+    /*
+     * Restore scaling
+     */
+    const SceneClassArray* scalingClassArray = sceneClass->getClassArray("m_scaling");
+    if (scalingClassArray != NULL) {
+        const int32_t numSavedScaling = scalingClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedScaling; ism++) {
+            const SceneClass* scalingClass = scalingClassArray->getValue(ism);
+            const int32_t tabIndex = scalingClass->getIntegerValue("tabIndex", -1);
+            if (tabIndex >= 0) {
+                m_scaling[tabIndex] = scalingClass->getFloatValue("scaling", 1.0);
+            }
+        }
+    }
+    
+    /*
+     * Restore translation
+     */
+    const SceneClassArray* translationClassArray = sceneClass->getClassArray("m_translation");
+    if (translationClassArray != NULL) {
+        const int32_t numSavedTanslations = translationClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedTanslations; ism++) {
+            const SceneClass* translationClass = translationClassArray->getValue(ism);
+            const int32_t tabIndex = translationClass->getIntegerValue("tabIndex", -1);
+            const int32_t viewingTransformIndex = translationClass->getIntegerValue("viewingTransformIndex", -1);
+            if ((tabIndex >= 0)
+                && (viewingTransformIndex >= 0)) {
+                translationClass->getFloatArrayValue("translation", 
+                                                     m_translation[tabIndex][viewingTransformIndex], 
+                                                     3);
+            }
+        }
+    }
+    
+    /*
+     * Restore rotation matrices
+     */
+    const SceneClassArray* rotationMatrixClassArray = sceneClass->getClassArray("m_viewingRotationMatrix");
+    if (rotationMatrixClassArray != NULL) {
+        const int32_t numSavedMatrices = rotationMatrixClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedMatrices; ism++) {
+            const SceneClass* rotationMatrixClass = rotationMatrixClassArray->getValue(ism);
+            const int32_t tabIndex = rotationMatrixClass->getIntegerValue("tabIndex", -1);
+            const int32_t viewingTransformIndex = rotationMatrixClass->getIntegerValue("viewingTransformIndex", -1);
+            if ((tabIndex >= 0)
+                && (viewingTransformIndex >= 0)) {
+                float matrix[4][4];
+                rotationMatrixClass->getFloatArrayValue("matrix", 
+                                                        (float*)matrix, 
+                                                        16);
+                m_viewingRotationMatrix[tabIndex][viewingTransformIndex].setMatrix(matrix);
+            }
+        }
+    }
+    
+    /*
+     * Restore the overlays
+     */
+    const SceneClassArray* overlaySetClassArray = sceneClass->getClassArray("m_overlaySet");
+    if (overlaySetClassArray != NULL) {
+        const int32_t numSavedOverlaySets = overlaySetClassArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numSavedOverlaySets; i++) {
+            const SceneClass* overlaySceneClass = overlaySetClassArray->getValue(i);
+            const int32_t tabIndex = overlaySceneClass->getIntegerValue("tabIndex",
+                                                                        -1);
+            const SceneClass* overlayClass = overlaySceneClass->getClass("overlaySet");
+            if ((tabIndex >= 0) 
+                && (overlayClass != NULL)) {
+                getOverlaySet(tabIndex)->restoreFromScene(sceneAttributes, 
+                                                          overlayClass);
+            }
+        }
+    }
+    
+    /*
+     * Restore any information specific to type of model
+     */
+    restoreModelSpecificInformationFromScene(sceneAttributes, 
+                                             sceneClass);
 }
+
+
 
 

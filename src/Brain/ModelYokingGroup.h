@@ -103,12 +103,12 @@ namespace caret {
         
         bool isVolumeYoking() const;
         
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
+    protected:
+        virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                         SceneClass* sceneClass);
         
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-        
+        virtual void restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                              const SceneClass* sceneClass);
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         

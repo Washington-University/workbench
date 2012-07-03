@@ -56,12 +56,6 @@ namespace caret {
         
         void initializeOverlays();
         
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
-        
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-        
     private:
         ModelSurface(const ModelSurface&);
         
@@ -80,6 +74,13 @@ namespace caret {
         virtual AString getNameForBrowserTab() const;
         
         void setDefaultScalingToFitWindow();
+
+    protected:
+        virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                         SceneClass* sceneClass);
+        
+        virtual void restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                              const SceneClass* sceneClass);
         
     private:
         /**Surface that uses this model */

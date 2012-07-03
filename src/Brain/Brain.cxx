@@ -2340,7 +2340,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
          iter++) {
         Model* mdc = *iter;
         modelClassVector.push_back(mdc->saveToScene(sceneAttributes,
-                                                    "model"));
+                                                    "models"));
     }
     SceneClassArray* modelsClassArray = new SceneClassArray("models",
                                                             modelClassVector);
@@ -2395,6 +2395,24 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Restore all models
      */
+    EventModelGetAll getAllModels;
+    EventManager::get()->sendEvent(getAllModels.getPointer());
+    std::vector<Model*> allModels = getAllModels.getModels();
+    const SceneClassArray* modelsClassArray = sceneClass->getClassArray("models");
+    const int32_t numModelClasses = modelsClassArray->getNumberOfArrayElements();
+    for (int32_t i = 0; i < numModelClasses; i++) {
+        /*
+         * Apply to all models.  Each model will only use the saved
+         * scene information that is applicable.
+         */
+        for (std::vector<Model*>::iterator iter = allModels.begin();
+             iter != allModels.end();
+             iter++) {
+            Model* mdc = *iter;
+            mdc->restoreFromScene(sceneAttributes, 
+                                  modelsClassArray->getValue(i));
+        }
+    }
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
