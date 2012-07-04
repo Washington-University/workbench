@@ -45,6 +45,7 @@ class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QLabel;
 class QLineEdit;
 class QSpinBox;
 
@@ -73,7 +74,7 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        QDoubleSpinBox *getTimeSpinBox();
+        QSpinBox *getFrameSpinBox();
         
         void setAnimationStartTime(const double &value);
         
@@ -86,7 +87,7 @@ namespace caret {
         
         void animateActionTriggered(bool);
         
-        void timeSpinBoxValueChanged(double);
+        void frameSpinBoxValueChanged(int);
         
     private:
         ConnectivityTimeSeriesViewController(const ConnectivityTimeSeriesViewController&);
@@ -99,9 +100,9 @@ namespace caret {
         
         void updateViewController();
 
-        void updateTimeSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded, double time);        
+        void updateFrameSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded, int frame);        
 
-        void updateOtherYokedTimeSpinBoxes(double time);
+        void updateOtherYokedFrameSpinBoxes(int frame);
         
         void deleteAnimator();
         
@@ -119,9 +120,11 @@ namespace caret {
         
         TimeSeriesManagerForViewController* animator;
         
-        QDoubleSpinBox* timeSpinBox;
+        QSpinBox* frameSpinBox;
         
         double animationStartTime;
+
+        QLineEdit* frameName;
 
         WuQGridLayoutGroup* gridLayoutGroup;
         

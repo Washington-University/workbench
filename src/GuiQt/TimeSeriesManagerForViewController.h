@@ -28,7 +28,7 @@
 #include "QThread"
 #include "QTimer"
 
-class QDoubleSpinBox;
+class QSpinBox;
 
 namespace caret {
 
@@ -46,25 +46,24 @@ public:
     void play();    
     void stop();
     void toggleAnimation();
-    void getCurrentTime();
     void setAnimationStartTime(const double &time);   
     
 public slots:
     void update();
 signals:
-    void doubleSpinBoxValueChanged(double);
-    void doubleSpinBoxValueChanged(QDoubleSpinBox*,const double);
+    void frameSpinBoxValueChanged(int);
+    void frameSpinBoxValueChanged(QSpinBox*,const int);
     void start_timer(int);
     void stop_timer();
 private:    
     bool m_isPlaying;
     ConnectivityTimeSeriesViewController *m_ctsvc;
-    int64_t m_timeIndex;
+    int64_t m_frameIndex;
     int64_t m_updateInterval;
     float m_timeStep;
     int64_t m_timePoints;
     QTimer *m_timer;
-    QDoubleSpinBox *m_spinBox;
+    QSpinBox *m_spinBox;
     double m_startTime;
     QThread *thread;
 };

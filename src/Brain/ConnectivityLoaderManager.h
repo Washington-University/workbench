@@ -64,8 +64,11 @@ namespace caret {
         
         void receiveEvent(Event* event);
 
-        bool loadTimePointAtTime(ConnectivityLoaderFile* clf,
-                                 const float seconds) throw (DataFileException);
+        /*bool loadTimePointAtTime(ConnectivityLoaderFile* clf,
+                                 const float seconds) throw (DataFileException);*/
+
+        bool loadFrame(ConnectivityLoaderFile* clf,
+            const int frame) throw (DataFileException);
         
         void getVolumeTimeLines(QList<TimeLine> &tlV);
         void getSurfaceTimeLines(QList<TimeLine> &tlV);

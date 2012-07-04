@@ -359,13 +359,30 @@ ConnectivityLoaderManager::toString() const
  * @return
  *    true if data was loaded, else false.
  */
-bool 
+/*bool 
 ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
                                                const float seconds) throw (DataFileException)
 {
     bool haveData = false;
     if (clf->isEmpty() == false) {
         clf->loadTimePointAtTime(seconds);
+        haveData = true;
+    }
+
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+
+    return haveData;
+}*/
+
+bool ConnectivityLoaderManager::loadFrame(ConnectivityLoaderFile* clf,
+    const int frame) throw (DataFileException)
+{
+    bool haveData = false;
+    if (clf->isEmpty() == false) {
+        clf->loadFrame(frame);
         haveData = true;
     }
 

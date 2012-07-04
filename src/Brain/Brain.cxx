@@ -785,7 +785,7 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
         else {
             clf->setupLocalFile(filename, 
                                 DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-            clf->loadTimePointAtTime(0.0);
+            clf->loadFrame(0);
         }
         
         this->validateConnectivityFile(clf);

@@ -91,8 +91,11 @@ namespace caret
         ///get a row by timepoint
         bool getRowFromTimepoint(float* rowOut, const float seconds) const;
         
-        ///get a row by timepoint
+        ///get a column by timepoint
         bool getColumnFromTimepoint(float* columnOut, const float seconds) const;
+        
+        ///get a column by frame
+        bool getColumnFromFrame(float* columnOut, const int frame) const;
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const

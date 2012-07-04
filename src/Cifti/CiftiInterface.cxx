@@ -149,6 +149,19 @@ bool CiftiInterface::getColumnFromTimepoint(float* columnOut, const float second
     return true;
 }
 
+//column and frame are the same value currently, this function exists only
+//to keep the concepts of frame and time separate from being conflated
+bool CiftiInterface::getColumnFromFrame(float* columnOut, const int frame) const
+{
+    if(!checkColumnIndex(frame))
+    {
+        return false;
+    }
+    getColumn(columnOut, frame);
+    return true;
+}
+
+
 bool CiftiInterface::getRowFromTimepoint(float* rowOut, const float seconds) const
 {
     int64_t myIndex = m_xml.getRowIndexForTimepoint(seconds);

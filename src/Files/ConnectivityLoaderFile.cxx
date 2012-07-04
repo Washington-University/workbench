@@ -61,7 +61,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->connectivityVolumeFile = NULL;
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->timeSeriesGraphEnabled = false;
-    this->selectedTimePoint = 0.0;
+    this->selectedFrame = 0;
     this->dataLoadingEnabled = true;
     this->yokeEnabled = false;
     this->uniqueID = SystemUtilities::createUniqueID();
@@ -111,7 +111,7 @@ ConnectivityLoaderFile::clearData()
         delete this->connectivityVolumeFile;
         this->connectivityVolumeFile = NULL;
     }
-    this->selectedTimePoint = 0.0;
+    this->selectedFrame = 0;
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
     this->mapToType = MAP_TO_TYPE_INVALID;
@@ -818,7 +818,7 @@ ConnectivityLoaderFile::zeroizeData()
  * @param seconds
  *    Time of data in seconds.
  */
-void 
+/*void 
 ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
@@ -827,7 +827,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
     
     /*
      * Allow loading of data disable?
-     */
+     
     if (this->dataLoadingEnabled == false) {
         return;
     }
@@ -851,6 +851,56 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 }
                 else {
                     CaretLogSevere("FAILED to read column for seconds " + AString::number(seconds));
+                }
+            }
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+}*/
+
+/**
+ * Load connectivity data for the data at the specified time.
+ * @param seconds
+ *    Time of data in seconds.
+ */
+void 
+ConnectivityLoaderFile::loadFrame(const int frame) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    this->zeroizeData();
+    //TODOJS: Make sure that selectedTimePoint is updated to selectedFrame
+    //this->selectedTimePoint = seconds;//TSC: update seconds any time you change data in any way, otherwise it may ignore a request while all you have is zeros from error
+    this->selectedFrame = frame;
+
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->getColumnFromFrame(this->data, frame)) {
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                }
+                else {
+                    CaretLogSevere("FAILED to read column for frame " + AString::number(frame));
                 }
             }
                 break;
@@ -1810,11 +1860,21 @@ ConnectivityLoaderFile::getTimeStep() const
 
 /**
  * @return Get the selected time point.
- */ 
+ * 
 float 
 ConnectivityLoaderFile::getSelectedTimePoint() const
 {
     return this->selectedTimePoint;
+}*/
+
+/**
+ * @return Get the selected time point.
+ */ 
+
+int 
+ConnectivityLoaderFile::getSelectedFrame() const
+{
+    return this->selectedFrame;
 }
 
 /**

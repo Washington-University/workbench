@@ -158,6 +158,8 @@ namespace caret {
         int64_t loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         void loadTimePointAtTime(const float seconds) throw (DataFileException);
+
+        void loadFrame(const int frame) throw (DataFileException);
         
         int32_t getNumberOfDataElements() const;
         
@@ -187,7 +189,9 @@ namespace caret {
         
         void setTimeSeriesGraphEnabled(const bool showGraph);
         
-        float getSelectedTimePoint() const;
+        //float getSelectedTimePoint() const;
+
+        int getSelectedFrame() const;
 
         int64_t loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
                           const int32_t nodeIndex, const TimeLine &timeLine) throw (DataFileException);
@@ -261,7 +265,9 @@ namespace caret {
 
         bool yokeEnabled;
         
-        float selectedTimePoint;
+        //float selectedTimePoint;
+
+        int selectedFrame;
 
         TimeLine tl;
         

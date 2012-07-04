@@ -42,23 +42,23 @@ TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(Connectiv
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
     
-    m_timeIndex = 0;
+    m_frameIndex = 0;
     m_updateInterval = 500; //200;    
 
     ConnectivityLoaderFile *clf = m_ctsvc->getConnectivityLoaderFile();
     if(!clf) return;
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
-    m_spinBox = m_ctsvc->getTimeSpinBox();
-    m_spinBox->setSingleStep(m_timeStep);
+    m_spinBox = m_ctsvc->getFrameSpinBox();
+
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     
     double time;
     prefs->getAnimationStartTime( time );
     this->setAnimationStartTime(time);
 
-    QObject::connect(this, SIGNAL(doubleSpinBoxValueChanged(const double)),
-                     m_spinBox, SLOT(setValue(double)));
+    QObject::connect(this, SIGNAL(frameSpinBoxValueChanged(const int)),
+                     m_spinBox, SLOT(setValue(int)));
     m_timer = new QTimer();
 
     thread = new QThread(this);
@@ -81,29 +81,20 @@ TimeSeriesManagerForViewController::~TimeSeriesManagerForViewController()
     delete thread;
 }
 
-void TimeSeriesManagerForViewController::getCurrentTime()
-{
-    ConnectivityLoaderFile *clf = m_ctsvc->getConnectivityLoaderFile();
-    if(!clf) return;
-    m_timePoints = clf->getNumberOfTimePoints();
-    m_timeStep  = clf->getTimeStep();
-    QDoubleSpinBox* spinBox = m_ctsvc->getTimeSpinBox();
-    m_timeIndex = (spinBox->value()-m_startTime)/m_timeStep;
-    if(m_timePoints<=m_timeIndex) m_timeIndex = 0;
-}
-
 void TimeSeriesManagerForViewController::update()
 {
-    if(m_timeIndex<m_timePoints)
+    m_frameIndex = m_ctsvc->getConnectivityLoaderFile()->getSelectedFrame();
+    m_frameIndex++;
+    if(m_frameIndex<m_timePoints)
     {
         stop();//prevent timer events from piling up if the CPU is bogging down        
         QCoreApplication::instance()->processEvents();//give mouse events a chance to process
-        emit doubleSpinBoxValueChanged((double)(m_timeIndex*m_timeStep)+m_startTime);
-        m_timeIndex++;
+        emit frameSpinBoxValueChanged(m_frameIndex);
+        
         play();
     }
     else {
-        m_timeIndex=0;
+        m_frameIndex=0;
         stop();
     }
 }
@@ -128,19 +119,7 @@ void TimeSeriesManagerForViewController::toggleAnimation()
 void TimeSeriesManagerForViewController::setAnimationStartTime ( const double& time )
 {
    this->m_startTime = time;
-   QDoubleSpinBox* spinBox = m_ctsvc->getTimeSpinBox();
-   double currentTime = spinBox->value();
-   if(currentTime < m_startTime)
-   {
-      currentTime = time;
-      spinBox->setValue(currentTime);
-   }
-   //next, set qspinbox start and end extents
-   spinBox->setMinimum(time);
-   spinBox->setMaximum(time+m_timePoints*this->m_timeStep);
-   m_timeIndex = (currentTime-m_startTime)/m_timeStep;
-   
-   
+   //TODOJS: Remember to update frame label...
 }
 
 

@@ -1,4 +1,3 @@
-
 /*LICENSE_START*/
 /*
  * Copyright 2012 Washington University,
@@ -119,15 +118,18 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     QToolButton* graphToolButton = new QToolButton();
     graphToolButton->setDefaultAction(this->graphDisplayAction);
     
-    this->timeSpinBox = new QDoubleSpinBox();
-    this->timeSpinBox->setMinimum(0);
-    this->timeSpinBox->setMaximum(std::numeric_limits<double>::max());
-    this->timeSpinBox->setSingleStep(1.0);
-    this->timeSpinBox->setMaximumWidth(80);
-    WuQtUtilities::setToolTipAndStatusTip(this->timeSpinBox,
+    this->frameSpinBox = new QSpinBox();
+    this->frameSpinBox->setMinimum(0);
+    this->frameSpinBox->setMaximum(std::numeric_limits<int>::max());
+    this->frameSpinBox->setSingleStep(1.0);
+    this->frameSpinBox->setMaximumWidth(80);
+    
+    WuQtUtilities::setToolTipAndStatusTip(this->frameSpinBox,
                                           "Select timepoint for display on brainordinates");
-    QObject::connect(this->timeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(timeSpinBoxValueChanged(double)));
+    QObject::connect(this->frameSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(frameSpinBoxValueChanged(int)));
+
+    this->frameName = new QLineEdit();
     
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
                                                    this);
@@ -136,8 +138,9 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0);
         this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
-        this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 4);
+        this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 3);
+        this->gridLayoutGroup->addWidget(this->frameName, row, 4);
+        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 5);
     }
     else {
         QFrame* bottomHorizontalLineWidget = new QFrame();
@@ -151,7 +154,9 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         row++;
         this->gridLayoutGroup->addWidget(graphToolButton, row, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
-        this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3, Qt::AlignLeft);
+        row++;
+        this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 3, Qt::AlignLeft);
+        this->gridLayoutGroup->addWidget(this->frameName, row, 4);
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
@@ -163,6 +168,8 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     prefs->getAnimationStartTime(time);
     this->setAnimationStartTime(time);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME);
+    
+    this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));//sets the frame string even if clf is null
 
     
     allConnectivityTimeSeriesViewControllers.insert(this);
@@ -219,12 +226,14 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 100);
+        gridLayout->setColumnStretch(4,0);
+        gridLayout->setColumnStretch(5, 100);
         
         QLabel* onLabel = new QLabel("Yoke");
         QLabel* graphLabel = new QLabel("Graph");
         QLabel* animateLabel = new QLabel("Animate");
         QLabel* timeLabel = new QLabel("Frame");
+        QLabel* frameLabel = new QLabel("Frame Label");
         QLabel* fileLabel = new QLabel("File");
         
         const int row = gridLayout->rowCount();
@@ -232,13 +241,16 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->addWidget(graphLabel, row, 1, Qt::AlignHCenter);
         gridLayout->addWidget(animateLabel, row, 2, Qt::AlignHCenter);
         gridLayout->addWidget(timeLabel, row, 3, Qt::AlignHCenter);
-        gridLayout->addWidget(fileLabel, row, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(frameLabel, row, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 100);
+        gridLayout->setColumnStretch(3, 0);
+        gridLayout->setColumnStretch(4, 0);
+        gridLayout->setColumnStretch(5, 100);
     }
     return gridLayout;
 }
@@ -289,7 +301,7 @@ ConnectivityTimeSeriesViewController::updateViewController()
  * that contain the same connectivity file.
  */
 void 
-ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
+ConnectivityTimeSeriesViewController::updateOtherYokedFrameSpinBoxes(int frame)
 {
     
     QMap <ConnectivityLoaderFile *, bool> alreadyLoaded;
@@ -300,9 +312,9 @@ ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
              iter++) {
             ConnectivityTimeSeriesViewController* clvc = *iter;
             if (clvc != this) {
-                if(clvc->timeSpinBox->value() != time) 
+                if(clvc->frameSpinBox->value() != frame) 
                 {
-                    clvc->updateTimeSpinBox(this, alreadyLoaded, time);
+                    clvc->updateFrameSpinBox(this, alreadyLoaded, frame);
                     alreadyLoaded.insert(clvc->connectivityLoaderFile,true);
                 }                    
             }
@@ -316,32 +328,32 @@ ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityTimeSeriesViewController::updateTimeSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, 
+ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, 
                                                         QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded,
-                                                        double time)
+                                                        int frame)
 {
     if (this->connectivityLoaderFile != NULL) {   
         if(timeSeriesViewController->connectivityLoaderFile == this->connectivityLoaderFile)
         {
-            this->timeSpinBox->blockSignals(true);            
-            this->timeSpinBox->setValue(time);
-            this->timeSpinBox->update();
-            this->timeSpinBox->blockSignals(false);
+            this->frameSpinBox->blockSignals(true);            
+            this->frameSpinBox->setValue(frame);
+            this->frameSpinBox->update();
+            this->frameSpinBox->blockSignals(false);
         }
         else if(timeSeriesViewController->yokeCheckBox->checkState() == Qt::Checked && 
                 this->yokeCheckBox->checkState() == Qt::Checked)
         {
             if(alreadyLoaded.value(this->connectivityLoaderFile, false))
             {
-                this->timeSpinBox->blockSignals(true);            
-                this->timeSpinBox->setValue(time);
-                this->timeSpinBox->update();
-                this->timeSpinBox->blockSignals(false);
+                this->frameSpinBox->blockSignals(true);            
+                this->frameSpinBox->setValue(frame);
+                this->frameSpinBox->update();
+                this->frameSpinBox->blockSignals(false);
             }
             else
             {
-                this->timeSpinBox->setValue(time);
-                this->timeSpinBox->update();
+                this->frameSpinBox->setValue(frame);
+                this->frameSpinBox->update();
                 alreadyLoaded.insert(this->connectivityLoaderFile, true);
             }            
         }
@@ -440,18 +452,32 @@ ConnectivityTimeSeriesViewController::animateActionTriggered(bool /*status*/)
  *    New value.
  */
 void 
-ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
+ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
 {
     if (this->connectivityLoaderFile != NULL) {
-        const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
+        //const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
+        const int currentValue = this->connectivityLoaderFile->getSelectedFrame();
         CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
         double timeStepOffset;
         prefs->getAnimationStartTime(timeStepOffset);
+        
+        //TODOJS: Remember to update frame label
         //NOTE!!
         //currentValue is always the value in seconds starting from zero, NOT the spinbox value, which can have an offset.
         //To properly compare the two, add timeStepOffset.
-        if (std::fabs((currentValue+timeStepOffset) - value) < 0.001) {
-            std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
+        if(this->connectivityLoaderFile->isDenseTimeSeries())
+        {
+            double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep() + timeStepOffset;
+            this->frameName->setText(AString::number(currentTime,'f',2)+AString(" seconds"));
+        }
+        if(frame >= this->connectivityLoaderFile->getNumberOfTimePoints())
+        {
+            this->frameSpinBox->setValue(this->connectivityLoaderFile->getNumberOfTimePoints() - 1);
+            return;
+        }
+        if (std::abs(currentValue - frame)==0)
+        {
+            CaretLogFine(AString("IGNORED UNCHANGED SPIN BOX VALUE"));
             return;
         }
         
@@ -462,8 +488,8 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
         
         
         bool dataLoadedFlag = false;
-        if (manager->loadTimePointAtTime(this->connectivityLoaderFile, 
-                                         this->timeSpinBox->value()-timeStepOffset)) {
+        if (manager->loadFrame(this->connectivityLoaderFile, 
+                                         this->frameSpinBox->value())) {
             dataLoadedFlag = true;
         }
         const float loadTime = et.getElapsedTimeSeconds();
@@ -472,7 +498,7 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
             this->updateOtherConnectivityTimeSeriesViewControllers();
             //if(this->yokeCheckBox->checkState() == Qt::Checked)
             //{
-                this->updateOtherYokedTimeSpinBoxes(value);
+                this->updateOtherYokedFrameSpinBoxes(frame);
             //}
             const float guiUpdateTime = et.getElapsedTimeSeconds() - loadTime;
             
@@ -505,10 +531,10 @@ ConnectivityTimeSeriesViewController::receiveEvent(Event* event)
     }
 }
 
-QDoubleSpinBox *
-ConnectivityTimeSeriesViewController::getTimeSpinBox()
+QSpinBox *
+ConnectivityTimeSeriesViewController::getFrameSpinBox()
 {
-    return this->timeSpinBox;
+    return this->frameSpinBox;
 }
 
 void 
@@ -519,6 +545,8 @@ ConnectivityTimeSeriesViewController::setAnimationStartTime(const double &value)
             if(animator) animator->setAnimationStartTime(value);
             TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(this->connectivityLoaderFile);
             dialog->setAnimationStartTime(value);
+            double time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep() + value;
+            this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));
         }
     }
 }
