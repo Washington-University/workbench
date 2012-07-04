@@ -543,6 +543,27 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
     
     /*
+     * View mode
+     */
+    std::vector<SceneClass*> sliceViewModeVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        
+        SceneClass* sliceViewClass = new SceneClass(("m_sliceViewMode["
+                                                      + AString::number(tabIndex)
+                                                      + "]"),
+                                                      "SliceViewMode",
+                                                     1);
+        sliceViewClass->addInteger("tabIndex", tabIndex);
+        sliceViewClass->addEnumeratedType("sliceViewMode", 
+                                           VolumeSliceViewModeEnum::toName(m_sliceViewMode[tabIndex]));
+        
+        sliceViewModeVector.push_back(sliceViewClass);
+    }
+    sceneClass->addChild(new SceneClassArray("m_sliceViewMode",
+                                             sliceViewModeVector));
+    
+    /*
      * View plane
      */
     std::vector<SceneClass*> sliceViewPlaneVector;
@@ -552,16 +573,78 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
         SceneClass* slicePlaneClass = new SceneClass(("m_sliceViewPlane["
                                                       + AString::number(tabIndex)
                                                       + "]"),
-                                                      "SliceViewPlane",
+                                                     "SliceViewPlane",
                                                      1);
         slicePlaneClass->addInteger("tabIndex", tabIndex);
-        slicePlaneClass->addEnumeratedType("m_sliceViewPlane", 
+        slicePlaneClass->addEnumeratedType("viewMode", 
                                            VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane[tabIndex]));
         
         sliceViewPlaneVector.push_back(slicePlaneClass);
     }
-    sceneClass->addChild(new SceneClassArray("sliceViewPlane",
+    sceneClass->addChild(new SceneClassArray("m_sliceViewPlane",
                                              sliceViewPlaneVector));
+    
+    /*
+     * Montage rows
+     */
+    std::vector<SceneClass*> montageRowsVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        
+        SceneClass* montageClass = new SceneClass(("m_montageNumberOfRows["
+                                                      + AString::number(tabIndex)
+                                                      + "]"),
+                                                     "MontageRows",
+                                                     1);
+        montageClass->addInteger("tabIndex", tabIndex);
+        montageClass->addInteger("montageRow", m_montageNumberOfRows[tabIndex]);
+        
+        montageRowsVector.push_back(montageClass);
+    }
+    sceneClass->addChild(new SceneClassArray("m_montageNumberOfRows",
+                                             montageRowsVector));
+    
+    /*
+     * Montage columns
+     */
+    std::vector<SceneClass*> montageColumnsVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        
+        SceneClass* montageClass = new SceneClass(("m_montageNumberOfColumns["
+                                                   + AString::number(tabIndex)
+                                                   + "]"),
+                                                  "MontageColumns",
+                                                  1);
+        montageClass->addInteger("tabIndex", tabIndex);
+        montageClass->addInteger("montageColumn", m_montageNumberOfColumns[tabIndex]);
+        
+        montageColumnsVector.push_back(montageClass);
+    }
+    sceneClass->addChild(new SceneClassArray("m_montageNumberOfColumns",
+                                             montageColumnsVector));
+    
+    /*
+     * Montage slice spacing
+     */
+    std::vector<SceneClass*> montageSpacingVector;
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        
+        SceneClass* montageClass = new SceneClass(("m_montageSliceSpacing["
+                                                   + AString::number(tabIndex)
+                                                   + "]"),
+                                                  "MontageSpacing",
+                                                  1);
+        montageClass->addInteger("tabIndex", tabIndex);
+        montageClass->addFloat("montageSpacing", m_montageSliceSpacing[tabIndex]);
+        
+        montageSpacingVector.push_back(montageClass);
+    }
+    sceneClass->addChild(new SceneClassArray("m_montageSliceSpacing",
+                                             montageSpacingVector));
+    
+    
     
     
     //    m_sceneAssistant->saveMembers(sceneAttributes, 

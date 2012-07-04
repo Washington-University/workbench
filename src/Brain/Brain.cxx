@@ -1723,7 +1723,7 @@ Brain::loadSpecFile(SpecFile* specFile,
     
     CaretAssert(specFile);
     
-    this->resetBrainKeepSceneFiles();
+    this->resetBrain(keepSceneFiles);
     
     if (this->specFile != NULL) {
         delete this->specFile;
