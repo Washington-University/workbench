@@ -36,6 +36,7 @@
 #include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
+#include "SceneMapIntegerKey.h"
 #include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
@@ -120,6 +121,10 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
                 m_state = STATE_OBJECT_ARRAY;
                 processObjectArrayStartTag(attributes);
             }
+            else if (qName == SceneXmlElements::OBJECT_MAP_TAG) {
+                m_state = STATE_OBJECT_MAP;
+                processObjectMapStartTag(attributes);
+            }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::OBJECT_TAG, 
                                                                                    qName);
@@ -131,7 +136,7 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
         case STATE_OBJECT_ARRAY:
             if (qName == SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG) {
                 const int32_t elementIndex = attributes.getValueAsInt(SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE,
-                                                                            -1);
+                                                                      -1);
                 if (elementIndex < 0) {
                     AString msg = XmlUtilities::createInvalidAttributeMessage(qName, 
                                                                               SceneXmlElements::OBJECT_ARRAY_ELEMENT_INDEX_ATTRIBUTE, 
@@ -159,6 +164,43 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
             }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
+                                                                                   qName);
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
+            }
+            break;
+        case STATE_OBJECT_MAP:
+            if (qName == SceneXmlElements::OBJECT_MAP_VALUE_TAG) {
+                const int32_t key = attributes.getValueAsInt(SceneXmlElements::OBJECT_MAP_VALUE_KEY_ATTRIBUTE,
+                                                             -1);
+                if (key < 0) {
+                    AString msg = XmlUtilities::createInvalidAttributeMessage(qName, 
+                                                                              SceneXmlElements::OBJECT_MAP_VALUE_KEY_ATTRIBUTE, 
+                                                                              attributes.getValue(SceneXmlElements::OBJECT_MAP_VALUE_KEY_ATTRIBUTE));
+                    msg += ("  Must be greater than or equal to zero.");
+                    XmlSaxParserException e(msg);
+                    CaretLogThrowing(e);
+                    throw e;
+                }
+                m_objectMapBeingReadValueKeyStack.push(key);
+                m_state = STATE_OBJECT_MAP_VALUE;
+            }
+            else {
+                const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::OBJECT_MAP_VALUE_TAG, 
+                                                                                   qName);
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
+            }
+            break;
+        case STATE_OBJECT_MAP_VALUE:
+            if (qName == SceneXmlElements::OBJECT_TAG) {
+                m_state = STATE_OBJECT;
+                processObjectStartTag(attributes);
+            }
+            else {
+                const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::OBJECT_MAP_VALUE_TAG, 
                                                                                    qName);
                 XmlSaxParserException e(msg);
                 CaretLogThrowing(e);
@@ -212,8 +254,8 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (Xm
     switch (objectDataType) {
         case SceneObjectDataTypeEnum::SCENE_CLASS:
             sceneObject = new SceneClass(objectName,
-                                        objectClassName,
-                                        objectVersion);
+                                         objectClassName,
+                                         objectVersion);
             break;
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             sceneObject = new SceneBoolean(objectName,
@@ -266,7 +308,7 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes) thro
     const AString objectClassName = attributes.getValue(SceneXmlElements::OBJECT_CLASS_ATTRIBUTE);
     
     const int32_t objectNumberOfElements = attributes.getValueAsInt(SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE,
-                                                          -1);
+                                                                    -1);
     if (objectNumberOfElements < 0) {
         AString msg = XmlUtilities::createInvalidAttributeMessage(SceneXmlElements::OBJECT_ARRAY_TAG, 
                                                                   SceneXmlElements::OBJECT_ARRAY_LENGTH_ATTRIBUTE, 
@@ -304,19 +346,19 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes) thro
             break;
         case SceneObjectDataTypeEnum::SCENE_FLOAT:
             sceneObject = new SceneFloatArray(objectName, 
-                                                objectNumberOfElements);
+                                              objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
             sceneObject = new SceneEnumeratedTypeArray(objectName, 
-                                              objectNumberOfElements);
+                                                       objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
             sceneObject = new SceneIntegerArray(objectName, 
-                                              objectNumberOfElements);
+                                                objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_STRING:
             sceneObject = new SceneStringArray(objectName, 
-                                              objectNumberOfElements);
+                                               objectNumberOfElements);
             break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
             break;
@@ -328,6 +370,48 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes) thro
     CaretAssert(sceneObject);
     m_objectBeingReadStack.push(sceneObject);
     if (debugFlag) std::cout << "Pushed ObjectArray:" << qPrintable(sceneObject->getName()) << " Type=" << qPrintable(objectTypeName) << std::endl;
+}
+
+/**
+ * Process an ObjectMap start tag.
+ * @param tag
+ *     Tag that was read indicating Object, ObjectArray, etc.
+ * @param attributes
+ *     Attributes contained in the Object tag.
+ */
+void 
+SceneSaxReader::processObjectMapStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException)
+{
+    /*
+     * Get attributes of the object element
+     */
+    const AString objectTypeName  = attributes.getValue(SceneXmlElements::OBJECT_TYPE_ATTRIBUTE);
+    const AString objectName      = attributes.getValue(SceneXmlElements::OBJECT_NAME_ATTRIBUTE);
+    const AString objectClassName = attributes.getValue(SceneXmlElements::OBJECT_CLASS_ATTRIBUTE);
+    
+    /*
+     * Get the type of the object
+     */
+    bool validObjectType = false;
+    const SceneObjectDataTypeEnum::Enum objectDataType = SceneObjectDataTypeEnum::fromXmlName(objectTypeName,
+                                                                                              &validObjectType);
+    if (validObjectType == false) {
+        const AString msg = XmlUtilities::createInvalidAttributeMessage(SceneXmlElements::OBJECT_ARRAY_TAG, 
+                                                                        SceneXmlElements::OBJECT_TYPE_ATTRIBUTE, 
+                                                                        objectTypeName);
+        XmlSaxParserException e(msg);
+        CaretLogThrowing(e);
+        throw e;
+    }
+    
+    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(objectName, 
+                                                          objectDataType);
+    /*
+     * Track object being read to ensure proper parenting of children objects
+     */
+    CaretAssert(sceneMap);
+    m_objectBeingReadStack.push(sceneMap);
+    if (debugFlag) std::cout << "Pushed ObjectMap:" << qPrintable(sceneMap->getName()) << " Type=" << qPrintable(objectTypeName) << std::endl;
 }
 
 /**
@@ -354,7 +438,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
             SceneObject* sceneObject = m_objectBeingReadStack.top();
             m_objectBeingReadStack.pop();
             if (debugFlag) std::cout << "Popped Object:" << qPrintable(sceneObject->getName()) << std::endl;
-
+            
             switch (sceneObject->getDataType()) {
                 case SceneObjectDataTypeEnum::SCENE_CLASS:
                 {
@@ -373,12 +457,17 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                         CaretAssert(m_objectBeingReadStack.empty() == false);
                         SceneClass* parentSceneClass = dynamic_cast<SceneClass*>(m_objectBeingReadStack.top());
                         SceneClassArray* parentSceneClassArray = dynamic_cast<SceneClassArray*>(m_objectBeingReadStack.top());
+                        SceneMapIntegerKey* parentSceneMapIntegerKey = dynamic_cast<SceneMapIntegerKey*>(m_objectBeingReadStack.top());
                         if (parentSceneClass != NULL) {
                             parentSceneClass->addClass(sceneClass);
                         }
                         else if (parentSceneClassArray != NULL) {
                             parentSceneClassArray->setClassAtIndex(m_objectArrayBeingReadElementIndexStack.top(), 
-                                                            sceneClass);
+                                                                   sceneClass);
+                        }
+                        else if (parentSceneMapIntegerKey != NULL) {
+                            parentSceneMapIntegerKey->addClass(m_objectMapBeingReadValueKeyStack.top(), 
+                                                               sceneClass);
                         }
                     }
                 }
@@ -490,7 +579,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     SceneFloatArray* floatArray = dynamic_cast<SceneFloatArray*>(sceneArray);
                     CaretAssert(floatArray);
                     floatArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
-                                           stringValue.toFloat());
+                                         stringValue.toFloat());
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_INTEGER:
@@ -511,12 +600,92 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     SceneStringArray* stringArray = dynamic_cast<SceneStringArray*>(sceneArray);
                     CaretAssert(stringArray);
                     stringArray->setValue(m_objectArrayBeingReadElementIndexStack.top(),
-                                           stringValue);
+                                          stringValue);
                 }
                     break;
             }
             
             m_objectArrayBeingReadElementIndexStack.pop();
+            
+        }
+            break;
+        case STATE_OBJECT_MAP:
+        {
+            /**
+             * Get the map.
+             */
+            CaretAssert(m_objectBeingReadStack.empty() == false);
+            SceneObject* sceneObject = m_objectBeingReadStack.top();
+            m_objectBeingReadStack.pop();
+            if (debugFlag) std::cout << "Popped ObjectMap:" << qPrintable(sceneObject->getName()) << std::endl;
+            
+            SceneMapIntegerKey* sceneMap = dynamic_cast<SceneMapIntegerKey*>(sceneObject);
+            CaretAssert(sceneMap);
+            
+            /*
+             * Parent is another class
+             */
+            CaretAssert(m_objectBeingReadStack.empty() == false);
+            SceneClass* parentSceneClass = dynamic_cast<SceneClass*>(m_objectBeingReadStack.top());
+            CaretAssert(parentSceneClass);
+            parentSceneClass->addChild(sceneMap);
+        }
+            break;
+        case STATE_OBJECT_MAP_VALUE:
+        {
+            /**
+             * Get the map.
+             */
+            CaretAssert(m_objectBeingReadStack.empty() == false);
+            SceneObject* sceneObject = m_objectBeingReadStack.top();
+            SceneMapIntegerKey* sceneMap = dynamic_cast<SceneMapIntegerKey*>(sceneObject);
+            CaretAssert(sceneMap);
+            
+            const int32_t key = m_objectMapBeingReadValueKeyStack.top();
+            m_objectMapBeingReadValueKeyStack.pop();
+            
+            switch (sceneMap->getDataType()) {
+                case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
+                {
+                    sceneMap->addBoolean(key,
+                                         stringValue.toBool());
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_CLASS:
+                    /*
+                     * Nothing to do here, handled in "case STATE_OBJECT" above
+                     */
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
+                {
+                    sceneMap->addEnumeratedType(key,
+                                                stringValue);
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_FLOAT:
+                {
+                    sceneMap->addFloat(key,
+                                       stringValue.toFloat());
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                {
+                    sceneMap->addInteger(key,
+                                         stringValue.toInt());
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_INVALID:
+                {
+                    CaretAssert(0);
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_STRING:
+                {
+                    sceneMap->addString(key,
+                                        stringValue);
+                }
+                    break;
+            }
             
         }
             break;

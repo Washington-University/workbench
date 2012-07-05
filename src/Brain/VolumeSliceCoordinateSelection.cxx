@@ -28,6 +28,9 @@
 #undef __VOLUME_SLICE_COORDINATE_SELECTION_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClassAssistant.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -49,7 +52,14 @@ using namespace caret;
 VolumeSliceCoordinateSelection::VolumeSliceCoordinateSelection()
 : CaretObject()
 {
-    this->reset();
+    reset();
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_sliceCoordinateAxial", &m_sliceCoordinateAxial, m_sliceCoordinateAxial);
+    m_sceneAssistant->add("m_sliceCoordinateCoronal", &m_sliceCoordinateCoronal, m_sliceCoordinateCoronal);
+    m_sceneAssistant->add("m_sliceCoordinateParasagittal", &m_sliceCoordinateParasagittal, m_sliceCoordinateParasagittal);
+    m_sceneAssistant->add("m_sliceEnabledAxial", &m_sliceEnabledAxial, m_sliceEnabledAxial);
+    m_sceneAssistant->add("m_sliceEnabledCoronal", &m_sliceEnabledCoronal, m_sliceEnabledCoronal);
+    m_sceneAssistant->add("m_sliceEnabledParasagittal", &m_sliceEnabledParasagittal, m_sliceEnabledParasagittal);
 }
 
 /**
@@ -57,7 +67,7 @@ VolumeSliceCoordinateSelection::VolumeSliceCoordinateSelection()
  */
 VolumeSliceCoordinateSelection::~VolumeSliceCoordinateSelection()
 {
-    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -66,15 +76,15 @@ VolumeSliceCoordinateSelection::~VolumeSliceCoordinateSelection()
 void 
 VolumeSliceCoordinateSelection::reset()
 {
-    this->sliceCoordinateAxial        = 0.0;
-    this->sliceCoordinateCoronal      = 0.0;
-    this->sliceCoordinateParasagittal = 0.0;
+    m_sliceCoordinateAxial        = 0.0;
+    m_sliceCoordinateCoronal      = 0.0;
+    m_sliceCoordinateParasagittal = 0.0;
     
-    this->sliceEnabledAxial        = true;
-    this->sliceEnabledCoronal      = true;
-    this->sliceEnabledParasagittal = true;
+    m_sliceEnabledAxial        = true;
+    m_sliceEnabledCoronal      = true;
+    m_sliceEnabledParasagittal = true;
     
-    this->initializedFlag = false;
+    m_initializedFlag = false;
 }
 
 /**
@@ -87,21 +97,21 @@ void
 VolumeSliceCoordinateSelection::updateForVolumeFile(const VolumeFile* volumeFile)
 {
     if (volumeFile == NULL) {
-        this->reset();
+        reset();
         return;
     }
         
-    if (this->initializedFlag == false) {
-        this->initializedFlag = true;
-        this->selectSlicesAtOrigin();
+    if (m_initializedFlag == false) {
+        m_initializedFlag = true;
+        selectSlicesAtOrigin();
     }
 
     /*
      * These calls will make the slices valid
      */
-    this->getSliceIndexParasagittal(volumeFile);
-    this->getSliceIndexCoronal(volumeFile);
-    this->getSliceIndexAxial(volumeFile);
+    getSliceIndexParasagittal(volumeFile);
+    getSliceIndexCoronal(volumeFile);
+    getSliceIndexAxial(volumeFile);
 }
 
 /**
@@ -110,9 +120,9 @@ VolumeSliceCoordinateSelection::updateForVolumeFile(const VolumeFile* volumeFile
 void 
 VolumeSliceCoordinateSelection::selectSlicesAtOrigin()
 {
-    this->sliceCoordinateAxial        = 0.0;
-    this->sliceCoordinateCoronal      = 0.0;
-    this->sliceCoordinateParasagittal = 0.0;
+    m_sliceCoordinateAxial        = 0.0;
+    m_sliceCoordinateCoronal      = 0.0;
+    m_sliceCoordinateParasagittal = 0.0;
 }
 
 /**
@@ -123,9 +133,9 @@ VolumeSliceCoordinateSelection::selectSlicesAtOrigin()
 void 
 VolumeSliceCoordinateSelection::selectSlicesAtCoordinate(const float xyz[3])
 {
-    this->sliceCoordinateParasagittal = xyz[0];
-    this->sliceCoordinateCoronal      = xyz[1];
-    this->sliceCoordinateAxial        = xyz[2];
+    m_sliceCoordinateParasagittal = xyz[0];
+    m_sliceCoordinateCoronal      = xyz[1];
+    m_sliceCoordinateAxial        = xyz[2];
 }
 
 /**
@@ -137,11 +147,11 @@ VolumeSliceCoordinateSelection::toString() const
 {
     const AString msg = 
     "VolumeSliceCoordinateSelection=(" 
-    + AString::number(this->sliceCoordinateParasagittal)
+    + AString::number(m_sliceCoordinateParasagittal)
     + ", "
-    + AString::number(this->sliceCoordinateCoronal)
+    + AString::number(m_sliceCoordinateCoronal)
     + ", "
-    + AString::number(this->sliceCoordinateAxial)
+    + AString::number(m_sliceCoordinateAxial)
     + ")";
     
     return msg;
@@ -164,9 +174,9 @@ VolumeSliceCoordinateSelection::getSliceIndexAxial(const VolumeFile* volumeFile)
     
     if (dimensions[2] >= 0) {
         int64_t paragittalSlice, coronalSlice;
-        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
-                                 this->sliceCoordinateCoronal,
-                                 this->sliceCoordinateAxial,
+        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
+                                 m_sliceCoordinateCoronal,
+                                 m_sliceCoordinateAxial,
                                  paragittalSlice, 
                                  coronalSlice, 
                                  axialSliceOut);
@@ -175,14 +185,14 @@ VolumeSliceCoordinateSelection::getSliceIndexAxial(const VolumeFile* volumeFile)
             
             float xyz[3];
             volumeFile->indexToSpace(0, 0, axialSliceOut, xyz);    
-            this->sliceCoordinateAxial = xyz[2];
+            m_sliceCoordinateAxial = xyz[2];
         }
         else if (axialSliceOut >= dimensions[2]) {
             axialSliceOut = dimensions[2] - 1;
             
             float xyz[3];
             volumeFile->indexToSpace(0, 0, axialSliceOut, xyz);            
-            this->sliceCoordinateAxial = xyz[2];
+            m_sliceCoordinateAxial = xyz[2];
         }
     }
     return axialSliceOut;
@@ -201,7 +211,7 @@ VolumeSliceCoordinateSelection::setSliceIndexAxial(const VolumeFile* volumeFile,
     float xyz[3];
     volumeFile->indexToSpace(0, 0, sliceIndexAxial, xyz);    
 
-    this->sliceCoordinateAxial = xyz[2];
+    m_sliceCoordinateAxial = xyz[2];
 }
 
 /**
@@ -221,9 +231,9 @@ VolumeSliceCoordinateSelection::getSliceIndexCoronal(const VolumeFile* volumeFil
     
     if (dimensions[1] >= 0) {
         int64_t paragittalSlice, axialSlice;
-        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
-                                 this->sliceCoordinateCoronal,
-                                 this->sliceCoordinateAxial,
+        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
+                                 m_sliceCoordinateCoronal,
+                                 m_sliceCoordinateAxial,
                                  paragittalSlice, 
                                  coronalSliceOut, 
                                  axialSlice);
@@ -232,14 +242,14 @@ VolumeSliceCoordinateSelection::getSliceIndexCoronal(const VolumeFile* volumeFil
             
             float xyz[3];
             volumeFile->indexToSpace(0, coronalSliceOut, 0, xyz);    
-            this->sliceCoordinateCoronal = xyz[1];
+            m_sliceCoordinateCoronal = xyz[1];
         }
         else if (coronalSliceOut >= dimensions[1]) {
             coronalSliceOut = dimensions[1] - 1;
             
             float xyz[3];
             volumeFile->indexToSpace(0, coronalSliceOut, 0, xyz);            
-            this->sliceCoordinateCoronal = xyz[1];
+            m_sliceCoordinateCoronal = xyz[1];
         }
     }
     return coronalSliceOut;
@@ -259,7 +269,7 @@ VolumeSliceCoordinateSelection::setSliceIndexCoronal(const VolumeFile* volumeFil
     float xyz[3];
     volumeFile->indexToSpace(0, sliceIndexCoronal, 0, xyz);    
     
-    this->sliceCoordinateCoronal = xyz[1];
+    m_sliceCoordinateCoronal = xyz[1];
 }
 
 /**
@@ -277,9 +287,9 @@ VolumeSliceCoordinateSelection::getSliceIndexParasagittal(const VolumeFile* volu
     
     if (dimensions[0] >= 0) {
         int64_t coronalSlice, axialSlice;
-        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
-                                 this->sliceCoordinateCoronal,
-                                 this->sliceCoordinateAxial,
+        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
+                                 m_sliceCoordinateCoronal,
+                                 m_sliceCoordinateAxial,
                                  parasagittalSliceOut, 
                                  coronalSlice, 
                                  axialSlice);
@@ -288,14 +298,14 @@ VolumeSliceCoordinateSelection::getSliceIndexParasagittal(const VolumeFile* volu
             
             float xyz[3];
             volumeFile->indexToSpace(parasagittalSliceOut, 0, 0, xyz);    
-            this->sliceCoordinateParasagittal = xyz[0];
+            m_sliceCoordinateParasagittal = xyz[0];
         }
         else if (parasagittalSliceOut >= dimensions[0]) {
             parasagittalSliceOut = dimensions[0] - 1;
             
             float xyz[3];
             volumeFile->indexToSpace(parasagittalSliceOut, 0, 0, xyz);            
-            this->sliceCoordinateParasagittal = xyz[0];
+            m_sliceCoordinateParasagittal = xyz[0];
         }
     }
     return parasagittalSliceOut;
@@ -314,7 +324,7 @@ VolumeSliceCoordinateSelection::setSliceIndexParasagittal(const VolumeFile* volu
     float xyz[3];
     volumeFile->indexToSpace(sliceIndexParasagittal, 0, 0, xyz);    
     
-    this->sliceCoordinateParasagittal = xyz[0];
+    m_sliceCoordinateParasagittal = xyz[0];
 }
 
 /**
@@ -323,7 +333,7 @@ VolumeSliceCoordinateSelection::setSliceIndexParasagittal(const VolumeFile* volu
 float 
 VolumeSliceCoordinateSelection::getSliceCoordinateAxial() const
 {
-    return this->sliceCoordinateAxial;
+    return m_sliceCoordinateAxial;
 }
 
 /**
@@ -334,7 +344,7 @@ VolumeSliceCoordinateSelection::getSliceCoordinateAxial() const
 void 
 VolumeSliceCoordinateSelection::setSliceCoordinateAxial(const float z)
 {
-    this->sliceCoordinateAxial = z;
+    m_sliceCoordinateAxial = z;
 }
 
 /**
@@ -343,7 +353,7 @@ VolumeSliceCoordinateSelection::setSliceCoordinateAxial(const float z)
 float 
 VolumeSliceCoordinateSelection::getSliceCoordinateCoronal() const
 {
-    return this->sliceCoordinateCoronal;
+    return m_sliceCoordinateCoronal;
 }
 
 /**
@@ -354,7 +364,7 @@ VolumeSliceCoordinateSelection::getSliceCoordinateCoronal() const
 void 
 VolumeSliceCoordinateSelection::setSliceCoordinateCoronal(const float y)
 {
-    this->sliceCoordinateCoronal = y;
+    m_sliceCoordinateCoronal = y;
 }
 
 /**
@@ -363,7 +373,7 @@ VolumeSliceCoordinateSelection::setSliceCoordinateCoronal(const float y)
 float 
 VolumeSliceCoordinateSelection::getSliceCoordinateParasagittal() const
 {
-    return this->sliceCoordinateParasagittal;
+    return m_sliceCoordinateParasagittal;
 }
 
 /**
@@ -374,7 +384,7 @@ VolumeSliceCoordinateSelection::getSliceCoordinateParasagittal() const
 void 
 VolumeSliceCoordinateSelection::setSliceCoordinateParasagittal(const float x)
 {
-    this->sliceCoordinateParasagittal = x;
+    m_sliceCoordinateParasagittal = x;
 }
 
 /**
@@ -385,7 +395,7 @@ VolumeSliceCoordinateSelection::setSliceCoordinateParasagittal(const float x)
 bool 
 VolumeSliceCoordinateSelection::isSliceParasagittalEnabled() const
 {
-    return this->sliceEnabledParasagittal;
+    return m_sliceEnabledParasagittal;
 }
 
 /**
@@ -396,7 +406,7 @@ VolumeSliceCoordinateSelection::isSliceParasagittalEnabled() const
 void 
 VolumeSliceCoordinateSelection::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
-    this->sliceEnabledParasagittal = sliceEnabledParasagittal;
+    m_sliceEnabledParasagittal = sliceEnabledParasagittal;
 }
 
 /**
@@ -407,7 +417,7 @@ VolumeSliceCoordinateSelection::setSliceParasagittalEnabled(const bool sliceEnab
 bool 
 VolumeSliceCoordinateSelection::isSliceCoronalEnabled() const
 {
-    return this->sliceEnabledCoronal;
+    return m_sliceEnabledCoronal;
 }
 
 /**
@@ -418,7 +428,7 @@ VolumeSliceCoordinateSelection::isSliceCoronalEnabled() const
 void 
 VolumeSliceCoordinateSelection::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
-    this->sliceEnabledCoronal = sliceEnabledCoronal;
+    m_sliceEnabledCoronal = sliceEnabledCoronal;
 }
 
 /**
@@ -429,7 +439,7 @@ VolumeSliceCoordinateSelection::setSliceCoronalEnabled(const bool sliceEnabledCo
 bool 
 VolumeSliceCoordinateSelection::isSliceAxialEnabled() const
 {
-    return this->sliceEnabledAxial;
+    return m_sliceEnabledAxial;
 }
 
 /**
@@ -440,7 +450,7 @@ VolumeSliceCoordinateSelection::isSliceAxialEnabled() const
 void 
 VolumeSliceCoordinateSelection::setSliceAxialEnabled(const bool sliceEnabledAxial)
 {
-    this->sliceEnabledAxial = sliceEnabledAxial;
+    m_sliceEnabledAxial = sliceEnabledAxial;
 }
 
 /**
@@ -451,13 +461,65 @@ VolumeSliceCoordinateSelection::setSliceAxialEnabled(const bool sliceEnabledAxia
 void 
 VolumeSliceCoordinateSelection::copySelections(const VolumeSliceCoordinateSelection& vscs)
 {
-    this->sliceCoordinateParasagittal = vscs.sliceCoordinateParasagittal;
-    this->sliceCoordinateCoronal      = vscs.sliceCoordinateCoronal;
-    this->sliceCoordinateAxial        = vscs.sliceCoordinateAxial;
-    this->sliceEnabledParasagittal = vscs.sliceCoordinateParasagittal;
-    this->sliceEnabledCoronal      = vscs.sliceCoordinateCoronal;
-    this->sliceEnabledAxial        = vscs.sliceCoordinateAxial;
-    this->initializedFlag = true;
+    m_sliceCoordinateParasagittal = vscs.m_sliceCoordinateParasagittal;
+    m_sliceCoordinateCoronal      = vscs.m_sliceCoordinateCoronal;
+    m_sliceCoordinateAxial        = vscs.m_sliceCoordinateAxial;
+    m_sliceEnabledParasagittal = vscs.m_sliceCoordinateParasagittal;
+    m_sliceEnabledCoronal      = vscs.m_sliceCoordinateCoronal;
+    m_sliceEnabledAxial        = vscs.m_sliceCoordinateAxial;
+    m_initializedFlag = true;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+VolumeSliceCoordinateSelection::saveToScene(const SceneAttributes* sceneAttributes,
+                   const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "VolumeSliceCoordinateSelection",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+VolumeSliceCoordinateSelection::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
 }
 
 

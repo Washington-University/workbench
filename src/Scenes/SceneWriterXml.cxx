@@ -43,6 +43,7 @@
 #include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
+#include "SceneMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
@@ -164,6 +165,8 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         const ScenePrimitiveArray* scenePrimitiveArray = dynamic_cast<const ScenePrimitiveArray*>(sceneObject);
         const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
         const SceneClassArray* sceneClassArray = dynamic_cast<const SceneClassArray*>(sceneObject);
+        const SceneMapIntegerKey* sceneMapIntegerKey = dynamic_cast<const SceneMapIntegerKey*>(sceneObject);
+        
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
@@ -242,6 +245,65 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_ARRAY_ELEMENT_TAG, 
                                                   elementAttributes,
                                                   sceneEnumeratedTypeArray->stringValue(elementIndex));
+            }
+            
+            m_xmlWriter.writeEndElement();
+        }
+        else if (sceneMapIntegerKey != NULL) {
+            m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_MAP_TAG,
+                                          attributes);
+            
+            const std::map<int32_t, SceneObject*>& sceneMap = sceneMapIntegerKey->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = sceneMap.begin();
+                 iter != sceneMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                
+                XmlAttributes valueAttributes;
+                valueAttributes.addAttribute(SceneXmlElements::OBJECT_MAP_VALUE_KEY_ATTRIBUTE, 
+                                             key);
+                
+                const SceneObject* sceneObject = iter->second;
+                switch (sceneMapIntegerKey->getDataType()) {
+                    case SceneObjectDataTypeEnum::SCENE_CLASS:
+                    {
+                        const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
+                        m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
+                                                      valueAttributes);
+                        writeSceneClass(*sceneClass);
+                        m_xmlWriter.writeEndElement();
+                    }
+                        break;
+                    case SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE:
+                    {
+                        const SceneEnumeratedType* sceneEnumType = dynamic_cast<const SceneEnumeratedType*>(sceneObject);
+                        m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
+                                                           valueAttributes,
+                                                           sceneEnumType->stringValue());
+                    }
+                        break;
+                    case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
+                    case SceneObjectDataTypeEnum::SCENE_FLOAT:
+                    case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                    {
+                        const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(sceneObject);
+                        m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
+                                                           valueAttributes,
+                                                           primitive->stringValue());
+                    }
+                        break;
+                    case SceneObjectDataTypeEnum::SCENE_STRING:
+                    {
+                        const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(sceneObject);
+                        m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
+                                                      valueAttributes,
+                                                      primitive->stringValue());
+                    }
+                        break;
+                    case SceneObjectDataTypeEnum::SCENE_INVALID:
+                        CaretAssert(0); 
+                        break;
+                }   
             }
             
             m_xmlWriter.writeEndElement();

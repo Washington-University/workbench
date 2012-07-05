@@ -35,6 +35,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneMapIntegerKey.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -545,106 +546,77 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * View mode
      */
-    std::vector<SceneClass*> sliceViewModeVector;
+    SceneMapIntegerKey* sliceViewModeMap = new SceneMapIntegerKey("m_sliceViewMode",
+                                                                  SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = allTabIndices[iat];
-        
-        SceneClass* sliceViewClass = new SceneClass(("m_sliceViewMode["
-                                                      + AString::number(tabIndex)
-                                                      + "]"),
-                                                      "SliceViewMode",
-                                                     1);
-        sliceViewClass->addInteger("tabIndex", tabIndex);
-        sliceViewClass->addEnumeratedType("sliceViewMode", 
-                                           VolumeSliceViewModeEnum::toName(m_sliceViewMode[tabIndex]));
-        
-        sliceViewModeVector.push_back(sliceViewClass);
+        sliceViewModeMap->addEnumeratedType(tabIndex, 
+                                            VolumeSliceViewModeEnum::toName(m_sliceViewMode[tabIndex]));
     }
-    sceneClass->addChild(new SceneClassArray("m_sliceViewMode",
-                                             sliceViewModeVector));
+    sceneClass->addChild(sliceViewModeMap);
     
     /*
      * View plane
      */
-    std::vector<SceneClass*> sliceViewPlaneVector;
+    SceneMapIntegerKey* sliceViewPlaneMap = new SceneMapIntegerKey("m_sliceViewPlane",
+                                                                  SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = allTabIndices[iat];
-        
-        SceneClass* slicePlaneClass = new SceneClass(("m_sliceViewPlane["
-                                                      + AString::number(tabIndex)
-                                                      + "]"),
-                                                     "SliceViewPlane",
-                                                     1);
-        slicePlaneClass->addInteger("tabIndex", tabIndex);
-        slicePlaneClass->addEnumeratedType("viewMode", 
-                                           VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane[tabIndex]));
-        
-        sliceViewPlaneVector.push_back(slicePlaneClass);
+        sliceViewPlaneMap->addEnumeratedType(tabIndex, 
+                                            VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane[tabIndex]));
     }
-    sceneClass->addChild(new SceneClassArray("m_sliceViewPlane",
-                                             sliceViewPlaneVector));
+    sceneClass->addChild(sliceViewPlaneMap);
     
     /*
      * Montage rows
      */
-    std::vector<SceneClass*> montageRowsVector;
+    SceneMapIntegerKey* montageRowMap = new SceneMapIntegerKey("m_montageNumberOfRows",
+                                                               SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = allTabIndices[iat];
-        
-        SceneClass* montageClass = new SceneClass(("m_montageNumberOfRows["
-                                                      + AString::number(tabIndex)
-                                                      + "]"),
-                                                     "MontageRows",
-                                                     1);
-        montageClass->addInteger("tabIndex", tabIndex);
-        montageClass->addInteger("montageRow", m_montageNumberOfRows[tabIndex]);
-        
-        montageRowsVector.push_back(montageClass);
+        montageRowMap->addInteger(tabIndex, 
+                                  m_montageNumberOfRows[tabIndex]);
     }
-    sceneClass->addChild(new SceneClassArray("m_montageNumberOfRows",
-                                             montageRowsVector));
+    sceneClass->addChild(montageRowMap);
     
     /*
      * Montage columns
      */
-    std::vector<SceneClass*> montageColumnsVector;
+    SceneMapIntegerKey* montageColumnMap = new SceneMapIntegerKey("m_montageNumberOfColumns",
+                                                               SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = allTabIndices[iat];
-        
-        SceneClass* montageClass = new SceneClass(("m_montageNumberOfColumns["
-                                                   + AString::number(tabIndex)
-                                                   + "]"),
-                                                  "MontageColumns",
-                                                  1);
-        montageClass->addInteger("tabIndex", tabIndex);
-        montageClass->addInteger("montageColumn", m_montageNumberOfColumns[tabIndex]);
-        
-        montageColumnsVector.push_back(montageClass);
+        montageColumnMap->addInteger(tabIndex, 
+                                     m_montageNumberOfColumns[tabIndex]);
     }
-    sceneClass->addChild(new SceneClassArray("m_montageNumberOfColumns",
-                                             montageColumnsVector));
+    sceneClass->addChild(montageColumnMap);
     
     /*
      * Montage slice spacing
      */
-    std::vector<SceneClass*> montageSpacingVector;
+    SceneMapIntegerKey* montageSliceSpacingMap = new SceneMapIntegerKey("m_montageSliceSpacing",
+                                                                  SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = allTabIndices[iat];
-        
-        SceneClass* montageClass = new SceneClass(("m_montageSliceSpacing["
-                                                   + AString::number(tabIndex)
-                                                   + "]"),
-                                                  "MontageSpacing",
-                                                  1);
-        montageClass->addInteger("tabIndex", tabIndex);
-        montageClass->addFloat("montageSpacing", m_montageSliceSpacing[tabIndex]);
-        
-        montageSpacingVector.push_back(montageClass);
+        montageSliceSpacingMap->addInteger(tabIndex, 
+                                     m_montageSliceSpacing[tabIndex]);
     }
-    sceneClass->addChild(new SceneClassArray("m_montageSliceSpacing",
-                                             montageSpacingVector));
+    sceneClass->addChild(montageSliceSpacingMap);
     
-    
+    /*
+     * Slice selection
+     */
+    SceneMapIntegerKey* sliceSelectionMap = new SceneMapIntegerKey("m_volumeSlicesSelected",
+                                                                   SceneObjectDataTypeEnum::SCENE_CLASS);
+    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+        const int32_t tabIndex = allTabIndices[iat];
+        sliceSelectionMap->addClass(tabIndex, 
+                                    m_volumeSlicesSelected[tabIndex].saveToScene(sceneAttributes, 
+                                                                                 ("m_volumeSlicesSelected["
+                                                                                  + AString::number(tabIndex)
+                                                                                  + "]")));
+    }
+    sceneClass->addChild(sliceSelectionMap);
     
     
     //    m_sceneAssistant->saveMembers(sceneAttributes, 

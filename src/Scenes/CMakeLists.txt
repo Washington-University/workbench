@@ -31,6 +31,7 @@ SceneFloat.h
 SceneFloatArray.h
 SceneInteger.h
 SceneIntegerArray.h
+SceneMapIntegerKey.h
 SceneObject.h
 SceneObjectArray.h
 SceneObjectDataTypeEnum.h
@@ -59,6 +60,7 @@ SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInteger.cxx
 SceneIntegerArray.cxx
+SceneMapIntegerKey.cxx
 SceneObject.cxx
 SceneObjectArray.cxx
 SceneObjectDataTypeEnum.cxx

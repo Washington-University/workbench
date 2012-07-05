@@ -87,13 +87,19 @@ namespace caret {
             STATE_OBJECT,
             /// processing Object Array tag
             STATE_OBJECT_ARRAY,
-            /// processing Object Array element
-            STATE_OBJECT_ARRAY_ELEMENT
+            /// processing Object Array tag
+            STATE_OBJECT_ARRAY_ELEMENT,
+            /// processing Object Map tag
+            STATE_OBJECT_MAP,
+            /// processing Object Map Value tag
+            STATE_OBJECT_MAP_VALUE
         };
         
         void processObjectStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
         
         void processObjectArrayStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        
+        void processObjectMapStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
         
         void addChildToParentClass(SceneObject* sceneObject);
         
@@ -115,8 +121,11 @@ namespace caret {
         /// Stack containing object being read
         std::stack<SceneObject*> m_objectBeingReadStack;
         
-        /** Key of array element being read */
+        /** Index of array element being read */
         std::stack<int32_t> m_objectArrayBeingReadElementIndexStack;
+        
+        /** Key of map value being read */
+        std::stack<int32_t> m_objectMapBeingReadValueKeyStack;
     };
 
 } // namespace

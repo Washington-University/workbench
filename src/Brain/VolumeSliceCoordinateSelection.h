@@ -27,12 +27,14 @@
 
 
 #include "CaretObject.h"
+#include "SceneClassAssistant.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class VolumeFile;
     
-    class VolumeSliceCoordinateSelection : public CaretObject {
+    class VolumeSliceCoordinateSelection : public CaretObject, public SceneableInterface {
         
     public:
         VolumeSliceCoordinateSelection();
@@ -88,6 +90,12 @@ namespace caret {
         
         void copySelections(const VolumeSliceCoordinateSelection& vscs);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         VolumeSliceCoordinateSelection(const VolumeSliceCoordinateSelection&);
 
@@ -97,19 +105,21 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        mutable float sliceCoordinateParasagittal;
+        mutable float m_sliceCoordinateParasagittal;
         
-        mutable float sliceCoordinateCoronal;
+        mutable float m_sliceCoordinateCoronal;
         
-        mutable float sliceCoordinateAxial;
+        mutable float m_sliceCoordinateAxial;
         
-        bool sliceEnabledParasagittal;
+        bool m_sliceEnabledParasagittal;
         
-        bool sliceEnabledCoronal;
+        bool m_sliceEnabledCoronal;
         
-        bool sliceEnabledAxial;
+        bool m_sliceEnabledAxial;
         
-        bool initializedFlag;
+        bool m_initializedFlag;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __VOLUME_SLICE_COORDINATE_SELECTION_DECLARE__
