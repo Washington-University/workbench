@@ -70,3 +70,24 @@ SceneAttributes::getSceneType() const
     return m_sceneType;
 }
 
+/**
+ * Set the indices of the tabs that are to be saved to the scene.
+ * @param tabIndices
+ *    Indices of tabs that are saved to the scene.
+ */
+void 
+SceneAttributes::setIndicesOfTabsForSavingToScene(const std::vector<int32_t>& tabIndices)
+{
+    m_indicesOfTabsForSavingToScene = tabIndices;
+}
+
+/**
+ * @return Indices of tabs for saving to the scene.
+ */
+std::vector<int32_t> 
+SceneAttributes::getIndicesOfTabsForSavingToScene() const
+{
+    return m_indicesOfTabsForSavingToScene;
+}
+
+

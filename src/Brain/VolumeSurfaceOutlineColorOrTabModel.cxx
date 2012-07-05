@@ -40,7 +40,6 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabGet.h"
-#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 
 using namespace caret;

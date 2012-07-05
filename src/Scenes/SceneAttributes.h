@@ -49,6 +49,10 @@ namespace caret {
         
         SceneTypeEnum::Enum getSceneType() const;
         
+        void setIndicesOfTabsForSavingToScene(const std::vector<int32_t>& tabIndices);
+        
+        std::vector<int32_t> getIndicesOfTabsForSavingToScene() const;
+        
     private:
         SceneAttributes(const SceneAttributes&);
 
@@ -61,6 +65,8 @@ namespace caret {
     private:
 
         const SceneTypeEnum::Enum m_sceneType;
+        
+        std::vector<int32_t> m_indicesOfTabsForSavingToScene;
         
         // ADD_NEW_MEMBERS_HERE
 

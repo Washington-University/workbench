@@ -29,7 +29,6 @@
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
-#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "ModelSurfaceMontage.h"
@@ -37,6 +36,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
@@ -399,20 +399,17 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
                                                       SceneClass* sceneClass)
 {
     /*
-     * Get all browser tabs and only save transformations for tabs
-     * that are valid.
+     * Get indices of tabs that are to be saved to scene.
      */ 
-    EventBrowserTabGetAll getAllTabs;
-    EventManager::get()->sendEvent(getAllTabs.getPointer());
-    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
-    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size()); 
     
     /*
      * Left surface
      */
     std::vector<SceneClass*> leftSurfaceSceneVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* leftSurfaceSceneClass = new SceneClass(("m_leftSurfaceSelectionModel["
                                                             + AString::number(tabIndex)
                                                             + "]"),
@@ -430,7 +427,7 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
      */
     std::vector<SceneClass*> leftSecondSurfaceSceneVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* leftSecondSurfaceSceneClass = new SceneClass(("m_leftSecondSurfaceSelectionModel["
                                                                   + AString::number(tabIndex)
                                                                   + "]"),
@@ -449,7 +446,7 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
      */
     std::vector<SceneClass*> rightSurfaceSceneVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* rightSurfaceSceneClass = new SceneClass(("m_rightSurfaceSelectionModel["
                                                              + AString::number(tabIndex)
                                                              + "]"),
@@ -468,7 +465,7 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
      */
     std::vector<SceneClass*> rightSecondSurfaceSceneVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* rightSecondSurfaceSceneClass = new SceneClass(("m_rightSecondSurfaceSelectionModel["
                                                                    + AString::number(tabIndex)
                                                                    + "]"),
@@ -487,7 +484,7 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
      */
     std::vector<SceneClass*> dualConfigurationSceneVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* dualConfigurationSceneClass = new SceneClass(("m_dualConfigurationEnabled["
                                                                    + AString::number(tabIndex)
                                                                    + "]"),

@@ -26,12 +26,12 @@
 #include "BrowserTabContent.h"
 #include "DisplayPropertiesInformation.h"
 #include "EventBrowserTabGet.h"
-#include "EventBrowserTabGetAll.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "ModelVolume.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
@@ -535,13 +535,10 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
                                                       SceneClass* sceneClass)
 {
     /*
-     * Get all browser tabs and only save transformations for tabs
-     * that are valid.
+     * Get indices of tabs that are to be saved to scene.
      */ 
-    EventBrowserTabGetAll getAllTabs;
-    EventManager::get()->sendEvent(getAllTabs.getPointer());
-    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
-    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size()); 
     
     /*
      * View mode
@@ -549,7 +546,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* sliceViewModeMap = new SceneMapIntegerKey("m_sliceViewMode",
                                                                   SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         sliceViewModeMap->addEnumeratedType(tabIndex, 
                                             VolumeSliceViewModeEnum::toName(m_sliceViewMode[tabIndex]));
     }
@@ -561,7 +558,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* sliceViewPlaneMap = new SceneMapIntegerKey("m_sliceViewPlane",
                                                                   SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         sliceViewPlaneMap->addEnumeratedType(tabIndex, 
                                             VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane[tabIndex]));
     }
@@ -573,7 +570,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* montageRowMap = new SceneMapIntegerKey("m_montageNumberOfRows",
                                                                SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         montageRowMap->addInteger(tabIndex, 
                                   m_montageNumberOfRows[tabIndex]);
     }
@@ -585,7 +582,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* montageColumnMap = new SceneMapIntegerKey("m_montageNumberOfColumns",
                                                                SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         montageColumnMap->addInteger(tabIndex, 
                                      m_montageNumberOfColumns[tabIndex]);
     }
@@ -597,7 +594,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* montageSliceSpacingMap = new SceneMapIntegerKey("m_montageSliceSpacing",
                                                                   SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         montageSliceSpacingMap->addInteger(tabIndex, 
                                      m_montageSliceSpacing[tabIndex]);
     }
@@ -609,7 +606,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     SceneMapIntegerKey* sliceSelectionMap = new SceneMapIntegerKey("m_volumeSlicesSelected",
                                                                    SceneObjectDataTypeEnum::SCENE_CLASS);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         sliceSelectionMap->addClass(tabIndex, 
                                     m_volumeSlicesSelected[tabIndex].saveToScene(sceneAttributes, 
                                                                                  ("m_volumeSlicesSelected["

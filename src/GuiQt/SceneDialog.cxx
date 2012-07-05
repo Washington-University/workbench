@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -391,8 +392,18 @@ SceneDialog::addNewSceneButtonClicked()
                 newScene = new Scene(sceneType);
                 newScene->setName(newSceneName);
                 
-                SceneAttributes* sceneAtributes = newScene->getAttributes();
-                newScene->addClass(GuiManager::get()->saveToScene(sceneAtributes,
+                /*
+                 * Get all browser tabs and only save transformations for tabs
+                 * that are valid.
+                 */ 
+                EventBrowserTabGetAll getAllTabs;
+                EventManager::get()->sendEvent(getAllTabs.getPointer());
+                const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
+
+                SceneAttributes* sceneAttributes = newScene->getAttributes();
+                sceneAttributes->setIndicesOfTabsForSavingToScene(allTabIndices);
+                
+                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                                   "guiManager"));
                 
                 sceneFile->addScene(newScene);

@@ -27,11 +27,11 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "Matrix4x4.h"
 #include "ModelSurface.h"
 #include "OverlaySet.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneException.h"
@@ -817,20 +817,17 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
                           
     
     /*
-     * Get all browser tabs and only save transformations for tabs
-     * that are valid.
+     * Get indices of tabs that are to be saved to scene.
      */ 
-    EventBrowserTabGetAll getAllTabs;
-    EventManager::get()->sendEvent(getAllTabs.getPointer());
-    const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
-    const int32_t numActiveTabs = static_cast<int32_t>(allTabIndices.size()); 
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size()); 
     
     /*
      * Save rotation matrices
      */
     std::vector<SceneClass*> rotationClassVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         for (int32_t ivt = 0; ivt < VIEWING_TRANSFORM_COUNT; ivt++) {
             SceneClass* rotationSceneClass = new SceneClass(("m_viewingRotationMatrix["
                                                              + AString::number(tabIndex)
@@ -858,7 +855,7 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
      */
     std::vector<SceneClass*> translationClassVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         for (int32_t ivt = 0; ivt < VIEWING_TRANSFORM_COUNT; ivt++) {
             SceneClass* translationSceneClass = new SceneClass(("m_translation["
                                                                 + AString::number(tabIndex)
@@ -884,7 +881,7 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
      */
     std::vector<SceneClass*> scalingClassVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* scalingSceneClass = new SceneClass(("m_scaling["
                                                         + AString::number(tabIndex)
                                                         + "]"),
@@ -904,7 +901,7 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
      */
     std::vector<SceneClass*> overlaySetClassVector;
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = allTabIndices[iat];
+        const int32_t tabIndex = tabIndices[iat];
         SceneClass* overlaySetClass = new SceneClass(("modelOverlay["
                                                       + AString::number(iat)
                                                       + "]"),
