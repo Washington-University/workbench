@@ -85,8 +85,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
         NiftiIntentEnum::Enum myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE;
-        CiftiXML myXML;
-        myInFile->getCiftiXML(myXML);
+        const CiftiXML& myXML = myInFile->getCiftiXML();
         if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS ||
             myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
         {

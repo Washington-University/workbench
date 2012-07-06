@@ -62,6 +62,70 @@ void CiftiBrainModelElement::setupLookup()
     }
 }
 
+void CiftiMatrixIndicesMapElement::setupLookup()
+{
+    if (m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        int numModels = (int)m_brainModels.size();
+        for (int i = 0; i < numModels; ++i)
+        {
+            m_brainModels[i].setupLookup();
+        }
+    }
+    if (m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS) return;
+    int numSurfs = (int)m_parcelSurfaces.size();
+    for (int i = 0; i < numSurfs; ++i)
+    {
+        m_parcelSurfaces[i].m_lookup.resize(m_parcelSurfaces[i].m_numNodes);
+        for (int j = 0; j < m_parcelSurfaces[i].m_numNodes; ++j)
+        {
+            m_parcelSurfaces[i].m_lookup[j] = -1;
+        }
+        for (int j = i + 1; j < numSurfs; ++j)
+        {
+            if (m_parcelSurfaces[i].m_structure == m_parcelSurfaces[j].m_structure)
+            {
+                throw CiftiFileException("multiple surfaces with same structure found in a parcel map");
+            }
+        }
+    }
+    int numParcels = (int)m_parcels.size();
+    for (int i = 0; i < numParcels; ++i)
+    {
+        const CiftiParcelElement& myParcel = m_parcels[i];
+        int numSurfParts = (int)myParcel.m_nodeElements.size();
+        for (int j = 0; j < numSurfParts; ++j)
+        {
+            const CiftiParcelNodesElement& myNodeElement = myParcel.m_nodeElements[j];
+            StructureEnum::Enum myStruct = myNodeElement.m_structure;
+            int whichSurf;
+            for (whichSurf = 0; whichSurf < numSurfs; ++whichSurf)
+            {
+                if (m_parcelSurfaces[whichSurf].m_structure == myStruct) break;
+            }
+            if (whichSurf >= numSurfs)
+            {
+                throw CiftiFileException("parcel specifies a structure that doesn't match a specified surface");
+            }
+            CiftiParcelSurfaceElement& mySurf = m_parcelSurfaces[whichSurf];
+            int numNodes = myNodeElement.m_nodes.size();
+            for (int k = 0; k < numNodes; ++k)
+            {
+                int64_t node = myNodeElement.m_nodes[i];
+                if (node < 0 || node >= mySurf.m_numNodes)
+                {
+                    throw CiftiFileException("node number " + AString::number(node) + " is invalid for surface " + StructureEnum::toName(myStruct));
+                }
+                if (mySurf.m_lookup[node] != -1)
+                {
+                    throw CiftiFileException("surface node " + AString::number(node) + " in surface " + StructureEnum::toName(myStruct) + " specified more than once");
+                }
+                mySurf.m_lookup[node] = i;
+            }
+        }
+    }
+}
+
 bool CiftiMatrixIndicesMapElement::operator==(const CiftiMatrixIndicesMapElement& rhs) const
 {//NOTE: don't check the applies to dimension vector, this should check only the mapping, not how it is used
     if (this == &rhs) return true;//compare pointers to skip checking object against itself

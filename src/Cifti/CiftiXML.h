@@ -120,14 +120,14 @@ namespace caret {
         * write the Cifti XML data to the supplied QString
         * @param text
         */
-        void writeXML(QString &text) { QXmlStreamWriter xml(&text); writeCiftiXML(xml,m_root);}
+        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); writeCiftiXML(xml,m_root);}
         /**
         * writeXML
         *
         * write the Cifti XML data to the supplied byte array.
         * @param bytes
         */
-        void writeXML(QByteArray &bytes) { QXmlStreamWriter xml(&bytes); writeCiftiXML(xml,m_root);}
+        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); writeCiftiXML(xml,m_root);}
 
         /**
         * setXMLRoot

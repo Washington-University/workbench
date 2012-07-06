@@ -39,6 +39,8 @@ void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label);
 void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
 void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel);
 void parseNamedMap(QXmlStreamReader &xml, CiftiNamedMapElement &namedMap, const bool needLabels);
+void parseParcel(QXmlStreamReader &xml, CiftiParcelElement& parcel);
+void parseParcelNodes(QXmlStreamReader &xml, CiftiParcelNodesElement& parcelNodes);
 void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume);
 void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
 

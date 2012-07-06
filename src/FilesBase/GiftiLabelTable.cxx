@@ -1152,7 +1152,7 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
 }
 
 void
-GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter)
+GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
 {
     try {
         //

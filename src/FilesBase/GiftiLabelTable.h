@@ -173,7 +173,7 @@ public:
 
     void writeAsXML(XmlWriter& xmlWriter) throw (GiftiException);
 
-    void writeAsXML(QXmlStreamWriter& xmlWriter);
+    void writeAsXML(QXmlStreamWriter& xmlWriter) const;
 
     AString toString() const;
 

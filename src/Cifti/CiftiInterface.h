@@ -58,9 +58,6 @@ namespace caret
         ///get column size
         virtual int64_t getNumberOfRows() const = 0;
 
-        ///get the XML data
-        void getCiftiXML(CiftiXML &xml) const { xml = m_xml; }
-        
         ///get a reference to the XML data
         const CiftiXML& getCiftiXML() const { return m_xml; }
         
@@ -76,7 +73,7 @@ namespace caret
         ///get a row by voxel index - returns false if not found in mapping
         bool getRowFromVoxel(float* rowOut, const int64_t* ijk) const;
         
-        ///get a row by voxel index - returns false if not found in mapping
+        ///get a column by voxel index - returns false if not found in mapping
         bool getColumnFromVoxel(float* columnOut, const int64_t* ijk) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
@@ -85,7 +82,7 @@ namespace caret
         ///get a row by voxel coordinate - returns false if not found in mapping
         bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz, int64_t& rowIndexOut) const;
         
-        ///get a row by voxel coordinate - returns false if not found in mapping
+        ///get a column by voxel coordinate - returns false if not found in mapping
         bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz) const;
         
         ///get a row by timepoint

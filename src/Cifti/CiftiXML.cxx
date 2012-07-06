@@ -331,17 +331,7 @@ void CiftiXML::rootChanged()
                     throw CiftiFileException("Multiple mappings on the same dimension not supported");
                 }
                 m_rowMapIndex = i;
-                if (myMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
-                {
-                    int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
-                    for (int k = 0; k < numModels; ++k)
-                    {
-                        if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
-                        {
-                            myMap.m_brainModels[k].setupLookup();
-                        }
-                    }
-                }
+                myMap.setupLookup();
             }
             if (myMap.m_appliesToMatrixDimension[j] == 0)
             {
@@ -350,17 +340,7 @@ void CiftiXML::rootChanged()
                     throw CiftiFileException("Multiple mappings on the same dimension not supported");
                 }
                 m_colMapIndex = i;
-                if (myMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
-                {
-                    int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
-                    for (int k = 0; k < numModels; ++k)
-                    {
-                        if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
-                        {
-                            myMap.m_brainModels[k].setupLookup();
-                        }
-                    }
-                }
+                myMap.setupLookup();
             }
         }
     }

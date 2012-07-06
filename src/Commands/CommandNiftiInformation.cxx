@@ -73,8 +73,7 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
                 cout << headerString << endl;
             }
             if(printXml) {
-                CiftiXML xml;
-                cf.getCiftiXML(xml);
+                const CiftiXML& xml = cf.getCiftiXML();
                 AString xmlString;
                 xml.writeXML(xmlString);
                 cout << xmlString << endl;

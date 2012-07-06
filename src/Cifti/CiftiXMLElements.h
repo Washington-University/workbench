@@ -83,6 +83,26 @@ struct CiftiNamedMapElement
     bool operator!=(const CiftiNamedMapElement& rhs) const { return !(*this == rhs); }
 };
 
+struct CiftiParcelNodesElement
+{
+    StructureEnum::Enum m_structure;
+    std::vector<int64_t> m_nodes;
+};
+
+struct CiftiParcelElement
+{
+    AString m_parcelName;
+    std::vector<CiftiParcelNodesElement> m_nodeElements;
+    std::vector<voxelIndexType> m_voxelIndicesIJK;
+};
+
+struct CiftiParcelSurfaceElement
+{
+    StructureEnum::Enum m_structure;
+    int64_t m_numNodes;
+    std::vector<int64_t> m_lookup;
+};
+
 /// Cifti Matrix Indices Map XML Element
 class CiftiMatrixIndicesMapElement
 {
@@ -102,6 +122,10 @@ public:
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
     std::vector<CiftiNamedMapElement> m_namedMaps;
+    int64_t m_cortexLeftNodes, m_cortexRightNodes, m_cerebellumNodes;
+    std::vector<CiftiParcelElement> m_parcels;
+    std::vector<CiftiParcelSurfaceElement> m_parcelSurfaces;
+    void setupLookup();
     bool operator==(const CiftiMatrixIndicesMapElement& rhs) const;
 };
 

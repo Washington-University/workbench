@@ -25,9 +25,10 @@
 
 #include <stdio.h>
 #include <QtCore>
+#include "CaretLogger.h"
 #include "CiftiXMLElements.h"
-#include "iostream"
 #include "CiftiXMLReader.h"
+#include "DataFileException.h"
 #include "GiftiLabelTable.h"
 
 using namespace caret;
@@ -51,17 +52,20 @@ void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
                 rootElement.m_matrices.push_back(CiftiMatrixElement());
                 parseMatrixElement(xml,rootElement.m_matrices.back());
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in Cifti: " + elementName);
         }
     }
-
     if(xml.hasError())
     {
-        std::cout << "XML error: " << xml.errorString().toAscii().data() << std::endl;
+        throw DataFileException("XML error: " + xml.errorString());
     }
-    else if(xml.atEnd())
+    else if(!xml.atEnd())
     {
-        ;//std::cout << "Reached end, done" << std::endl;
+        CaretLogWarning("Finished parsing Cifti XML without error, but not at end of XML");
+    }
+    if (rootElement.m_numberOfMatrices != rootElement.m_matrices.size())
+    {
+        CaretLogWarning("NumberOfMatrices does not match number of <Matrix> elements");
     }
 }
 
@@ -92,7 +96,7 @@ void caret::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrix
                 matrixElement.m_volume.push_back(CiftiVolumeElement());
                 parseVolume(xml,matrixElement.m_volume.back());
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in Matrix: " + elementName);
         }
     }
 
@@ -113,7 +117,7 @@ void caret::parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMe
             {
                 parseMetaDataElement(xml,userMetaData);
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in MetaData: " + elementName);
         }
     }
     //check for end element
@@ -155,7 +159,7 @@ void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &
                 if(!xml.isEndElement())
                     xml.raiseError("End element for meta data value tag not found.");
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in MD: " + elementName);
         }
 
     }
@@ -176,7 +180,7 @@ void caret::parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement
                 labelTable.push_back(CiftiLabelElement());
                 parseLabel(xml,labelTable.back());
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in LabelTable: " + elementName);
         }
     }
     //check end element
@@ -260,7 +264,12 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
     
     bool needLabels = (matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS);
 
-    if(attributes.hasAttribute("TimeStep")) matrixIndicesMap.m_timeStep = attributes.value("TimeStep").toString().toFloat();
+    bool ok = false;
+    if(attributes.hasAttribute("TimeStep"))
+    {
+        matrixIndicesMap.m_timeStep = attributes.value("TimeStep").toString().toFloat(&ok);
+        if (!ok) xml.raiseError("TimeStep value is not numeric");
+    }
     //else xml.raiseError("MatrixIndicesMap does not contain timeStep Value.");
 
     if(attributes.hasAttribute("TimeStepUnits"))
@@ -305,8 +314,47 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
                 matrixIndicesMap.m_namedMaps.push_back(CiftiNamedMapElement());
                 parseNamedMap(xml, matrixIndicesMap.m_namedMaps.back(), needLabels);
                 xml.readNext();
-            }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            } else if (elementName == "Surface") {
+                if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS)
+                {
+                    xml.raiseError("Surface element found in incorrect maping type");
+                    break;
+                }
+                CiftiParcelSurfaceElement tempParcelSurf;
+                QXmlStreamAttributes attributes = xml.attributes();
+                bool ok = false;
+                if (attributes.hasAttribute("BrainStructure"))
+                {
+                    tempParcelSurf.m_structure = StructureEnum::fromCiftiName(attributes.value("BrainStructure").toString(), &ok);
+                    if (!ok)
+                    {
+                        xml.raiseError("Unrecognized structure name: " + attributes.value("BrainStructure").toString());
+                        break;
+                    }
+                } else {
+                    xml.raiseError("Surface element missing required attribute 'BrainStructure'");
+                }
+                if (attributes.hasAttribute("SurfaceNumberOfNodes"))
+                {
+                    tempParcelSurf.m_numNodes = attributes.value("SurfaceNumberOfNodes").toString().toLongLong(&ok);
+                    if (!ok)
+                    {
+                        xml.raiseError("Noninteger in 'SurfaceNumberOfNodes': " + attributes.value("SurfaceNumberOfNodes").toString());
+                        break;
+                    }
+                } else {
+                    xml.raiseError("Surface element missing required attribute 'SurfaceNumberOfNodes'");
+                }
+                matrixIndicesMap.m_parcelSurfaces.push_back(tempParcelSurf);
+            } else if (elementName == "Parcel") {
+                if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS)
+                {
+                    xml.raiseError("Parcel element found in incorrect maping type");
+                    break;
+                }
+                matrixIndicesMap.m_parcels.push_back(CiftiParcelElement());
+                parseParcel(xml, matrixIndicesMap.m_parcels.back());
+            } else xml.raiseError("unknown element in MatrixIndicesMap: " + elementName);
         }
     }
 }
@@ -367,10 +415,17 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
                 QString nodeIndices = xml.text().toString();
 
                 QStringList list = nodeIndices.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+                bool ok = true;
                 for(int i = 0;i<list.count();i++)
                 {
-                    brainModel.m_nodeIndices.push_back(list[i].toULongLong());
+                    brainModel.m_nodeIndices.push_back(list[i].toULongLong(&ok));
+                    if (!ok)
+                    {
+                        xml.raiseError("count not parse '" + list[i] + "' as node index");
+                        break;
+                    }
                 }
+                if (!ok) break;
                 //get end element
                 xml.readNext();
                 if(!xml.isEndElement())
@@ -388,11 +443,18 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
                 QString voxelIndicesIJK = xml.text().toString();
 
                 QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),QString::SkipEmptyParts);
-                if(list.count()%3) std::cout << voxelIndicesIJK.toAscii().data() << std::endl << list[list.count()-3].toULongLong() << list[list.count()-2].toULongLong() << list[list.count()-1].toULongLong() << std::endl;
+                if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
+                bool ok = true;
                 for(int i = 0;i<list.count();i++)
                 {
-                    brainModel.m_voxelIndicesIJK.push_back(list[i].toULongLong());
+                    brainModel.m_voxelIndicesIJK.push_back(list[i].toULongLong(&ok));
+                    if (!ok)
+                    {
+                        xml.raiseError("count not parse '" + list[i] + "' as voxel index");
+                        break;
+                    }
                 }
+                if (!ok) break;
                 //get end element
                 xml.readNext();
                 if(!xml.isEndElement()|| (xml.name().toString() != "VoxelIndicesIJK"))
@@ -400,7 +462,7 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
                     xml.raiseError("End element for VoxelIndicesIJK not found.");
                 }
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in BrainModel: " + elementName);
         }
     }
 
@@ -439,7 +501,7 @@ void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap,
                 namedMap.m_labelTable->readFromQXmlStreamReader(xml);
                 haveLabelTable = true;
             } else {
-                xml.raiseError("unrecognized element in NamedMap: " + xml.name().toString());
+                xml.raiseError("unknown element in NamedMap: " + xml.name().toString());
                 break;
             }
         }
@@ -456,6 +518,94 @@ void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap,
     if (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
     {
         xml.raiseError("unexpected element in NamedMap: " + xml.name().toString());
+    }
+}
+
+void caret::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parcel)
+{
+    QXmlStreamAttributes attributes = xml.attributes();
+    if (attributes.hasAttribute("Name"))
+    {
+        parcel.m_parcelName = attributes.value("Name").toString();
+    } else {
+        xml.raiseError("Required attribute 'Name' missing from Parcel");
+    }
+    xml.readNext();
+    while (!xml.hasError() && !(xml.isEndElement() && xml.name() == "Parcel"))
+    {
+        if (xml.isStartElement())
+        {
+            if (xml.name() == "Nodes")
+            {
+                parcel.m_nodeElements.push_back(CiftiParcelNodesElement());
+                parseParcelNodes(xml, parcel.m_nodeElements.back());
+            } else if (xml.name() == "VoxelIndicesIJK") {
+                xml.readNext();
+                if(xml.tokenType() == QXmlStreamReader::Characters)
+                {
+                    QString voxelIndicesIJK = xml.text().toString();
+                    QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+                    if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
+                    bool ok = true;
+                    for(int i = 0;i<list.count();i++)
+                    {
+                        parcel.m_voxelIndicesIJK.push_back(list[i].toULongLong(&ok));
+                        if (!ok)
+                        {
+                            xml.raiseError("count not parse '" + list[i] + "' as voxel index");
+                            break;
+                        }
+                    }
+                    xml.readNext();
+                    if (!xml.isEndElement() || xml.name() != "VoxelIndicesIJK")
+                    {
+                        xml.raiseError("found something other than characters inside VoxelIndicesIJK");
+                    } else {
+                        xml.readNext();
+                    }
+                } else {
+                    xml.raiseError("Error parsing VoxelIndicesIJK element");
+                }
+            } else {
+                xml.raiseError("unknown element in Parcel: " + xml.name().toString());
+            }
+        }
+        xml.readNext();
+    }
+}
+
+void caret::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesElement& parcelNodes)
+{
+    QXmlStreamAttributes attributes = xml.attributes();
+    if (attributes.hasAttribute("BrainStructure"))
+    {
+        bool ok = false;
+        parcelNodes.m_structure = StructureEnum::fromCiftiName(attributes.value("BrainStructure").toString(), &ok);
+        if (!ok)
+        {
+            xml.raiseError("Unrecognized BrainStructure in Nodes element: " + attributes.value("BrainStructure").toString());
+        }
+    } else {
+        xml.raiseError("Required attribute 'BrainStructure' missing from Nodes");
+    }
+    xml.readNext();
+    if (xml.isCharacters())
+    {
+        QString nodeIndices = xml.text().toString();
+        QStringList list = nodeIndices.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+        bool ok = true;
+        for(int i = 0;i<list.count();i++)
+        {
+            parcelNodes.m_nodes.push_back(list[i].toULongLong(&ok));
+            if (!ok)
+            {
+                xml.raiseError("count not parse '" + list[i] + "' as node index");
+                break;
+            }
+        }
+        xml.readNext();
+    } else {
+        xml.raiseError("Error parsing Nodes element");
     }
 }
 
@@ -484,7 +634,7 @@ void caret::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
                 volume.m_transformationMatrixVoxelIndicesIJKtoXYZ.push_back(TransformationMatrixVoxelIndicesIJKtoXYZElement());
                 parseTransformationMatrixVoxelIndicesIJKtoXYZ(xml,volume.m_transformationMatrixVoxelIndicesIJKtoXYZ.back());
             }
-            else std::cout << "unknown element: " << elementName.toAscii().data() << std::endl;
+            else xml.raiseError("unknown element in Volume: " + elementName);
         }
     }
 

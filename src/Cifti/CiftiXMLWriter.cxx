@@ -28,7 +28,7 @@
 
 using namespace caret;
 
-void caret::writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
+void caret::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
 {  
     xml.setAutoFormatting(true);
     xml.writeStartElement("CIFTI");
@@ -45,7 +45,7 @@ void caret::writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
 
 }
 
-void caret::writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement)
+void caret::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
 { 
     xml.writeStartElement("Matrix");
     if(matrixElement.m_userMetaData.count() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
@@ -60,11 +60,11 @@ void caret::writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrix
     xml.writeEndElement();//Matrix
 }
 
-void caret::writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData)
+void caret::writeMetaData(QXmlStreamWriter &xml, const QHash<QString, QString> &metaData)
 {     
     xml.writeStartElement("MetaData");
 
-    QHash<QString, QString>::Iterator i;
+    QHash<QString, QString>::ConstIterator i;
 
     for (i = metaData.begin(); i != metaData.end(); ++i)
     {
@@ -88,7 +88,7 @@ void caret::writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, con
     xml.writeEndElement();//MD
 }
 
-void caret::writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &labelElement)
+void caret::writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement)
 {     
     xml.writeStartElement("LabelTable");
 
@@ -100,7 +100,7 @@ void caret::writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElemen
     xml.writeEndElement();
 }
 
-void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
+void caret::writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label)
 {     
     xml.writeStartElement("Label");
 
@@ -116,7 +116,7 @@ void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
     xml.writeEndElement();
 }
 
-void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
+void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap)
 {
     xml.writeStartElement("MatrixIndicesMap");
     //TODO
@@ -162,10 +162,21 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
     {
         writeNamedMap(xml, matrixIndicesMap.m_namedMaps[i]);
     }
+    for (size_t i = 0; i < matrixIndicesMap.m_parcelSurfaces.size(); ++i)
+    {
+        xml.writeStartElement("Surface");
+        xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(matrixIndicesMap.m_parcelSurfaces[i].m_structure));
+        xml.writeAttribute("SurfaceNumberOfNodes", AString::number(matrixIndicesMap.m_parcelSurfaces[i].m_numNodes));
+        xml.writeEndElement();
+    }
+    for (size_t i = 0; i < matrixIndicesMap.m_parcels.size(); ++i)
+    {
+        writeParcel(xml, matrixIndicesMap.m_parcels[i]);
+    }
     xml.writeEndElement();
 }
 
-void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel)
+void caret::writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement &brainModel)
 {     
     xml.writeStartElement("BrainModel");
 
@@ -195,7 +206,7 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
 
 
 
-    std::vector <voxelIndexType> &ind = brainModel.m_voxelIndicesIJK;
+    const std::vector <voxelIndexType> &ind = brainModel.m_voxelIndicesIJK;
     unsigned long long lastVoxelIndex = ind.size();
     if(lastVoxelIndex)
     {
@@ -219,7 +230,7 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
     xml.writeEndElement();
 }
 
-void caret::writeNamedMap(QXmlStreamWriter& xml, CiftiNamedMapElement& namedMap)
+void caret::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& namedMap)
 {
     xml.writeStartElement("NamedMap");
     xml.writeStartElement("MapName");
@@ -232,7 +243,56 @@ void caret::writeNamedMap(QXmlStreamWriter& xml, CiftiNamedMapElement& namedMap)
     xml.writeEndElement();
 }
 
-void caret::writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
+void caret::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel)
+{
+    xml.writeStartElement("Parcel");
+    xml.writeAttribute("Name", parcel.m_parcelName);
+    int numNodeElements = (int)parcel.m_nodeElements.size();
+    for (int i = 0; i < numNodeElements; ++i)
+    {
+        writeParcelNodes(xml, parcel.m_nodeElements[i]);
+    }
+    int numVoxInds = (int)parcel.m_voxelIndicesIJK.size();
+    if (numVoxInds > 0)
+    {
+        xml.writeStartElement("VoxelIndicesIJK");
+        xml.writeCharacters(AString::number(parcel.m_voxelIndicesIJK[0]));
+        int state = 1;
+        for (int i = 1; i < numVoxInds; ++i)
+        {
+            if (state >= 3)
+            {
+                state = 0;
+                xml.writeCharacters("\n");
+            } else {
+                ++state;
+                xml.writeCharacters(" ");
+            }
+            xml.writeCharacters(AString::number(parcel.m_voxelIndicesIJK[i]));
+        }
+        xml.writeEndElement();
+    }
+    xml.writeEndElement();
+}
+
+void caret::writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElement& parcelNodes)
+{
+    int numNodes = (int)parcelNodes.m_nodes.size();
+    if (numNodes > 0)//don't write empty elements even if they exist in the tree
+    {
+        xml.writeStartElement("Nodes");
+        xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(parcelNodes.m_structure));
+        xml.writeCharacters(AString::number(parcelNodes.m_nodes[0]));
+        for (int i = 1; i < numNodes; ++i)
+        {
+            xml.writeCharacters(" ");
+            xml.writeCharacters(AString::number(parcelNodes.m_nodes[i]));
+        }
+        xml.writeEndElement();
+    }
+}
+
+void caret::writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume)
 {     
     xml.writeStartElement("Volume");
 
@@ -246,7 +306,7 @@ void caret::writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
     xml.writeEndElement();
 }
 
-void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, const TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {     
     xml.writeStartElement("TransformationMatrixVoxelIndicesIJKtoXYZ");
 

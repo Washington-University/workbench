@@ -113,8 +113,7 @@ void CiftiFileTest::testCiftiReadWriteInMemory()
 
 
     // read XML
-    CiftiXML root;
-    reader.getCiftiXML(root);
+    const CiftiXML& root = reader.getCiftiXML();
 
     //hack TODO, this gives it a name to write to, change to write and cleanup temp
     //files if necessary
@@ -168,8 +167,7 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
 
 
     // read XML
-    CiftiXML root;
-    reader.getCiftiXML(root);
+    const CiftiXML& root = reader.getCiftiXML();
 
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
