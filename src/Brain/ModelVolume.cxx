@@ -731,8 +731,8 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
              iter != sliceSelectionData.end();
              iter++) {
             const int32_t key = iter->first;
-            const SceneClass* spacingClass = dynamic_cast<const SceneClass*>(iter->second);
-            m_volumeSlicesSelected[key].restoreFromScene(sceneAttributes, spacingClass);
+            const SceneClass* slicesClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_volumeSlicesSelected[key].restoreFromScene(sceneAttributes, slicesClass);
         }
     }
 }
