@@ -37,14 +37,16 @@
 #include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class Brain;
     class Surface;
+    class SceneAttributes;
     class VolumeSurfaceOutlineModel;
     
-    class VolumeSurfaceOutlineSetModel : public CaretObject {
+    class VolumeSurfaceOutlineSetModel : public CaretObject, public SceneableInterface {
         
     public:
         VolumeSurfaceOutlineSetModel();
@@ -64,6 +66,11 @@ namespace caret {
         void selectSurfacesAfterSpecFileLoaded(Brain* brain,
                                                const bool searchForTabs);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         VolumeSurfaceOutlineSetModel(const VolumeSurfaceOutlineSetModel&);
 
@@ -75,9 +82,9 @@ namespace caret {
                                const CaretColorEnum::Enum color,
                                int32_t& outlineIndex);
         
-        VolumeSurfaceOutlineModel* outlineModels[BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES];
+        VolumeSurfaceOutlineModel* m_outlineModels[BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES];
         
-        int32_t numberOfDisplayedVolumeSurfaceOutlines;
+        int32_t m_numberOfDisplayedVolumeSurfaceOutlines;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_SET_MODEL_DECLARE__

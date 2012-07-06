@@ -202,6 +202,28 @@ void SceneClass::addClass(SceneClass* sceneClass)
         addChild(sceneClass);    
     }
 }
+
+/**
+ * Add a child class array values to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void 
+SceneClass::addClassArray(const AString& name,
+                   SceneClass* values[],
+                   const int32_t arrayNumberOfElements)
+{
+   addChild(new SceneClassArray(name,
+                                values,
+                                arrayNumberOfElements));
+}
+
+
 /**
  * Add a child enumerated type value to the class.
  * @param name

@@ -37,14 +37,16 @@
 #include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
     class BrowserTabContent;
+    class SceneAttributes;
 
-    class VolumeSurfaceOutlineColorOrTabModel : public CaretObject {
+    class VolumeSurfaceOutlineColorOrTabModel : public CaretObject, public SceneableInterface {
     public:
         
-        class Item {
+        class Item : public SceneableInterface {
         public:
            /**
              * Type of item.
@@ -77,12 +79,17 @@ namespace caret {
             
             CaretColorEnum::Enum getColor();
             
+            virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                            const AString& instanceName);
+            
+            virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                          const SceneClass* sceneClass);
         private:
-            int32_t browserTabIndex;
+            int32_t m_browserTabIndex;
             
-            CaretColorEnum::Enum color;
+            CaretColorEnum::Enum m_color;
             
-            ItemType itemType;
+            ItemType m_itemType;
         };
         
     public:
@@ -102,17 +109,22 @@ namespace caret {
         
         void setBrowserTabIndex(const int32_t browserTabIndex);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         VolumeSurfaceOutlineColorOrTabModel(const VolumeSurfaceOutlineColorOrTabModel&);
 
         VolumeSurfaceOutlineColorOrTabModel& operator=(const VolumeSurfaceOutlineColorOrTabModel&);
         
-        std::vector<Item*> colorItems;
-        std::vector<Item*> browserTabItems;
+        std::vector<Item*> m_colorItems;
+        std::vector<Item*> m_browserTabItems;
         
-        Item* selectedItem;
+        Item* m_selectedItem;
         
-        int32_t previousSelectedItemIndex;
+        int32_t m_previousSelectedItemIndex;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_COLOR_OR_TAB_MODEL_DECLARE__

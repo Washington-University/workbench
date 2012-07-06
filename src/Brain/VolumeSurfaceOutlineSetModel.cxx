@@ -45,6 +45,8 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "ModelSurface.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
@@ -71,9 +73,9 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
 : CaretObject()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
-        this->outlineModels[i] = new VolumeSurfaceOutlineModel();
+        m_outlineModels[i] = new VolumeSurfaceOutlineModel();
     }
-    this->numberOfDisplayedVolumeSurfaceOutlines = 6; //BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+    m_numberOfDisplayedVolumeSurfaceOutlines = 6; //BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
 }
 
 /**
@@ -82,7 +84,7 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
 VolumeSurfaceOutlineSetModel::~VolumeSurfaceOutlineSetModel()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
-        delete this->outlineModels[i];
+        delete m_outlineModels[i];
     }
 }
 
@@ -92,7 +94,7 @@ VolumeSurfaceOutlineSetModel::~VolumeSurfaceOutlineSetModel()
 int32_t 
 VolumeSurfaceOutlineSetModel::getNumberOfDislayedVolumeSurfaceOutlines() const
 {
-    return this->numberOfDisplayedVolumeSurfaceOutlines;
+    return m_numberOfDisplayedVolumeSurfaceOutlines;
 }
 
 /**
@@ -104,9 +106,9 @@ void
 VolumeSurfaceOutlineSetModel::copyVolumeSurfaceOutlineSetModel(VolumeSurfaceOutlineSetModel* setModel)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
-        this->outlineModels[i]->copyVolumeSurfaceOutlineModel(setModel->getVolumeSurfaceOutlineModel(i));
+        m_outlineModels[i]->copyVolumeSurfaceOutlineModel(setModel->getVolumeSurfaceOutlineModel(i));
     }
-    this->numberOfDisplayedVolumeSurfaceOutlines = setModel->getNumberOfDislayedVolumeSurfaceOutlines();
+    m_numberOfDisplayedVolumeSurfaceOutlines = setModel->getNumberOfDislayedVolumeSurfaceOutlines();
 }
 
 /**
@@ -117,16 +119,16 @@ VolumeSurfaceOutlineSetModel::copyVolumeSurfaceOutlineSetModel(VolumeSurfaceOutl
 void 
 VolumeSurfaceOutlineSetModel::setNumberOfDisplayedVolumeSurfaceOutlines(const int32_t numberDisplayed)
 {
-    this->numberOfDisplayedVolumeSurfaceOutlines = numberDisplayed;
+    m_numberOfDisplayedVolumeSurfaceOutlines = numberDisplayed;
     
-    if (this->numberOfDisplayedVolumeSurfaceOutlines <
+    if (m_numberOfDisplayedVolumeSurfaceOutlines <
         BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES) {
-        this->numberOfDisplayedVolumeSurfaceOutlines = BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+        m_numberOfDisplayedVolumeSurfaceOutlines = BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
     }
     
-    if (this->numberOfDisplayedVolumeSurfaceOutlines >
+    if (m_numberOfDisplayedVolumeSurfaceOutlines >
         BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES) {
-        this->numberOfDisplayedVolumeSurfaceOutlines = BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+        m_numberOfDisplayedVolumeSurfaceOutlines = BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
     }
 }
 
@@ -138,10 +140,10 @@ VolumeSurfaceOutlineSetModel::setNumberOfDisplayedVolumeSurfaceOutlines(const in
 VolumeSurfaceOutlineModel* 
 VolumeSurfaceOutlineSetModel::getVolumeSurfaceOutlineModel(const int32_t indx)
 {
-    CaretAssertArrayIndex(this->outlineModels, 
+    CaretAssertArrayIndex(m_outlineModels, 
                           BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES, 
                           indx);
-    return this->outlineModels[indx];
+    return m_outlineModels[indx];
 }
 
 /**
@@ -152,10 +154,10 @@ VolumeSurfaceOutlineSetModel::getVolumeSurfaceOutlineModel(const int32_t indx)
 const VolumeSurfaceOutlineModel* 
 VolumeSurfaceOutlineSetModel::getVolumeSurfaceOutlineModel(const int32_t indx) const
 {
-    CaretAssertArrayIndex(this->outlineModels, 
+    CaretAssertArrayIndex(m_outlineModels, 
                           BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES, 
                           indx);
-    return this->outlineModels[indx];
+    return m_outlineModels[indx];
 }
 
 /**
@@ -236,40 +238,40 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
-        this->outlineModels[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
-        this->outlineModels[i]->setThickness(1);
+        m_outlineModels[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
+        m_outlineModels[i]->setThickness(1);
     }
     
     int nextOutlineIndex = 0;
     
-    this->addSurfaceOutline(leftMidThickSurface, 
+    addSurfaceOutline(leftMidThickSurface, 
                             5.0, 
                             leftTabIndex, 
                             CaretColorEnum::BLACK, 
                             nextOutlineIndex);
-    this->addSurfaceOutline(rightMidThickSurface, 
+    addSurfaceOutline(rightMidThickSurface, 
                             5.0, 
                             rightTabIndex, 
                             CaretColorEnum::BLACK, 
                             nextOutlineIndex);
     
-    this->addSurfaceOutline(leftWhiteSurface, 
+    addSurfaceOutline(leftWhiteSurface, 
                             0.5, 
                             -1, 
                             CaretColorEnum::LIME, 
                             nextOutlineIndex);
-    this->addSurfaceOutline(rightWhiteSurface, 
+    addSurfaceOutline(rightWhiteSurface, 
                             0.5, 
                             -1, 
                             CaretColorEnum::LIME, 
                             nextOutlineIndex);
     
-    this->addSurfaceOutline(leftPialSurface, 
+    addSurfaceOutline(leftPialSurface, 
                             0.5, 
                             -1, 
                             CaretColorEnum::BLUE, 
                             nextOutlineIndex);
-    this->addSurfaceOutline(rightPialSurface, 
+    addSurfaceOutline(rightPialSurface, 
                             0.5, 
                             -1, 
                             CaretColorEnum::BLUE, 
@@ -306,7 +308,7 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
     if (surface != NULL) {
         if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
             if (outlineIndex < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES) {
-                VolumeSurfaceOutlineModel* vsos = this->outlineModels[outlineIndex];
+                VolumeSurfaceOutlineModel* vsos = m_outlineModels[outlineIndex];
                 vsos->getSurfaceSelectionModel()->setSurface(surface);
                 vsos->setThickness(thickness);
                 if (browserTabIndex >= 0) {
@@ -322,4 +324,64 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
     }
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+VolumeSurfaceOutlineSetModel::saveToScene(const SceneAttributes* sceneAttributes,
+                                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "VolumeSurfaceOutlineSetModel",
+                                            1);
+    std::vector<SceneClass*> outlineModelSceneClassVector;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++ ) {
+        outlineModelSceneClassVector.push_back(m_outlineModels[i]->saveToScene(sceneAttributes, 
+                                                                               ("m_outlineModels[" + AString::number(i) + "]")));
+    }
+    
+    sceneClass->addInteger("m_numberOfDisplayedVolumeSurfaceOutlines", 
+                           m_numberOfDisplayedVolumeSurfaceOutlines);
+    
+    return sceneClass;
+}
 
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
+{
+    const SceneClassArray* outlineModelsArrayClass = sceneClass->getClassArray("m_outlineModels");
+    if (outlineModelsArrayClass != NULL) {
+        const int32_t maxNum = std::min(outlineModelsArrayClass->getNumberOfArrayElements(),
+                                        (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES);
+        for (int32_t i = 0; i < maxNum; i++) {
+            m_outlineModels[i]->restoreFromScene(sceneAttributes,
+                                                 outlineModelsArrayClass->getClassAtIndex(i));
+        }
+    }
+    
+    m_numberOfDisplayedVolumeSurfaceOutlines = sceneClass->getIntegerValue("m_numberOfDisplayedVolumeSurfaceOutlines",
+                                                                           6);
+    
+}

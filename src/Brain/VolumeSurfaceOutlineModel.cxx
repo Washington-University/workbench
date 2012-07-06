@@ -27,6 +27,8 @@
 #include "VolumeSurfaceOutlineModel.h"
 #undef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
@@ -47,10 +49,17 @@ using namespace caret;
 VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
 : CaretObject()
 {
-    this->displayed = false;
-    this->thickness = 5.0;
-    this->surfaceSelectionModel = new SurfaceSelectionModel(SurfaceTypeEnum::ANATOMICAL);
-    this->colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
+    m_displayed = false;
+    m_thickness = 5.0;
+    m_surfaceSelectionModel = new SurfaceSelectionModel(SurfaceTypeEnum::ANATOMICAL);
+    m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_displayed", &m_displayed, m_displayed);
+    m_sceneAssistant->add("m_thickness", &m_thickness, m_thickness);
+    m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
+    m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
+    
 }
 
 /**
@@ -58,8 +67,10 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
  */
 VolumeSurfaceOutlineModel::~VolumeSurfaceOutlineModel()
 {
-    delete this->surfaceSelectionModel;
-    delete this->colorOrTabModel;
+    delete m_surfaceSelectionModel;
+    delete m_colorOrTabModel;
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -70,12 +81,12 @@ VolumeSurfaceOutlineModel::~VolumeSurfaceOutlineModel()
 void 
 VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineModel* modelToCopy)
 {
-    this->displayed = modelToCopy->displayed;
-    this->thickness = modelToCopy->thickness;
-    this->surfaceSelectionModel->setSurface(modelToCopy->getSurface());
+    m_displayed = modelToCopy->m_displayed;
+    m_thickness = modelToCopy->m_thickness;
+    m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
-    this->colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
+    m_colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
 }
 
 /**
@@ -94,7 +105,7 @@ VolumeSurfaceOutlineModel::toString() const
 bool 
 VolumeSurfaceOutlineModel::isDisplayed() const
 {
-    return this->displayed;
+    return m_displayed;
 }
 
 /**
@@ -105,7 +116,7 @@ VolumeSurfaceOutlineModel::isDisplayed() const
 void 
 VolumeSurfaceOutlineModel::setDisplayed(const bool displayed)
 {
-    this->displayed = displayed;
+    m_displayed = displayed;
 }
 
 /**
@@ -114,7 +125,7 @@ VolumeSurfaceOutlineModel::setDisplayed(const bool displayed)
 float 
 VolumeSurfaceOutlineModel::getThickness() const
 {
-    return this->thickness;
+    return m_thickness;
 }
 
 /**
@@ -125,7 +136,7 @@ VolumeSurfaceOutlineModel::getThickness() const
 void 
 VolumeSurfaceOutlineModel::setThickness(const float thickness)
 {
-    this->thickness = thickness;
+    m_thickness = thickness;
 }
 
 /**
@@ -134,7 +145,7 @@ VolumeSurfaceOutlineModel::setThickness(const float thickness)
 SurfaceSelectionModel* 
 VolumeSurfaceOutlineModel::getSurfaceSelectionModel()
 {
-    return this->surfaceSelectionModel;
+    return m_surfaceSelectionModel;
 }
 
 /**
@@ -143,7 +154,7 @@ VolumeSurfaceOutlineModel::getSurfaceSelectionModel()
 const Surface* 
 VolumeSurfaceOutlineModel::getSurface() const
 {
-    return this->surfaceSelectionModel->getSurface();
+    return m_surfaceSelectionModel->getSurface();
 }
 
 /**
@@ -152,7 +163,7 @@ VolumeSurfaceOutlineModel::getSurface() const
 Surface* 
 VolumeSurfaceOutlineModel::getSurface()
 {
-    return this->surfaceSelectionModel->getSurface();
+    return m_surfaceSelectionModel->getSurface();
 }
 
 /**
@@ -161,7 +172,7 @@ VolumeSurfaceOutlineModel::getSurface()
 VolumeSurfaceOutlineColorOrTabModel* 
 VolumeSurfaceOutlineModel::getColorOrTabModel()
 {
-    return this->colorOrTabModel;
+    return m_colorOrTabModel;
 }
 
 /**
@@ -170,7 +181,51 @@ VolumeSurfaceOutlineModel::getColorOrTabModel()
 const VolumeSurfaceOutlineColorOrTabModel* 
 VolumeSurfaceOutlineModel::getColorOrTabModel() const
 {
-    return this->colorOrTabModel;
+    return m_colorOrTabModel;
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+VolumeSurfaceOutlineModel::saveToScene(const SceneAttributes* sceneAttributes,
+                                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "VolumeSurfaceOutlineModel",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+    return sceneClass;
+}
 
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+VolumeSurfaceOutlineModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
+{
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+}

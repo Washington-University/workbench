@@ -41,6 +41,7 @@
 #include "CaretAssert.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -65,8 +66,8 @@ using namespace caret;
 VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
 : CaretObject()
 {
-    this->selectedItem = NULL;
-    this->previousSelectedItemIndex = -1;
+    m_selectedItem = NULL;
+    m_previousSelectedItemIndex = -1;
     
     std::vector<CaretColorEnum::Enum> allColors;
     CaretColorEnum::getAllEnums(allColors, 
@@ -75,14 +76,14 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
          iter != allColors.end();
          iter++) {
         Item* item = new Item(*iter);
-        this->colorItems.push_back(item);
+        m_colorItems.push_back(item);
     }
     
-    this->browserTabItems.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+    m_browserTabItems.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                                  NULL);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         Item* item = new Item(i);
-        this->browserTabItems[i] = item;
+        m_browserTabItems[i] = item;
     }
 }
 
@@ -91,21 +92,21 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
  */
 VolumeSurfaceOutlineColorOrTabModel::~VolumeSurfaceOutlineColorOrTabModel()
 {
-    for (std::vector<Item*>::iterator iter = this->colorItems.begin();
-         iter != this->colorItems.end();
+    for (std::vector<Item*>::iterator iter = m_colorItems.begin();
+         iter != m_colorItems.end();
          iter++) {
         Item* item = *iter;
         delete item;
     }
-    this->colorItems.clear();
+    m_colorItems.clear();
     
-    for (std::vector<Item*>::iterator iter = this->browserTabItems.begin();
-         iter != this->browserTabItems.end();
+    for (std::vector<Item*>::iterator iter = m_browserTabItems.begin();
+         iter != m_browserTabItems.end();
          iter++) {
         Item* item = *iter;
         delete item;
     }
-    this->browserTabItems.clear();
+    m_browserTabItems.clear();
 }
 
 /**
@@ -116,12 +117,12 @@ VolumeSurfaceOutlineColorOrTabModel::~VolumeSurfaceOutlineColorOrTabModel()
 void 
 VolumeSurfaceOutlineColorOrTabModel::copyVolumeSurfaceOutlineColorOrTabModel(VolumeSurfaceOutlineColorOrTabModel* modelToCopy)
 {
-    switch (this->getSelectedItem()->getItemType()) {
+    switch (getSelectedItem()->getItemType()) {
         case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
-            this->setColor(modelToCopy->getSelectedItem()->getColor());
+            setColor(modelToCopy->getSelectedItem()->getColor());
             break;
         case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
-            this->setBrowserTabIndex(modelToCopy->getSelectedItem()->getBrowserTabIndex());
+            setBrowserTabIndex(modelToCopy->getSelectedItem()->getBrowserTabIndex());
             break;
     }
 }
@@ -137,8 +138,8 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
     /*
      * Limit to valid tabs
      */
-    for (std::vector<Item*>::iterator iter = this->browserTabItems.begin();
-         iter != this->browserTabItems.end();
+    for (std::vector<Item*>::iterator iter = m_browserTabItems.begin();
+         iter != m_browserTabItems.end();
          iter++) {
         Item* item = *iter;
         if (item->isValid()) {
@@ -149,8 +150,8 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
     /*
      * All color items are valid
      */
-    for (std::vector<Item*>::iterator iter = this->colorItems.begin();
-         iter != this->colorItems.end();
+    for (std::vector<Item*>::iterator iter = m_colorItems.begin();
+         iter != m_colorItems.end();
          iter++) {
         Item* item = *iter;
         items.push_back(item);
@@ -166,39 +167,39 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
 VolumeSurfaceOutlineColorOrTabModel::Item* 
 VolumeSurfaceOutlineColorOrTabModel::getSelectedItem()
 {
-    std::vector<Item*> allItems = this->getValidItems();
+    std::vector<Item*> allItems = getValidItems();
     const int32_t numItems = static_cast<int32_t>(allItems.size());
     bool foundSelctedItem = false;
     for (int32_t i = 0; i < numItems; i++) {
-        if (allItems[i] == this->selectedItem) {
+        if (allItems[i] == m_selectedItem) {
             foundSelctedItem = true;
-            this->previousSelectedItemIndex = i;
+            m_previousSelectedItemIndex = i;
             break;
         }
     }
     
     if (foundSelctedItem == false) {
-        this->selectedItem = NULL;
+        m_selectedItem = NULL;
     }
     
-    if (this->selectedItem == NULL) {
-        if (this->previousSelectedItemIndex >= 0) {
-            if (this->previousSelectedItemIndex >= numItems) {
-                this->previousSelectedItemIndex = numItems - 1;
+    if (m_selectedItem == NULL) {
+        if (m_previousSelectedItemIndex >= 0) {
+            if (m_previousSelectedItemIndex >= numItems) {
+                m_previousSelectedItemIndex = numItems - 1;
             }
         }
         else {
             if (numItems > 0) {
-                this->previousSelectedItemIndex = 0;
+                m_previousSelectedItemIndex = 0;
             }
         }
 
-        if (this->previousSelectedItemIndex >= 0) {
-            this->selectedItem = allItems[this->previousSelectedItemIndex];
+        if (m_previousSelectedItemIndex >= 0) {
+            m_selectedItem = allItems[m_previousSelectedItemIndex];
         }
     }
     
-    return this->selectedItem;
+    return m_selectedItem;
 }
 
 /**
@@ -209,12 +210,12 @@ VolumeSurfaceOutlineColorOrTabModel::getSelectedItem()
 void 
 VolumeSurfaceOutlineColorOrTabModel::setSelectedItem(Item* item)
 {
-    this->selectedItem = item;
-    std::vector<Item*> allItems = this->getValidItems();
+    m_selectedItem = item;
+    std::vector<Item*> allItems = getValidItems();
     const int32_t numItems = static_cast<int32_t>(allItems.size());
     for (int32_t i = 0; i < numItems; i++) {
-        if (allItems[i] == this->selectedItem) {
-            this->previousSelectedItemIndex = i;
+        if (allItems[i] == m_selectedItem) {
+            m_previousSelectedItemIndex = i;
             break;
         }
     }
@@ -228,12 +229,12 @@ VolumeSurfaceOutlineColorOrTabModel::setSelectedItem(Item* item)
 void 
 VolumeSurfaceOutlineColorOrTabModel::setColor(const CaretColorEnum::Enum color)
 {
-    std::vector<Item*> allItems = this->getValidItems();
+    std::vector<Item*> allItems = getValidItems();
     const int32_t numItems = static_cast<int32_t>(allItems.size());
     for (int32_t i = 0; i < numItems; i++) {
         if (allItems[i]->getItemType() == Item::ITEM_TYPE_COLOR) {
             if (allItems[i]->getColor() == color) {
-                this->setSelectedItem(allItems[i]);
+                setSelectedItem(allItems[i]);
                 break;
             }
         }
@@ -248,17 +249,68 @@ VolumeSurfaceOutlineColorOrTabModel::setColor(const CaretColorEnum::Enum color)
 void 
 VolumeSurfaceOutlineColorOrTabModel::setBrowserTabIndex(const int32_t browserTabIndex)
 {
-    std::vector<Item*> allItems = this->getValidItems();
+    std::vector<Item*> allItems = getValidItems();
     const int32_t numItems = static_cast<int32_t>(allItems.size());
     for (int32_t i = 0; i < numItems; i++) {
         if (allItems[i]->getItemType() == Item::ITEM_TYPE_BROWSER_TAB) {
             if (allItems[i]->getBrowserTabIndex() == browserTabIndex) {
-                this->setSelectedItem(allItems[i]);
+                setSelectedItem(allItems[i]);
                 break;
             }
         }
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+VolumeSurfaceOutlineColorOrTabModel::saveToScene(const SceneAttributes* sceneAttributes,
+                                                 const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "VolumeSurfaceOutlineColorOrTabModel",
+                                            1);
+    
+    sceneClass->addInteger("m_previousSelectedItemIndex", 
+                           m_previousSelectedItemIndex);
+    sceneClass->addChild(m_selectedItem->saveToScene(sceneAttributes, 
+                                                     "m_selectedItem"));
+
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+VolumeSurfaceOutlineColorOrTabModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                      const SceneClass* sceneClass)
+{
+    m_previousSelectedItemIndex = sceneClass->getIntegerValue("m_previousSelectedItemIndex",
+                                                              -1);
+    m_selectedItem->restoreFromScene(sceneAttributes, 
+                                     sceneClass->getClass("m_selectedItem"));
+}
+
 
 
 //======================================================================
@@ -278,9 +330,9 @@ VolumeSurfaceOutlineColorOrTabModel::setBrowserTabIndex(const int32_t browserTab
  */
 VolumeSurfaceOutlineColorOrTabModel::Item::Item(const CaretColorEnum::Enum color)
 {
-    this->color = color;
-    this->browserTabIndex = 0;
-    this->itemType = ITEM_TYPE_COLOR;
+    m_color = color;
+    m_browserTabIndex = 0;
+    m_itemType = ITEM_TYPE_COLOR;
 }
 
 /**
@@ -290,9 +342,9 @@ VolumeSurfaceOutlineColorOrTabModel::Item::Item(const CaretColorEnum::Enum color
  */
 VolumeSurfaceOutlineColorOrTabModel::Item::Item(const int32_t browserTabIndex)
 {
-    this->color = CaretColorEnum::CLASS;
-    this->browserTabIndex = browserTabIndex;
-    this->itemType = ITEM_TYPE_BROWSER_TAB;
+    m_color = CaretColorEnum::CLASS;
+    m_browserTabIndex = browserTabIndex;
+    m_itemType = ITEM_TYPE_BROWSER_TAB;
 }
 
 /**
@@ -311,9 +363,9 @@ VolumeSurfaceOutlineColorOrTabModel::Item::isValid() const
 {
     bool valid = false;
     
-    switch (this->itemType) {
+    switch (m_itemType) {
         case ITEM_TYPE_BROWSER_TAB:
-            if (this->getBrowserTabContent() != NULL) {
+            if (getBrowserTabContent() != NULL) {
                 valid = true;
             }
             break;
@@ -333,13 +385,13 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getName()
 {
     AString name = "PROGRAM ERROR";
     
-    switch(this->itemType) {
+    switch(m_itemType) {
         case ITEM_TYPE_BROWSER_TAB:
             name = ("Tab "
-                    + AString::number(this->getBrowserTabContent()->getTabNumber() + 1));
+                    + AString::number(getBrowserTabContent()->getTabNumber() + 1));
             break;
         case ITEM_TYPE_COLOR:
-            name = CaretColorEnum::toGuiName(this->color);
+            name = CaretColorEnum::toGuiName(m_color);
             break;
     }
     
@@ -352,7 +404,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getName()
 VolumeSurfaceOutlineColorOrTabModel::Item::ItemType 
 VolumeSurfaceOutlineColorOrTabModel::Item::getItemType() const
 {
-    return this->itemType;
+    return m_itemType;
     
 }
 
@@ -363,7 +415,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getItemType() const
 BrowserTabContent* 
 VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabContent()
 {
-    EventBrowserTabGet getTabEvent(this->browserTabIndex);
+    EventBrowserTabGet getTabEvent(m_browserTabIndex);
     EventManager::get()->sendEvent(getTabEvent.getPointer());
     
     BrowserTabContent* tabContent = getTabEvent.getBrowserTab();
@@ -378,7 +430,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabContent()
 const BrowserTabContent* 
 VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabContent() const
 {
-    EventBrowserTabGet getTabEvent(this->browserTabIndex);
+    EventBrowserTabGet getTabEvent(m_browserTabIndex);
     EventManager::get()->sendEvent(getTabEvent.getPointer());
     
     BrowserTabContent* tabContent = getTabEvent.getBrowserTab();
@@ -394,7 +446,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabContent() const
 int32_t 
 VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabIndex() const
 {
-    return this->browserTabIndex;
+    return m_browserTabIndex;
 }
 
 /**
@@ -404,6 +456,82 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabIndex() const
 CaretColorEnum::Enum 
 VolumeSurfaceOutlineColorOrTabModel::Item::getColor()
 {
-    return this->color;    
+    return m_color;    
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+VolumeSurfaceOutlineColorOrTabModel::Item::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                       const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "VolumeSurfaceOutlineColorOrTabModel::Item",
+                                            1);
+    
+    sceneClass->addInteger("m_browserTabIndex", 
+                           m_browserTabIndex);
+    sceneClass->addEnumeratedType<CaretColorEnum, CaretColorEnum::Enum>("m_color", 
+                                                                        m_color);
+    switch (m_itemType) {
+        case ITEM_TYPE_COLOR:
+            sceneClass->addString("m_itemType",
+                                  "ITEM_TYPE_COLOR");
+            break;
+        case ITEM_TYPE_BROWSER_TAB:
+            sceneClass->addString("m_itemType",
+                                  "ITEM_TYPE_BROWSER_TAB");
+            break;
+    }    
+    
+    sceneClass->addInteger("m_browserTabIndex", 
+                           m_browserTabIndex);
+
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+VolumeSurfaceOutlineColorOrTabModel::Item::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                            const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_browserTabIndex = sceneClass->getIntegerValue("m_browserTabIndex");
+    m_color = sceneClass->getEnumeratedTypeValue<CaretColorEnum, CaretColorEnum::Enum>("m_color", CaretColorEnum::BLUE);
+    const AString itemTypeName = sceneClass->getStringValue("m_itemType",
+                                                            "ITEM_TYPE_COLOR");
+    if (itemTypeName == "ITEM_TYPE_BROWSER_TAB") {
+        m_itemType = ITEM_TYPE_BROWSER_TAB;
+    }
+    else if (itemTypeName == "ITEM_TYPE_COLOR") {
+        m_itemType = ITEM_TYPE_COLOR;
+    }
+    else {
+        CaretAssert(0);
+    }
 }
 

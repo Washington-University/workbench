@@ -71,6 +71,10 @@ namespace caret {
         
         void addClass(SceneClass* sceneClass);
         
+        void addClassArray(const AString& name,
+                           SceneClass* values[],
+                           const int32_t arrayNumberOfElements);
+        
         void addEnumeratedType(const AString& name,
                                const AString& value);
         

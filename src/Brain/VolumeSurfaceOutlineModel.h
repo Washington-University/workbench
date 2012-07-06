@@ -26,14 +26,17 @@
  */ 
 
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class Surface;
+    class SceneAttributes;
+    class SceneClassAssistant;
     class SurfaceSelectionModel;
     class VolumeSurfaceOutlineColorOrTabModel;
     
-    class VolumeSurfaceOutlineModel : public CaretObject {
+    class VolumeSurfaceOutlineModel : public CaretObject, public SceneableInterface {
         
     public:
         VolumeSurfaceOutlineModel();
@@ -60,6 +63,11 @@ namespace caret {
         
         const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         VolumeSurfaceOutlineModel(const VolumeSurfaceOutlineModel&);
 
@@ -69,13 +77,15 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        bool displayed;
+        bool m_displayed;
         
-        float thickness;
+        float m_thickness;
         
-        SurfaceSelectionModel* surfaceSelectionModel;
+        SurfaceSelectionModel* m_surfaceSelectionModel;
         
-        VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel;
+        VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
