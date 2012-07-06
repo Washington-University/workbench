@@ -805,7 +805,9 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
                                             "Model",
                                             1);
 
-    sceneClass->addEnumeratedType("m_modelType", ModelTypeEnum::toName(m_modelType));
+//    sceneClass->addEnumeratedType("m_modelType", ModelTypeEnum::toName(m_modelType));
+    sceneClass->addEnumeratedType<ModelTypeEnum, ModelTypeEnum::Enum>("m_modelType", m_modelType);
+    
     sceneClass->addFloat("m_defaultModelScaling", m_defaultModelScaling);
     
     if (m_modelType == ModelTypeEnum::MODEL_TYPE_SURFACE) {
@@ -946,14 +948,21 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
 
-    const AString savedModelTypeString = sceneClass->getEnumeratedTypeValue("m_modelType",
-                                                                            ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID));
-    bool isValidModelTypeName = false;
-    const ModelTypeEnum::Enum savedModelType = ModelTypeEnum::fromName(savedModelTypeString,
-                                                                       &isValidModelTypeName);
+    /*
+     *  This model was created by the parent scene class.
+     *  The model type in the scene should match what was saved.
+     *  If not, a serious (programming) error has occurred.
+     */
+    const ModelTypeEnum::Enum savedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum, ModelTypeEnum::Enum>("m_modelType", 
+                                                                                         ModelTypeEnum::MODEL_TYPE_INVALID);
+//    const AString savedModelTypeString = sceneClass->getEnumeratedTypeValue("m_modelType",
+//                                                                            ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID));
+//    bool isValidModelTypeName = false;
+//    const ModelTypeEnum::Enum savedModelType = ModelTypeEnum::fromName(savedModelTypeString,
+//                                                                       &isValidModelTypeName);
     if (savedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
-        throw SceneException("Invalid model type when restoring scene: "
-                             + savedModelTypeString);
+        throw SceneException("Non-matching model type when restoring scene: "
+                             + ModelTypeEnum::toName(savedModelType));
         return;
     }
     

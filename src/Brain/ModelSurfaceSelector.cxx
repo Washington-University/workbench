@@ -361,8 +361,10 @@ ModelSurfaceSelector::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                             "ModelSurfaceSelector",
                                             1);
     
-    sceneClass->addEnumeratedType("m_selectedStructure", 
-                                  StructureEnum::toName(m_selectedStructure));
+    sceneClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("m_selectedStructure",
+                                                                      m_selectedStructure);
+//    sceneClass->addEnumeratedType("m_selectedStructure", 
+//                                  StructureEnum::toName(m_selectedStructure));
     if (m_selectedSurfaceController != NULL) {
         const Surface* surface = m_selectedSurfaceController->getSurface();
         if (surface != NULL) {
@@ -395,9 +397,11 @@ ModelSurfaceSelector::restoreFromScene(const SceneAttributes* /*sceneAttributes*
         return;
     }
     
-    m_selectedStructure = StructureEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedStructure",
-                                                                                     StructureEnum::toName(StructureEnum::ALL)),
-                                                  NULL);
+    m_selectedStructure = sceneClass->getEnumeratedTypeValue<StructureEnum, StructureEnum::Enum>("m_selectedStructure", 
+                                                                                                 m_selectedStructure);
+//    m_selectedStructure = StructureEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedStructure",
+//                                                                                     StructureEnum::toName(StructureEnum::ALL)),
+//                                                  NULL);
     setSelectedStructure(m_selectedStructure);
     
     const AString surfaceFileName = sceneClass->getStringValue("surfaceFileName",

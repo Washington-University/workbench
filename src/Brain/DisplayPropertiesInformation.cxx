@@ -212,10 +212,14 @@ DisplayPropertiesInformation::saveToScene(const SceneAttributes* sceneAttributes
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                       sceneClass);
     
-    sceneClass->addEnumeratedType("m_identificationSymbolColor", 
-                                  CaretColorEnum::toName(m_identificationSymbolColor));
-    sceneClass->addEnumeratedType("m_identificationContralateralSymbolColor", 
-                                  CaretColorEnum::toName(m_identificationContralateralSymbolColor));
+    sceneClass->addEnumeratedType<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor", 
+                                  m_identificationSymbolColor);
+    sceneClass->addEnumeratedType<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor", 
+                                  m_identificationContralateralSymbolColor);
+//    sceneClass->addEnumeratedType("m_identificationSymbolColor", 
+//                                  CaretColorEnum::toName(m_identificationSymbolColor));
+//    sceneClass->addEnumeratedType("m_identificationContralateralSymbolColor", 
+//                                  CaretColorEnum::toName(m_identificationContralateralSymbolColor));
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -246,15 +250,19 @@ DisplayPropertiesInformation::restoreFromScene(const SceneAttributes* sceneAttri
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                          sceneClass);
     
+    m_identificationSymbolColor = sceneClass->getEnumeratedTypeValue<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
+                                                                                                           CaretColorEnum::GREEN);
+    m_identificationContralateralSymbolColor = sceneClass->getEnumeratedTypeValue<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
+                                                                                                                        CaretColorEnum::BLUE);
+//    m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationSymbolColor",
+//                                                                                              CaretColorEnum::toName(CaretColorEnum::GREEN)),
+//                                                           NULL);
+//    m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
+//                                                                                                           CaretColorEnum::toName(CaretColorEnum::BLUE)),
+//                                                                        NULL);
     switch (sceneAttributes->getSceneType()) {
             
         case SceneTypeEnum::SCENE_TYPE_FULL:
-            m_identificationSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationSymbolColor",
-                                                                                                      CaretColorEnum::toName(CaretColorEnum::GREEN)),
-                                                                   NULL);
-            m_identificationContralateralSymbolColor = CaretColorEnum::fromName(sceneClass->getEnumeratedTypeValue("m_identificationContralateralSymbolColor",
-                                                                                                                   CaretColorEnum::toName(CaretColorEnum::BLUE)),
-                                                                                NULL);
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;

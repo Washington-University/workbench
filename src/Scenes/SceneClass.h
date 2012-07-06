@@ -74,6 +74,38 @@ namespace caret {
         void addEnumeratedType(const AString& name,
                                const AString& value);
         
+        /**
+         * Add an enumerated type.
+         * @param name
+         *    Name of enumerated type.
+         * @param value
+         *    Enumerated value.
+         */
+        template <class T, typename ET> 
+        void addEnumeratedType(const AString& name,
+                              const ET value) {
+            addEnumeratedType(name,
+                              T::toName(value));
+        }
+        
+        /**
+         * Get an enumerated type value
+         * @param name
+         *    Name of enumerated type.
+         * @param defaultValue
+         *    Enumerated value returned if named value is not found.
+         */
+        template <class T, typename ET> 
+        ET getEnumeratedTypeValue(const AString& name,
+                             const ET defaultValue) const {
+            const AString stringValue = getEnumeratedTypeValue(name,
+                                                               T::toName(defaultValue));
+            bool valid = false;
+            ET value = T::fromName(stringValue,
+                                   &valid);
+            return value;
+        }
+        
         void addEnumeratedTypeArray(const AString& name,
                                const AString value[],
                                     const int32_t arrayNumberOfElements);

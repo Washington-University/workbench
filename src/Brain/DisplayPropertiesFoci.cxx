@@ -77,22 +77,14 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
         m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
     }
     
-    m_sceneAssistant->addArray("m_pasteOntoSurfaceInTab", 
-                               m_pasteOntoSurfaceInTab,
-                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               false);
-    m_sceneAssistant->addArray("m_displayStatusInTab", 
-                               m_displayStatusInTab,
-                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               false);
-    m_sceneAssistant->addArray("m_contralateralDisplayStatusInTab", 
-                               m_contralateralDisplayStatusInTab,
-                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               false);
-    m_sceneAssistant->addArray("m_fociSizeInTab", 
-                               m_fociSizeInTab,
-                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                               m_fociSizeInTab[0]);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_pasteOntoSurfaceInTab", 
+                               m_pasteOntoSurfaceInTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab", 
+                               m_displayStatusInTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_contralateralDisplayStatusInTab", 
+                               m_contralateralDisplayStatusInTab);
+    m_sceneAssistant->addTabIndexedFloatArray("m_fociSizeInTab", 
+                               m_fociSizeInTab);
     
     m_sceneAssistant->addArray("m_pasteOntoSurfaceInDisplayGroup", 
                                m_pasteOntoSurfaceInDisplayGroup,
@@ -498,6 +490,8 @@ SceneClass*
 DisplayPropertiesFoci::saveToScene(const SceneAttributes* sceneAttributes,
                    const AString& instanceName)
 {
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "DisplayPropertiesFoci",
                                             1);
@@ -505,45 +499,62 @@ DisplayPropertiesFoci::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
-    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        tabStringArray[i] = DisplayGroupEnum::toName(m_displayGroup[i]);
-    }
-    sceneClass->addEnumeratedTypeArray("m_displayGroup", 
-                                       tabStringArray, 
-                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        tabStringArray[i] = FociColoringTypeEnum::toName(m_coloringTypeInTab[i]);
-    }
-    sceneClass->addEnumeratedTypeArray("m_coloringTypeInTab", 
-                                       tabStringArray, 
-                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    sceneClass->addEnumerateTypeArrayForTabIndices<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup", 
+                                         m_displayGroup, 
+                                         tabIndices);
+    sceneClass->addEnumerateTypeArrayForTabIndices<FociColoringTypeEnum,FociColoringTypeEnum::Enum>("m_coloringTypeInTab", 
+                                                                                            m_coloringTypeInTab, 
+                                                                                            tabIndices);
+    sceneClass->addEnumerateTypeArrayForTabIndices<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
+                                                                                            m_drawingTypeInTab, 
+                                                                                            tabIndices);
 
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        tabStringArray[i] = FociDrawingTypeEnum::toName(m_drawingTypeInTab[i]);
-    }
-    sceneClass->addEnumeratedTypeArray("m_drawingTypeInTab", 
-                                       tabStringArray, 
-                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     
     
+//    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        tabStringArray[i] = DisplayGroupEnum::toName(m_displayGroup[i]);
+//    }
+//    sceneClass->addEnumeratedTypeArray("m_displayGroup", 
+//                                       tabStringArray, 
+//                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//    
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        tabStringArray[i] = FociColoringTypeEnum::toName(m_coloringTypeInTab[i]);
+//    }
+//    sceneClass->addEnumeratedTypeArray("m_coloringTypeInTab", 
+//                                       tabStringArray, 
+//                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        tabStringArray[i] = FociDrawingTypeEnum::toName(m_drawingTypeInTab[i]);
+//    }
+//    sceneClass->addEnumeratedTypeArray("m_drawingTypeInTab", 
+//                                       tabStringArray, 
+//                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     
     
-    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        displayGroupStringArray[i] = FociColoringTypeEnum::toName(m_coloringTypeInDisplayGroup[i]);
-    }
-    sceneClass->addEnumeratedTypeArray("m_coloringTypeInDisplayGroup", 
-                                       displayGroupStringArray, 
-                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
+    sceneClass->addEnumerateTypeArray<FociColoringTypeEnum,FociColoringTypeEnum::Enum>("m_coloringTypeInDisplayGroup", 
+                                                                                       m_coloringTypeInDisplayGroup, 
+                                                                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
+    sceneClass->addEnumerateTypeArray<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
+                                                                                       m_drawingTypeInDisplayGroup, 
+                                                                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
     
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        displayGroupStringArray[i] = FociDrawingTypeEnum::toName(m_drawingTypeInDisplayGroup[i]);
-    }
-    sceneClass->addEnumeratedTypeArray("m_drawingTypeInDisplayGroup", 
-                                       displayGroupStringArray, 
-                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
+//    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
+//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+//        displayGroupStringArray[i] = FociColoringTypeEnum::toName(m_coloringTypeInDisplayGroup[i]);
+//    }
+//    sceneClass->addEnumeratedTypeArray("m_coloringTypeInDisplayGroup", 
+//                                       displayGroupStringArray, 
+//                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
+//    
+//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+//        displayGroupStringArray[i] = FociDrawingTypeEnum::toName(m_drawingTypeInDisplayGroup[i]);
+//    }
+//    sceneClass->addEnumeratedTypeArray("m_drawingTypeInDisplayGroup", 
+//                                       displayGroupStringArray, 
+//                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -574,78 +585,94 @@ DisplayPropertiesFoci::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
-    const AString defaultDrawingTypeString = FociDrawingTypeEnum::toName(FociDrawingTypeEnum::DRAW_AS_SQUARES);
-    const AString defaultColoringTypeString = FociColoringTypeEnum::toName(FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME);
-    
-    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-    sceneClass->getEnumeratedTypeArrayValue("m_displayGroup", 
-                                           tabStringArray, 
-                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                                           DisplayGroupEnum::toName(DisplayGroupEnum::getDefaultValue()));
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        bool isValid = false;
-        m_displayGroup[i] = DisplayGroupEnum::fromName(tabStringArray[i],
-                                                                &isValid);
-        if (isValid == false) {
-            m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-        }
-    }
-    
-    sceneClass->getEnumeratedTypeArrayValue("m_coloringTypeInTab", 
-                                           tabStringArray, 
-                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                                           defaultColoringTypeString);
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        bool isValid = false;
-        m_coloringTypeInTab[i] = FociColoringTypeEnum::fromName(tabStringArray[i],
-                                                       &isValid);
-        if (isValid == false) {
-            m_coloringTypeInTab[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
-        }
-    }
-    
-    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
-                                           tabStringArray, 
-                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                                           defaultDrawingTypeString);
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        bool isValid = false;
-        m_drawingTypeInTab[i] = FociDrawingTypeEnum::fromName(tabStringArray[i],
-                                                                &isValid);
-        if (isValid == false) {
-            m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
-        }
-    }
+    sceneClass->getEnumerateTypeArrayForTabIndices<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup", 
+                                                                                            m_displayGroup);
+    sceneClass->getEnumerateTypeArrayForTabIndices<FociColoringTypeEnum,FociColoringTypeEnum::Enum>("m_coloringTypeInTab", 
+                                                                                            m_coloringTypeInTab);
+    sceneClass->getEnumerateTypeArrayForTabIndices<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
+                                                                                            m_drawingTypeInTab);
     
     
+//    const AString defaultDrawingTypeString = FociDrawingTypeEnum::toName(FociDrawingTypeEnum::DRAW_AS_SQUARES);
+//    const AString defaultColoringTypeString = FociColoringTypeEnum::toName(FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME);
+//    
+//    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+//    sceneClass->getEnumeratedTypeArrayValue("m_displayGroup", 
+//                                           tabStringArray, 
+//                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                                           DisplayGroupEnum::toName(DisplayGroupEnum::getDefaultValue()));
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        bool isValid = false;
+//        m_displayGroup[i] = DisplayGroupEnum::fromName(tabStringArray[i],
+//                                                                &isValid);
+//        if (isValid == false) {
+//            m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
+//        }
+//    }
+//    
+//    sceneClass->getEnumeratedTypeArrayValue("m_coloringTypeInTab", 
+//                                           tabStringArray, 
+//                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                                           defaultColoringTypeString);
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        bool isValid = false;
+//        m_coloringTypeInTab[i] = FociColoringTypeEnum::fromName(tabStringArray[i],
+//                                                       &isValid);
+//        if (isValid == false) {
+//            m_coloringTypeInTab[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+//        }
+//    }
+//    
+//    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
+//                                           tabStringArray, 
+//                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                                           defaultDrawingTypeString);
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        bool isValid = false;
+//        m_drawingTypeInTab[i] = FociDrawingTypeEnum::fromName(tabStringArray[i],
+//                                                                &isValid);
+//        if (isValid == false) {
+//            m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+//        }
+//    }
+    
+    sceneClass->getEnumerateTypeArray<FociColoringTypeEnum,FociColoringTypeEnum::Enum>("m_coloringTypeInDisplayGroup", 
+                                         m_coloringTypeInDisplayGroup, 
+                                         DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                                         FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME);
+    
+    sceneClass->getEnumerateTypeArray<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
+                                                                                       m_drawingTypeInDisplayGroup, 
+                                                                                       DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                                                                                       FociDrawingTypeEnum::DRAW_AS_SQUARES);
     
     
-    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
-    sceneClass->getEnumeratedTypeArrayValue("m_coloringTypeInDisplayGroup", 
-                                           displayGroupStringArray, 
-                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
-                                           defaultColoringTypeString);
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        bool isValid = false;
-        m_coloringTypeInDisplayGroup[i] = FociColoringTypeEnum::fromName(displayGroupStringArray[i],
-                                                                         &isValid);
-        if (isValid == false) {
-            m_coloringTypeInDisplayGroup[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
-        }
-    }
-    
-    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
-                                           displayGroupStringArray, 
-                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
-                                           defaultColoringTypeString);
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        bool isValid = false;
-        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::fromName(displayGroupStringArray[i],
-                                                                         &isValid);
-        if (isValid == false) {
-            m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
-        }
-    }
+//    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
+//    sceneClass->getEnumeratedTypeArrayValue("m_coloringTypeInDisplayGroup", 
+//                                           displayGroupStringArray, 
+//                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
+//                                           defaultColoringTypeString);
+//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+//        bool isValid = false;
+//        m_coloringTypeInDisplayGroup[i] = FociColoringTypeEnum::fromName(displayGroupStringArray[i],
+//                                                                         &isValid);
+//        if (isValid == false) {
+//            m_coloringTypeInDisplayGroup[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+//        }
+//    }
+//    
+//    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
+//                                           displayGroupStringArray, 
+//                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
+//                                           defaultColoringTypeString);
+//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+//        bool isValid = false;
+//        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::fromName(displayGroupStringArray[i],
+//                                                                         &isValid);
+//        if (isValid == false) {
+//            m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+//        }
+//    }
     
     
     switch (sceneAttributes->getSceneType()) {

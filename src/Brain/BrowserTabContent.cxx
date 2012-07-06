@@ -992,8 +992,10 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
     
-    sceneClass->addEnumeratedType("m_selectedModelType", 
-                                  ModelTypeEnum::toName(m_selectedModelType));
+    sceneClass->addEnumeratedType<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
+                                  m_selectedModelType);
+//    sceneClass->addEnumeratedType("m_selectedModelType", 
+//                                  ModelTypeEnum::toName(m_selectedModelType));
     sceneClass->addChild(m_surfaceModelSelector->saveToScene(sceneAttributes,
                                                              "m_surfaceModelSelector"));
     
@@ -1023,9 +1025,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
     
-    m_selectedModelType = ModelTypeEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedModelType",
-                                                                                     ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID)),
-                                                                                                           NULL);
+    m_selectedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum,ModelTypeEnum::Enum>("m_selectedModelType", 
+                                                                                          ModelTypeEnum::MODEL_TYPE_INVALID);
+//    m_selectedModelType = ModelTypeEnum::fromName(sceneClass->getEnumeratedTypeValue("m_selectedModelType",
+//                                                                                     ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID)),
+//                                                                                                           NULL);
     m_surfaceModelSelector->restoreFromScene(sceneAttributes, 
                                              sceneClass->getClass("m_surfaceModelSelector"));
 }
