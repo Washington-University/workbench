@@ -130,6 +130,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
                      this, SLOT(frameSpinBoxValueChanged(int)));
 
     this->frameName = new QLineEdit();
+    frameName->setReadOnly(true);
     
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
                                                    this);
