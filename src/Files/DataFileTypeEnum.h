@@ -44,9 +44,7 @@ public:
         /** Connectivity - Dense */
         CONNECTIVITY_DENSE,
         /** Connectivity - Dense Time Series */
-        CONNECTIVITY_DENSE_TIME_SERIES,
-        /** Connectivity - Scalar */
-        CONNECTIVITY_DENSE_SCALAR,
+        CONNECTIVITY_DENSE_TIME_SERIES,        
         /** Foci */
         FOCI,
         /** Labels */
