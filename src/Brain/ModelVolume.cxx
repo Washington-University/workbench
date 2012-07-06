@@ -34,8 +34,9 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
-#include "SceneClassAssistant.h"
+#include "SceneEnumeratedType.h"
 #include "SceneMapIntegerKey.h"
+#include "ScenePrimitive.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -638,26 +639,101 @@ void
 ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
     
-    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
-    //                                     sceneClass);
-    //    
-    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
-    //                                                                   "");
-    //    if (selectedMapFileName.isEmpty() == false) {
-    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-    //             iter != m_mapFiles.end();
-    //             iter++) {
-    //            const AString fileName = (*iter)->getFileNameNoPath();
-    //            if (fileName == selectedMapFileName) {
-    //                CaretMappableDataFile* mapFile = *iter;
-    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-    //                if (mapIndex >= 0) {
-    //                    m_selectedMapFile = mapFile;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+    /*
+     * View mode
+     */
+    const SceneMapIntegerKey* sliceViewModeMap = sceneClass->getMapIntegerKey("m_sliceViewMode");
+    if (sliceViewModeMap != NULL) {
+        const std::map<int32_t, SceneObject*>& sliceViewData = sliceViewModeMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = sliceViewData.begin();
+             iter != sliceViewData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneEnumeratedType* enumType = dynamic_cast<SceneEnumeratedType*>(iter->second);
+            m_sliceViewMode[key] = VolumeSliceViewModeEnum::fromName(enumType->stringValue(), 
+                                                                     NULL);
+        }
+    }
+    
+    /*
+     * View plane
+     */
+    const SceneMapIntegerKey* sliceViewPlaneMap = sceneClass->getMapIntegerKey("m_sliceViewPlane");
+    if (sliceViewPlaneMap != NULL) {
+        const std::map<int32_t, SceneObject*>& slicePlaneData = sliceViewPlaneMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = slicePlaneData.begin();
+             iter != slicePlaneData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneEnumeratedType* enumType = dynamic_cast<SceneEnumeratedType*>(iter->second);
+            m_sliceViewPlane[key] = VolumeSliceViewPlaneEnum::fromName(enumType->stringValue(), 
+                                                                     NULL);
+        }
+    }
+
+    /*
+     * Montage rows
+     */
+    const SceneMapIntegerKey* montageRowMap = sceneClass->getMapIntegerKey("m_montageNumberOfRows");
+    if (montageRowMap != NULL) {
+        const std::map<int32_t, SceneObject*>& montageRowData = montageRowMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = montageRowData.begin();
+             iter != montageRowData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_montageNumberOfRows[key] = primitive->integerValue();
+        }
+    }
+    
+    /*
+     * Montage columns
+     */
+    const SceneMapIntegerKey* montageColMap = sceneClass->getMapIntegerKey("m_montageNumberOfColumns");
+    if (montageColMap != NULL) {
+        const std::map<int32_t, SceneObject*>& montageColData = montageColMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = montageColData.begin();
+             iter != montageColData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_montageNumberOfColumns[key] = primitive->integerValue();
+        }
+    }
+
+    
+    /*
+     * Montage slice spacing
+     */
+    const SceneMapIntegerKey* montageSliceSpaceMap = sceneClass->getMapIntegerKey("m_montageSliceSpacing");
+    if (montageSliceSpaceMap) {
+        const std::map<int32_t, SceneObject*>& montageSliceSpaceData = montageSliceSpaceMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = montageSliceSpaceData.begin();
+             iter != montageSliceSpaceData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_montageSliceSpacing[key] = primitive->integerValue();
+        }
+    }
+    
+    /*
+     * Slice selection
+     */
+    const SceneMapIntegerKey* sliceSelectionMap = sceneClass->getMapIntegerKey("m_volumeSlicesSelected");
+    if (sliceSelectionMap != NULL) {
+        const std::map<int32_t, SceneObject*>& sliceSelectionData = sliceSelectionMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = sliceSelectionData.begin();
+             iter != sliceSelectionData.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneClass* spacingClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_volumeSlicesSelected[key].restoreFromScene(sceneAttributes, spacingClass);
+        }
+    }
 }
 

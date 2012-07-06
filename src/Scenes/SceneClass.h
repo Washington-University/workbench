@@ -35,12 +35,14 @@
 /*LICENSE_END*/
 
 
+#include "SceneMapIntegerKey.h"
 #include "SceneObject.h"
 
 namespace caret {
 
     class SceneClassArray;
     class SceneEnumeratedType;
+    class SceneMapIntegerKey;
     class ScenePrimitive;
     class ScenePrimitiveArray;
     
@@ -78,6 +80,112 @@ namespace caret {
         
         void addEnumeratedTypeVector(const AString& name,
                                      const std::vector<AString>& value);
+        
+        /**
+         * Add all elements in an enumerated type array.
+         * @param name
+         *    Name of enumerated type array.
+         * @param value
+         *    Array values.
+         * @param arrayNumberOfElements
+         *    Number of values in the array.
+         */
+        template <class T, typename ET> 
+        void addEnumerateTypeArray(const AString& name,
+                                   const ET value[],
+                                   const int32_t arrayNumberOfElements) {
+            std::vector<AString> stringVector;
+            
+            for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+                const AString stringValue = T::toName(value[i]);
+                stringVector.push_back(stringValue);
+            }
+            addEnumeratedTypeVector(name, stringVector);
+        }
+        
+        /**
+         * Restore all elements in an enumerated type array.
+         * @param name
+         *    Name of enumerated type array.
+         * @param value
+         *    Output array values.
+         * @param arrayNumberOfElements
+         *    Number of values in the array.
+         * @param defaultValue
+         *    Value used for missing array elements.
+         */
+        template <class T, typename ET> 
+        int32_t getEnumerateTypeArray(const AString& name,
+                                   ET value[],
+                                   const int32_t arrayNumberOfElements,
+                                      const ET defaultValue) const {
+            std::vector<AString> stringValues;
+            stringValues.resize(arrayNumberOfElements);
+            const int32_t numRestored = getEnumeratedTypeArrayValue(name,
+                                                                    &stringValues[0],
+                                                                    arrayNumberOfElements,
+                                                                    T::toName(defaultValue));
+            for (int32_t i = 0; i < numRestored; i++) {
+                bool valid = false;
+                value[i] = T::fromName(stringValues[i], &valid);
+            }
+            return numRestored;
+        }
+        
+        /**
+         * Add elements from an enumerated type array but
+         * only for the given tab indices using an
+         * integer keyed map.
+         *
+         * @param name
+         *    Name of enumerated type array.
+         * @param value
+         *    Array values.
+         * @param tabIndices
+         *    Indices of the tabs for which the values are saved.
+         */
+        template <class T, typename ET> 
+        void addEnumerateTypeArrayForTabIndices(const AString& name,
+                                                const ET value[],
+                                                const std::vector<int32_t>& tabIndices) {
+            SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(name,
+                                                                  SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
+            const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+            for (int32_t i = 0; i < numTabs; i++) {
+                const int32_t tabIndex = tabIndices[i];
+                const AString stringValue = T::toName(value[tabIndex]);
+                sceneMap->addEnumeratedType(tabIndex, stringValue);
+            }
+            
+            addChild(sceneMap);
+        }
+        
+        /**
+         * Add elements from an enumerated type array but
+         * only for the given tab indices using an
+         * integer keyed map.
+         *
+         * @param name
+         *    Name of enumerated type array.
+         * @param value
+         *    Array values.
+         * @param tabIndices
+         *    Indices of the tabs for which the values are saved.
+         */
+        template <class T, typename ET> 
+        void getEnumerateTypeArrayForTabIndices(const AString& name,
+                                                ET value[]) const {
+            const SceneMapIntegerKey* sceneMap = getMapIntegerKey(name);
+            const std::vector<int32_t> mapKeys = sceneMap->getKeys();
+            const int numKeys = static_cast<int32_t>(mapKeys.size());
+            for (int32_t i = 0; i < numKeys; i++) {
+                const int32_t key = mapKeys[i];
+                const AString valueString = sceneMap->enumeratedTypeValue(key);
+                bool valid = false;
+                value[key] = T::fromName(valueString,
+                                         &valid);
+            }
+        }
         
         void addFloat(const AString& name,
                       const float value);
@@ -154,9 +262,13 @@ namespace caret {
         
         const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
         
+        const SceneMapIntegerKey* getMapIntegerKey(const AString& name) const;
+        
         int32_t getNumberOfObjects() const;
         
         const SceneObject* getObjectAtIndex(const int32_t indx) const;
+        
+        const SceneObject* getObjectWithName(const AString& name) const;
         
         // ADD_NEW_METHODS_HERE
 

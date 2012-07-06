@@ -47,6 +47,7 @@
 #include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
+#include "SceneMapIntegerKey.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
 
@@ -783,6 +784,33 @@ SceneClass::getClass(const AString& name)
 }
 
 /**
+ * Find and return the scene's child map with integer key with the given name.
+ *
+ * @param name
+ *     Name of the child class.
+ * @return
+ *     Pointer to the map with integer key with the given name or NULL if
+ *     no child map with integer key exists with the given name.
+ */
+const SceneMapIntegerKey* 
+SceneClass::getMapIntegerKey(const AString& name) const
+{
+    
+    const SceneObject* sceneObject = getObjectWithName(name);
+    if (sceneObject != NULL) {
+        const SceneMapIntegerKey* smik = dynamic_cast<const SceneMapIntegerKey*>(sceneObject);
+        if (smik == NULL) {
+            logMissing("SceneMapIntegerKey not found: " + name);
+        }
+        return smik;
+    }
+    
+    logMissing("SceneMapIntegerKey not found: " + name);
+    return NULL;
+}
+
+
+/**
  * Find and return the scene's child class array with the given name.
  *
  * @param name
@@ -860,6 +888,28 @@ SceneClass::getObjectAtIndex(const int32_t indx) const
     CaretAssertVectorIndex(m_childObjects, indx);
     return m_childObjects[indx];
 }
+
+/**
+ * @return Object with the given name.  Returns NULL
+ * if an object with the given name is not found.
+ * @param name
+ *    Name of object.
+ */
+const SceneObject* 
+SceneClass::getObjectWithName(const AString& name) const
+{
+    for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
+         iter != m_childObjects.end();
+         iter++) {
+        const SceneObject* so = *iter;
+        if (so->getName() == name) {
+            return so;
+        }
+    }
+    
+    return NULL;
+}
+
 
 /**
  * Log a missing object message to the Caret Logger.

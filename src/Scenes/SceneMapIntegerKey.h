@@ -82,6 +82,10 @@ namespace caret {
         
         const SceneObject* getObject(const int32_t key) const;
         
+        const SceneClass* classValue(const int32_t key) const;
+        
+        AString enumeratedTypeValue(const int32_t key) const;
+        
         bool booleanValue(const int32_t key) const;
         
         float floatValue(const int32_t key) const;

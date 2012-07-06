@@ -260,6 +260,36 @@ SceneMapIntegerKey::stringValue(const int32_t key) const
     return primitive->stringValue();
 }
 
+/** 
+ * Get the value as a class. 
+ *
+ * @param key
+ *    key of element.
+ * @return The class with the given key.
+ */
+const SceneClass* 
+SceneMapIntegerKey::classValue(const int32_t key) const
+{
+    const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(getObject(key));
+    CaretAssert(sceneClass);
+    return sceneClass;
+}
+
+/** 
+ * Get the value as a enumerated type stirng. 
+ *
+ * @param key
+ *    key of element.
+ * @return The enumerated type value with the given key.
+ */
+AString 
+SceneMapIntegerKey::enumeratedTypeValue(const int32_t key) const
+{
+    const SceneEnumeratedType* enumType = dynamic_cast<const SceneEnumeratedType*>(getObject(key));
+    CaretAssert(enumType);
+    return enumType->stringValue();
+}
+
 /**
  * @return A vector containg all of the keys in the map.
  */

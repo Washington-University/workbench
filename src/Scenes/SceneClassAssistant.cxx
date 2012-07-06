@@ -39,6 +39,8 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneMapIntegerKey.h"
+#include "ScenePrimitive.h"
 #include "SceneableInterface.h"
 
 using namespace caret;
@@ -317,6 +319,70 @@ SceneClassAssistant::addArray(const AString& name,
 }
 
 /**
+ * Add a tab-indexed boolean array.  The array must
+ * contain BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elements.
+ * Depending upon how he scene is saved, all array elements or
+ * just those for specific tabs will be saved to the scene.
+ * @param name
+ *    Name of member.
+ * @param booleanArray
+ *    The array (pointer to first element.
+ */
+void 
+SceneClassAssistant::addTabIndexedBooleanArray(const AString& name,
+                                             bool* booleanArray)
+{
+    CaretAssert(booleanArray);
+    
+    BooleanTabIndexArrayMapData* bad = new BooleanTabIndexArrayMapData(name,
+                                                                       booleanArray);
+    m_dataStorage.push_back(bad);
+}
+
+/**
+ * Add a tab-indexed integer array.  The array must
+ * contain BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elements.
+ * Depending upon how he scene is saved, all array elements or
+ * just those for specific tabs will be saved to the scene.
+ * @param name
+ *    Name of member.
+ * @param integerArray
+ *    The array (pointer to first element.
+ */
+void 
+SceneClassAssistant::addTabIndexedIntegerArray(const AString& name,
+                                             int32_t* integerArray)
+{
+    CaretAssert(integerArray);
+    
+    IntegerTabIndexArrayMapData* bad = new IntegerTabIndexArrayMapData(name,
+                                                                       integerArray);
+    m_dataStorage.push_back(bad);
+}
+
+/**
+ * Add a tab-indexed float array.  The array must
+ * contain BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elements.
+ * Depending upon how he scene is saved, all array elements or
+ * just those for specific tabs will be saved to the scene.
+ * @param name
+ *    Name of member.
+ * @param floatArray
+ *    The array (pointer to first element.
+ */
+void 
+SceneClassAssistant::addTabIndexedFloatArray(const AString& name,
+                                           float* floatArray)
+{
+    CaretAssert(floatArray);
+    
+    FloatTabIndexArrayMapData* bad = new FloatTabIndexArrayMapData(name,
+                                                                       floatArray);
+    m_dataStorage.push_back(bad);
+}
+
+
+/**
  * Restore the members of a class.
  * 
  * @param sceneAttributes
@@ -590,6 +656,237 @@ SceneClassAssistant::StringData::save(const SceneAttributes& /*sceneAttributes*/
 {
     sceneClass.addString(m_name, 
                           *m_dataPointer);
+}
+
+
+/* ========================================================================= */
+
+/**
+ * \class caret::SceneClassAssistant::TabIndexArrayMapData
+ * \brief Base class for arrays that are index by a tab index.
+ */
+SceneClassAssistant::TabIndexArrayMapData::TabIndexArrayMapData(const AString& name)
+  : Data(name)
+{
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::BooleanTabIndexArrayMapData
+ * \brief Boolean array that is indexed by a tab index.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of boolean array.
+ * @param booleanArray
+ *    Address fo the array that is indexed by tab and contains
+ *    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elemnts.
+ */
+SceneClassAssistant::BooleanTabIndexArrayMapData::BooleanTabIndexArrayMapData(const AString& name,
+                                                                              bool* booleanArray)
+: TabIndexArrayMapData(name),
+m_booleanArray(booleanArray)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::BooleanTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                                          const SceneClass& sceneClass)
+{
+    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    if (sceneMap != NULL) {
+        const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+             iter != dataMap.end();
+             iter++) {
+            const int32_t tabIndex = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_booleanArray[tabIndex] = primitive->booleanValue();
+        }
+//        const std::vector<int32_t> keys = sceneMap->getKeys();
+//        const int32_t numKeys = static_cast<int32_t>(keys.size());
+//        for (int32_t i = 0; i < numKeys; i++) {
+//            const int32_t tabIndex = keys[i];
+//            m_booleanArray[tabIndex] = sceneMap->booleanValue(tabIndex);
+//        }
+    }
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class into  which data is stored.
+ */
+void 
+SceneClassAssistant::BooleanTabIndexArrayMapData::save(const SceneAttributes& sceneAttributes,
+                                                       SceneClass& sceneClass)
+{
+    const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
+    const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
+                                                       
+    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+                                                          SceneObjectDataTypeEnum::SCENE_BOOLEAN);
+    
+    for (int32_t i = 0; i < numTabIndices; i++) {
+        const int32_t tabIndex = tabIndices[i];
+        sceneMap->addBoolean(tabIndex, m_booleanArray[i]);
+    }
+    
+    sceneClass.addChild(sceneMap);
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::IntegerTabIndexArrayMapData
+ * \brief Integer array that is indexed by a tab index.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of integer array.
+ * @param integerArray
+ *    Address of the array that is indexed by tab and contains
+ *    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elemnts.
+ */
+SceneClassAssistant::IntegerTabIndexArrayMapData::IntegerTabIndexArrayMapData(const AString& name,
+                                                                              int32_t* integerArray)
+: TabIndexArrayMapData(name),
+m_integerArray(integerArray)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::IntegerTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                                          const SceneClass& sceneClass)
+{
+    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    if (sceneMap != NULL) {
+        const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+             iter != dataMap.end();
+             iter++) {
+            const int32_t tabIndex = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_integerArray[tabIndex] = primitive->integerValue();
+        }
+    }
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class into  which data is stored.
+ */
+void 
+SceneClassAssistant::IntegerTabIndexArrayMapData::save(const SceneAttributes& sceneAttributes,
+                                                       SceneClass& sceneClass)
+{
+    const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
+    const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
+    
+    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+                                                          SceneObjectDataTypeEnum::SCENE_INTEGER);
+    
+    for (int32_t i = 0; i < numTabIndices; i++) {
+        const int32_t tabIndex = tabIndices[i];
+        sceneMap->addInteger(tabIndex, m_integerArray[i]);
+    }
+    
+    sceneClass.addChild(sceneMap);
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::FloatTabIndexArrayMapData
+ * \brief Float array that is indexed by a tab index.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of float array.
+ * @param floatArray
+ *    Address of the array that is indexed by tab and contains
+ *    BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS elemnts.
+ */
+SceneClassAssistant::FloatTabIndexArrayMapData::FloatTabIndexArrayMapData(const AString& name,
+                                                                              float* floatArray)
+: TabIndexArrayMapData(name),
+m_floatArray(floatArray)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void 
+SceneClassAssistant::FloatTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                                          const SceneClass& sceneClass)
+{
+    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    if (sceneMap != NULL) {
+        const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+             iter != dataMap.end();
+             iter++) {
+            const int32_t tabIndex = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_floatArray[tabIndex] = primitive->floatValue();
+        }
+    }
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class into  which data is stored.
+ */
+void 
+SceneClassAssistant::FloatTabIndexArrayMapData::save(const SceneAttributes& sceneAttributes,
+                                                       SceneClass& sceneClass)
+{
+    const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
+    const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
+    
+    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+                                                          SceneObjectDataTypeEnum::SCENE_FLOAT);
+    
+    for (int32_t i = 0; i < numTabIndices; i++) {
+        const int32_t tabIndex = tabIndices[i];
+        sceneMap->addFloat(tabIndex, m_floatArray[i]);
+    }
+    
+    sceneClass.addChild(sceneMap);
 }
 
 

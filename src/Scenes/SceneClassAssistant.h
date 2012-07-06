@@ -107,12 +107,22 @@ namespace caret {
                       const int32_t numberOfElements,
                       const AString& defaultValue);
         
+        void addTabIndexedBooleanArray(const AString& name,
+                                     bool* booleanArray);
+        
+        void addTabIndexedIntegerArray(const AString& name,
+                                     int32_t* integerArray);
+        
+        void addTabIndexedFloatArray(const AString& name,
+                                   float* floatArray);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
 
         // ADD_NEW_MEMBERS_HERE
 
+        /* ========================================= */
         class Data {
         public:
             Data(const AString& name);
@@ -127,6 +137,7 @@ namespace caret {
             
         };
         
+        /* ========================================= */
         class FloatData : public Data {
         public:
             FloatData(const AString& name,
@@ -145,6 +156,7 @@ namespace caret {
             float m_defaultValue; 
         };
         
+        /* ========================================= */
         class IntegerData : public Data {
         public:
             IntegerData(const AString& name,
@@ -163,6 +175,7 @@ namespace caret {
             int32_t m_defaultValue; 
         };
         
+        /* ========================================= */
         class BooleanData : public Data {
         public:
             BooleanData(const AString& name,
@@ -181,6 +194,7 @@ namespace caret {
             bool m_defaultValue; 
         };
         
+        /* ========================================= */
         class StringData : public Data {
         public:
             StringData(const AString& name,
@@ -199,6 +213,7 @@ namespace caret {
             AString m_defaultValue; 
         };
         
+        /* ========================================= */
         class ClassData : public Data {
         public:
             ClassData(const AString& name,
@@ -222,6 +237,74 @@ namespace caret {
             SceneableInterface*  m_sceneClassPointer;
         };
         
+        /* ========================================= */
+        class TabIndexArrayMapData : public Data {
+        public:
+            TabIndexArrayMapData(const AString& name);
+            virtual ~TabIndexArrayMapData() { }
+        };
+        
+        /* ========================================= */
+        class BooleanTabIndexArrayMapData : public TabIndexArrayMapData {
+        public:
+            BooleanTabIndexArrayMapData(const AString& name,
+                                        bool* booleanArray);
+            virtual ~BooleanTabIndexArrayMapData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            bool* m_booleanArray;
+        };
+        
+        /* ========================================= */
+        class IntegerTabIndexArrayMapData : public TabIndexArrayMapData {
+        public:
+            IntegerTabIndexArrayMapData(const AString& name,
+                                        int32_t* integerArray);
+            virtual ~IntegerTabIndexArrayMapData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            int32_t* m_integerArray;
+        };
+        
+        /* ========================================= */
+        class FloatTabIndexArrayMapData : public TabIndexArrayMapData {
+        public:
+            FloatTabIndexArrayMapData(const AString& name,
+                                        float* floatArray);
+            virtual ~FloatTabIndexArrayMapData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            float* m_floatArray;
+        };
+        
+        /* ========================================= */
+        class ClassTabIndexArrayMapData : public TabIndexArrayMapData {
+        public:
+            ClassTabIndexArrayMapData(const AString& name,
+                                      SceneableInterface* sceneInterface);
+            virtual ~ClassTabIndexArrayMapData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+        private:
+            SceneableInterface* m_sceneInterface;
+        };
+        
+        /* ========================================= */
         class ArrayData : public Data {
         public:
             ArrayData(const AString& name,
@@ -232,6 +315,7 @@ namespace caret {
             int32_t m_numberOfArrayElements;
         };
         
+        /* ========================================= */
         class BooleanArrayData : public ArrayData {
         public:
             BooleanArrayData(const AString& name,
@@ -249,6 +333,7 @@ namespace caret {
             bool m_defaultValue;
         };
         
+        /* ========================================= */
         class IntegerArrayData : public ArrayData {
         public:
             IntegerArrayData(const AString& name,
@@ -266,6 +351,7 @@ namespace caret {
             int32_t m_defaultValue;
         };
         
+        /* ========================================= */
         class FloatArrayData : public ArrayData {
         public:
             FloatArrayData(const AString& name,
@@ -283,6 +369,7 @@ namespace caret {
             float m_defaultValue;
         };
         
+        /* ========================================= */
         class StringArrayData : public ArrayData {
         public:
             StringArrayData(const AString& name,
@@ -300,6 +387,7 @@ namespace caret {
             AString m_defaultValue;
         };
         
+        /* ========================================= */
         class BooleanVectorData : public Data {
         public:
             BooleanVectorData(const AString& name,
@@ -317,6 +405,7 @@ namespace caret {
             const bool m_defaultValue; 
         };
         
+        /* ========================================= */
         class FloatVectorData : public Data {
         public:
             FloatVectorData(const AString& name,

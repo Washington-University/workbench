@@ -244,12 +244,10 @@ SurfaceSelectionModel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                             "SurfaceSelectionModel",
                                             1);
     
-    if (m_selectedSurface != NULL) {
-        Surface* surface = getSurface();
-        if (surface != NULL) {
-            sceneClass->addString("m_selectedSurface",
-                                  surface->getFileNameNoPath());
-        }
+    Surface* surface = getSurface();
+    if (surface != NULL) {
+        sceneClass->addString("m_selectedSurface",
+                              surface->getFileNameNoPath());
     }
     
     return sceneClass;

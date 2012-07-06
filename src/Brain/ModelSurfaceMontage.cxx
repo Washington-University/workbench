@@ -40,6 +40,8 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneMapIntegerKey.h"
+#include "ScenePrimitive.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -405,98 +407,49 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
     const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size()); 
     
     /*
-     * Left surface
+     * Surfaces
      */
-    std::vector<SceneClass*> leftSurfaceSceneVector;
+    SceneMapIntegerKey* leftSurfaceMap = new SceneMapIntegerKey("m_leftSurfaceSelectionModel",
+                                                                  SceneObjectDataTypeEnum::SCENE_CLASS);
+    SceneMapIntegerKey* leftSecondSurfaceMap = new SceneMapIntegerKey("m_leftSecondSurfaceSelectionModel",
+                                                                SceneObjectDataTypeEnum::SCENE_CLASS);
+    SceneMapIntegerKey* rightSurfaceMap = new SceneMapIntegerKey("m_rightSurfaceSelectionModel",
+                                                                SceneObjectDataTypeEnum::SCENE_CLASS);
+    SceneMapIntegerKey* rightSecondSurfaceMap = new SceneMapIntegerKey("m_rightSecondSurfaceSelectionModel",
+                                                                SceneObjectDataTypeEnum::SCENE_CLASS);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
-        SceneClass* leftSurfaceSceneClass = new SceneClass(("m_leftSurfaceSelectionModel["
-                                                            + AString::number(tabIndex)
-                                                            + "]"),
-                                                           "selectedSurface",
-                                                           1);
-        leftSurfaceSceneClass->addInteger("tabIndex", tabIndex);
-        leftSurfaceSceneClass->addChild(m_leftSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
-                                                                                           "m_leftSurfaceSelectionModel"));
-        leftSurfaceSceneVector.push_back(leftSurfaceSceneClass);
-    }
-    sceneClass->addChild(new SceneClassArray("leftSurface",
-                                             leftSurfaceSceneVector));
-    /*
-     * Left second surface
-     */
-    std::vector<SceneClass*> leftSecondSurfaceSceneVector;
-    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = tabIndices[iat];
-        SceneClass* leftSecondSurfaceSceneClass = new SceneClass(("m_leftSecondSurfaceSelectionModel["
-                                                                  + AString::number(tabIndex)
-                                                                  + "]"),
-                                                                 "selectedSurface",
-                                                                 1);
-        leftSecondSurfaceSceneClass->addInteger("tabIndex", tabIndex);
-        leftSecondSurfaceSceneClass->addChild(m_leftSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
-                                                                                                 "m_leftSecondSurfaceSelectionModel"));
-        leftSecondSurfaceSceneVector.push_back(leftSecondSurfaceSceneClass);
-    }
-    sceneClass->addChild(new SceneClassArray("leftSecondSurface",
-                                             leftSecondSurfaceSceneVector));
+        const AString tabString = ("[" + AString::number(tabIndex) + "]");
 
-    /*
-     * Right surface
-     */
-    std::vector<SceneClass*> rightSurfaceSceneVector;
-    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = tabIndices[iat];
-        SceneClass* rightSurfaceSceneClass = new SceneClass(("m_rightSurfaceSelectionModel["
-                                                             + AString::number(tabIndex)
-                                                             + "]"),
-                                                            "selectedSurface",
-                                                            1);
-        rightSurfaceSceneClass->addInteger("tabIndex", tabIndex);
-        rightSurfaceSceneClass->addChild(m_rightSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
-                                                                                            "m_rightSurfaceSelectionModel"));
-        rightSurfaceSceneVector.push_back(rightSurfaceSceneClass);
+        leftSurfaceMap->addClass(tabIndex,
+                                 m_leftSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes, 
+                                                                                    "m_leftSurfaceSelectionModel" + tabString));
+        leftSecondSurfaceMap->addClass(tabIndex,
+                                 m_leftSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes, 
+                                                                                    "m_leftSecondSurfaceSelectionModel" + tabString));
+        rightSurfaceMap->addClass(tabIndex,
+                                 m_rightSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes, 
+                                                                                    "m_rightSurfaceSelectionModel" + tabString));
+        rightSecondSurfaceMap->addClass(tabIndex,
+                                 m_rightSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes, 
+                                                                                    "m_rightSecondSurfaceSelectionModel" + tabString));
     }
-    sceneClass->addChild(new SceneClassArray("rightSurface",
-                                             rightSurfaceSceneVector));
-
-    /*
-     * Right second surface
-     */
-    std::vector<SceneClass*> rightSecondSurfaceSceneVector;
-    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = tabIndices[iat];
-        SceneClass* rightSecondSurfaceSceneClass = new SceneClass(("m_rightSecondSurfaceSelectionModel["
-                                                                   + AString::number(tabIndex)
-                                                                   + "]"),
-                                                                  "selectedSurface",
-                                                                  1);
-        rightSecondSurfaceSceneClass->addInteger("tabIndex", tabIndex);
-        rightSecondSurfaceSceneClass->addChild(m_rightSecondSurfaceSelectionModel[tabIndex]->saveToScene(sceneAttributes,
-                                                                                                  "m_rightSecondSurfaceSelectionModel"));
-        rightSecondSurfaceSceneVector.push_back(rightSecondSurfaceSceneClass);
-    }
-    sceneClass->addChild(new SceneClassArray("rightSecondSurface",
-                                             rightSecondSurfaceSceneVector));
+    sceneClass->addChild(leftSurfaceMap);
+    sceneClass->addChild(leftSecondSurfaceMap);
+    sceneClass->addChild(rightSurfaceMap);
+    sceneClass->addChild(rightSecondSurfaceMap);
     
     /*
      * Dual configuration selection
      */
-    std::vector<SceneClass*> dualConfigurationSceneVector;
+    SceneMapIntegerKey* dualConfigurationMap = new SceneMapIntegerKey("m_dualConfigurationEnabled",
+                                                                       SceneObjectDataTypeEnum::SCENE_BOOLEAN);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
-        SceneClass* dualConfigurationSceneClass = new SceneClass(("m_dualConfigurationEnabled["
-                                                                   + AString::number(tabIndex)
-                                                                   + "]"),
-                                                                  "DualConfiguration",
-                                                                  1);
-        dualConfigurationSceneClass->addInteger("tabIndex", tabIndex);
-        dualConfigurationSceneClass->addBoolean("m_dualConfigurationEnabled", 
-                                                m_dualConfigurationEnabled[tabIndex]);
-        dualConfigurationSceneVector.push_back(dualConfigurationSceneClass);
+        dualConfigurationMap->addBoolean(tabIndex,
+                                         m_dualConfigurationEnabled[tabIndex]);
     }
-    sceneClass->addChild(new SceneClassArray("dualConfiguration",
-                                             dualConfigurationSceneVector));
+    sceneClass->addChild(dualConfigurationMap);
 }
 
 /**
@@ -517,80 +470,79 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore left surface
      */
-    const SceneClassArray* leftSurfaceArray = sceneClass->getClassArray("leftSurface");
-    if (leftSurfaceArray != NULL) {
-        const int numLeftSurfaces = leftSurfaceArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numLeftSurfaces; i++) {
-            const SceneClass* surfaceClass = leftSurfaceArray->getClassAtIndex(i);
-            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
-            if (tabIndex >= 0) {
-                m_leftSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
-                                                                        surfaceClass->getClass("m_leftSurfaceSelectionModel"));
-            }
+    const SceneMapIntegerKey* leftSurfaceMap = sceneClass->getMapIntegerKey("m_leftSurfaceSelectionModel");
+    if (leftSurfaceMap != NULL) {
+        const std::map<int32_t, SceneObject*>& surfaceMap = leftSurfaceMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
+             iter != surfaceMap.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneClass* surfaceClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_leftSurfaceSelectionModel[key]->restoreFromScene(sceneAttributes, 
+                                                               surfaceClass);
         }
     }
     
     /*
-     * Restore right second surface
+     * Restore left second surface
      */
-    const SceneClassArray* leftSecondSurfaceArray = sceneClass->getClassArray("leftSecondSurface");
-    if (leftSecondSurfaceArray != NULL) {
-        const int numLeftSecondSurfaces = leftSecondSurfaceArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numLeftSecondSurfaces; i++) {
-            const SceneClass* surfaceClass = leftSecondSurfaceArray->getClassAtIndex(i);
-            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
-            if (tabIndex >= 0) {
-                m_leftSecondSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
-                                                                              surfaceClass->getClass("m_leftSecondSurfaceSelectionModel"));
-            }
+    const SceneMapIntegerKey* leftSecondSurfaceMap = sceneClass->getMapIntegerKey("m_leftSecondSurfaceSelectionModel");
+    if (leftSecondSurfaceMap != NULL) {
+        const std::map<int32_t, SceneObject*>& surfaceMap = leftSecondSurfaceMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
+             iter != surfaceMap.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneClass* surfaceClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_leftSecondSurfaceSelectionModel[key]->restoreFromScene(sceneAttributes, 
+                                                               surfaceClass);
         }
     }
     
     /*
      * Restore right surface
      */
-    const SceneClassArray* rightSurfaceArray = sceneClass->getClassArray("rightSurface");
-    if (rightSurfaceArray != NULL) {
-        const int numRightSurfaces = rightSurfaceArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numRightSurfaces; i++) {
-            const SceneClass* surfaceClass = rightSurfaceArray->getClassAtIndex(i);
-            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
-            if (tabIndex >= 0) {
-                m_rightSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
-                                                                         surfaceClass->getClass("m_rightSurfaceSelectionModel"));
-            }
-        }
-    }
-
-    /*
-     * Restore right second surface
-     */
-    const SceneClassArray* rightSecondSurfaceArray = sceneClass->getClassArray("rightSecondSurface");
-    if (rightSecondSurfaceArray != NULL) {
-        const int numRightSecondSurfaces = rightSecondSurfaceArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numRightSecondSurfaces; i++) {
-            const SceneClass* surfaceClass = rightSecondSurfaceArray->getClassAtIndex(i);
-            const int tabIndex = surfaceClass->getIntegerValue("tabIndex");
-            if (tabIndex >= 0) {
-                m_rightSecondSurfaceSelectionModel[tabIndex]->restoreFromScene(sceneAttributes, 
-                                                                               surfaceClass->getClass("m_rightSecondSurfaceSelectionModel"));
-            }
+    const SceneMapIntegerKey* rightSurfaceMap = sceneClass->getMapIntegerKey("m_rightSurfaceSelectionModel");
+    if (rightSurfaceMap != NULL) {
+        const std::map<int32_t, SceneObject*>& surfaceMap = rightSurfaceMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
+             iter != surfaceMap.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneClass* surfaceClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_rightSurfaceSelectionModel[key]->restoreFromScene(sceneAttributes, 
+                                                               surfaceClass);
         }
     }
     
     /*
-     * Restore dual configuration selection
+     * Restore right second surface
      */
-    const SceneClassArray* dualConfigurationArray = sceneClass->getClassArray("dualConfiguration");
-    if (dualConfigurationArray != NULL) {
-        const int numDualConfiguration = dualConfigurationArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numDualConfiguration; i++) {
-            const SceneClass* dualConfigClass = dualConfigurationArray->getClassAtIndex(i);
-            const int tabIndex = dualConfigClass->getIntegerValue("tabIndex");
-            if (tabIndex >= 0) {
-                m_dualConfigurationEnabled[tabIndex] = dualConfigClass->getBooleanValue("m_dualConfigurationEnabled",
-                                                                                        false);
-            }
+    const SceneMapIntegerKey* rightSecondSurfaceMap = sceneClass->getMapIntegerKey("m_rightSecondSurfaceSelectionModel");
+    if (rightSecondSurfaceMap != NULL) {
+        const std::map<int32_t, SceneObject*>& surfaceMap = rightSecondSurfaceMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
+             iter != surfaceMap.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const SceneClass* surfaceClass = dynamic_cast<const SceneClass*>(iter->second);
+            m_rightSecondSurfaceSelectionModel[key]->restoreFromScene(sceneAttributes, 
+                                                                     surfaceClass);
+        }
+    }
+    
+    /*
+     * Restore dual configuration
+     */
+    const SceneMapIntegerKey* dualConfigurationMap = sceneClass->getMapIntegerKey("m_dualConfigurationEnabled");
+    if (dualConfigurationMap != NULL) {
+        const std::map<int32_t, SceneObject*>& dataMap = dualConfigurationMap->getMap();
+        for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+             iter != dataMap.end();
+             iter++) {
+            const int32_t key = iter->first;
+            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+            m_dualConfigurationEnabled[key] = primitive->booleanValue();
         }
     }
 }
