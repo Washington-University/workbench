@@ -262,9 +262,9 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     }
     myProgress.reportProgress(markweight + exactweight);
     myProgress.setTask("approximating distances in extended region");
-    cout << "approximating distances in extended region" << endl;
     if (approxLim > exactLim)
     {
+        cout << "approximating distances in extended region" << endl;
         int faceNeigh[] = { 1, 0, 0, 
                             -1, 0, 0,
                             0, 1, 0,

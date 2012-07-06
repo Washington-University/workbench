@@ -761,7 +761,7 @@ ConnectivityLoaderFile::isDenseTimeSeries() const
 bool 
 ConnectivityLoaderFile::hasDataSeriesLabels()
 {
-    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==IndicesMapToDataType::CIFTI_INDEX_TYPE_LABELS);
+    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==CIFTI_INDEX_TYPE_LABELS);
 }
 
 /**
