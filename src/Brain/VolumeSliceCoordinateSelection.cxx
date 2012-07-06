@@ -464,9 +464,9 @@ VolumeSliceCoordinateSelection::copySelections(const VolumeSliceCoordinateSelect
     m_sliceCoordinateParasagittal = vscs.m_sliceCoordinateParasagittal;
     m_sliceCoordinateCoronal      = vscs.m_sliceCoordinateCoronal;
     m_sliceCoordinateAxial        = vscs.m_sliceCoordinateAxial;
-    m_sliceEnabledParasagittal = vscs.m_sliceCoordinateParasagittal;
-    m_sliceEnabledCoronal      = vscs.m_sliceCoordinateCoronal;
-    m_sliceEnabledAxial        = vscs.m_sliceCoordinateAxial;
+    m_sliceEnabledParasagittal = vscs.m_sliceEnabledParasagittal;
+    m_sliceEnabledCoronal      = vscs.m_sliceEnabledCoronal;
+    m_sliceEnabledAxial        = vscs.m_sliceEnabledAxial;
     m_initializedFlag = true;
 }
 
@@ -520,6 +520,12 @@ VolumeSliceCoordinateSelection::restoreFromScene(const SceneAttributes* sceneAtt
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
+    
+    /*
+     * Will prevent slices, that were applied using data from the scene
+     * from being overwritten.
+     */
+    m_initializedFlag = true;
 }
 
 
