@@ -279,9 +279,10 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         this->yokeCheckBox->blockSignals(false);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
 
+        this->frameName->blockSignals(true);
         if(this->connectivityLoaderFile->hasDataSeriesLabels())
         {
-            this->frameName->setText(this->connectivityLoaderFile->getMapName(this->connectivityLoaderFile->getSelectedFrame()));
+            this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(this->connectivityLoaderFile->getSelectedFrame()));
         }
         else
         {
@@ -291,6 +292,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
             time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep() + startTime;
             this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));//sets the frame string even if clf is null
         }
+        this->frameName->blockSignals(false);
     }
     else {
         this->deleteAnimator();
@@ -479,15 +481,17 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
         //To properly compare the two, add timeStepOffset.
         if(this->connectivityLoaderFile->isDenseTimeSeries())
         {
+            this->frameName->blockSignals(true);
             double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep() + timeStepOffset;
             if(this->connectivityLoaderFile->hasDataSeriesLabels())
             {
-                this->frameName->setText(this->connectivityLoaderFile->getMapName(frame));
+                this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(frame));
             }
             else
             {
                 this->frameName->setText(AString::number(currentTime,'f',2)+AString(" seconds"));                
             }
+            this->frameName->blockSignals(false);
             
         }
         if(frame >= this->connectivityLoaderFile->getNumberOfTimePoints())
@@ -566,16 +570,17 @@ ConnectivityTimeSeriesViewController::setAnimationStartTime(const double &value)
             TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(this->connectivityLoaderFile);
             dialog->setAnimationStartTime(value);
             
+            frameName->blockSignals(true);
             if(this->connectivityLoaderFile->hasDataSeriesLabels())
             {
-                this->frameName->setText(this->connectivityLoaderFile->getMapName(this->connectivityLoaderFile->getSelectedFrame()));
+                this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(this->connectivityLoaderFile->getSelectedFrame()));
             }
             else
             {
                 double time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep() + value;
                 this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));            
             }
-            
+            frameName->blockSignals(false);
         }
     }
 }

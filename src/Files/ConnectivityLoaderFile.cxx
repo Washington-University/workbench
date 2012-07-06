@@ -761,7 +761,7 @@ ConnectivityLoaderFile::isDenseTimeSeries() const
 bool 
 ConnectivityLoaderFile::hasDataSeriesLabels()
 {
-    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==CIFTI_INDEX_TYPE_LABELS);
+    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==CIFTI_INDEX_TYPE_SCALARS);
 }
 
 /**
@@ -2064,3 +2064,11 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
     
     return numNodes;
 }
+
+///get the map name for an index along a column
+AString ConnectivityLoaderFile::getMapNameForColumnIndex(const int& index) const
+{ return this->ciftiInterface->getMapNameForColumnIndex(index); }
+
+///get the map name for an index along a row
+AString ConnectivityLoaderFile::getMapNameForRowIndex(const int& index) const
+{ return this->ciftiInterface->getMapNameForRowIndex(index); }

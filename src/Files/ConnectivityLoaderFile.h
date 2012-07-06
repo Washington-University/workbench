@@ -203,6 +203,12 @@ namespace caret {
         void getTimeLine(TimeLine &tl);
         
         int32_t getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+
+        ///get the map name for an index along a column
+        AString getMapNameForColumnIndex(const int& index) const;
+
+        ///get the map name for an index along a row
+        AString getMapNameForRowIndex(const int& index) const;
         
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
