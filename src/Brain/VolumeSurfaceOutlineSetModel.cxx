@@ -371,6 +371,9 @@ void
 VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                            const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
     const SceneClassArray* outlineModelsArrayClass = sceneClass->getClassArray("m_outlineModels");
     if (outlineModelsArrayClass != NULL) {
         const int32_t maxNum = std::min(outlineModelsArrayClass->getNumberOfArrayElements(),
