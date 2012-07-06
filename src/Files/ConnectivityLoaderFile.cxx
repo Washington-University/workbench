@@ -756,6 +756,15 @@ ConnectivityLoaderFile::isDenseTimeSeries() const
 }
 
 /**
+ * @return does this Cifti file have labeled columns
+ */
+bool 
+ConnectivityLoaderFile::hasDataSeriesLabels()
+{
+    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==IndicesMapToDataType::CIFTI_INDEX_TYPE_LABELS);
+}
+
+/**
  * @return Name describing loader content.
  */
 AString 

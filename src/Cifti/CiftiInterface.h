@@ -144,7 +144,15 @@ namespace caret
         
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const
         { return m_xml.hasColumnSurfaceData(structure); }
-        
+
+        ///get the map name for an index along a column
+        AString getMapNameForColumnIndex(const int& index) const
+        { return m_xml.getMapNameForColumnIndex(index); }
+
+        ///get the map name for an index along a row
+        AString getMapNameForRowIndex(const int& index) const
+        { return m_xml.getMapNameForRowIndex(index); }
+
         virtual ~CiftiInterface();
 
     };

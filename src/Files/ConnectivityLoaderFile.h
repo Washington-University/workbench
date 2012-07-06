@@ -143,6 +143,8 @@ namespace caret {
         bool isDense() const;
         
         bool isDenseTimeSeries() const;
+
+        bool hasDataSeriesLabels();
         
         AString getCiftiTypeName() const;
         
