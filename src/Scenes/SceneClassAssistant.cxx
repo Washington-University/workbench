@@ -766,7 +766,7 @@ SceneClassAssistant::BooleanTabIndexArrayMapData::save(const SceneAttributes& sc
     
     for (int32_t i = 0; i < numTabIndices; i++) {
         const int32_t tabIndex = tabIndices[i];
-        sceneMap->addBoolean(tabIndex, m_booleanArray[i]);
+        sceneMap->addBoolean(tabIndex, m_booleanArray[tabIndex]);
     }
     
     sceneClass.addChild(sceneMap);
@@ -837,7 +837,7 @@ SceneClassAssistant::IntegerTabIndexArrayMapData::save(const SceneAttributes& sc
     
     for (int32_t i = 0; i < numTabIndices; i++) {
         const int32_t tabIndex = tabIndices[i];
-        sceneMap->addInteger(tabIndex, m_integerArray[i]);
+        sceneMap->addInteger(tabIndex, m_integerArray[tabIndex]);
     }
     
     sceneClass.addChild(sceneMap);
@@ -908,7 +908,7 @@ SceneClassAssistant::FloatTabIndexArrayMapData::save(const SceneAttributes& scen
     
     for (int32_t i = 0; i < numTabIndices; i++) {
         const int32_t tabIndex = tabIndices[i];
-        sceneMap->addFloat(tabIndex, m_floatArray[i]);
+        sceneMap->addFloat(tabIndex, m_floatArray[tabIndex]);
     }
     
     sceneClass.addChild(sceneMap);

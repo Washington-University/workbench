@@ -35,6 +35,7 @@
 namespace caret {
 
     class Brain;
+    class SceneClassAssistant;
     class VolumeFile;
     
     /// Controls the display of a whole brain.
@@ -112,8 +113,6 @@ namespace caret {
         ModelWholeBrain& operator=(const ModelWholeBrain&);
         
     private:
-        void initializeMembersModelWholeBrain();
-        
         void updateController();
         
     public:
@@ -148,6 +147,7 @@ namespace caret {
         /** Overlays sets for this model and for each tab */
         OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        SceneClassAssistant* m_sceneAssistant;
     };
 
 } // namespace

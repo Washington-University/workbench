@@ -36,6 +36,7 @@
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
 
@@ -52,12 +53,28 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    initializeMembersModelWholeBrain();
-    EventManager::get()->addEventListener(this, 
-                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
+        m_cerebellumEnabled[i] = true;
+        m_leftEnabled[i] = true;
+        m_rightEnabled[i] = true;
+        m_leftRightSeparation[i] = 0.0;
+        m_cerebellumSeparation[i] = 0.0;        
+        m_volumeSlicesSelected[i].reset();
         m_overlaySet[i] = new OverlaySet(this);
     }
+    
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("m_selectedSurfaceType", 
+                                                                                              m_selectedSurfaceType);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_leftEnabled", m_leftEnabled);    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_rightEnabled", m_rightEnabled);    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_cerebellumEnabled", m_cerebellumEnabled);    
+    m_sceneAssistant->addTabIndexedFloatArray("m_leftRightSeparation", m_leftRightSeparation);    
+    m_sceneAssistant->addTabIndexedFloatArray("m_cerebellumSeparation", m_cerebellumSeparation);    
 }
 
 /**
@@ -69,23 +86,8 @@ ModelWholeBrain::~ModelWholeBrain()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         delete m_overlaySet[i];
     }
-}
-
-/**
- * Initialize members of this class.
- */
-void
-ModelWholeBrain::initializeMembersModelWholeBrain()
-{
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
-        m_cerebellumEnabled[i] = true;
-        m_leftEnabled[i] = true;
-        m_rightEnabled[i] = true;
-        m_leftRightSeparation[i] = 0.0;
-        m_cerebellumSeparation[i] = 0.0;        
-        m_volumeSlicesSelected[i].reset();
-    }
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -592,11 +594,52 @@ void
 ModelWholeBrain::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
-    //    m_sceneAssistant->saveMembers(sceneAttributes, 
-    //                                  sceneClass);
-    //    
-    //    sceneClass->addString("m_selectedMapFile",
-    //                          m_selectedMapFile->getFileNameNoPath());
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+    
+    SceneObjectMapIntegerKey* volumeSliceMap = new SceneObjectMapIntegerKey("m_volumeSlicesSelected",
+                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
+    for (int32_t i = 0; i < numTabs; i++) {
+        const int32_t tabIndex = tabIndices[i];
+        const AString name = ("m_volumeSlicesSelected[" + AString::number(tabIndex) + "]");
+        volumeSliceMap->addClass(tabIndex, m_volumeSlicesSelected[tabIndex].saveToScene(sceneAttributes, name));
+    }
+    sceneClass->addChild(volumeSliceMap);
+    
+    std::vector<SceneClass*> classesForSelectedSurfaceArray;
+    for (int32_t i = 0; i < numTabs; i++) {
+        const int32_t tabIndex = tabIndices[i];
+         
+        for (std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*>::iterator mapIter = m_selectedSurface[tabIndex].begin();
+             mapIter != m_selectedSurface[tabIndex].end();
+             mapIter++) {
+            std::pair<StructureEnum::Enum, SurfaceTypeEnum::Enum> structureSurfaceType = mapIter->first;
+            Surface* surface = mapIter->second;
+            if (surface != NULL) {
+                const StructureEnum::Enum structure = structureSurfaceType.first;
+                const SurfaceTypeEnum::Enum surfaceType = structureSurfaceType.second;
+                
+                const AString name = ("m_selectedSurface[" + AString::number(tabIndex) + "]");
+                SceneClass* surfaceClass = new SceneClass(name,
+                                                          "SurfaceSelectionMap",
+                                                          1);
+                surfaceClass->addInteger("tabIndex", tabIndex);
+                surfaceClass->addEnumeratedType<StructureEnum,StructureEnum::Enum>("structure", 
+                                                                                   structure);
+                surfaceClass->addEnumeratedType<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("surfaceType", 
+                                                                                   surfaceType);
+                surfaceClass->addString("surfaceName",
+                                        surface->getFileNameNoPath());
+                
+                classesForSelectedSurfaceArray.push_back(surfaceClass);
+            }
+        }
+    }
+    sceneClass->addChild(new SceneClassArray("m_selectedSurface",
+                                             classesForSelectedSurfaceArray));
 }
 
 /**
@@ -614,26 +657,70 @@ void
 ModelWholeBrain::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
     
-    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
-    //                                     sceneClass);
-    //    
-    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
-    //                                                                   "");
-    //    if (selectedMapFileName.isEmpty() == false) {
-    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-    //             iter != m_mapFiles.end();
-    //             iter++) {
-    //            const AString fileName = (*iter)->getFileNameNoPath();
-    //            if (fileName == selectedMapFileName) {
-    //                CaretMappableDataFile* mapFile = *iter;
-    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-    //                if (mapIndex >= 0) {
-    //                    m_selectedMapFile = mapFile;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+    /*
+     * Restore selected surface
+     */
+    const SceneClassArray* surfaceSelectionArray = sceneClass->getClassArray("m_selectedSurface");
+    if (surfaceSelectionArray != NULL) {
+        const int32_t numClasses = surfaceSelectionArray->getNumberOfArrayElements();
+        for (int32_t ica = 0; ica < numClasses; ica++) {
+            const SceneClass* surfaceClass = surfaceSelectionArray->getClassAtIndex(ica);
+            const int32_t tabIndex = surfaceClass->getIntegerValue("tabIndex", -1);
+            const StructureEnum::Enum structure = 
+                surfaceClass->getEnumeratedTypeValue<StructureEnum,StructureEnum::Enum>("structure", 
+                                                                                        StructureEnum::INVALID);
+            const SurfaceTypeEnum::Enum surfaceType = 
+                surfaceClass->getEnumeratedTypeValue<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("surfaceType", 
+                                                                                            SurfaceTypeEnum::UNKNOWN);
+            const AString surfaceName = surfaceClass->getStringValue("surfaceName",
+                                                                             "");
+            if ((tabIndex >= 0) 
+                && (structure != StructureEnum::INVALID)
+                && (surfaceType != SurfaceTypeEnum::UNKNOWN)
+                && (surfaceName.isEmpty() == false)) {
+                BrainStructure* brainStructure = getBrain()->getBrainStructure(structure, false);
+                if (brainStructure != NULL) {
+                    const int32_t numSurfaces = brainStructure->getNumberOfSurfaces();
+                    for (int32_t i = 0; i < numSurfaces; i++) {
+                        Surface* surface = brainStructure->getSurface(i);
+                        const AString loadedSurfaceName = surface->getFileName();
+                        if (loadedSurfaceName.endsWith(surfaceName)) {
+                            setSelectedSurfaceType(tabIndex, 
+                                                   surfaceType);
+                            setSelectedSurface(structure, 
+                                               tabIndex, 
+                                               surface);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Restore selected volume slices (Needs to be done after surface restoration)
+     */
+    const SceneObjectMapIntegerKey* volumeSliceMap = sceneClass->getMapIntegerKey("m_volumeSlicesSelected");
+    if (volumeSliceMap != NULL) {
+        const std::vector<int32_t> keys = volumeSliceMap->getKeys();
+        const int32_t numKeys = static_cast<int32_t>(keys.size());
+        for (int32_t i = 0; i < numKeys; i++) {
+            const int32_t tabIndex = keys[i];
+            const SceneClass* selectedSlicesClass = dynamic_cast<const SceneClass*>(volumeSliceMap->getObject(tabIndex));
+            m_volumeSlicesSelected[tabIndex].restoreFromScene(sceneAttributes, selectedSlicesClass);
+        }
+    }
+    
+    /*
+     * Need tpo do after
+     */
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
 }
 

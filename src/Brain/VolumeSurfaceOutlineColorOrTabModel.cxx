@@ -391,8 +391,13 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getName()
     
     switch(m_itemType) {
         case ITEM_TYPE_BROWSER_TAB:
-            name = ("Tab "
-                    + AString::number(getBrowserTabContent()->getTabNumber() + 1));
+        {
+            BrowserTabContent* btc = getBrowserTabContent();
+            if (btc != NULL) {
+                name = ("Tab "
+                        + AString::number(btc->getTabNumber() + 1));
+            }
+        }
             break;
         case ITEM_TYPE_COLOR:
             name = CaretColorEnum::toGuiName(m_color);
