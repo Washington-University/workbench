@@ -43,7 +43,7 @@
 #include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
@@ -165,7 +165,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         const ScenePrimitiveArray* scenePrimitiveArray = dynamic_cast<const ScenePrimitiveArray*>(sceneObject);
         const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
         const SceneClassArray* sceneClassArray = dynamic_cast<const SceneClassArray*>(sceneObject);
-        const SceneMapIntegerKey* sceneMapIntegerKey = dynamic_cast<const SceneMapIntegerKey*>(sceneObject);
+        const SceneObjectMapIntegerKey* sceneMapIntegerKey = dynamic_cast<const SceneObjectMapIntegerKey*>(sceneObject);
         
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {

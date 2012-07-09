@@ -35,7 +35,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "VolumeFile.h"
 
@@ -544,7 +544,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * View mode
      */
-    SceneMapIntegerKey* sliceViewModeMap = new SceneMapIntegerKey("m_sliceViewMode",
+    SceneObjectMapIntegerKey* sliceViewModeMap = new SceneObjectMapIntegerKey("m_sliceViewMode",
                                                                   SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -556,7 +556,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * View plane
      */
-    SceneMapIntegerKey* sliceViewPlaneMap = new SceneMapIntegerKey("m_sliceViewPlane",
+    SceneObjectMapIntegerKey* sliceViewPlaneMap = new SceneObjectMapIntegerKey("m_sliceViewPlane",
                                                                   SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -568,7 +568,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * Montage rows
      */
-    SceneMapIntegerKey* montageRowMap = new SceneMapIntegerKey("m_montageNumberOfRows",
+    SceneObjectMapIntegerKey* montageRowMap = new SceneObjectMapIntegerKey("m_montageNumberOfRows",
                                                                SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -580,7 +580,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * Montage columns
      */
-    SceneMapIntegerKey* montageColumnMap = new SceneMapIntegerKey("m_montageNumberOfColumns",
+    SceneObjectMapIntegerKey* montageColumnMap = new SceneObjectMapIntegerKey("m_montageNumberOfColumns",
                                                                SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -592,7 +592,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * Montage slice spacing
      */
-    SceneMapIntegerKey* montageSliceSpacingMap = new SceneMapIntegerKey("m_montageSliceSpacing",
+    SceneObjectMapIntegerKey* montageSliceSpacingMap = new SceneObjectMapIntegerKey("m_montageSliceSpacing",
                                                                   SceneObjectDataTypeEnum::SCENE_INTEGER);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -604,7 +604,7 @@ ModelVolume::saveModelSpecificInformationToScene(const SceneAttributes* sceneAtt
     /*
      * Slice selection
      */
-    SceneMapIntegerKey* sliceSelectionMap = new SceneMapIntegerKey("m_volumeSlicesSelected",
+    SceneObjectMapIntegerKey* sliceSelectionMap = new SceneObjectMapIntegerKey("m_volumeSlicesSelected",
                                                                    SceneObjectDataTypeEnum::SCENE_CLASS);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -646,7 +646,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * View mode
      */
-    const SceneMapIntegerKey* sliceViewModeMap = sceneClass->getMapIntegerKey("m_sliceViewMode");
+    const SceneObjectMapIntegerKey* sliceViewModeMap = sceneClass->getMapIntegerKey("m_sliceViewMode");
     if (sliceViewModeMap != NULL) {
         const std::map<int32_t, SceneObject*>& sliceViewData = sliceViewModeMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = sliceViewData.begin();
@@ -662,7 +662,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * View plane
      */
-    const SceneMapIntegerKey* sliceViewPlaneMap = sceneClass->getMapIntegerKey("m_sliceViewPlane");
+    const SceneObjectMapIntegerKey* sliceViewPlaneMap = sceneClass->getMapIntegerKey("m_sliceViewPlane");
     if (sliceViewPlaneMap != NULL) {
         const std::map<int32_t, SceneObject*>& slicePlaneData = sliceViewPlaneMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = slicePlaneData.begin();
@@ -678,7 +678,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * Montage rows
      */
-    const SceneMapIntegerKey* montageRowMap = sceneClass->getMapIntegerKey("m_montageNumberOfRows");
+    const SceneObjectMapIntegerKey* montageRowMap = sceneClass->getMapIntegerKey("m_montageNumberOfRows");
     if (montageRowMap != NULL) {
         const std::map<int32_t, SceneObject*>& montageRowData = montageRowMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = montageRowData.begin();
@@ -693,7 +693,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * Montage columns
      */
-    const SceneMapIntegerKey* montageColMap = sceneClass->getMapIntegerKey("m_montageNumberOfColumns");
+    const SceneObjectMapIntegerKey* montageColMap = sceneClass->getMapIntegerKey("m_montageNumberOfColumns");
     if (montageColMap != NULL) {
         const std::map<int32_t, SceneObject*>& montageColData = montageColMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = montageColData.begin();
@@ -709,7 +709,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * Montage slice spacing
      */
-    const SceneMapIntegerKey* montageSliceSpaceMap = sceneClass->getMapIntegerKey("m_montageSliceSpacing");
+    const SceneObjectMapIntegerKey* montageSliceSpaceMap = sceneClass->getMapIntegerKey("m_montageSliceSpacing");
     if (montageSliceSpaceMap) {
         const std::map<int32_t, SceneObject*>& montageSliceSpaceData = montageSliceSpaceMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = montageSliceSpaceData.begin();
@@ -724,7 +724,7 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
     /*
      * Slice selection
      */
-    const SceneMapIntegerKey* sliceSelectionMap = sceneClass->getMapIntegerKey("m_volumeSlicesSelected");
+    const SceneObjectMapIntegerKey* sliceSelectionMap = sceneClass->getMapIntegerKey("m_volumeSlicesSelected");
     if (sliceSelectionMap != NULL) {
         const std::map<int32_t, SceneObject*>& sliceSelectionData = sliceSelectionMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = sliceSelectionData.begin();

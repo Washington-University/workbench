@@ -1,5 +1,5 @@
-#ifndef __SCENE_MAP_INTEGER_KEY_H__
-#define __SCENE_MAP_INTEGER_KEY_H__
+#ifndef __SCENE_OBJECT_MAP_INTEGER_KEY_H__
+#define __SCENE_OBJECT_MAP_INTEGER_KEY_H__
 
 /*LICENSE_START*/
 /*
@@ -41,18 +41,18 @@
 namespace caret {
     
     class SceneClass;
-    class SceneMapIntegerKey : public SceneObject {
+    class SceneObjectMapIntegerKey : public SceneObject {
         
     public:
-        virtual ~SceneMapIntegerKey();
+        virtual ~SceneObjectMapIntegerKey();
         
-        SceneMapIntegerKey(const QString& name,
+        SceneObjectMapIntegerKey(const QString& name,
                            const SceneObjectDataTypeEnum::Enum valueDataType);
         
     private:
-        SceneMapIntegerKey(const SceneMapIntegerKey&);
+        SceneObjectMapIntegerKey(const SceneObjectMapIntegerKey&);
         
-        SceneMapIntegerKey& operator=(const SceneMapIntegerKey&);
+        SceneObjectMapIntegerKey& operator=(const SceneObjectMapIntegerKey&);
         
     public:
         
@@ -104,9 +104,9 @@ namespace caret {
         DATA_MAP m_dataMap;
     };
     
-#ifdef __SCENE_MAP_INTEGER_KEY_DECLARE__
+#ifdef __SCENE_OBJECT_MAP_INTEGER_KEY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_MAP_INTEGER_KEY_DECLARE__
+#endif // __SCENE_OBJECT_MAP_INTEGER_KEY_DECLARE__
     
 } // namespace
-#endif  //__SCENE_MAP_INTEGER_KEY_H__
+#endif  //__SCENE_OBJECT_MAP_INTEGER_KEY_H__

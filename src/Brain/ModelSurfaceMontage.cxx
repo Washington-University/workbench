@@ -40,7 +40,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "SurfaceSelectionModel.h"
 
@@ -409,13 +409,13 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
     /*
      * Surfaces
      */
-    SceneMapIntegerKey* leftSurfaceMap = new SceneMapIntegerKey("m_leftSurfaceSelectionModel",
+    SceneObjectMapIntegerKey* leftSurfaceMap = new SceneObjectMapIntegerKey("m_leftSurfaceSelectionModel",
                                                                   SceneObjectDataTypeEnum::SCENE_CLASS);
-    SceneMapIntegerKey* leftSecondSurfaceMap = new SceneMapIntegerKey("m_leftSecondSurfaceSelectionModel",
+    SceneObjectMapIntegerKey* leftSecondSurfaceMap = new SceneObjectMapIntegerKey("m_leftSecondSurfaceSelectionModel",
                                                                 SceneObjectDataTypeEnum::SCENE_CLASS);
-    SceneMapIntegerKey* rightSurfaceMap = new SceneMapIntegerKey("m_rightSurfaceSelectionModel",
+    SceneObjectMapIntegerKey* rightSurfaceMap = new SceneObjectMapIntegerKey("m_rightSurfaceSelectionModel",
                                                                 SceneObjectDataTypeEnum::SCENE_CLASS);
-    SceneMapIntegerKey* rightSecondSurfaceMap = new SceneMapIntegerKey("m_rightSecondSurfaceSelectionModel",
+    SceneObjectMapIntegerKey* rightSecondSurfaceMap = new SceneObjectMapIntegerKey("m_rightSecondSurfaceSelectionModel",
                                                                 SceneObjectDataTypeEnum::SCENE_CLASS);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -442,7 +442,7 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
     /*
      * Dual configuration selection
      */
-    SceneMapIntegerKey* dualConfigurationMap = new SceneMapIntegerKey("m_dualConfigurationEnabled",
+    SceneObjectMapIntegerKey* dualConfigurationMap = new SceneObjectMapIntegerKey("m_dualConfigurationEnabled",
                                                                        SceneObjectDataTypeEnum::SCENE_BOOLEAN);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
@@ -470,7 +470,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore left surface
      */
-    const SceneMapIntegerKey* leftSurfaceMap = sceneClass->getMapIntegerKey("m_leftSurfaceSelectionModel");
+    const SceneObjectMapIntegerKey* leftSurfaceMap = sceneClass->getMapIntegerKey("m_leftSurfaceSelectionModel");
     if (leftSurfaceMap != NULL) {
         const std::map<int32_t, SceneObject*>& surfaceMap = leftSurfaceMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
@@ -486,7 +486,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore left second surface
      */
-    const SceneMapIntegerKey* leftSecondSurfaceMap = sceneClass->getMapIntegerKey("m_leftSecondSurfaceSelectionModel");
+    const SceneObjectMapIntegerKey* leftSecondSurfaceMap = sceneClass->getMapIntegerKey("m_leftSecondSurfaceSelectionModel");
     if (leftSecondSurfaceMap != NULL) {
         const std::map<int32_t, SceneObject*>& surfaceMap = leftSecondSurfaceMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
@@ -502,7 +502,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore right surface
      */
-    const SceneMapIntegerKey* rightSurfaceMap = sceneClass->getMapIntegerKey("m_rightSurfaceSelectionModel");
+    const SceneObjectMapIntegerKey* rightSurfaceMap = sceneClass->getMapIntegerKey("m_rightSurfaceSelectionModel");
     if (rightSurfaceMap != NULL) {
         const std::map<int32_t, SceneObject*>& surfaceMap = rightSurfaceMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
@@ -518,7 +518,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore right second surface
      */
-    const SceneMapIntegerKey* rightSecondSurfaceMap = sceneClass->getMapIntegerKey("m_rightSecondSurfaceSelectionModel");
+    const SceneObjectMapIntegerKey* rightSecondSurfaceMap = sceneClass->getMapIntegerKey("m_rightSecondSurfaceSelectionModel");
     if (rightSecondSurfaceMap != NULL) {
         const std::map<int32_t, SceneObject*>& surfaceMap = rightSecondSurfaceMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = surfaceMap.begin();
@@ -534,7 +534,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
     /*
      * Restore dual configuration
      */
-    const SceneMapIntegerKey* dualConfigurationMap = sceneClass->getMapIntegerKey("m_dualConfigurationEnabled");
+    const SceneObjectMapIntegerKey* dualConfigurationMap = sceneClass->getMapIntegerKey("m_dualConfigurationEnabled");
     if (dualConfigurationMap != NULL) {
         const std::map<int32_t, SceneObject*>& dataMap = dualConfigurationMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();

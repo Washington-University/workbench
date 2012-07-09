@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __SCENE_MAP_INTEGER_KEY_DECLARE__
-#include "SceneMapIntegerKey.h"
-#undef __SCENE_MAP_INTEGER_KEY_DECLARE__
+#define __SCENE_OBJECT_MAP_INTEGER_KEY_DECLARE__
+#include "SceneObjectMapIntegerKey.h"
+#undef __SCENE_OBJECT_MAP_INTEGER_KEY_DECLARE__
 
 #include "CaretAssert.h"
 #include "SceneBoolean.h"
@@ -50,7 +50,7 @@ using namespace caret;
 
     
 /**
- * \class caret::SceneMapIntegerKey 
+ * \class caret::SceneObjectMapIntegerKey 
  * \brief Map for saving data to a scene using integers as the key.
  */
 
@@ -64,7 +64,7 @@ using namespace caret;
  *    the data type passed to the constructor.  Assertions will
  *    check for this condition.
  */
-SceneMapIntegerKey::SceneMapIntegerKey(const QString& name,
+SceneObjectMapIntegerKey::SceneObjectMapIntegerKey(const QString& name,
                                        const SceneObjectDataTypeEnum::Enum valueDataType)
 : SceneObject(name, 
               valueDataType)
@@ -75,7 +75,7 @@ SceneMapIntegerKey::SceneMapIntegerKey(const QString& name,
 /**
  * Destructor.
  */
-SceneMapIntegerKey::~SceneMapIntegerKey()
+SceneObjectMapIntegerKey::~SceneObjectMapIntegerKey()
 {
     for (DATA_MAP_CONST_ITERATOR iter = m_dataMap.begin();
          iter != m_dataMap.end();
@@ -92,7 +92,7 @@ SceneMapIntegerKey::~SceneMapIntegerKey()
  *    The value.
  */
 void 
-SceneMapIntegerKey::addBoolean(const int32_t key,
+SceneObjectMapIntegerKey::addBoolean(const int32_t key,
          const bool value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_BOOLEAN);
@@ -108,7 +108,7 @@ SceneMapIntegerKey::addBoolean(const int32_t key,
  *    The value.
  */
 void 
-SceneMapIntegerKey::addInteger(const int32_t key,
+SceneObjectMapIntegerKey::addInteger(const int32_t key,
          const int32_t value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_INTEGER);
@@ -125,7 +125,7 @@ SceneMapIntegerKey::addInteger(const int32_t key,
  *    The value.
  */
 void
-SceneMapIntegerKey::addFloat(const int32_t key,
+SceneObjectMapIntegerKey::addFloat(const int32_t key,
          const float value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_FLOAT);
@@ -142,7 +142,7 @@ SceneMapIntegerKey::addFloat(const int32_t key,
  *    The value.
  */
 void 
-SceneMapIntegerKey::addClass(const int32_t key,
+SceneObjectMapIntegerKey::addClass(const int32_t key,
          SceneClass* value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_CLASS);
@@ -157,7 +157,7 @@ SceneMapIntegerKey::addClass(const int32_t key,
  *    The value.
  */
 void 
-SceneMapIntegerKey::addString(const int32_t key,
+SceneObjectMapIntegerKey::addString(const int32_t key,
                         const AString& value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_STRING);
@@ -173,7 +173,7 @@ SceneMapIntegerKey::addString(const int32_t key,
  *    The value.
  */
 void 
-SceneMapIntegerKey::addEnumeratedType(const int32_t key,
+SceneObjectMapIntegerKey::addEnumeratedType(const int32_t key,
                         const AString& value)
 {
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
@@ -191,7 +191,7 @@ SceneMapIntegerKey::addEnumeratedType(const int32_t key,
  *    Object at the given key.
  */
 const SceneObject* 
-SceneMapIntegerKey::getObject(const int32_t key) const
+SceneObjectMapIntegerKey::getObject(const int32_t key) const
 {    
     const DATA_MAP_CONST_ITERATOR iter = m_dataMap.find(key);
     CaretAssert(iter != m_dataMap.end());
@@ -208,7 +208,7 @@ SceneMapIntegerKey::getObject(const int32_t key) const
  * @return The value with the given key.
  */
 bool 
-SceneMapIntegerKey::booleanValue(const int32_t key) const
+SceneObjectMapIntegerKey::booleanValue(const int32_t key) const
 {
     const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
     CaretAssert(primitive);
@@ -223,7 +223,7 @@ SceneMapIntegerKey::booleanValue(const int32_t key) const
  * @return The value with the given key.
  */
 float 
-SceneMapIntegerKey::floatValue(const int32_t key) const
+SceneObjectMapIntegerKey::floatValue(const int32_t key) const
 {
     const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
     CaretAssert(primitive);
@@ -238,7 +238,7 @@ SceneMapIntegerKey::floatValue(const int32_t key) const
  * @return The value with the given key.
  */
 int32_t 
-SceneMapIntegerKey::integerValue(const int32_t key) const
+SceneObjectMapIntegerKey::integerValue(const int32_t key) const
 {
     const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
     CaretAssert(primitive);
@@ -253,7 +253,7 @@ SceneMapIntegerKey::integerValue(const int32_t key) const
  * @return The value with the given key.
  */
 AString 
-SceneMapIntegerKey::stringValue(const int32_t key) const
+SceneObjectMapIntegerKey::stringValue(const int32_t key) const
 {
     const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
     CaretAssert(primitive);
@@ -268,7 +268,7 @@ SceneMapIntegerKey::stringValue(const int32_t key) const
  * @return The class with the given key.
  */
 const SceneClass* 
-SceneMapIntegerKey::classValue(const int32_t key) const
+SceneObjectMapIntegerKey::classValue(const int32_t key) const
 {
     const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(getObject(key));
     CaretAssert(sceneClass);
@@ -283,7 +283,7 @@ SceneMapIntegerKey::classValue(const int32_t key) const
  * @return The enumerated type value with the given key.
  */
 AString 
-SceneMapIntegerKey::enumeratedTypeValue(const int32_t key) const
+SceneObjectMapIntegerKey::enumeratedTypeValue(const int32_t key) const
 {
     const SceneEnumeratedType* enumType = dynamic_cast<const SceneEnumeratedType*>(getObject(key));
     CaretAssert(enumType);
@@ -294,7 +294,7 @@ SceneMapIntegerKey::enumeratedTypeValue(const int32_t key) const
  * @return A vector containg all of the keys in the map.
  */
 std::vector<int32_t> 
-SceneMapIntegerKey::getKeys() const
+SceneObjectMapIntegerKey::getKeys() const
 {
     std::vector<int32_t> theKeys;
     theKeys.reserve(m_dataMap.size());
@@ -313,7 +313,7 @@ SceneMapIntegerKey::getKeys() const
  * the map.
  */
 const std::map<int32_t, SceneObject*>&
-SceneMapIntegerKey::getMap() const
+SceneObjectMapIntegerKey::getMap() const
 {
     return m_dataMap;
 }

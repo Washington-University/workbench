@@ -35,14 +35,14 @@
 /*LICENSE_END*/
 
 
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "SceneObject.h"
 
 namespace caret {
 
     class SceneClassArray;
     class SceneEnumeratedType;
-    class SceneMapIntegerKey;
+    class SceneObjectMapIntegerKey;
     class ScenePrimitive;
     class ScenePrimitiveArray;
     
@@ -66,17 +66,7 @@ namespace caret {
                              const bool values[],
                              const int32_t arrayNumberOfElements);
         
-        void addBooleanVector(const AString& name,
-                              const std::vector<bool>& values);
-        
         void addClass(SceneClass* sceneClass);
-        
-        void addClassArray(const AString& name,
-                           SceneClass* values[],
-                           const int32_t arrayNumberOfElements);
-        
-        void addEnumeratedType(const AString& name,
-                               const AString& value);
         
         /**
          * Add an enumerated type.
@@ -113,9 +103,6 @@ namespace caret {
         void addEnumeratedTypeArray(const AString& name,
                                const AString value[],
                                     const int32_t arrayNumberOfElements);
-        
-        void addEnumeratedTypeVector(const AString& name,
-                                     const std::vector<AString>& value);
         
         /**
          * Add all elements in an enumerated type array.
@@ -184,7 +171,7 @@ namespace caret {
         void addEnumerateTypeArrayForTabIndices(const AString& name,
                                                 const ET value[],
                                                 const std::vector<int32_t>& tabIndices) {
-            SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(name,
+            SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(name,
                                                                   SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
             const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
             for (int32_t i = 0; i < numTabs; i++) {
@@ -211,7 +198,7 @@ namespace caret {
         template <class T, typename ET> 
         void getEnumerateTypeArrayForTabIndices(const AString& name,
                                                 ET value[]) const {
-            const SceneMapIntegerKey* sceneMap = getMapIntegerKey(name);
+            const SceneObjectMapIntegerKey* sceneMap = getMapIntegerKey(name);
             const std::vector<int32_t> mapKeys = sceneMap->getKeys();
             const int numKeys = static_cast<int32_t>(mapKeys.size());
             for (int32_t i = 0; i < numKeys; i++) {
@@ -262,14 +249,6 @@ namespace caret {
         
         SceneClassArray* getClassArray(const AString& name);
         
-        AString getEnumeratedTypeValue(const AString& name,
-                                       const AString& defaultValue = "") const;
-        
-        int32_t getEnumeratedTypeArrayValue(const AString& name,
-                                AString values[],
-                                const int32_t arrayNumberOfElements,
-                                const AString& defaultValue) const;
-        
         float getFloatValue(const AString& name,
                              const float defaultValue = 0.0) const;
         
@@ -298,7 +277,7 @@ namespace caret {
         
         const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
         
-        const SceneMapIntegerKey* getMapIntegerKey(const AString& name) const;
+        const SceneObjectMapIntegerKey* getMapIntegerKey(const AString& name) const;
         
         int32_t getNumberOfObjects() const;
         
@@ -308,11 +287,34 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+//    private: // and are not used
+//        void addBooleanVector(const AString& name,
+//                              const std::vector<bool>& values);
+//        
+//        void addClassArray(const AString& name,
+//                           SceneClass* values[],
+//                           const int32_t arrayNumberOfElements);
+//        
+        
     private:
         SceneClass(const SceneClass&);
         
         SceneClass& operator=(const SceneClass&);
 
+        void addEnumeratedType(const AString& name,
+                               const AString& value);
+        
+        AString getEnumeratedTypeValue(const AString& name,
+                                       const AString& defaultValue = "") const;
+        
+        int32_t getEnumeratedTypeArrayValue(const AString& name,
+                                            AString values[],
+                                            const int32_t arrayNumberOfElements,
+                                            const AString& defaultValue) const;
+        
+        void addEnumeratedTypeVector(const AString& name,
+                                     const std::vector<AString>& value);
+        
         void logMissing(const AString& missingInfo) const;
         
         AString m_className;

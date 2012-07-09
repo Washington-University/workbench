@@ -47,7 +47,7 @@
 #include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
 
@@ -178,13 +178,13 @@ SceneClass::addBooleanArray(const AString& name,
                                                       arrayNumberOfElements));
 }
 
-void 
-SceneClass::addBooleanVector(const AString& name,
-                             const std::vector<bool>& values)
-{
-    addChild(new SceneBooleanArray(name,
-                                                   values));
-}
+//void 
+//SceneClass::addBooleanVector(const AString& name,
+//                             const std::vector<bool>& values)
+//{
+//    addChild(new SceneBooleanArray(name,
+//                                                   values));
+//}
 
 
 /**
@@ -213,15 +213,15 @@ void SceneClass::addClass(SceneClass* sceneClass)
  * @param arrayNumberOfElements
  *    Number of elements in the array.
  */
-void 
-SceneClass::addClassArray(const AString& name,
-                   SceneClass* values[],
-                   const int32_t arrayNumberOfElements)
-{
-   addChild(new SceneClassArray(name,
-                                values,
-                                arrayNumberOfElements));
-}
+//void 
+//SceneClass::addClassArray(const AString& name,
+//                   SceneClass* values[],
+//                   const int32_t arrayNumberOfElements)
+//{
+//   addChild(new SceneClassArray(name,
+//                                values,
+//                                arrayNumberOfElements));
+//}
 
 
 /**
@@ -814,20 +814,20 @@ SceneClass::getClass(const AString& name)
  *     Pointer to the map with integer key with the given name or NULL if
  *     no child map with integer key exists with the given name.
  */
-const SceneMapIntegerKey* 
+const SceneObjectMapIntegerKey* 
 SceneClass::getMapIntegerKey(const AString& name) const
 {
     
     const SceneObject* sceneObject = getObjectWithName(name);
     if (sceneObject != NULL) {
-        const SceneMapIntegerKey* smik = dynamic_cast<const SceneMapIntegerKey*>(sceneObject);
+        const SceneObjectMapIntegerKey* smik = dynamic_cast<const SceneObjectMapIntegerKey*>(sceneObject);
         if (smik == NULL) {
-            logMissing("SceneMapIntegerKey not found: " + name);
+            logMissing("SceneObjectMapIntegerKey not found: " + name);
         }
         return smik;
     }
     
-    logMissing("SceneMapIntegerKey not found: " + name);
+    logMissing("SceneObjectMapIntegerKey not found: " + name);
     return NULL;
 }
 

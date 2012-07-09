@@ -39,7 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "SceneableInterface.h"
 
@@ -703,7 +703,7 @@ void
 SceneClassAssistant::BooleanTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                           const SceneClass& sceneClass)
 {
-    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    const SceneObjectMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
     if (sceneMap != NULL) {
         const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
@@ -736,7 +736,7 @@ SceneClassAssistant::BooleanTabIndexArrayMapData::save(const SceneAttributes& sc
     const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
     const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
                                                        
-    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+    SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(m_name,
                                                           SceneObjectDataTypeEnum::SCENE_BOOLEAN);
     
     for (int32_t i = 0; i < numTabIndices; i++) {
@@ -780,7 +780,7 @@ void
 SceneClassAssistant::IntegerTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                           const SceneClass& sceneClass)
 {
-    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    const SceneObjectMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
     if (sceneMap != NULL) {
         const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
@@ -807,7 +807,7 @@ SceneClassAssistant::IntegerTabIndexArrayMapData::save(const SceneAttributes& sc
     const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
     const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
     
-    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+    SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(m_name,
                                                           SceneObjectDataTypeEnum::SCENE_INTEGER);
     
     for (int32_t i = 0; i < numTabIndices; i++) {
@@ -851,7 +851,7 @@ void
 SceneClassAssistant::FloatTabIndexArrayMapData::restore(const SceneAttributes& /*sceneAttributes*/,
                                                           const SceneClass& sceneClass)
 {
-    const SceneMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
+    const SceneObjectMapIntegerKey* sceneMap = sceneClass.getMapIntegerKey(m_name);
     if (sceneMap != NULL) {
         const std::map<int32_t, SceneObject*>& dataMap = sceneMap->getMap();
         for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
@@ -878,7 +878,7 @@ SceneClassAssistant::FloatTabIndexArrayMapData::save(const SceneAttributes& scen
     const std::vector<int32_t> tabIndices = sceneAttributes.getIndicesOfTabsForSavingToScene();
     const int32_t numTabIndices = static_cast<int32_t>(tabIndices.size());
     
-    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(m_name,
+    SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(m_name,
                                                           SceneObjectDataTypeEnum::SCENE_FLOAT);
     
     for (int32_t i = 0; i < numTabIndices; i++) {

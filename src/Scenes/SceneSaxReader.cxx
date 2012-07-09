@@ -36,7 +36,7 @@
 #include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
-#include "SceneMapIntegerKey.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
@@ -404,7 +404,7 @@ SceneSaxReader::processObjectMapStartTag(const XmlAttributes& attributes) throw 
         throw e;
     }
     
-    SceneMapIntegerKey* sceneMap = new SceneMapIntegerKey(objectName, 
+    SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(objectName, 
                                                           objectDataType);
     /*
      * Track object being read to ensure proper parenting of children objects
@@ -457,7 +457,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                         CaretAssert(m_objectBeingReadStack.empty() == false);
                         SceneClass* parentSceneClass = dynamic_cast<SceneClass*>(m_objectBeingReadStack.top());
                         SceneClassArray* parentSceneClassArray = dynamic_cast<SceneClassArray*>(m_objectBeingReadStack.top());
-                        SceneMapIntegerKey* parentSceneMapIntegerKey = dynamic_cast<SceneMapIntegerKey*>(m_objectBeingReadStack.top());
+                        SceneObjectMapIntegerKey* parentSceneObjectMapIntegerKey = dynamic_cast<SceneObjectMapIntegerKey*>(m_objectBeingReadStack.top());
                         if (parentSceneClass != NULL) {
                             parentSceneClass->addClass(sceneClass);
                         }
@@ -465,8 +465,8 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                             parentSceneClassArray->setClassAtIndex(m_objectArrayBeingReadElementIndexStack.top(), 
                                                                    sceneClass);
                         }
-                        else if (parentSceneMapIntegerKey != NULL) {
-                            parentSceneMapIntegerKey->addClass(m_objectMapBeingReadValueKeyStack.top(), 
+                        else if (parentSceneObjectMapIntegerKey != NULL) {
+                            parentSceneObjectMapIntegerKey->addClass(m_objectMapBeingReadValueKeyStack.top(), 
                                                                sceneClass);
                         }
                     }
@@ -619,7 +619,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
             m_objectBeingReadStack.pop();
             if (debugFlag) std::cout << "Popped ObjectMap:" << qPrintable(sceneObject->getName()) << std::endl;
             
-            SceneMapIntegerKey* sceneMap = dynamic_cast<SceneMapIntegerKey*>(sceneObject);
+            SceneObjectMapIntegerKey* sceneMap = dynamic_cast<SceneObjectMapIntegerKey*>(sceneObject);
             CaretAssert(sceneMap);
             
             /*
@@ -638,7 +638,7 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
              */
             CaretAssert(m_objectBeingReadStack.empty() == false);
             SceneObject* sceneObject = m_objectBeingReadStack.top();
-            SceneMapIntegerKey* sceneMap = dynamic_cast<SceneMapIntegerKey*>(sceneObject);
+            SceneObjectMapIntegerKey* sceneMap = dynamic_cast<SceneObjectMapIntegerKey*>(sceneObject);
             CaretAssert(sceneMap);
             
             const int32_t key = m_objectMapBeingReadValueKeyStack.top();

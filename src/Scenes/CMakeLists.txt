@@ -31,10 +31,10 @@ SceneFloat.h
 SceneFloatArray.h
 SceneInteger.h
 SceneIntegerArray.h
-SceneMapIntegerKey.h
 SceneObject.h
 SceneObjectArray.h
 SceneObjectDataTypeEnum.h
+SceneObjectMapIntegerKey.h
 ScenePrimitive.h
 ScenePrimitiveArray.h
 SceneSaxReader.h
@@ -60,10 +60,10 @@ SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInteger.cxx
 SceneIntegerArray.cxx
-SceneMapIntegerKey.cxx
 SceneObject.cxx
 SceneObjectArray.cxx
 SceneObjectDataTypeEnum.cxx
+SceneObjectMapIntegerKey.cxx
 ScenePrimitive.cxx
 ScenePrimitiveArray.cxx
 SceneSaxReader.cxx
