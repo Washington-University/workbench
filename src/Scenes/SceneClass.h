@@ -100,10 +100,6 @@ namespace caret {
             return value;
         }
         
-        void addEnumeratedTypeArray(const AString& name,
-                               const AString value[],
-                                    const int32_t arrayNumberOfElements);
-        
         /**
          * Add all elements in an enumerated type array.
          * @param name
@@ -295,6 +291,10 @@ namespace caret {
 //                           SceneClass* values[],
 //                           const int32_t arrayNumberOfElements);
 //        
+//        void addEnumeratedTypeArray(const AString& name,
+//                                    const AString value[],
+//                                    const int32_t arrayNumberOfElements);
+        
         
     private:
         SceneClass(const SceneClass&);

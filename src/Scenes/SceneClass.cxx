@@ -249,15 +249,15 @@ SceneClass::addEnumeratedType(const AString& name,
  * @param arrayNumberOfElements
  *    Number of elements in the array.
  */
-void 
-SceneClass::addEnumeratedTypeArray(const AString& name,
-                            const AString values[],
-                            const int32_t arrayNumberOfElements)
-{
-    addChild(new SceneEnumeratedTypeArray(name,
-                                   values,
-                                   arrayNumberOfElements));
-}
+//void 
+//SceneClass::addEnumeratedTypeArray(const AString& name,
+//                            const AString values[],
+//                            const int32_t arrayNumberOfElements)
+//{
+//    addChild(new SceneEnumeratedTypeArray(name,
+//                                   values,
+//                                   arrayNumberOfElements));
+//}
 
 /**
  * Add a child enumerated type array values to the class.

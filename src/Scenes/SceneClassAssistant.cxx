@@ -1133,15 +1133,15 @@ void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAt
  * @param defaultValue
  *    Default value used when restoring and data with name not found.
  */
-SceneClassAssistant::BooleanVectorData::BooleanVectorData(const AString& name,
-                                                          std::vector<bool>& booleanVectorReference,
-                                                          const bool defaultValue)
-: Data(name),
-  m_booleanVectorReference(booleanVectorReference),
-  m_defaultValue(defaultValue)
-{
-    
-}
+//SceneClassAssistant::BooleanVectorData::BooleanVectorData(const AString& name,
+//                                                          std::vector<bool>& booleanVectorReference,
+//                                                          const bool defaultValue)
+//: Data(name),
+//  m_booleanVectorReference(booleanVectorReference),
+//  m_defaultValue(defaultValue)
+//{
+//    
+//}
 
 /**
  * Restore the data from the scene.
@@ -1150,45 +1150,45 @@ SceneClassAssistant::BooleanVectorData::BooleanVectorData(const AString& name,
  * @param sceneClass
  *    Class from  which data is restored.
  */
-void 
-SceneClassAssistant::BooleanVectorData::restore(const SceneAttributes& /*sceneAttributes*/,
-                                                const SceneClass& sceneClass)
-{
-    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
-    if (numElements > 0) {
-        bool* boolArray = new bool[numElements];
-        
-        sceneClass.getBooleanArrayValue(m_name, 
-                                        boolArray, 
-                                        numElements, 
-                                        m_defaultValue);
-        
-        for (int32_t i = 0; i < numElements; i++) {
-            m_booleanVectorReference[i] = boolArray[i];
-        }
-        delete[] boolArray;
-    }
-}
-
-void 
-SceneClassAssistant::BooleanVectorData::save(const SceneAttributes& /*sceneAttributes*/,
-                                             SceneClass& sceneClass)
-{
-    /*
-     * std::vector<bool> is special case of vector. Cannot use &boolVector[0] for pointer address
-     */
-    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
-    if (numElements > 0) {
-        bool* boolArray = new bool[numElements];
-        for (int32_t i = 0; i < numElements; i++) {
-            boolArray[i] = m_booleanVectorReference[i];
-        }
-        sceneClass.addBooleanArray(m_name, 
-                                   boolArray, 
-                                   numElements);
-        delete[] boolArray;
-    }
-}
+//void 
+//SceneClassAssistant::BooleanVectorData::restore(const SceneAttributes& /*sceneAttributes*/,
+//                                                const SceneClass& sceneClass)
+//{
+//    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
+//    if (numElements > 0) {
+//        bool* boolArray = new bool[numElements];
+//        
+//        sceneClass.getBooleanArrayValue(m_name, 
+//                                        boolArray, 
+//                                        numElements, 
+//                                        m_defaultValue);
+//        
+//        for (int32_t i = 0; i < numElements; i++) {
+//            m_booleanVectorReference[i] = boolArray[i];
+//        }
+//        delete[] boolArray;
+//    }
+//}
+//
+//void 
+//SceneClassAssistant::BooleanVectorData::save(const SceneAttributes& /*sceneAttributes*/,
+//                                             SceneClass& sceneClass)
+//{
+//    /*
+//     * std::vector<bool> is special case of vector. Cannot use &boolVector[0] for pointer address
+//     */
+//    const int numElements = static_cast<int32_t>(m_booleanVectorReference.size());
+//    if (numElements > 0) {
+//        bool* boolArray = new bool[numElements];
+//        for (int32_t i = 0; i < numElements; i++) {
+//            boolArray[i] = m_booleanVectorReference[i];
+//        }
+//        sceneClass.addBooleanArray(m_name, 
+//                                   boolArray, 
+//                                   numElements);
+//        delete[] boolArray;
+//    }
+//}
 
 /* ========================================================================= */
 /**

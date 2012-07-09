@@ -388,41 +388,42 @@ namespace caret {
         };
         
         /* ========================================= */
-        class BooleanVectorData : public Data {
-        public:
-            BooleanVectorData(const AString& name,
-                              std::vector<bool>& booleanVectorReference,
-                              const bool defaultValue);
-            
-            virtual~BooleanVectorData() { }
-            
-            void restore(const SceneAttributes& sceneAttributes,
-                         const SceneClass& sceneClass);
-            void save(const SceneAttributes& sceneAttributes,
-                      SceneClass& sceneClass);
-        private:
-            std::vector<bool>& m_booleanVectorReference;
-            const bool m_defaultValue; 
-        };
+//        class BooleanVectorData : public Data {
+//        public:
+//            BooleanVectorData(const AString& name,
+//                              std::vector<bool>& booleanVectorReference,
+//                              const bool defaultValue);
+//            
+//            virtual~BooleanVectorData() { }
+//            
+//            void restore(const SceneAttributes& sceneAttributes,
+//                         const SceneClass& sceneClass);
+//            void save(const SceneAttributes& sceneAttributes,
+//                      SceneClass& sceneClass);
+//        private:
+//            std::vector<bool>& m_booleanVectorReference;
+//            const bool m_defaultValue; 
+//        };
         
         /* ========================================= */
-        class FloatVectorData : public Data {
-        public:
-            FloatVectorData(const AString& name,
-                            std::vector<float>* floatVectorPointer,
-                            const float defaultValue);
-            
-            virtual~FloatVectorData() { }
-            
-            void restore(const SceneAttributes& sceneAttributes,
-                         const SceneClass& sceneClass);
-            void save(const SceneAttributes& sceneAttributes,
-                      SceneClass& sceneClass);
-        private:
-            std::vector<float>* m_booleanVectorPointer;
-            const float m_defaultValue; 
-        };
+//        class FloatVectorData : public Data {
+//        public:
+//            FloatVectorData(const AString& name,
+//                            std::vector<float>* floatVectorPointer,
+//                            const float defaultValue);
+//            
+//            virtual~FloatVectorData() { }
+//            
+//            void restore(const SceneAttributes& sceneAttributes,
+//                         const SceneClass& sceneClass);
+//            void save(const SceneAttributes& sceneAttributes,
+//                      SceneClass& sceneClass);
+//        private:
+//            std::vector<float>* m_booleanVectorPointer;
+//            const float m_defaultValue; 
+//        };
         
+        /* ========================================= */
         typedef std::vector<Data*> DataStorage;
         typedef DataStorage::iterator DataStorageIterator;
         DataStorage m_dataStorage;
