@@ -54,12 +54,12 @@ VolumeSliceCoordinateSelection::VolumeSliceCoordinateSelection()
 {
     reset();
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_sliceCoordinateAxial", &m_sliceCoordinateAxial, m_sliceCoordinateAxial);
-    m_sceneAssistant->add("m_sliceCoordinateCoronal", &m_sliceCoordinateCoronal, m_sliceCoordinateCoronal);
-    m_sceneAssistant->add("m_sliceCoordinateParasagittal", &m_sliceCoordinateParasagittal, m_sliceCoordinateParasagittal);
-    m_sceneAssistant->add("m_sliceEnabledAxial", &m_sliceEnabledAxial, m_sliceEnabledAxial);
-    m_sceneAssistant->add("m_sliceEnabledCoronal", &m_sliceEnabledCoronal, m_sliceEnabledCoronal);
-    m_sceneAssistant->add("m_sliceEnabledParasagittal", &m_sliceEnabledParasagittal, m_sliceEnabledParasagittal);
+    m_sceneAssistant->add("m_sliceCoordinateAxial", &m_sliceCoordinateAxial);
+    m_sceneAssistant->add("m_sliceCoordinateCoronal", &m_sliceCoordinateCoronal);
+    m_sceneAssistant->add("m_sliceCoordinateParasagittal", &m_sliceCoordinateParasagittal);
+    m_sceneAssistant->add("m_sliceEnabledAxial", &m_sliceEnabledAxial);
+    m_sceneAssistant->add("m_sliceEnabledCoronal", &m_sliceEnabledCoronal);
+    m_sceneAssistant->add("m_sliceEnabledParasagittal", &m_sliceEnabledParasagittal);
 }
 
 /**

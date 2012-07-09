@@ -55,8 +55,8 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_displayed", &m_displayed, m_displayed);
-    m_sceneAssistant->add("m_thickness", &m_thickness, m_thickness);
+    m_sceneAssistant->add("m_displayed", &m_displayed);
+    m_sceneAssistant->add("m_thickness", &m_thickness);
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     

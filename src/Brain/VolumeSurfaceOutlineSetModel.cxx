@@ -81,8 +81,7 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_numberOfDisplayedVolumeSurfaceOutlines",
-                          &m_numberOfDisplayedVolumeSurfaceOutlines,
-                          m_numberOfDisplayedVolumeSurfaceOutlines);
+                          &m_numberOfDisplayedVolumeSurfaceOutlines);
 }
 
 /**

@@ -64,24 +64,20 @@ namespace caret {
     public:
 
         void add(const AString& name,
-                 float* floatAddress,
-                 const float defaultValue);
+                 float* floatAddress);
         
         void add(const AString& name,
-                 int32_t* intAddress,
-                 const int32_t defaultValue);
+                 int32_t* intAddress);
         
         void add(const AString& name,
-                 bool* boolAddress,
-                 const bool defaultValue);
+                 bool* boolAddress);
         
         void add(const AString& name,
-                 AString* stringAddress,
-                 const AString& defaultValue);
+                 AString* stringAddress);
         
-        void add(const AString& name,
-                 const AString& className,
-                 SceneableInterface** sceneClass);
+//        void add(const AString& name,
+//                 const AString& className,
+//                 SceneableInterface** sceneClass);
         
         void add(const AString& name,
                  const AString& className,

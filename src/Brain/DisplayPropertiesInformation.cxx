@@ -53,16 +53,13 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
     m_identifcationSymbolSize = 3.5;
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
-                              &m_contralateralIdentificationEnabled,
-                              m_contralateralIdentificationEnabled);
+                              &m_contralateralIdentificationEnabled);
     
     m_sceneAssistant->add("m_volumeIdentificationEnabled",
-                              &m_volumeIdentificationEnabled,
-                              m_volumeIdentificationEnabled);
+                              &m_volumeIdentificationEnabled);
     
     m_sceneAssistant->add("m_identifcationSymbolSize",
-                              &m_identifcationSymbolSize,
-                              m_identifcationSymbolSize);
+                              &m_identifcationSymbolSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor,

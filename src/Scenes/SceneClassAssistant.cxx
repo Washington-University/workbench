@@ -82,81 +82,85 @@ SceneClassAssistant::~SceneClassAssistant()
 
 /**
  * Add a float member.
+ *
+ * Note: If restoring and the member is not found, the default
+ * value used will be the value at the pointer.
+ *
  * @param name
  *    Name of member.
  * @param floatAddress
  *    Address of the member.
- * @param defaultValue
- *    Value used if the member is not found when restoring scene.
  */
 void 
 SceneClassAssistant::add(const AString& name,
-                         float* floatAddress,
-                         const float defaultValue)
+                         float* floatAddress)
 {
     FloatData* fd = new FloatData(name,
                                   floatAddress,
-                                  defaultValue);
+                                  *floatAddress);
     m_dataStorage.push_back(fd);
 }
 
 /**
  * Add an integer member.
+ *
+ * Note: If restoring and the member is not found, the default
+ * value used will be the value at the pointer.
+ *
  * @param name
  *    Name of member.
  * @param integerAddress
  *    Address of the member.
- * @param defaultValue
- *    Value used if the member is not found when restoring scene.
  */
 void 
 SceneClassAssistant::add(const AString& name,
-                         int32_t* integerAddress,
-                         const int32_t defaultValue)
+                         int32_t* integerAddress)
 {
     IntegerData* id = new IntegerData(name,
                                   integerAddress,
-                                  defaultValue);
+                                  *integerAddress);
     m_dataStorage.push_back(id);
 }
 
 /**
  * Add a boolean member.
+ *
+ * Note: If restoring and the member is not found, the default
+ * value used will be the value at the pointer.
+ *
  * @param name
  *    Name of member.
  * @param booleanAddress
  *    Address of the member.
- * @param defaultValue
- *    Value used if the member is not found when restoring scene.
  */
 void 
 SceneClassAssistant::add(const AString& name,
-                         bool* booleanAddress,
-                         const bool defaultValue)
+                         bool* booleanAddress)
 {
     BooleanData* bd = new BooleanData(name,
                                       booleanAddress,
-                                      defaultValue);
+                                      *booleanAddress);
     m_dataStorage.push_back(bd);
 }
 
 /**
  * Add a string member.
+ *
+ * Note: If restoring and the member is not found, the default
+ * value used will be the value at the pointer.
+ *
  * @param name
  *    Name of member.
  * @param stringAddress
  *    Address of the member.
- * @param defaultValue
- *    Value used if the member is not found when restoring scene.
  */
 void 
 SceneClassAssistant::add(const AString& name,
-                         AString* stringAddress,
-                         const AString& defaultValue)
+                         AString* stringAddress)
 {
     StringData* sd = new StringData(name,
                                       stringAddress,
-                                      defaultValue);
+                                      *stringAddress);
     m_dataStorage.push_back(sd);
     
 }
@@ -174,18 +178,18 @@ SceneClassAssistant::add(const AString& name,
  *     is best used when a member of a class is a pointer to
  *     a class that implementes the SceneableInterface.
  */
-void 
-SceneClassAssistant::add(const AString& name,
-                         const AString& className,
-                         SceneableInterface** sceneClass)
-{
-    CaretAssert(sceneClass);
-    
-    ClassData* cd = new ClassData(name,
-                                  className,
-                                  sceneClass);
-    m_dataStorage.push_back(cd);
-}
+//void 
+//SceneClassAssistant::add(const AString& name,
+//                         const AString& className,
+//                         SceneableInterface** sceneClass)
+//{
+//    CaretAssert(sceneClass);
+//    
+//    ClassData* cd = new ClassData(name,
+//                                  className,
+//                                  sceneClass);
+//    m_dataStorage.push_back(cd);
+//}
 
 /**
  * Add a scene class.

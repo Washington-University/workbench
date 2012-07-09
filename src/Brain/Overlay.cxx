@@ -174,9 +174,9 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_paletteDisplayedFlag = false;
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_opacity", &m_opacity, m_opacity);
-    m_sceneAssistant->add("m_enabled", &m_enabled, m_enabled);
-    m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag, m_paletteDisplayedFlag);
+    m_sceneAssistant->add("m_opacity", &m_opacity);
+    m_sceneAssistant->add("m_enabled", &m_enabled);
+    m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
 }
 
 /**

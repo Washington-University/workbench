@@ -80,11 +80,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_sceneClassAssistant = new SceneClassAssistant();
     m_sceneClassAssistant->add("m_tabNumber", 
-                               &m_tabNumber, 
-                               m_tabNumber);
+                               &m_tabNumber);
     m_sceneClassAssistant->add("m_userName",
-                               &m_userName,
-                               m_userName);
+                               &m_userName);
     m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
                                                                    &m_selectedModelType,
                                                                    m_selectedModelType);
