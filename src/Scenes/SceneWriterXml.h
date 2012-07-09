@@ -55,8 +55,6 @@ namespace caret {
          *    Scene that is written.
          * @param sceneIndex
          *    Index of the scene.
-         * @throws SceneException
-         *    If there is an error writing the scene.
          */
         virtual void writeScene(const Scene& scene,
                                 const int32_t sceneIndex);

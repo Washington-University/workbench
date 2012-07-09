@@ -34,12 +34,11 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 /**
  * \class caret::SceneWriterInterface 
  * \brief Interface for classes that write scenes.
  */
-
-#include "SceneException.h"
 
 namespace caret {
 

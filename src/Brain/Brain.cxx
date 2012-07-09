@@ -63,7 +63,6 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
-#include "SceneException.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -2383,6 +2382,16 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
+ * @return String containing error messages for any file reading
+ * errors encountered when restoring a scene.
+ */
+AString 
+Brain::getSceneFileReadingErrorMessages() const
+{
+    return m_sceneSpecFileReadingErrors;
+}
+
+/**
  * Restore the state of an instance of a class.
  * 
  * @param sceneAttributes
@@ -2398,6 +2407,8 @@ void
 Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
+    m_sceneSpecFileReadingErrors = "";
+    
     if (sceneClass == NULL) {
         return;
     }
@@ -2411,7 +2422,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
-    AString readSpecFileErrorMessage;
     if (isLoadFiles) {
         SpecFile specFile;
         specFile.restoreFromScene(sceneAttributes, 
@@ -2420,11 +2430,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         this->loadSpecFile(&specFile, 
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
                            RESET_BRAIN_KEEP_SPEC_FILE_YES,
-                           readSpecFileErrorMessage);
-    }
-    
-    if (readSpecFileErrorMessage.isEmpty() == false) {
-        throw SceneException(readSpecFileErrorMessage);
+                           m_sceneSpecFileReadingErrors);
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 

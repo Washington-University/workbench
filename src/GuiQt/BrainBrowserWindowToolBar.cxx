@@ -4623,6 +4623,13 @@ BrainBrowserWindowToolBar::saveToScene(const SceneAttributes* sceneAttributes,
         }
         sceneClass->addChild(sceneTabIndexArray);
     }
+
+    int32_t selectedTabIndex = -1;
+    BrowserTabContent* selectedTab = getTabContentFromSelectedTab();
+    if (selectedTab != NULL) {
+        selectedTabIndex = selectedTab->getTabNumber();
+    }
+    sceneClass->addInteger("selectedTabIndex", selectedTabIndex);
     
     return sceneClass;
 }
@@ -4663,8 +4670,14 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
     }
     
     /*
+     * Index of selected browser tab (NOT the tabBar)
+     */
+    const int32_t selectedTabIndex = sceneClass->getIntegerValue("selectedTabIndex", -1);
+
+    /*
      * Create new tabs
      */
+    int32_t defaultTabBarIndex = 0;
     const ScenePrimitiveArray* sceneTabIndexArray = sceneClass->getPrimitiveArray("tabIndices");
     if (sceneTabIndexArray != NULL) {
         const int32_t numValidTabs = sceneTabIndexArray->getNumberOfArrayElements();
@@ -4675,10 +4688,17 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
             EventManager::get()->sendEvent(getTabContent.getPointer());
             if (getTabContent.isError() == false) {
                 BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+                if (tabContent->getTabNumber() == selectedTabIndex) {
+                    defaultTabBarIndex = iTab;
+                }
                 this->addNewTab(tabContent);
             }
         }
-        
+    }
+    
+    if ((defaultTabBarIndex >= 0) 
+        && (defaultTabBarIndex < tabBar->count())) {
+        tabBar->setCurrentIndex(defaultTabBarIndex);
     }
 }
 

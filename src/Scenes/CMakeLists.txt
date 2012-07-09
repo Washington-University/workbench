@@ -26,7 +26,6 @@ SceneClassArray.h
 SceneClassAssistant.h
 SceneEnumeratedTypeArray.h
 SceneEnumeratedType.h
-SceneException.h
 SceneFloat.h
 SceneFloatArray.h
 SceneInteger.h
@@ -55,7 +54,6 @@ SceneClassArray.cxx
 SceneClassAssistant.cxx
 SceneEnumeratedTypeArray.cxx
 SceneEnumeratedType.cxx
-SceneException.cxx
 SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInteger.cxx

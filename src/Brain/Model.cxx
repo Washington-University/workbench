@@ -34,7 +34,6 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
-#include "SceneException.h"
 #include "Surface.h"
 #include "UserView.h"
 
@@ -964,7 +963,7 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
 //    const ModelTypeEnum::Enum savedModelType = ModelTypeEnum::fromName(savedModelTypeString,
 //                                                                       &isValidModelTypeName);
     if (savedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
-        throw SceneException("Non-matching model type when restoring scene: "
+        CaretLogSevere("Non-matching model type when restoring scene: "
                              + ModelTypeEnum::toName(savedModelType));
         return;
     }
@@ -979,6 +978,9 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
         const ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(this);
         CaretAssert(surfaceModel);        
         if (surfaceName != surfaceModel->getSurface()->getFileNameNoPath()) {
+            /*
+             * Exit as this is not the surface for restoring (name does not match)
+             */
             return;
         }
     }

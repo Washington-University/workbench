@@ -60,7 +60,6 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneDialog.h"
-#include "SceneException.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"

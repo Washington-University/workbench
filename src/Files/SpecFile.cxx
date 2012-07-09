@@ -34,7 +34,6 @@
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
-#include "SceneException.h"
 #define __SPEC_FILE_DEFINE__
 #include "SpecFile.h"
 #undef __SPEC_FILE_DEFINE__

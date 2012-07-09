@@ -51,7 +51,6 @@
 #include "GuiManager.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#include "SceneException.h"
 #include "SceneFile.h"
 #include "Scene.h"
 #include "WuQDataEntryDialog.h"
@@ -371,7 +370,6 @@ SceneDialog::addNewSceneButtonClicked()
     SceneFile* sceneFile = getSelectedSceneFile();
     Scene* newScene = NULL;
     if (sceneFile != NULL) {
-        try {
             WuQDataEntryDialog newSceneDialog("New Scene",
                                               this);
             AString newSceneName = "Scene X";
@@ -408,10 +406,10 @@ SceneDialog::addNewSceneButtonClicked()
                 
                 sceneFile->addScene(newScene);
             }
-        }
-        catch (const SceneException& se) {
+        const AString sceneFileReadingErrorMessage = GuiManager::get()->getBrain()->getSceneFileReadingErrorMessages();
+        if (sceneFileReadingErrorMessage.isEmpty() == false) {
             WuQMessageBox::errorOk(this, 
-                                   se.whatString());
+                                   sceneFileReadingErrorMessage);
         }
     }
     
@@ -446,20 +444,15 @@ SceneDialog::showSceneButtonClicked()
 {
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
-        try {
             const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
             if (guiManagerClass->getName() != "guiManager") {
-                throw SceneException("Top level scene class should be guiManager but it is: "
+                WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
                                      + guiManagerClass->getName());
+                return;
             }
             const SceneAttributes* sceneAttributes = scene->getAttributes();
             GuiManager::get()->restoreFromScene(sceneAttributes, 
                                                 guiManagerClass);
-        }
-        catch (const SceneException& se) {
-            WuQMessageBox::errorOk(this, 
-                                   se.whatString());
-        }
     }
 }
 
