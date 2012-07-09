@@ -1140,7 +1140,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Restore session manager
      */
-    SessionManager::get()->restoreFromScene(sceneAttributes, sceneClass->getClass("m_sessionManager"));
+    SessionManager::get()->restoreFromScene(sceneAttributes, 
+                                            sceneClass->getClass("m_sessionManager"));
     
     /*
      * Get open windows

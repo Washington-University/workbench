@@ -226,6 +226,10 @@ void
 VolumeSurfaceOutlineModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                            const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
 }

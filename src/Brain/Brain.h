@@ -221,13 +221,20 @@ namespace caret {
             RESET_BRAIN_KEEP_SCENE_FILES_YES
         };
         
+        enum ResetBrainKeepSpecFile {
+            RESET_BRAIN_KEEP_SPEC_FILE_NO,
+            RESET_BRAIN_KEEP_SPEC_FILE_YES
+        };
+        
         void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         
         bool loadSpecFile(SpecFile* specFile,
-                          const ResetBrainKeepSceneFiles keepSceneFiles,
+                          const ResetBrainKeepSceneFiles keepSceneFile,
+                          const ResetBrainKeepSpecFile keepSpecFile,
                           AString& errorMessageOut);
         
-        void resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles);
+        void resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
+                        const ResetBrainKeepSpecFile keepSpecFile);
         
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
@@ -291,7 +298,7 @@ namespace caret {
         
         mutable AString currentDirectory;
         
-        SpecFile* specFile;
+        SpecFile* m_specFile;
         
         std::vector<VolumeFile*> volumeFiles;
         

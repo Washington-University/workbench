@@ -2305,6 +2305,10 @@ void
 BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                              const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
     m_toolbar->restoreFromScene(sceneAttributes, 
                                 sceneClass->getClass("m_toolbar"));
     

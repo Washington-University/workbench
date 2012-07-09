@@ -305,6 +305,10 @@ void
 VolumeSurfaceOutlineColorOrTabModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                       const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
     m_previousSelectedItemIndex = sceneClass->getIntegerValue("m_previousSelectedItemIndex",
                                                               -1);
     m_selectedItem->restoreFromScene(sceneAttributes, 

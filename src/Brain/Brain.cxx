@@ -84,7 +84,7 @@ Brain::Brain()
 {
     this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
     this->paletteFile = new PaletteFile();
-    this->specFile = new SpecFile();
+    m_specFile = new SpecFile();
     this->surfaceMontageController = NULL;
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
@@ -151,7 +151,7 @@ Brain::~Brain()
 
     delete this->connectivityLoaderManager;
     delete this->paletteFile;
-    delete this->specFile;
+    delete m_specFile;
     if (this->surfaceMontageController != NULL) {
         delete this->surfaceMontageController;
     }
@@ -240,9 +240,12 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
  * Reset the brain structure.
  * @param keepSceneFiles
  *    Status of keeping scene files.
+ * @param keepSpecFile
+ *    Status of keeping spec file.
  */
 void 
-Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles)
+Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
+                  const ResetBrainKeepSpecFile keepSpecFile)
 {    this->isSpecFileBeingRead = false;
     
     int num = this->getNumberOfBrainStructures();
@@ -297,8 +300,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles)
     this->connectivityLoaderManager->reset();
     
     switch (keepSceneFiles) {
-        case RESET_BRAIN_KEEP_SCENE_FILES_YES:
-            break;
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
             for (std::vector<SceneFile*>::iterator sfi = this->sceneFiles.begin();
                  sfi != this->sceneFiles.end();
@@ -308,9 +309,17 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles)
             }
             this->sceneFiles.clear();
             break;
+        case RESET_BRAIN_KEEP_SCENE_FILES_YES:
+            break;
     }
     
-    this->specFile->clear();
+    switch (keepSpecFile) {
+        case RESET_BRAIN_KEEP_SPEC_FILE_NO:
+            m_specFile->clear();
+            break;
+        case RESET_BRAIN_KEEP_SPEC_FILE_YES:
+            break;
+    }
     
     for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
          iter != this->displayProperties.end();
@@ -331,16 +340,18 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles)
 void 
 Brain::resetBrain()
 {
-    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_NO);
+    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_NO,
+                     RESET_BRAIN_KEEP_SPEC_FILE_NO);
 }
 
 /**
- * Reset the brain structure but keep scene files.
+ * Reset the brain structure but keep spec and scene files.
  */
 void 
 Brain::resetBrainKeepSceneFiles()
 {
-    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES);
+    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES,
+                     RESET_BRAIN_KEEP_SPEC_FILE_NO);
 }
 
 /**
@@ -1346,7 +1357,7 @@ Brain::getPaletteFile() const
 SpecFile* 
 Brain::getSpecFile()
 {
-    return this->specFile;
+    return m_specFile;
 }
 
 /**
@@ -1561,7 +1572,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     CaretLogInfo(msg);
 
     if (addDataFileToSpecFile) {
-        const AString specFileName = this->specFile->getFileName();
+        const AString specFileName = m_specFile->getFileName();
         if (specFileName.isEmpty() == false) {
             FileInformation specFileInfo(specFileName);
             QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName, 
@@ -1576,11 +1587,11 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     dataFileStructure = StructureEnum::ALL;
                 }
             }
-            this->specFile->addDataFile(dataFileType, 
+            m_specFile->addDataFile(dataFileType, 
                                         dataFileStructure, 
                                         relativePathDataFileName,
                                         true);
-            this->specFile->writeFile(specFileName);
+            m_specFile->writeFile(specFileName);
         }
     }
     
@@ -1607,10 +1618,10 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     this->resetBrain();
     
-    if (this->specFile != NULL) {
-        delete this->specFile;
+    if (m_specFile != NULL) {
+        delete m_specFile;
     }
-    this->specFile = new SpecFile(*sf);
+    m_specFile = new SpecFile(*sf);
     
     this->isSpecFileBeingRead = true;
     
@@ -1647,7 +1658,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         }
     }
     
-    const AString specFileName = this->specFile->getFileName();
+    const AString specFileName = m_specFile->getFileName();
     FileInformation specFileInfo(specFileName);
     if (specFileInfo.isAbsolute()) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
@@ -1703,10 +1714,12 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 
 /**
  * Load files from the given spec file.
- * @param specFile
+ * @param specFileToLoad
  *    Spec file from which selected files are read.
  * @param keepSceneFiles
- *    Status or keeping/removing scene files.
+ *    Controls clearing of scene files
+ * @param keepSpecFile
+ *    Controls clearing of spec file
  * @param errorMessageOut
  *    If there are any errors, this will contain the
  *    error messages.  Even if there are errors, files
@@ -1715,30 +1728,41 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
  * return true if NO errors, else false.
  */
 bool
-Brain::loadSpecFile(SpecFile* specFile,
+Brain::loadSpecFile(SpecFile* specFileToLoad,
                     const ResetBrainKeepSceneFiles keepSceneFiles,
+                    const ResetBrainKeepSpecFile keepSpecFile,
                     AString& errorMessageOut)
 {
     errorMessageOut = "";
     
-    CaretAssert(specFile);
+    CaretAssert(specFileToLoad);
     
-    this->resetBrain(keepSceneFiles);
+    this->resetBrain(keepSceneFiles,
+                     keepSpecFile);
     
-    if (this->specFile != NULL) {
-        delete this->specFile;
-    }
-    this->specFile = new SpecFile(*specFile);
+    /*
+     * Typically, keep spec when showing scene
+     */
+//    switch (keepSpecFile) {
+//        case RESET_BRAIN_KEEP_SPEC_FILE_NO:
+//            break;
+            if (m_specFile != NULL) {
+                delete m_specFile;
+            }
+            m_specFile = new SpecFile(*specFileToLoad);
+//        case RESET_BRAIN_KEEP_SPEC_FILE_YES:
+//            break;
+//    }
     
     this->isSpecFileBeingRead = true;
     
-    FileInformation fileInfo(specFile->getFileName());
+    FileInformation fileInfo(m_specFile->getFileName());
     this->setCurrentDirectory(fileInfo.getPathName());
     
     
-    const int32_t numFileGroups = specFile->getNumberOfDataFileTypeGroups();
+    const int32_t numFileGroups = m_specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
-        SpecFileDataFileTypeGroup* group = specFile->getDataFileTypeGroup(ig);
+        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
@@ -1762,7 +1786,7 @@ Brain::loadSpecFile(SpecFile* specFile,
         }
     }
     
-    const AString specFileName = this->specFile->getFileName();
+    const AString specFileName = m_specFile->getFileName();
     FileInformation specFileInfo(specFileName);
     if (specFileInfo.isAbsolute()) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
@@ -2081,15 +2105,15 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
     caretDataFile->clearModified();
     
     if (isAddToSpecFile) {
-        const AString specFileName = this->specFile->getFileName();
+        const AString specFileName = m_specFile->getFileName();
         if (specFileName.isEmpty() == false) {
             FileInformation fileInfo(specFileName);
             if (fileInfo.exists()) {
-                this->specFile->addDataFile(caretDataFile->getDataFileType(), 
+                m_specFile->addDataFile(caretDataFile->getDataFileType(), 
                                             caretDataFile->getStructure(), 
                                             caretDataFile->getFileName(),
                                             true);
-                this->specFile->writeFile(specFileName);
+                m_specFile->writeFile(specFileName);
             }
         }
     }
@@ -2220,7 +2244,7 @@ void
 Brain::setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
                                        const bool selectedStatus)
 {
-    this->specFile->setFileSelectionStatus(dataFile->getDataFileType(), 
+    m_specFile->setFileSelectionStatus(dataFile->getDataFileType(), 
                                            dataFile->getStructure(), 
                                            dataFile->getFileNameNoPath(), 
                                            selectedStatus);
@@ -2329,7 +2353,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     
     if (isSaveSpecFile) {
-        sceneClass->addClass(this->specFile->saveToScene(sceneAttributes, 
+        sceneClass->addClass(m_specFile->saveToScene(sceneAttributes, 
                                                          "specFile"));
     }
     
@@ -2394,8 +2418,13 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                                   sceneClass->getClass("specFile"));
         
         this->loadSpecFile(&specFile, 
-                           RESET_BRAIN_KEEP_SCENE_FILES_YES, 
+                           RESET_BRAIN_KEEP_SCENE_FILES_YES,
+                           RESET_BRAIN_KEEP_SPEC_FILE_YES,
                            readSpecFileErrorMessage);
+    }
+    
+    if (readSpecFileErrorMessage.isEmpty() == false) {
+        throw SceneException(readSpecFileErrorMessage);
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 

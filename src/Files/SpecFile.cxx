@@ -33,6 +33,7 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneException.h"
 #define __SPEC_FILE_DEFINE__
 #include "SpecFile.h"
@@ -881,17 +882,48 @@ SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "SpecFile",
                                             1);
+    sceneClass->addString("specFileName",
+                          getFileNameNoPath());
     
-    try {
-        sceneClass->addString("specFileName",
-                              this->getFileNameNoPath());
-        sceneClass->addString("specFileContent",
-                              this->writeFileToString(WRITE_META_DATA_NO,
-                                                      WRITE_SELECTED_FILES));
+    /*
+     * Remove any files that are tagged for removal.
+     */
+    this->removeFilesTaggedForRemoval();
+    
+    std::vector<SceneClass*> dataFileClasses;
+    
+    //
+    // Write files
+    //
+    const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
+    for (int32_t i = 0; i < numGroups; i++) {
+        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+        const int32_t numFiles = group->getNumberOfFiles();
+        for (int32_t j = 0; j < numFiles; j++) {
+            SpecFileDataFile* file = group->getFileInformation(j);
+            
+            if (file->isRemovedFromSpecFileWhenWritten() == false) {
+                if (file->isSelected()) {
+                    SceneClass* fileClass = new SceneClass("specFileDataFile",
+                                                           "SpecFileDataFile",
+                                                           1);
+                    fileClass->addEnumeratedType<DataFileTypeEnum, DataFileTypeEnum::Enum>("dataFileType", 
+                                                                                           group->getDataFileType());
+                    fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
+                                                                                     file->getStructure());
+                    fileClass->addString("fileName", 
+                                         file->getFileName());
+                    fileClass->addBoolean("selected", 
+                                          file->isSelected());
+                    
+                    dataFileClasses.push_back(fileClass);
+                }
+            }
+        }
     }
-    catch (const DataFileException& dfe) {
-        throw SceneException(dfe);
-    }
+
+    sceneClass->addChild(new SceneClassArray("dataFilesArray",
+                                             dataFileClasses));
     return sceneClass;
 }
 
@@ -911,15 +943,34 @@ void
 SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                            const SceneClass* sceneClass)
 {
-    const AString name = sceneClass->getStringValue("specFileName");
-    const AString specFileContent = sceneClass->getStringValue("specFileContent");
-    
-    try {
-        this->readFileFromString(specFileContent);
-        this->setFileName(name);
+    if (sceneClass == NULL) {
+        return;
     }
-    catch (const DataFileException& dfe) {
-        throw SceneException(dfe);
+    
+    this->clear();
+    
+    const AString specFileName = sceneClass->getStringValue("specFileName");
+    this->setFileName(specFileName);
+    
+    const SceneClassArray* dataFileClassArray = sceneClass->getClassArray("dataFilesArray");
+    if (dataFileClassArray != NULL) {
+        const int32_t numberOfFiles = dataFileClassArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numberOfFiles; i++) {
+            const SceneClass* dataFileClass = dataFileClassArray->getClassAtIndex(i);
+            const bool selected = dataFileClass->getBooleanValue("selected");
+            const AString dataFileName = dataFileClass->getStringValue("fileName");
+            const DataFileTypeEnum::Enum dataFileType = dataFileClass->getEnumeratedTypeValue<DataFileTypeEnum, 
+                                                                                              DataFileTypeEnum::Enum>("dataFileType",
+                                                                                                                      DataFileTypeEnum::UNKNOWN);
+            const StructureEnum::Enum structure = dataFileClass->getEnumeratedTypeValue<StructureEnum, 
+            StructureEnum::Enum>("structure",
+                                    StructureEnum::INVALID);
+            
+            this->addDataFile(dataFileType, 
+                              structure, 
+                              dataFileName, 
+                              selected);
+        }
     }
 }
 

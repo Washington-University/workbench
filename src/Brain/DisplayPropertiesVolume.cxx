@@ -133,6 +133,10 @@ void
 DisplayPropertiesVolume::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
