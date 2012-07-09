@@ -36,11 +36,11 @@
 
 
 #include "CaretObject.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
 
 namespace caret {
 
-    class SceneAttributes;
-    class SceneClass;
     class SceneableInterface;
     
     class SceneClassAssistant : public CaretObject {
@@ -87,6 +87,25 @@ namespace caret {
                  const AString& className,
                  SceneableInterface* sceneClass);
         
+        /**
+         * Add a enumerated type member.
+         * @param name
+         *    Name of member.
+         * @param enumeratedValueAddress
+         *    Address of the member.
+         * @param defaultValue
+         *    Value used if the member is not found when restoring scene.
+         */
+        template<class T, typename ET>
+        void add(const AString& name,
+                 ET* enumeratedValueAddress,
+                 const ET defaultValue) {
+            EnumeratedTypeData<T, ET>* etd = new EnumeratedTypeData<T, ET>(name,
+                                              enumeratedValueAddress,
+                                              defaultValue);
+            m_dataStorage.push_back(etd);
+        }
+        
         void addArray(const AString& name,
                       bool* booleanArray,
                       const int32_t numberOfElements,
@@ -102,6 +121,33 @@ namespace caret {
                       const int32_t numberOfElements,
                       const int32_t defaultValue);
         
+        /**
+         * Add an enumerated type array.
+         * @param name
+         *    Name of array.
+         * @param enumeratedValueArray
+         *    The array.
+         * @param numberOfElements
+         *    Number of elements in the array.
+         * @param defaultValue
+         *    Value used for items not found.
+         */
+        template<class T, typename ET>
+        void addArray(const AString& name,
+                      ET* enumeratedValueArray,
+                      const int32_t numberOfElements,
+                      const ET defaultValue) {
+            EnumeratedTypeArrayData<T, ET>* eta = new EnumeratedTypeArrayData<T, ET>(name,
+                                                                             enumeratedValueArray,
+                                                                             numberOfElements,
+                                                                             defaultValue);
+            m_dataStorage.push_back(eta);
+        }
+        
+//        void addArray(const AString& name,
+//                      SceneableInterface* sceneableInterfaceArray[],
+//                      const int32_t numberOfElements);
+        
         void addArray(const AString& name,
                       AString* stringArray,
                       const int32_t numberOfElements,
@@ -116,12 +162,32 @@ namespace caret {
         void addTabIndexedFloatArray(const AString& name,
                                    float* floatArray);
         
+        
+        /**
+         * Add a tab-indexed enumerated type array.
+         * @param name
+         *    Name of array.
+         * @param enumeratedValueArray
+         *    The array.
+         */
+        template<class T, typename ET>
+        void addTabIndexedEnumeratedTypeArray(const AString& name,
+                                              ET* enumeratedValueArray) {
+            EnumeratedTypeTabIndexArrayMapData<T, ET>* etmap = new EnumeratedTypeTabIndexArrayMapData<T, ET>(name,
+                                                                                              enumeratedValueArray);
+            m_dataStorage.push_back(etmap);
+        }
+                                              
         // ADD_NEW_METHODS_HERE
 
     private:
 
         // ADD_NEW_MEMBERS_HERE
 
+    private:
+        
+        // ADD_NEW_MEMBERS_HERE
+        
         /* ========================================= */
         class Data {
         public:
@@ -135,6 +201,64 @@ namespace caret {
         protected:
             const AString m_name;
             
+        };
+        /* ========================================= */
+        /**
+         * \class caret::SceneClassAssistant::EnumeratedTypeData 
+         * \brief An enumeration value added to a scene class.
+         */
+        template <class T, typename ET>
+        class EnumeratedTypeData : public Data {
+        public:
+            /**
+             * Constructor.
+             * @param name
+             *    Name of data.
+             * @param dataPointer
+             *    Pointer to data.
+             * @param defaultValue
+             *    Default value used when restoring and data with name not found.
+             */
+            EnumeratedTypeData(const AString& name,
+                               ET* dataPointer,
+                               const ET defaultValue)
+            : Data(name),
+            m_dataPointer(dataPointer),
+            m_defaultValue(defaultValue){
+                
+            }
+            
+            virtual ~EnumeratedTypeData() { }
+            
+            /**
+             * Restore the data from the scene.
+             * @param sceneAttributes
+             *    Attributes of the scene.
+             * @param sceneClass
+             *    Class from  which data is restored.
+             */
+            void restore(const SceneAttributes& /*sceneAttributes*/,
+                         const SceneClass& sceneClass) {
+                *m_dataPointer = sceneClass.getEnumeratedTypeValue<T, ET>(m_name, 
+                                                                          m_defaultValue);
+            }
+            
+            /**
+             * Save the data to the scene.
+             * @param sceneAttributes
+             *    Attributes for the scene.
+             * @param sceneClass
+             *    Class to which data is saved.
+             */
+            void save(const SceneAttributes& /*sceneAttributes*/,
+                      SceneClass& sceneClass) {
+                sceneClass.addEnumeratedType<T, ET>(m_name,
+                                                    *m_dataPointer);
+            }
+            
+        private:
+            ET* m_dataPointer;
+            const ET m_defaultValue; 
         };
         
         /* ========================================= */
@@ -290,19 +414,47 @@ namespace caret {
         };
         
         /* ========================================= */
-        class ClassTabIndexArrayMapData : public TabIndexArrayMapData {
+        template <class T, typename ET>
+        class EnumeratedTypeTabIndexArrayMapData : public TabIndexArrayMapData {
         public:
-            ClassTabIndexArrayMapData(const AString& name,
-                                      SceneableInterface* sceneInterface);
-            virtual ~ClassTabIndexArrayMapData() { }
+            EnumeratedTypeTabIndexArrayMapData(const AString& name,
+                                    ET* enumValueArray) 
+            : TabIndexArrayMapData(name),
+            m_enumValueArray(enumValueArray) {
+                
+            }
             
-            void restore(const SceneAttributes& sceneAttributes,
-                         const SceneClass& sceneClass);
+            virtual ~EnumeratedTypeTabIndexArrayMapData() { }
+            
+            void restore(const SceneAttributes& /*sceneAttributes*/,
+                         const SceneClass& sceneClass) {
+                sceneClass.getEnumerateTypeArrayForTabIndices<T, ET>(m_name, 
+                                                                     m_enumValueArray);
+            }
             void save(const SceneAttributes& sceneAttributes,
-                      SceneClass& sceneClass);
+                      SceneClass& sceneClass) {
+                sceneClass.addEnumeratedTypeArrayForTabIndices<T, ET>(m_name, 
+                                                                     m_enumValueArray,
+                                                                     sceneAttributes.getIndicesOfTabsForSavingToScene());
+            }
         private:
-            SceneableInterface* m_sceneInterface;
+            ET* m_enumValueArray;
         };
+        
+        /* ========================================= */
+//        class ClassTabIndexArrayMapData : public TabIndexArrayMapData {
+//        public:
+//            ClassTabIndexArrayMapData(const AString& name,
+//                                      SceneableInterface* sceneInterface);
+//            virtual ~ClassTabIndexArrayMapData() { }
+//            
+//            void restore(const SceneAttributes& sceneAttributes,
+//                         const SceneClass& sceneClass);
+//            void save(const SceneAttributes& sceneAttributes,
+//                      SceneClass& sceneClass);
+//        private:
+//            SceneableInterface* m_sceneInterface;
+//        };
         
         /* ========================================= */
         class ArrayData : public Data {
@@ -385,6 +537,60 @@ namespace caret {
         private:
             AString* m_stringArray;
             AString m_defaultValue;
+        };
+        
+        /* ========================================= */
+//        class ClassArrayData : public ArrayData {
+//        public:
+//            ClassArrayData(const AString& name,
+//                            SceneableInterface* sceneInterfaces[],
+//                            const int32_t numberOfArrayElements);
+//            
+//            virtual ~ClassArrayData() { }
+//            void restore(const SceneAttributes& sceneAttributes,
+//                         const SceneClass& sceneClass);
+//            void save(const SceneAttributes& sceneAttributes,
+//                      SceneClass& sceneClass);
+//        private:
+//            SceneableInterface** m_sceneInterfaces;
+//        };
+        
+        /* ========================================= */
+        template <class T, typename ET>
+        class EnumeratedTypeArrayData : public ArrayData {
+        public:
+            EnumeratedTypeArrayData(const AString& name,
+                                    ET* enumValueArray,
+                                    const int32_t numberOfArrayElements,
+                                    const ET defaultValue) 
+            : ArrayData(name,
+             numberOfArrayElements),
+             m_enumValueArray(enumValueArray),
+             m_defaultValue(defaultValue) {
+                
+            }
+            
+            virtual ~EnumeratedTypeArrayData() { }
+            
+            void restore(const SceneAttributes& /*sceneAttributes*/,
+                         const SceneClass& sceneClass) {
+                if (m_numberOfArrayElements > 0) {
+                    sceneClass.getEnumerateTypeArray<T, ET>(m_name,
+                                                           m_enumValueArray,
+                                                           m_numberOfArrayElements,
+                                                           m_defaultValue);
+                }
+                
+            }
+            void save(const SceneAttributes& /*sceneAttributes*/,
+                      SceneClass& sceneClass) {
+                sceneClass.addEnumeratedTypeArray<T, ET>(m_name,
+                                                        m_enumValueArray, 
+                                                        m_numberOfArrayElements);
+            }
+        private:
+            ET* m_enumValueArray;
+            const ET m_defaultValue;
         };
         
         /* ========================================= */

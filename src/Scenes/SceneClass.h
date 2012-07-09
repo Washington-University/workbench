@@ -110,7 +110,7 @@ namespace caret {
          *    Number of values in the array.
          */
         template <class T, typename ET> 
-        void addEnumerateTypeArray(const AString& name,
+        void addEnumeratedTypeArray(const AString& name,
                                    const ET value[],
                                    const int32_t arrayNumberOfElements) {
             std::vector<AString> stringVector;
@@ -164,7 +164,7 @@ namespace caret {
          *    Indices of the tabs for which the values are saved.
          */
         template <class T, typename ET> 
-        void addEnumerateTypeArrayForTabIndices(const AString& name,
+        void addEnumeratedTypeArrayForTabIndices(const AString& name,
                                                 const ET value[],
                                                 const std::vector<int32_t>& tabIndices) {
             SceneObjectMapIntegerKey* sceneMap = new SceneObjectMapIntegerKey(name,

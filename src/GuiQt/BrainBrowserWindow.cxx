@@ -69,6 +69,7 @@
 #include "ModelWholeBrain.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
@@ -197,6 +198,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     if (browserTabContent == NULL) {
         m_toolbar->addDefaultTabsAfterLoadingSpecFile();
     }
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_toolbar",
+                          "BrainBrowserWindowToolBar",
+                          m_toolbar);
 }
 
 /**
@@ -204,6 +210,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    delete m_sceneAssistant;
 }
 
 /**
@@ -2276,8 +2283,11 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                             "BrainBrowserWindow",
                                             1);
     
-    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes, 
-                                                "m_toolbar"));
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+//    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes, 
+//                                                "m_toolbar"));
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -2309,8 +2319,11 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    m_toolbar->restoreFromScene(sceneAttributes, 
-                                sceneClass->getClass("m_toolbar"));
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
+//    m_toolbar->restoreFromScene(sceneAttributes, 
+//                                sceneClass->getClass("m_toolbar"));
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:

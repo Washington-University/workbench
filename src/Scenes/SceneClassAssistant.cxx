@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitive.h"
 #include "SceneableInterface.h"
@@ -317,6 +318,26 @@ SceneClassAssistant::addArray(const AString& name,
                                                  defaultValue);
     m_dataStorage.push_back(sad);
 }
+
+/**
+ * Add a sceneable interface (classes) array member.
+ * @param name
+ *    Name of member.
+ * @param sceneableInterfaceArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ */
+//void 
+//SceneClassAssistant::addArray(const AString& name,
+//              SceneableInterface* sceneableInterfaceArray[],
+//              const int32_t numberOfElements)
+//{
+//    ClassArrayData* cad = new ClassArrayData(name,
+//                                             sceneableInterfaceArray,
+//                                             numberOfElements);
+//    m_dataStorage.push_back(cad);
+//}
 
 /**
  * Add a tab-indexed boolean array.  The array must
@@ -1117,7 +1138,69 @@ void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAt
     }
 }
 
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::ClassArrayData 
+ * \brief Scene class added to a scene class.
+ */
+//SceneClassAssistant::ClassArrayData::ClassArrayData(const AString& name,
+//                                                    SceneableInterface* sceneInterfaces[],
+//                                                    const int32_t numberOfArrayElements)
+//: ArrayData(name,
+//            numberOfArrayElements),
+//m_sceneInterfaces(sceneInterfaces)
+//{
+//    
+//}
 
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+//void 
+//SceneClassAssistant::ClassArrayData::restore(const SceneAttributes& sceneAttributes,
+//                                              const SceneClass& sceneClass)
+//{
+//    const SceneClassArray* classArray = sceneClass.getClassArray(m_name);
+//    if (classArray != NULL) {
+//        const int32_t numElem = std::min(m_numberOfArrayElements,
+//                                         classArray->getNumberOfArrayElements());
+//        for (int32_t i = 0; i < numElem; i++) {
+//            m_sceneInterfaces[i]->restoreFromScene(&sceneAttributes, 
+//                                                   classArray->getClassAtIndex(i));
+//                                                    
+//        }
+//    }
+//}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+//void SceneClassAssistant::ClassArrayData::save(const SceneAttributes& sceneAttributes,
+//                                                SceneClass& sceneClass)
+//{
+//    std::vector<SceneClass*> elementVector;
+//    
+//    for (int32_t i = 0; i < m_numberOfArrayElements; i++) {
+//        const AString elemName = (m_name
+//                                  + "["
+//                                  + AString::number(i)
+//                                  + "]");
+//        SceneClass* arrayElemClass = m_sceneInterfaces[i]->saveToScene(&sceneAttributes, 
+//                                                                       elemName);
+//        elementVector.push_back(arrayElemClass);
+//    }
+//    SceneClassArray* classArray = new SceneClassArray(m_name,
+//                                                      elementVector);
+//    sceneClass.addChild(classArray);
+//}
 
 /* ========================================================================= */
 /**

@@ -45,6 +45,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "ModelSurface.h"
+#include "SceneClassAssistant.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "Surface.h"
@@ -52,6 +53,7 @@
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
 
+#include "SceneableInterface.h"
 
 using namespace caret;
 
@@ -76,6 +78,11 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
         m_outlineModels[i] = new VolumeSurfaceOutlineModel();
     }
     m_numberOfDisplayedVolumeSurfaceOutlines = 6; //BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_numberOfDisplayedVolumeSurfaceOutlines",
+                          &m_numberOfDisplayedVolumeSurfaceOutlines,
+                          m_numberOfDisplayedVolumeSurfaceOutlines);
 }
 
 /**
@@ -86,6 +93,8 @@ VolumeSurfaceOutlineSetModel::~VolumeSurfaceOutlineSetModel()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
         delete m_outlineModels[i];
     }
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -343,14 +352,16 @@ VolumeSurfaceOutlineSetModel::saveToScene(const SceneAttributes* sceneAttributes
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "VolumeSurfaceOutlineSetModel",
                                             1);
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
     std::vector<SceneClass*> outlineModelSceneClassVector;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++ ) {
         outlineModelSceneClassVector.push_back(m_outlineModels[i]->saveToScene(sceneAttributes, 
                                                                                ("m_outlineModels[" + AString::number(i) + "]")));
     }
-    
-    sceneClass->addInteger("m_numberOfDisplayedVolumeSurfaceOutlines", 
-                           m_numberOfDisplayedVolumeSurfaceOutlines);
+    sceneClass->addChild(new SceneClassArray("m_outlineModels",
+                                             outlineModelSceneClassVector));
     
     return sceneClass;
 }
@@ -374,6 +385,10 @@ VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttri
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
     const SceneClassArray* outlineModelsArrayClass = sceneClass->getClassArray("m_outlineModels");
     if (outlineModelsArrayClass != NULL) {
         const int32_t maxNum = std::min(outlineModelsArrayClass->getNumberOfArrayElements(),
@@ -383,8 +398,4 @@ VolumeSurfaceOutlineSetModel::restoreFromScene(const SceneAttributes* sceneAttri
                                                  outlineModelsArrayClass->getClassAtIndex(i));
         }
     }
-    
-    m_numberOfDisplayedVolumeSurfaceOutlines = sceneClass->getIntegerValue("m_numberOfDisplayedVolumeSurfaceOutlines",
-                                                                           6);
-    
 }

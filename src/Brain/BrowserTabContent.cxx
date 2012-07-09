@@ -85,6 +85,15 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_userName",
                                &m_userName,
                                m_userName);
+    m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
+                                                                   &m_selectedModelType,
+                                                                   m_selectedModelType);
+    m_sceneClassAssistant->add("m_surfaceModelSelector",
+                               "ModelSurfaceSelector",
+                               m_surfaceModelSelector);
+    m_sceneClassAssistant->add("m_volumeSurfaceOutlineSetModel",
+                               "VolumeSurfaceOutlineSetModel",
+                               m_volumeSurfaceOutlineSetModel);
 }
 
 /**
@@ -992,14 +1001,14 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
     
-    sceneClass->addEnumeratedType<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
-                                  m_selectedModelType);
+//    m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
+//                                  &m_selectedModelType);
 
-    sceneClass->addChild(m_surfaceModelSelector->saveToScene(sceneAttributes,
-                                                             "m_surfaceModelSelector"));
-    
-    sceneClass->addChild(m_volumeSurfaceOutlineSetModel->saveToScene(sceneAttributes, 
-                                                                     "m_volumeSurfaceOutlineSetModel"));
+//    sceneClass->addChild(m_surfaceModelSelector->saveToScene(sceneAttributes,
+//                                                             "m_surfaceModelSelector"));
+//    
+//    sceneClass->addChild(m_volumeSurfaceOutlineSetModel->saveToScene(sceneAttributes, 
+//                                                                     "m_volumeSurfaceOutlineSetModel"));
     
     return sceneClass;
 }
@@ -1027,11 +1036,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
     
-    m_selectedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum,ModelTypeEnum::Enum>("m_selectedModelType", 
-                                                                                          ModelTypeEnum::MODEL_TYPE_INVALID);
-    m_surfaceModelSelector->restoreFromScene(sceneAttributes, 
-                                             sceneClass->getClass("m_surfaceModelSelector"));
-    
-    m_volumeSurfaceOutlineSetModel->restoreFromScene(sceneAttributes, 
-                                                     sceneClass->getClass("m_volumeSurfaceOutlineSetModel"));
+//    m_selectedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum,ModelTypeEnum::Enum>("m_selectedModelType", 
+//                                                                                          ModelTypeEnum::MODEL_TYPE_INVALID);
+//    m_surfaceModelSelector->restoreFromScene(sceneAttributes, 
+//                                             sceneClass->getClass("m_surfaceModelSelector"));
+//    
+//    m_volumeSurfaceOutlineSetModel->restoreFromScene(sceneAttributes, 
+//                                                     sceneClass->getClass("m_volumeSurfaceOutlineSetModel"));
 }

@@ -46,6 +46,7 @@ namespace caret {
     class BrainBrowserWindowToolBar;
     class BrainOpenGLWidget;
     class BrowserTabContent;
+    class SceneClassAssistant;
 
     
     /**
@@ -283,6 +284,8 @@ namespace caret {
         
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     AString BrainBrowserWindow::previousOpenFileNameFilter;

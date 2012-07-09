@@ -37,6 +37,7 @@
 namespace caret {
 
     class Brain;
+    class SceneClassAssistant;
     class VolumeFile;
     
     /// Controls the display of a volumes.
@@ -106,7 +107,6 @@ namespace caret {
         ModelVolume& operator=(const ModelVolume&);
         
     private:
-        void initializeMembersModelVolume();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
@@ -136,6 +136,7 @@ namespace caret {
         /** Overlays sets for this model and for each tab */
         OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        SceneClassAssistant* m_sceneAssistant;
     };
 
 } // namespace

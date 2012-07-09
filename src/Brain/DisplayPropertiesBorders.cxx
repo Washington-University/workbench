@@ -118,6 +118,14 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
                                m_pointSizeInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
                                defaultPointSize);
+    
+    m_sceneAssistant->addArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
+                                                                                   m_drawingTypeInDisplayGroup,
+                                                                                   DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                                   BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab",
+                                                                                                           m_drawingTypeInTab);
 }
 
 /**
@@ -517,13 +525,13 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
-    sceneClass->addEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
-                                                                                          m_drawingTypeInTab, 
-                                                                                          tabIndices);
+//    sceneClass->addEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
+//                                                                                          m_drawingTypeInTab, 
+//                                                                                          tabIndices);
     
-    sceneClass->addEnumerateTypeArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
-                                                                                          m_drawingTypeInDisplayGroup, 
-                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS);
+//    sceneClass->addEnumerateTypeArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
+//                                                                                          m_drawingTypeInDisplayGroup, 
+//                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS);
 
 //    std::vector<AString> drawTypeStringValues = EnumConvert<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>::enumArrayToStringsForTabIndices(m_drawingTypeInTab, 
 //                                                                   tabIndices);
@@ -581,8 +589,8 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes* sceneAttribute
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
 
-    sceneClass->getEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
-                                                                                                       m_drawingTypeInTab);
+//    sceneClass->getEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
+//                                                                                                       m_drawingTypeInTab);
     
 //    const AString defaultDrawingTypeString = BorderDrawingTypeEnum::toName(BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
 //
@@ -600,10 +608,10 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes* sceneAttribute
 //        }
 //    }
     
-    sceneClass->getEnumerateTypeArray<BorderDrawingTypeEnum,BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
-                                                                                         m_drawingTypeInDisplayGroup, 
-                                                                                         DisplayGroupEnum::NUMBER_OF_GROUPS,
-                                                                                         BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
+//    sceneClass->getEnumerateTypeArray<BorderDrawingTypeEnum,BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
+//                                                                                         m_drawingTypeInDisplayGroup, 
+//                                                                                         DisplayGroupEnum::NUMBER_OF_GROUPS,
+//                                                                                         BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
 //    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
 //    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
 //                                           displayGroupStringArray, 

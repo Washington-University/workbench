@@ -805,7 +805,10 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
                                             "Model",
                                             1);
 
-//    sceneClass->addEnumeratedType("m_modelType", ModelTypeEnum::toName(m_modelType));
+    /*
+     * Do not use scene assistant to save model type since special handling
+     * is needed when it is restored.
+     */
     sceneClass->addEnumeratedType<ModelTypeEnum, ModelTypeEnum::Enum>("m_modelType", m_modelType);
     
     sceneClass->addFloat("m_defaultModelScaling", m_defaultModelScaling);

@@ -44,6 +44,7 @@ namespace caret {
     class Brain;
     class Surface;
     class SceneAttributes;
+    class SceneClassAssistant;
     class VolumeSurfaceOutlineModel;
     
     class VolumeSurfaceOutlineSetModel : public CaretObject, public SceneableInterface {
@@ -85,6 +86,8 @@ namespace caret {
         VolumeSurfaceOutlineModel* m_outlineModels[BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES];
         
         int32_t m_numberOfDisplayedVolumeSurfaceOutlines;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_SET_MODEL_DECLARE__
