@@ -28,10 +28,11 @@
 
 #include "CaretObject.h"
 #include "NodeIdentificationTypeEnum.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
-    class BrainStructureNodeAttributes : public CaretObject {
+    class BrainStructureNodeAttributes : public CaretObject, public SceneableInterface {
         
     public:
         BrainStructureNodeAttributes();
@@ -47,6 +48,12 @@ namespace caret {
         
         void update(const int32_t numberOfNodes);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         BrainStructureNodeAttributes(const BrainStructureNodeAttributes&);
 
@@ -56,7 +63,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        std::vector<NodeIdentificationTypeEnum::Enum> identificationType;
+        std::vector<NodeIdentificationTypeEnum::Enum> m_identificationType;
     };
     
 #ifdef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__

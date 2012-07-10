@@ -285,7 +285,7 @@ namespace caret {
         
         void updateSurfaceMontageController();
         
-        std::vector<BrainStructure*> brainStructures;
+        std::vector<BrainStructure*> m_brainStructures;
         
         std::vector<BorderFile*> borderFiles;
         

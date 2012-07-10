@@ -36,6 +36,7 @@
 
 #include <map>
 
+#include "CaretAssert.h"
 #include "SceneObject.h"
 
 namespace caret {
@@ -73,6 +74,21 @@ namespace caret {
         void addEnumeratedType(const int32_t key,
                                const AString& value);
         
+        /**
+         * Add the given enumerated type value to the map using the given key.
+         * @param key
+         *    The key.
+         * @param value
+         *    The value.
+         */
+        template<class T, typename ET>
+        void addEnumeratedType(const int32_t key,
+                               ET enumeratedValue) {
+            CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
+            const AString stringValue = T::toName(enumeratedValue);
+            addEnumeratedType(key, stringValue);
+        }
+        
         void addClass(const int32_t key,
                       SceneClass* value);
         
@@ -85,6 +101,20 @@ namespace caret {
         const SceneClass* classValue(const int32_t key) const;
         
         AString enumeratedTypeValue(const int32_t key) const;
+        
+        /**
+         * Get an enumerated type value
+         * @param key
+         *    Kye of enumerated type value.
+         */
+        template <class T, typename ET> 
+        ET getEnumeratedTypeValue(const int32_t key) const {
+            const AString stringValue = enumeratedTypeValue(key);
+            bool valid = false;
+            ET value = T::fromName(stringValue,
+                                   &valid);
+            return value;
+        }
         
         bool booleanValue(const int32_t key) const;
         

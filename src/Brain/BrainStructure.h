@@ -35,6 +35,7 @@
 #include "CaretObject.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "SurfaceTypeEnum.h"
 
@@ -53,7 +54,7 @@ namespace caret {
     /**
      * Maintains view of some type of object.
      */
-    class BrainStructure : public CaretObject, public EventListenerInterface {
+    class BrainStructure : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         BrainStructure(Brain* brain,
@@ -62,6 +63,12 @@ namespace caret {
         ~BrainStructure();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private:
         BrainStructure(const BrainStructure& s);
@@ -155,37 +162,37 @@ namespace caret {
         
         const Surface* getSurfaceContainingTextInNamePrivate(const AString& text) const;
 
-        Brain* brain;        
+        Brain* m_brain;        
         
-        StructureEnum::Enum structure;
+        StructureEnum::Enum m_structure;
         
         /** Overlays sets for this model and for each tab */
-        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        std::vector<Surface*> surfaces;
+        std::vector<Surface*> m_surfaces;
         
-        std::vector<LabelFile*> labelFiles;
+        std::vector<LabelFile*> m_labelFiles;
         
-        std::vector<MetricFile*> metricFiles;
+        std::vector<MetricFile*> m_metricFiles;
         
-        std::vector<RgbaFile*> rgbaFiles;
+        std::vector<RgbaFile*> m_rgbaFiles;
         
         /** Maps a surface to its model controller */
-        std::map<Surface*, ModelSurface*> surfaceControllerMap; 
+        std::map<Surface*, ModelSurface*> m_surfaceControllerMap; 
         
         /** Unique number assigned to each brain structure. */
-        int64_t brainStructureIdentifier;
+        int64_t m_brainStructureIdentifier;
         
         /** Generates unique number assigned to each brain structure */
-        static int64_t brainStructureIdentifierCounter;
+        static int64_t s_brainStructureIdentifierCounter;
         
-        BrainStructureNodeAttributes* nodeAttributes;
+        BrainStructureNodeAttributes* m_nodeAttributes;
         
-        mutable Surface* volumeInteractionSurface;
+        mutable Surface* m_volumeInteractionSurface;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__
-    int64_t BrainStructure::brainStructureIdentifierCounter = 1;
+    int64_t BrainStructure::s_brainStructureIdentifierCounter = 1;
 #endif // __BRAIN_STRUCTURE_DEFINE__
 
 } // namespace

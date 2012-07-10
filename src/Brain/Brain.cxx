@@ -171,7 +171,7 @@ Brain::~Brain()
 int 
 Brain::getNumberOfBrainStructures() const
 {
-    return static_cast<int>(this->brainStructures.size());
+    return static_cast<int>(m_brainStructures.size());
 }
 
 /**
@@ -183,7 +183,7 @@ Brain::getNumberOfBrainStructures() const
 void 
 Brain::addBrainStructure(BrainStructure* brainStructure)
 {
-    this->brainStructures.push_back(brainStructure);
+    m_brainStructures.push_back(brainStructure);
 }
 
 /**
@@ -197,8 +197,8 @@ Brain::addBrainStructure(BrainStructure* brainStructure)
 BrainStructure* 
 Brain::getBrainStructure(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->brainStructures, indx);
-    return this->brainStructures[indx];
+    CaretAssertVectorIndex(m_brainStructures, indx);
+    return m_brainStructures[indx];
     
 }
 
@@ -217,8 +217,8 @@ BrainStructure*
 Brain::getBrainStructure(StructureEnum::Enum structure,
                          bool createIfNotFound)
 {
-    for (std::vector<BrainStructure*>::iterator iter = this->brainStructures.begin();
-         iter != this->brainStructures.end();
+    for (std::vector<BrainStructure*>::iterator iter = m_brainStructures.begin();
+         iter != m_brainStructures.end();
          iter++) {
         BrainStructure* bs = *iter;
         if (bs->getStructure() == structure) {
@@ -228,7 +228,7 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
     
     if (createIfNotFound) {
         BrainStructure* bs = new BrainStructure(this, structure);
-        this->brainStructures.push_back(bs);
+        m_brainStructures.push_back(bs);
         return bs;
     }
     
@@ -249,7 +249,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     int num = this->getNumberOfBrainStructures();
     for (int32_t i = 0; i < num; i++) {
-        delete this->brainStructures[i];
+        delete m_brainStructures[i];
     }
     
     for (std::vector<VolumeFile*>::iterator vfi = this->volumeFiles.begin();
@@ -260,7 +260,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     this->volumeFiles.clear();
     
-    this->brainStructures.clear();
+    m_brainStructures.clear();
     
     for (std::vector<BorderFile*>::iterator bfi = this->borderFiles.begin();
          bfi != this->borderFiles.end();
@@ -1684,8 +1684,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     /*
      * Initialize overlays for brain structures
      */
-    for (std::vector<BrainStructure*>::iterator iter = this->brainStructures.begin();
-         iter != this->brainStructures.end();
+    for (std::vector<BrainStructure*>::iterator iter = m_brainStructures.begin();
+         iter != m_brainStructures.end();
          iter++) {
         BrainStructure* bs = *iter;
         bs->initializeOverlays();
@@ -1808,8 +1808,8 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
     /*
      * Initialize overlays for brain structures
      */
-    for (std::vector<BrainStructure*>::iterator iter = this->brainStructures.begin();
-         iter != this->brainStructures.end();
+    for (std::vector<BrainStructure*>::iterator iter = m_brainStructures.begin();
+         iter != m_brainStructures.end();
          iter++) {
         BrainStructure* bs = *iter;
         bs->initializeOverlays();
@@ -2378,6 +2378,21 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                                             modelClassVector);
     sceneClass->addChild(modelsClassArray);
     
+    /*
+     * Save all brain structures
+     */
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    SceneClassArray* brainStructureClassArray = new SceneClassArray("m_brainStructures",
+                                                                    numBrainStructures);
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        const AString name = ("m_brainStructures["
+                              + AString::number(i)
+                              + "]");
+        brainStructureClassArray->setClassAtIndex(i, m_brainStructures[i]->saveToScene(sceneAttributes, 
+                                                                                       name));
+    }
+    sceneClass->addChild(brainStructureClassArray);
+    
     return sceneClass;
 }
 
@@ -2455,6 +2470,22 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
             Model* mdc = *iter;
             mdc->restoreFromScene(sceneAttributes, 
                                   modelsClassArray->getClassAtIndex(i));
+        }
+    }
+    
+    /*
+     * Apply each of the saved brain structures to each of the loaded brain structures.
+     * The loaded brain structure will examine the structure and number of nodes in each
+     * saved brain structure to determine the proper one to use for restoration
+     */
+    const SceneClassArray* brainStructureClassArray = sceneClass->getClassArray("m_brainStructures");
+    const int32_t numSavedBrainStructures = brainStructureClassArray->getNumberOfArrayElements();
+    const int32_t numValidBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numValidBrainStructures; i++) {
+        BrainStructure* bs = m_brainStructures[i];
+        for (int32_t j = 0; j < numSavedBrainStructures; j++) {
+            bs->restoreFromScene(sceneAttributes, 
+                                 brainStructureClassArray->getClassAtIndex(j));
         }
     }
     

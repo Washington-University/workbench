@@ -30,6 +30,7 @@
 #undef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -75,19 +76,19 @@ void
 BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
 {
     if (numberOfNodes > 0) {
-        this->identificationType.resize(numberOfNodes);
+        m_identificationType.resize(numberOfNodes);
         this->setAllIdentificationNone();
     }
     else {
-        this->identificationType.clear();
+        m_identificationType.clear();
     }
 }
 
 void 
 BrainStructureNodeAttributes::setAllIdentificationNone()
 {
-    std::fill(this->identificationType.begin(),
-              this->identificationType.end(),
+    std::fill(m_identificationType.begin(),
+              m_identificationType.end(),
               NodeIdentificationTypeEnum::NONE);
 }
 
@@ -100,8 +101,8 @@ BrainStructureNodeAttributes::setAllIdentificationNone()
 NodeIdentificationTypeEnum::Enum 
 BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeIndex) const
 {
-    CaretAssertVectorIndex(this->identificationType, nodeIndex);
-    return this->identificationType[nodeIndex];
+    CaretAssertVectorIndex(m_identificationType, nodeIndex);
+    return m_identificationType[nodeIndex];
 }
 
 /**
@@ -115,6 +116,83 @@ void
 BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeIndex,
                                                     const NodeIdentificationTypeEnum::Enum identificationType)
 {
-    CaretAssertVectorIndex(this->identificationType, nodeIndex);
-    this->identificationType[nodeIndex] = identificationType;    
+    CaretAssertVectorIndex(m_identificationType, nodeIndex);
+    m_identificationType[nodeIndex] = identificationType;    
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainStructureNodeAttributes::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainStructureNodeAttributes",
+                                            1);
+    
+    SceneObjectMapIntegerKey* idObjectMap = new SceneObjectMapIntegerKey("m_identificationType",
+                                                                         SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
+    const int32_t numNodes = static_cast<int32_t>(m_identificationType.size());
+    for (int32_t i = 0; i < numNodes; i++) {
+        const NodeIdentificationTypeEnum::Enum idType= m_identificationType[i];
+        switch (idType) {
+            case NodeIdentificationTypeEnum::NONE:
+                break;
+            case NodeIdentificationTypeEnum::CONTRALATERAL:
+            case NodeIdentificationTypeEnum::NORMAL:
+                idObjectMap->addEnumeratedType<NodeIdentificationTypeEnum,NodeIdentificationTypeEnum::Enum>(i, idType);
+                break;
+        }
+    }
+    sceneClass->addChild(idObjectMap);
+
+    sceneClass->addInteger("numberOfNodes", 
+                           numNodes);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainStructureNodeAttributes::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    setAllIdentificationNone();
+    
+    const int32_t numNodes = sceneClass->getIntegerValue("numberOfNodes", 0);
+    if (numNodes == static_cast<int32_t>(m_identificationType.size())) {
+        const SceneObjectMapIntegerKey* idObjectMap = sceneClass->getMapIntegerKey("m_identificationType");
+        const std::vector<int32_t> keys = idObjectMap->getKeys();
+        const int32_t numKeys = static_cast<int32_t>(keys.size());
+        for (int32_t i = 0; i < numKeys; i++) {
+            const int32_t nodeIndex = keys[i];
+            m_identificationType[nodeIndex] = idObjectMap->getEnumeratedTypeValue<NodeIdentificationTypeEnum,NodeIdentificationTypeEnum::Enum>(nodeIndex);
+        }
+    }
+}
+
