@@ -287,68 +287,68 @@ namespace caret {
         
         std::vector<BrainStructure*> m_brainStructures;
         
-        std::vector<BorderFile*> borderFiles;
+        std::vector<BorderFile*> m_borderFiles;
         
-        std::vector<FociFile*> fociFiles;
+        std::vector<FociFile*> m_fociFiles;
         
-        std::vector<SceneFile*> sceneFiles;
+        std::vector<SceneFile*> m_sceneFiles;
         
-        PaletteFile* paletteFile;
+        PaletteFile* m_paletteFile;
         
-        std::vector<ConnectivityLoaderFile*> connectivityDenseFiles;
+        std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
         
-        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+        std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
         
-        mutable AString currentDirectory;
+        mutable AString m_currentDirectory;
         
         SpecFile* m_specFile;
         
-        std::vector<VolumeFile*> volumeFiles;
+        std::vector<VolumeFile*> m_volumeFiles;
         
-        ModelVolume* volumeSliceController;
+        ModelVolume* m_volumeSliceController;
         
-        ModelWholeBrain* wholeBrainController;
+        ModelWholeBrain* m_wholeBrainController;
         
-        ModelSurfaceMontage* surfaceMontageController;
+        ModelSurfaceMontage* m_surfaceMontageController;
         
-        ConnectivityLoaderManager* connectivityLoaderManager;
+        ConnectivityLoaderManager* m_connectivityLoaderManager;
         
         /** contains all display properties */
-        std::vector<DisplayProperties*> displayProperties;
+        std::vector<DisplayProperties*> m_displayProperties;
         
         /**
          * Display properties for volume - DO NOT delete since this
          * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesVolume* displayPropertiesVolume;
+        DisplayPropertiesVolume* m_displayPropertiesVolume;
         
         /**
          * Display properties for borders - DO NOT delete since this
          * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesBorders* displayPropertiesBorders;
+        DisplayPropertiesBorders* m_displayPropertiesBorders;
         
         /**
          * Display properties for foci - DO NOT delete since this
          * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesFoci* displayPropertiesFoci;
+        DisplayPropertiesFoci* m_displayPropertiesFoci;
         
         /**
          * Display properties for information - DO NOT delete since this
          * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesInformation* displayPropertiesInformation;
+        DisplayPropertiesInformation* m_displayPropertiesInformation;
         
         /** true when a spec file is being read */
-        bool isSpecFileBeingRead;
+        bool m_isSpecFileBeingRead;
         
         /** Contains information about file reading errors when showing a scene */
         AString m_sceneSpecFileReadingErrors;
         
-        AString fileReadingUsername;
+        AString m_fileReadingUsername;
         
-        AString fileReadingPassword;
+        AString m_fileReadingPassword;
         
         SceneClassAssistant* m_sceneAssistant;
     };

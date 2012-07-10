@@ -81,24 +81,24 @@ using namespace caret;
  */
 Brain::Brain()
 {
-    this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
-    this->paletteFile = new PaletteFile();
+    m_connectivityLoaderManager = new ConnectivityLoaderManager(this);
+    m_paletteFile = new PaletteFile();
     m_specFile = new SpecFile();
-    this->surfaceMontageController = NULL;
-    this->volumeSliceController = NULL;
-    this->wholeBrainController = NULL;
+    m_surfaceMontageController = NULL;
+    m_volumeSliceController = NULL;
+    m_wholeBrainController = NULL;
     
-    this->displayPropertiesBorders = new DisplayPropertiesBorders(this);
-    this->displayProperties.push_back(this->displayPropertiesBorders);
+    m_displayPropertiesBorders = new DisplayPropertiesBorders(this);
+    m_displayProperties.push_back(m_displayPropertiesBorders);
     
-    this->displayPropertiesFoci = new DisplayPropertiesFoci(this);
-    this->displayProperties.push_back(this->displayPropertiesFoci);
+    m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
+    m_displayProperties.push_back(m_displayPropertiesFoci);
     
-    this->displayPropertiesInformation = new DisplayPropertiesInformation(this);
-    this->displayProperties.push_back(this->displayPropertiesInformation);
+    m_displayPropertiesInformation = new DisplayPropertiesInformation(this);
+    m_displayProperties.push_back(m_displayPropertiesInformation);
     
-    this->displayPropertiesVolume = new DisplayPropertiesVolume(this);
-    this->displayProperties.push_back(this->displayPropertiesVolume);
+    m_displayPropertiesVolume = new DisplayPropertiesVolume(this);
+    m_displayProperties.push_back(m_displayPropertiesVolume);
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
@@ -107,27 +107,27 @@ Brain::Brain()
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
-    this->isSpecFileBeingRead = false;
-    this->fileReadingUsername = "";
-    this->fileReadingPassword = "";
+    m_isSpecFileBeingRead = false;
+    m_fileReadingUsername = "";
+    m_fileReadingPassword = "";
     
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
-                          this->displayPropertiesBorders);
+                          m_displayPropertiesBorders);
     
     m_sceneAssistant->add("displayPropertiesFoci", 
                           "DisplayPropertiesFoci", 
-                          this->displayPropertiesFoci);
+                          m_displayPropertiesFoci);
     
     m_sceneAssistant->add("displayPropertiesInformation", 
                           "DisplayPropertiesInformation", 
-                          this->displayPropertiesInformation);
+                          m_displayPropertiesInformation);
     
     m_sceneAssistant->add("displayPropertiesVolume", 
                           "DisplayPropertiesVolume", 
-                          this->displayPropertiesVolume);
+                          m_displayPropertiesVolume);
 }
 
 /**
@@ -139,26 +139,26 @@ Brain::~Brain()
 
     delete m_sceneAssistant;
     
-    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
-         iter != this->displayProperties.end();
+    for (std::vector<DisplayProperties*>::iterator iter = m_displayProperties.begin();
+         iter != m_displayProperties.end();
          iter++) {
         delete *iter;
     }
-    this->displayProperties.clear();
+    m_displayProperties.clear();
     
-    this->resetBrain();
+    resetBrain();
 
-    delete this->connectivityLoaderManager;
-    delete this->paletteFile;
+    delete m_connectivityLoaderManager;
+    delete m_paletteFile;
     delete m_specFile;
-    if (this->surfaceMontageController != NULL) {
-        delete this->surfaceMontageController;
+    if (m_surfaceMontageController != NULL) {
+        delete m_surfaceMontageController;
     }
-    if (this->volumeSliceController != NULL) {
-        delete this->volumeSliceController;
+    if (m_volumeSliceController != NULL) {
+        delete m_volumeSliceController;
     }
-    if (this->wholeBrainController != NULL) {
-        delete this->wholeBrainController;
+    if (m_wholeBrainController != NULL) {
+        delete m_wholeBrainController;
     }
 }
 
@@ -245,68 +245,68 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
 void 
 Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
                   const ResetBrainKeepSpecFile keepSpecFile)
-{    this->isSpecFileBeingRead = false;
+{    m_isSpecFileBeingRead = false;
     
-    int num = this->getNumberOfBrainStructures();
+    int num = getNumberOfBrainStructures();
     for (int32_t i = 0; i < num; i++) {
         delete m_brainStructures[i];
     }
     
-    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFiles.begin();
-         vfi != this->volumeFiles.end();
+    for (std::vector<VolumeFile*>::iterator vfi = m_volumeFiles.begin();
+         vfi != m_volumeFiles.end();
          vfi++) {
         VolumeFile* vf = *vfi;
         delete vf;
     }
-    this->volumeFiles.clear();
+    m_volumeFiles.clear();
     
     m_brainStructures.clear();
     
-    for (std::vector<BorderFile*>::iterator bfi = this->borderFiles.begin();
-         bfi != this->borderFiles.end();
+    for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();
+         bfi != m_borderFiles.end();
          bfi++) {
         BorderFile* bf = *bfi;
         delete bf;
     }
-    this->borderFiles.clear();
+    m_borderFiles.clear();
     
-    for (std::vector<FociFile*>::iterator ffi = this->fociFiles.begin();
-         ffi != this->fociFiles.end();
+    for (std::vector<FociFile*>::iterator ffi = m_fociFiles.begin();
+         ffi != m_fociFiles.end();
          ffi++) {
         FociFile* ff = *ffi;
         delete ff;
     }
-    this->fociFiles.clear();
+    m_fociFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = this->connectivityDenseFiles.begin();
-         clfi != this->connectivityDenseFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityDenseFiles.begin();
+         clfi != m_connectivityDenseFiles.end();
          clfi++) {
         ConnectivityLoaderFile* clf = *clfi;
         delete clf;
     }
-    this->connectivityDenseFiles.clear();
+    m_connectivityDenseFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = this->connectivityTimeSeriesFiles.begin();
-         cltsfi != this->connectivityTimeSeriesFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = m_connectivityTimeSeriesFiles.begin();
+         cltsfi != m_connectivityTimeSeriesFiles.end();
          cltsfi++) {
         ConnectivityLoaderFile* clf = *cltsfi;
         delete clf;
     }
-    this->connectivityTimeSeriesFiles.clear();
+    m_connectivityTimeSeriesFiles.clear();
     
-    this->paletteFile->clear();
+    m_paletteFile->clear();
     
-    this->connectivityLoaderManager->reset();
+    m_connectivityLoaderManager->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
-            for (std::vector<SceneFile*>::iterator sfi = this->sceneFiles.begin();
-                 sfi != this->sceneFiles.end();
+            for (std::vector<SceneFile*>::iterator sfi = m_sceneFiles.begin();
+                 sfi != m_sceneFiles.end();
                  sfi++) {
                 SceneFile* sf = *sfi;
                 delete sf;
             }
-            this->sceneFiles.clear();
+            m_sceneFiles.clear();
             break;
         case RESET_BRAIN_KEEP_SCENE_FILES_YES:
             break;
@@ -320,15 +320,15 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
             break;
     }
     
-    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
-         iter != this->displayProperties.end();
+    for (std::vector<DisplayProperties*>::iterator iter = m_displayProperties.begin();
+         iter != m_displayProperties.end();
          iter++) {
         (*iter)->reset();
     }
     
-    this->updateVolumeSliceController();
-    this->updateWholeBrainController();
-    this->updateSurfaceMontageController();
+    updateVolumeSliceController();
+    updateWholeBrainController();
+    updateSurfaceMontageController();
 
 }
 
@@ -339,7 +339,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
 void 
 Brain::resetBrain()
 {
-    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_NO,
+    resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_NO,
                      RESET_BRAIN_KEEP_SPEC_FILE_NO);
 }
 
@@ -349,7 +349,7 @@ Brain::resetBrain()
 void 
 Brain::resetBrainKeepSceneFiles()
 {
-    this->resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES,
+    resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES,
                      RESET_BRAIN_KEEP_SPEC_FILE_NO);
 }
 
@@ -364,8 +364,8 @@ void
 Brain::copyDisplayProperties(const int32_t sourceTabIndex,
                              const int32_t targetTabIndex)
 {
-    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
-         iter != this->displayProperties.end();
+    for (std::vector<DisplayProperties*>::iterator iter = m_displayProperties.begin();
+         iter != m_displayProperties.end();
          iter++) {
         (*iter)->copyDisplayProperties(sourceTabIndex,
                                        targetTabIndex);
@@ -405,9 +405,9 @@ Brain::readSurfaceFile(const AString& filename,
         throw e;
     }
     
-    BrainStructure* bs = this->getBrainStructure(structure, true);
+    BrainStructure* bs = getBrainStructure(structure, true);
     if (bs != NULL) {
-        const bool initializeOverlaysFlag = (this->isSpecFileBeingRead == false);
+        const bool initializeOverlaysFlag = (m_isSpecFileBeingRead == false);
         bs->addSurface(surface,
                        initializeOverlaysFlag);
     }
@@ -460,7 +460,7 @@ Brain::readLabelFile(const AString& filename,
         throw e;
     }
     
-    BrainStructure* bs = this->getBrainStructure(structure, false);
+    BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
             bs->addLabelFile(labelFile);
@@ -519,7 +519,7 @@ Brain::readMetricFile(const AString& filename,
         throw e;
     }
     
-    BrainStructure* bs = this->getBrainStructure(structure, false);
+    BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
             bs->addMetricFile(metricFile);
@@ -578,7 +578,7 @@ Brain::readRgbaFile(const AString& filename,
         throw e;
     }
     
-    BrainStructure* bs = this->getBrainStructure(structure, false);
+    BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
             bs->addRgbaFile(rgbaFile);
@@ -641,7 +641,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
     indexToSpace.push_back(row3);
     
     VolumeFile* vTest = new VolumeFile(dim, indexToSpace, 1);
-    this->volumeFiles.push_back(vTest);
+    m_volumeFiles.push_back(vTest);
 */
     VolumeFile* vf = new VolumeFile();
     try {
@@ -653,7 +653,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
     }
     vf->clearModified();
     
-    this->volumeFiles.push_back(vf);
+    m_volumeFiles.push_back(vf);
 }
 
 /**
@@ -662,7 +662,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
 int32_t 
 Brain::getNumberOfVolumeFiles() const
 {
-    return this->volumeFiles.size();
+    return m_volumeFiles.size();
 }
 
 /**
@@ -675,8 +675,8 @@ Brain::getNumberOfVolumeFiles() const
 VolumeFile* 
 Brain::getVolumeFile(const int32_t volumeFileIndex)
 {
-    CaretAssertVectorIndex(this->volumeFiles, volumeFileIndex);
-    return this->volumeFiles[volumeFileIndex];
+    CaretAssertVectorIndex(m_volumeFiles, volumeFileIndex);
+    return m_volumeFiles[volumeFileIndex];
 }
 
 /**
@@ -689,8 +689,8 @@ Brain::getVolumeFile(const int32_t volumeFileIndex)
 const VolumeFile* 
 Brain::getVolumeFile(const int32_t volumeFileIndex) const
 {
-    CaretAssertVectorIndex(this->volumeFiles, volumeFileIndex);
-    return this->volumeFiles[volumeFileIndex];
+    CaretAssertVectorIndex(m_volumeFiles, volumeFileIndex);
+    return m_volumeFiles[volumeFileIndex];
 }
 
 /**
@@ -707,7 +707,7 @@ Brain::readBorderFile(const AString& filename) throw (DataFileException)
     BorderFile* bf = new BorderFile;
     try {
         bf->readFile(filename);
-        this->borderFiles.push_back(bf);
+        m_borderFiles.push_back(bf);
     }
     catch (DataFileException& dfe) {
         delete bf;
@@ -729,7 +729,7 @@ Brain::readFociFile(const AString& filename) throw (DataFileException)
     FociFile* ff = new FociFile;
     try {
         ff->readFile(filename);
-        this->fociFiles.push_back(ff);
+        m_fociFiles.push_back(ff);
     }
     catch (DataFileException& dfe) {
         delete ff;
@@ -754,22 +754,22 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_DENSE,
-                                  this->fileReadingUsername,
-                                  this->fileReadingPassword);
+                                  m_fileReadingUsername,
+                                  m_fileReadingPassword);
         }
         else {
             clf->setupLocalFile(filename, 
                                 DataFileTypeEnum::CONNECTIVITY_DENSE);
         }
         
-        this->validateConnectivityFile(clf);
+        validateConnectivityFile(clf);
     }
     catch (const DataFileException& dfe) {
         delete clf;
         throw dfe;
     }
     
-    this->connectivityDenseFiles.push_back(clf);
+    m_connectivityDenseFiles.push_back(clf);
 }
 
 /**
@@ -789,8 +789,8 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
-                                  this->fileReadingUsername,
-                                  this->fileReadingPassword);
+                                  m_fileReadingUsername,
+                                  m_fileReadingPassword);
         }
         else {
             clf->setupLocalFile(filename, 
@@ -798,14 +798,14 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
             clf->loadFrame(0);
         }
         
-        this->validateConnectivityFile(clf);
+        validateConnectivityFile(clf);
     }
     catch (const DataFileException& dfe) {
         delete clf;
         throw dfe;
     }
     
-    this->connectivityTimeSeriesFiles.push_back(clf);
+    m_connectivityTimeSeriesFiles.push_back(clf);
 }
 
 /**
@@ -820,10 +820,10 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
 void 
 Brain::validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException)
 {
-    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        const StructureEnum::Enum structure = this->getBrainStructure(i)->getStructure();
-        const int numNodes = this->getBrainStructure(i)->getNumberOfNodes();
+        const StructureEnum::Enum structure = getBrainStructure(i)->getStructure();
+        const int numNodes = getBrainStructure(i)->getNumberOfNodes();
         
         const int numConnNodes = clf->getSurfaceNumberOfNodes(structure);
         if (numConnNodes > 0) {
@@ -872,7 +872,7 @@ Brain::readSceneFile(const AString& filename) throw (DataFileException)
     SceneFile* sf = new SceneFile;
     try {
         sf->readFile(filename);
-        this->sceneFiles.push_back(sf);
+        m_sceneFiles.push_back(sf);
     }
     catch (DataFileException& dfe) {
         delete sf;
@@ -890,11 +890,11 @@ Brain::getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& conn
 {
     connectivityFilesOfAllTypes.clear();
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       this->connectivityDenseFiles.begin(),
-                                       this->connectivityDenseFiles.end());
+                                       m_connectivityDenseFiles.begin(),
+                                       m_connectivityDenseFiles.end());
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       this->connectivityTimeSeriesFiles.begin(),
-                                       this->connectivityTimeSeriesFiles.end());
+                                       m_connectivityTimeSeriesFiles.begin(),
+                                       m_connectivityTimeSeriesFiles.end());
 }
 
 /**
@@ -903,7 +903,7 @@ Brain::getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& conn
 int32_t 
 Brain::getNumberOfConnectivityDenseFiles() const
 {
-    return this->connectivityDenseFiles.size(); 
+    return m_connectivityDenseFiles.size(); 
 }
 
 /**
@@ -915,8 +915,8 @@ Brain::getNumberOfConnectivityDenseFiles() const
 ConnectivityLoaderFile* 
 Brain::getConnectivityDenseFile(int32_t indx)
 {
-    CaretAssertVectorIndex(this->connectivityDenseFiles, indx);
-    return this->connectivityDenseFiles[indx];
+    CaretAssertVectorIndex(m_connectivityDenseFiles, indx);
+    return m_connectivityDenseFiles[indx];
 }
 
 /**
@@ -928,8 +928,8 @@ Brain::getConnectivityDenseFile(int32_t indx)
 const ConnectivityLoaderFile* 
 Brain::getConnectivityDenseFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(this->connectivityDenseFiles, indx);
-    return this->connectivityDenseFiles[indx];
+    CaretAssertVectorIndex(m_connectivityDenseFiles, indx);
+    return m_connectivityDenseFiles[indx];
 }
 
 /**
@@ -940,7 +940,7 @@ Brain::getConnectivityDenseFile(int32_t indx) const
 void 
 Brain::getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const
 {
-    connectivityDenseFilesOut = this->connectivityDenseFiles;
+    connectivityDenseFilesOut = m_connectivityDenseFiles;
 }
 
 /**
@@ -949,7 +949,7 @@ Brain::getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectiv
 int32_t 
 Brain::getNumberOfConnectivityTimeSeriesFiles() const
 {
-    return this->connectivityTimeSeriesFiles.size(); 
+    return m_connectivityTimeSeriesFiles.size(); 
 }
 
 /**
@@ -961,8 +961,8 @@ Brain::getNumberOfConnectivityTimeSeriesFiles() const
 ConnectivityLoaderFile* 
 Brain::getConnectivityTimeSeriesFile(int32_t indx)
 {
-    CaretAssertVectorIndex(this->connectivityTimeSeriesFiles, indx);
-    return this->connectivityTimeSeriesFiles[indx];
+    CaretAssertVectorIndex(m_connectivityTimeSeriesFiles, indx);
+    return m_connectivityTimeSeriesFiles[indx];
 }
 
 /**
@@ -974,8 +974,8 @@ Brain::getConnectivityTimeSeriesFile(int32_t indx)
 const ConnectivityLoaderFile* 
 Brain::getConnectivityTimeSeriesFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(this->connectivityTimeSeriesFiles, indx);
-    return this->connectivityTimeSeriesFiles[indx];
+    CaretAssertVectorIndex(m_connectivityTimeSeriesFiles, indx);
+    return m_connectivityTimeSeriesFiles[indx];
 }
 
 /**
@@ -986,7 +986,7 @@ Brain::getConnectivityTimeSeriesFile(int32_t indx) const
 void 
 Brain::getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const
 {
-    connectivityTimeSeriesFilesOut = this->connectivityTimeSeriesFiles;
+    connectivityTimeSeriesFilesOut = m_connectivityTimeSeriesFiles;
 }
 
 
@@ -996,7 +996,7 @@ Brain::getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& conn
 int32_t 
 Brain::getNumberOfBorderFiles() const
 {
-    return this->borderFiles.size();
+    return m_borderFiles.size();
 }
 
 /**
@@ -1006,7 +1006,7 @@ BorderFile*
 Brain::addBorderFile()
 {
     BorderFile* bf = new BorderFile();
-    this->borderFiles.push_back(bf);
+    m_borderFiles.push_back(bf);
     return bf;
 }
 
@@ -1017,8 +1017,8 @@ Brain::addBorderFile()
 BorderFile* 
 Brain::getBorderFile(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->borderFiles, indx);
-    return this->borderFiles[indx];
+    CaretAssertVectorIndex(m_borderFiles, indx);
+    return m_borderFiles[indx];
 }
 
 /**
@@ -1028,8 +1028,8 @@ Brain::getBorderFile(const int32_t indx)
 const BorderFile* 
 Brain::getBorderFile(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->borderFiles, indx);
-    return this->borderFiles[indx];
+    CaretAssertVectorIndex(m_borderFiles, indx);
+    return m_borderFiles[indx];
 }
 
 /**
@@ -1131,7 +1131,7 @@ Brain::findBorderNearestBorder(const SurfaceFile* surfaceFile,
                 SurfaceProjectedItem* borderPoint = NULL;
                 int32_t borderPointIndex = -1;
                 float distanceToBorderPoint = 0.0;
-                if (this->findBorderNearestXYZ(surfaceFile, 
+                if (findBorderNearestXYZ(surfaceFile, 
                                               xyz, 
                                               maximumDistance, 
                                               borderFile, 
@@ -1211,9 +1211,9 @@ Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
     borderPointIndexOut = -1;
     distanceToBorderPointOut = maximumDistance;
     
-    const int32_t numBorderFiles = this->getNumberOfBorderFiles();
+    const int32_t numBorderFiles = getNumberOfBorderFiles();
     for (int32_t iFile = 0; iFile < numBorderFiles; iFile++) {
-        const BorderFile* borderFile = this->getBorderFile(iFile);
+        const BorderFile* borderFile = getBorderFile(iFile);
         Border* border = NULL;
         int32_t borderIndex = -1;
         SurfaceProjectedItem* borderPoint = NULL;
@@ -1254,7 +1254,7 @@ Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
 int32_t 
 Brain::getNumberOfFociFiles() const
 {
-    return this->fociFiles.size();
+    return m_fociFiles.size();
 }
 
 /**
@@ -1264,7 +1264,7 @@ FociFile*
 Brain::addFociFile()
 {
     FociFile* bf = new FociFile();
-    this->fociFiles.push_back(bf);
+    m_fociFiles.push_back(bf);
     return bf;
 }
 
@@ -1275,8 +1275,8 @@ Brain::addFociFile()
 FociFile* 
 Brain::getFociFile(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->fociFiles, indx);
-    return this->fociFiles[indx];
+    CaretAssertVectorIndex(m_fociFiles, indx);
+    return m_fociFiles[indx];
 }
 
 /**
@@ -1286,8 +1286,8 @@ Brain::getFociFile(const int32_t indx)
 const FociFile* 
 Brain::getFociFile(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->fociFiles, indx);
-    return this->fociFiles[indx];
+    CaretAssertVectorIndex(m_fociFiles, indx);
+    return m_fociFiles[indx];
 }
 
 /**
@@ -1297,7 +1297,7 @@ SceneFile*
 Brain::addSceneFile()
 {
     SceneFile* sf = new SceneFile();
-    this->sceneFiles.push_back(sf);
+    m_sceneFiles.push_back(sf);
     return sf;
 }
 
@@ -1307,7 +1307,7 @@ Brain::addSceneFile()
 int32_t 
 Brain::getNumberOfSceneFiles() const
 {
-    return this->sceneFiles.size();
+    return m_sceneFiles.size();
 }
 
 /**
@@ -1317,8 +1317,8 @@ Brain::getNumberOfSceneFiles() const
 SceneFile* 
 Brain::getSceneFile(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->sceneFiles, indx);
-    return this->sceneFiles[indx];
+    CaretAssertVectorIndex(m_sceneFiles, indx);
+    return m_sceneFiles[indx];
 }
 
 /**
@@ -1328,8 +1328,8 @@ Brain::getSceneFile(const int32_t indx)
 const SceneFile* 
 Brain::getSceneFile(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->sceneFiles, indx);
-    return this->sceneFiles[indx];
+    CaretAssertVectorIndex(m_sceneFiles, indx);
+    return m_sceneFiles[indx];
 }
 
 /*
@@ -1338,7 +1338,7 @@ Brain::getSceneFile(const int32_t indx) const
 PaletteFile* 
 Brain::getPaletteFile()
 {
-    return this->paletteFile;
+    return m_paletteFile;
 }
 
 /*
@@ -1347,7 +1347,7 @@ Brain::getPaletteFile()
 const PaletteFile* 
 Brain::getPaletteFile() const
 {
-    return this->paletteFile;
+    return m_paletteFile;
 }
 
 /*
@@ -1366,27 +1366,27 @@ void
 Brain::updateVolumeSliceController()
 {
     bool isValid = false;
-    if (this->getNumberOfVolumeFiles() > 0) {
+    if (getNumberOfVolumeFiles() > 0) {
         isValid = true;
     }
     
     if (isValid) {
-        if (this->volumeSliceController == NULL) {
-            this->volumeSliceController = new ModelVolume(this);
-            EventModelAdd eventAddModel(this->volumeSliceController);
+        if (m_volumeSliceController == NULL) {
+            m_volumeSliceController = new ModelVolume(this);
+            EventModelAdd eventAddModel(m_volumeSliceController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
 
-            if (this->isSpecFileBeingRead == false) {
-                this->volumeSliceController->initializeOverlays();
+            if (m_isSpecFileBeingRead == false) {
+                m_volumeSliceController->initializeOverlays();
             }
         }
     }
     else {
-        if (this->volumeSliceController != NULL) {
-            EventModelDelete eventDeleteModel(this->volumeSliceController);
+        if (m_volumeSliceController != NULL) {
+            EventModelDelete eventDeleteModel(m_volumeSliceController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete this->volumeSliceController;
-            this->volumeSliceController = NULL;
+            delete m_volumeSliceController;
+            m_volumeSliceController = NULL;
         }
     }
     
@@ -1399,27 +1399,27 @@ void
 Brain::updateWholeBrainController()
 {
     bool isValid = false;
-    if (this->getNumberOfBrainStructures() > 0) {
+    if (getNumberOfBrainStructures() > 0) {
         isValid = true;
     }
      
     if (isValid) {
-        if (this->wholeBrainController == NULL) {
-            this->wholeBrainController = new ModelWholeBrain(this);
-            EventModelAdd eventAddModel(this->wholeBrainController);
+        if (m_wholeBrainController == NULL) {
+            m_wholeBrainController = new ModelWholeBrain(this);
+            EventModelAdd eventAddModel(m_wholeBrainController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
-            if (this->isSpecFileBeingRead == false) {
-                this->wholeBrainController->initializeOverlays();
+            if (m_isSpecFileBeingRead == false) {
+                m_wholeBrainController->initializeOverlays();
             }
         }
     }
     else {
-        if (this->wholeBrainController != NULL) {
-            EventModelDelete eventDeleteModel(this->wholeBrainController);
+        if (m_wholeBrainController != NULL) {
+            EventModelDelete eventDeleteModel(m_wholeBrainController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete this->wholeBrainController;
-            this->wholeBrainController = NULL;
+            delete m_wholeBrainController;
+            m_wholeBrainController = NULL;
         }
     }    
 }
@@ -1431,27 +1431,27 @@ void
 Brain::updateSurfaceMontageController()
 {
     bool isValid = false;
-    if (this->getNumberOfBrainStructures() > 0) {
+    if (getNumberOfBrainStructures() > 0) {
         isValid = true;
     }
     
     if (isValid) {
-        if (this->surfaceMontageController == NULL) {
-            this->surfaceMontageController = new ModelSurfaceMontage(this);
-            EventModelAdd eventAddModel(this->surfaceMontageController);
+        if (m_surfaceMontageController == NULL) {
+            m_surfaceMontageController = new ModelSurfaceMontage(this);
+            EventModelAdd eventAddModel(m_surfaceMontageController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
-            if (this->isSpecFileBeingRead == false) {
-                this->surfaceMontageController->initializeOverlays();
+            if (m_isSpecFileBeingRead == false) {
+                m_surfaceMontageController->initializeOverlays();
             }
         }
     }
     else {
-        if (this->surfaceMontageController != NULL) {
-            EventModelDelete eventDeleteModel(this->surfaceMontageController);
+        if (m_surfaceMontageController != NULL) {
+            EventModelDelete eventDeleteModel(m_surfaceMontageController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete this->surfaceMontageController;
-            this->surfaceMontageController = NULL;
+            delete m_surfaceMontageController;
+            m_surfaceMontageController = NULL;
         }
     }
 }
@@ -1464,15 +1464,15 @@ Brain::updateSurfaceMontageController()
 void 
 Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 {
-    this->fileReadingUsername = readDataFileEvent->getUsername();
-    this->fileReadingPassword = readDataFileEvent->getPassword();
+    m_fileReadingUsername = readDataFileEvent->getUsername();
+    m_fileReadingPassword = readDataFileEvent->getPassword();
     
     const AString filename = readDataFileEvent->getDataFileName();
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
     const StructureEnum::Enum structure = readDataFileEvent->getStructure();
     
     try {
-        this->readDataFile(dataFileType,
+        readDataFile(dataFileType,
                            structure,
                            filename,
                            readDataFileEvent->isAddDataFileToSpecFile());
@@ -1482,8 +1482,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
     }    
     
-    this->fileReadingUsername = "";
-    this->fileReadingPassword = "";
+    m_fileReadingUsername = "";
+    m_fileReadingPassword = "";
 }
 
 /**
@@ -1507,7 +1507,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     AString dataFileName = dataFileNameIn;
     
     if (dataFileName.contains("://") == false) {
-        dataFileName = this->updateFileNameForReadingAndWriting(dataFileNameIn);
+        dataFileName = updateFileNameForReadingAndWriting(dataFileNameIn);
         FileInformation fileInfo(dataFileName);
         if (fileInfo.exists() == false) {
             throw DataFileException(dataFileName
@@ -1522,44 +1522,44 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
-            this->readBorderFile(dataFileName);
+            readBorderFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->readConnectivityDenseFile(dataFileName);
+            readConnectivityDenseFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            this->readConnectivityTimeSeriesFile(dataFileName);
+            readConnectivityTimeSeriesFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI:
-            this->readFociFile(dataFileName);
+            readFociFile(dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
-            caretDataFileRead = this->readLabelFile(dataFileName, structure);
+            caretDataFileRead = readLabelFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::METRIC:
-            caretDataFileRead = this->readMetricFile(dataFileName, structure);
+            caretDataFileRead = readMetricFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::PALETTE:
-            this->readPaletteFile(dataFileName);
+            readPaletteFile(dataFileName);
             break;
         case DataFileTypeEnum::RGBA:
-            caretDataFileRead = this->readRgbaFile(dataFileName, structure);
+            caretDataFileRead = readRgbaFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::SCENE:
-            this->readSceneFile(dataFileName);
+            readSceneFile(dataFileName);
             break;
         case DataFileTypeEnum::SPECIFICATION:
             CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             break;
         case DataFileTypeEnum::SURFACE:
-            caretDataFileRead = this->readSurfaceFile(dataFileName, structure);
+            caretDataFileRead = readSurfaceFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::UNKNOWN:
             throw DataFileException("Unable to read files of type");
             break;
         case DataFileTypeEnum::VOLUME:
-            this->readVolumeFile(dataFileName);
+            readVolumeFile(dataFileName);
             break;
     }    
     
@@ -1594,9 +1594,9 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         }
     }
     
-    this->updateVolumeSliceController();
-    this->updateWholeBrainController();
-    this->updateSurfaceMontageController();
+    updateVolumeSliceController();
+    updateWholeBrainController();
+    updateSurfaceMontageController();
 }
 
 /**
@@ -1615,20 +1615,20 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
     CaretAssert(sf);
     
-    this->resetBrain();
+    resetBrain();
     
     if (m_specFile != NULL) {
         delete m_specFile;
     }
     m_specFile = new SpecFile(*sf);
     
-    this->isSpecFileBeingRead = true;
+    m_isSpecFileBeingRead = true;
     
-    this->fileReadingUsername = readSpecFileDataFilesEvent->getUsername();
-    this->fileReadingPassword = readSpecFileDataFilesEvent->getPassword();
+    m_fileReadingUsername = readSpecFileDataFilesEvent->getUsername();
+    m_fileReadingPassword = readSpecFileDataFilesEvent->getPassword();
     
     FileInformation fileInfo(sf->getFileName());
-    this->setCurrentDirectory(fileInfo.getPathName());
+    setCurrentDirectory(fileInfo.getPathName());
     
     
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
@@ -1642,7 +1642,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                 const AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
                 try {
-                    this->readDataFile(dataFileType, 
+                    readDataFile(dataFileType, 
                                        structure, 
                                        filename,
                                        false);
@@ -1706,9 +1706,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                  + AString::number(timer.getElapsedTimeSeconds())
                  + " seconds.");
     
-    this->isSpecFileBeingRead = false;
-    this->fileReadingUsername = "";
-    this->fileReadingPassword = "";
+    m_isSpecFileBeingRead = false;
+    m_fileReadingUsername = "";
+    m_fileReadingPassword = "";
 }
 
 /**
@@ -1736,7 +1736,7 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
     
     CaretAssert(specFileToLoad);
     
-    this->resetBrain(keepSceneFiles,
+    resetBrain(keepSceneFiles,
                      keepSpecFile);
     
     /*
@@ -1753,10 +1753,10 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
 //            break;
 //    }
     
-    this->isSpecFileBeingRead = true;
+    m_isSpecFileBeingRead = true;
     
     FileInformation fileInfo(m_specFile->getFileName());
-    this->setCurrentDirectory(fileInfo.getPathName());
+    setCurrentDirectory(fileInfo.getPathName());
     
     
     const int32_t numFileGroups = m_specFile->getNumberOfDataFileTypeGroups();
@@ -1770,7 +1770,7 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
                 const AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
                 try {
-                    this->readDataFile(dataFileType, 
+                    readDataFile(dataFileType, 
                                        structure, 
                                        filename,
                                        false);
@@ -1815,7 +1815,7 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
         bs->initializeOverlays();
     }
     
-    this->isSpecFileBeingRead = false;
+    m_isSpecFileBeingRead = false;
     
     const bool noErrors = errorMessageOut.isEmpty();
     return noErrors;
@@ -1840,11 +1840,11 @@ Brain::updateFileNameForReadingAndWriting(const AString& filename)
         return filename;
     }
     
-    if (currentDirectory.isEmpty()) {
+    if (m_currentDirectory.isEmpty()) {
         return filename;
     }
     
-    FileInformation pathFileInfo(this->currentDirectory, filename);
+    FileInformation pathFileInfo(m_currentDirectory, filename);
     AString fullPathName = pathFileInfo.getFilePath();
     
     return fullPathName;
@@ -1870,7 +1870,7 @@ Brain::receiveEvent(Event* event)
          */
         if (readDataFileEvent->getLoadIntoBrain() == this) {
             readDataFileEvent->setEventProcessed();
-            this->processReadDataFileEvent(readDataFileEvent);
+            processReadDataFileEvent(readDataFileEvent);
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
@@ -1879,20 +1879,20 @@ Brain::receiveEvent(Event* event)
         CaretAssert(dataFilesEvent);
         
 
-        for (std::vector<ConnectivityLoaderFile*>::iterator icf = this->connectivityDenseFiles.begin();
-             icf != this->connectivityDenseFiles.end();
+        for (std::vector<ConnectivityLoaderFile*>::iterator icf = m_connectivityDenseFiles.begin();
+             icf != m_connectivityDenseFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<ConnectivityLoaderFile*>::iterator ictsf = this->connectivityTimeSeriesFiles.begin();
-             ictsf != this->connectivityTimeSeriesFiles.end();
+        for (std::vector<ConnectivityLoaderFile*>::iterator ictsf = m_connectivityTimeSeriesFiles.begin();
+             ictsf != m_connectivityTimeSeriesFiles.end();
              ictsf++) {
             dataFilesEvent->addFile(*ictsf);
         }
         
-        for (std::vector<VolumeFile*>::iterator volumeIter = this->volumeFiles.begin();
-             volumeIter != this->volumeFiles.end();
+        for (std::vector<VolumeFile*>::iterator volumeIter = m_volumeFiles.begin();
+             volumeIter != m_volumeFiles.end();
              volumeIter++) {
             dataFilesEvent->addFile(*volumeIter);
         }
@@ -1910,7 +1910,7 @@ Brain::receiveEvent(Event* event)
          */
         if (readSpecFileDataFilesEvent->getLoadIntoBrain() == this) {
             readSpecFileDataFilesEvent->setEventProcessed();
-            this->loadFilesSelectedInSpecFile(readSpecFileDataFilesEvent);
+            loadFilesSelectedInSpecFile(readSpecFileDataFilesEvent);
         }
     }
 }
@@ -1921,7 +1921,7 @@ Brain::receiveEvent(Event* event)
 ConnectivityLoaderManager* 
 Brain::getConnectivityLoaderManager()
 {
-    return this->connectivityLoaderManager;
+    return m_connectivityLoaderManager;
 }
 
 /**
@@ -1930,7 +1930,7 @@ Brain::getConnectivityLoaderManager()
 const ConnectivityLoaderManager* 
 Brain::getConnectivityLoaderManager() const
 {
-    return this->connectivityLoaderManager;
+    return m_connectivityLoaderManager;
 }
 
 /**
@@ -1939,10 +1939,10 @@ Brain::getConnectivityLoaderManager() const
 AString 
 Brain::getCurrentDirectory() const
 {
-    if (this->currentDirectory.isEmpty()) {
-        this->currentDirectory = SystemUtilities::systemCurrentDirectory();
+    if (m_currentDirectory.isEmpty()) {
+        m_currentDirectory = SystemUtilities::systemCurrentDirectory();
     }
-    return this->currentDirectory;
+    return m_currentDirectory;
 }
 
 /**
@@ -1953,7 +1953,7 @@ Brain::getCurrentDirectory() const
 void 
 Brain::setCurrentDirectory(const AString& currentDirectory)
 {
-    this->currentDirectory = currentDirectory;
+    m_currentDirectory = currentDirectory;
 }
 
 /**
@@ -2011,7 +2011,7 @@ Brain::determineDisplayedDataFiles()
      * Get all loaded files.
      */
     std::vector<CaretDataFile*> dataFiles;
-    this->getAllDataFiles(dataFiles);
+    getAllDataFiles(dataFiles);
     
     /*
      * Output only those data files that were found to be displayed.
@@ -2046,36 +2046,36 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
 {
     allDataFilesOut.clear();
     
-    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        this->getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
+        getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
     }
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->borderFiles.begin(),
-                           this->borderFiles.end());
+                           m_borderFiles.begin(),
+                           m_borderFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->fociFiles.begin(),
-                           this->fociFiles.end());
+                           m_fociFiles.begin(),
+                           m_fociFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->connectivityDenseFiles.begin(),
-                           this->connectivityDenseFiles.end());
+                           m_connectivityDenseFiles.begin(),
+                           m_connectivityDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->connectivityTimeSeriesFiles.begin(),
-                           this->connectivityTimeSeriesFiles.end());
+                           m_connectivityTimeSeriesFiles.begin(),
+                           m_connectivityTimeSeriesFiles.end());
     
-    allDataFilesOut.push_back(this->paletteFile);
-    
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                              this->sceneFiles.begin(),
-                              this->sceneFiles.end());
+    allDataFilesOut.push_back(m_paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->volumeFiles.begin(),
-                           this->volumeFiles.end());    
+                              m_sceneFiles.begin(),
+                              m_sceneFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_volumeFiles.begin(),
+                           m_volumeFiles.end());    
 }
 
 /**
@@ -2097,7 +2097,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
      * If file is relative path, update path using current directory
      */
     AString dataFileName = caretDataFile->getFileName();
-    dataFileName = this->updateFileNameForReadingAndWriting(dataFileName);
+    dataFileName = updateFileNameForReadingAndWriting(dataFileName);
     caretDataFile->setFileName(dataFileName);
 
     caretDataFile->writeFile(caretDataFile->getFileName());
@@ -2142,91 +2142,91 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     
     bool wasRemoved = false;
     
-    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        if (this->getBrainStructure(i)->removeDataFile(caretDataFile)) {
+        if (getBrainStructure(i)->removeDataFile(caretDataFile)) {
             wasRemoved = true;
             caretDataFile = NULL;
         }
     }
     
-    std::vector<BorderFile*>::iterator borderIterator = std::find(this->borderFiles.begin(),
-                                                                  this->borderFiles.end(),
+    std::vector<BorderFile*>::iterator borderIterator = std::find(m_borderFiles.begin(),
+                                                                  m_borderFiles.end(),
                                                                   caretDataFile);
-    if (borderIterator != this->borderFiles.end()) {
+    if (borderIterator != m_borderFiles.end()) {
         BorderFile* borderFile = *borderIterator;
         delete borderFile;
-        this->borderFiles.erase(borderIterator);
+        m_borderFiles.erase(borderIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
     
-    std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(this->connectivityDenseFiles.begin(),
-                                                                            this->connectivityDenseFiles.end(),
+    std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(m_connectivityDenseFiles.begin(),
+                                                                            m_connectivityDenseFiles.end(),
                                                                             caretDataFile);
-    if (connIterator != this->connectivityDenseFiles.end()) {
+    if (connIterator != m_connectivityDenseFiles.end()) {
         ConnectivityLoaderFile* connFile = *connIterator;
         delete connFile;
-        this->connectivityDenseFiles.erase(connIterator);
+        m_connectivityDenseFiles.erase(connIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
 
-    std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(this->connectivityTimeSeriesFiles.begin(),
-                                                                            this->connectivityTimeSeriesFiles.end(),
+    std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(m_connectivityTimeSeriesFiles.begin(),
+                                                                            m_connectivityTimeSeriesFiles.end(),
                                                                             caretDataFile);
-    if (timeIterator != this->connectivityTimeSeriesFiles.end()) {
+    if (timeIterator != m_connectivityTimeSeriesFiles.end()) {
         ConnectivityLoaderFile* timeFile = *timeIterator;
         delete timeFile;
-        this->connectivityTimeSeriesFiles.erase(timeIterator);
+        m_connectivityTimeSeriesFiles.erase(timeIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
     
-    std::vector<FociFile*>::iterator fociIterator = std::find(this->fociFiles.begin(),
-                                                                  this->fociFiles.end(),
+    std::vector<FociFile*>::iterator fociIterator = std::find(m_fociFiles.begin(),
+                                                                  m_fociFiles.end(),
                                                                   caretDataFile);
-    if (fociIterator != this->fociFiles.end()) {
+    if (fociIterator != m_fociFiles.end()) {
         FociFile* fociFile =  *fociIterator;
         delete fociFile;
-        this->fociFiles.erase(fociIterator);
+        m_fociFiles.erase(fociIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
     
-    if (this->paletteFile == caretDataFile) {
-        if (this->paletteFile != NULL) {
+    if (m_paletteFile == caretDataFile) {
+        if (m_paletteFile != NULL) {
             throw DataFileException("Cannot remove PaletteFile at this time.");
         }
     }
     
-    std::vector<SceneFile*>::iterator sceneIterator = std::find(this->sceneFiles.begin(),
-                                                                this->sceneFiles.end(),
+    std::vector<SceneFile*>::iterator sceneIterator = std::find(m_sceneFiles.begin(),
+                                                                m_sceneFiles.end(),
                                                                 caretDataFile);
-    if (sceneIterator != this->sceneFiles.end()) {
+    if (sceneIterator != m_sceneFiles.end()) {
         SceneFile* sceneFile = *sceneIterator;
         delete sceneFile;
-        this->sceneFiles.erase(sceneIterator);
+        m_sceneFiles.erase(sceneIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
     
     std::vector<VolumeFile*>::iterator volumeIterator = 
-    std::find(this->volumeFiles.begin(),
-              this->volumeFiles.end(),
+    std::find(m_volumeFiles.begin(),
+              m_volumeFiles.end(),
               caretDataFile);
-    if (volumeIterator != this->volumeFiles.end()) {
+    if (volumeIterator != m_volumeFiles.end()) {
         VolumeFile* volumeFile = *volumeIterator;
         delete volumeFile;
-        this->volumeFiles.erase(volumeIterator);
+        m_volumeFiles.erase(volumeIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
     
     if (wasRemoved) {
-        this->updateVolumeSliceController();
-        this->updateWholeBrainController();
-        this->updateSurfaceMontageController();
+        updateVolumeSliceController();
+        updateWholeBrainController();
+        updateSurfaceMontageController();
     }
 
     return wasRemoved;
@@ -2256,7 +2256,7 @@ Brain::setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
 DisplayPropertiesBorders* 
 Brain::getDisplayPropertiesBorders()
 {
-    return this->displayPropertiesBorders;
+    return m_displayPropertiesBorders;
 }
 
 /**
@@ -2265,7 +2265,7 @@ Brain::getDisplayPropertiesBorders()
 const DisplayPropertiesBorders* 
 Brain::getDisplayPropertiesBorders() const
 {
-    return this->displayPropertiesBorders;
+    return m_displayPropertiesBorders;
 }
 
 /**
@@ -2274,7 +2274,7 @@ Brain::getDisplayPropertiesBorders() const
 DisplayPropertiesFoci* 
 Brain::getDisplayPropertiesFoci()
 {
-    return this->displayPropertiesFoci;
+    return m_displayPropertiesFoci;
 }
 
 /**
@@ -2283,7 +2283,7 @@ Brain::getDisplayPropertiesFoci()
 const DisplayPropertiesFoci* 
 Brain::getDisplayPropertiesFoci() const
 {
-    return this->displayPropertiesFoci;
+    return m_displayPropertiesFoci;
 }
 
 /**
@@ -2292,7 +2292,7 @@ Brain::getDisplayPropertiesFoci() const
 DisplayPropertiesVolume* 
 Brain::getDisplayPropertiesVolume()
 {
-    return this->displayPropertiesVolume;
+    return m_displayPropertiesVolume;
 }
 
 /**
@@ -2301,7 +2301,7 @@ Brain::getDisplayPropertiesVolume()
 const DisplayPropertiesVolume* 
 Brain::getDisplayPropertiesVolume() const
 {
-    return this->displayPropertiesVolume;
+    return m_displayPropertiesVolume;
 }
 
 /**
@@ -2310,7 +2310,7 @@ Brain::getDisplayPropertiesVolume() const
 DisplayPropertiesInformation*
 Brain::getDisplayPropertiesInformation()
 {
-    return this->displayPropertiesInformation;
+    return m_displayPropertiesInformation;
 }
 
 /**
@@ -2319,7 +2319,7 @@ Brain::getDisplayPropertiesInformation()
 const DisplayPropertiesInformation*
 Brain::getDisplayPropertiesInformation() const
 {
-    return this->displayPropertiesInformation;
+    return m_displayPropertiesInformation;
 }
 
 /**
@@ -2442,7 +2442,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         specFile.restoreFromScene(sceneAttributes, 
                                   sceneClass->getClass("specFile"));
         
-        this->loadSpecFile(&specFile, 
+        loadSpecFile(&specFile, 
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
                            RESET_BRAIN_KEEP_SPEC_FILE_YES,
                            m_sceneSpecFileReadingErrors);
