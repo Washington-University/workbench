@@ -2318,7 +2318,11 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         else {
             processMoveFeaturesToolBoxToRight();
         }
-        processShowFeaturesToolBox(toolBoxVisible);
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(! toolBoxVisible);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+        //processShowFeaturesToolBox(toolBoxVisible);
     }
     
     switch (sceneAttributes->getSceneType()) {
