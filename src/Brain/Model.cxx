@@ -901,25 +901,27 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(scalingClassArray);
     
     /*
-     * Save the overlays
+     * Save the overlays (except for yoking)
      */
-    std::vector<SceneClass*> overlaySetClassVector;
-    for (int32_t iat = 0; iat < numActiveTabs; iat++) {
-        const int32_t tabIndex = tabIndices[iat];
-        SceneClass* overlaySetClass = new SceneClass(("modelOverlay["
-                                                      + AString::number(iat)
-                                                      + "]"),
-                                                     "OverlaySet",
-                                                     1);
-        overlaySetClass->addInteger("tabIndex",
-                                    tabIndex);
-        overlaySetClass->addChild(getOverlaySet(tabIndex)->saveToScene(sceneAttributes, 
-                                                                       "overlaySet"));
-        overlaySetClassVector.push_back(overlaySetClass);
+    if (m_modelType != ModelTypeEnum::MODEL_TYPE_YOKING) {
+        std::vector<SceneClass*> overlaySetClassVector;
+        for (int32_t iat = 0; iat < numActiveTabs; iat++) {
+            const int32_t tabIndex = tabIndices[iat];
+            SceneClass* overlaySetClass = new SceneClass(("modelOverlay["
+                                                          + AString::number(iat)
+                                                          + "]"),
+                                                         "OverlaySet",
+                                                         1);
+            overlaySetClass->addInteger("tabIndex",
+                                        tabIndex);
+            overlaySetClass->addChild(getOverlaySet(tabIndex)->saveToScene(sceneAttributes, 
+                                                                           "overlaySet"));
+            overlaySetClassVector.push_back(overlaySetClass);
+        }
+        SceneClassArray* overlaySetClassArray = new SceneClassArray("m_overlaySet",
+                                                                    overlaySetClassVector);
+        sceneClass->addChild(overlaySetClassArray);
     }
-    SceneClassArray* overlaySetClassArray = new SceneClassArray("m_overlaySet",
-                                                                overlaySetClassVector);
-    sceneClass->addChild(overlaySetClassArray);
     
     /*
      * Save information specific to the type of model
@@ -1060,20 +1062,22 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Restore the overlays
+     * Restore the overlays (except for yoking)
      */
-    const SceneClassArray* overlaySetClassArray = sceneClass->getClassArray("m_overlaySet");
-    if (overlaySetClassArray != NULL) {
-        const int32_t numSavedOverlaySets = overlaySetClassArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numSavedOverlaySets; i++) {
-            const SceneClass* overlaySceneClass = overlaySetClassArray->getClassAtIndex(i);
-            const int32_t tabIndex = overlaySceneClass->getIntegerValue("tabIndex",
-                                                                        -1);
-            const SceneClass* overlayClass = overlaySceneClass->getClass("overlaySet");
-            if ((tabIndex >= 0) 
-                && (overlayClass != NULL)) {
-                getOverlaySet(tabIndex)->restoreFromScene(sceneAttributes, 
-                                                          overlayClass);
+    if (m_modelType != ModelTypeEnum::MODEL_TYPE_YOKING) {
+        const SceneClassArray* overlaySetClassArray = sceneClass->getClassArray("m_overlaySet");
+        if (overlaySetClassArray != NULL) {
+            const int32_t numSavedOverlaySets = overlaySetClassArray->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numSavedOverlaySets; i++) {
+                const SceneClass* overlaySceneClass = overlaySetClassArray->getClassAtIndex(i);
+                const int32_t tabIndex = overlaySceneClass->getIntegerValue("tabIndex",
+                                                                            -1);
+                const SceneClass* overlayClass = overlaySceneClass->getClass("overlaySet");
+                if ((tabIndex >= 0) 
+                    && (overlayClass != NULL)) {
+                    getOverlaySet(tabIndex)->restoreFromScene(sceneAttributes, 
+                                                              overlayClass);
+                }
             }
         }
     }

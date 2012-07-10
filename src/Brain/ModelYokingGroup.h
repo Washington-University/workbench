@@ -36,6 +36,7 @@
 namespace caret {
 
     class Brain;
+    class SceneClassAssistant;
     
     /// Model information for yoking (contains transforms and volume slice info for volume yoking)
     class ModelYokingGroup: public Model, public ModelVolumeInterface, public EventListenerInterface {
@@ -119,8 +120,12 @@ namespace caret {
         
         ModelYokingGroup& operator=(const ModelYokingGroup&);
         
-        void initializeMembersModelYoking();
+        /** Type of yoking */
+        const YokingType m_yokingType;
         
+        /** Name of yoking */
+        const AString m_yokingName;
+                
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
         
@@ -139,11 +144,8 @@ namespace caret {
         /** Selected volume slices */
         mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected;
         
-        /** Name of yoking */
-        AString m_yokingName;
+        SceneClassAssistant* m_sceneAssistant; 
         
-        /** Type of yoking */
-        YokingType m_yokingType;
     };
 
 } // namespace

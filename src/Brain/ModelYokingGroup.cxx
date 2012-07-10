@@ -49,11 +49,34 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
 : Model(ModelTypeEnum::MODEL_TYPE_YOKING,
         YOKING_ALLOWED_NO,
         ((yokingType == YOKING_TYPE_SURFACE) ? ROTATION_ALLOWED_YES : ROTATION_ALLOWED_NO),
-        brain)
+        brain),
+  m_yokingType(yokingType),
+  m_yokingName(yokingName)
 {
-    initializeMembersModelYoking();
-    m_yokingType = yokingType;
-    m_yokingName = yokingName;
+    m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
+    m_sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
+    m_montageNumberOfColumns = 3;
+    m_montageNumberOfRows    = 4;
+    m_montageSliceSpacing    = 5;
+    m_volumeSlicesSelected.reset();
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane", 
+                                                                                    &m_sliceViewPlane, 
+                                                                                    m_sliceViewPlane);
+    m_sceneAssistant->add<VolumeSliceViewModeEnum, VolumeSliceViewModeEnum::Enum>("m_sliceViewMode", 
+                                                                                    &m_sliceViewMode, 
+                                                                                    m_sliceViewMode);
+    m_sceneAssistant->add("m_montageNumberOfColumns",
+                          &m_montageNumberOfColumns);
+    m_sceneAssistant->add("m_montageNumberOfRows",
+                          &m_montageNumberOfRows);
+    m_sceneAssistant->add("m_montageSliceSpacing",
+                          &m_montageSliceSpacing);
+    m_sceneAssistant->add("m_volumeSlicesSelected",
+                          "VolumeSliceCoordinateSelection",
+                          &m_volumeSlicesSelected);
+    
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
@@ -64,6 +87,7 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
 ModelYokingGroup::~ModelYokingGroup()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    delete m_sceneAssistant;
 }
 
 /**
@@ -73,17 +97,6 @@ AString
 ModelYokingGroup::getYokingName() const
 {
     return m_yokingName;
-}
-
-void
-ModelYokingGroup::initializeMembersModelYoking()
-{
-        m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
-        m_sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
-        m_montageNumberOfColumns = 3;
-        m_montageNumberOfRows    = 4;
-        m_montageSliceSpacing    = 5;
-        m_volumeSlicesSelected.reset();
 }
 
 /**
@@ -467,11 +480,8 @@ void
 ModelYokingGroup::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
-    //    m_sceneAssistant->saveMembers(sceneAttributes, 
-    //                                  sceneClass);
-    //    
-    //    sceneClass->addString("m_selectedMapFile",
-    //                          m_selectedMapFile->getFileNameNoPath());
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
 }
 
 /**
@@ -489,26 +499,11 @@ void
 ModelYokingGroup::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    if (sceneClass == NULL) {
+        return;
+    }
     
-    //    m_sceneAssistant->restoreMembers(sceneAttributes, 
-    //                                     sceneClass);
-    //    
-    //    const AString selectedMapFileName = sceneClass->getStringValue("m_selectedMapFile",
-    //                                                                   "");
-    //    if (selectedMapFileName.isEmpty() == false) {
-    //        for (std::vector<CaretMappableDataFile*>::iterator iter = m_mapFiles.begin();
-    //             iter != m_mapFiles.end();
-    //             iter++) {
-    //            const AString fileName = (*iter)->getFileNameNoPath();
-    //            if (fileName == selectedMapFileName) {
-    //                CaretMappableDataFile* mapFile = *iter;
-    //                const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
-    //                if (mapIndex >= 0) {
-    //                    m_selectedMapFile = mapFile;
-    //                    break;
-    //                }
-    //            }
-    //        }
-    //    }
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
 }
 

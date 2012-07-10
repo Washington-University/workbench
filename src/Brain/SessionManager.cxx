@@ -459,6 +459,19 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(new SceneClassArray("m_browserTabs",
                                              browserTabSceneClasses));
     
+    /*
+     * Save yoking groups
+     */
+    std::vector<SceneClass*> yokingGroupClasses;
+    for (std::vector<ModelYokingGroup*>::iterator iter = m_yokingGroupModels.begin();
+         iter != m_yokingGroupModels.end();
+         iter++) {
+        ModelYokingGroup* myg = *iter;
+        yokingGroupClasses.push_back(myg->saveToScene(sceneAttributes, "m_yokingGroupModels"));
+    }
+    sceneClass->addChild(new SceneClassArray("m_yokingGroupModels",
+                                             yokingGroupClasses));
+    
     return sceneClass;
 }
 
@@ -487,6 +500,16 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
+    }
+    
+    const SceneClassArray* yokingGroupArray = sceneClass->getClassArray("m_yokingGroupModels");
+    if (yokingGroupArray != NULL) {
+        const int32_t numToRestore = std::min(yokingGroupArray->getNumberOfArrayElements(),
+                                              static_cast<int32_t>(m_yokingGroupModels.size()));
+        for (int32_t i = 0; i < numToRestore; i++) {
+            m_yokingGroupModels[i]->restoreFromScene(sceneAttributes, 
+                                                     yokingGroupArray->getClassAtIndex(i));
+        }
     }
     
     /*

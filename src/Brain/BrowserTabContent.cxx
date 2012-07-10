@@ -38,6 +38,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
+#include "EventModelYokingGroupGetAll.h"
 #include "FociFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -999,6 +1000,13 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
     
+    AString yokingGroupName = "";
+    if (m_selectedYokingGroup != NULL) {
+        yokingGroupName = m_selectedYokingGroup->getYokingName();
+    }
+    sceneClass->addString("m_selectedYokingGroup", 
+                          yokingGroupName);
+    
 //    m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
 //                                  &m_selectedModelType);
 
@@ -1033,6 +1041,28 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
+    
+    /*
+     * Restore the selected yoking group
+     */
+    const AString yokingGroupName = sceneClass->getStringValue("m_selectedYokingGroup", "");
+    m_selectedYokingGroup = NULL;
+    if (yokingGroupName.isEmpty() == false) {
+        EventModelYokingGroupGetAll getYokingGroups;
+        EventManager::get()->sendEvent(getYokingGroups.getPointer());
+        std::vector<ModelYokingGroup*> yokingGroups;
+        getYokingGroups.getYokingGroups(yokingGroups);
+        for (std::vector<ModelYokingGroup*>::iterator iter= yokingGroups.begin();
+             iter != yokingGroups.end();
+             iter++) {
+            ModelYokingGroup* myg = *iter;
+            if (myg->getYokingName() == yokingGroupName) {
+                m_selectedYokingGroup = myg;
+                break;
+            }
+        }
+        
+    }
     
 //    m_selectedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum,ModelTypeEnum::Enum>("m_selectedModelType", 
 //                                                                                          ModelTypeEnum::MODEL_TYPE_INVALID);
