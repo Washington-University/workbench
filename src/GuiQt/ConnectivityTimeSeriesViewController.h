@@ -48,6 +48,7 @@ class QGridLayout;
 class QLabel;
 class QLineEdit;
 class QSpinBox;
+class QToolButton;
 
 namespace caret {
 
@@ -113,6 +114,8 @@ namespace caret {
         QCheckBox* yokeCheckBox;
         
         QLineEdit* fileNameLineEdit;
+
+        QToolButton *graphToolButton;
         
         QAction* graphDisplayAction;
         

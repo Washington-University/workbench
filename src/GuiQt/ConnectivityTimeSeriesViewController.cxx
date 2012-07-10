@@ -115,8 +115,8 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->graphDisplayAction->setIcon(graphIcon);
     }
     this->graphDisplayAction->setCheckable(true);
-    QToolButton* graphToolButton = new QToolButton();
-    graphToolButton->setDefaultAction(this->graphDisplayAction);
+    this->graphToolButton = new QToolButton();
+    this->graphToolButton->setDefaultAction(this->graphDisplayAction);
     
     this->frameSpinBox = new QSpinBox();
     this->frameSpinBox->setMinimum(0);
@@ -137,7 +137,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     if (orientation == Qt::Horizontal) {
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
+        this->gridLayoutGroup->addWidget(this->graphToolButton, row, 1);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
         this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 3);
         this->gridLayoutGroup->addWidget(this->frameName, row, 4);
@@ -153,7 +153,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1, 1, 3);
         row++;
-        this->gridLayoutGroup->addWidget(graphToolButton, row, 1, Qt::AlignCenter);
+        this->gridLayoutGroup->addWidget(this->graphToolButton, row, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
         row++;
         this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 3, Qt::AlignLeft);
@@ -279,6 +279,14 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         this->yokeCheckBox->setCheckState(enabledState);
         this->yokeCheckBox->blockSignals(false);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
+
+        enabledState = Qt::Unchecked;
+        if(this->connectivityLoaderFile->isTimeSeriesGraphEnabled()) {
+            enabledState = Qt::Checked;
+        }
+        this->graphToolButton->blockSignals(true);
+        this->graphToolButton->setChecked(enabledState);
+        this->graphToolButton->blockSignals(false);
 
         this->frameName->blockSignals(true);
         if(this->connectivityLoaderFile->hasDataSeriesLabels())
@@ -444,6 +452,7 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
         if (this->connectivityLoaderFile->isDenseTimeSeries()) {
             this->connectivityLoaderFile->setTimeSeriesGraphEnabled(status);
             GuiManager::get()->getTimeCourseDialog((void *)this->connectivityLoaderFile)->setTimeSeriesGraphEnabled(status);
+            this->updateOtherConnectivityTimeSeriesViewControllers();
         }
     }
 }
