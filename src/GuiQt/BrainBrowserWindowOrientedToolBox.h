@@ -6,6 +6,8 @@
 
 #include <QDockWidget>
 
+#include "SceneableInterface.h"
+
 class QTabWidget;
 
 namespace caret {
@@ -15,7 +17,7 @@ namespace caret {
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
-    class BrainBrowserWindowOrientedToolBox : public QDockWidget{
+    class BrainBrowserWindowOrientedToolBox :  public QDockWidget, public SceneableInterface {
         Q_OBJECT
         
     public:
@@ -32,7 +34,13 @@ namespace caret {
         
         ~BrainBrowserWindowOrientedToolBox();
 
-        private slots:
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+    private slots:
         void floatingStatusChanged(bool);
         
     private:
@@ -42,29 +50,29 @@ namespace caret {
         int addToTabWidget(QWidget* page,
                            const QString& label);
         
-        OverlaySetViewController* overlaySetViewController;
-        int overlaySetTabIndex;
+        OverlaySetViewController* m_overlaySetViewController;
+        int m_overlaySetTabIndex;
         
-        BorderSelectionViewController* borderSelectionViewController;
-        int borderSelectionTabIndex;
+        BorderSelectionViewController* m_borderSelectionViewController;
+        int m_borderSelectionTabIndex;
         
-        ConnectivityManagerViewController* connectivityViewController;
-        int connectivityTabIndex;
+        ConnectivityManagerViewController* m_connectivityViewController;
+        int m_connectivityTabIndex;
         
-        ConnectivityManagerViewController* timeSeriesViewController;
-        int timeSeriesTabIndex;
+        ConnectivityManagerViewController* m_timeSeriesViewController;
+        int m_timeSeriesTabIndex;
         
-        FociSelectionViewController* fociSelectionViewController;
-        int fociSelectionTabIndex;
+        FociSelectionViewController* m_fociSelectionViewController;
+        int m_fociSelectionTabIndex;
         
-        VolumeSurfaceOutlineSetViewController* volumeSurfaceOutlineSetViewController;
-        int volumeSurfaceOutlineTabIndex;
+        VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
+        int m_volumeSurfaceOutlineTabIndex;
         
-        QTabWidget* tabWidget;
+        QTabWidget* m_tabWidget;
         
-        QString toolBoxTitle;
+        QString m_toolBoxTitle;
         
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
     };    
 }
 

@@ -95,6 +95,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          float* floatAddress)
 {
+    CaretAssert(floatAddress);
     FloatData* fd = new FloatData(name,
                                   floatAddress,
                                   *floatAddress);
@@ -116,6 +117,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          int32_t* integerAddress)
 {
+    CaretAssert(integerAddress);
     IntegerData* id = new IntegerData(name,
                                   integerAddress,
                                   *integerAddress);
@@ -137,6 +139,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          bool* booleanAddress)
 {
+    CaretAssert(booleanAddress);
     BooleanData* bd = new BooleanData(name,
                                       booleanAddress,
                                       *booleanAddress);
@@ -158,6 +161,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          AString* stringAddress)
 {
+    CaretAssert(stringAddress);
     StringData* sd = new StringData(name,
                                       stringAddress,
                                       *stringAddress);

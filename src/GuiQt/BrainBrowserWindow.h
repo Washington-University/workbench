@@ -196,91 +196,91 @@ namespace caret {
         void openSpecFile(const AString& specFileName) throw (DataFileException);
         
         /** Index of this window */
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
         
-        BrainOpenGLWidget* openGLWidget;
+        BrainOpenGLWidget* m_openGLWidget;
         
         BrainBrowserWindowToolBar* m_toolbar;
         
-        QAction* aboutWorkbenchAction;
+        QAction* m_aboutWorkbenchAction;
         
-        QAction* newWindowAction;
+        QAction* m_newWindowAction;
         
-        QAction* newTabAction;
+        QAction* m_newTabAction;
         
-        QAction* openFileAction;
+        QAction* m_openFileAction;
         
-        QAction* openLocationAction;
+        QAction* m_openLocationAction;
         
-        QAction* openFileViaSpecFileAction;
+        QAction* m_openFileViaSpecFileAction;
         
-        QAction* manageFilesAction;
+        QAction* m_manageFilesAction;
         
-        QAction* closeSpecFileAction;
+        QAction* m_closeSpecFileAction;
         
-        QAction* closeTabAction;
+        QAction* m_closeTabAction;
         
-        QAction* closeWindowAction;
+        QAction* m_closeWindowAction;
         
-        QAction* captureImageAction;
+        QAction* m_captureImageAction;
         
-        QAction* preferencesAction;
+        QAction* m_preferencesAction;
         
-        QAction* exitProgramAction;
+        QAction* m_exitProgramAction;
         
-        QAction* showToolBarAction;
+        QAction* m_showToolBarAction;
         
-        QAction* showSceneDialogAction;
+        QAction* m_showSceneDialogAction;
         
-        QActionGroup* viewScreenActionGroup;
-        QAction* viewScreenNormalAction;
-        QAction* viewScreenFullAction;
-        QAction* viewScreenMontageTabsAction;
-        QAction* viewScreenFullMontageTabsAction;        
+        QActionGroup* m_viewScreenActionGroup;
+        QAction* m_viewScreenNormalAction;
+        QAction* m_viewScreenFullAction;
+        QAction* m_viewScreenMontageTabsAction;
+        QAction* m_viewScreenFullMontageTabsAction;        
         
-        QAction* nextTabAction;
+        QAction* m_nextTabAction;
         
-        QAction* previousTabAction;
+        QAction* m_previousTabAction;
         
-        QAction* renameSelectedTabAction;
+        QAction* m_renameSelectedTabAction;
         
-        QAction* moveTabsInWindowToNewWindowsAction;
+        QAction* m_moveTabsInWindowToNewWindowsAction;
         
-        QAction* moveTabsFromAllWindowsToOneWindowAction;
+        QAction* m_moveTabsFromAllWindowsToOneWindowAction;
         
-        QAction* bringAllToFrontAction;
+        QAction* m_bringAllToFrontAction;
         
-        QAction* informationDialogAction;
+        QAction* m_informationDialogAction;
         
-        QAction* connectToAllenDatabaseAction;
-        QAction* connectToConnectomeDatabaseAction;
+        QAction* m_connectToAllenDatabaseAction;
+        QAction* m_connectToConnectomeDatabaseAction;
 
-        QAction* helpHcpWebsiteAction;
-        QAction* helpOnlineAction;
-        QAction* helpSearchOnlineAction;
+        QAction* m_helpHcpWebsiteAction;
+        QAction* m_helpOnlineAction;
+        QAction* m_helpSearchOnlineAction;
         
-        QAction* overlayToolBoxAction;
+        QAction* m_overlayToolBoxAction;
         
-        QAction* featuresToolBoxAction;
+        QAction* m_featuresToolBoxAction;
         
-        QMenu* moveSelectedTabToWindowMenu;
+        QMenu* m_moveSelectedTabToWindowMenu;
         
-        QMenu* recentSpecFileMenu;
+        QMenu* m_recentSpecFileMenu;
         
-        QDockWidget* overlayHorizontalToolBox;
-        QDockWidget* overlayVerticalToolBox;
-        QDockWidget* overlayActiveToolBox;
-        QDockWidget* featuresToolBox;
+        QDockWidget* m_overlayHorizontalToolBox;
+        QDockWidget* m_overlayVerticalToolBox;
+        QDockWidget* m_overlayActiveToolBox;
+        QDockWidget* m_featuresToolBox;
         
-        static AString previousOpenFileNameFilter;
-        static bool previousOpenFileAddToSpecFileSelection;
+        static AString s_previousOpenFileNameFilter;
+        static bool s_previousOpenFileAddToSpecFileSelection;
         
         
-        BrainBrowserWindowScreenModeEnum::Enum screenMode;
+        BrainBrowserWindowScreenModeEnum::Enum m_screenMode;
         
-        WindowComponentStatus normalWindowComponentStatus;
+        WindowComponentStatus m_normalWindowComponentStatus;
                 
-        static bool firstWindowFlag;
+        static bool s_firstWindowFlag;
         
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
@@ -288,9 +288,9 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
-    AString BrainBrowserWindow::previousOpenFileNameFilter;
-    bool BrainBrowserWindow::previousOpenFileAddToSpecFileSelection = true;
-    bool BrainBrowserWindow::firstWindowFlag = true;
+    AString BrainBrowserWindow::s_previousOpenFileNameFilter;
+    bool BrainBrowserWindow::s_previousOpenFileAddToSpecFileSelection = true;
+    bool BrainBrowserWindow::s_firstWindowFlag = true;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

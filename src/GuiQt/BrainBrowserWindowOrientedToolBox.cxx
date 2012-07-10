@@ -15,6 +15,7 @@
 #include "ConnectivityManagerViewController.h"
 #include "FociSelectionViewController.h"
 #include "OverlaySetViewController.h"
+#include "SceneClass.h"
 #include "SessionManager.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
 #include "WuQtUtilities.h"
@@ -37,12 +38,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                      QWidget* parent)
 :   QDockWidget(parent)
 {
-    this->browserWindowIndex = browserWindowIndex;
+    m_browserWindowIndex = browserWindowIndex;
     
-    this->toggleViewAction()->setText("Toolbox");
+    toggleViewAction()->setText("Toolbox");
     
-    this->toolBoxTitle = title;
-    this->setWindowTitle(this->toolBoxTitle);
+    m_toolBoxTitle = title;
+    setWindowTitle(m_toolBoxTitle);
     
     bool isLayersToolBox  = false;
     bool isOverlayToolBox = false;
@@ -51,7 +52,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         case TOOL_BOX_LAYERS:
             orientation = Qt::Vertical;
             isLayersToolBox = true;
-            this->toggleViewAction()->setText("Features Toolbox");
+            toggleViewAction()->setText("Features Toolbox");
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
@@ -63,63 +64,63 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             break;
     }
     
-    this->borderSelectionViewController = NULL;
-    this->connectivityViewController = NULL;
-    this->fociSelectionViewController = NULL;
-    this->overlaySetViewController = NULL;
-    this->timeSeriesViewController = NULL;
-    this->volumeSurfaceOutlineSetViewController = NULL;
+    m_borderSelectionViewController = NULL;
+    m_connectivityViewController = NULL;
+    m_fociSelectionViewController = NULL;
+    m_overlaySetViewController = NULL;
+    m_timeSeriesViewController = NULL;
+    m_volumeSurfaceOutlineSetViewController = NULL;
 
-    this->overlaySetTabIndex = -1;
-    this->connectivityTabIndex = -1;
-    this->timeSeriesTabIndex = -1;
-    this->borderSelectionTabIndex = -1;
-    this->fociSelectionTabIndex = -1;
-    this->volumeSurfaceOutlineTabIndex = -1;
+    m_overlaySetTabIndex = -1;
+    m_connectivityTabIndex = -1;
+    m_timeSeriesTabIndex = -1;
+    m_borderSelectionTabIndex = -1;
+    m_fociSelectionTabIndex = -1;
+    m_volumeSurfaceOutlineTabIndex = -1;
     
-    this->tabWidget = new QTabWidget();
+    m_tabWidget = new QTabWidget();
     
     if (isOverlayToolBox) {
-        this->overlaySetViewController = new OverlaySetViewController(orientation,
+        m_overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-//        this->addToTabWidget(this->overlaySetViewController, 
+//        m_addToTabWidget(m_overlaySetViewController, 
 //                             "Overlay");
-        this->tabWidget->addTab(this->overlaySetViewController ,
+        m_tabWidget->addTab(m_overlaySetViewController ,
                                 "Layers");
     }
     if (isOverlayToolBox) {
-        this->connectivityViewController = new ConnectivityManagerViewController(orientation,
+        m_connectivityViewController = new ConnectivityManagerViewController(orientation,
                                                                                  browserWindowIndex,
                                                                                  DataFileTypeEnum::CONNECTIVITY_DENSE);
-        this->addToTabWidget(this->connectivityViewController, 
+        addToTabWidget(m_connectivityViewController, 
                              "Connectivity");
     }
     if (isOverlayToolBox) {
-        this->timeSeriesViewController = new ConnectivityManagerViewController(orientation,
+        m_timeSeriesViewController = new ConnectivityManagerViewController(orientation,
                                                                                browserWindowIndex,
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-        this->addToTabWidget(this->timeSeriesViewController, 
+        addToTabWidget(m_timeSeriesViewController, 
                              "Data-Series");
     }
     if (isLayersToolBox) {
-        this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
+        m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
-        this->addToTabWidget(this->borderSelectionViewController, 
+        addToTabWidget(m_borderSelectionViewController, 
                              "Borders");
     }
     
     if (isLayersToolBox) {
-        this->fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
+        m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                                 this);
-        this->addToTabWidget(this->fociSelectionViewController, 
+        addToTabWidget(m_fociSelectionViewController, 
                              "Foci");
     }
     
     if (isOverlayToolBox) {
-        this->volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
-                                                                                                this->browserWindowIndex);
-        this->addToTabWidget(this->volumeSurfaceOutlineSetViewController, 
+        m_volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
+                                                                                                m_browserWindowIndex);
+        addToTabWidget(m_volumeSurfaceOutlineSetViewController, 
                              "Vol/Surf Outline");
     }
     
@@ -132,20 +133,20 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 //    layout->addWidget(tabBar);
 //    layout->addWidget(scrollArea);
     
-    this->setWidget(this->tabWidget);
+    setWidget(m_tabWidget);
 
     if (orientation == Qt::Horizontal) {
-        this->setMinimumHeight(200);
-        this->setMaximumHeight(800);
+        setMinimumHeight(200);
+        setMaximumHeight(800);
     }
     else {
         if (isOverlayToolBox) {
-            this->setMinimumWidth(300);
-            this->setMaximumWidth(800);
+            setMinimumWidth(300);
+            setMaximumWidth(800);
         }
         else {
-            this->setMinimumWidth(200);
-            this->setMaximumWidth(800);
+            setMinimumWidth(200);
+            setMaximumWidth(800);
         }
     }
 
@@ -175,7 +176,7 @@ BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
     scrollArea->setWidget(page);
     scrollArea->setWidgetResizable(true);    
     
-    int indx = this->tabWidget->addTab(scrollArea,
+    int indx = m_tabWidget->addTab(scrollArea,
                                        label);
     return indx;
 }
@@ -189,11 +190,75 @@ BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
 void 
 BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool /*status*/)
 {
-    QString title = this->toolBoxTitle;
+    QString title = m_toolBoxTitle;
 //    if (status) {
 //        title += (" "
-//                  + QString::number(this->browserWindowIndex + 1));
+//                  + QString::number(m_browserWindowIndex + 1));
 //    }
-    this->setWindowTitle(title);
+    setWindowTitle(title);
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainBrowserWindowOrientedToolBox",
+                                            1);
+    
+    AString tabName;
+    const int tabIndex = m_tabWidget->currentIndex();
+    if ((tabIndex >= 0) 
+        && tabIndex < m_tabWidget->count()) {
+        tabName = m_tabWidget->tabText(tabIndex);
+    }
+    sceneClass->addString("selectedTabName",
+                          tabName);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                     const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const AString tabName = sceneClass->getStringValue("selectedTabName",
+                                                       "");
+    for (int32_t i = 0; i < m_tabWidget->count(); i++) {
+        if (m_tabWidget->tabText(i) == tabName) {
+            m_tabWidget->setCurrentIndex(i);
+            break;
+        }
+    }
+}
+
+
 

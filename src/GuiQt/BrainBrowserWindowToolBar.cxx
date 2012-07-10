@@ -190,7 +190,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
     QToolButton* sceneDialogToolButton = new QToolButton();
-    sceneDialogToolButton->setDefaultAction(parentBrainBrowserWindow->showSceneDialogAction);
+    sceneDialogToolButton->setDefaultAction(parentBrainBrowserWindow->m_showSceneDialogAction);
     
     /*
      * Toolbar action and tool button at right of the tab bar
@@ -260,8 +260,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Layout the toolbar's widgets.
      */
-    this->toolbarWidget = new QWidget();
-    this->toolbarWidgetLayout = new QHBoxLayout(this->toolbarWidget);
+    m_toolbarWidget = new QWidget();
+    this->toolbarWidgetLayout = new QHBoxLayout(m_toolbarWidget);
     WuQtUtilities::setLayoutMargins(this->toolbarWidgetLayout, 2, 1);
     //this->toolbarWidgetLayout->setSpacing(2);
     
@@ -309,7 +309,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 1, 0);
     layout->addWidget(this->tabBarWidget);
-    layout->addWidget(this->toolbarWidget);
+    layout->addWidget(m_toolbarWidget);
     layout->addWidget(this->userInputControlsWidget);
     
     this->addWidget(w);
@@ -553,7 +553,7 @@ void
 BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 {
     if (this->isContructorFinished) {
-        this->toolbarWidget->setVisible(showIt);
+        m_toolbarWidget->setVisible(showIt);
     }
     
     if (showIt) {
@@ -4610,7 +4610,9 @@ BrainBrowserWindowToolBar::saveToScene(const SceneAttributes* sceneAttributes,
             break;
     }    
     
-    
+    /*
+     * Add tabs
+     */
     const int numTabs = this->tabBar->count();
     if (numTabs > 0) {
         SceneIntegerArray* sceneTabIndexArray = new SceneIntegerArray("tabIndices",
@@ -4624,12 +4626,21 @@ BrainBrowserWindowToolBar::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addChild(sceneTabIndexArray);
     }
 
+    /*
+     * Add selected tab to scene
+     */
     int32_t selectedTabIndex = -1;
     BrowserTabContent* selectedTab = getTabContentFromSelectedTab();
     if (selectedTab != NULL) {
         selectedTabIndex = selectedTab->getTabNumber();
     }
     sceneClass->addInteger("selectedTabIndex", selectedTabIndex);
+    
+    /*
+     * Toolbar visible
+     */
+    sceneClass->addBoolean("toolBarVisible", 
+                           m_toolbarWidget->isVisible());
     
     return sceneClass;
 }
@@ -4696,10 +4707,20 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
         }
     }
     
+    /*
+     * Select tab
+     */
     if ((defaultTabBarIndex >= 0) 
         && (defaultTabBarIndex < tabBar->count())) {
         tabBar->setCurrentIndex(defaultTabBarIndex);
     }
+    
+    /*
+     * Show hide toolbar
+     */
+    const bool showToolBar = sceneClass->getBooleanValue("toolBarVisible",
+                                                         true);
+    showHideToolBar(showToolBar);
 }
 
 
