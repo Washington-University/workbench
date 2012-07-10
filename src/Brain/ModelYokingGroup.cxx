@@ -62,11 +62,9 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum, VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane", 
-                                                                                    &m_sliceViewPlane, 
-                                                                                    m_sliceViewPlane);
+                                                                                    &m_sliceViewPlane);
     m_sceneAssistant->add<VolumeSliceViewModeEnum, VolumeSliceViewModeEnum::Enum>("m_sliceViewMode", 
-                                                                                    &m_sliceViewMode, 
-                                                                                    m_sliceViewMode);
+                                                                                    &m_sliceViewMode);
     m_sceneAssistant->add("m_montageNumberOfColumns",
                           &m_montageNumberOfColumns);
     m_sceneAssistant->add("m_montageNumberOfRows",

@@ -62,12 +62,10 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
                               &m_identifcationSymbolSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
-                                                                &m_identificationSymbolColor,
-                                                                m_identificationSymbolColor);
+                                                                &m_identificationSymbolColor);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
-                                                                &m_identificationContralateralSymbolColor,
-                                                                m_identificationContralateralSymbolColor);
+                                                                &m_identificationContralateralSymbolColor);
 }
 
 /**

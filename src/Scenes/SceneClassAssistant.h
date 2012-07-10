@@ -94,11 +94,10 @@ namespace caret {
          */
         template<class T, typename ET>
         void add(const AString& name,
-                 ET* enumeratedValueAddress,
-                 const ET defaultValue) {
+                 ET* enumeratedValueAddress) {
             EnumeratedTypeData<T, ET>* etd = new EnumeratedTypeData<T, ET>(name,
                                               enumeratedValueAddress,
-                                              defaultValue);
+                                              *enumeratedValueAddress);
             m_dataStorage.push_back(etd);
         }
         

@@ -85,8 +85,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_userName",
                                &m_userName);
     m_sceneClassAssistant->add<ModelTypeEnum, ModelTypeEnum::Enum>("m_selectedModelType",
-                                                                   &m_selectedModelType,
-                                                                   m_selectedModelType);
+                                                                   &m_selectedModelType);
     m_sceneClassAssistant->add("m_surfaceModelSelector",
                                "ModelSurfaceSelector",
                                m_surfaceModelSelector);
