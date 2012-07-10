@@ -201,9 +201,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_toolbar",
-                          "BrainBrowserWindowToolBar",
-                          m_toolbar);
     m_sceneAssistant->add("m_overlayHorizontalToolBox",
                           "BrainBrowserWindowOrientedToolBox",
                           dynamic_cast<SceneableInterface*>(m_overlayHorizontalToolBox));
@@ -213,6 +210,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_sceneAssistant->add("m_featuresToolBox",
                           "BrainBrowserWindowOrientedToolBox",
                           dynamic_cast<SceneableInterface*>(m_featuresToolBox));
+    
+    m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
+    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayActiveToolBox->isVisible();
+    m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
 }
 /**
  * Destructor.
@@ -2296,6 +2297,12 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                   sceneClass);
 
     /*
+     * Save toolbar
+     */
+    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes, 
+                                                "m_toolbar"));
+
+    /*
      * Save overlay toolbox
      */
     {
@@ -2339,7 +2346,12 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                         m_featuresToolBox->isVisible());
         sceneClass->addClass(featureToolBoxClass);
     }
-    
+
+    /*
+     * Screen mode (normal, full, etc)
+     */
+    sceneClass->addEnumeratedType<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode",
+                                                                                                            m_screenMode);
     return sceneClass;
 }
 
@@ -2361,6 +2373,41 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
 {
     if (sceneClass == NULL) {
         return;
+    }
+    
+    /*
+     * Restore toolbar
+     */
+    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
+    if (toolbarClass != NULL) {
+        m_toolbar->restoreFromScene(sceneAttributes, 
+                                    toolbarClass);
+    }
+    
+    /*
+     * Screen mode
+     * Note: m_screenMode must be set to a different value than 
+     * the value passed to processViewScreenActionGroupSelection().
+     */
+    m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
+    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode = 
+    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode", 
+                                                                                                                 BrainBrowserWindowScreenModeEnum::NORMAL);
+    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    switch (newScreenMode) {
+        case BrainBrowserWindowScreenModeEnum::NORMAL:
+            m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
+            processViewScreenActionGroupSelection(m_viewScreenNormalAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+            processViewScreenActionGroupSelection(m_viewScreenFullAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
+            processViewScreenActionGroupSelection(m_viewScreenMontageTabsAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
+            processViewScreenActionGroupSelection(m_viewScreenFullMontageTabsAction);
+            break;
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 
@@ -2407,6 +2454,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
         processShowFeaturesToolBox(toolBoxVisible);
     }
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

@@ -278,6 +278,7 @@ namespace caret {
         
         BrainBrowserWindowScreenModeEnum::Enum m_screenMode;
         
+        WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
                 
         static bool s_firstWindowFlag;
