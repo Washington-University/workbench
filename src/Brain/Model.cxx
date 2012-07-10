@@ -959,11 +959,6 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     const ModelTypeEnum::Enum savedModelType = sceneClass->getEnumeratedTypeValue<ModelTypeEnum, ModelTypeEnum::Enum>("m_modelType", 
                                                                                          ModelTypeEnum::MODEL_TYPE_INVALID);
-//    const AString savedModelTypeString = sceneClass->getEnumeratedTypeValue("m_modelType",
-//                                                                            ModelTypeEnum::toName(ModelTypeEnum::MODEL_TYPE_INVALID));
-//    bool isValidModelTypeName = false;
-//    const ModelTypeEnum::Enum savedModelType = ModelTypeEnum::fromName(savedModelTypeString,
-//                                                                       &isValidModelTypeName);
     if (savedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
         CaretLogSevere("Non-matching model type when restoring scene: "
                              + ModelTypeEnum::toName(savedModelType));

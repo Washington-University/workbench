@@ -339,12 +339,6 @@ BrainBrowserWindow::createActionsUsedByToolBar()
         m_showSceneDialogAction->setIconText("Scenes");
     }
     m_showSceneDialogAction->setCheckable(false);
-    //    m_sceneDialogAction->blockSignals(true);
-    //    m_sceneDialogAction->setCheckable(true);
-    //    m_sceneDialogAction->setChecked(false);
-    //    m_showHideSceneWindow(m_sceneDialogAction->isChecked());
-    //    m_sceneDialogAction->blockSignals(false);
-
 }
 
 /**
@@ -1778,29 +1772,6 @@ BrainBrowserWindow::processNewTab()
 {
     BrowserTabContent* previousTabContent = getBrowserTabContent();
     m_toolbar->addNewTabCloneContent(previousTabContent);
-    
-//    /*
-//     * Wait cursor
-//     */
-//    CursorDisplayScoped cursor;
-//    cursor.showWaitCursor();
-//    
-//    BrowserTabContent* previousTabContent = getBrowserTabContent();
-//    
-//    m_toolbar->addNewTab();
-//    m_toolbar->updateToolBar();
-//
-//    if (previousTabContent != NULL) {
-//        /*
-//         * New tab is clone of tab that was displayed when the new tab was created.
-//         */
-//        BrowserTabContent* newTabContent = getBrowserTabContent();
-//        newTabContent->cloneBrowserTabContent(previousTabContent);
-//    }
-//    
-//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
-//    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -2033,8 +2004,6 @@ BrainBrowserWindow::moveFeaturesToolBox(Qt::DockWidgetArea area)
             }
             break;
     }
-    
-//    m_processShowFeaturesToolBox(true);
 }
 
 /**
@@ -2079,109 +2048,6 @@ BrainBrowserWindow::moveOverlayToolBox(Qt::DockWidgetArea area)
     }
     
     processShowOverlayToolBox(isVisible);
-
-//    if (m_toolBox->isVisible() == false) {
-//        m_viewMenuShowToolBoxAction->trigger();
-//    }
-    /*
-     * This code will allow the region of the main window
-     * containing the dock widget to shrink without changing 
-     * the vertical size of the OpenGL graphics widget
-     * and without changing the width of the main window.
-     *
-    const int centralMinHeight = m_centralWidget()->minimumHeight();
-    const int centralMaxHeight = m_centralWidget()->maximumHeight();
-    m_centralWidget()->setFixedHeight(m_centralWidget()->height());
-    const int minWidth = m_minimumWidth();
-    const int maxWidth = m_maximumWidth();
-    setFixedWidth(m_width());
-    m_adjustSize();
-    setMinimumWidth(minWidth);
-    setMaximumWidth(maxWidth);
-    m_centralWidget()->setMinimumHeight(centralMinHeight);
-    m_centralWidget()->setMaximumHeight(centralMaxHeight);
-*/
-    /*
-    switch (area) {
-        case Qt::LeftDockWidgetArea:
-            break;
-        case Qt::RightDockWidgetArea:
-            break;
-        case Qt::TopDockWidgetArea:
-            m_toolBox->setFloating(false);
-            addDockWidget(Qt::TopDockWidgetArea, m_toolBox);
-            break;
-        case Qt::BottomDockWidgetArea:
-            m_toolBox->setFloating(false);
-            addDockWidget(Qt::BottomDockWidgetArea, m_toolBox);
-            break;
-        default:
-            m_toolBox->setFloating(true);
-            break;
-    }
-*/
-}
-
-/**
- * Shrink the toolbox after a control is removed.
- */
-void 
-BrainBrowserWindow::shrinkToolbox()
-{
-//    if (dynamic_cast<BrainBrowserWindowOrientedToolBox*>(m_toolBox) != NULL) {
-//        return;
-//    }
-//    
-//    if (m_toolBox->isFloating() == false) {
-//        switch (m_dockWidgetArea(m_toolBox)) {
-//            case Qt::LeftDockWidgetArea:
-//                m_toolBox->setFloating(false);
-//                addDockWidget(Qt::LeftDockWidgetArea, 
-//                                    m_toolBox,
-//                                    Qt::Horizontal);
-//                break;
-//            case Qt::RightDockWidgetArea:
-//                m_toolBox->setFloating(false);
-//                addDockWidget(Qt::LeftDockWidgetArea, 
-//                                    m_toolBox,
-//                                    Qt::Horizontal);
-//                break;
-//            case Qt::TopDockWidgetArea:
-//                m_toolBox->setFloating(false);
-//                addDockWidget(Qt::TopDockWidgetArea, 
-//                                    m_toolBox,
-//                                    Qt::Horizontal);
-//                break;
-//            case Qt::BottomDockWidgetArea:
-//                m_toolBox->setFloating(false);
-//                addDockWidget(Qt::BottomDockWidgetArea, 
-//                                    m_toolBox,
-//                                    Qt::Horizontal);
-//                break;
-//            default:
-//                m_toolBox->setFloating(true);
-//                break;
-//        }
-//    }
-//     /*
-//     * This code will allow the region of the main window
-//     * containing the dock widget to shrink without changing 
-//     * the vertical size of the OpenGL graphics widget
-//     * and without changing the width of the main window.
-//     */
-//     const int centralMinHeight = m_centralWidget()->minimumHeight();
-//     const int centralMaxHeight = m_centralWidget()->maximumHeight();
-//     m_centralWidget()->setFixedHeight(m_centralWidget()->height());
-//     const int minWidth = m_minimumWidth();
-//     const int maxWidth = m_maximumWidth();
-//     setFixedWidth(m_width());
-//     m_toolBox->adjustSize();
-//     setFixedWidth(m_width());
-//     m_adjustSize();
-//     setMinimumWidth(minWidth);
-//     setMaximumWidth(maxWidth);
-//     m_centralWidget()->setMinimumHeight(centralMinHeight);
-//     m_centralWidget()->setMaximumHeight(centralMaxHeight);
 }
 
 /**

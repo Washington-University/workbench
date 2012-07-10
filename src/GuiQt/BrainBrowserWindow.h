@@ -132,8 +132,6 @@ namespace caret {
         void processOverlayHorizontalToolBoxVisibilityChanged(bool);
         void processOverlayVerticalToolBoxVisibilityChanged(bool);
         
-        void shrinkToolbox();
-        
         void processFileMenuAboutToShow();
         void processViewMenuAboutToShow();
         

@@ -520,48 +520,9 @@ DisplayPropertiesBorders::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     
     const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
-//    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
     
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
-    
-//    sceneClass->addEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
-//                                                                                          m_drawingTypeInTab, 
-//                                                                                          tabIndices);
-    
-//    sceneClass->addEnumerateTypeArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
-//                                                                                          m_drawingTypeInDisplayGroup, 
-//                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS);
-
-//    std::vector<AString> drawTypeStringValues = EnumConvert<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>::enumArrayToStringsForTabIndices(m_drawingTypeInTab, 
-//                                                                   tabIndices);
-//    
-//    for (int32_t i = 0; i < numTabs; i++) {
-//        std::cout << "String values are: " << qPrintable(drawTypeStringValues[i]) << std::endl;
-//        
-//    }
-//    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        tabStringArray[i] = BorderDrawingTypeEnum::toName(m_drawingTypeInTab[i]);
-//    }
-//    sceneClass->addEnumeratedTypeArray("m_drawingTypeInTab", 
-//                                       tabStringArray, 
-//                                       BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-
-//    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
-//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-//        displayGroupStringArray[i] = BorderDrawingTypeEnum::toName(m_drawingTypeInDisplayGroup[i]);
-//    }
-//    sceneClass->addEnumeratedTypeArray("m_drawingTypeInDisplayGroup", 
-//                                       displayGroupStringArray, 
-//                                       DisplayGroupEnum::NUMBER_OF_GROUPS);
-//    
-//    switch (sceneAttributes->getSceneType()) {
-//        case SceneTypeEnum::SCENE_TYPE_FULL:
-//            break;
-//        case SceneTypeEnum::SCENE_TYPE_GENERIC:
-//            break;
-//    }
     
     return sceneClass;
 }
@@ -589,43 +550,6 @@ DisplayPropertiesBorders::restoreFromScene(const SceneAttributes* sceneAttribute
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
 
-//    sceneClass->getEnumerateTypeArrayForTabIndices<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
-//                                                                                                       m_drawingTypeInTab);
-    
-//    const AString defaultDrawingTypeString = BorderDrawingTypeEnum::toName(BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
-//
-//    AString tabStringArray[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInTab", 
-//                                           tabStringArray, 
-//                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                                           defaultDrawingTypeString);
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        bool isValid = false;
-//        m_drawingTypeInTab[i] = BorderDrawingTypeEnum::fromName(tabStringArray[i],
-//                                                                &isValid);
-//        if (isValid == false) {
-//            m_drawingTypeInTab[i] = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
-//        }
-//    }
-    
-//    sceneClass->getEnumerateTypeArray<BorderDrawingTypeEnum,BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup", 
-//                                                                                         m_drawingTypeInDisplayGroup, 
-//                                                                                         DisplayGroupEnum::NUMBER_OF_GROUPS,
-//                                                                                         BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES);
-//    AString displayGroupStringArray[DisplayGroupEnum::NUMBER_OF_GROUPS];
-//    sceneClass->getEnumeratedTypeArrayValue("m_drawingTypeInDisplayGroup", 
-//                                           displayGroupStringArray, 
-//                                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
-//                                           defaultDrawingTypeString);
-//    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-//        bool isValid = false;
-//        m_drawingTypeInDisplayGroup[i] = BorderDrawingTypeEnum::fromName(displayGroupStringArray[i],
-//                                                                &isValid);
-//        if (isValid == false) {
-//            m_drawingTypeInDisplayGroup[i] = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
-//        }
-//    }
-    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

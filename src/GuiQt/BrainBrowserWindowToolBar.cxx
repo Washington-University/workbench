@@ -126,8 +126,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
 : QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
-    //this->toolBox = toolBox;
-    //this->toolBoxToolButtonAction = toolBox->toggleViewAction();
     this->updateCounter = 0;
     
     this->isContructorFinished = false;
@@ -165,7 +163,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                     "}");
     }
 
-    //this->tabBar->setDocumentMode(true);
     this->tabBar->setShape(QTabBar::RoundedNorth);
 #ifdef Q_OS_MACX
     /*
@@ -235,7 +232,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
     WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1);
     tabBarLayout->addWidget(this->tabBar, 100);
-//    tabBarLayout->addStretch();
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
@@ -255,7 +251,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
-    //this->spacerWidget = new QWidget;
     
     /*
      * Layout the toolbar's widgets.
@@ -263,7 +258,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     m_toolbarWidget = new QWidget();
     this->toolbarWidgetLayout = new QHBoxLayout(m_toolbarWidget);
     WuQtUtilities::setLayoutMargins(this->toolbarWidgetLayout, 2, 1);
-    //this->toolbarWidgetLayout->setSpacing(2);
     
     this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
     
@@ -280,8 +274,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->volumeIndicesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumeMontageWidget, 0, Qt::AlignLeft);
-    
-    //this->toolbarWidgetLayout->addWidget(this->spacerWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->toolsWidget, 0, Qt::AlignLeft);
     
@@ -322,7 +314,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
         this->createNewTab(errorMessage);
     }
     
-    //this->updateViewWidget(NULL);
     this->updateToolBar();
     
     this->isContructorFinished = true;
@@ -406,28 +397,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 
     this->isDestructionInProgress = false;
 }
-
-///**
-// * Add a new tab.
-// */
-//void 
-//BrainBrowserWindowToolBar::addNewTab()
-//{
-//    EventBrowserTabNew newTabEvent;
-//    EventManager::get()->sendEvent(newTabEvent.getPointer());
-//    
-//    if (newTabEvent.isError()) {
-//        QMessageBox::critical(this, "", newTabEvent.getErrorMessage());
-//        return;
-//    }
-//    
-//    BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
-//    
-//    Brain* brain = GuiManager::get()->getBrain();
-//    tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
-//                                                                                false);
-//    this->addNewTab(tabContent);
-//}
 
 /**
  * Create a new tab.
@@ -689,12 +658,6 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                                                                                  true);
         }
     }
-    
-//    EventUserInterfaceUpdate f;
-//    f.setWindowIndex(this->browserWindowIndex);
-//    EventManager::get()->sendEvent(f.getPointer());
-//    EventGraphicsUpdateAllWindows e;
-//    EventManager::get()->sendEvent(e.getPointer());
 }
 
 /**
@@ -922,20 +885,6 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
         newName = btc->getName();
     }
     this->tabBar->setTabText(tabIndexForUpdate, newName);
-
-    /*
-     * Set title of toolbox
-     */
-    //this->toolBox->setWindowTitle(newName);
-    /*
-    QIcon coronalIcon;
-    const bool coronalIconValid =
-    WuQtUtilities::loadIcon(":/view-plane-coronal.png", 
-                            coronalIcon);
-    if (coronalIconValid) {
-        this->tabBar->setTabIcon(tabIndex, coronalIcon);
-    }
-    */
 }
 
 /**
@@ -948,7 +897,6 @@ BrainBrowserWindowToolBar::closeSelectedTab()
     const int tabIndex = this->tabBar->currentIndex();
     if (this->tabBar->count() > 1) {
         this->tabClosed(tabIndex);
-        //this->tabBar->removeTab(tabIndex);
     }
 }
 
@@ -1088,13 +1036,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
-//    if (showSingleSurfaceOptionsWidget) {
-//        this->singleSurfaceSelectionWidget->adjustSize();
-//    }
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
-//    if (showSurfaceMontageOptionsWidget) {
-//        this->surfaceMontageSelectionWidget->adjustSize();
-//    }
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -1130,8 +1072,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         switch (screenMode) {
             case BrainBrowserWindowScreenModeEnum::NORMAL:
                 showToolBar = true;
-                //this->tabBarWidget->setVisible(true);
-                //this->toolbarWidget->setVisible(true);
                 showToolBarWidget = true;
                 break;
             case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
@@ -1141,21 +1081,11 @@ BrainBrowserWindowToolBar::updateToolBar()
                 if (this->tabBar->count() > 1) {
                     showToolBar = true;
                     showToolBarWidget = false;
-                    //this->tabBarWidget->setVisible(true);
-                    //this->toolbarWidget->setVisible(false);
                 }
-                else {
-                    //this->tabBarWidget->setVisible(false);
-                }
-                //this->toolbarWidget->setVisible(false);
                 break;
             case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
-                //this->tabBarWidget->setVisible(false);
-                //this->toolbarWidget->setVisible(false);
                 break;
             case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
-                //this->tabBarWidget->setVisible(false);
-                //this->toolbarWidget->setVisible(false);
                 break;
         }
 
@@ -1759,7 +1689,6 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     }
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
  
-    //const int tabIndex = this->tabBar->currentIndex();
     ModelWholeBrain* wholeBrainController = browserTabContent->getDisplayedWholeBrainModel();
     const int32_t tabNumber = browserTabContent->getTabNumber();
     
@@ -2047,14 +1976,6 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
         int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
         int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
         
-//        if (modelYoking != NULL) {
-//            minAxialDim = -std::numeric_limits<int>::max();
-//            minCoronalDim = -std::numeric_limits<int>::max();
-//            minParasagittalDim = -std::numeric_limits<int>::max();
-//            maxAxialDim = std::numeric_limits<int>::max();
-//            maxCoronalDim = std::numeric_limits<int>::max();
-//            maxParasagittalDim = std::numeric_limits<int>::max();
-//        }
         this->volumeIndicesAxialSpinBox->setRange(minAxialDim,
                                                   maxAxialDim);
         this->volumeIndicesCoronalSpinBox->setRange(minCoronalDim,
@@ -2089,13 +2010,6 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
                                                               sliceMaxCoords[1]));
         this->volumeIndicesZcoordSpinBox->setMaximum(std::max(sliceZeroCoords[2],
                                                               sliceMaxCoords[2])); 
-//        if (modelYoking != NULL) {
-//            const float minValue = -std::numeric_limits<float>::max();
-//            const float maxValue =  std::numeric_limits<float>::max();
-//            this->volumeIndicesXcoordSpinBox->setRange(minValue, maxValue);
-//            this->volumeIndicesYcoordSpinBox->setRange(minValue, maxValue);
-//            this->volumeIndicesZcoordSpinBox->setRange(minValue, maxValue);
-//        }
         
         int64_t slicesOne[3] = { 1, 1, 1 };
         float slicesOneCoords[3];
@@ -4030,30 +3944,7 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
             sliceSelection->setSliceIndexCoronal(underlayVolumeFile,
                                                  coronalSlice);
             sliceSelection->setSliceIndexAxial(underlayVolumeFile,
-                                               axialSlice);
-            
-            /*
-            float x, y, z;
-            underlayVolumeFile->indexToSpace(parasagittalSlice, 
-                                             coronalSlice, 
-                                             axialSlice, 
-                                             x, 
-                                             y, 
-                                             z);
-            
-            this->volumeIndicesXcoordSpinBox->blockSignals(true);
-            this->volumeIndicesXcoordSpinBox->setValue(x);
-            this->volumeIndicesXcoordSpinBox->blockSignals(false);
-            
-            this->volumeIndicesYcoordSpinBox->blockSignals(true);
-            this->volumeIndicesYcoordSpinBox->setValue(y);
-            this->volumeIndicesYcoordSpinBox->blockSignals(false);
-            
-            this->volumeIndicesZcoordSpinBox->blockSignals(true);
-            this->volumeIndicesZcoordSpinBox->setValue(z);
-            this->volumeIndicesZcoordSpinBox->blockSignals(false);
-            */
-            
+                                               axialSlice);            
         }
     }
     
@@ -4122,20 +4013,6 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
             };
             
             sliceSelection->selectSlicesAtCoordinate(sliceCoords);
-            
-            /*
-            this->volumeIndicesParasagittalSpinBox->blockSignals(true);
-            this->volumeIndicesParasagittalSpinBox->setValue(sliceSelection->getSliceIndexParasagittal(underlayVolumeFile));
-            this->volumeIndicesParasagittalSpinBox->blockSignals(false);
-            
-            this->volumeIndicesCoronalSpinBox->blockSignals(true);
-            this->volumeIndicesCoronalSpinBox->setValue(sliceSelection->getSliceIndexCoronal(underlayVolumeFile));
-            this->volumeIndicesCoronalSpinBox->blockSignals(false);
-            
-            this->volumeIndicesAxialSpinBox->blockSignals(true);
-            this->volumeIndicesAxialSpinBox->setValue(sliceSelection->getSliceIndexAxial(underlayVolumeFile));
-            this->volumeIndicesAxialSpinBox->blockSignals(false);
-             */
         }
     }
     
