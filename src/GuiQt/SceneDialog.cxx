@@ -377,17 +377,17 @@ SceneDialog::addNewSceneButtonClicked()
                                                                                newSceneName);
             newSceneNameLineEdit->selectAll();
             
-            QStringList newSceneTypes;
-            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_FULL));
-            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_GENERIC));
-            QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
+//            QStringList newSceneTypes;
+//            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_FULL));
+//            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_GENERIC));
+//            QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
             if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
                 newSceneName = newSceneNameLineEdit->text();
                 bool isValidType = false;
-                SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
-                                                                           &isValidType);
-                
-                newScene = new Scene(sceneType);
+//                SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
+//                                                                           &isValidType);                
+//                newScene = new Scene(sceneType);
+                newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
                 newScene->setName(newSceneName);
                 
                 /*
