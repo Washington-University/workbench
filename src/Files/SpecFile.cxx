@@ -202,9 +202,25 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
 {
     AString name = filename;
     
-    if (this->getFileName().isEmpty() == false) {
-        name = SystemUtilities::relativePath(name, FileInformation(this->getFileName()).getPathName());
+    FileInformation specFileInfo(getFileName());
+    if (specFileInfo.isAbsolute()) {
+        FileInformation fileInfo(name);
+        if (fileInfo.isRelative()) {
+            FileInformation fileInfo(specFileInfo.getPathName(),
+                                     name);
+            name = fileInfo.getFilePath();
+        }
     }
+    
+    const AString message = ("After adding, " 
+                             + filename
+                             + " becomes " 
+                             + name);
+    CaretLogFine(message);
+    
+//    if (this->getFileName().isEmpty() == false) {
+//        name = SystemUtilities::relativePath(name, FileInformation(this->getFileName()).getPathName());
+//    }
     
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
@@ -415,6 +431,8 @@ SpecFile::getNumberOfFilesSelected() const
 void 
 SpecFile::readFile(const AString& filename) throw (DataFileException)
 {
+    this->setFileName(filename);
+    
     SpecFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
@@ -673,6 +691,31 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                 }
                 
                 if (writeIt) {
+                    AString name = file->getFileName();
+                    FileInformation fileInfo(name);
+                    if (fileInfo.isAbsolute()) {
+                        const AString specFileName = getFileName();
+                        FileInformation specFileInfo(specFileName);
+                        if (specFileInfo.isAbsolute()) {
+                            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
+                                                                 specFileInfo.getPathName());
+                            if (newPath.isEmpty()) {
+                                name = fileInfo.getFileName();
+                            }
+                            else {
+                                name = (newPath
+                                        + "/"
+                                        + fileInfo.getFileName());
+                            }
+                        }
+                    }
+                    
+                    AString message = ("When writing, " 
+                                       + file->getFileName()
+                                       + " becomes " 
+                                       + name);
+                    CaretLogFine(message);
+                    
                     XmlAttributes atts;
                     atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
                                       StructureEnum::toGuiName(file->getStructure()));
@@ -683,7 +726,7 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                     xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
                                                 atts);
                     xmlWriter.writeCharacters("      " 
-                                              + file->getFileName() 
+                                              + name 
                                               + "\n");
                     xmlWriter.writeEndElement();
                 }

@@ -83,6 +83,8 @@ Brain::Brain()
 {
     m_connectivityLoaderManager = new ConnectivityLoaderManager(this);
     m_paletteFile = new PaletteFile();
+    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileName()));
+    m_paletteFile->clearModified();
     m_specFile = new SpecFile();
     m_surfaceMontageController = NULL;
     m_volumeSliceController = NULL;
@@ -294,7 +296,12 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityTimeSeriesFiles.clear();
     
-    m_paletteFile->clear();
+    if (m_paletteFile != NULL) {
+        delete m_paletteFile;
+    }
+    m_paletteFile = new PaletteFile();
+    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileName()));
+    m_paletteFile->clearModified();
     
     m_connectivityLoaderManager->reset();
     
@@ -1006,6 +1013,7 @@ BorderFile*
 Brain::addBorderFile()
 {
     BorderFile* bf = new BorderFile();
+    bf->setFileName(updateFileNameForReadingAndWriting(bf->getFileName()));
     m_borderFiles.push_back(bf);
     return bf;
 }
@@ -1263,9 +1271,10 @@ Brain::getNumberOfFociFiles() const
 FociFile* 
 Brain::addFociFile()
 {
-    FociFile* bf = new FociFile();
-    m_fociFiles.push_back(bf);
-    return bf;
+    FociFile* ff = new FociFile();
+    ff->setFileName(updateFileNameForReadingAndWriting(ff->getFileName()));
+    m_fociFiles.push_back(ff);
+    return ff;
 }
 
 /**
@@ -1297,6 +1306,7 @@ SceneFile*
 Brain::addSceneFile()
 {
     SceneFile* sf = new SceneFile();
+    sf->setFileName(updateFileNameForReadingAndWriting(sf->getFileName()));
     m_sceneFiles.push_back(sf);
     return sf;
 }
@@ -1504,15 +1514,11 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const AString& dataFileNameIn,
                     const bool addDataFileToSpecFile) throw (DataFileException)
 {
-    AString dataFileName = dataFileNameIn;
-    
-    if (dataFileName.contains("://") == false) {
-        dataFileName = updateFileNameForReadingAndWriting(dataFileNameIn);
-        FileInformation fileInfo(dataFileName);
-        if (fileInfo.exists() == false) {
-            throw DataFileException(dataFileName
-                                    + " does not exist!");
-        }
+    AString dataFileName = updateFileNameForReadingAndWriting(dataFileNameIn);
+    FileInformation fileInfo(dataFileName);
+    if (fileInfo.exists() == false) {
+        throw DataFileException(dataFileName
+                                + " does not exist!");
     }
     
     CaretDataFile* caretDataFileRead = NULL;
@@ -1668,6 +1674,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
     
+    if (m_paletteFile != NULL) {
+        delete m_paletteFile;
+    }
+    m_paletteFile = new PaletteFile();
+    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileNameNoPath()));
+    m_paletteFile->clearModified();
+    
     /*
      * Initialize the overlay for ALL models
      */
@@ -1727,7 +1740,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
  * return true if NO errors, else false.
  */
 bool
-Brain::loadSpecFile(SpecFile* specFileToLoad,
+Brain::loadSpecFileFromScene(SpecFile* specFileToLoad,
                     const ResetBrainKeepSceneFiles keepSceneFiles,
                     const ResetBrainKeepSpecFile keepSpecFile,
                     AString& errorMessageOut)
@@ -1740,24 +1753,26 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
                      keepSpecFile);
     
     /*
-     * Typically, keep spec when showing scene
+     * Try to set to current directory
      */
-//    switch (keepSpecFile) {
-//        case RESET_BRAIN_KEEP_SPEC_FILE_NO:
-//            break;
-            if (m_specFile != NULL) {
-                delete m_specFile;
-            }
-            m_specFile = new SpecFile(*specFileToLoad);
-//        case RESET_BRAIN_KEEP_SPEC_FILE_YES:
-//            break;
-//    }
+    const AString previousSpecFileName = m_specFile->getFileName();
+    delete m_specFile;
+    m_specFile = new SpecFile(*specFileToLoad);
+    FileInformation newSpecFileInfo(m_specFile->getFileName());
+    if (newSpecFileInfo.isAbsolute()) {
+        setCurrentDirectory(newSpecFileInfo.getPathName());
+    }
+    else {
+        if (previousSpecFileName.endsWith(m_specFile->getFileName()) == false) {
+            FileInformation oldSpecFileInfo(previousSpecFileName);
+            setCurrentDirectory(oldSpecFileInfo.getPathName());
+        }
+    }
     
     m_isSpecFileBeingRead = true;
     
-    FileInformation fileInfo(m_specFile->getFileName());
-    setCurrentDirectory(fileInfo.getPathName());
-    
+//    FileInformation fileInfo(m_specFile->getFileName());
+    //setCurrentDirectory(fileInfo.getPathName());
     
     const int32_t numFileGroups = m_specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
@@ -1792,6 +1807,13 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
         prefs->addToPreviousSpecFiles(specFileName);
     }
     
+    if (m_paletteFile != NULL) {
+        delete m_paletteFile;
+    }
+    m_paletteFile = new PaletteFile();
+    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileNameNoPath()));
+    m_paletteFile->clearModified();
+    
     /*
      * Initialize the overlay for ALL models
      */
@@ -1814,8 +1836,6 @@ Brain::loadSpecFile(SpecFile* specFileToLoad,
         BrainStructure* bs = *iter;
         bs->initializeOverlays();
     }
-    
-    m_isSpecFileBeingRead = false;
     
     const bool noErrors = errorMessageOut.isEmpty();
     return noErrors;
@@ -2442,7 +2462,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         specFile.restoreFromScene(sceneAttributes, 
                                   sceneClass->getClass("specFile"));
         
-        loadSpecFile(&specFile, 
+        loadSpecFileFromScene(&specFile, 
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
                            RESET_BRAIN_KEEP_SPEC_FILE_YES,
                            m_sceneSpecFileReadingErrors);

@@ -487,7 +487,7 @@ ManageFileRow::fileNameToolButtonPressed()
 {
     AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
                                                       "Choose File",
-                                                      this->brain->getCurrentDirectory(),
+                                                      this->caretDataFile->getFileName(),
                                                       DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
     if (filename.isEmpty() == false) {
         this->fileNameLineEdit->setText(filename);

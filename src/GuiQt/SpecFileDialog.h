@@ -100,18 +100,18 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        SpecFile* specFile;
+        SpecFile* m_specFile;
         
-        QCheckBox* autoCloseFastOpenCheckBox;
+        QCheckBox* m_autoCloseFastOpenCheckBox;
         
-        Mode mode;
+        Mode m_mode;
         
-        std::vector<GuiSpecGroup*> dataTypeGroups;
+        std::vector<GuiSpecGroup*> m_dataTypeGroups;
         
-        QAction* selectAllFilesToolButtonAction;
-        QAction* selectNoneFilesToolButtonAction;
+        QAction* m_selectAllFilesToolButtonAction;
+        QAction* m_selectNoneFilesToolButtonAction;
         
-        WuQEventBlockingFilter* comboBoxWheelEventBlockingFilter;
+        WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
         
         friend class GuiSpecDataFileInfo;
     };
@@ -121,6 +121,7 @@ namespace caret {
         Q_OBJECT
     public:
         GuiSpecDataFileInfo(QObject* parent,
+                            const AString& specFilePath,
                             SpecFileDataFile* dataFileInfo,
                             const bool isStructureFile);
 
@@ -139,16 +140,16 @@ namespace caret {
         GuiSpecDataFileInfo(const GuiSpecDataFileInfo&);
         GuiSpecDataFileInfo& operator=(const GuiSpecDataFileInfo&);
         
-        SpecFileDataFile* dataFileInfo;
-        QPushButton*      openFilePushButton;
-        QCheckBox*        selectionCheckBox;
-        QAction*          metadataAction;
-        QToolButton*      metadataToolButton;
-        QAction*          removeAction;
-        QToolButton*      removeToolButton;
-        StructureEnumComboBox* structureEnumComboBox;
-        QLabel*           nameLabel;
-        WuQWidgetObjectGroup* widgetGroup;
+        SpecFileDataFile* m_dataFileInfo;
+        QPushButton*      m_openFilePushButton;
+        QCheckBox*        m_selectionCheckBox;
+        QAction*          m_metadataAction;
+        QToolButton*      m_metadataToolButton;
+        QAction*          m_removeAction;
+        QToolButton*      m_removeToolButton;
+        StructureEnumComboBox* m_structureEnumComboBox;
+        QLabel*           m_nameLabel;
+        WuQWidgetObjectGroup* m_widgetGroup;
         
         friend class SpecFileDialog;
     };

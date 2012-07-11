@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretFileDialog.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -311,35 +312,62 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
 void 
 SceneDialog::newSceneFileButtonClicked()
 {
-    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE);
-    QString newFileName = ("NewFile." 
-                           + fileExtension);
+    /*
+     * Create a new scene file that will have proper path
+     */
+    Brain* brain = GuiManager::get()->getBrain();
+    SceneFile* newSceneFile = brain->addSceneFile();
     
-    WuQDataEntryDialog newFileDialog("New Scene File",
-                                     this);
-    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Scene File Name", 
-                                                                     newFileName);
-    
-    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
-        QString sceneFileName   = newFileNameLineEdit->text();
-        
-        try {
-            if (sceneFileName.endsWith(fileExtension) == false) {
-                sceneFileName += ("."
-                                   + fileExtension);
-            }
-            
-            SceneFile* sceneFile = GuiManager::get()->getBrain()->addSceneFile();
-            sceneFile->setFileName(sceneFileName);
-            
-            this->loadSceneFileComboBox(sceneFile);
-            this->sceneFileSelected();
-        }
-        catch (const DataFileException& dfe) {
-            WuQMessageBox::errorOk(this, 
-                                   dfe.whatString());
-        }
+    /*
+     * Let user choose a different path/name
+     */
+    AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(this,
+                                                          "Choose Scene File Name",
+                                                          newSceneFile->getFileName(),
+                                                          DataFileTypeEnum::toQFileDialogFilter(newSceneFile->getDataFileType()));
+    /*
+     * If user cancels, delete the new scene file and return
+     */
+    if (newSceneFileName.isEmpty()) {
+        brain->removeDataFile(newSceneFile);
+        return;
     }
+    
+    /*
+     * Set name of new scene file
+     */
+    newSceneFile->setFileName(newSceneFileName);
+    this->loadSceneFileComboBox(newSceneFile);
+    this->sceneFileSelected();
+    
+//    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE);
+//    QString newFileName = ("NewFile." 
+//                               + fileExtension);
+//    WuQDataEntryDialog newFileDialog("New Scene File",
+//                                     this);
+//    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Scene File Name", 
+//                                                                     newFileName);
+//    
+//    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
+//        QString sceneFileName   = newFileNameLineEdit->text();
+//        
+//        try {
+//            if (sceneFileName.endsWith(fileExtension) == false) {
+//                sceneFileName += ("."
+//                                   + fileExtension);
+//            }
+//            
+//            SceneFile* sceneFile = GuiManager::get()->getBrain()->addSceneFile();
+//            sceneFile->setFileName(sceneFileName);
+//            
+//            this->loadSceneFileComboBox(sceneFile);
+//            this->sceneFileSelected();
+//        }
+//        catch (const DataFileException& dfe) {
+//            WuQMessageBox::errorOk(this, 
+//                                   dfe.whatString());
+//        }
+//    }
 }
 
 
@@ -383,7 +411,7 @@ SceneDialog::addNewSceneButtonClicked()
 //            QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
             if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
                 newSceneName = newSceneNameLineEdit->text();
-                bool isValidType = false;
+//                bool isValidType = false;
 //                SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
 //                                                                           &isValidType);                
 //                newScene = new Scene(sceneType);
@@ -399,6 +427,7 @@ SceneDialog::addNewSceneButtonClicked()
                 const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
 
                 SceneAttributes* sceneAttributes = newScene->getAttributes();
+                sceneAttributes->setSceneFileName(sceneFile->getFileName());
                 sceneAttributes->setIndicesOfTabsForSavingToScene(allTabIndices);
                 
                 newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
@@ -442,17 +471,23 @@ SceneDialog::deleteSceneButtonClicked()
 void 
 SceneDialog::showSceneButtonClicked()
 {
+    AString sceneFileName;
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        sceneFileName = sceneFile->getFileName();
+    }
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
-            const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
-            if (guiManagerClass->getName() != "guiManager") {
-                WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
-                                     + guiManagerClass->getName());
-                return;
-            }
-            const SceneAttributes* sceneAttributes = scene->getAttributes();
-            GuiManager::get()->restoreFromScene(sceneAttributes, 
-                                                guiManagerClass);
+        const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
+        if (guiManagerClass->getName() != "guiManager") {
+            WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
+                                   + guiManagerClass->getName());
+            return;
+        }
+        SceneAttributes* sceneAttributes = scene->getAttributes();
+        sceneAttributes->setSceneFileName(sceneFileName);
+        GuiManager::get()->restoreFromScene(sceneAttributes, 
+                                            guiManagerClass);
     }
 }
 

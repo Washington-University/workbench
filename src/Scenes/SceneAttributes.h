@@ -53,6 +53,10 @@ namespace caret {
         
         std::vector<int32_t> getIndicesOfTabsForSavingToScene() const;
         
+        AString getSceneFileName() const;
+        
+        void setSceneFileName(const AString& sceneFileName);
+        
     private:
         SceneAttributes(const SceneAttributes&);
 
@@ -67,6 +71,8 @@ namespace caret {
         const SceneTypeEnum::Enum m_sceneType;
         
         std::vector<int32_t> m_indicesOfTabsForSavingToScene;
+        
+        AString m_sceneFileName;
         
         // ADD_NEW_MEMBERS_HERE
 

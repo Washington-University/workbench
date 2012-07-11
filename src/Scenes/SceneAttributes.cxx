@@ -90,4 +90,26 @@ SceneAttributes::getIndicesOfTabsForSavingToScene() const
     return m_indicesOfTabsForSavingToScene;
 }
 
+/**
+ * @return Name of the scene file.
+ * May only have a value when restoring.
+ */
+AString 
+SceneAttributes::getSceneFileName() const
+{
+    return m_sceneFileName;
+}
+
+/**
+ * Set the name of the scene file containing the scene
+ * that is being restored.
+ * @param sceneFileName
+ *    Name of scene file.
+ */
+void 
+SceneAttributes::setSceneFileName(const AString& sceneFileName)
+{
+    m_sceneFileName = sceneFileName;
+}
+
 

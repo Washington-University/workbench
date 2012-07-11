@@ -40,6 +40,7 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
+#include "CaretFileDialog.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -346,36 +347,66 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
 void 
 BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 {
-    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER);
-    QString newFileName = ("NewFile." 
-                           + fileExtension);
+    /*
+     * Create a new border file that will have proper path
+     */
+    Brain* brain = GuiManager::get()->getBrain();
+    BorderFile* newBorderFile = brain->addBorderFile();
     
-    WuQDataEntryDialog newFileDialog("New Border File",
-                                        this);
-    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Border File Name", 
-                                                                        newFileName);
-    
-    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
-        QString borderFileName   = newFileNameLineEdit->text();
-        
-        try {
-            if (borderFileName.endsWith(fileExtension) == false) {
-                borderFileName += ("."
-                                + fileExtension);
-            }
-            
-            BorderFile* borderFile = GuiManager::get()->getBrain()->addBorderFile();
-            borderFile->setFileName(borderFileName);
-            
-            BorderPropertiesEditorDialog::previousBorderFile = borderFile;
-            this->loadBorderFileComboBox();
-            this->borderFileSelected();
-        }
-        catch (const DataFileException& dfe) {
-            WuQMessageBox::errorOk(this, 
-                                   dfe.whatString());
-        }
+    /*
+     * Let user choose a different path/name
+     */
+    AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(this,
+                                                                      "Choose Scene File Name",
+                                                                      newBorderFile->getFileName(),
+                                                                      DataFileTypeEnum::toQFileDialogFilter(newBorderFile->getDataFileType()));
+    /*
+     * If user cancels, delete the new border file and return
+     */
+    if (newBorderFileName.isEmpty()) {
+        brain->removeDataFile(newBorderFile);
+        return;
     }
+    
+    /*
+     * Set name of new scene file
+     */
+    newBorderFile->setFileName(newBorderFileName);
+    BorderPropertiesEditorDialog::previousBorderFile = newBorderFile;
+    this->loadBorderFileComboBox();
+    this->borderFileSelected();
+    
+    
+//    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER);
+//    QString newFileName = ("NewFile." 
+//                           + fileExtension);
+//    
+//    WuQDataEntryDialog newFileDialog("New Border File",
+//                                        this);
+//    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Border File Name", 
+//                                                                        newFileName);
+//    
+//    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
+//        QString borderFileName   = newFileNameLineEdit->text();
+//        
+//        try {
+//            if (borderFileName.endsWith(fileExtension) == false) {
+//                borderFileName += ("."
+//                                + fileExtension);
+//            }
+//            
+//            BorderFile* borderFile = GuiManager::get()->getBrain()->addBorderFile();
+//            borderFile->setFileName(borderFileName);
+//            
+//            BorderPropertiesEditorDialog::previousBorderFile = borderFile;
+//            this->loadBorderFileComboBox();
+//            this->borderFileSelected();
+//        }
+//        catch (const DataFileException& dfe) {
+//            WuQMessageBox::errorOk(this, 
+//                                   dfe.whatString());
+//        }
+//    }
 }
 
 
