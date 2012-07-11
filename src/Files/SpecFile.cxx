@@ -691,30 +691,32 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                 }
                 
                 if (writeIt) {
-                    AString name = file->getFileName();
-                    FileInformation fileInfo(name);
-                    if (fileInfo.isAbsolute()) {
-                        const AString specFileName = getFileName();
-                        FileInformation specFileInfo(specFileName);
-                        if (specFileInfo.isAbsolute()) {
-                            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
-                                                                 specFileInfo.getPathName());
-                            if (newPath.isEmpty()) {
-                                name = fileInfo.getFileName();
-                            }
-                            else {
-                                name = (newPath
-                                        + "/"
-                                        + fileInfo.getFileName());
-                            }
-                        }
-                    }
-                    
-                    AString message = ("When writing, " 
-                                       + file->getFileName()
-                                       + " becomes " 
-                                       + name);
-                    CaretLogFine(message);
+                    const AString name = updateFileNameAndPathForWriting(file->getFileName());
+
+//                    AString name = file->getFileName();
+//                    FileInformation fileInfo(name);
+//                    if (fileInfo.isAbsolute()) {
+//                        const AString specFileName = getFileName();
+//                        FileInformation specFileInfo(specFileName);
+//                        if (specFileInfo.isAbsolute()) {
+//                            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
+//                                                                 specFileInfo.getPathName());
+//                            if (newPath.isEmpty()) {
+//                                name = fileInfo.getFileName();
+//                            }
+//                            else {
+//                                name = (newPath
+//                                        + "/"
+//                                        + fileInfo.getFileName());
+//                            }
+//                        }
+//                    }
+//                    
+//                    AString message = ("When writing, " 
+//                                       + file->getFileName()
+//                                       + " becomes " 
+//                                       + name);
+//                    CaretLogFine(message);
                     
                     XmlAttributes atts;
                     atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
@@ -737,6 +739,43 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
     xmlWriter.writeEndElement();
     xmlWriter.writeEndDocument();
 }
+
+/**
+ * Update the file name for writing to a spec file 
+ * (makes file relative to spec file location).
+ */
+AString 
+SpecFile::updateFileNameAndPathForWriting(const AString& dataFileNameIn)
+{
+    AString dataFileName = dataFileNameIn;
+    
+    FileInformation fileInfo(dataFileName);
+    if (fileInfo.isAbsolute()) {
+        const AString specFileName = getFileName();
+        FileInformation specFileInfo(specFileName);
+        if (specFileInfo.isAbsolute()) {
+            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
+                                                                  specFileInfo.getPathName());
+            if (newPath.isEmpty()) {
+                dataFileName = fileInfo.getFileName();
+            }
+            else {
+                dataFileName = (newPath
+                                + "/"
+                                + fileInfo.getFileName());
+            }
+        }
+    }
+    
+    AString message = ("When writing, " 
+                       + dataFileNameIn
+                       + " becomes " 
+                       + dataFileName);
+    CaretLogFine(message);
+    
+    return dataFileName;
+}
+
 
 /**
  * Write the file to a XML string.
@@ -925,7 +964,7 @@ SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                             "SpecFile",
                                             1);
     sceneClass->addString("specFileName",
-                          getFileNameNoPath());
+                          getFileName());
     
     /*
      * Remove any files that are tagged for removal.
@@ -953,6 +992,7 @@ SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                                                                            group->getDataFileType());
                     fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
                                                                                      file->getStructure());
+                    const AString name = updateFileNameAndPathForWriting(file->getFileName());
                     fileClass->addString("fileName", 
                                          file->getFileName());
                     fileClass->addBoolean("selected", 

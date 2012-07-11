@@ -149,6 +149,8 @@ namespace caret {
         
         void readFileFromString(const AString& string) throw (DataFileException);
         
+        AString updateFileNameAndPathForWriting(const AString& dataFileName);
+        
         AString writeFileToString(const WriteMetaDataType writeMetaDataStatus,
                                   const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);   
         

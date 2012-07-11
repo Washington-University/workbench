@@ -435,11 +435,6 @@ SceneDialog::addNewSceneButtonClicked()
                 
                 sceneFile->addScene(newScene);
             }
-        const AString sceneFileReadingErrorMessage = GuiManager::get()->getBrain()->getSceneFileReadingErrorMessages();
-        if (sceneFileReadingErrorMessage.isEmpty() == false) {
-            WuQMessageBox::errorOk(this, 
-                                   sceneFileReadingErrorMessage);
-        }
     }
     
     loadSceneListWidget(newScene);
@@ -488,6 +483,12 @@ SceneDialog::showSceneButtonClicked()
         sceneAttributes->setSceneFileName(sceneFileName);
         GuiManager::get()->restoreFromScene(sceneAttributes, 
                                             guiManagerClass);
+        
+        const AString sceneFileReadingErrorMessage = GuiManager::get()->getBrain()->getSceneFileReadingErrorMessages();
+        if (sceneFileReadingErrorMessage.isEmpty() == false) {
+            WuQMessageBox::errorOk(this, 
+                                   sceneFileReadingErrorMessage);
+        }
     }
 }
 

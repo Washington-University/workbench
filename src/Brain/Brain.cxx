@@ -1740,7 +1740,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
  * return true if NO errors, else false.
  */
 bool
-Brain::loadSpecFileFromScene(SpecFile* specFileToLoad,
+Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
+                             SpecFile* specFileToLoad,
                     const ResetBrainKeepSceneFiles keepSceneFiles,
                     const ResetBrainKeepSpecFile keepSpecFile,
                     AString& errorMessageOut)
@@ -1752,27 +1753,56 @@ Brain::loadSpecFileFromScene(SpecFile* specFileToLoad,
     resetBrain(keepSceneFiles,
                      keepSpecFile);
     
+//    /*
+//     * Set current directory to directory containing the scene file
+//     * if the current spec file is not a valid file
+//     */
+//    
+//    const AString currentSpecFileName = m_specFile->getFileName();
+//    FileInformation currentSpecFileInfo(currentSpecFileName);
+//    if (currentSpecFileInfo.exists() == false) {
+//        
+//    }
+//    /*
+//     * Try to set to current directory
+//     */
+//    const AString previousSpecFileName = m_specFile->getFileName();
+//    delete m_specFile;
+//    m_specFile = new SpecFile(*specFileToLoad);
+//    FileInformation newSpecFileInfo(m_specFile->getFileName());
+//    if (newSpecFileInfo.isAbsolute()) {
+//        setCurrentDirectory(newSpecFileInfo.getPathName());
+//    }
+//    else {
+//        if (previousSpecFileName.endsWith(m_specFile->getFileName()) == false) {
+//            FileInformation oldSpecFileInfo(previousSpecFileName);
+//            setCurrentDirectory(oldSpecFileInfo.getPathName());
+//        }
+//    }
+
     /*
-     * Try to set to current directory
+     * Check to see if existing spec file exists
      */
-    const AString previousSpecFileName = m_specFile->getFileName();
+    FileInformation specFileInfo(m_specFile->getFileName());
+    const bool specFileValid = specFileInfo.exists();
+    
+    /*
+     * Appy spec file pulled from scene
+     */
+    m_isSpecFileBeingRead = true;
     delete m_specFile;
     m_specFile = new SpecFile(*specFileToLoad);
-    FileInformation newSpecFileInfo(m_specFile->getFileName());
-    if (newSpecFileInfo.isAbsolute()) {
-        setCurrentDirectory(newSpecFileInfo.getPathName());
-    }
-    else {
-        if (previousSpecFileName.endsWith(m_specFile->getFileName()) == false) {
-            FileInformation oldSpecFileInfo(previousSpecFileName);
-            setCurrentDirectory(oldSpecFileInfo.getPathName());
+    
+    /*
+     * Set current directory to directory containing scene file
+     * but only if there is NOT a valid spec file
+     */
+    if (specFileValid == false) {
+        FileInformation sceneFileInfo(sceneAttributes->getSceneFileName());
+        if (sceneFileInfo.exists()) {
+            setCurrentDirectory(sceneFileInfo.getPathName());
         }
     }
-    
-    m_isSpecFileBeingRead = true;
-    
-//    FileInformation fileInfo(m_specFile->getFileName());
-    //setCurrentDirectory(fileInfo.getPathName());
     
     const int32_t numFileGroups = m_specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
@@ -1798,13 +1828,6 @@ Brain::loadSpecFileFromScene(SpecFile* specFileToLoad,
                 }
             }
         }
-    }
-    
-    const AString specFileName = m_specFile->getFileName();
-    FileInformation specFileInfo(specFileName);
-    if (specFileInfo.isAbsolute()) {
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToPreviousSpecFiles(specFileName);
     }
     
     if (m_paletteFile != NULL) {
@@ -2462,7 +2485,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         specFile.restoreFromScene(sceneAttributes, 
                                   sceneClass->getClass("specFile"));
         
-        loadSpecFileFromScene(&specFile, 
+        loadSpecFileFromScene(sceneAttributes,
+                              &specFile, 
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
                            RESET_BRAIN_KEEP_SPEC_FILE_YES,
                            m_sceneSpecFileReadingErrors);

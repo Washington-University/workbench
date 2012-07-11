@@ -231,7 +231,8 @@ namespace caret {
         
         void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         
-        bool loadSpecFileFromScene(SpecFile* specFile,
+        bool loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
+                                   SpecFile* specFile,
                           const ResetBrainKeepSceneFiles keepSceneFile,
                           const ResetBrainKeepSpecFile keepSpecFile,
                           AString& errorMessageOut);
