@@ -246,7 +246,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                                 verts[2] = m_base->m_surface->getCoordinate(myTileNodes[2]);
                                 Vector3D triNormal;
                                 MathFunctions::normalVector(verts[0], verts[1], verts[2], triNormal);
-                                float factor = triNormal.dot(positiveZ);
+                                float factor = triNormal[2];//equivalent to dot product with positiveZ
                                 if (factor != 0.0f)
                                 {
                                     if (triNormal.dot(verts[0] - point) / factor > 0.0f && pointInTri(verts, point, 0, 1))

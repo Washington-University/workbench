@@ -94,6 +94,7 @@ void CiftiMatrixIndicesMapElement::setupLookup()
     {
         const CiftiParcelElement& myParcel = m_parcels[i];
         int numSurfParts = (int)myParcel.m_nodeElements.size();
+        vector<bool> surfUsed(m_parcelSurfaces.size(), false);
         for (int j = 0; j < numSurfParts; ++j)
         {
             const CiftiParcelNodesElement& myNodeElement = myParcel.m_nodeElements[j];
@@ -105,9 +106,14 @@ void CiftiMatrixIndicesMapElement::setupLookup()
             }
             if (whichSurf >= numSurfs)
             {
-                throw CiftiFileException("parcel specifies a structure that doesn't match a specified surface");
+                throw CiftiFileException("parcel '" + myParcel.m_parcelName + "' specifies a structure that doesn't match a specified surface");
+            }
+            if (surfUsed[whichSurf])
+            {
+                throw CiftiFileException("parcel '" + myParcel.m_parcelName + "' specified a surface structure more than once");
             }
             CiftiParcelSurfaceElement& mySurf = m_parcelSurfaces[whichSurf];
+            surfUsed[whichSurf] = true;
             int numNodes = myNodeElement.m_nodes.size();
             for (int k = 0; k < numNodes; ++k)
             {

@@ -193,10 +193,10 @@ namespace caret {
         bool getStructureListsForColumns(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
 
         ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
-        bool getVolumeParcelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
+        bool getVolumeModelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
 
         ///get the list of volume parcels and their maps in columns, returns false and empty vector if not found
-        bool getVolumeParcelMapsForColumns(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
+        bool getVolumeModelMapsForColumns(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
 
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
         int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
@@ -215,6 +215,24 @@ namespace caret {
         
         ///get the number of timepoints for rows, returns false if not timeseries, sets -1 if unknown number of timepoints
         bool getColumnNumberOfTimepoints(int& numTimepoints) const;
+        
+        ///get the parcels for rows
+        bool getParcelsForRows(std::vector<CiftiParcelElement>& parcelsOut) const;
+        
+        ///get the parcels for columns
+        bool getParcelsForColumns(std::vector<CiftiParcelElement>& parcelsOut) const;
+        
+        ///get the row parcel for a node
+        int64_t getRowParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
+        
+        ///get the column parcel for a node
+        int64_t getColumnParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
+        
+        ///SLOW! - get the row parcel for a voxel
+        int64_t getRowParcelForVoxel(const int64_t* ijk) const;
+        
+        ///SLOW! - get the row parcel for a voxel
+        int64_t getColumnParcelForVoxel(const int64_t* ijk) const;
         
         ///set the timestep for rows, returns false if not timeseries
         bool setRowTimestep(const float& seconds);
@@ -252,6 +270,18 @@ namespace caret {
         ///add a volume brain model to the list of brain models for columns
         bool addVolumeModelToColumns(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
+        ///add a surface to the list of parcel surfaces for rows
+        bool addParcelSurfaceToRows(const int& numberOfNodes, const StructureEnum::Enum& structure);
+        
+        ///add a surface to the list of parcel surfaces for rows
+        bool addParcelSurfaceToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure);
+        
+        ///add a parcel to rows
+        bool addParcelToRows(const CiftiParcelElement& parcel);
+        
+        ///add a parcel to columns
+        bool addParcelToColumns(const CiftiParcelElement& parcel);
+        
         ///set rows to be of type timepoints
         void resetRowsToTimepoints(const float& timestep, const int& numTimepoints);
         
@@ -269,6 +299,12 @@ namespace caret {
         
         ///set columns to be of type labels
         void resetColumnsToLabels(const int& numMaps);
+        
+        ///set rows to be of type parcels
+        void resetRowsToParcels();
+        
+        ///set columns to be of type parcels
+        void resetColumnsToParcels();
         
         ///get the map name for an index along a column
         AString getMapNameForColumnIndex(const int& index) const;
@@ -350,6 +386,8 @@ namespace caret {
         int64_t getVolumeIndex(const int64_t* ijk, const int& myMapIndex) const;
         int64_t getVolumeIndex(const float* xyz, const int& myMapIndex) const;
         int64_t getTimestepIndex(const float& seconds, const int& myMapIndex) const;
+        int64_t getParcelForNode(const int64_t& node, const StructureEnum::Enum& structure, const int& myMapIndex) const;
+        int64_t getParcelForVoxel(const int64_t* ijk, const int& myMapIndex) const;
         
         ///boilerplate for map information
         bool getTimestep(float& seconds, const int& myMapIndex) const;
@@ -363,7 +401,7 @@ namespace caret {
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
         bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const int& myMapIndex) const;
         bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
-        bool getVolumeParcelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
+        bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
         bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
         
         ///boilerplate for has data
