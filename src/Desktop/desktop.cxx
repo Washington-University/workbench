@@ -241,7 +241,7 @@ main(int argc, char* argv[])
         /*
         * Handle uncaught exceptions
         */
-        SystemUtilities::setHandlersForUnexpected();
+        SystemUtilities::setHandlersForUnexpected(argc, argv);
         
         qInstallMsgHandler(messageHandlerForQt);
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter

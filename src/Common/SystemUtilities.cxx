@@ -43,6 +43,8 @@
 
 using namespace caret;
 
+AString commandLine;//used to store the command line for output by unexpected handler
+
 /**
  * Constructor.
  */
@@ -503,6 +505,7 @@ SystemUtilities::relativePath(
 static void unexpectedHandler()
 {
     std::cerr << "WARNING: unhandled exception." << std::endl;
+    std::cerr << "command line: " << commandLine << std::endl;
     //if (theMainWindow != NULL) {
         const AString msg("Caret will be terminating due to an unexpected exception.\n"
                           "abort() will be called and a core file may be created.");
@@ -549,8 +552,17 @@ static void newHandler()
  * out of memory errors.
  */
 void 
-SystemUtilities::setHandlersForUnexpected()
+SystemUtilities::setHandlersForUnexpected(int argc, char** argv)
 {
+    commandLine = "";
+    if (argc > 0)
+    {
+        commandLine = argv[0];
+        for (int i = 1; i < argc; ++i)
+        {
+            commandLine += AString(" ") + AString(argv[i]);
+        }
+    }
     std::set_unexpected(unexpectedHandler);
     std::set_new_handler(newHandler);
 
