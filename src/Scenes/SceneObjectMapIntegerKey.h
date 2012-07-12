@@ -74,6 +74,9 @@ namespace caret {
         void addEnumeratedType(const int32_t key,
                                const AString& value);
         
+        void addPathName(const int32_t key,
+                         const AString& value);
+        
         /**
          * Add the given enumerated type value to the map using the given key.
          * @param key
@@ -123,6 +126,8 @@ namespace caret {
         int32_t integerValue(const int32_t key) const;
         
         AString stringValue(const int32_t key) const;
+        
+        AString pathNameValue(const int32_t key) const;
         
     private:
         typedef std::map<int32_t, SceneObject*> DATA_MAP;

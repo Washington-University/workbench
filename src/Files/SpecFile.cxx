@@ -993,7 +993,7 @@ SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                     fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
                                                                                      file->getStructure());
                     const AString name = updateFileNameAndPathForWriting(file->getFileName());
-                    fileClass->addString("fileName", 
+                    fileClass->addPathName("fileName", 
                                          file->getFileName());
                     fileClass->addBoolean("selected", 
                                           file->isSelected());
@@ -1040,7 +1040,7 @@ SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
         for (int32_t i = 0; i < numberOfFiles; i++) {
             const SceneClass* dataFileClass = dataFileClassArray->getClassAtIndex(i);
             const bool selected = dataFileClass->getBooleanValue("selected");
-            const AString dataFileName = dataFileClass->getStringValue("fileName");
+            const AString dataFileName = dataFileClass->getPathNameValue("fileName");
             const DataFileTypeEnum::Enum dataFileType = dataFileClass->getEnumeratedTypeValue<DataFileTypeEnum, 
                                                                                               DataFileTypeEnum::Enum>("dataFileType",
                                                                                                                       DataFileTypeEnum::UNKNOWN);

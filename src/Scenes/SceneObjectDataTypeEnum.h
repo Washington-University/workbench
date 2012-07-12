@@ -60,8 +60,10 @@ public:
         SCENE_FLOAT,
         /** Integer 32-bit */
         SCENE_INTEGER,
+        /** Pathname (path to file) */
+        SCENE_PATH_NAME,
         /** String */
-        SCENE_STRING,
+        SCENE_STRING
     };
 
 

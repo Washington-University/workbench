@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AString.h"
 #include "SceneWriterInterface.h"
 
 namespace caret {
@@ -45,7 +45,8 @@ namespace caret {
     class SceneWriterXml : public SceneWriterInterface {
         
     public:
-        SceneWriterXml(XmlWriter& xmlWriter);
+        SceneWriterXml(XmlWriter& xmlWriter,
+                       const AString& sceneFileName);
         
         virtual ~SceneWriterXml();
         
@@ -75,6 +76,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         XmlWriter& m_xmlWriter;
+        
+        const AString m_sceneFileName;
     };
     
 #ifdef __SCENE_WRITER_XML_DECLARE__

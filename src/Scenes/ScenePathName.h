@@ -1,5 +1,5 @@
-#ifndef __SCENE_STRING__H_
-#define __SCENE_STRING__H_
+#ifndef __SCENE_PATH_NAME__H_
+#define __SCENE_PATH_NAME__H_
 
 /*LICENSE_START*/
 /*
@@ -35,32 +35,31 @@
 /*LICENSE_END*/
 
 
-#include "ScenePrimitive.h"
+#include "SceneObject.h"
 
 namespace caret {
 
-    class SceneString : public ScenePrimitive {
+    class ScenePathName : public SceneObject {
         
     public:
-        SceneString(const AString& name,
-                     const AString& value);
+        ScenePathName(const AString& name,
+                      const AString& value);
         
-        virtual ~SceneString();
+        virtual ~ScenePathName();
         
         void setValue(const AString& value);
         
-        virtual bool booleanValue() const;
-        
-        virtual float floatValue() const;
-        
-        virtual int32_t integerValue() const;
-        
         virtual AString stringValue() const;
         
+        void setValueToAbsolutePath(const AString& sceneFileName,
+                                    const AString& value);
+        
+        AString getRelativePathToSceneFile(const AString& sceneFileName) const;
+        
     private:
-        SceneString(const SceneString&);
+        ScenePathName(const ScenePathName&);
 
-        SceneString& operator=(const SceneString&);
+        ScenePathName& operator=(const ScenePathName&);
         
     public:
 
@@ -74,9 +73,9 @@ namespace caret {
 
     };
     
-#ifdef __SCENE_STRING_DECLARE__
+#ifdef __SCENE_PATH_NAME_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_STRING_DECLARE__
+#endif // __SCENE_PATH_NAME_DECLARE__
 
 } // namespace
-#endif  //__SCENE_STRING__H_
+#endif  //__SCENE_PATH_NAME__H_

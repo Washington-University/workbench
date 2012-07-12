@@ -119,6 +119,11 @@ SceneObjectDataTypeEnum::initialize()
                                                "integer",
                                                "integer"));
     
+    enumData.push_back(SceneObjectDataTypeEnum(SCENE_PATH_NAME, 
+                                               "SCENE_PATH_NAME", 
+                                               "pathName",
+                                               "pathName"));
+    
     enumData.push_back(SceneObjectDataTypeEnum(SCENE_STRING, 
                                                "SCENE_STRING", 
                                                "string",

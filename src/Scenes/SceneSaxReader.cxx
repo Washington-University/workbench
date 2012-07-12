@@ -37,6 +37,7 @@
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "ScenePathName.h"
 #include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
@@ -52,8 +53,14 @@ static bool debugFlag = false;
 
 /**
  * constructor.
+ * @param sceneFileName
+ *   Name of scene file being read.
+ * @param scene
+ *   Scene that is being read.
  */
-SceneSaxReader::SceneSaxReader(Scene* scene)
+SceneSaxReader::SceneSaxReader(const AString& sceneFileName,
+                               Scene* scene)
+: m_sceneFileName(sceneFileName)
 {
     m_state = STATE_NONE;
     m_stateStack.push(m_state);
@@ -273,6 +280,10 @@ SceneSaxReader::processObjectStartTag(const XmlAttributes& attributes) throw (Xm
             sceneObject = new SceneInteger(objectName,
                                            0);
             break;
+        case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+            sceneObject = new ScenePathName(objectName,
+                                            "");
+            break;
         case SceneObjectDataTypeEnum::SCENE_STRING:
             sceneObject = new SceneString(objectName,
                                           "");
@@ -355,6 +366,10 @@ SceneSaxReader::processObjectArrayStartTag(const XmlAttributes& attributes) thro
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
             sceneObject = new SceneIntegerArray(objectName, 
                                                 objectNumberOfElements);
+            break;
+        case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+            CaretAssert(0);
+            throw XmlSaxParserException("Arrays of scene paths not supported.");
             break;
         case SceneObjectDataTypeEnum::SCENE_STRING:
             sceneObject = new SceneStringArray(objectName, 
@@ -507,6 +522,15 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     addChildToParentClass(sceneInteger);
                 }
                     break;
+                case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                {
+                    ScenePathName* scenePathName = dynamic_cast<ScenePathName*>(sceneObject);
+                    CaretAssert(scenePathName);
+                    scenePathName->setValueToAbsolutePath(m_sceneFileName, 
+                                                          stringValue);
+                    addChildToParentClass(scenePathName);
+                }
+                    break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:
                 {
                     SceneString* sceneString = dynamic_cast<SceneString*>(sceneObject);
@@ -595,6 +619,10 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     CaretAssert(0);
                 }
                     break;
+                case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                    CaretAssert(0);
+                    throw XmlSaxParserException("Arrays of scene paths not supported.");
+                    break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:
                 {
                     SceneStringArray* stringArray = dynamic_cast<SceneStringArray*>(sceneArray);
@@ -677,6 +705,15 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                 case SceneObjectDataTypeEnum::SCENE_INVALID:
                 {
                     CaretAssert(0);
+                }
+                    break;
+                case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                {
+                    ScenePathName spn("spn", "");
+                    spn.setValueToAbsolutePath(m_sceneFileName, 
+                                               stringValue);
+                    sceneMap->addPathName(key,
+                                          spn.stringValue());
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:

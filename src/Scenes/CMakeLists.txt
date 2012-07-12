@@ -34,6 +34,7 @@ SceneObject.h
 SceneObjectArray.h
 SceneObjectDataTypeEnum.h
 SceneObjectMapIntegerKey.h
+ScenePathName.h
 ScenePrimitive.h
 ScenePrimitiveArray.h
 SceneSaxReader.h
@@ -62,6 +63,7 @@ SceneObject.cxx
 SceneObjectArray.cxx
 SceneObjectDataTypeEnum.cxx
 SceneObjectMapIntegerKey.cxx
+ScenePathName.cxx
 ScenePrimitive.cxx
 ScenePrimitiveArray.cxx
 SceneSaxReader.cxx

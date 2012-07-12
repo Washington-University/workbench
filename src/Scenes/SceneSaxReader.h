@@ -49,7 +49,8 @@ namespace caret {
      */
     class SceneSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
     public:
-        SceneSaxReader(Scene* scene);
+        SceneSaxReader(const AString& sceneFileName,
+                       Scene* scene);
         
         virtual ~SceneSaxReader();
         
@@ -102,6 +103,9 @@ namespace caret {
         void processObjectMapStartTag(const XmlAttributes& attributes) throw (XmlSaxParserException);
         
         void addChildToParentClass(SceneObject* sceneObject);
+        
+        /// name of scene file
+        AString m_sceneFileName;
         
         /// file reading state
         STATE m_state;

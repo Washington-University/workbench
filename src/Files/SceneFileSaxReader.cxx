@@ -139,7 +139,8 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                     throw e;
                 }
                 m_scene = new Scene(sceneType);
-                m_sceneSaxReader = new SceneSaxReader(m_scene);
+                m_sceneSaxReader = new SceneSaxReader(m_sceneFile->getFileName(),
+                                                      m_scene);
                 m_sceneSaxReader->startElement(namespaceURI, localName, qName, attributes);
             }
             else {

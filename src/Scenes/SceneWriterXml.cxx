@@ -44,6 +44,7 @@
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "ScenePathName.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
@@ -62,9 +63,11 @@ using namespace caret;
 /**
  * Constructor.
  */
-SceneWriterXml::SceneWriterXml(XmlWriter& xmlWriter)
+SceneWriterXml::SceneWriterXml(XmlWriter& xmlWriter,
+                               const AString& sceneFileName)
 : SceneWriterInterface(),
-  m_xmlWriter(xmlWriter)
+  m_xmlWriter(xmlWriter),
+  m_sceneFileName(sceneFileName)
 {
 }
 
@@ -166,7 +169,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         const SceneClass* sceneClass = dynamic_cast<const SceneClass*>(sceneObject);
         const SceneClassArray* sceneClassArray = dynamic_cast<const SceneClassArray*>(sceneObject);
         const SceneObjectMapIntegerKey* sceneMapIntegerKey = dynamic_cast<const SceneObjectMapIntegerKey*>(sceneObject);
-        
+        const ScenePathName* scenePathName = dynamic_cast<const ScenePathName*>(sceneObject);
         if (scenePrimitive != NULL) {
             if (scenePrimitive->getDataType() == SceneObjectDataTypeEnum::SCENE_STRING) {
                 m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
@@ -206,6 +209,12 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
         }
         else if (sceneClass != NULL) {
             writeSceneClass(*sceneClass);
+        }
+        else if (scenePathName != NULL) {
+            const AString path = scenePathName->getRelativePathToSceneFile(m_sceneFileName);
+            m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_TAG, 
+                                          attributes,
+                                          path);
         }
         else if (sceneClassArray != NULL) {
             const int32_t numberOfArrayElements = sceneClassArray->getNumberOfArrayElements();
@@ -290,6 +299,15 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                         m_xmlWriter.writeElementCharacters(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
                                                            valueAttributes,
                                                            primitive->stringValue());
+                    }
+                        break;
+                    case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
+                    {
+                        const ScenePathName* pathName = dynamic_cast<const ScenePathName*>(sceneObject);
+                        const AString path = pathName->getRelativePathToSceneFile(m_sceneFileName);
+                        m_xmlWriter.writeElementCData(SceneXmlElements::OBJECT_MAP_VALUE_TAG,
+                                                      valueAttributes,
+                                                      path);
                     }
                         break;
                     case SceneObjectDataTypeEnum::SCENE_STRING:

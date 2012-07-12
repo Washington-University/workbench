@@ -230,6 +230,7 @@ SceneFile::getFileMetaData() const
 void 
 SceneFile::readFile(const AString& filename) throw (DataFileException)
 {
+    this->setFileName(filename);
     SceneFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
@@ -328,7 +329,8 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write scenes
         //
-        SceneWriterXml sceneWriter(xmlWriter);
+        SceneWriterXml sceneWriter(xmlWriter,
+                                   this->getFileName());
         const int32_t numScenes = this->getNumberOfScenes();
         for (int32_t i = 0; i < numScenes; i++) {
             sceneWriter.writeScene(*m_scenes[i], 

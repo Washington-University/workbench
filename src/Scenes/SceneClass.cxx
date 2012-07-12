@@ -48,6 +48,7 @@
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "ScenePathName.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
 
@@ -363,6 +364,21 @@ void SceneClass::addString(const AString& name,
 }
 
 /**
+ * Add a child path name value to the class.
+ * 
+ * @param name
+ *    Name associated with value.
+ * @param value
+ *    The value.
+ */
+void SceneClass::addPathName(const AString& name,
+                             const AString& value)
+{
+    addChild(new ScenePathName(name,
+                               value));    
+}
+
+/**
  * Add a child string type array values to the class.
  * 
  * @param name
@@ -656,6 +672,29 @@ SceneClass::getStringValue(const AString& name,
 }
 
 /**
+ * Find and return the child path name value with the given name.
+ * If no path name matches the name, the given default
+ * value is returned.
+ * @param name
+ *    Name of the value.
+ * @param defaultValue
+ *    Value returned if the path name with the given
+ *    name is not found.
+ * @return
+ *    The string value.
+ */
+AString 
+SceneClass::getPathNameValue(const AString& name,
+                             const AString& defaultValue) const
+{
+    const ScenePathName* pathName = getPathName(name);
+    if (pathName != NULL) {
+        return pathName->stringValue();
+    }
+    return defaultValue;
+}
+
+/**
  * Get the values for the string array.  If no array is
  * found with the given name, all values are set to the
  * default value.
@@ -715,6 +754,33 @@ SceneClass::getPrimitive(const AString& name) const
     }
     
     logMissing("Scene Primitive Type not found: " + name);
+    
+    return NULL;
+}
+
+/**
+ * Find and return the scene's child path name with the given name.
+ *
+ * @param name
+ *     Name of the child path name.
+ * @return
+ *     Pointer to the path name with the given name or NULL if
+ *     no path name exists with the given name.
+ */
+const ScenePathName* 
+SceneClass::getPathName(const AString& name) const
+{
+    const SceneObject* so = getObjectWithName(name);
+    if (so != NULL) {
+        const ScenePathName* sp = dynamic_cast<const ScenePathName*>(so);
+        if (sp != NULL) {
+            if (sp->getName() == name) {
+                return sp;
+            }
+        }
+    }
+    
+    logMissing("Scene Path Name not found: " + name);
     
     return NULL;
 }

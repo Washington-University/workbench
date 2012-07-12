@@ -43,6 +43,7 @@ namespace caret {
     class SceneClassArray;
     class SceneEnumeratedType;
     class SceneObjectMapIntegerKey;
+    class ScenePathName;
     class ScenePrimitive;
     class ScenePrimitiveArray;
     
@@ -223,6 +224,9 @@ namespace caret {
         void addString(const AString& name,
                        const AString& value);
         
+        void addPathName(const AString& name,
+                         const AString& value);
+        
         void addStringArray(const AString& name,
                              const AString values[],
                              const int32_t arrayNumberOfElements);
@@ -261,6 +265,9 @@ namespace caret {
                                    const int32_t arrayNumberOfElements,
                                    const int32_t defaultValue = 0.0) const;
         
+        AString getPathNameValue(const AString& name,
+                                 const AString& defaultValue = "") const;
+        
         AString getStringValue(const AString& name,
                              const AString& defaultValue = "") const;
         
@@ -272,6 +279,8 @@ namespace caret {
         const ScenePrimitive* getPrimitive(const AString& name) const;
         
         const ScenePrimitiveArray* getPrimitiveArray(const AString& name) const;
+        
+        const ScenePathName* getPathName(const AString& name) const;
         
         const SceneObjectMapIntegerKey* getMapIntegerKey(const AString& name) const;
         

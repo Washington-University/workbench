@@ -42,6 +42,7 @@
 #include "SceneEnumeratedType.h"
 #include "SceneFloat.h"
 #include "SceneInteger.h"
+#include "ScenePathName.h"
 #include "ScenePrimitive.h"
 #include "SceneString.h"
 
@@ -166,6 +167,22 @@ SceneObjectMapIntegerKey::addString(const int32_t key,
 }
 
 /**
+ * Add the given path name value to the map using the given key.
+ * @param key
+ *    The key.
+ * @param value
+ *    The value.
+ */
+void 
+SceneObjectMapIntegerKey::addPathName(const int32_t key,
+                                     const AString& value)
+{
+    CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME);
+    m_dataMap.insert(std::make_pair(key,
+                                    new ScenePathName("s", value)));
+}
+
+/**
  * Add the given enumerated type value to the map using the given key.
  * @param key
  *    The key.
@@ -258,6 +275,21 @@ SceneObjectMapIntegerKey::stringValue(const int32_t key) const
     const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
     CaretAssert(primitive);
     return primitive->stringValue();
+}
+
+/** 
+ * Get the path name as a string. 
+ *
+ * @param key
+ *    key of element.
+ * @return The value with the given key.
+ */
+AString 
+SceneObjectMapIntegerKey::pathNameValue(const int32_t key) const
+{
+    const ScenePathName* pathName = dynamic_cast<const ScenePathName*>(getObject(key));
+    CaretAssert(pathName);
+    return pathName->stringValue();
 }
 
 /** 
