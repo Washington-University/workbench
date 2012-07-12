@@ -34,7 +34,7 @@ using namespace caret;
  * Default Constructor
  *
  */
-NiftiFile::NiftiFile(bool usingVolume) throw (NiftiException)
+NiftiFile::NiftiFile(bool usingVolume)
 {
     init();
     m_usingVolume = usingVolume;
@@ -49,7 +49,7 @@ NiftiFile::NiftiFile(bool usingVolume) throw (NiftiException)
  * @param fileName name and path of the Nifti File
  * currently only IN_MEMORY is supported
  */
-NiftiFile::NiftiFile(const AString &fileName, bool usingVolume) throw (NiftiException)
+NiftiFile::NiftiFile(const AString &fileName, bool usingVolume)
 {
     init();
     m_usingVolume = usingVolume;
@@ -81,7 +81,7 @@ bool NiftiFile::isCompressed()
  *
  * @param fileName name and path of the Nifti File
  */
-void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
+void NiftiFile::openFile(const AString &fileName)
 {
     this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
@@ -230,7 +230,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
  *
  * @param fileName specifies the name and path of the file to write to
  */
-void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
+void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder)
 {  
     this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
@@ -369,7 +369,7 @@ NiftiFile::~NiftiFile()
  * @param header
  */
 // Header IO
-void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
+void NiftiFile::setHeader(const Nifti1Header &header)
 {
     headerIO.setHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
@@ -382,7 +382,7 @@ void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
  *
  * @param header
  */
-void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
+void NiftiFile::getHeader(Nifti1Header &header)
 {
     headerIO.getHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
@@ -396,7 +396,7 @@ void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
  * @param header
  */
 // Header IO
-void NiftiFile::setHeader(const Nifti2Header &header) throw (NiftiException)
+void NiftiFile::setHeader(const Nifti2Header &header)
 {
     headerIO.setHeader(header);
 }
@@ -409,7 +409,7 @@ void NiftiFile::setHeader(const Nifti2Header &header) throw (NiftiException)
  *
  * @param header
  */
-void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
+void NiftiFile::getHeader(Nifti2Header &header)
 {
     headerIO.getHeader(header);
 }
@@ -429,7 +429,7 @@ int NiftiFile::getNiftiVersion()
 
 // Volume IO
 
-void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename)
 {
     CaretPointer<NiftiAbstractHeader> aHeader(new NiftiAbstractHeader());
 
@@ -437,6 +437,7 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     QDir fpath(this->m_fileName);
     m_fileName = fpath.toNativeSeparators(this->m_fileName);
     this->openFile(m_fileName);
+    if (newFile) throw NiftiException("file '" + filename + "' not found");
 
     headerIO.getAbstractHeader(*aHeader);
     vol.m_header = aHeader;
@@ -483,7 +484,7 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     }
 }
 
-void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename)
 {
     if (vol.m_header != NULL)
     {

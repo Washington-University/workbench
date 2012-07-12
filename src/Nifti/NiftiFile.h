@@ -100,41 +100,41 @@ class NiftiFile
     friend class NiftiFileTest;
 public:
     /// Constructor
-    NiftiFile(bool usingVolume = false) throw (NiftiException);
+    NiftiFile(bool usingVolume = false);
     /// Constructor
-    NiftiFile(const AString &fileName, bool usingVolume = false) throw (NiftiException);
+    NiftiFile(const AString &fileName, bool usingVolume = false);
     /// Open the Nifti File
-    virtual void openFile(const AString &fileName) throw (NiftiException);
+    virtual void openFile(const AString &fileName);
     /// Write the Nifti File
-    virtual void writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    virtual void writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER);
     /// Is the file Compressed?
     bool isCompressed();
 
     /// Header Functions
     /// set Nifti1Header
-    virtual void setHeader(const Nifti1Header &header) throw (NiftiException);
+    virtual void setHeader(const Nifti1Header &header);
     /// get Nifti1Header
-    void getHeader(Nifti1Header &header) throw (NiftiException);
+    void getHeader(Nifti1Header &header);
     /// set Nifti2Header
-    virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
+    virtual void setHeader(const Nifti2Header &header);
     /// get Nifti2Header
-    void getHeader(Nifti2Header &header) throw (NiftiException);
+    void getHeader(Nifti2Header &header);
     /// get NiftiVersion
     int getNiftiVersion();
 
     /// volume file read/write Functions
 
     /// Read the entire nifti file into a volume file
-    void readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException);
+    void readVolumeFile(VolumeBase &vol, const AString &filename);
     /// Write the entire Volume File to a nifti file
-    void writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException);
+    void writeVolumeFile(VolumeBase &vol, const AString &filename);
 
     /// Gets a Nifti1Header from a previously defined volume file
     void getHeaderFromVolumeFile(VolumeBase &vol, Nifti1Header & header);
     /// Gets a Nifti2Header from a previously defined volume file
     void getHeaderFromVolumeFile(VolumeBase &vol, Nifti2Header & header);
 
-    void getLayout(LayoutType &layout) throw(NiftiException) {
+    void getLayout(LayoutType &layout) {
         return matrix.getMatrixLayoutOnDisk(layout);
     }
 
@@ -144,16 +144,16 @@ public:
     /// Gets the number of individual elements (array size) of the entire volume matrix
     int64_t getMatrixLength() { return matrix.getMatrixLength(); }
     /// sets the entire volume file Matrix
-    void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException) { matrix.setMatrix(matrixIn, matrixLengthIn); }
+    void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) { matrix.setMatrix(matrixIn, matrixLengthIn); }
     /// gets the entire volume file Matrix
-    void getMatrix(float *matrixOut) throw (NiftiException) { matrix.getMatrix(matrixOut); }
+    void getMatrix(float *matrixOut) { matrix.getMatrix(matrixOut); }
 
     // For reading a frame at a time from previously loaded matrix
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
-    void setFrame(const float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException)
+    void setFrame(const float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)
     { matrix.setFrame(matrixIn, matrixLengthIn, timeSlice, componentIndex); }
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
-    void getFrame(float *frame, const int64_t &timeSlice = 0L,const int64_t &componentIndex=0L) throw (NiftiException)
+    void getFrame(float *frame, const int64_t &timeSlice = 0L,const int64_t &componentIndex=0L)
     { matrix.getFrame(frame, timeSlice, componentIndex); }
 
     /// Gets the Size in bytes of the current frame
