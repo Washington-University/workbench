@@ -43,6 +43,12 @@ namespace caret {
     class SceneAttributes : public CaretObject {
         
     public:
+        enum RestoreWindowBehavior {
+            RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES,
+            RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES,
+            RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES
+        };
+        
         SceneAttributes(const SceneTypeEnum::Enum sceneType);
         
         virtual ~SceneAttributes();
@@ -56,6 +62,10 @@ namespace caret {
         AString getSceneFileName() const;
         
         void setSceneFileName(const AString& sceneFileName);
+        
+        RestoreWindowBehavior getRestoreWindowBehavior() const;
+        
+        void setWindowRestoreBehavior(const RestoreWindowBehavior rwb);
         
     private:
         SceneAttributes(const SceneAttributes&);
@@ -74,6 +84,7 @@ namespace caret {
         
         AString m_sceneFileName;
         
+        RestoreWindowBehavior m_restoreWindowBehavior;
         // ADD_NEW_MEMBERS_HERE
 
     };

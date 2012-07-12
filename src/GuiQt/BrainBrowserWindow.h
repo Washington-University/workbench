@@ -285,11 +285,20 @@ namespace caret {
         friend class GuiManager;
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        /** X position from scene file for first window */
+        static int32_t s_sceneFileFirstWindowX;
+
+        /** Y position from scene file for first window */
+        static int32_t s_sceneFileFirstWindowY;
+        
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     AString BrainBrowserWindow::s_previousOpenFileNameFilter;
     bool BrainBrowserWindow::s_previousOpenFileAddToSpecFileSelection = true;
     bool BrainBrowserWindow::s_firstWindowFlag = true;
+    int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
+    int32_t BrainBrowserWindow::s_sceneFileFirstWindowY = -1;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

@@ -51,6 +51,7 @@ using namespace caret;
 SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
 : CaretObject(), m_sceneType(sceneType)
 {
+    m_restoreWindowBehavior = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
 }
 
 /**
@@ -110,6 +111,26 @@ void
 SceneAttributes::setSceneFileName(const AString& sceneFileName)
 {
     m_sceneFileName = sceneFileName;
+}
+
+/**
+ * @return The window restoration behavior.
+ */
+SceneAttributes::RestoreWindowBehavior 
+SceneAttributes::getRestoreWindowBehavior() const
+{
+    return m_restoreWindowBehavior;
+}
+
+/**
+ * Set the window restoration behavior.
+ * @param rwb
+ *   New value for window restoration behavior.
+ */
+void 
+SceneAttributes::setWindowRestoreBehavior(const RestoreWindowBehavior rwb)
+{
+    m_restoreWindowBehavior = rwb;
 }
 
 
