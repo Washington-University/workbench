@@ -42,6 +42,7 @@
 #include "StructureEnumComboBox.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -99,19 +100,78 @@ WuQDataEntryDialog::~WuQDataEntryDialog()
 void 
 WuQDataEntryDialog::okButtonPressed()
 {
-    if (dataEnteredIsValid()) {
-        accept();
+    m_isDataValid = true;
+    m_dataInvalidErrorMessage = "";
+    
+    emit validateData(this);
+    
+    if (m_isDataValid) {
+//        if (dataEnteredIsValid()) {
+            accept();
+//        }
+    }
+    else {
+        if (m_dataInvalidErrorMessage.isEmpty()) {
+            m_dataInvalidErrorMessage = "Data is not valid.";
+        }
+        WuQMessageBox::errorOk(this,
+                               m_dataInvalidErrorMessage);
     }
 }
 
 /**
- * override to verify data after OK button pressed.
+ * This method is used to set the validity of the data
+ * widgets that were added by the user.  To use this,
+ * connect to the validateData() signal and then call
+ * this to indicate the validity of the data widgets.
+ * getDataWidgetWithName() can be used to get widgets
+ * but only will work if the user sets the name of 
+ * the widgets.
+ * @param isValid
+ *    True if the data is valid, else false.
+ * @param dataInvalidErrorMessage
+ *    If data is invalid, message describing why data is invalid.
  */
-bool 
-WuQDataEntryDialog::dataEnteredIsValid()
+void 
+WuQDataEntryDialog::setDataValid(const bool isValid,
+                                 const QString& dataInvalidErrorMessage)
 {
-   return true;
+    m_isDataValid = isValid;
+    m_dataInvalidErrorMessage = dataInvalidErrorMessage;
 }
+
+/**
+ * Get the data widget that was added by user with the
+ * given name.  For this method to return the correct
+ * widget, the user must call setObjectName() on a 
+ * widget after it is added to the dialog.
+ * 
+ * @param name
+ *    Name of the widget.
+ * @return
+ *    Pointer to widget with the given name or NULL
+ *    if the widget is not found.
+ */
+QWidget* 
+WuQDataEntryDialog::getDataWidgetWithName(const QString& name)
+{
+    const int numWidgets = widgets.size();
+    for (int i = 0; i < numWidgets; i++) {
+        if (widgets[i]->objectName() == name) {
+            return widgets[i];
+        }
+    }
+    return NULL;
+}
+
+///**
+// * override to verify data after OK button pressed.
+// */
+//bool 
+//WuQDataEntryDialog::dataEnteredIsValid()
+//{
+//   return true;
+//}
 
 /**
  * set text at top of dialog (text is automatically wrapped).

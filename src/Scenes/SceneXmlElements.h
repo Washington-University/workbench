@@ -57,6 +57,9 @@ namespace caret {
         /** XML Tag for scene name */
         static const AString SCENE_NAME_TAG = "Name";
         
+        /** XML Tag for scene description */
+        static const AString SCENE_DESCRIPTION_TAG = "Description";
+        
         /** XML Attribute for scene index */
         static const AString SCENE_INDEX_ATTRIBUTE = "Index";
         

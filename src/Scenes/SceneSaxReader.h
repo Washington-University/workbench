@@ -84,6 +84,8 @@ namespace caret {
             STATE_SCENE,
             /// processing Scene Name tag
             STATE_SCENE_NAME,
+            /// processing Scene Description tag
+            STATE_SCENE_DESCRIPTION,
             /// processing Object tag
             STATE_OBJECT,
             /// processing Object Array tag

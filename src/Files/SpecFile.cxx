@@ -32,6 +32,7 @@
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #define __SPEC_FILE_DEFINE__
@@ -957,14 +958,19 @@ SpecFile::getFileVersionAsString()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-SpecFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                       const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "SpecFile",
                                             1);
-    sceneClass->addString("specFileName",
-                          getFileName());
+    
+    AString specFileNameForScene;
+    if (sceneAttributes->isSpecFileNameIncludedInScene()) {
+        specFileNameForScene = getFileName();
+    }
+    sceneClass->addPathName("specFileName",
+                            specFileNameForScene);
     
     /*
      * Remove any files that are tagged for removal.
@@ -1031,7 +1037,8 @@ SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
     
     this->clear();
     
-    const AString specFileName = sceneClass->getStringValue("specFileName");
+    const AString specFileName = sceneClass->getPathNameValue("specFileName",
+                                                              "");
     this->setFileName(specFileName);
     
     const SceneClassArray* dataFileClassArray = sceneClass->getClassArray("dataFilesArray");

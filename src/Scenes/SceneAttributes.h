@@ -67,6 +67,10 @@ namespace caret {
         
         void setWindowRestoreBehavior(const RestoreWindowBehavior rwb);
         
+        bool isSpecFileNameIncludedInScene() const;
+        
+        void setSpecFileNameIncludedInScene(const bool status);
+        
     private:
         SceneAttributes(const SceneAttributes&);
 
@@ -85,6 +89,9 @@ namespace caret {
         AString m_sceneFileName;
         
         RestoreWindowBehavior m_restoreWindowBehavior;
+        
+        bool m_includeSpecFileNameInScene;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

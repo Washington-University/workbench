@@ -37,6 +37,7 @@
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QComboBox;
 class QListWidget;
 class QPushButton;
@@ -45,6 +46,7 @@ namespace caret {
 
     class Scene;
     class SceneFile;
+    class WuQDataEntryDialog;
     
     class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
@@ -75,13 +77,14 @@ namespace caret {
         void deleteSceneButtonClicked();
         
         void showSceneButtonClicked();
+        
+        void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
 
     public:
 
         // ADD_NEW_METHODS_HERE
 
     private:
-
         SceneFile* getSelectedSceneFile();
         
         Scene* getSelectedScene();
@@ -89,6 +92,11 @@ namespace caret {
         void loadSceneFileComboBox(SceneFile* selectedSceneFileIn);
         
         void loadSceneListWidget(Scene* selectedSceneIn);
+        
+        QWidget* createMainPage();
+        QWidget* createOptionPage();
+        QWidget* createSceneCreateOptionsWidget();
+        QWidget* createSceneShowOptionsWidget();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -102,7 +110,9 @@ namespace caret {
         
         QListWidget* m_sceneSelectionListWidget;
         
-
+        QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
+        
+        QCheckBox* m_optionsCreateSceneAddSpecFileCheckBox;
     };
     
 #ifdef __SCENE_DIALOG_DECLARE__

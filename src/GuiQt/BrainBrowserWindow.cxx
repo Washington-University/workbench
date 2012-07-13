@@ -2394,7 +2394,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         case SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES:
             break;
         case SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES:
-            if (isFirstWindow) {
+            if (isFirstWindow == false) {
                 isMoveWindow = true;
                 isMoveWindowRelative = true;
             }

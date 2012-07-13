@@ -133,11 +133,25 @@ namespace caret {
         void setTextAtTop(const QString& s,
                           const bool wrapTheText);
         
+        void setDataValid(const bool isValid,
+                          const QString& dataInvalidErrorMessage);
+        
+        QWidget* getDataWidgetWithName(const QString& name);
+        
+    signals:
+        /** 
+         * This signal is emitted when the user presses the OK button.
+         * The user of the dialog can then examine the widgets that were
+         * added to the dialog for validity and then pass the validity 
+         * status back to this dialog via setDataValid(). 
+         */
+        void validateData(WuQDataEntryDialog* dataEntryDialog);
+        
     protected:
         virtual void okButtonPressed();
         
-        // override to verify data after OK button pressed if subclassing this dialog
-        virtual bool dataEnteredIsValid();
+//        // override to verify data after OK button pressed if subclassing this dialog
+//        virtual bool dataEnteredIsValid();
         
     private:      
         /// widgets in dialog
@@ -151,6 +165,12 @@ namespace caret {
         
         /// button group for radio buttons
         QButtonGroup* radioButtonGroup;
+        
+        /** Indicates validity of data */
+        bool m_isDataValid;
+        
+        /** Error message displayed when data is invalid */
+        QString m_dataInvalidErrorMessage;
     };
 } // namespace
 

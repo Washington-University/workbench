@@ -165,4 +165,24 @@ Scene::setName(const AString& sceneName)
     m_sceneName = sceneName;
 }
 
+/**
+ * @return description of scene
+ */
+AString
+Scene::getDescription() const
+{
+    return m_sceneDescription;
+}
+
+/**
+ * Set description of scene
+ * @param sceneDescription
+ *    New value for description of scene
+ */
+void
+Scene::setDescription(const AString& sceneDescription)
+{
+    m_sceneDescription = sceneDescription;
+}
+
 

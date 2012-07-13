@@ -105,6 +105,9 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
             if (qName == SceneXmlElements::SCENE_NAME_TAG) {
                 m_state = STATE_SCENE_NAME;
             }
+            else if (qName == SceneXmlElements::SCENE_DESCRIPTION_TAG) {
+                m_state = STATE_SCENE_DESCRIPTION;
+            }
             else if (qName == SceneXmlElements::OBJECT_TAG) {
                 m_state = STATE_OBJECT;
                 processObjectStartTag(attributes);
@@ -118,6 +121,8 @@ SceneSaxReader::startElement(const AString& /* namespaceURI */,
             }
             break;
         case STATE_SCENE_NAME:
+            break;
+        case STATE_SCENE_DESCRIPTION:
             break;
         case STATE_OBJECT:
             if (qName == SceneXmlElements::OBJECT_TAG) {
@@ -445,7 +450,10 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SCENE:
             break;
         case STATE_SCENE_NAME:
-            m_scene->setName(m_elementText);
+            m_scene->setName(stringValue);
+            break;
+        case STATE_SCENE_DESCRIPTION:
+            m_scene->setDescription(stringValue);
             break;
         case STATE_OBJECT:
         {

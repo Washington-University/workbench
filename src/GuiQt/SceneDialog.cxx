@@ -32,18 +32,27 @@
  */
 /*LICENSE_END*/
 
+#include <QCheckBox>
 #include <QComboBox>
+#include <QGroupBox>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QTabWidget>
+#include <QTextEdit>
 #include <QToolButton>
+#include <QVBoxLayout>
 
 #define __SCENE_DIALOG_DECLARE__
 #include "SceneDialog.h"
 #undef __SCENE_DIALOG_DECLARE__
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrainConstants.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "EventBrowserTabGetAll.h"
@@ -74,82 +83,9 @@ SceneDialog::SceneDialog(QWidget* parent)
 : WuQDialogNonModal("Scenes",
                     parent)
 {
-    /*
-     * Scene File Controls
-     */
-    QLabel* sceneFileLabel = new QLabel("Scene File");
-    m_sceneFileSelectionComboBox = new QComboBox();
-    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
-    m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
-                                                m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
-                                                
-    WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox, 
-                                          "Selects an existing scene file\n"
-                                          "to which new scenes are added.");
-    QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
-                     this, SLOT(sceneFileSelected()));
-    QPushButton* newSceneFilePushButton = new QPushButton("New...");
-    QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
-                     this, SLOT(newSceneFileButtonClicked()));
-
-    /*
-     * Scene controls
-     */ 
-    QLabel* sceneLabel = new QLabel("Scenes");
-    
-    /*
-     * Add new scene button
-     */
-    m_addNewScenePushButton = new QPushButton("Add...");
-    QObject::connect(m_addNewScenePushButton, SIGNAL(clicked()),
-                     this, SLOT(addNewSceneButtonClicked()));
-    
-    /*
-     * Delete new scene button
-     */
-    m_deleteScenePushButton = new QPushButton("Delete...");
-    QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
-                     this, SLOT(deleteSceneButtonClicked()));
-    
-    /*
-     * Show new scene button
-     */
-    m_showScenePushButton = new QPushButton("Show...");
-    QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
-                     this, SLOT(showSceneButtonClicked()));
-    
-    /*
-     * Layout for scene buttons
-     */
-    QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
-    sceneButtonLayout->addWidget(m_showScenePushButton);
-    sceneButtonLayout->addStretch();
-    sceneButtonLayout->addWidget(m_addNewScenePushButton);
-    sceneButtonLayout->addWidget(m_deleteScenePushButton);
-    
-    /*
-     * Scene selection list widget
-     */
-    m_sceneSelectionListWidget = new QListWidget();
-    m_sceneSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(currentRowChanged(int)),
-                     this, SLOT(sceneSelected()));
-
-    /*
-     * Layout widgets
-     */
-    QWidget* widget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(widget);
-    int row = 0;
-    gridLayout->addWidget(sceneFileLabel, row, 0);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
-    gridLayout->addWidget(newSceneFilePushButton, row, 2);
-    row++;
-    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
-    row++;
-    gridLayout->addWidget(sceneLabel, row, 0, (Qt::AlignTop | Qt::AlignRight));
-    gridLayout->addWidget(m_sceneSelectionListWidget, row, 1);
-    gridLayout->addLayout(sceneButtonLayout, row, 2);
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(createMainPage(), "Main");
+    tabWidget->addTab(createOptionPage(), "Options");
     
     /*
      * No apply buton
@@ -159,7 +95,7 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * Set the dialog's widget
      */
-    this->setCentralWidget(widget);
+    this->setCentralWidget(tabWidget);
 
     /*
      * No auto default button processing (Qt highlights button)
@@ -338,36 +274,7 @@ SceneDialog::newSceneFileButtonClicked()
      */
     newSceneFile->setFileName(newSceneFileName);
     this->loadSceneFileComboBox(newSceneFile);
-    this->sceneFileSelected();
-    
-//    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE);
-//    QString newFileName = ("NewFile." 
-//                               + fileExtension);
-//    WuQDataEntryDialog newFileDialog("New Scene File",
-//                                     this);
-//    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Scene File Name", 
-//                                                                     newFileName);
-//    
-//    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
-//        QString sceneFileName   = newFileNameLineEdit->text();
-//        
-//        try {
-//            if (sceneFileName.endsWith(fileExtension) == false) {
-//                sceneFileName += ("."
-//                                   + fileExtension);
-//            }
-//            
-//            SceneFile* sceneFile = GuiManager::get()->getBrain()->addSceneFile();
-//            sceneFile->setFileName(sceneFileName);
-//            
-//            this->loadSceneFileComboBox(sceneFile);
-//            this->sceneFileSelected();
-//        }
-//        catch (const DataFileException& dfe) {
-//            WuQMessageBox::errorOk(this, 
-//                                   dfe.whatString());
-//        }
-//    }
+    this->sceneFileSelected();    
 }
 
 
@@ -396,49 +303,272 @@ void
 SceneDialog::addNewSceneButtonClicked()
 {
     SceneFile* sceneFile = getSelectedSceneFile();
-    Scene* newScene = NULL;
     if (sceneFile != NULL) {
-            WuQDataEntryDialog newSceneDialog("New Scene",
-                                              this);
-            AString newSceneName = "Scene X";
-            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("New Scene Name", 
-                                                                               newSceneName);
-            newSceneNameLineEdit->selectAll();
+        /*
+         * Create dialog for scene creation
+         */
+        WuQDataEntryDialog newSceneDialog("New Scene",
+                                          this);
+        
+        /*
+         * Will want to valid data.
+         */
+        QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
+                         this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
+        
+        /*
+         * Name for scene
+         */
+        QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name", 
+                                                                           "");
+        newSceneNameLineEdit->selectAll();
+        newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
+        
+        /*
+         * Description
+         */
+        QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description", 
+                                                                "", 
+                                                                false);
+        
+        if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
+            const AString newSceneName = newSceneNameLineEdit->text();
+            Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+            newScene->setName(newSceneName);
+            newScene->setDescription(descriptionTextEdit->toPlainText());
             
-//            QStringList newSceneTypes;
-//            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_FULL));
-//            newSceneTypes.append(SceneTypeEnum::toGuiName(SceneTypeEnum::SCENE_TYPE_GENERIC));
-//            QComboBox* newSceneTypeComboBox = newSceneDialog.addComboBox("Scene Type", newSceneTypes);
-            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-                newSceneName = newSceneNameLineEdit->text();
-//                bool isValidType = false;
-//                SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromGuiName(newSceneTypeComboBox->currentText(),
-//                                                                           &isValidType);                
-//                newScene = new Scene(sceneType);
-                newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
-                newScene->setName(newSceneName);
-                
-                /*
-                 * Get all browser tabs and only save transformations for tabs
-                 * that are valid.
-                 */ 
-                EventBrowserTabGetAll getAllTabs;
-                EventManager::get()->sendEvent(getAllTabs.getPointer());
-                const std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
+            /*
+             * Get all browser tabs and only save transformations for tabs
+             * that are valid.
+             */ 
+            EventBrowserTabGetAll getAllTabs;
+            EventManager::get()->sendEvent(getAllTabs.getPointer());
+            std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
+            
+            SceneAttributes* sceneAttributes = newScene->getAttributes();
+            sceneAttributes->setSceneFileName(sceneFile->getFileName());
+            sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
+            sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
+            
+            newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
+                                                              "guiManager"));
+            
+            sceneFile->addScene(newScene);            
+            loadSceneListWidget(newScene);
+        }
+    }
+}
 
-                SceneAttributes* sceneAttributes = newScene->getAttributes();
-                sceneAttributes->setSceneFileName(sceneFile->getFileName());
-                sceneAttributes->setIndicesOfTabsForSavingToScene(allTabIndices);
-                
-                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
-                                                                  "guiManager"));
-                
-                sceneFile->addScene(newScene);
+/**
+ * Create the main page.
+ * @return the main page.
+ */
+QWidget* 
+SceneDialog::createMainPage()
+{
+    /*
+     * Scene File Controls
+     */
+    QLabel* sceneFileLabel = new QLabel("Scene File");
+    m_sceneFileSelectionComboBox = new QComboBox();
+    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+    m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                                m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
+    
+    WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox, 
+                                          "Selects an existing scene file\n"
+                                          "to which new scenes are added.");
+    QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
+                     this, SLOT(sceneFileSelected()));
+    QPushButton* newSceneFilePushButton = new QPushButton("New...");
+    QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(newSceneFileButtonClicked()));
+    
+    /*
+     * Scene controls
+     */ 
+    QLabel* sceneLabel = new QLabel("Scenes");
+    
+    /*
+     * Add new scene button
+     */
+    m_addNewScenePushButton = new QPushButton("Add...");
+    QObject::connect(m_addNewScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(addNewSceneButtonClicked()));
+    
+    /*
+     * Delete new scene button
+     */
+    m_deleteScenePushButton = new QPushButton("Delete...");
+    QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(deleteSceneButtonClicked()));
+    
+    /*
+     * Show new scene button
+     */
+    m_showScenePushButton = new QPushButton("Show...");
+    QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(showSceneButtonClicked()));
+    
+    /*
+     * Layout for scene buttons
+     */
+    QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
+    sceneButtonLayout->addWidget(m_showScenePushButton);
+    sceneButtonLayout->addStretch();
+    sceneButtonLayout->addWidget(m_addNewScenePushButton);
+    sceneButtonLayout->addWidget(m_deleteScenePushButton);
+    
+    /*
+     * Scene selection list widget
+     */
+    m_sceneSelectionListWidget = new QListWidget();
+    m_sceneSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
+    QObject::connect(m_sceneSelectionListWidget, SIGNAL(currentRowChanged(int)),
+                     this, SLOT(sceneSelected()));
+    
+    /*
+     * Layout widgets
+     */
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
+    int row = 0;
+    gridLayout->addWidget(sceneFileLabel, row, 0);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox, row, 1);
+    gridLayout->addWidget(newSceneFilePushButton, row, 2);
+    row++;
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
+    row++;
+    gridLayout->addWidget(sceneLabel, row, 0, (Qt::AlignTop | Qt::AlignRight));
+    gridLayout->addWidget(m_sceneSelectionListWidget, row, 1);
+    gridLayout->addLayout(sceneButtonLayout, row, 2);
+    
+    return widget;
+}
+
+/**
+ * Create the options page.
+ * @return the options page.
+ */
+QWidget* 
+SceneDialog::createOptionPage()
+{
+    /*
+     * Layout for page
+     */
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(createSceneCreateOptionsWidget());
+    layout->addWidget(createSceneShowOptionsWidget());
+    layout->addStretch();
+    
+    return widget;
+}
+
+/**
+ * @return Create and return a widget with the create scenes options.
+ */
+QWidget* 
+SceneDialog::createSceneCreateOptionsWidget()
+{
+    m_optionsCreateSceneAddSpecFileCheckBox = new QCheckBox("Add spec file name to scene");
+    m_optionsCreateSceneAddSpecFileCheckBox->setChecked(true);
+    
+    /*
+     * Create scene group box
+     */
+    const int COLUMN_LABEL = 0;
+//    const int COLUMN_WIDGET = 1;
+    QGroupBox* createScenesOptionsGroupBox = new QGroupBox("Create scenes options");
+    QGridLayout* createScenesLayout = new QGridLayout(createScenesOptionsGroupBox);
+    const int createSceneRow = createScenesLayout->rowCount(); // should be zero
+    createScenesLayout->addWidget(m_optionsCreateSceneAddSpecFileCheckBox, createSceneRow, COLUMN_LABEL, 1, 2);
+    
+    return createScenesOptionsGroupBox;
+}
+
+/**
+ * @return Create and return a widget with the show scenes options.
+ */
+QWidget* 
+SceneDialog::createSceneShowOptionsWidget()
+{
+    /*
+     * Show scene window behavior combo box
+     */
+    QLabel* optionShowSceneWindowBehaviorLabel = new QLabel("Window positioning: ");
+    m_optionsShowSceneWindowBehaviorComboBox = new QComboBox();
+    m_optionsShowSceneWindowBehaviorComboBox->addItem("Ignore window positions from scene",
+                                                      (int)SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES);
+    m_optionsShowSceneWindowBehaviorComboBox->addItem("Position windows relative to first window",
+                                                      (int)SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
+    m_optionsShowSceneWindowBehaviorComboBox->addItem("Use all window positions from scene",
+                                                      (int)SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES);
+    m_optionsShowSceneWindowBehaviorComboBox->setCurrentIndex(1);
+    
+    /*
+     * Show scene group box
+     */
+    const int COLUMN_LABEL = 0;
+    const int COLUMN_WIDGET = 1;
+    QGroupBox* showScenesOptionsGroupBox = new QGroupBox("Show scenes options");
+    QGridLayout* showScenesLayout = new QGridLayout(showScenesOptionsGroupBox);
+    const int showSceneRow = showScenesLayout->rowCount(); // should be zero
+    showScenesLayout->addWidget(optionShowSceneWindowBehaviorLabel, showSceneRow, COLUMN_LABEL);
+    showScenesLayout->addWidget(m_optionsShowSceneWindowBehaviorComboBox, showSceneRow, COLUMN_WIDGET);
+    
+    return showScenesOptionsGroupBox;
+}
+
+/**
+ * Gets called to verify the content of the scene creation dialog.
+ * @param sceneCreateDialog
+ *    Scene creation dialog.
+ */
+void 
+SceneDialog::validateContentOfCreateSceneDialog(WuQDataEntryDialog* sceneCreateDialog)
+{
+    CaretAssert(sceneCreateDialog);
+    
+    bool dataValid = true;
+    QString errorMessage = "";
+    
+    QWidget* sceneNameWidget = sceneCreateDialog->getDataWidgetWithName("sceneNameLineEdit");
+    if (sceneNameWidget != NULL) {
+        QLineEdit* sceneNameLineEdit = dynamic_cast<QLineEdit*>(sceneNameWidget);
+        const AString sceneName = sceneNameLineEdit->text().trimmed();
+        if (sceneName.isEmpty()) {
+            dataValid = false;
+            if (errorMessage.isEmpty() == false) {
+                errorMessage += "\n";
             }
+            errorMessage += ("Scene Name is empty.");
+        }
+        else {
+            SceneFile* sceneFile = getSelectedSceneFile();
+            if (sceneFile != NULL) {
+                const int32_t numScenes = sceneFile->getNumberOfScenes();
+                for (int32_t i = 0; i < numScenes; i++) {
+                    Scene* scene = sceneFile->getSceneAtIndex(i);
+                    if (scene->getName() == sceneName) {
+                        dataValid = false;
+                        if (errorMessage.isEmpty() == false) {
+                            errorMessage += "\n";
+                        }
+                        errorMessage += ("An existing scene uses the name \""
+                                         + sceneName
+                                         + "\".  Scene names must be unique.");
+                        break;
+                    }
+                }
+            }
+        }
     }
     
-    loadSceneListWidget(newScene);
+    sceneCreateDialog->setDataValid(dataValid, 
+                                    errorMessage);
 }
+
 
 /**
  * Called when delete scene button clicked.
@@ -479,8 +609,18 @@ SceneDialog::showSceneButtonClicked()
                                    + guiManagerClass->getName());
             return;
         }
+        
+        /*
+         * Window restoration behavior
+         */
+        const int windowBehaviorIndex = m_optionsShowSceneWindowBehaviorComboBox->currentIndex();
+        const SceneAttributes::RestoreWindowBehavior windowBehavior 
+           = static_cast<SceneAttributes::RestoreWindowBehavior>(m_optionsShowSceneWindowBehaviorComboBox->itemData(windowBehaviorIndex).toInt());
+        
         SceneAttributes* sceneAttributes = scene->getAttributes();
         sceneAttributes->setSceneFileName(sceneFileName);
+        sceneAttributes->setWindowRestoreBehavior(windowBehavior);
+        
         GuiManager::get()->restoreFromScene(sceneAttributes, 
                                             guiManagerClass);
         

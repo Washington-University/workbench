@@ -110,6 +110,9 @@ SceneWriterXml::writeScene(const Scene& scene,
     m_xmlWriter.writeElementCData(SceneXmlElements::SCENE_NAME_TAG, 
                                   scene.getName());
     
+    m_xmlWriter.writeElementCData(SceneXmlElements::SCENE_DESCRIPTION_TAG, 
+                                  scene.getDescription());
+    
     /*
      * Write scene classes.
      */

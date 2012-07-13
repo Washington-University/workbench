@@ -52,6 +52,7 @@ SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
 : CaretObject(), m_sceneType(sceneType)
 {
     m_restoreWindowBehavior = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
+    m_includeSpecFileNameInScene = true;
 }
 
 /**
@@ -131,6 +132,26 @@ void
 SceneAttributes::setWindowRestoreBehavior(const RestoreWindowBehavior rwb)
 {
     m_restoreWindowBehavior = rwb;
+}
+
+/**
+ * @return true if spec file name is included in scene.
+ */
+bool 
+SceneAttributes::isSpecFileNameIncludedInScene() const
+{
+    return m_includeSpecFileNameInScene;
+}
+
+/**
+ * Set spec file name included in scene.
+ * @param status
+ *    New status of spec file name included in scene.
+ */
+void 
+SceneAttributes::setSpecFileNameIncludedInScene(const bool status)
+{
+    m_includeSpecFileNameInScene = status;
 }
 
 

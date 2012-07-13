@@ -72,6 +72,10 @@ namespace caret {
 
         void setName(const AString& sceneName);
 
+        AString getDescription() const;
+        
+        void setDescription(const AString& description);
+        
 
         // ADD_NEW_METHODS_HERE
 
@@ -83,11 +87,12 @@ namespace caret {
         /** Classes contained in the scene*/
         std::vector<SceneClass*> m_sceneClasses;
 
-
         /** name of scene*/
         AString m_sceneName;
 
-
+        /** description of scene */
+        AString m_sceneDescription;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
