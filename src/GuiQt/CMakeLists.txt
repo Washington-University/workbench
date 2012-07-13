@@ -84,6 +84,7 @@ WuQDoubleSlider.h
 WuQEventBlockingFilter.h
 WuQFileDialog.h
 WuQGridLayoutGroup.h
+WuQListWidget.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
@@ -181,6 +182,7 @@ WuQEventBlockingFilter.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQGridLayoutGroup.h
+WuQListWidget.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
@@ -268,6 +270,7 @@ WuQDoubleSlider.cxx
 WuQEventBlockingFilter.cxx
 WuQFileDialog.cxx
 WuQGridLayoutGroup.cxx
+WuQListWidget.cxx
 WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
 WuQTreeWidget.cxx

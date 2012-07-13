@@ -183,6 +183,46 @@ SceneFile::removeSceneAtIndex(const int32_t indx)
 }
 
 /**
+ * Reorder the scenes given the newly ordered scenes.
+ * Any existing scenes not in the newly ordered scenes are 
+ * removed.
+ *
+ * @param orderedScenes
+ *    Newly ordered scenes.
+ */
+void 
+SceneFile::reorderScenes(std::vector<Scene*>& orderedScenes)
+{
+    /*
+     * Make copy of pointers to existing scenes
+     */
+    std::vector<Scene*> oldSceneVector = m_scenes;
+    
+    /*
+     * Replace scenes with newly ordered scenes
+     */
+    m_scenes = orderedScenes;
+    
+    /*
+     * If an existing scene is not in the newly ordered scenes,
+     * remove it.
+     */
+    for (std::vector<Scene*>::iterator iter = oldSceneVector.begin();
+         iter != oldSceneVector.end();
+         iter++) {
+        Scene* scene = *iter;
+        if (std::find(m_scenes.begin(),
+                      m_scenes.end(),
+                      scene) == m_scenes.end()) {
+            delete scene;
+        }
+    }
+    
+    setModified();
+}
+
+
+/**
  * @return The structure for this file.
  */
 StructureEnum::Enum 
