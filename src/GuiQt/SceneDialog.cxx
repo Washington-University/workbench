@@ -84,7 +84,7 @@ SceneDialog::SceneDialog(QWidget* parent)
                     parent)
 {
     QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(createMainPage(), "Main");
+    tabWidget->addTab(createMainPage(), "Scenes");
     tabWidget->addTab(createOptionPage(), "Options");
     
     /*
@@ -374,12 +374,15 @@ SceneDialog::createMainPage()
     m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
     m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
                                                 m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
-    
     WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox, 
                                           "Selects an existing scene file\n"
                                           "to which new scenes are added.");
     QObject::connect(m_sceneFileSelectionComboBox, SIGNAL(activated(int)),
                      this, SLOT(sceneFileSelected()));
+    
+    /*
+     * New File button
+     */
     QPushButton* newSceneFilePushButton = new QPushButton("New...");
     QObject::connect(newSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(newSceneFileButtonClicked()));
@@ -406,7 +409,7 @@ SceneDialog::createMainPage()
     /*
      * Show new scene button
      */
-    m_showScenePushButton = new QPushButton("Show...");
+    m_showScenePushButton = new QPushButton("Show");
     QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
                      this, SLOT(showSceneButtonClicked()));
     
@@ -426,6 +429,8 @@ SceneDialog::createMainPage()
     m_sceneSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
     QObject::connect(m_sceneSelectionListWidget, SIGNAL(currentRowChanged(int)),
                      this, SLOT(sceneSelected()));
+    QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+                     this, SLOT(showSceneButtonClicked()));  // show the scene
     
     /*
      * Layout widgets
