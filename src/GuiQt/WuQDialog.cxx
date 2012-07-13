@@ -544,45 +544,14 @@ WuQDialog::setAutoDefaultButtonProcessing(bool enabled)
 void 
 WuQDialog::disableAutoDefaultForAllPushButtons()
 {
-    QList<QPushButton*> allPushButtons;
-    
-    /*
-     * Find pushbuttons in user's widgets
-     */
-    QListIterator<QWidget*> widgetIterator(m_userWidgets);
-    while (widgetIterator.hasNext()) {
-        QWidget* widget = widgetIterator.next();
-        QObjectList children = widget->children();
-        QListIterator<QObject*> childrenIterator(children);
-        while (childrenIterator.hasNext()) {
-            QObject* o = childrenIterator.next();
-            QPushButton* pb = dynamic_cast<QPushButton*>(o);
-            if (pb != NULL) {
-                allPushButtons.append(pb);
-            }
-        }
-    }
-    
-    /*
-     * Find dialog's buttons in button box
-     */
-    QList<QAbstractButton*> dialogButtons = buttonBox->buttons();
-    QListIterator<QAbstractButton*> dialogButtonsIterator(dialogButtons);
-    while (dialogButtonsIterator.hasNext()) {
-        QAbstractButton* abstractButton = dialogButtonsIterator.next();
-        QPushButton* pushButton = dynamic_cast<QPushButton*>(abstractButton);
-        if (pushButton != NULL) {
-            allPushButtons.append(pushButton);
-        }
-    }
-    
     /*
      * Disable auto default for all push buttons
      */
-    QListIterator<QPushButton*> allPushButtonsIterator(allPushButtons);
-    while (allPushButtonsIterator.hasNext()) {
-        QPushButton* pushButton = allPushButtonsIterator.next();
-        //std::cout << "Disabling auto default for: " << qPrintable(pushButton->text()) << std::endl;
+    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegExp(".*"));
+    QListIterator<QPushButton*> allChildPushButtonsIterator(allChildPushButtons);
+    while (allChildPushButtonsIterator.hasNext()) {
+        QPushButton* pushButton = allChildPushButtonsIterator.next();
+        //std::cout << "Disabling auto default for pushbutton: " << qPrintable(pushButton->text()) << std::endl;
         pushButton->setAutoDefault(false);
         pushButton->setDefault(false);
     }
