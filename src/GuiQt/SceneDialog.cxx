@@ -38,7 +38,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QTextEdit>
@@ -64,6 +63,7 @@
 #include "SceneFile.h"
 #include "Scene.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -156,8 +156,6 @@ SceneDialog::getSelectedScene()
     QListWidgetItem* lwi = m_sceneSelectionListWidget->currentItem();
     if (lwi != NULL) {
         scene = reinterpret_cast<Scene*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-//        void* ptr = qVariantValue<void*>(lwi->data(Qt::UserRole));
-//        scene = (Scene*)ptr;
     }
     return scene;
 }
@@ -425,24 +423,14 @@ SceneDialog::createMainPage()
     /*
      * Scene selection list widget
      */
-    m_sceneSelectionListWidget = new DragDropListWidget();
-    //m_sceneSelectionListWidget = new QListWidget();
-//    m_sceneSelectionListWidget->setViewMode(QListView::ListMode);
-//    m_sceneSelectionListWidget->setMovement(QListView::Free);
-    m_sceneSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
-    m_sceneSelectionListWidget->setDragEnabled(true);
-    m_sceneSelectionListWidget->setDragDropMode(QListWidget::InternalMove);
+    m_sceneSelectionListWidget = new WuQListWidget();
     
     QObject::connect(m_sceneSelectionListWidget, SIGNAL(currentRowChanged(int)),
-                     this, SLOT(sceneSelected()));
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemChanged(QListWidgetItem*)),
-                     this, SLOT(sceneSelected()));
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemSelectionChanged()),
                      this, SLOT(sceneSelected()));
     QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
                      this, SLOT(showSceneButtonClicked()));  // show the scene
     QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemWasDropped()),
-                     this, SLOT(sceneWasDropped()));  // show the scene
+                     this, SLOT(sceneWasDropped())); 
     
     /*
      * Layout widgets
@@ -471,6 +459,9 @@ SceneDialog::sceneWasDropped()
 {
     std::vector<Scene*> newlyOrderedScenes;
     
+    /*
+     * Get the scenes from this list widget to obtain the new scene ordering.
+     */
     const int32_t numItems = m_sceneSelectionListWidget->count();
     for (int32_t i = 0; i < numItems; i++) {
         QListWidgetItem* lwi = m_sceneSelectionListWidget->item(i);
@@ -483,6 +474,9 @@ SceneDialog::sceneWasDropped()
     }
     
     if (newlyOrderedScenes.empty() == false) {
+        /*
+         * Update the order of the scenes in the scene file.
+         */
         SceneFile* sceneFile = getSelectedSceneFile();
         if (sceneFile != NULL) {
             sceneFile->reorderScenes(newlyOrderedScenes);
@@ -695,36 +689,3 @@ SceneDialog::receiveEvent(Event* event)
         uiEvent->setEventProcessed();
     }
 }
-
-/**
- * Constructor.
- * @param parent
- *    Optional parent widget.
- */
-DragDropListWidget::DragDropListWidget(QWidget* parent)
-: QListWidget(parent)
-{
-    
-}
-
-/**
- * Destructor.
- */
-DragDropListWidget::~DragDropListWidget()
-{
-    
-}
-
-/**
- * Receives drop events then emits the itemWasDropped signal.
- * @param e
- *    The drop event.
- */
-void 
-DragDropListWidget::dropEvent(QDropEvent* e)
-{
-    std::cout << "Item dropped" << std::endl;
-    QListWidget::dropEvent(e);
-    emit itemWasDropped();
-}
-

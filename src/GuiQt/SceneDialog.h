@@ -34,7 +34,6 @@
  */
 /*LICENSE_END*/
 
-#include <QListWidget>
 
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
@@ -45,9 +44,9 @@ class QPushButton;
 
 namespace caret {
 
-    class DragDropListWidget;
     class Scene;
     class SceneFile;
+    class WuQListWidget;
     class WuQDataEntryDialog;
     
     class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -112,27 +111,11 @@ namespace caret {
         
         QPushButton* m_showScenePushButton;
         
-        //QListWidget* m_sceneSelectionListWidget;
-        DragDropListWidget* m_sceneSelectionListWidget;
+        WuQListWidget* m_sceneSelectionListWidget;
         
         QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
         
         QCheckBox* m_optionsCreateSceneAddSpecFileCheckBox;
-    };
-    
-    
-    class DragDropListWidget : public QListWidget {
-        Q_OBJECT
-    public:
-        DragDropListWidget(QWidget* parent = 0);
-        
-        virtual ~DragDropListWidget();
-    signals:
-        void itemWasDropped();
-        
-    protected:
-        virtual void dropEvent(QDropEvent*);
-        
     };
 #ifdef __SCENE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
