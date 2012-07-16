@@ -83,7 +83,7 @@ Brain::Brain()
 {
     m_connectivityLoaderManager = new ConnectivityLoaderManager(this);
     m_paletteFile = new PaletteFile();
-    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileName()));
+    m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
     m_specFile = new SpecFile();
     m_surfaceMontageController = NULL;
@@ -300,7 +300,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete m_paletteFile;
     }
     m_paletteFile = new PaletteFile();
-    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileName()));
+    m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
     
     m_connectivityLoaderManager->reset();
@@ -1013,7 +1013,7 @@ BorderFile*
 Brain::addBorderFile()
 {
     BorderFile* bf = new BorderFile();
-    bf->setFileName(updateFileNameForReadingAndWriting(bf->getFileName()));
+    bf->setFileName(updateFileNameForWriting(bf->getFileName()));
     m_borderFiles.push_back(bf);
     return bf;
 }
@@ -1272,7 +1272,7 @@ FociFile*
 Brain::addFociFile()
 {
     FociFile* ff = new FociFile();
-    ff->setFileName(updateFileNameForReadingAndWriting(ff->getFileName()));
+    ff->setFileName(updateFileNameForWriting(ff->getFileName()));
     m_fociFiles.push_back(ff);
     return ff;
 }
@@ -1306,7 +1306,7 @@ SceneFile*
 Brain::addSceneFile()
 {
     SceneFile* sf = new SceneFile();
-    sf->setFileName(updateFileNameForReadingAndWriting(sf->getFileName()));
+    sf->setFileName(updateFileNameForWriting(sf->getFileName()));
     m_sceneFiles.push_back(sf);
     return sf;
 }
@@ -1514,11 +1514,22 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const AString& dataFileNameIn,
                     const bool addDataFileToSpecFile) throw (DataFileException)
 {
-    AString dataFileName = updateFileNameForReadingAndWriting(dataFileNameIn);
-    FileInformation fileInfo(dataFileName);
-    if (fileInfo.exists() == false) {
-        throw DataFileException(dataFileName
-                                + " does not exist!");
+    AString dataFileName = dataFileNameIn;
+    
+    /*
+     * If possible, update path so that is absolute
+     */
+    dataFileName = updateFileNameForReading(dataFileName);
+    
+    /*
+     * Since file is being read, it must exist
+     */
+    if (DataFile::isFileOnNetwork(dataFileName) == false) {
+        FileInformation fileInfoFullPath(dataFileName);
+        if (fileInfoFullPath.exists() == false) {
+            throw DataFileException(dataFileName
+                                    + " does not exist!");
+        }
     }
     
     CaretDataFile* caretDataFileRead = NULL;
@@ -1678,7 +1689,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         delete m_paletteFile;
     }
     m_paletteFile = new PaletteFile();
-    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileNameNoPath()));
+    m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
     
     /*
@@ -1834,7 +1845,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         delete m_paletteFile;
     }
     m_paletteFile = new PaletteFile();
-    m_paletteFile->setFileName(updateFileNameForReadingAndWriting(m_paletteFile->getFileNameNoPath()));
+    m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
     
     /*
@@ -1866,8 +1877,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
 
 
 /**
- * Given a file name, if the path to the file is relative
- * prepend it with the current directory for this brain.
+ * Update the filename for writing so that it is an absolute path.
  * 
  * @param filename
  *    Name of file.
@@ -1876,8 +1886,50 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
  *    the input filename was a relative path.
  */
 AString 
-Brain::updateFileNameForReadingAndWriting(const AString& filename)
+Brain::updateFileNameForReading(const AString& filename)
 {
+    /*
+     * If file is on network, leave it unchanged
+     */
+    if (DataFile::isFileOnNetwork(filename)) {
+        return filename;
+    }
+    
+    FileInformation fileInfo(filename);
+    if (fileInfo.isAbsolute()) {
+        return filename;
+    }
+
+    if (m_currentDirectory.isEmpty()) {
+        return filename;
+    }
+    
+    FileInformation pathFileInfo(m_currentDirectory, filename);
+    AString fullPathName = pathFileInfo.getFilePath();
+    
+    return fullPathName;
+}
+
+/**
+ * Update the filename for writing so that it is an absolute path.
+ * 
+ * @param filename
+ *    Name of file.
+ * @return
+ *    Name prepended with path, if availble, and if 
+ *    the input filename was a relative path.
+ */
+AString 
+Brain::updateFileNameForWriting(const AString& filename) throw (DataFileException)
+{
+    /*
+     * If file is on network, leave it unchanged
+     */
+    if (DataFile::isFileOnNetwork(filename)) {
+        throw DataFileException("Cannot write file on network: " 
+                                + filename);
+    }
+    
     FileInformation fileInfo(filename);
     if (fileInfo.isAbsolute()) {
         return filename;
@@ -2140,7 +2192,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
      * If file is relative path, update path using current directory
      */
     AString dataFileName = caretDataFile->getFileName();
-    dataFileName = updateFileNameForReadingAndWriting(dataFileName);
+    dataFileName = updateFileNameForWriting(dataFileName);
     caretDataFile->setFileName(dataFileName);
 
     caretDataFile->writeFile(caretDataFile->getFileName());

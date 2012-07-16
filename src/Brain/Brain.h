@@ -275,7 +275,9 @@ namespace caret {
         
         void readSceneFile(const AString& filename) throw (DataFileException);
         
-        AString updateFileNameForReadingAndWriting(const AString& filename);
+        AString updateFileNameForReading(const AString& filename);
+        
+        AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
         
         void setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
                                              const bool selectedStatus);
