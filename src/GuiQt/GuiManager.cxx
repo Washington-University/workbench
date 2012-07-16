@@ -318,6 +318,23 @@ GuiManager::getAllOpenBrainBrowserWindows() const
 }
 
 /**
+ * @return Return an open browser window.  Returns NULL if there
+ * are no open browser windows.
+ */
+BrainBrowserWindow* 
+GuiManager::getOpenBrowserWindow() const
+{
+    int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
+    for (int32_t i = 0; i < numWindows; i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            return m_brainBrowserWindows[i];
+        }
+    }    
+    return NULL;
+}
+
+
+/**
  * Get the brain browser window with the given window index.
  * Note that as browser windows are opened or closed, a window's
  * index NEVER changes.  Thus, a NULL value may be returned for 
@@ -773,14 +790,16 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
 /**
  * Show the scene dialog.  If dialog needs to be created, use the
  * given window as the parent.
- * @param browserWindow
+ * @param browserWindowIn
  *    Parent of scene dialog if it needs to be created.
  */
 void 
-GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindow)
+GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
 {
     bool wasCreatedFlag = false;
 
+    BrainBrowserWindow* browserWindow = browserWindowIn;
+    
     if (this->sceneDialog == NULL) {
             this->sceneDialog = new SceneDialog(browserWindow);
             this->nonModalDialogs.push_back(this->sceneDialog);
@@ -835,6 +854,7 @@ GuiManager::showHideInfoWindowSelected(bool status)
              "is performed.  ");
     this->informationDisplayDialogEnabledAction->setToolTip(text);
 }
+
 
 /**
  * Show the information display window.

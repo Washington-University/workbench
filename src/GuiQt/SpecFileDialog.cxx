@@ -511,6 +511,8 @@ SpecFileDialog::userButtonPressed(QPushButton* userPushButton)
         
         writeUpdatedSpecFile(true);
         
+        GuiManager::get()->processShowSceneDialog(GuiManager::get()->getOpenBrowserWindow());
+        
         return RESULT_ACCEPT;
     }
     else {
