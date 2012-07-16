@@ -23,6 +23,7 @@
  */
 #include "Nifti1Header.h"
 #include <vector>
+#include <cmath>
 #include "stdint.h"
 
 using namespace caret;
@@ -202,17 +203,17 @@ void Nifti1Header::initHeaderStruct(nifti_1_header &header)
     header.qoffset_x = 0.0;
     header.qoffset_y = 0.0;
     header.qoffset_z = 0.0;
-    header.srow_x[0] = 0.0;
+    header.srow_x[0] = 1.0;//give it a default 1,1,1 space with origin at center of first voxel
     header.srow_x[1] = 0.0;
     header.srow_x[2] = 0.0;
     header.srow_x[3] = 0.0;
     header.srow_y[0] = 0.0;
-    header.srow_y[1] = 0.0;
+    header.srow_y[1] = 1.0;
     header.srow_y[2] = 0.0;
     header.srow_y[3] = 0.0;
     header.srow_z[0] = 0.0;
     header.srow_z[1] = 0.0;
-    header.srow_z[2] = 0.0;
+    header.srow_z[2] = 1.0;
     header.srow_z[3] = 0.0;
     header.slice_code = 0;
     header.xyzt_units = 0;//TODO
@@ -302,6 +303,9 @@ void Nifti1Header::setSForm(const std::vector < std::vector <float> > &sForm)
 {
     if(sForm.size()<3) return;//TODO should throw an exception
     for(uint i = 0;i<sForm.size();i++) if(sForm[i].size() <4 ) return;
+    m_header.pixdim[1] = std::sqrt(sForm[0][0] * sForm[0][0] + sForm[1][0] * sForm[1][0] + sForm[2][0] * sForm[2][0]);
+    m_header.pixdim[2] = std::sqrt(sForm[0][1] * sForm[0][1] + sForm[1][1] * sForm[1][1] + sForm[2][1] * sForm[2][1]);
+    m_header.pixdim[3] = std::sqrt(sForm[0][2] * sForm[0][2] + sForm[1][2] * sForm[1][2] + sForm[2][2] * sForm[2][2]);
     for(int i = 0;i<4;i++)
     {
         m_header.srow_x[i] = sForm[0][i];
@@ -309,5 +313,5 @@ void Nifti1Header::setSForm(const std::vector < std::vector <float> > &sForm)
         m_header.srow_z[i] = sForm[2][i];
     }
     m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;//use the constant for "1", because currently we haven't the faintest idea - the coordinate type doesn't really belong in the file anyway
+    m_header.qform_code = NIFTI_XFORM_UNKNOWN;//0, implies that there is no qform
 }
-
