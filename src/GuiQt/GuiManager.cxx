@@ -706,7 +706,9 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
 }
 
 /**
- * Close all but the first window.
+ * Close all but the given window.
+ * @param browserWindow
+ *    Window that is NOT closed.
  */
 void 
 GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
@@ -714,20 +716,22 @@ GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
     const int32_t numWindows = m_brainBrowserWindows.size();
     for (int32_t i = 0; i < numWindows; i++) {
         BrainBrowserWindow* bbw = m_brainBrowserWindows[i];
-        if (bbw != browserWindow) {
-            this->allowBrowserWindowsToCloseWithoutConfirmation = true;
-            bbw->close();
-            
-            /*
-             * Should delete the windows that were closed!
-             * When a window is closed, Qt uses 'deleteLater'
-             * but we need them deleted now so that event listeners
-             * are shut down since the closed windows no longer
-             * have any content.
-             */
-            QCoreApplication::sendPostedEvents(0,  QEvent::DeferredDelete);
-            
-            this->allowBrowserWindowsToCloseWithoutConfirmation = false;
+        if (bbw != NULL) {
+            if (bbw != browserWindow) {
+                this->allowBrowserWindowsToCloseWithoutConfirmation = true;
+                bbw->close();
+                
+                /*
+                 * Should delete the windows that were closed!
+                 * When a window is closed, Qt uses 'deleteLater'
+                 * but we need them deleted now so that event listeners
+                 * are shut down since the closed windows no longer
+                 * have any content.
+                 */
+                QCoreApplication::sendPostedEvents(0,  QEvent::DeferredDelete);
+                
+                this->allowBrowserWindowsToCloseWithoutConfirmation = false;
+            }
         }
     }
 }
@@ -1120,11 +1124,6 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
-                                    true);
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
-                                    true);
-    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -1137,10 +1136,32 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrainKeepSceneFiles();
+
+    /*
+     * Close all but one window
+     */
+    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
+    for (int32_t i = 0; i < numBrowserWindows; i++) {
+        if (m_brainBrowserWindows[i] != NULL) {
+            GuiManager::get()->closeAllOtherWindows(m_brainBrowserWindows[i]);
+            break;
+        }
+    }
     
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    /*
+     * Update the windows
+     */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
+    
+    /*
+     * Block graphics update events
+     */
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
+                                    true);
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+                                    true);
     
     /*
      * Restore session manager
@@ -1152,7 +1173,6 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Get open windows
      */
     std::list<BrainBrowserWindow*> availableWindows;
-    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numBrowserWindows; i++) {
         if (m_brainBrowserWindows[i] != NULL) {
             availableWindows.push_back(m_brainBrowserWindows[i]);
@@ -1196,6 +1216,9 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
+    /*
+     * Unblock graphics updates
+     */
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
                                     false);
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,

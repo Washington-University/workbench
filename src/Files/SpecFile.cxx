@@ -980,31 +980,34 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
     std::vector<SceneClass*> dataFileClasses;
     
     //
-    // Write files
+    // Write files (except scene files)
     //
     const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
     for (int32_t i = 0; i < numGroups; i++) {
         SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
-        const int32_t numFiles = group->getNumberOfFiles();
-        for (int32_t j = 0; j < numFiles; j++) {
-            SpecFileDataFile* file = group->getFileInformation(j);
-            
-            if (file->isRemovedFromSpecFileWhenWritten() == false) {
-                if (file->isSelected()) {
-                    SceneClass* fileClass = new SceneClass("specFileDataFile",
-                                                           "SpecFileDataFile",
-                                                           1);
-                    fileClass->addEnumeratedType<DataFileTypeEnum, DataFileTypeEnum::Enum>("dataFileType", 
-                                                                                           group->getDataFileType());
-                    fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
-                                                                                     file->getStructure());
-                    const AString name = updateFileNameAndPathForWriting(file->getFileName());
-                    fileClass->addPathName("fileName", 
-                                         file->getFileName());
-                    fileClass->addBoolean("selected", 
-                                          file->isSelected());
-                    
-                    dataFileClasses.push_back(fileClass);
+        const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
+        if (dataFileType != DataFileTypeEnum::SCENE) {
+            const int32_t numFiles = group->getNumberOfFiles();
+            for (int32_t j = 0; j < numFiles; j++) {
+                SpecFileDataFile* file = group->getFileInformation(j);
+                
+                if (file->isRemovedFromSpecFileWhenWritten() == false) {
+                    if (file->isSelected()) {
+                        SceneClass* fileClass = new SceneClass("specFileDataFile",
+                                                               "SpecFileDataFile",
+                                                               1);
+                        fileClass->addEnumeratedType<DataFileTypeEnum, DataFileTypeEnum::Enum>("dataFileType", 
+                                                                                               dataFileType);
+                        fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
+                                                                                         file->getStructure());
+                        const AString name = updateFileNameAndPathForWriting(file->getFileName());
+                        fileClass->addPathName("fileName", 
+                                               file->getFileName());
+                        fileClass->addBoolean("selected", 
+                                              file->isSelected());
+                        
+                        dataFileClasses.push_back(fileClass);
+                    }
                 }
             }
         }

@@ -54,6 +54,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CursorDisplayScoped.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -291,7 +292,6 @@ SceneDialog::sceneFileSelected()
 void 
 SceneDialog::sceneSelected()
 {
-    std::cout << "Row changed" << std::endl;
 }
 
 /**
@@ -648,6 +648,12 @@ SceneDialog::showSceneButtonClicked()
                                    + guiManagerClass->getName());
             return;
         }
+
+        /*
+         * Show the wait cursor
+         */
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
         
         /*
          * Window restoration behavior
@@ -662,6 +668,8 @@ SceneDialog::showSceneButtonClicked()
         
         GuiManager::get()->restoreFromScene(sceneAttributes, 
                                             guiManagerClass);
+        
+        cursor.restoreCursor();
         
         const AString sceneFileReadingErrorMessage = GuiManager::get()->getBrain()->getSceneFileReadingErrorMessages();
         if (sceneFileReadingErrorMessage.isEmpty() == false) {
