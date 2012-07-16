@@ -42,6 +42,7 @@
 #include "SpecFileDialog.h"
 #undef __SPEC_FILE_DIALOG_DECLARE__
 
+#include "CaretAssert.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -288,6 +289,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
                                         fileGroupWidget,
                                         optionsWidget);
     
+    m_loadScenesPushButton = NULL;
     switch (m_mode) {
         case MODE_FAST_OPEN:
             /*
@@ -301,6 +303,11 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
              * Change OK button to Load
              */
             setOkButtonText("Load");
+            
+            /*
+             * Load scenes push button
+             */
+            m_loadScenesPushButton = addUserPushButton("Load Scenes", QDialogButtonBox::AcceptRole);
             break;
     }
 }
@@ -480,6 +487,37 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
     guiSpecGroup->widget = groupBox;
     
     return guiSpecGroup;
+}
+
+/**
+ * Called when a push button was added using addUserPushButton().
+ * Subclasses MUST override this if user push buttons were 
+ * added using addUserPushButton().
+ *
+ * @param userPushButton
+ *    User push button that was pressed.
+ * @return 
+ *    The result that indicates action that should be taken
+ *    as a result of the button being pressed.
+ */
+WuQDialogModal::ModalDialogUserButtonResult 
+SpecFileDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_loadScenesPushButton) {
+        /*
+         * Load all of the scene files but nothing else
+         */
+        m_specFile->setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
+        
+        writeUpdatedSpecFile(true);
+        
+        return RESULT_ACCEPT;
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return RESULT_NONE;    
 }
 
 /**

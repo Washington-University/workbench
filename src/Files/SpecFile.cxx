@@ -908,6 +908,21 @@ SpecFile::setAllFilesSelected(bool selectionStatus)
 }
 
 /**
+ * Set all scene files selected and all other files not selected.
+ */
+void 
+SpecFile::setAllSceneFilesSelectedAndAllOtherFilesNotSelected()
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        const bool selectionStatus = (dataFileTypeGroup->getDataFileType() == DataFileTypeEnum::SCENE);
+        dataFileTypeGroup->setAllFilesSelected(selectionStatus);
+    }    
+}
+
+/**
  * @return Have any files in this spec file been edited (typically through spec file dialog?
  */
 bool 

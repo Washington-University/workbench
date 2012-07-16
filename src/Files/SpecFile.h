@@ -93,6 +93,8 @@ namespace caret {
         
         void setAllFilesSelected(bool selectionStatus);
         
+        void setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
+        
         GiftiMetaData* getMetaData() { return this->metadata; }
         
         static float getFileVersion();

@@ -73,6 +73,8 @@ namespace caret {
         
         virtual void cancelButtonClicked();
         
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
+        
     private slots:
         void toolBarButtonTriggered(QAction*);
         void selectToolButtonTriggered(QAction*);
@@ -112,6 +114,8 @@ namespace caret {
         QAction* m_selectNoneFilesToolButtonAction;
         
         WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
+        
+        QPushButton* m_loadScenesPushButton;
         
         friend class GuiSpecDataFileInfo;
     };
