@@ -439,6 +439,62 @@ DataFileTypeEnum::isFileUsedWithOneStructure(const Enum enumValue)
 }
 
 /**
+ * @return All valid file extensions for the given enum value.
+ * @param enumValue
+ *     Enumerated type for file extensions.
+ */
+std::vector<AString> 
+DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->fileExtensions;
+}
+
+/**
+ * If the given filename does not contain a file extension that is valid
+ * for the given data file type, add the first valid file extension from
+ * the given data file type.
+ *
+ * @param filename
+ *    Name of file that may not have the correct file extension.
+ * @param enumValue
+ *    The data file type.
+ * @return
+ *    Input file name to which a file extension may have been added.
+ */
+AString 
+DataFileTypeEnum::addFileExtensionIfMissing(const AString& filenameIn,
+                                            const Enum enumValue)
+{   
+    AString filename = filenameIn;
+
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    
+    /*
+     * See if filename ends with any of the available extensions for the
+     * given data file type.
+     */
+    for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
+         iter != enumInstance->fileExtensions.end();
+         iter++) {
+        const AString ext = *iter;
+        if (filename.endsWith(ext)) {
+            return filename;
+        }
+    }
+    
+    /*
+     * Add default extension.
+     */
+    const AString defaultExtension = DataFileTypeEnum::toFileExtension(enumValue);
+    filename += ("." + defaultExtension);
+    
+    return filename;
+}
+
+/**
  * Get the primary file extension for the file type.
  * @param enumValue
  *    The data file type.

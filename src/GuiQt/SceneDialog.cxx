@@ -255,10 +255,10 @@ SceneDialog::newSceneFileButtonClicked()
     /*
      * Let user choose a different path/name
      */
-    AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(this,
-                                                          "Choose Scene File Name",
-                                                          newSceneFile->getFileName(),
-                                                          DataFileTypeEnum::toQFileDialogFilter(newSceneFile->getDataFileType()));
+    AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::SCENE,
+                                                                      this,
+                                                                      "Choose Scene File Name",
+                                                                      newSceneFile->getFileName());
     /*
      * If user cancels, delete the new scene file and return
      */

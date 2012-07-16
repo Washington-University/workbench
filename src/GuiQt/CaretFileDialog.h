@@ -44,6 +44,8 @@
 #include "WuQFileDialog.h"
 #endif
 
+#include "DataFileTypeEnum.h"
+
 namespace caret {
 
 #ifdef USE_QT_FILE_DIALOG
@@ -81,6 +83,13 @@ namespace caret {
                                        const QString &filter = QString(),
                                        QString *selectedFilter = 0,
                                        Options options = 0);
+        
+        // modal method to get save file name
+        static QString getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                             QWidget *parent = 0,
+                                             const QString &caption = QString(),
+                                             const QString &dir = QString(),
+                                             Options options = 0);
         
         // modal method to get directory name
         static QString getExistingDirectoryDialog(QWidget *parent = 0,

@@ -356,10 +356,10 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
     /*
      * Let user choose a different path/name
      */
-    AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(this,
+    AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
+                                                                      this,
                                                                       "Choose Scene File Name",
-                                                                      newBorderFile->getFileName(),
-                                                                      DataFileTypeEnum::toQFileDialogFilter(newBorderFile->getDataFileType()));
+                                                                      newBorderFile->getFileName());
     /*
      * If user cancels, delete the new border file and return
      */

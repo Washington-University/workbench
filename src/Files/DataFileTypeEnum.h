@@ -93,11 +93,16 @@ public:
     
     static AString toFileExtension(const Enum enumValue);
     
+    static std::vector<AString> getAllFileExtensions(const Enum enumValue);
+    
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
     static bool isConnectivityDataType(const Enum enumValue);
     
     static void getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOut);
+    
+    static AString addFileExtensionIfMissing(const AString& filename,
+                                             const Enum enumValue);
     
 private:
     DataFileTypeEnum(const Enum enumValue, 
