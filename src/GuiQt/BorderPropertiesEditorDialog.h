@@ -58,7 +58,7 @@ namespace caret {
         virtual ~BorderPropertiesEditorDialog();
         
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
     private slots:
         void displayClassEditor();

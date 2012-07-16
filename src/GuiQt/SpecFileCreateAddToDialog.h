@@ -64,9 +64,9 @@ namespace caret {
         void fileButtonClicked();
         
     protected:
-        void okButtonPressed();
+        void okButtonClicked();
         
-        virtual void userButtonPressed(QPushButton* userPushButton);        
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
         
     private:
         SpecFileCreateAddToDialog(const SpecFileCreateAddToDialog&);

@@ -57,7 +57,8 @@ namespace caret  {
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
         
-        QPushButton* addUserPushButton(const AString& text);
+        virtual QPushButton* addUserPushButton(const AString& text,
+                                               const QDialogButtonBox::ButtonRole buttonRole) = 0;
         
         void setDeleteWhenClosed(bool deleteFlag);
         
@@ -90,7 +91,7 @@ namespace caret  {
         
         virtual void contextMenuEvent(QContextMenuEvent*);
         
-        virtual void userButtonPressed(QPushButton* userPushButton);        
+        virtual void helpButtonClicked();
         
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,

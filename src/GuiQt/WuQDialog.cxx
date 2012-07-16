@@ -488,41 +488,6 @@ WuQDialog::setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
 }
 
 /**
- * Adds a button to the dialog.  When the button is
- * pressed, userButtonPressed(QPushButton*) will be
- * called with the button that was created and returned
- * by this method.  The subclass of the dialog MUST
- * override userButtonPressed(QPushButton*).
- *
- * @param text
- *     Text for the pushbutton.
- * @return
- *     QPushButton that was created.
- */
-QPushButton* 
-WuQDialog::addUserPushButton(const AString& text)
-{
-    QPushButton* pushButton = this->buttonBox->addButton(text, QDialogButtonBox::ApplyRole);
-    return pushButton;
-}
-
-/**
- * Called when a push button was added using addUserPushButton().
- * Subclasses MUST override this if user push buttons were 
- * added using addUserPushButton().
- *
- * @param userPushButton
- *    User push button that was pressed.
- */
-void 
-WuQDialog::userButtonPressed(QPushButton* userPushButton)
-{
-    CaretAssertMessage(0, "Subclass MUST override WuQDialog::userButtonPressed to process button labeled \""
-                + userPushButton->text()
-                + "\"");
-}
-
-/**
  * Enable auto default button processing. 
  * Often it is very annoying so use this method
  * withe enable == false, to disable it.
@@ -556,5 +521,16 @@ WuQDialog::disableAutoDefaultForAllPushButtons()
         pushButton->setDefault(false);
     }
 }
+
+/**
+ * Called when a help button has been added to the dialog.
+ * User must override this method when adding a help button.
+ */
+void 
+WuQDialog::helpButtonClicked()
+{
+    CaretAssertMessage(0, "Help button was added to dialog but WuQDialog::helpButtonClicked() was not overriden");
+}
+
 
 

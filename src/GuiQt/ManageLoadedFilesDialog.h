@@ -53,7 +53,7 @@ namespace caret {
         virtual ~ManageLoadedFilesDialog();
 
     protected:
-        virtual void userButtonPressed(QPushButton* userPushButton);        
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
         
     private:
         ManageLoadedFilesDialog(const ManageLoadedFilesDialog&);

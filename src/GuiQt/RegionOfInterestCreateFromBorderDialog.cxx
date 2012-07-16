@@ -222,7 +222,7 @@ RegionOfInterestCreateFromBorderDialog::fileSelectionWasChanged(CaretMappableDat
  * Called when the user presses the OK button.
  */
 void 
-RegionOfInterestCreateFromBorderDialog::okButtonPressed()
+RegionOfInterestCreateFromBorderDialog::okButtonClicked()
 {
     AString errorMessage;
     
@@ -380,7 +380,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
     }
     
     if (allowDialogToClose) {
-        WuQDialogModal::okButtonPressed();
+        WuQDialogModal::okButtonClicked();
     }
 }
 

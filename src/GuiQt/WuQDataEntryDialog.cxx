@@ -98,7 +98,7 @@ WuQDataEntryDialog::~WuQDataEntryDialog()
  * call this to issue the accept signal.
  */
 void 
-WuQDataEntryDialog::okButtonPressed()
+WuQDataEntryDialog::okButtonClicked()
 {
     m_isDataValid = true;
     m_dataInvalidErrorMessage = "";
@@ -107,8 +107,9 @@ WuQDataEntryDialog::okButtonPressed()
     
     if (m_isDataValid) {
 //        if (dataEnteredIsValid()) {
-            accept();
+//            accept();
 //        }
+        WuQDialogModal::okButtonClicked();
     }
     else {
         if (m_dataInvalidErrorMessage.isEmpty()) {

@@ -148,7 +148,7 @@ namespace caret {
         void validateData(WuQDataEntryDialog* dataEntryDialog);
         
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
 //        // override to verify data after OK button pressed if subclassing this dialog
 //        virtual bool dataEnteredIsValid();

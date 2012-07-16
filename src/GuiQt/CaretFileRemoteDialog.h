@@ -51,7 +51,7 @@ namespace caret {
         virtual ~CaretFileRemoteDialog();
         
     protected:
-        void okButtonPressed();
+        void okButtonClicked();
         
     private:
         CaretFileRemoteDialog(const CaretFileRemoteDialog&);

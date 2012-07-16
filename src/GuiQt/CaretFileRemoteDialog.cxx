@@ -136,7 +136,7 @@ CaretFileRemoteDialog::~CaretFileRemoteDialog()
  * Called when OK button is pressed.
  */
 void 
-CaretFileRemoteDialog::okButtonPressed()
+CaretFileRemoteDialog::okButtonClicked()
 {
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -193,6 +193,6 @@ CaretFileRemoteDialog::okButtonPressed()
         return;
     }
     
-    WuQDialogModal::okButtonPressed();
+    WuQDialogModal::okButtonClicked();
 }
 

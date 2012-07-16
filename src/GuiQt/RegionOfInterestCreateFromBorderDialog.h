@@ -66,7 +66,7 @@ namespace caret {
         void fileSelectionWasChanged(CaretMappableDataFileAndMapSelector*);
         
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
     private:
         RegionOfInterestCreateFromBorderDialog(const RegionOfInterestCreateFromBorderDialog&);

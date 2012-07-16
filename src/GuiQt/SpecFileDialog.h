@@ -69,9 +69,9 @@ namespace caret {
         virtual ~SpecFileDialog();
 
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
-        virtual void cancelButtonPressed();
+        virtual void cancelButtonClicked();
         
     private slots:
         void toolBarButtonTriggered(QAction*);

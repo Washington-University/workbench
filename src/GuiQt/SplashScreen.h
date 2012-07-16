@@ -65,7 +65,7 @@ namespace caret {
         void twitterActionTriggered();
         
     protected:
-        void userButtonPressed(QPushButton* userPushButton);
+        WuQDialogModal::ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         
     private:
         SplashScreen(const SplashScreen&);

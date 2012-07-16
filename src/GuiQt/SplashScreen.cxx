@@ -165,7 +165,8 @@ SplashScreen::SplashScreen(QWidget* parent)
     
     const int32_t treeDesiredWidth = loadSpecFileTreeWidget();
     
-    m_openOtherSpecFilePushButton = addUserPushButton("Open Other...");
+    m_openOtherSpecFilePushButton = addUserPushButton("Open Other...",
+                                                      QDialogButtonBox::AcceptRole);
     
     setCancelButtonText("Skip");
     setOkButtonText("Open");
@@ -265,7 +266,7 @@ SplashScreen::specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
  * @param userPushButton
  *    User push button that was pressed.
  */
-void 
+WuQDialogModal::ModalDialogUserButtonResult 
 SplashScreen::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_openOtherSpecFilePushButton) {
@@ -276,6 +277,7 @@ SplashScreen::userButtonPressed(QPushButton* userPushButton)
                            + userPushButton->text()
                            + "\"");
     }
+    return WuQDialogModal::RESULT_NONE;
 }
 
 /**

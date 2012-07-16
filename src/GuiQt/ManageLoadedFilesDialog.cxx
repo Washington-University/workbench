@@ -98,7 +98,8 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         saveButtonText = "Save Checked Files and Quit Workbench";
         this->setCancelButtonText("Cancel");
     }
-    this->saveCheckedFilesPushButton = this->addUserPushButton(saveButtonText);
+    this->saveCheckedFilesPushButton = this->addUserPushButton(saveButtonText,
+                                                               QDialogButtonBox::AcceptRole);
     
     QWidget* filesWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(filesWidget);
@@ -233,7 +234,7 @@ ManageLoadedFilesDialog::~ManageLoadedFilesDialog()
  * @param userPushButton
  *    User push button that was pressed.
  */
-void 
+WuQDialogModal::ModalDialogUserButtonResult 
 ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (this->saveCheckedFilesPushButton == userPushButton) {
@@ -249,7 +250,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         if (isSavingFiles == false) {
             WuQMessageBox::errorOk(this, 
                                    "No files are selected for saving.");
-            return;
+            return WuQDialogModal::RESULT_NONE;
         }
         
         previousSaveFileAddToSpecFileSelection = this->addSavedFilesToSpecFileCheckBox->isChecked();
@@ -267,7 +268,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
                     addSavedFilesToSpecFileFlag = createAddToSpecFileDialog.isAddToSpecFileSelected();
                 }
                 else {
-                    return;
+                    return WuQDialogModal::RESULT_NONE;
                 }
             }
         }
@@ -301,7 +302,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
                 /*
                  * Close the dialog indicating success
                  */
-                WuQDialogModal::okButtonPressed();
+                return WuQDialogModal::RESULT_ACCEPT;
             }
         }
     }
@@ -310,6 +311,8 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
     }
     
     this->updateUserInterfaceAndGraphics();
+    
+    return WuQDialogModal::RESULT_NONE;
 }
 
 /**

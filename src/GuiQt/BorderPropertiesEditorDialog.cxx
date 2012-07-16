@@ -460,7 +460,7 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
  * Called when the OK button is pressed.
  */
 void 
-BorderPropertiesEditorDialog::okButtonPressed()
+BorderPropertiesEditorDialog::okButtonClicked()
 {
     AString errorMessage;
 
@@ -555,7 +555,7 @@ BorderPropertiesEditorDialog::okButtonPressed()
     /*
      * continue with OK button processing
      */
-    WuQDialogModal::okButtonPressed();
+    WuQDialogModal::okButtonClicked();
 }
 
 /**

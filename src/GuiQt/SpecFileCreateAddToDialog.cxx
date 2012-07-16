@@ -135,7 +135,8 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
     gridLayout->addWidget(m_specFileNameLineEdit, 2, 1);
     setCentralWidget(widget);
     
-    m_skipPushButton = addUserPushButton("Skip");
+    m_skipPushButton = addUserPushButton("Skip",
+                                         QDialogButtonBox::AcceptRole);
     
     setOkButtonText("Continue");
 }
@@ -194,13 +195,13 @@ SpecFileCreateAddToDialog::fileButtonClicked()
 /**
  * Called when an extra button is pressed.
  */
-void 
+WuQDialogModal::ModalDialogUserButtonResult 
 SpecFileCreateAddToDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_skipPushButton) {
-//        accept();
-        WuQDialogModal::okButtonPressed();
+        return WuQDialogModal::RESULT_ACCEPT;
     }
+    return WuQDialogModal::RESULT_NONE;
 }
 
 
@@ -208,7 +209,7 @@ SpecFileCreateAddToDialog::userButtonPressed(QPushButton* userPushButton)
  * Called the OK button is pressed.
  */
 void 
-SpecFileCreateAddToDialog::okButtonPressed()
+SpecFileCreateAddToDialog::okButtonClicked()
 {
         if (m_isSpecFileValid == false) {
             QString specFileName = m_specFileNameLineEdit->text().trimmed();
@@ -251,7 +252,7 @@ SpecFileCreateAddToDialog::okButtonPressed()
             m_addFilesToSpecFileFlag = true;
         }
 
-    WuQDialogModal::okButtonPressed();
+    WuQDialogModal::okButtonClicked();
 }
 
 /**

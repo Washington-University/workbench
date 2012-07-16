@@ -486,7 +486,7 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
  * Called when user presses the OK button.
  */
 void 
-SpecFileDialog::okButtonPressed()
+SpecFileDialog::okButtonClicked()
 {
     const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     for (int32_t ig = 0; ig < numGroups; ig++) {
@@ -500,17 +500,17 @@ SpecFileDialog::okButtonPressed()
 
     writeUpdatedSpecFile(true);
    
-    WuQDialogModal::okButtonPressed();
+    WuQDialogModal::okButtonClicked();
 }
 
 /**
  * Called when user presses the Cancel button.
  */
 void 
-SpecFileDialog::cancelButtonPressed()
+SpecFileDialog::cancelButtonClicked()
 {
     writeUpdatedSpecFile(true);
-    WuQDialogModal::cancelButtonPressed();
+    WuQDialogModal::cancelButtonClicked();
 }
 
 /**
