@@ -488,10 +488,14 @@ ManageFileRow::removeMapToolButtonPressed()
 void 
 ManageFileRow::fileNameToolButtonPressed()
 {
-    AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
-                                                      "Choose File",
-                                                      this->caretDataFile->getFileName(),
-                                                      DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
+//    AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
+//                                                      "Choose File",
+//                                                      this->caretDataFile->getFileName(),
+//                                                      DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
+    AString filename = CaretFileDialog::getSaveFileNameDialog(this->caretDataFile->getDataFileType(),
+                                                              this->parentWidget,
+                                                              "Choose File",
+                                                              this->caretDataFile->getFileName());
     if (filename.isEmpty() == false) {
         this->fileNameLineEdit->setText(filename);
     }

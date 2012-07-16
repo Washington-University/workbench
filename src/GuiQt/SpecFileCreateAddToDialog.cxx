@@ -156,40 +156,36 @@ SpecFileCreateAddToDialog::~SpecFileCreateAddToDialog()
 void 
 SpecFileCreateAddToDialog::fileButtonClicked()
 {
-    CaretFileDialog fd(this);
-    fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setLabelText(QFileDialog::Accept, "Choose");
-    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-    fd.setFileMode(CaretFileDialog::AnyFile);
-    fd.setViewMode(CaretFileDialog::List);
-    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-    fd.setConfirmOverwrite(false);
-    
-    if (fd.exec() == CaretFileDialog::Accepted) {
-        if (fd.selectedFiles().empty() == false) {
-            QString filename = fd.selectedFiles().at(0);
-
-            if (filename.isEmpty() == false) {
-                const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
-                if (filename.endsWith(fileExt) == false) {
-                    filename += fileExt;
-                }
-                m_specFileNameLineEdit->setText(filename);
-            }
-        }
-    }
-    
-//    QString filename = CaretFileDialog::getSaveFileNameDialog(this,
-//                                                              "Choose Spec File",
-//                                                              "",
-//                                                              DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-//    if (filename.isEmpty() == false) {
-//        const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
-//        if (filename.endsWith(fileExt) == false) {
-//            filename += fileExt;
+//    CaretFileDialog fd(this);
+//    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+//    fd.setLabelText(QFileDialog::Accept, "Choose");
+//    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+//    fd.setFileMode(CaretFileDialog::AnyFile);
+//    fd.setViewMode(CaretFileDialog::List);
+//    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+//    fd.setConfirmOverwrite(false);
+//    
+//    if (fd.exec() == CaretFileDialog::Accepted) {
+//        if (fd.selectedFiles().empty() == false) {
+//            QString filename = fd.selectedFiles().at(0);
+//
+//            if (filename.isEmpty() == false) {
+//                const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
+//                if (filename.endsWith(fileExt) == false) {
+//                    filename += fileExt;
+//                }
+//                m_specFileNameLineEdit->setText(filename);
+//            }
 //        }
-//        m_specFileNameLineEdit->setText(filename);
 //    }
+    
+    QString filename = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::SPECIFICATION,
+                                                              this,
+                                                              "Choose Spec File",
+                                                              "");
+    if (filename.isEmpty() == false) {
+        m_specFileNameLineEdit->setText(filename);
+    }
 }
 
 /**

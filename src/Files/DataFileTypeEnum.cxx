@@ -479,7 +479,7 @@ DataFileTypeEnum::addFileExtensionIfMissing(const AString& filenameIn,
     for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
          iter != enumInstance->fileExtensions.end();
          iter++) {
-        const AString ext = *iter;
+        const AString ext = ("." + *iter);
         if (filename.endsWith(ext)) {
             return filename;
         }
