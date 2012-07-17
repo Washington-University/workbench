@@ -205,21 +205,21 @@ ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
 {
     m_selectedSurfaceType[windowTabNumber] = surfaceType;
     
-    /*
-     * If surface type is neither anatomical nor reconstruction,
-     * turn of the display of volume slices.
-     */
-    switch (surfaceType) {
-        case SurfaceTypeEnum::ANATOMICAL:
-            break;
-        case SurfaceTypeEnum::RECONSTRUCTION:
-            break;
-        default:
-            m_volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
-            m_volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
-            m_volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
-            break;
-    }
+//    /*
+//     * If surface type is neither anatomical nor reconstruction,
+//     * turn of the display of volume slices.
+//     */
+//    switch (surfaceType) {
+//        case SurfaceTypeEnum::ANATOMICAL:
+//            break;
+//        case SurfaceTypeEnum::RECONSTRUCTION:
+//            break;
+//        default:
+//            m_volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
+//            m_volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
+//            m_volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
+//            break;
+//    }
     updateController();
 }
 
