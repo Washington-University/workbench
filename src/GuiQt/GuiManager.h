@@ -148,7 +148,8 @@ namespace caret {
         GuiManager& operator=(const GuiManager&);
         
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
-                                                  BrowserTabContent* browserTabContent);
+                                                  BrowserTabContent* browserTabContent,
+                                                  const bool createDefaultTabs);
         
         void reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow);
         

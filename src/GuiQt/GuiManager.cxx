@@ -361,10 +361,13 @@ GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
  *    Optional parent that is used only for window placement.
  * @param browserTabContent
  *    Optional tab for initial windwo tab.
+ * @param createDefaultTabs
+ *    If true, create the default tabs in the new window.
  */
 BrainBrowserWindow*
 GuiManager::newBrainBrowserWindow(QWidget* parent,
-                                  BrowserTabContent* browserTabContent)
+                                  BrowserTabContent* browserTabContent,
+                                  const bool createDefaultTabs)
 {
     /*
      * If no tabs can be created, do not create a new window.
@@ -387,13 +390,17 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     BrainBrowserWindow* bbw = NULL; 
     
+    BrainBrowserWindow::CreateDefaultTabsMode tabsMode = (createDefaultTabs
+                                                          ? BrainBrowserWindow::CREATE_DEFAULT_TABS_YES
+                                                          : BrainBrowserWindow::CREATE_DEFAULT_TABS_NO);
+    
     if (windowIndex < 0) {
         windowIndex = m_brainBrowserWindows.size();
-        bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
+        bbw = new BrainBrowserWindow(windowIndex, browserTabContent, tabsMode);
         m_brainBrowserWindows.push_back(bbw);
     }
     else {
-        bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
+        bbw = new BrainBrowserWindow(windowIndex, browserTabContent, tabsMode);
         m_brainBrowserWindows[windowIndex] = bbw;
     }
     
@@ -589,7 +596,8 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(eventNewBrowser);
         
         BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(), 
-                                                              eventNewBrowser->getBrowserTabContent());
+                                                              eventNewBrowser->getBrowserTabContent(),
+                                                              true);
         if (bbw == NULL) {
             eventNewBrowser->setErrorMessage("Workench is exhausted.  It cannot create any more windows.");
             eventNewBrowser->setEventProcessed();
@@ -1152,10 +1160,11 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     }    
         
     /*
-     * Close all tabs
+     * Reset the brain
      */
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrainKeepSceneFiles();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
 
     /*
      * Close all but one window
@@ -1173,7 +1182,6 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
     
     /*
      * Block graphics update events
@@ -1214,7 +1222,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
             else {
                 bbw = newBrainBrowserWindow(NULL, 
-                                            NULL);
+                                            NULL,
+                                            false);
             }
             if (bbw != NULL) {
                 bbw->restoreFromScene(sceneAttributes, 
@@ -1226,12 +1235,12 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Close windows not needed
      */
-    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
-         iter != availableWindows.end();
-         iter++) {
-        BrainBrowserWindow* bbw = *iter;
-        bbw->close();
-    }
+//    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
+//         iter != availableWindows.end();
+//         iter++) {
+//        BrainBrowserWindow* bbw = *iter;
+//        bbw->close();
+//    }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

@@ -99,6 +99,7 @@ using namespace caret;
  */
 BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        BrowserTabContent* browserTabContent,
+                                       const CreateDefaultTabsMode createDefaultTabsMode,
                                        QWidget* parent,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
@@ -197,7 +198,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     processHideFeaturesToolBox();
     
     if (browserTabContent == NULL) {
-        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+        if (createDefaultTabsMode == CREATE_DEFAULT_TABS_YES) {
+            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+        }
     }
     
     m_sceneAssistant = new SceneClassAssistant();

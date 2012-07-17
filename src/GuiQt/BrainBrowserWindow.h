@@ -158,8 +158,14 @@ namespace caret {
             ADD_DATA_FILE_TO_SPEC_FILE_NO
         };
         
+        enum CreateDefaultTabsMode {
+            CREATE_DEFAULT_TABS_YES,
+            CREATE_DEFAULT_TABS_NO
+        };
+        
         BrainBrowserWindow(const int browserWindowIndex,
                            BrowserTabContent* browserTabContent,
+                           const CreateDefaultTabsMode createDefaultTabsMode,
                            QWidget* parent = 0,
                            Qt::WindowFlags flags = 0);
         

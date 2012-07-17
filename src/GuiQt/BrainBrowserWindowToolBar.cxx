@@ -4550,11 +4550,12 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
     }    
     
     /*
-     * Close all tabs
+     * Close any tabs
      */
     const int32_t numberOfOpenTabs = this->tabBar->count();
     for (int32_t iClose = (numberOfOpenTabs - 1); iClose >= 0; iClose--) {
-        this->tabBar->removeTab(iClose);
+        this->tabClosed(iClose);
+//        this->tabBar->removeTab(iClose);
     }
     
     /*
@@ -4574,12 +4575,15 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
             
             EventBrowserTabGet getTabContent(tabIndex);
             EventManager::get()->sendEvent(getTabContent.getPointer());
-            if (getTabContent.isError() == false) {
-                BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+            BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+            if (tabContent != NULL) {
                 if (tabContent->getTabNumber() == selectedTabIndex) {
                     defaultTabBarIndex = iTab;
                 }
                 this->addNewTab(tabContent);
+            }
+            else {
+                CaretLogSevere("Scenes failed to restore tab " + AString::number(selectedTabIndex));
             }
         }
     }
