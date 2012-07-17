@@ -144,8 +144,7 @@ GiftiLabelTable::append(const GiftiLabelTable& glt)
          iter != glt.labelsMap.end();
          iter++) {
         int32_t key = iter->first;
-        GiftiLabel* gl = new GiftiLabel(*iter->second);
-        int32_t newKey = this->addLabel(gl);
+        int32_t newKey = this->addLabel(iter->second);
         
         keyConverterMap.insert(std::make_pair(key, newKey));
     }
@@ -261,10 +260,16 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     
     /*
      * If no label with the name exists, get the key
-     * (which may be invalid) from the input label
+     * (which may be invalid) from the input label,
+     * and check that nothing uses that key
      */
     if (key < 0) {
-        key = glIn->getKey();
+        int32_t tempkey = glIn->getKey();
+        LABELS_MAP_ITERATOR iter = this->labelsMap.find(tempkey);
+        if (iter == labelsMap.end())
+        {
+            key = tempkey;
+        }
     }
     
     /*
@@ -1186,6 +1191,7 @@ GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
                                         AString::number(rgba[3]));
                 xmlWriter.writeCDATA(label->getName());
+                xmlWriter.writeEndElement();
                 delete[] rgba;
             }
         }

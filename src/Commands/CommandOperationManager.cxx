@@ -31,6 +31,7 @@
 #include "AlgorithmCiftiCorrelation.h"
 #include "AlgorithmCiftiCorrelationGradient.h"
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
+#include "AlgorithmCiftiCreateLabel.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 #include "AlgorithmCiftiSeparate.h"
@@ -117,6 +118,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelationGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseTimeseries()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));

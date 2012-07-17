@@ -23,6 +23,7 @@ AlgorithmCiftiAverageROICorrelation.h
 AlgorithmCiftiCorrelation.h
 AlgorithmCiftiCorrelationGradient.h
 AlgorithmCiftiCreateDenseTimeseries.h
+AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiSeparate.h
@@ -48,6 +49,7 @@ AlgorithmCiftiAverageROICorrelation.cxx
 AlgorithmCiftiCorrelation.cxx
 AlgorithmCiftiCorrelationGradient.cxx
 AlgorithmCiftiCreateDenseTimeseries.cxx
+AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiSeparate.cxx
