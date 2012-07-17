@@ -284,21 +284,42 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
     for (int i = 0; i < numMaps; ++i)
     {
         GiftiLabelTable mapTable;//NOTE: this relies on GiftiLabelTable::append doing the right thing
+        bool first = true;
         if (leftData != NULL)
         {
             surfLeftConvert[i] = mapTable.append(*(leftData->getMapLabelTable(i)));//in case label files ever move to one table per map
+            if (first)
+            {
+                first = false;
+                myXML.setMapNameForRowIndex(i, leftData->getColumnName(i));
+            }
         }
         if (rightData != NULL)
         {
             surfRightConvert[i] = mapTable.append(*(rightData->getMapLabelTable(i)));
+            if (first)
+            {
+                first = false;
+                myXML.setMapNameForRowIndex(i, rightData->getColumnName(i));
+            }
         }
         if (cerebData != NULL)
         {
             surfCerebConvert[i] = mapTable.append(*(cerebData->getMapLabelTable(i)));
+            if (first)
+            {
+                first = false;
+                myXML.setMapNameForRowIndex(i, cerebData->getColumnName(i));
+            }
         }
         if (myVol != NULL)
         {
             volConvert[i] = mapTable.append(*(myVol->getMapLabelTable(i)));
+            if (first)
+            {
+                first = false;
+                myXML.setMapNameForRowIndex(i, myVol->getMapName(i));
+            }
         }
         myXML.setLabelTableForRowIndex(i, mapTable);
     }
