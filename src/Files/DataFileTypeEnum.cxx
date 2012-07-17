@@ -137,7 +137,7 @@ DataFileTypeEnum::initialize()
                                         "Connectivity - Dense Data Series",
                                         false,
                                         false,
-                                        "dtseries.nii", "dscalar.nii"));
+                                        "dtseries.nii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI, 
                                         "FOCI", 

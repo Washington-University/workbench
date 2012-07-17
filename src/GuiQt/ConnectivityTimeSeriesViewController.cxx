@@ -164,6 +164,12 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     
     this->animator = NULL;
     
+    if(this->connectivityLoaderFile != NULL)
+    {
+        this->frameSpinBox->blockSignals(true);
+        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame());
+        this->frameSpinBox->blockSignals(false);
+    }
     double time = 0.0f;
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     prefs->getAnimationStartTime(time);
@@ -225,7 +231,7 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4,0);
+        gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 100);
         
         QLabel* onLabel = new QLabel("Yoke");
