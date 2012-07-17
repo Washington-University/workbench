@@ -969,7 +969,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     EventModelGetAll getAllModelsEvent;
     EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
     if (getAllModelsEvent.getFirstModel() == NULL) {
-        for (int i = (this->tabBar->count() - 1); i >= 1; i--) {
+        //for (int i = (this->tabBar->count() - 1); i >= 1; i--) {
+        for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
             this->removeTab(i);
         }
     }
@@ -4583,7 +4584,10 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
                 this->addNewTab(tabContent);
             }
             else {
-                CaretLogSevere("Scenes failed to restore tab " + AString::number(selectedTabIndex));
+                sceneAttributes->addToErrorMessage("Toolbar in window "
+                                                   + AString::number(this->browserWindowIndex)
+                                                   + " failed to restore tab " 
+                                                   + AString::number(selectedTabIndex));
             }
         }
     }

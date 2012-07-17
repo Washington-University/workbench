@@ -71,6 +71,10 @@ namespace caret {
         
         void setSpecFileNameIncludedInScene(const bool status);
         
+        void addToErrorMessage(const AString& message) const;
+        
+        AString getErrorMessage() const;
+        
     private:
         SceneAttributes(const SceneAttributes&);
 
@@ -91,6 +95,8 @@ namespace caret {
         RestoreWindowBehavior m_restoreWindowBehavior;
         
         bool m_includeSpecFileNameInScene;
+        
+        mutable AString m_errorMessage;
         
         // ADD_NEW_MEMBERS_HERE
 

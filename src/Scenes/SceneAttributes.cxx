@@ -154,4 +154,33 @@ SceneAttributes::setSpecFileNameIncludedInScene(const bool status)
     m_includeSpecFileNameInScene = status;
 }
 
+/**
+ * Add a new message to the error message.  Each message is
+ * separated by a newline.
+ *
+ * @param message
+ *    New message added to the error message.
+ */
+void 
+SceneAttributes::addToErrorMessage(const AString& message) const
+{
+    if (message.isEmpty()) {
+        return;
+    }
+    
+    if (m_errorMessage.isEmpty() == false) {
+        m_errorMessage += "\n";
+    }
+    m_errorMessage += message;
+}
+
+/**
+ * @return The error message.
+ */
+AString 
+SceneAttributes::getErrorMessage() const
+{
+    return m_errorMessage;
+}
+
 

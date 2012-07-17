@@ -1743,22 +1743,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
  *    Controls clearing of scene files
  * @param keepSpecFile
  *    Controls clearing of spec file
- * @param errorMessageOut
- *    If there are any errors, this will contain the
- *    error messages.  Even if there are errors, files
- *    may still have been read and the problem my have
- *    been with a particular file.
- * return true if NO errors, else false.
  */
-bool
+void
 Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                              SpecFile* specFileToLoad,
                     const ResetBrainKeepSceneFiles keepSceneFiles,
-                    const ResetBrainKeepSpecFile keepSpecFile,
-                    AString& errorMessageOut)
+                    const ResetBrainKeepSpecFile keepSpecFile)
 {
-    errorMessageOut = "";
-    
     CaretAssert(specFileToLoad);
     
     resetBrain(keepSceneFiles,
@@ -1832,10 +1823,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                                        false);
                 }
                 catch (const DataFileException& e) {
-                    if (errorMessageOut.isEmpty() == false) {
-                        errorMessageOut += "\n";
-                    }
-                    errorMessageOut += e.whatString();
+                    sceneAttributes->addToErrorMessage(e.whatString());
                 }
             }
         }
@@ -1870,9 +1858,6 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         BrainStructure* bs = *iter;
         bs->initializeOverlays();
     }
-    
-    const bool noErrors = errorMessageOut.isEmpty();
-    return noErrors;
 }
 
 
@@ -2492,16 +2477,6 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * @return String containing error messages for any file reading
- * errors encountered when restoring a scene.
- */
-AString 
-Brain::getSceneFileReadingErrorMessages() const
-{
-    return m_sceneSpecFileReadingErrors;
-}
-
-/**
  * Restore the state of an instance of a class.
  * 
  * @param sceneAttributes
@@ -2517,8 +2492,6 @@ void
 Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
-    m_sceneSpecFileReadingErrors = "";
-    
     if (sceneClass == NULL) {
         return;
     }
@@ -2540,8 +2513,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         loadSpecFileFromScene(sceneAttributes,
                               &specFile, 
                            RESET_BRAIN_KEEP_SCENE_FILES_YES,
-                           RESET_BRAIN_KEEP_SPEC_FILE_YES,
-                           m_sceneSpecFileReadingErrors);
+                           RESET_BRAIN_KEEP_SPEC_FILE_YES);
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 

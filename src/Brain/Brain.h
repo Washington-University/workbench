@@ -216,8 +216,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-        AString getSceneFileReadingErrorMessages() const;
-        
     private:
         enum ResetBrainKeepSceneFiles {
             RESET_BRAIN_KEEP_SCENE_FILES_NO,
@@ -231,11 +229,10 @@ namespace caret {
         
         void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         
-        bool loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
+        void loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                                    SpecFile* specFile,
                           const ResetBrainKeepSceneFiles keepSceneFile,
-                          const ResetBrainKeepSpecFile keepSpecFile,
-                          AString& errorMessageOut);
+                          const ResetBrainKeepSpecFile keepSpecFile);
         
         void resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
                         const ResetBrainKeepSpecFile keepSpecFile);
@@ -345,9 +342,6 @@ namespace caret {
         
         /** true when a spec file is being read */
         bool m_isSpecFileBeingRead;
-        
-        /** Contains information about file reading errors when showing a scene */
-        AString m_sceneSpecFileReadingErrors;
         
         AString m_fileReadingUsername;
         

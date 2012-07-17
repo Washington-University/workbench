@@ -1169,12 +1169,9 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Close all but one window
      */
-    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
-    for (int32_t i = 0; i < numBrowserWindows; i++) {
-        if (m_brainBrowserWindows[i] != NULL) {
-            GuiManager::get()->closeAllOtherWindows(m_brainBrowserWindows[i]);
-            break;
-        }
+    BrainBrowserWindow* firstBrowserWindow = getOpenBrowserWindow();;
+    if (firstBrowserWindow != NULL) {
+        closeAllOtherWindows(firstBrowserWindow);
     }
     
     /*
@@ -1201,6 +1198,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Get open windows
      */
     std::list<BrainBrowserWindow*> availableWindows;
+    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numBrowserWindows; i++) {
         if (m_brainBrowserWindows[i] != NULL) {
             availableWindows.push_back(m_brainBrowserWindows[i]);

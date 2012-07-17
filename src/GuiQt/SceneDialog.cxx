@@ -671,10 +671,10 @@ SceneDialog::showSceneButtonClicked()
         
         cursor.restoreCursor();
         
-        const AString sceneFileReadingErrorMessage = GuiManager::get()->getBrain()->getSceneFileReadingErrorMessages();
-        if (sceneFileReadingErrorMessage.isEmpty() == false) {
+        const AString sceneErrorMessage = sceneAttributes->getErrorMessage();
+        if (sceneErrorMessage.isEmpty() == false) {
             WuQMessageBox::errorOk(this, 
-                                   sceneFileReadingErrorMessage);
+                                   sceneErrorMessage);
         }
     }
 }
