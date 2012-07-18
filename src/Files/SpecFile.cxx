@@ -1083,7 +1083,8 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
             catch (const DataFileException& e) {
                 sceneAttributes->addToErrorMessage("Error reading spec file "
                                                    + specFileName
-                                                   + " for displaying scene");
+                                                   + " for displaying scene: "
+                                                   + e.whatString());
             }
             setAllFilesSelected(false);
         }
