@@ -229,11 +229,16 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
         if (dataFileTypeGroup->getDataFileType() == dataFileType) {
             /*
-             * If already in file, no need to add it a second time.
+             * If already in file, no need to add it a second time but do update
+             * its selection status if new entry has file selected
              */
             const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
             for (int32_t i = 0; i < numFiles; i++) {
-                if (dataFileTypeGroup->getFileInformation(i)->getFileName() == name) {
+                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+                if (sfdf->getFileName() == name) {
+                    if (fileSelectionStatus) {
+                        sfdf->setSelected(fileSelectionStatus);
+                    }
                     return;
                 }
             }
@@ -1046,7 +1051,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
  *     saved and should be restored.
  */
 void 
-SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
                            const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -1058,6 +1063,30 @@ SpecFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
     const AString specFileName = sceneClass->getPathNameValue("specFileName",
                                                               "");
     this->setFileName(specFileName);
+    
+    /*
+     * If spec file name is path to a valid file,
+     * load the spec file and then deselect all 
+     * of the files in the spec file.  Since the
+     * scene may contain a subset of the files in
+     * the spec file, not doing this would result
+     * in the spec file missing data file if the
+     * user saves files after loading the scene.
+     */
+    if (specFileName.isEmpty() == false) {
+        FileInformation specFileInfo(specFileName);
+        if (specFileInfo.exists()) {
+            try {
+                readFile(specFileName);
+            }
+            catch (const DataFileException& e) {
+                sceneAttributes->addToErrorMessage("Error reading spec file "
+                                                   + specFileName
+                                                   + " for displaying scene");
+            }
+            setAllFilesSelected(false);
+        }
+    }
     
     const SceneClassArray* dataFileClassArray = sceneClass->getClassArray("dataFilesArray");
     if (dataFileClassArray != NULL) {
