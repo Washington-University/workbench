@@ -89,9 +89,15 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass) = 0;
         
-    private:
-        SceneableInterface(const SceneableInterface&);
+    protected:
+        /**
+         * Copy constructor.  Implemented only to prevent compilation
+         * warnings for classes that implement this interface and have
+         * a copy constructor.
+         */
+        SceneableInterface(const SceneableInterface&) { }
 
+    private:
         SceneableInterface& operator=(const SceneableInterface&);
         
     };
