@@ -202,7 +202,12 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     }
 
     QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
-    this->addSavedFilesToSpecFileCheckBox = new QCheckBox("Add Saved Files to Spec File");
+    AString checkBoxText = "Add Saved Files to Spec File";
+    const AString specFileName = brain->getSpecFile()->getFileNameNoPath();
+    if (specFileName.isEmpty() == false) {
+        checkBoxText += (": " + specFileName);
+    }
+    this->addSavedFilesToSpecFileCheckBox = new QCheckBox(checkBoxText);
     this->addSavedFilesToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) saved\n"
                                                       "will be added to the currently loaded Spec File.\n"
                                                       "If there is not a valid Spec File loaded, you\n"

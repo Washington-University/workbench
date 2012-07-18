@@ -116,21 +116,23 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
 {    
     AString name = value;
     
-    FileInformation sceneFileInfo(sceneFileName);
-    if (sceneFileInfo.isAbsolute()) {
-        FileInformation fileInfo(name);
-        if (fileInfo.isRelative()) {
-            FileInformation fileInfo(sceneFileInfo.getPathName(),
-                                     name);
-            name = fileInfo.getFilePath();
+    if (name.isEmpty() == false) {
+        FileInformation sceneFileInfo(sceneFileName);
+        if (sceneFileInfo.isAbsolute()) {
+            FileInformation fileInfo(name);
+            if (fileInfo.isRelative()) {
+                FileInformation fileInfo(sceneFileInfo.getPathName(),
+                                         name);
+                name = fileInfo.getFilePath();
+            }
         }
+        
+        const AString message = ("After converting TO absolute path, " 
+                                 + value
+                                 + " becomes " 
+                                 + name);
+        CaretLogFine(message);
     }
-    
-    const AString message = ("After converting TO absolute path, " 
-                             + value
-                             + " becomes " 
-                             + name);
-    CaretLogFine(message);
     
     m_value = name;
 }
@@ -147,28 +149,30 @@ ScenePathName::getRelativePathToSceneFile(const AString& sceneFileName) const
 {
     AString name = m_value;
     
-    FileInformation fileInfo(name);
-    if (fileInfo.isAbsolute()) {
-        FileInformation specFileInfo(sceneFileName);
-        if (specFileInfo.isAbsolute()) {
-            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
-                                                                  specFileInfo.getPathName());
-            if (newPath.isEmpty()) {
-                name = fileInfo.getFileName();
-            }
-            else {
-                name = (newPath
-                        + "/"
-                        + fileInfo.getFileName());
+    if (name.isEmpty() == false) {
+        FileInformation fileInfo(name);
+        if (fileInfo.isAbsolute()) {
+            FileInformation specFileInfo(sceneFileName);
+            if (specFileInfo.isAbsolute()) {
+                const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
+                                                                      specFileInfo.getPathName());
+                if (newPath.isEmpty()) {
+                    name = fileInfo.getFileName();
+                }
+                else {
+                    name = (newPath
+                            + "/"
+                            + fileInfo.getFileName());
+                }
             }
         }
+        
+        const AString message = ("After converting FROM absolute path, " 
+                                 + m_value
+                                 + " becomes " 
+                                 + name);
+        CaretLogFine(message);
     }
-    
-    const AString message = ("After converting FROM absolute path, " 
-                             + m_value
-                             + " becomes " 
-                             + name);
-    CaretLogFine(message);
     
     return name;
 }
