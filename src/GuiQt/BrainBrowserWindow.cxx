@@ -1204,6 +1204,12 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setViewMode(CaretFileDialog::List);
     fd.selectNameFilter(s_previousOpenFileNameFilter);
     fd.addWidget(extraWidget);
+    if (s_previousOpenFileDirectory.isEmpty() == false) {
+        FileInformation fileInfo(s_previousOpenFileDirectory);
+        if (fileInfo.exists()) {
+            fd.setDirectory(s_previousOpenFileDirectory);
+        }
+    }
     
     AString errorMessages;
     
@@ -1261,6 +1267,7 @@ BrainBrowserWindow::processDataFileOpen()
             }
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
+        s_previousOpenFileDirectory  = fd.directory().absolutePath();
         s_previousOpenFileAddToSpecFileSelection = addFileToSpecFileCheckBox->isChecked();
     }
 }

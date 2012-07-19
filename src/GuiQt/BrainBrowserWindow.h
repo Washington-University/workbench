@@ -277,6 +277,7 @@ namespace caret {
         QDockWidget* m_featuresToolBox;
         
         static AString s_previousOpenFileNameFilter;
+        static AString s_previousOpenFileDirectory;
         static bool s_previousOpenFileAddToSpecFileSelection;
         
         
@@ -301,6 +302,7 @@ namespace caret {
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     AString BrainBrowserWindow::s_previousOpenFileNameFilter;
+    AString BrainBrowserWindow::s_previousOpenFileDirectory;
     bool BrainBrowserWindow::s_previousOpenFileAddToSpecFileSelection = true;
     bool BrainBrowserWindow::s_firstWindowFlag = true;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
