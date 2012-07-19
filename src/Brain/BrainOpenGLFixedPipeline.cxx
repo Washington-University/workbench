@@ -4889,9 +4889,11 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     /*
      * Create a viewport for drawing the palettes in the 
-     * lower left corner of the window.
+     * lower left corner of the window.  Allow palette width
+     * to increase as window is made larger
      */
-    const GLint colorbarViewportWidth = 120;
+    const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25), 
+                                                 (GLint)120);
     const GLint colorbarViewportHeight = 35;    
     const GLint colorbarViewportX = modelViewport[0] + 10;
     
@@ -5248,7 +5250,8 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      * Create a viewport for drawing the palettes in the 
      * lower left corner of the window.
      */
-    const GLint colorbarViewportWidth = 120;
+    const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25), 
+                                                 (GLint)120);
     const GLint colorbarViewportHeight = 35;    
     const GLint colorbarViewportX = modelViewport[0] + 10;
     
