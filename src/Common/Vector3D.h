@@ -25,7 +25,6 @@
  *
  */
 
-#include "MathFunctions.h"
 #include "CaretAssert.h"
 
 namespace caret {

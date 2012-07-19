@@ -327,6 +327,12 @@ public:
         if (value < -0.00001) return false;
         return true;
     }
+    
+    ///convert quaternion to rotation matrix
+    static void quaternToMatrix(const float cijk[4], float matrix[3][3]);
+    
+    ///try to convert 3x3 matrix to quaternion (return false if not a rotation matrix)
+    static bool matrixToQuatern(const float matrix[3][3], float cijk[4]);
 
 };
 

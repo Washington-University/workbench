@@ -39,6 +39,7 @@
 #include "NiftiMatrixTest.h"
 #include "PointerTest.h"
 #include "ProgressTest.h"
+#include "QuatTest.h"
 #include "StatisticsTest.h"
 #include "TimerTest.h"
 #include "TopologyHelperTest.h"
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
         mytests.push_back(new NiftiMatrixTest("niftimatrix"));
         mytests.push_back(new PointerTest("pointer"));
         mytests.push_back(new ProgressTest("progress"));
+        mytests.push_back(new QuatTest("quaternion"));
         mytests.push_back(new StatisticsTest("statistics"));
         mytests.push_back(new TimerTest("timer"));
         mytests.push_back(new TopologyHelperTest("topohelp"));

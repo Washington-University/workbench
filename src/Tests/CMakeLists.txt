@@ -26,6 +26,7 @@ NiftiTest.h
 NiftiMatrixTest.h
 PointerTest.h
 ProgressTest.h
+QuatTest.h
 StatisticsTest.h
 TestInterface.h
 TimerTest.h
@@ -41,6 +42,7 @@ NiftiTest.cxx
 NiftiMatrixTest.cxx
 PointerTest.cxx
 ProgressTest.cxx
+QuatTest.cxx
 StatisticsTest.cxx
 TestInterface.cxx
 TimerTest.cxx
