@@ -169,16 +169,20 @@ OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
 {
     OverlaySet* overlaySet = this->getOverlaySet();
     if (overlaySet != NULL) {
+        const int oldNumberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
+        
         overlaySet->setNumberOfDisplayedOverlays(value);
         this->updateViewController();
         
         /*
-         * Scroll to bottom
+         * Scroll to top if an overlay is added
          */
-        this->scrollArea->widget()->adjustSize();
-        QScrollBar* vsb = this->scrollArea->verticalScrollBar();
-        const int maxValue = vsb->maximum();
-        vsb->setValue(maxValue);
+        if (value > oldNumberOfOverlays) {
+            this->scrollArea->widget()->adjustSize();
+            QScrollBar* vsb = this->scrollArea->verticalScrollBar();
+            const int maxValue = vsb->minimum();
+            vsb->setValue(maxValue);
+        }
     }
 }
 

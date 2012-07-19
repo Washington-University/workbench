@@ -378,12 +378,25 @@ OverlaySet::getNumberOfDisplayedOverlays() const
 void 
 OverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
 {
+    const int32_t oldNumberOfDisplayedOverlays = m_numberOfDisplayedOverlays;
     m_numberOfDisplayedOverlays = numberOfDisplayedOverlays;
     if (m_numberOfDisplayedOverlays < BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     }
     if (m_numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
+    }
+    
+    /*
+     * If one overlay added (probably through GUI),
+     * shift all overlays down one position so that 
+     * new overlay appears at the top
+     */ 
+    const int32_t numberOfOverlaysAdded = m_numberOfDisplayedOverlays - oldNumberOfDisplayedOverlays;
+    if (numberOfOverlaysAdded == 1) {
+        for (int32_t i = (m_numberOfDisplayedOverlays - 1); i >= 0; i--) {
+            moveDisplayedOverlayDown(i);
+        }
     }
 }
 
