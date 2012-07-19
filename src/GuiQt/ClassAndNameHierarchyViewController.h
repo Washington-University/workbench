@@ -79,7 +79,10 @@ namespace caret {
         
         void treeWidgetItemExpanded(QTreeWidgetItem* item);
         
-
+        void allOnPushButtonClicked();
+        
+        void allOffPushButtonClicked();
+        
     private:
         ClassAndNameHierarchyViewController(const ClassAndNameHierarchyViewController&);
 
@@ -94,6 +97,10 @@ namespace caret {
                                               ClassAndNameHierarchySelectedItem* selectionInfo);
         
         void expandCollapseTreeWidgetItem(QTreeWidgetItem* twi);
+        
+        QWidget* createAllOnOffControls();
+        
+        void setAllSelected(bool selected);
         
         std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
         

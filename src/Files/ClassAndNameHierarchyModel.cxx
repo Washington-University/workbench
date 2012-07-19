@@ -160,6 +160,51 @@ ClassAndNameHierarchyModel::setAllSelected(const bool status)
 }
 
 /**
+ * Set the selection status of this hierarchy model for the display group/tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @param selectionStatus
+ *    New selection status.
+ */
+void 
+ClassAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex,
+                                           const bool selectionStatus)
+{
+    std::cout << "Setting all for "
+    << qPrintable(getName())
+    << " DisplayGroup: "
+    << DisplayGroupEnum::toGuiName(displayGroup)
+    << " tab: " << tabIndex
+    << std::endl;
+    
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectionStatusInTab, 
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                              tabIndex);
+        this->selectionStatusInTab[tabIndex] = selectionStatus;
+    }
+    else {
+        this->selectionStatusInDisplayGroup[displayIndex] = selectionStatus;
+    }
+    
+    for (std::vector<ClassDisplayGroupSelector*>::iterator classIterator = keyToClassNameSelectorVector.begin();
+         classIterator != keyToClassNameSelectorVector.end();
+         classIterator++) {
+        ClassDisplayGroupSelector* classSelector = *classIterator;
+        classSelector->setAllSelected(displayGroup,
+                                      tabIndex,
+                                      selectionStatus);
+    }
+}
+
+/**
  * Update this class hierarchy with the border names
  * and classes.
  *
@@ -1238,6 +1283,38 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setAllSelected(const bool
                 }
             }
         }
+    }
+}
+
+/**
+ * Set the selection status of this class and its names for the display group/tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @param selectionStatus
+ *    New selection status for class and its names.
+ */
+void 
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex,
+                                           const bool selectionStatus)
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    setSelected(displayGroup, 
+                tabIndex, 
+                selectionStatus);
+    
+    for (std::vector<NameDisplayGroupSelector*>::iterator nameIterator = keyToNameSelectorVector.begin();
+         nameIterator != keyToNameSelectorVector.end();
+         nameIterator++) {
+        NameDisplayGroupSelector* nameSelector = *nameIterator;
+        nameSelector->setSelected(displayGroup, 
+                                  tabIndex, 
+                                  selectionStatus);
     }
 }
 

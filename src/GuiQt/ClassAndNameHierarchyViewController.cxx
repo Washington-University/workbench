@@ -36,6 +36,9 @@
 #include "ClassAndNameHierarchyViewController.h"
 #undef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
 
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
@@ -87,8 +90,12 @@ ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const i
     QObject::connect(this->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
                      this, SLOT(treeWidgetItemExpanded(QTreeWidgetItem*)));
     
+    QWidget* allOnOffWidget = createAllOnOffControls();
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
+    layout->addWidget(allOnOffWidget);
+    layout->addSpacing(5);
     layout->addWidget(this->treeWidget);
     
 }
@@ -100,6 +107,74 @@ ClassAndNameHierarchyViewController::~ClassAndNameHierarchyViewController()
 {
     this->deleteItemSelectionInfo();
 }
+
+/**
+ * Create buttons for all on and off
+ */
+QWidget* 
+ClassAndNameHierarchyViewController::createAllOnOffControls()
+{
+    QLabel* allLabel = new QLabel("All: ");
+    
+    QPushButton* onPushButton = new QPushButton("On");
+    QObject::connect(onPushButton, SIGNAL(clicked()),
+                     this, SLOT(allOnPushButtonClicked()));
+    
+    QPushButton* offPushButton = new QPushButton("Off");
+    QObject::connect(offPushButton, SIGNAL(clicked()),
+                     this, SLOT(allOffPushButtonClicked()));
+    
+    QWidget* w = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(w);
+    layout->addWidget(allLabel);
+    layout->addWidget(onPushButton);
+    layout->addWidget(offPushButton);
+    layout->addStretch();
+    return w;
+}
+
+/**
+ * Called when all on push button clicked.
+ */
+void 
+ClassAndNameHierarchyViewController::allOnPushButtonClicked()
+{
+    setAllSelected(true);
+}
+
+/**
+ * Called when all off push button clicked.
+ */
+void 
+ClassAndNameHierarchyViewController::allOffPushButtonClicked()
+{
+    setAllSelected(false);
+}
+
+/**
+ * Set selection status of all items.
+ * @param selected
+ *    New selection status for all items.
+ */
+void 
+ClassAndNameHierarchyViewController::setAllSelected(bool selected)
+{
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    if (browserTabContent != NULL) {
+        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+        for (std::vector<ClassAndNameHierarchyModel*>::iterator iter = classAndNameHierarchyModels.begin();
+             iter != classAndNameHierarchyModels.end();
+             iter++) {
+            ClassAndNameHierarchyModel* model = *iter;
+            model->setAllSelected(this->displayGroup,
+                                  browserTabIndex,
+                                  selected);
+        }
+        updateContents(classAndNameHierarchyModels);
+    }
+}
+
 
 /**
  * Called when an item in the border selection tree widget

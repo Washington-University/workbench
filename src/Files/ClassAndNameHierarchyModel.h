@@ -115,6 +115,10 @@ namespace caret {
             
             void setAllSelected(const bool status);
             
+            void setAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
+                                const bool status);
+            
             std::vector<int32_t> getAllNameKeysSortedByName() const;
             
             NameDisplayGroupSelector* getNameSelector(const int32_t nameKey);
@@ -170,6 +174,10 @@ namespace caret {
         bool isClassValid(const int32_t classKey) const;
         
         void setAllSelected(const bool status);
+        
+        void setAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const bool status);
         
         void update(BorderFile* borderFile,
                     const bool forceUpdate);
