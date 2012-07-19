@@ -505,3 +505,20 @@ ModelYokingGroup::restoreModelSpecificInformationFromScene(const SceneAttributes
                                      sceneClass);
 }
 
+/**
+ * Reset view.  For left and right hemispheres, the default
+ * view is a lateral view.
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelYokingGroup::resetView(const int32_t windowTabNumber)
+{
+    Model::resetView(windowTabNumber);
+    
+    if (m_yokingType == ModelYokingGroup::YOKING_TYPE_SURFACE) {
+        leftView(windowTabNumber);    
+    }
+}
+
+

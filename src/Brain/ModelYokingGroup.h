@@ -104,6 +104,8 @@ namespace caret {
         
         bool isVolumeYoking() const;
         
+        virtual void resetView(const int32_t windowTabNumber);
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);
