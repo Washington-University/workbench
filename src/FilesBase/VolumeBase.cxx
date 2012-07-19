@@ -188,7 +188,11 @@ VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<
 
 void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const
 {
-    CaretAssert(isPlumb());//this will fail MISERABLY on non-plumb volumes, so assert plumb
+    CaretAssert(isPlumb());
+    if (!isPlumb())
+    {
+        throw DataFileException("orientation and spacing asked for on non-plumb volume");//this will fail MISERABLY on non-plumb volumes, so throw otherwise
+    }
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
