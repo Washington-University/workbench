@@ -4732,7 +4732,7 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
         this->textRenderer->drawTextAtWindowCoords(viewport,
                                                    windowX,
                                                    windowY,
-                                                   text,
+                                                   text.trimmed(),
                                                    alignmentX,
                                                    alignmentY);
     }
@@ -4761,7 +4761,7 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
         this->textRenderer->drawTextAtModelCoords(modelX,
                                                   modelY,
                                                   modelZ,
-                                                  text);
+                                                  text.trimmed());
     }
 }
 
@@ -5165,10 +5165,18 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     AString textCenterNeg = AString::number(minMax[1], 'f', 1);
     AString textCenterPos = AString::number(minMax[2], 'f', 1);
     AString textCenter = textCenterPos;
-    if (textCenterNeg != textCenterPos) {
-        if (textCenterNeg != AString("-" + textCenterPos)) {
-            textCenter = textCenterNeg + "/" + textCenterPos;
+    if (isNegativeDisplayed && isPositiveDisplayed) {
+        if (textCenterNeg != textCenterPos) {
+            if (textCenterNeg != AString("-" + textCenterPos)) {
+                textCenter = textCenterNeg + "/" + textCenterPos;
+            }
         }
+    }
+    else if (isNegativeDisplayed) {
+        textCenter = textCenterNeg;
+    }
+    else if (isPositiveDisplayed) {
+        textCenter = textCenterPos;
     }
     AString textRight = AString::number(minMax[3], 'f', 1);
     
@@ -5525,10 +5533,18 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     AString textCenterNeg = AString::number(minMax[1], 'f', 1);
     AString textCenterPos = AString::number(minMax[2], 'f', 1);
     AString textCenter = textCenterPos;
-    if (textCenterNeg != textCenterPos) {
-        if (textCenterNeg != AString("-" + textCenterPos)) {
-            textCenter = textCenterNeg + "/" + textCenterPos;
+    if (isNegativeDisplayed && isPositiveDisplayed) {
+        if (textCenterNeg != textCenterPos) {
+            if (textCenterNeg != AString("-" + textCenterPos)) {
+                textCenter = textCenterNeg + "/" + textCenterPos;
+            }
         }
+    }
+    else if (isNegativeDisplayed) {
+        textCenter = textCenterNeg;
+    }
+    else if (isPositiveDisplayed) {
+        textCenter = textCenterPos;
     }
     AString textRight = AString::number(minMax[3], 'f', 1);
     
