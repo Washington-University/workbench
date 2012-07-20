@@ -5256,23 +5256,19 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     /*
      * Create a viewport for drawing the palettes in the 
-     * lower left corner of the window.
+     * lower left corner of the window.  Try to use
+     * 25% of the display's width.
      */
     const GLint colorbarViewportWidth = std::max(static_cast<GLint>(modelViewport[2] * 0.25), 
                                                  (GLint)120);
     const GLint colorbarViewportHeight = 35;    
     const GLint colorbarViewportX = modelViewport[0] + 10;
-    
     GLint colorbarViewportY = (modelViewport[1] + 10 + (paletteDrawingIndex * colorbarViewportHeight));
-    if (paletteDrawingIndex > 0) {
-//        colorbarViewportY += 5;
-    }
-    
     glViewport(colorbarViewportX, 
                colorbarViewportY, 
                colorbarViewportWidth, 
                colorbarViewportHeight);
-    
+        
     /*
      * Types of values for display
      */
@@ -5281,23 +5277,23 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
     const bool isPositiveOnly = (isPositiveDisplayed && (isNegativeDisplayed == false));
     const bool isNegativeOnly = ((isPositiveDisplayed == false) && isNegativeDisplayed);
+   
     /*
-     * Create an orthographic projection
+     * Create an orthographic projection that ranges in X:
+     *   (-1, 1) If negative and positive displayed
+     *   (-1, 0) If positive is NOT displayed
+     *   (0, 1)  If negative is NOT displayed
      */
-    //const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
     const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
-    const GLdouble margin = 1.1;
-    const GLdouble orthoWidth = margin;
-    const GLdouble orthoHeight = halfHeight * margin;
-    GLdouble orthoLeft = -orthoWidth;
-    GLdouble orthoRight = orthoWidth;    
+    const GLdouble orthoHeight = halfHeight;
+    GLdouble orthoLeft = -1.0;
+    GLdouble orthoRight = 1.0;    
     if (isPositiveOnly) {
-        orthoLeft = -0.1;
+        orthoLeft = 0.0;
     }
     else if (isNegativeOnly) {
-        orthoRight = 0.1;
+        orthoRight = 0.0;
     }
-    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(orthoLeft,  orthoRight, 
@@ -5307,18 +5303,21 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     glMatrixMode (GL_MODELVIEW);
     glLoadIdentity();
 
-    std::cout << "L/R: " << orthoLeft << ", " << orthoRight << std::endl;
+    /*
+     * A little extra so viewport gets filled
+     */
+    const GLdouble orthoLeftWithExtra = orthoLeft - 0.10;
+    const GLdouble orthoRightWithExtra = orthoRight + 0.10;
     
     /*
-     * Use the background color to fill in a rectangle
-     * for display of palette, hiding anything currently drawn.
+     * Fill the palette viewport with the background color
+     * Add a little to left and right so viewport is filled (excess will get clipped)
      */
     uint8_t backgroundRGB[3];
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->getColorBackground(backgroundRGB);
     glColor3ubv(backgroundRGB);
-    //glRectf(-orthoWidth, -orthoHeight, orthoWidth, orthoHeight);
-    glRectf(orthoLeft, -orthoHeight, orthoRight, orthoHeight);
+    glRectf(orthoLeftWithExtra, orthoRightWithExtra, -orthoHeight, orthoHeight);
     
     /*
      * Always interpolate if the palette has only two colors
@@ -5356,7 +5355,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         
         /*
          * Exclude negative regions if not displayed.
-         *
+         */
         if (isNegativeDisplayed == false) {
             if (nextScalar < 0.0) {
                 continue;
@@ -5365,11 +5364,10 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                 scalar = 0.0;
             }
         }
-        */
         
         /*
          * Exclude positive regions if not displayed.
-         *
+         */
         if (isPositiveDisplayed == false) {
             if (scalar > 0.0) {
                 continue;
@@ -5378,7 +5376,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                 nextScalar = 0.0;
             }
         }
-        */
         
         /*
          * Normally, the first entry has a scalar value of -1.
@@ -5456,22 +5453,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     /*
-     * If positive not displayed, draw over it with background color
-     */
-//    if (isPositiveDisplayed == false) {
-//        glColor3ubv(backgroundRGB);
-//        glRectf(0.0, -orthoHeight, orthoWidth, orthoHeight);
-//    }
-//    
-//    /*
-//     * If negative not displayed, draw over it with background color
-//     */
-//    if (isNegativeDisplayed == false) {
-//        glColor3ubv(backgroundRGB);
-//        glRectf(-orthoWidth, -orthoHeight, 0.0, orthoHeight);
-//    }
-    
-    /*
      * Draw over thresholded regions with background color
      */
     const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
@@ -5490,8 +5471,8 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         switch (paletteColorMapping->getThresholdTest()) {
             case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 glColor3ubv(backgroundRGB);
-                glRectf(-orthoWidth, -orthoHeight, normalizedThresholds[0], orthoHeight);
-                glRectf(normalizedThresholds[1], -orthoHeight, orthoWidth, orthoHeight);
+                glRectf(orthoLeftWithExtra, -orthoHeight, normalizedThresholds[0], orthoHeight);
+                glRectf(normalizedThresholds[1], -orthoHeight, orthoRightWithExtra, orthoHeight);
                 break;
             case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
                 glColor3ubv(backgroundRGB);
@@ -5544,13 +5525,14 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     
     AString textLeft = AString::number(minMax[0], 'f', 1);
     AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+    if (textCenterNeg == "-0.0") {
+        textCenterNeg = "0.0";
+    }
     AString textCenterPos = AString::number(minMax[2], 'f', 1);
     AString textCenter = textCenterPos;
     if (isNegativeDisplayed && isPositiveDisplayed) {
         if (textCenterNeg != textCenterPos) {
-            if (textCenterNeg != AString("-" + textCenterPos)) {
-                textCenter = textCenterNeg + "/" + textCenterPos;
-            }
+            textCenter = textCenterNeg + "/" + textCenterPos;
         }
     }
     else if (isNegativeDisplayed) {
@@ -5580,9 +5562,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      * Account for margin around colorbar when calculating text locations
      */
     int textCenterX = colorbarViewportX + (colorbarViewportWidth / 2);
-    const int textHalfX   = colorbarViewportWidth / (margin * 2);
-    const int textLeftX   = textCenterX - textHalfX;
-    const int textRightX  = textCenterX + textHalfX;
+    //const int textHalfX   = colorbarViewportWidth / 2;
+    const int textLeftX   = colorbarViewportX; //textCenterX - textHalfX;
+    const int textRightX  = (colorbarViewportX + colorbarViewportWidth); //textCenterX + textHalfX;
     if (isPositiveOnly) {
         textCenterX = textLeftX;
     }
