@@ -400,6 +400,40 @@ OverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays
     }
 }
 
+/**
+ * Insert an overlay below this overlay
+ * @param overlayIndex
+ *     Index of overlay for which an overlay is added below
+ */
+void 
+OverlaySet::insertOverlayAbove(const int32_t overlayIndex)
+{
+    if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays++;
+        
+        for (int32_t i = (m_numberOfDisplayedOverlays - 2); i >= overlayIndex; i--) {
+            moveDisplayedOverlayDown(i);
+        }
+    }
+}
+
+/**
+ * Insert an overlay above this overlay
+ * @param overlayIndex
+ *     Index of overlay for which an overlay is added above
+ */
+void 
+OverlaySet::insertOverlayBelow(const int32_t overlayIndex)
+{
+    if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays++;
+        
+        for (int32_t i = (m_numberOfDisplayedOverlays - 2); i > overlayIndex; i--) {
+            moveDisplayedOverlayDown(i);
+        }
+    }
+}
+
 
 /**
  * Remove a displayed overlay.  This method will have

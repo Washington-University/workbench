@@ -39,6 +39,7 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QMessageBox>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -80,10 +81,12 @@ using namespace caret;
 OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                              QGridLayout* gridLayout,
                                              const int32_t browserWindowIndex,
+                                             const int32_t overlayIndex,
                                              QObject* parent)
-: QObject(parent)
+: QObject(parent),
+  browserWindowIndex(browserWindowIndex),
+  m_overlayIndex(overlayIndex)
 {
-    this->browserWindowIndex = browserWindowIndex;
     this->overlay = NULL;
     
     int minComboBoxWidth = 200;
@@ -172,6 +175,24 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     settingsToolButton->setDefaultAction(this->settingsAction);
     
     /*
+     * Construction Tool Button
+     */
+    QIcon constructionIcon;
+    const bool constructionIconValid = WuQtUtilities::loadIcon(":/overlay_construction.png",
+                                                           constructionIcon);
+    this->constructionAction = WuQtUtilities::createAction("M", 
+                                                           "Add/Move/Remove Overlays", 
+                                                           this);
+    if (constructionIconValid) {
+        this->constructionAction->setIcon(constructionIcon);
+    }
+    QToolButton* constructionToolButton = new QToolButton();
+    QMenu* constructionMenu = createConstructionMenu(constructionToolButton);
+    this->constructionAction->setMenu(constructionMenu);
+    constructionToolButton->setDefaultAction(this->constructionAction);
+    constructionToolButton->setPopupMode(QToolButton::InstantPopup);
+    
+    /*
      * Add Tool Button
      */
     this->addAction = WuQtUtilities::createAction("Add", 
@@ -223,12 +244,14 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
-        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
+        this->gridLayoutGroup->addWidget(constructionToolButton,
                                          row, 3);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
+        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 4);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
                                          row, 5);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                                         row, 6);
         
     }
     else {
@@ -248,20 +271,22 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 1);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
+        this->gridLayoutGroup->addWidget(constructionToolButton,
+                                         row, 3);
         this->gridLayoutGroup->addWidget(fileLabel,
-                              row, 3);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
                               row, 4);
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
+                              row, 5);
         
         row++;
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 1,
-                                         1, 2,
+                                         1, 3,
                                          Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(mapLabel,
-                              row, 3);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
                               row, 4);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                              row, 5);
         
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
@@ -489,6 +514,91 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
+
+/**
+ * Create the construction menu.
+ * @param parent
+ *    Parent widget.
+ */
+QMenu* 
+OverlayViewController::createConstructionMenu(QWidget* parent)
+{
+    QMenu* menu = new QMenu(parent);
+    
+    menu->addAction("Add Overlay Above", 
+                    this, 
+                    SLOT(menuAddOverlayAboveTriggered()));
+    
+    menu->addAction("Add Overlay Below", 
+                    this, 
+                    SLOT(menuAddOverlayBelowTriggered()));
+    
+    menu->addSeparator();
+    
+    menu->addAction("Move Overlay Up", 
+                    this, 
+                    SLOT(menuMoveOverlayUpTriggered()));
+    
+    menu->addAction("Move Overlay Down", 
+                    this, 
+                    SLOT(menuMoveOverlayDownTriggered()));
+    
+    menu->addSeparator();
+    
+    menu->addAction("Remove This Overlay", 
+                    this, 
+                    SLOT(menuRemoveOverlayTriggered()));
+    
+    return menu;
+    
+}
+
+/**
+ * Add an overlay above this overlay.
+ */
+void 
+OverlayViewController::menuAddOverlayAboveTriggered()
+{
+    emit requestAddOverlayAbove(m_overlayIndex);
+}
+
+/**
+ * Add an overlay below this overlay.
+ */
+void 
+OverlayViewController::menuAddOverlayBelowTriggered()
+{
+    emit requestAddOverlayBelow(m_overlayIndex);
+}
+
+/**
+ * Remove this overlay.
+ */
+void 
+OverlayViewController::menuRemoveOverlayTriggered()
+{
+    emit requestRemoveOverlay(m_overlayIndex);
+}
+
+/**
+ * Move this overlay down.
+ */
+void 
+OverlayViewController::menuMoveOverlayDownTriggered()
+{
+    emit requestMoveOverlayDown(m_overlayIndex);
+}
+
+/**
+ * Move this overlay down.
+ */
+void 
+OverlayViewController::menuMoveOverlayUpTriggered()
+{
+    emit requestMoveOverlayUp(m_overlayIndex);
+}
+
+
 
 /**
  * Called when the add action is triggered.

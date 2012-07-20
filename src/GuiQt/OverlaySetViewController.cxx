@@ -48,6 +48,7 @@
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -90,8 +91,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 100);
+        gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 100);
+        gridLayout->setColumnStretch(6, 100);
         
         QLabel* onLabel       = new QLabel("On");
         QLabel* settingsLabel = new QLabel("Settings");
@@ -100,9 +102,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
 
         const int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
-        gridLayout->addWidget(settingsLabel, row, 1, 1, 3, Qt::AlignHCenter);
-        gridLayout->addWidget(fileLabel, row, 4, Qt::AlignHCenter);
-        gridLayout->addWidget(mapLabel, row, 5, Qt::AlignHCenter);
+        gridLayout->addWidget(settingsLabel, row, 1, 1, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
+        gridLayout->addWidget(mapLabel, row, 6, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
@@ -115,28 +117,40 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         OverlayViewController* ovc = new OverlayViewController(orientation,
                                                                gridLayout,
                                                                browserWindowIndex,
+                                                               i,
                                                                this);
         this->overlayViewControllers.push_back(ovc);
+        
+        QObject::connect(ovc, SIGNAL(requestAddOverlayAbove(const int32_t)),
+                         this, SLOT(processAddOverlayAbove(const int32_t)));
+        QObject::connect(ovc, SIGNAL(requestAddOverlayBelow(const int32_t)),
+                         this, SLOT(processAddOverlayBelow(const int32_t)));
+        QObject::connect(ovc, SIGNAL(requestRemoveOverlay(const int32_t)),
+                         this, SLOT(processRemoveOverlay(const int32_t)));
+        QObject::connect(ovc, SIGNAL(requestMoveOverlayUp(const int32_t)),
+                         this, SLOT(processMoveOverlayUp(const int32_t)));
+        QObject::connect(ovc, SIGNAL(requestMoveOverlayDown(const int32_t)),
+                         this, SLOT(processMoveOverlayDown(const int32_t)));
     }
     
-    QLabel* overlayCountLabel = new QLabel("Number of Layers: ");
-    this->overlayCountSpinBox = new QSpinBox();
-    this->overlayCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
-                                        BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
-    this->overlayCountSpinBox->setSingleStep(1);
-    QObject::connect(this->overlayCountSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(overlayCountSpinBoxValueChanged(int)));
-    
-    QHBoxLayout* overlayCountLayout = new QHBoxLayout();
-    overlayCountLayout->addWidget(overlayCountLabel);
-    overlayCountLayout->addWidget(this->overlayCountSpinBox);
-    overlayCountLayout->addStretch();
+//    QLabel* overlayCountLabel = new QLabel("Number of Layers: ");
+//    this->overlayCountSpinBox = new QSpinBox();
+//    this->overlayCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
+//                                        BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+//    this->overlayCountSpinBox->setSingleStep(1);
+//    QObject::connect(this->overlayCountSpinBox, SIGNAL(valueChanged(int)),
+//                     this, SLOT(overlayCountSpinBoxValueChanged(int)));
+//    
+//    QHBoxLayout* overlayCountLayout = new QHBoxLayout();
+//    overlayCountLayout->addWidget(overlayCountLabel);
+//    overlayCountLayout->addWidget(this->overlayCountSpinBox);
+//    overlayCountLayout->addStretch();
     
     QWidget* scrolledWidget = new QWidget();
     QVBoxLayout* scrolledWidgetLayout = new QVBoxLayout(scrolledWidget);
     WuQtUtilities::setLayoutMargins(scrolledWidgetLayout, 2, 2);
     scrolledWidgetLayout->addWidget(gridWidget);
-    scrolledWidgetLayout->addLayout(overlayCountLayout);
+//    scrolledWidgetLayout->addLayout(overlayCountLayout);
     scrolledWidgetLayout->addStretch();
     
     this->scrollArea = new QScrollArea();
@@ -164,27 +178,27 @@ OverlaySetViewController::~OverlaySetViewController()
  * @param value
  *    New value.
  */
-void 
-OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
-{
-    OverlaySet* overlaySet = this->getOverlaySet();
-    if (overlaySet != NULL) {
-        const int oldNumberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
-        
-        overlaySet->setNumberOfDisplayedOverlays(value);
-        this->updateViewController();
-        
-        /*
-         * Scroll to top if an overlay is added
-         */
-        if (value > oldNumberOfOverlays) {
-            this->scrollArea->widget()->adjustSize();
-            QScrollBar* vsb = this->scrollArea->verticalScrollBar();
-            const int maxValue = vsb->minimum();
-            vsb->setValue(maxValue);
-        }
-    }
-}
+//void 
+//OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
+//{
+//    OverlaySet* overlaySet = this->getOverlaySet();
+//    if (overlaySet != NULL) {
+//        const int oldNumberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
+//        
+//        overlaySet->setNumberOfDisplayedOverlays(value);
+//        this->updateViewController();
+//        
+//        /*
+//         * Scroll to top if an overlay is added
+//         */
+//        if (value > oldNumberOfOverlays) {
+//            this->scrollArea->widget()->adjustSize();
+//            QScrollBar* vsb = this->scrollArea->verticalScrollBar();
+//            const int maxValue = vsb->minimum();
+//            vsb->setValue(maxValue);
+//        }
+//    }
+//}
 
 /**
  * @return The overlay set in this view controller.
@@ -225,9 +239,9 @@ OverlaySetViewController::updateViewController()
     const int32_t numberOfOverlays = static_cast<int32_t>(this->overlayViewControllers.size());
     const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
 
-    this->overlayCountSpinBox->blockSignals(true);
-    this->overlayCountSpinBox->setValue(numberOfDisplayedOverlays);
-    this->overlayCountSpinBox->blockSignals(false);
+//    this->overlayCountSpinBox->blockSignals(true);
+//    this->overlayCountSpinBox->setValue(numberOfDisplayedOverlays);
+//    this->overlayCountSpinBox->blockSignals(false);
     
     for (int32_t i = 0; i < numberOfOverlays; i++) {
         Overlay* overlay = NULL;
@@ -266,4 +280,90 @@ OverlaySetViewController::receiveEvent(Event* event)
         }
     }
 }
+
+/**
+ * Add an overlay above the overlay with the given index.
+ * @param overlayIndex
+ *    Index of overlay that will have an overlay added above it.
+ */
+void 
+OverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex)
+{
+    OverlaySet* overlaySet = getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->insertOverlayAbove(overlayIndex);
+        this->updateViewController();
+        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+    }
+}
+
+/**
+ * Add an overlay below the overlay with the given index.
+ * @param overlayIndex
+ *    Index of overlay that will have an overlay added below it.
+ */
+void 
+OverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex)
+{
+    OverlaySet* overlaySet = getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->insertOverlayBelow(overlayIndex);
+        this->updateViewController();
+        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+    }
+}
+
+/**
+ * Remove an overlay above the overlay with the given index.
+ * @param overlayIndex
+ *    Index of overlay that will be removed
+ */
+void 
+OverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
+{
+    OverlaySet* overlaySet = getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->removeDisplayedOverlay(overlayIndex);
+        this->updateViewController();
+        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+    }
+}
+
+/**
+ * Remove an overlay above the overlay with the given index.
+ * @param overlayIndex
+ *    Index of overlay that will be removed
+ */
+void 
+OverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex)
+{
+    OverlaySet* overlaySet = getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->moveDisplayedOverlayDown(overlayIndex);
+        this->updateViewController();
+        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+    }
+}
+
+/**
+ * Remove an overlay above the overlay with the given index.
+ * @param overlayIndex
+ *    Index of overlay that will be removed
+ */
+void 
+OverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
+{
+    OverlaySet* overlaySet = getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->moveDisplayedOverlayUp(overlayIndex);
+        this->updateViewController();
+        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+    }
+}
+
 

@@ -73,6 +73,10 @@ namespace caret {
         
         int32_t getNumberOfDisplayedOverlays() const;
         
+        void insertOverlayAbove(const int32_t overlayIndex);
+        
+        void insertOverlayBelow(const int32_t overlayIndex);
+        
         void removeDisplayedOverlay(const int32_t overlayIndex);
         
         void moveDisplayedOverlayUp(const int32_t overlayIndex);

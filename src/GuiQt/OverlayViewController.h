@@ -43,6 +43,8 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QMenu;
+class QToolButton;
 
 namespace caret {
 
@@ -57,6 +59,7 @@ namespace caret {
         OverlayViewController(const Qt::Orientation orientation,
                               QGridLayout* gridLayout,
                               const int32_t browserWindowIndex,
+                              const int32_t overlayIndex,
                               QObject* parent);
         
         virtual ~OverlayViewController();
@@ -64,6 +67,17 @@ namespace caret {
         void setVisible(bool visible);
         
         void updateViewController(Overlay* overlay);
+        
+    signals:
+        void requestAddOverlayAbove(const int32_t overlayIndex);
+        
+        void requestAddOverlayBelow(const int32_t overlayIndex);
+        
+        void requestRemoveOverlay(const int32_t overlayIndex);
+        
+        void requestMoveOverlayUp(const int32_t overlayIndex);
+        
+        void requestMoveOverlayDown(const int32_t overlayIndex);
         
     private slots:
         void fileComboBoxSelected(int);
@@ -86,6 +100,16 @@ namespace caret {
         
         void opacityDoubleSpinBoxValueChanged(double value);
         
+        void menuAddOverlayAboveTriggered();
+        
+        void menuAddOverlayBelowTriggered();
+        
+        void menuRemoveOverlayTriggered();
+        
+        void menuMoveOverlayDownTriggered();
+        
+        void menuMoveOverlayUpTriggered();        
+        
     private:
         OverlayViewController(const OverlayViewController&);
 
@@ -93,7 +117,11 @@ namespace caret {
 
         void updateUserInterfaceAndGraphicsWindow();
         
-        int32_t browserWindowIndex;
+        QMenu* createConstructionMenu(QWidget* parent);
+        
+        const int32_t browserWindowIndex;
+        
+        const int32_t m_overlayIndex;
         
         Overlay* overlay;
         
@@ -105,6 +133,8 @@ namespace caret {
         
         QDoubleSpinBox* opacityDoubleSpinBox;
         
+        QAction* constructionAction;
+
         QAction* colorBarAction;
         
         QAction* settingsAction;
