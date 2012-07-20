@@ -278,6 +278,10 @@ BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum
      */
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();

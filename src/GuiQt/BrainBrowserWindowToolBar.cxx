@@ -3057,6 +3057,10 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 {
     CaretLogEntering();
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    if (btc == NULL) {
+        return;
+    }
+    
     if (this->viewModeSurfaceRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_SURFACE);
     }
@@ -4040,6 +4044,9 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged(int indx)
 
     if (indx >= 0) {
         BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        if (btc == NULL) {
+            return;
+        }
 
         void* pointer = this->windowYokeGroupComboBox->itemData(indx).value<void*>();
         ModelYokingGroup* yokingGroup = (ModelYokingGroup*)pointer;

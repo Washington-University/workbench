@@ -320,6 +320,10 @@ OverlayViewController::setVisible(bool visible)
 void 
 OverlayViewController::fileComboBoxSelected(int indx)
 {
+    if (overlay == NULL) {
+        return;
+    }
+    
     void* pointer = this->fileComboBox->itemData(indx).value<void*>();
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, 0);
@@ -337,6 +341,10 @@ OverlayViewController::fileComboBoxSelected(int indx)
 void 
 OverlayViewController::mapComboBoxSelected(int indx)
 {
+    if (overlay == NULL) {
+        return;
+    }
+    
     const int32_t fileIndex = this->fileComboBox->currentIndex();
     void* pointer = this->fileComboBox->itemData(fileIndex).value<void*>();
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
@@ -353,6 +361,9 @@ OverlayViewController::mapComboBoxSelected(int indx)
 void 
 OverlayViewController::enabledCheckBoxClicked(bool checked)
 {
+    if (overlay == NULL) {
+        return;
+    }
     overlay->setEnabled(checked);
     
     this->updateUserInterfaceAndGraphicsWindow();
@@ -366,6 +377,10 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
 void 
 OverlayViewController::colorBarActionTriggered(bool status)
 {
+    if (overlay == NULL) {
+        return;
+    }
+    
     this->overlay->setPaletteDisplayEnabled(status);
     
     this->updateUserInterfaceAndGraphicsWindow();
@@ -379,6 +394,10 @@ OverlayViewController::colorBarActionTriggered(bool status)
 void 
 OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 {
+    if (overlay == NULL) {
+        return;
+    }
+    
     this->overlay->setOpacity(value);
     
     this->updateUserInterfaceAndGraphicsWindow();
@@ -390,6 +409,10 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 void 
 OverlayViewController::settingsActionTriggered()
 {
+    if (overlay == NULL) {
+        return;
+    }
+    
     CaretMappableDataFile* mapFile;
     int32_t mapIndex = -1;
     this->overlay->getSelectionData(mapFile, 
