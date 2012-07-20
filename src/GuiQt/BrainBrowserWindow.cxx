@@ -669,6 +669,7 @@ BrainBrowserWindow::processShowOverlayToolBox(bool status)
     m_overlayToolBoxAction->blockSignals(false);
     if (status) {
         m_overlayToolBoxAction->setToolTip("Hide Overlay Toolbox");
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBox().getPointer());
     }
     else {
         m_overlayToolBoxAction->setToolTip("Show Overlay Toolbox");
@@ -1967,6 +1968,7 @@ BrainBrowserWindow::processShowFeaturesToolBox(bool status)
 {
     if (status) {
         m_featuresToolBoxAction->setToolTip("Hide Features Toolbox");
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBox().getPointer());
     }
     else {
         m_featuresToolBoxAction->setToolTip("Show Features Toolbox");
@@ -2056,7 +2058,7 @@ BrainBrowserWindow::moveOverlayToolBox(Qt::DockWidgetArea area)
             isVisible = true;
             break;
     }
-    
+
     processShowOverlayToolBox(isVisible);
 }
 
