@@ -191,44 +191,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->constructionAction->setMenu(constructionMenu);
     constructionToolButton->setDefaultAction(this->constructionAction);
     constructionToolButton->setPopupMode(QToolButton::InstantPopup);
-    
-    /*
-     * Add Tool Button
-     */
-    this->addAction = WuQtUtilities::createAction("Add", 
-                                                  "Add an overlay", 
-                                                  this, 
-                                                  this, 
-                                                  SLOT(addActionTriggered()));
-    
-    /*
-     * Remove Tool Button
-     */
-    this->removeAction = WuQtUtilities::createAction("Remove", 
-                                                  "Remove this overlay", 
-                                                  this, 
-                                                  this, 
-                                                  SLOT(removeActionTriggered()));
-    
-    
-    /*
-     * Move Up Tool Button
-     */
-    this->moveUpAction = WuQtUtilities::createAction("Up", 
-                                                     "Move this overlay up", 
-                                                     this, 
-                                                     this, 
-                                                     SLOT(moveUpActionTriggered()));
-    
-    /*
-     * Move Down Tool Button
-     */
-    this->moveDownAction = WuQtUtilities::createAction("Down", 
-                                                     "Move this overlay down", 
-                                                     this, 
-                                                     this, 
-                                                     SLOT(moveUpActionTriggered()));
-    
+        
     /*
      * Use layout group so that items can be shown/hidden
      */
@@ -620,45 +583,3 @@ OverlayViewController::menuMoveOverlayUpTriggered()
 {
     emit requestMoveOverlayUp(m_overlayIndex);
 }
-
-
-
-/**
- * Called when the add action is triggered.
- */
-void 
-OverlayViewController::addActionTriggered()
-{
-    
-}
-
-/**
- * Called when the add action is triggered.
- */
-void 
-OverlayViewController::moveUpActionTriggered()
-{
-    
-}
-
-/**
- * Called when the add action is triggered.
- */
-void 
-OverlayViewController::moveDownActionTriggered()
-{
-    
-}
-
-/**
- * Called when the add action is triggered.
- */
-void 
-OverlayViewController::removeActionTriggered()
-{
-    
-}
-
-
-
-

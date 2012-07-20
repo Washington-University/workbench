@@ -89,15 +89,7 @@ namespace caret {
         void colorBarActionTriggered(bool);
         
         void settingsActionTriggered();
-        
-        void addActionTriggered();
-        
-        void moveUpActionTriggered();
-        
-        void moveDownActionTriggered();
-        
-        void removeActionTriggered();
-        
+                
         void opacityDoubleSpinBoxValueChanged(double value);
         
         void menuAddOverlayAboveTriggered();
@@ -138,14 +130,6 @@ namespace caret {
         QAction* colorBarAction;
         
         QAction* settingsAction;
-        
-        QAction* addAction;
-        
-        QAction* moveDownAction;
-        
-        QAction* moveUpAction;
-        
-        QAction* removeAction;
         
         WuQGridLayoutGroup* gridLayoutGroup;
         
