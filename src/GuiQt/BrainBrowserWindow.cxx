@@ -1388,6 +1388,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     timer.start();
     float specFileTimeStart = 0.0;
     float specFileTimeEnd   = 0.0;
+    bool sceneFileWasLoaded = false;
     
     /*
      * Load each file.
@@ -1505,6 +1506,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 
                 EventManager::get()->sendEvent(loadFileEvent.getPointer());
                 
+                if (fileType == DataFileTypeEnum::SCENE) {
+                    sceneFileWasLoaded = true;
+                }
                 if (loadFileEvent.isError()) {
                     AString loadErrorMessage = "";
                     
@@ -1605,6 +1609,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               errorMessages);
     }
     
+    if (sceneFileWasLoaded) {
+        GuiManager::get()->processShowSceneDialog(this);
+    }
 }
 
 
