@@ -263,10 +263,10 @@ namespace caret {
         
         void drawAllPalettes(Brain* brain);
         
-        void drawPalette(const Palette* palette,
-                         const PaletteColorMapping* paletteColorMapping,
-                         const DescriptiveStatistics* statistics,
-                         const int paletteDrawingIndex);
+//        void drawPalette(const Palette* palette,
+//                         const PaletteColorMapping* paletteColorMapping,
+//                         const DescriptiveStatistics* statistics,
+//                         const int paletteDrawingIndex);
         
         void drawPalette(const Palette* palette,
                          const PaletteColorMapping* paletteColorMapping,
