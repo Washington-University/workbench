@@ -177,6 +177,8 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     m_specFile->getAllConnectivityFileTypes(connectivityFiles);
     
     bool haveConnectivityFiles = false;
+    bool haveSceneFiles = false;
+    
     /*
      * Display each type of data file
      */
@@ -236,6 +238,10 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
             fileGroupToolBar->addWidget(groupToolButton);
             
             toolBarActionGroup->addAction(groupToolButtonAction);
+            
+            if (dataFileType == DataFileTypeEnum::SCENE) {
+                haveSceneFiles = true;
+            }
         }
     }
     
@@ -308,6 +314,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
              * Load scenes push button
              */
             m_loadScenesPushButton = addUserPushButton("Load Scenes", QDialogButtonBox::AcceptRole);
+            m_loadScenesPushButton->setEnabled(haveSceneFiles);
             break;
     }
 }
