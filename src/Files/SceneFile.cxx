@@ -122,8 +122,38 @@ SceneFile::isEmpty() const
 void 
 SceneFile::addScene(Scene* scene)
 {
+    CaretAssert(scene);
     m_scenes.push_back(scene);
     setModified();
+}
+
+/** 
+ * Replace a scene.
+ * @param newScene
+ *    New scene
+ * @param sceneThatIsReplacedAndDeleted
+ *    Scene that is replaced and delete so DO NOT
+ *    reference this scene after calling this method.
+ */
+void
+SceneFile::replaceScene(Scene* newScene,
+                        Scene* sceneThatIsReplacedAndDeleted)
+{
+    CaretAssert(newScene);
+    CaretAssert(sceneThatIsReplacedAndDeleted);
+    
+    const int32_t numScenes = getNumberOfScenes();
+    for (int32_t i = 0; i < numScenes; i++) {
+        if (m_scenes[i] == sceneThatIsReplacedAndDeleted) {
+            delete m_scenes[i];
+            m_scenes[i] = newScene;
+            setModified();
+            return;
+        }
+    }
+    
+    CaretAssertMessage(0, "Replacing scene failed due to scene not found.");
+    CaretLogSevere("Replacing scene failed due to scene not found.");
 }
 
 /**

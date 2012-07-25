@@ -65,6 +65,9 @@ namespace caret {
 
         void addScene(Scene* scene);
         
+        void replaceScene(Scene* newScene,
+                          Scene* sceneThatIsReplacedAndDeleted);
+        
         int32_t getNumberOfScenes() const;
         
         Scene* getSceneAtIndex(const int32_t indx);

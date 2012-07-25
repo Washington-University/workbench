@@ -77,6 +77,8 @@ namespace caret {
                 
         void deleteSceneButtonClicked();
         
+        void replaceSceneButtonClicked();
+        
         void showSceneButtonClicked();
         
         void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
@@ -108,6 +110,8 @@ namespace caret {
         QPushButton* m_addNewScenePushButton;
         
         QPushButton* m_deleteScenePushButton;
+        
+        QPushButton* m_replaceScenePushButton;
         
         QPushButton* m_showScenePushButton;
         

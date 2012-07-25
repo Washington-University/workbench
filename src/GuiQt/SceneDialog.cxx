@@ -238,6 +238,7 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
     
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
+    m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
 }
 
@@ -358,6 +359,83 @@ SceneDialog::addNewSceneButtonClicked()
 }
 
 /**
+ * Called when replace scene button clicked.
+ */
+void
+SceneDialog::replaceSceneButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        Scene* scene = getSelectedScene();
+        if (scene != NULL) {
+            /*
+             * Create dialog for scene creation
+             */
+            WuQDataEntryDialog newSceneDialog("Replace Scene",
+                                              this);
+            
+            /*
+             * Will want to valid data.
+             */
+            QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
+                             this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
+            
+            /*
+             * Name for scene
+             */
+            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name",
+                                                                               scene->getName());
+            newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
+            
+            /*
+             * Description
+             */
+            QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description",
+                                                                        scene->getDescription(),
+                                                                        false);
+            
+            /*
+             * Error checking will not allow two scenes with the same name
+             * so temporarily modify name of scene being replaced and restore
+             * it if the user does not hit OK.
+             */
+            const AString savedSceneName = scene->getName();
+            scene->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
+            
+            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
+                const AString newSceneName = newSceneNameLineEdit->text();
+                Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+                newScene->setName(newSceneName);
+                newScene->setDescription(descriptionTextEdit->toPlainText());
+                
+                /*
+                 * Get all browser tabs and only save transformations for tabs
+                 * that are valid.
+                 */
+                EventBrowserTabGetAll getAllTabs;
+                EventManager::get()->sendEvent(getAllTabs.getPointer());
+                std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
+                
+                SceneAttributes* sceneAttributes = newScene->getAttributes();
+                sceneAttributes->setSceneFileName(sceneFile->getFileName());
+                sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
+                sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
+                
+                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
+                                                                  "guiManager"));
+                
+                sceneFile->replaceScene(newScene,
+                                        scene);
+                loadSceneListWidget(newScene);
+            }
+            else {
+                scene->setName(savedSceneName);
+            }
+        }
+    }
+}
+
+/**
  * Create the main page.
  * @return the main page.
  */
@@ -405,6 +483,13 @@ SceneDialog::createMainPage()
                      this, SLOT(deleteSceneButtonClicked()));
     
     /*
+     * Replace scene button
+     */
+    m_replaceScenePushButton = new QPushButton("Replace...");
+    QObject::connect(m_replaceScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(replaceSceneButtonClicked()));
+    
+    /*
      * Show new scene button
      */
     m_showScenePushButton = new QPushButton("Show");
@@ -418,6 +503,7 @@ SceneDialog::createMainPage()
     sceneButtonLayout->addWidget(m_showScenePushButton);
     sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
+    sceneButtonLayout->addWidget(m_replaceScenePushButton);
     sceneButtonLayout->addWidget(m_deleteScenePushButton);
     
     /*
