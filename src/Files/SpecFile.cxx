@@ -876,6 +876,19 @@ SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex)
 }
 
 /**
+ * Get the data file type group for the given index.
+ * @param dataFileTypeGroupIndex
+ *    Index of data file type group.
+ * @return Data file type group at given index.
+ */
+const SpecFileDataFileTypeGroup* 
+SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex) const
+{
+    CaretAssertVectorIndex(this->dataFileTypeGroups, dataFileTypeGroupIndex);
+    return this->dataFileTypeGroups[dataFileTypeGroupIndex];
+}
+
+/**
  * Get the data file type group for the given data file type.
  * @param dataFileType
  *    Data file type requested.
@@ -1001,19 +1014,25 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
     std::vector<SceneClass*> dataFileClasses;
     
     //
-    // Write files (except scene files)
+    // Write files (except Scene and Palette files)
     //
     const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
     for (int32_t i = 0; i < numGroups; i++) {
         SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
-        if (dataFileType != DataFileTypeEnum::SCENE) {
+        if (dataFileType == DataFileTypeEnum::SCENE) {
+            CaretLogInfo("Note: Scene files not added to scene at this time");
+        }
+        else if (dataFileType == DataFileTypeEnum::PALETTE) {
+            CaretLogInfo("Note: Palette files not added to scene at this time");
+        }
+        else {
             const int32_t numFiles = group->getNumberOfFiles();
             for (int32_t j = 0; j < numFiles; j++) {
                 SpecFileDataFile* file = group->getFileInformation(j);
                 
                 if (file->isRemovedFromSpecFileWhenWritten() == false) {
-                    if (file->isSelected()) {
+//                    if (file->isSelected()) {
                         SceneClass* fileClass = new SceneClass("specFileDataFile",
                                                                "SpecFileDataFile",
                                                                1);
@@ -1029,7 +1048,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                         
                         dataFileClasses.push_back(fileClass);
                     }
-                }
+//                }
             }
         }
     }

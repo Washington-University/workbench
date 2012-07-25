@@ -621,6 +621,14 @@ Overlay::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addString("selectedMapName",
                               selectedMapFile->getMapName(selectedMapIndex));
     }
+    else {
+        sceneClass->addString("selectedMapFile",
+                              "");
+        sceneClass->addString("selectedMapUniqueID",
+                              "");
+        sceneClass->addString("selectedMapName",
+                              "");
+    }
     
     return sceneClass;
 }

@@ -129,6 +129,7 @@ CursorEnum.h
 CursorManager.h
 DisplayGroupEnumComboBox.h
 EventBrowserWindowContentGet.h
+EventBrowserWindowCreateTabs.h
 EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
@@ -219,6 +220,7 @@ CursorEnum.cxx
 CursorManager.cxx
 DisplayGroupEnumComboBox.cxx
 EventBrowserWindowContentGet.cxx
+EventBrowserWindowCreateTabs.cxx
 EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx

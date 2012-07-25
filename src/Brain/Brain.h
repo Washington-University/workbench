@@ -142,7 +142,7 @@ namespace caret {
         
         const SceneFile* getSceneFile(const int32_t indx) const;
         
-        SpecFile* getSpecFile();
+        AString getSpecFileName() const;
         
         int32_t getNumberOfVolumeFiles() const;
         
@@ -276,9 +276,6 @@ namespace caret {
         
         AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
         
-        void setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
-                                             const bool selectedStatus);
-        
         void updateVolumeSliceController();
         
         void updateWholeBrainController();
@@ -301,7 +298,7 @@ namespace caret {
         
         mutable AString m_currentDirectory;
         
-        SpecFile* m_specFile;
+        AString m_specFileName;
         
         std::vector<VolumeFile*> m_volumeFiles;
         

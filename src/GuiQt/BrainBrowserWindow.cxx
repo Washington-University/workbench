@@ -55,6 +55,7 @@
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -716,8 +717,9 @@ BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
 void 
 BrainBrowserWindow::processFileMenuAboutToShow()
 {
-    const int32_t numFiles = GuiManager::get()->getBrain()->getSpecFile()->getNumberOfFiles();
-    m_openFileViaSpecFileAction->setEnabled(numFiles > 0);
+    const AString specFileName = GuiManager::get()->getBrain()->getSpecFileName();
+    FileInformation fileInfo(specFileName);
+    m_openFileViaSpecFileAction->setEnabled(fileInfo.exists());
 }
 
 /**
@@ -1240,7 +1242,7 @@ BrainBrowserWindow::processDataFileOpen()
             else {
                 if (addFileToSpecFileCheckBox->isChecked()) {
                     Brain* brain = GuiManager::get()->getBrain();
-                    FileInformation fileInfo(brain->getSpecFile()->getFileName());
+                    FileInformation fileInfo(brain->getSpecFileName());
                     if (fileInfo.exists()) {
                         addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
                     }
@@ -1574,9 +1576,15 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     const float specFileTime = specFileTimeEnd - specFileTimeStart;
     
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
-    if (createDefaultTabsFlag) {
-        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-    }
+    const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
+                                                  EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
+                                                  EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
+    EventBrowserWindowCreateTabs createTabsEvent(tabMode);
+    EventManager::get()->sendEvent(createTabsEvent.getPointer());
+    
+//    if (createDefaultTabsFlag) {
+//        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//    }
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
     const float guiStartTime = timer.getElapsedTimeSeconds();
@@ -1621,9 +1629,21 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
 void 
 BrainBrowserWindow::processDataFileOpenFromSpecFile()
 {
-    SpecFile* sf = GuiManager::get()->getBrain()->getSpecFile();
-    SpecFileDialog::displayFastOpenDataFile(sf,
-                                            this);
+    const AString specFileName = GuiManager::get()->getBrain()->getSpecFileName();
+    FileInformation fileInfo(specFileName);
+    if (fileInfo.exists()) {
+        try {
+            SpecFile sf;
+            sf.readFile(specFileName);
+            SpecFileDialog::displayFastOpenDataFile(&sf,
+                                                    this);
+        }
+        catch (const DataFileException& e) {
+            QMessageBox::critical(this, 
+                                  "ERROR", 
+                                  e.whatString());
+        }
+    }
 }
 
 /**

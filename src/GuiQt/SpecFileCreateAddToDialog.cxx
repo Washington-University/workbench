@@ -76,13 +76,12 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
 {
     m_addFilesToSpecFileFlag = false;
     
-    m_specFile = brain->getSpecFile();
-    const QString specFileName = m_specFile->getFileName();
+    m_specFileName = brain->getSpecFileName();
     
-    FileInformation fileInfo(specFileName);
+    FileInformation fileInfo(m_specFileName);
     m_isSpecFileValid = fileInfo.exists();
     
-    m_specFileNameLineEdit      = new QLineEdit();
+    m_specFileNameLineEdit = new QLineEdit();
     m_specFileNameLineEdit->setMinimumWidth(500);
     m_specFileNameLineEdit->setReadOnly(true);
 
@@ -223,10 +222,11 @@ SpecFileCreateAddToDialog::okButtonClicked()
             FileInformation fileInfo(specFileName);
             if (fileInfo.exists()) {
                 /**
-                 * If spec file exists, need to read it.
+                 * If spec file exists, try to read it.
                  */
                 try {
-                    m_specFile->readFile(specFileName);
+                    SpecFile sf;
+                    sf.readFile(specFileName);
                 }
                 catch (const DataFileException& dfe) {
                     WuQMessageBox::errorOk(this, 
@@ -235,8 +235,12 @@ SpecFileCreateAddToDialog::okButtonClicked()
                 }
             }
             else {
+                /*
+                 * Write spec file to create it
+                 */
                 try {
-                    m_specFile->writeFile(specFileName);
+                    SpecFile sf;
+                    sf.writeFile(specFileName);
                 }
                 catch (const DataFileException& dfe) {
                     WuQMessageBox::errorOk(this, 

@@ -1,5 +1,3 @@
-#ifndef __SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
-#define __SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
 
 /*LICENSE_START*/
 /*
@@ -34,58 +32,46 @@
  */
 /*LICENSE_END*/
 
-#include "WuQDialogModal.h"
+#define __EVENT_BROWSER_WINDOW_CREATE_TABS_DECLARE__
+#include "EventBrowserWindowCreateTabs.h"
+#undef __EVENT_BROWSER_WINDOW_CREATE_TABS_DECLARE__
 
-class QLineEdit;
-class QPushButton;
+using namespace caret;
 
-namespace caret {
-    class Brain;
+
     
-    class SpecFileCreateAddToDialog : public WuQDialogModal {
-        Q_OBJECT
-        
-    public:
-        enum FileOpenSaveMode {
-            MODE_OPEN,
-            MODE_SAVE
-        };
-        
-        SpecFileCreateAddToDialog(Brain* brain,
-                                  const FileOpenSaveMode mode,
-                                  QWidget* parent = 0);
-        
-        virtual ~SpecFileCreateAddToDialog();
-        
-        bool isAddToSpecFileSelected() const;
-        
-    private slots:
-        void fileButtonClicked();
-        
-    protected:
-        void okButtonClicked();
-        
-        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
-        
-    private:
-        SpecFileCreateAddToDialog(const SpecFileCreateAddToDialog&);
+/**
+ * \class caret::EventBrowserWindowCreateTabs 
+ * \brief If needed, create browser tabs after loading a spec or data files
+ */
 
-        SpecFileCreateAddToDialog& operator=(const SpecFileCreateAddToDialog&);
-        
-        AString m_specFileName;
-        
-        QLineEdit* m_specFileNameLineEdit;
-        
-        QPushButton* m_skipPushButton;
-        
-        bool m_isSpecFileValid;
-        
-        bool m_addFilesToSpecFileFlag;
-    };
+/**
+ * Constructor.
+ * @param mode
+ *    Mode for tab creation.
+ */
+EventBrowserWindowCreateTabs::EventBrowserWindowCreateTabs(const Mode mode)
+: Event(EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS), 
+  m_mode(mode)
+{
     
-#ifdef __SPEC_FILE_CREATE_ADD_TO_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SPEC_FILE_CREATE_ADD_TO_DIALOG_DECLARE__
+}
 
-} // namespace
-#endif  //__SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
+/**
+ * Destructor.
+ */
+EventBrowserWindowCreateTabs::~EventBrowserWindowCreateTabs()
+{
+    
+}
+
+/**
+ * @return The mode.
+ */
+EventBrowserWindowCreateTabs::Mode 
+EventBrowserWindowCreateTabs::getMode() const
+{
+    return m_mode;
+}
+
+

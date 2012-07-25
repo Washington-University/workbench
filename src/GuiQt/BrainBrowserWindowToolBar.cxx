@@ -64,6 +64,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -319,6 +320,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->isContructorFinished = true;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
@@ -4404,6 +4406,33 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
             this->updateToolBar();
             uiEvent->setEventProcessed();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS) {
+        EventBrowserWindowCreateTabs* tabEvent =
+        dynamic_cast<EventBrowserWindowCreateTabs*>(event);
+        CaretAssert(tabEvent);
+        
+        EventModelGetAll eventAllModels;
+        EventManager::get()->sendEvent(eventAllModels.getPointer());
+        const bool haveModels = (eventAllModels.getModels().empty() == false);
+        
+        if (haveModels) {
+            switch (tabEvent->getMode()) {
+                case EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE:
+                    if (tabBar->count() == 0) {
+                        AString errorMessage;
+                        createNewTab(errorMessage);
+                        if (errorMessage.isEmpty() == false) {
+                            CaretLogSevere(errorMessage);
+                        }
+                    }
+                    break;
+                case EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE:
+                    this->addDefaultTabsAfterLoadingSpecFile();
+                    break;
+            }
+        }
+        tabEvent->setEventProcessed();
     }
     else {
         

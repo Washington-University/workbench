@@ -85,7 +85,7 @@ Brain::Brain()
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
-    m_specFile = new SpecFile();
+    m_specFileName = "";
     m_surfaceMontageController = NULL;
     m_volumeSliceController = NULL;
     m_wholeBrainController = NULL;
@@ -152,7 +152,6 @@ Brain::~Brain()
 
     delete m_connectivityLoaderManager;
     delete m_paletteFile;
-    delete m_specFile;
     if (m_surfaceMontageController != NULL) {
         delete m_surfaceMontageController;
     }
@@ -321,7 +320,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     switch (keepSpecFile) {
         case RESET_BRAIN_KEEP_SPEC_FILE_NO:
-            m_specFile->clear();
+            m_specFileName = "";
             break;
         case RESET_BRAIN_KEEP_SPEC_FILE_YES:
             break;
@@ -1342,6 +1341,15 @@ Brain::getSceneFile(const int32_t indx) const
     return m_sceneFiles[indx];
 }
 
+/**
+ * @return Name of the spec file.
+ */
+AString 
+Brain::getSpecFileName() const
+{
+    return m_specFileName;
+}
+
 /*
  * @return The palette file.
  */
@@ -1358,15 +1366,6 @@ const PaletteFile*
 Brain::getPaletteFile() const
 {
     return m_paletteFile;
-}
-
-/*
- * @return The spec file.
- */
-SpecFile* 
-Brain::getSpecFile()
-{
-    return m_specFile;
 }
 
 /**
@@ -1587,10 +1586,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                    + " seconds.");
     CaretLogInfo(msg);
 
+    AString addToSpecFileErrorMessage;
     if (addDataFileToSpecFile) {
-        const AString specFileName = m_specFile->getFileName();
-        if (specFileName.isEmpty() == false) {
-            FileInformation specFileInfo(specFileName);
+        if (m_specFileName.isEmpty() == false) {
+            FileInformation specFileInfo(m_specFileName);
             QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName, 
                                                                              specFileInfo.getPathName());
             
@@ -1603,17 +1602,34 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     dataFileStructure = StructureEnum::ALL;
                 }
             }
-            m_specFile->addDataFile(dataFileType, 
+            try {
+                SpecFile sf;
+                sf.readFile(m_specFileName);
+                sf.addDataFile(dataFileType, 
                                         dataFileStructure, 
                                         relativePathDataFileName,
                                         true);
-            m_specFile->writeFile(specFileName);
+                sf.writeFile(m_specFileName);
+            }
+            catch (const DataFileException& e) {
+                addToSpecFileErrorMessage = ("Unable to add file \""
+                                     + dataFileName
+                                     + "\" to SpecFile \""
+                                     + m_specFileName
+                                     + "\", Error:"
+                                     + e.whatString());
+                CaretLogWarning(addToSpecFileErrorMessage);
+            }
         }
     }
     
     updateVolumeSliceController();
     updateWholeBrainController();
     updateSurfaceMontageController();
+    
+    if (addToSpecFileErrorMessage.isEmpty() == false) {
+        throw DataFileException(addToSpecFileErrorMessage);
+    }
 }
 
 /**
@@ -1629,15 +1645,10 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     AString errorMessage;
     
-    SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
+    const SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
     CaretAssert(sf);
-    
+
     resetBrain();
-    
-    if (m_specFile != NULL) {
-        delete m_specFile;
-    }
-    m_specFile = new SpecFile(*sf);
     
     m_isSpecFileBeingRead = true;
     
@@ -1647,14 +1658,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     FileInformation fileInfo(sf->getFileName());
     setCurrentDirectory(fileInfo.getPathName());
     
-    
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
-        SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
+        const SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
-            SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
+            const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
             if (fileInfo->isSelected()) {
                 const AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
@@ -1674,8 +1684,14 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         }
     }
     
-    const AString specFileName = m_specFile->getFileName();
+    const AString specFileName = sf->getFileName();
     FileInformation specFileInfo(specFileName);
+    if (specFileInfo.exists()) {
+        m_specFileName = specFileName;
+    }
+    else {
+        m_specFileName = "";
+    }
     if (specFileInfo.isAbsolute()) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         prefs->addToPreviousSpecFiles(specFileName);
@@ -1785,15 +1801,14 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Check to see if existing spec file exists
      */
-    FileInformation specFileInfo(m_specFile->getFileName());
+    FileInformation specFileInfo(m_specFileName);
     const bool specFileValid = specFileInfo.exists();
     
     /*
-     * Appy spec file pulled from scene
+     * Apply spec file pulled from scene
      */
     m_isSpecFileBeingRead = true;
-    delete m_specFile;
-    m_specFile = new SpecFile(*specFileToLoad);
+    m_specFileName = specFileToLoad->getFileName();   
     
     /*
      * Set current directory to directory containing scene file
@@ -1806,9 +1821,9 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    const int32_t numFileGroups = m_specFile->getNumberOfDataFileTypeGroups();
+    const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
-        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroup(ig);
+        SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
@@ -2184,15 +2199,25 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
     caretDataFile->clearModified();
     
     if (isAddToSpecFile) {
-        const AString specFileName = m_specFile->getFileName();
-        if (specFileName.isEmpty() == false) {
-            FileInformation fileInfo(specFileName);
-            if (fileInfo.exists()) {
-                m_specFile->addDataFile(caretDataFile->getDataFileType(), 
-                                            caretDataFile->getStructure(), 
-                                            caretDataFile->getFileName(),
-                                            true);
-                m_specFile->writeFile(specFileName);
+        if (m_specFileName.isEmpty() == false) {
+            try {
+                SpecFile sf;
+                sf.readFile(m_specFileName);
+                sf.addDataFile(caretDataFile->getDataFileType(), 
+                               caretDataFile->getStructure(), 
+                               caretDataFile->getFileName(),
+                               true);
+                sf.writeFile(m_specFileName);
+            }
+            catch (const DataFileException& e) {
+                const AString msg = ("Unable to add file \""
+                                             + dataFileName
+                                             + "\" to SpecFile \""
+                                             + m_specFileName
+                                             + "\", Error:"
+                                             + e.whatString());
+                CaretLogWarning(msg);
+                throw DataFileException(e);
             }
         }
     }
@@ -2214,12 +2239,6 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         return false;
     }
 
-    /*
-     * Deselect so not placed into a scene
-     */
-    setFileSelectedStatusInSpecFile(caretDataFile, 
-                                    false);
-    
     bool wasRemoved = false;
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
@@ -2311,24 +2330,6 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
 
     return wasRemoved;
 }
-
-/**
- * Set selected status for a data file from the spec file.
- * @param dataFile
- *     Data file for removal from spec file.
- * @param selectedStatus
- *     New selected status.
- */
-void 
-Brain::setFileSelectedStatusInSpecFile(CaretDataFile* dataFile,
-                                       const bool selectedStatus)
-{
-    m_specFile->setFileSelectionStatus(dataFile->getDataFileType(), 
-                                           dataFile->getStructure(), 
-                                           dataFile->getFileNameNoPath(), 
-                                           selectedStatus);
-}
-
 
 /**
  * @return The border display properties.
@@ -2432,8 +2433,22 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     
     if (isSaveSpecFile) {
-        sceneClass->addClass(m_specFile->saveToScene(sceneAttributes, 
-                                                         "specFile"));
+        std::vector<CaretDataFile*> allFiles;
+        getAllDataFiles(allFiles);
+        SpecFile sf;
+        sf.setFileName(m_specFileName);
+        for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+             iter != allFiles.end();
+             iter++) {
+            CaretDataFile* cdf = *iter;
+            sf.addDataFile(cdf->getDataFileType(), 
+                           cdf->getStructure(), 
+                           cdf->getFileName(), 
+                           true);
+        }
+        
+        sceneClass->addClass(sf.saveToScene(sceneAttributes, 
+                                            "specFile"));
     }
     
     m_sceneAssistant->saveMembers(sceneAttributes, 

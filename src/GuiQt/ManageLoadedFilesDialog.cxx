@@ -203,9 +203,12 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
 
     QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
     AString checkBoxText = "Add Saved Files to Spec File";
-    const AString specFileName = brain->getSpecFile()->getFileNameNoPath();
+    const AString specFileName = brain->getSpecFileName();
     if (specFileName.isEmpty() == false) {
-        checkBoxText += (": " + specFileName);
+        FileInformation fileInfo(specFileName);
+        if (fileInfo.exists()) {
+            checkBoxText += (": " + fileInfo.getFileName());
+        }
     }
     this->addSavedFilesToSpecFileCheckBox = new QCheckBox(checkBoxText);
     this->addSavedFilesToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) saved\n"
@@ -262,8 +265,8 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         
         bool addSavedFilesToSpecFileFlag = previousSaveFileAddToSpecFileSelection;
         if (addSavedFilesToSpecFileFlag) {
-            SpecFile* specFile = this->brain->getSpecFile();
-            FileInformation fileInfo(specFile->getFileName());
+            const AString& specFileName = this->brain->getSpecFileName();
+            FileInformation fileInfo(specFileName);
             if (fileInfo.exists() == false) {
                 SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
                                                                     SpecFileCreateAddToDialog::MODE_SAVE,

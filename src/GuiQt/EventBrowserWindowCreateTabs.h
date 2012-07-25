@@ -1,5 +1,5 @@
-#ifndef __SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
-#define __SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
+#ifndef __EVENT_BROWSER_WINDOW_CREATE_TABS__H_
+#define __EVENT_BROWSER_WINDOW_CREATE_TABS__H_
 
 /*LICENSE_START*/
 /*
@@ -34,58 +34,44 @@
  */
 /*LICENSE_END*/
 
-#include "WuQDialogModal.h"
 
-class QLineEdit;
-class QPushButton;
+#include "Event.h"
 
 namespace caret {
-    class Brain;
-    
-    class SpecFileCreateAddToDialog : public WuQDialogModal {
-        Q_OBJECT
+
+    class EventBrowserWindowCreateTabs : public Event {
         
     public:
-        enum FileOpenSaveMode {
-            MODE_OPEN,
-            MODE_SAVE
+        enum Mode {
+            MODE_LOADED_DATA_FILE,
+            MODE_LOADED_SPEC_FILE
         };
         
-        SpecFileCreateAddToDialog(Brain* brain,
-                                  const FileOpenSaveMode mode,
-                                  QWidget* parent = 0);
+        EventBrowserWindowCreateTabs(const Mode mode);
         
-        virtual ~SpecFileCreateAddToDialog();
+        virtual ~EventBrowserWindowCreateTabs();
         
-        bool isAddToSpecFileSelected() const;
-        
-    private slots:
-        void fileButtonClicked();
-        
-    protected:
-        void okButtonClicked();
-        
-        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
+        Mode getMode() const;
         
     private:
-        SpecFileCreateAddToDialog(const SpecFileCreateAddToDialog&);
+        EventBrowserWindowCreateTabs(const EventBrowserWindowCreateTabs&);
 
-        SpecFileCreateAddToDialog& operator=(const SpecFileCreateAddToDialog&);
+        EventBrowserWindowCreateTabs& operator=(const EventBrowserWindowCreateTabs&);
         
-        AString m_specFileName;
-        
-        QLineEdit* m_specFileNameLineEdit;
-        
-        QPushButton* m_skipPushButton;
-        
-        bool m_isSpecFileValid;
-        
-        bool m_addFilesToSpecFileFlag;
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+
+        // ADD_NEW_MEMBERS_HERE
+
+        const Mode m_mode;
     };
     
-#ifdef __SPEC_FILE_CREATE_ADD_TO_DIALOG_DECLARE__
+#ifdef __EVENT_BROWSER_WINDOW_CREATE_TABS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SPEC_FILE_CREATE_ADD_TO_DIALOG_DECLARE__
+#endif // __EVENT_BROWSER_WINDOW_CREATE_TABS_DECLARE__
 
 } // namespace
-#endif  //__SPEC_FILE_CREATE_ADD_TO_DIALOG__H_
+#endif  //__EVENT_BROWSER_WINDOW_CREATE_TABS__H_

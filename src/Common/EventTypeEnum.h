@@ -52,6 +52,8 @@ public:
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */
         EVENT_BROWSER_WINDOW_CONTENT_GET,
+        /** Create tabs after loading a file */
+        EVENT_BROWSER_WINDOW_CREATE_TABS,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */
