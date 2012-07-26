@@ -163,7 +163,29 @@ bool CiftiMatrixIndicesMapElement::operator==(const CiftiMatrixIndicesMapElement
         case CIFTI_INDEX_TYPE_FIBERS:
             break;//???
         case CIFTI_INDEX_TYPE_PARCELS:
-            break;//???
+            {
+                if (m_parcels.size() != rhs.m_parcels.size() || m_parcelSurfaces.size() != rhs.m_parcelSurfaces.size()) return false;
+                vector<bool> used(rhs.m_parcelSurfaces.size(), false);
+                for (size_t i = 0; i < m_parcelSurfaces.size(); ++i)
+                {
+                    bool found = false;
+                    for (size_t j = 0; j < rhs.m_parcelSurfaces.size(); ++j)
+                    {
+                        if (!used[j] && m_parcelSurfaces[i] == rhs.m_parcelSurfaces[j])
+                        {
+                            used[j] = true;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) return false;
+                }
+                for (size_t i = 0; i < m_parcels.size(); ++i)
+                {
+                    if (m_parcels[i] != rhs.m_parcels[i]) return false;
+                }
+            }
+            break;
         case CIFTI_INDEX_TYPE_TIME_POINTS:
             {
                 if (m_numTimeSteps != rhs.m_numTimeSteps) return false;
@@ -295,4 +317,57 @@ CiftiNamedMapElement& CiftiNamedMapElement::operator=(const CiftiNamedMapElement
     m_mapName = rhs.m_mapName;
     if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
     return *this;
+}
+
+///NOTE: this is not a standard equality test, it skips checking the nodes list because we do that elsewhere
+bool CiftiParcelNodesElement::operator==(const CiftiParcelNodesElement& rhs) const
+{
+    if (m_structure != rhs.m_structure) return false;
+    if (m_nodes.size() != rhs.m_nodes.size()) return false;
+    /*for (size_t i = 0; i < m_nodes.size(); ++i)
+    {
+        if (m_nodes[i] != rhs.m_nodes[i]) return false;
+    }//*///not needed, we check node equivalence by checking the lookup in each surface, this way wouldn't work for same nodes in different order anyway
+    return true;
+}
+
+bool CiftiParcelElement::operator==(const CiftiParcelElement& rhs) const
+{
+    if (m_parcelName != rhs.m_parcelName) return false;
+    if (m_nodeElements.size() != rhs.m_nodeElements.size() || m_voxelIndicesIJK.size() != rhs.m_voxelIndicesIJK.size()) return false;
+    vector<bool> used(rhs.m_nodeElements.size(), false);
+    for (size_t i = 0; i < m_nodeElements.size(); ++i)
+    {
+        bool found = false;
+        for (size_t j = 0; j < rhs.m_nodeElements.size(); ++j)
+        {
+            if (!used[j] && m_nodeElements[i] == rhs.m_nodeElements[j])
+            {
+                found = true;
+                used[j] = true;
+                break;
+            }
+        }
+        if (!found) return false;
+    }
+    for (size_t i = 0; i < m_voxelIndicesIJK.size(); i += 3)
+    {
+        if (m_voxelIndicesIJK[i] != rhs.m_voxelIndicesIJK[i]) return false;
+        if (m_voxelIndicesIJK[i + 1] != rhs.m_voxelIndicesIJK[i + 1]) return false;
+        if (m_voxelIndicesIJK[i + 2] != rhs.m_voxelIndicesIJK[i + 2]) return false;
+    }
+    return true;
+}
+
+bool CiftiParcelSurfaceElement::operator==(const CiftiParcelSurfaceElement& rhs) const
+{
+    if (m_structure != rhs.m_structure) return false;
+    if (m_numNodes != rhs.m_numNodes) return false;
+    CaretAssert(m_numNodes == (int64_t)m_lookup.size());
+    CaretAssert(rhs.m_lookup.size() == m_lookup.size());
+    for (size_t i = 0; i < m_lookup.size(); ++i)
+    {//check lookup instead of checking node lists in parcels
+        if (m_lookup[i] != rhs.m_lookup[i]) return false;
+    }
+    return true;
 }
