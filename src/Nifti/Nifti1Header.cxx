@@ -396,6 +396,12 @@ void Nifti1Header::setSForm(const std::vector<std::vector<float> >& sForm)
     if (!MathFunctions::matrixToQuatern(rotmat, quat))
     {
         m_header.qform_code = NIFTI_XFORM_UNKNOWN;//0, implies that there is no qform
+        m_header.quatern_b = 0.0;//set dummy values anyway
+        m_header.quatern_c = 0.0;
+        m_header.quatern_d = 0.0;
+        m_header.qoffset_x = sForm[0][3];
+        m_header.qoffset_y = sForm[1][3];
+        m_header.qoffset_z = sForm[2][3];
     } else {
         m_header.qform_code = NIFTI_XFORM_SCANNER_ANAT;
         m_header.quatern_b = quat[1];
