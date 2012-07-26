@@ -908,6 +908,7 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
         this->nonModalDialogs.push_back(this->imageCaptureDialog);
     }
     this->imageCaptureDialog->updateDialog();
+    this->imageCaptureDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     this->imageCaptureDialog->setVisible(true);
     this->imageCaptureDialog->show();
     this->imageCaptureDialog->activateWindow();

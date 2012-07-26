@@ -85,7 +85,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
      */
     QLabel* windowLabel = new QLabel("Workbench Window: ");
     this->windowSelectionSpinBox = new QSpinBox();
-    this->windowSelectionSpinBox->setRange(1, 1000000);
+    this->windowSelectionSpinBox->setRange(1,
+                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
     this->windowSelectionSpinBox->setSingleStep(1);
     this->windowSelectionSpinBox->setValue(parent->getBrowserWindowIndex() + 1);
     this->windowSelectionSpinBox->setFixedWidth(60);
@@ -195,6 +196,19 @@ ImageCaptureDialog::updateDialog()
 {
     
 }
+
+/**
+ * Set the selected browser window to the browser window with the
+ * given index.
+ * @param browserWindowIndex
+ *    Index of browser window.
+ */
+void
+ImageCaptureDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
+{
+    this->windowSelectionSpinBox->setValue(browserWindowIndex + 1);
+}
+
 
 /**
  * Called when choose file pushbutton is pressed.

@@ -47,6 +47,8 @@ namespace caret {
         
         virtual ~ImageCaptureDialog();
 
+        void setBrowserWindowIndex(const int32_t browserWindowIndex);
+        
         void updateDialog();
         
     protected:
