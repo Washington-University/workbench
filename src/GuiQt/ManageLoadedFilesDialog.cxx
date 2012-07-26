@@ -51,6 +51,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <QToolButton>
 
 
@@ -201,7 +202,7 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                               COLUMN_FILE_NAME);
     }
 
-    QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
+    //QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
     AString checkBoxText = "Add Saved Files to Spec File";
     const AString specFileName = brain->getSpecFileName();
     if (specFileName.isEmpty() == false) {
@@ -217,13 +218,14 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                                                       "will be prompted to create or select a Spec File.");
     this->addSavedFilesToSpecFileCheckBox->setChecked(previousSaveFileAddToSpecFileSelection);
     
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(filesWidget);
-    layout->addWidget(horizLineWidget);
+    QWidget* bottomWidget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(bottomWidget);
+    //layout->addWidget(horizLineWidget);
     layout->addWidget(this->addSavedFilesToSpecFileCheckBox, 0, Qt::AlignLeft);
 
-    this->setCentralWidget(w);
+    this->setTopBottomAndCentralWidgets(NULL,
+                                        filesWidget,
+                                        bottomWidget);
 }
 
 /**
