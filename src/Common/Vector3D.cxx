@@ -45,6 +45,11 @@ float Vector3D::length() const
     return MathFunctions::vectorLength(m_vec);
 }
 
+float Vector3D::lengthsqr() const
+{
+    return m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2];
+}
+
 Vector3D Vector3D::normal(float* origLength) const
 {
     Vector3D ret = *this;

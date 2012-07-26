@@ -25,6 +25,7 @@
 #include "BoundingBox.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
+#include <cmath>
 
 using namespace std;
 using namespace caret;
@@ -196,30 +197,6 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
         case NONZERO:
             {
                 int numChanged = 0;
-                /*const vector<int>& myTiles = m_topoHelp->getNodeTiles(myInfo.node1);
-                bool first = true;
-                float bestNorm = 0;
-                Vector3D tempvec, tempvec2, bestCent;
-                for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
-                {//should be least likely to have an intervening triangle
-                    const int32_t* myTileNodes = m_base->m_surface->getTriangle(myTiles[i]);
-                    Vector3D vert1 = m_base->m_surface->getCoordinate(myTileNodes[0]);
-                    Vector3D vert2 = m_base->m_surface->getCoordinate(myTileNodes[1]);
-                    Vector3D vert3 = m_base->m_surface->getCoordinate(myTileNodes[2]);
-                    Vector3D centroid = (vert1 + vert2 + vert3) / 3.0f;
-                    if (MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec))//make sure the triangle has a valid normal
-                    {
-                        tempvec2 = point - centroid;
-                        tempf = tempvec.dot(tempvec2.normal());
-                        if (first || abs(tempf) > abs(bestNorm))
-                        {
-                            first = false;
-                            bestNorm = tempf;
-                            bestCent = centroid;
-                        }
-                    }
-                }
-                Vector3D mySeg = point - bestCent;//*/
                 float positiveZ[3] = {0, 0, 1};
                 Vector3D point2 = point + positiveZ;
                 int crossCount = 0;
@@ -474,7 +451,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
     return 1;
 }
 
-//Original copyright for PNPOLY, even though my version is entirely rewritten
+//Original copyright for PNPOLY, even though my version is entirely rewritten, and modified
 //Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 /**
 Copyright (c) 1970-2003, Wm. Randolph Franklin
@@ -505,7 +482,14 @@ bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int m
     {
         if ((verts[i][majAxis] < inPlane[majAxis]) != (verts[j][majAxis] < inPlane[majAxis]))
         {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
-            if ((verts[i][midAxis] - verts[j][midAxis]) / (verts[i][majAxis] - verts[j][majAxis]) * (inPlane[majAxis] - verts[j][majAxis]) + verts[j][midAxis] > inPlane[midAxis])
+            int ti, tj;
+            if (verts[i][majAxis] < verts[j][majAxis])//reorient the segment consistently to prevent rounding error from affecting the result
+            {
+                ti = i; tj = j;
+            } else {
+                ti = j; tj = i;
+            }
+            if ((verts[ti][midAxis] - verts[tj][midAxis]) / (verts[ti][majAxis] - verts[tj][majAxis]) * (inPlane[majAxis] - verts[tj][majAxis]) + verts[tj][midAxis] > inPlane[midAxis])
             {//if the point on the line described by the two vertices with the same x coordinate is above (greater y) than the test point
                 inside = !inside;//even/odd winding rule
             }
@@ -515,50 +499,142 @@ bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int m
     return inside;
 }
 
+///"dumb" implementation, projects to plane, test if inside while finding closest point on each edge
+///there are faster implementations out there, but this is easier to follow
 float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t triangle, ClosestPointInfo& myInfo)
 {
     const int32_t* triNodes = m_base->m_surface->getTriangle(triangle);
-    Vector3D point = coord, tempPoint;
-    Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
-    Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
-    Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
-    Vector3D v21hat = vert2 - vert1;
-    float origLength;
-    v21hat = v21hat.normal(&origLength);
+    Vector3D point = coord;
+    Vector3D verts[3];
     int type = 0;//tracks whether it is closest to a node, an edge, or the face
     int32_t node1 = -1, node2 = -1;//tracks which nodes are involved
-    float tempf = v21hat.dot(point - vert1);
-    if (tempf <= 0.0f)
+    Vector3D bestPoint;
+    verts[0] = m_base->m_surface->getCoordinate(triNodes[0]);
+    verts[1] = m_base->m_surface->getCoordinate(triNodes[1]);
+    verts[2] = m_base->m_surface->getCoordinate(triNodes[2]);
+    Vector3D v10 = verts[1] - verts[0];
+    Vector3D xhat = v10.normal();
+    Vector3D v20 = verts[2] - verts[0];
+    float sanity;
+    Vector3D yhat = (v20 - xhat * xhat.dot(v20)).normal(&sanity);//now we have our orthogonal basis vectors for projection
+    if (sanity == 0.0f || xhat.dot(yhat) > 0.01f)//if our triangle is (mostly) degenerate, find the closest point on its edges instead of trying to project to the NaN plane
     {
-        tempPoint = vert1;
-        node1 = triNodes[0];
-    } else if (tempf >= origLength) {
-        tempPoint = vert2;
-        node1 = triNodes[1];
+        bool first = true;
+        float bestLengthSqr = -1.0f;//track best squared length from edge to PROJECTED point, still have to back-figure by including the distance out of the plane (or just subtract coords and take length)
+        for (int j = 2, i = 0; i < 3; ++i)//start with the wraparound case
+        {
+            float length;
+            Vector3D norm = (verts[j] - verts[i]).normal(&length);
+            Vector3D mypoint;
+            int temptype = 0, tempnode1, tempnode2;
+            if (length > 0.0f)
+            {
+                Vector3D diff = point - verts[i];
+                float dot = norm.dot(diff);
+                if (dot <= 0.0f)
+                {
+                    mypoint = verts[i];
+                    tempnode1 = triNodes[i];
+                } else if (dot >= length) {
+                    mypoint = verts[j];
+                    tempnode1 = triNodes[j];
+                } else {
+                    mypoint = verts[i] + dot * norm;
+                    temptype = 1;
+                    tempnode1 = triNodes[i];
+                    tempnode2 = triNodes[j];
+                }
+            } else {
+                temptype = 0;
+                tempnode1 = triNodes[i];
+                mypoint = verts[i];
+            }
+            float tempdistsqr = (point - mypoint).lengthsqr();
+            if (first || tempdistsqr < bestLengthSqr)
+            {
+                first = false;
+                type = temptype;
+                bestLengthSqr = tempdistsqr;
+                bestPoint = mypoint;
+                node1 = tempnode1;
+                node2 = tempnode2;
+            }
+            j = i;//consecutive vertices, does 2,0 then 0,1 then 1,2
+        }
     } else {
-        tempPoint = vert1 + tempf * v21hat;
-        node1 = triNodes[0];
-        node2 = triNodes[1];
-        ++type;
+        Vector3D zhat = xhat.cross(yhat);
+        float vertxy[3][2];
+        for (int i = 0; i < 3; ++i)//project everything to the new plane with basis vectors xhat, yhat
+        {
+            vertxy[i][0] = xhat.dot(verts[i]);
+            vertxy[i][1] = yhat.dot(verts[i]);
+        }
+        bool inside = true;
+        float p[2] = { xhat.dot(point), yhat.dot(point) };
+        float bestxy[2];
+        for (int i = 0, j = 2, k = 1; i < 3; ++i)//start with the wraparound case
+        {
+            float norm[2] = { vertxy[j][0] - vertxy[i][0], vertxy[j][1] - vertxy[i][1] };
+            float diff[2] = { p[0] - vertxy[i][0], p[1] - vertxy[i][1] };
+            float direction[2] = { vertxy[k][0] - vertxy[i][0], vertxy[k][1] - vertxy[i][1] };
+            float edgelen = sqrt(norm[0] * norm[0] + norm[1] * norm[1]);
+            if (edgelen != 0.0f)
+            {
+                norm[0] /= edgelen; norm[1] /= edgelen;
+                float dot = direction[0] * norm[0] + direction[1] * norm[1];
+                direction[0] -= dot * norm[0];//direction is orthogonal to norm, in the direction of the third vertex
+                direction[1] -= dot * norm[1];
+                if (diff[0] * direction[0] + diff[1] * direction[1] < 0.0f)//if dot product with (projected point - vert[i]) is negative
+                {//we are outside the triangle, find the projection to this edge and break
+                    inside = false;
+                    dot = diff[0] * norm[0] + diff[1] * norm[1];
+                    if (dot <= 0.0f)
+                    {
+                        type = 0;
+                        node1 = triNodes[i];
+                        bestPoint = verts[i];
+                    } else if (dot >= edgelen) {
+                        type = 0;
+                        node1 = triNodes[j];
+                        bestPoint = verts[j];
+                    } else {
+                        type = 1;
+                        node1 = triNodes[i];
+                        node2 = triNodes[j];
+                        bestxy[0] = vertxy[i][0] + dot * norm[0];
+                        bestxy[1] = vertxy[i][1] + dot * norm[1];
+                    }
+                    break;
+                }
+            } else {
+                if (diff[0] * direction[0] + diff[1] * direction[1] < 0.0f)//since we don't have an edge, we don't need to othrogonalize direction, or project to the edge
+                {
+                    inside = false;
+                    type = 0;
+                    node1 = triNodes[i];
+                    bestPoint = verts[i];
+                    break;
+                }
+            }
+            k = j;
+            j = i;//consecutive vertices, does 2,0 then 0,1 then 1,2
+        }
+        if (inside)
+        {
+            bestxy[0] = p[0]; bestxy[1] = p[1];
+            type = 2;
+        }
+        if (type != 0)
+        {
+            bestPoint = bestxy[0] * xhat + bestxy[1] * yhat + zhat * zhat.dot(verts[0]);
+        }
     }
-    Vector3D v3that = vert3 - tempPoint;
-    v3that = v3that.normal(&origLength);
-    tempf = v3that.dot(point - tempPoint);
-    if (tempf >= origLength)
-    {
-        tempPoint = vert3;
-        node1 = triNodes[2];
-    } else if (tempf >= 0.0f) {
-        tempPoint += tempf * v3that;
-        node2 = triNodes[2];//don't worry, if this puts it on the face, then it doesn't use node1/node2
-        ++type;
-    }//if less than 0, keep point the same
-    Vector3D result = point - tempPoint;
+    Vector3D result = point - bestPoint;
     myInfo.type = type;
     myInfo.node1 = node1;
     myInfo.node2 = node2;
     myInfo.triangle = triangle;
-    myInfo.tempPoint = tempPoint;
+    myInfo.tempPoint = bestPoint;
     return result.length();
 }
 
