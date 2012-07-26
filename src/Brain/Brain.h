@@ -31,6 +31,7 @@
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
+#include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
@@ -99,7 +100,9 @@ namespace caret {
             NEAREST_BORDER_TEST_MODE_ALL_POINTS,
             NEAREST_BORDER_TEST_MODE_ENDPOINTS
         };
-        bool findBorderNearestBorder(const SurfaceFile* surfaceFile,
+        bool findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t browserTabIndex,
+                                     const SurfaceFile* surfaceFile,
                                     const Border* border,
                                     const NearestBorderTestMode borderTestMode,
                                     const float maximumDistance,
@@ -111,7 +114,9 @@ namespace caret {
                                     int32_t& borderPointIndexOut,
                                     float& distanceToBorderPointOut) const;
                                     
-        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t browserTabIndex,
+                                  const SurfaceFile* surfaceFile,
                                  const float xyz[3],
                                  const float maximumDistance,
                                  BorderFile*& borderFileOut,

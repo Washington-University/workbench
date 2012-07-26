@@ -27,6 +27,7 @@
 
 
 #include "CaretDataFile.h"
+#include "DisplayGroupEnum.h"
 
 namespace caret {
 
@@ -69,14 +70,16 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
-        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
-                                 const float xyz[3],
-                                 const float maximumDistance,
-                                 Border*& borderOut,
-                                 int32_t& borderIndexOut,
-                                 SurfaceProjectedItem*& borderPointOut,
-                                 int32_t& borderPointIndexOut,
-                                 float& distanceToNearestPointOut) const;
+        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t browserTabIndex,
+                                  const SurfaceFile* surfaceFile,
+                                  const float xyz[3],
+                                  const float maximumDistance,
+                                  Border*& borderOut,
+                                  int32_t& borderIndexOut,
+                                  SurfaceProjectedItem*& borderPointOut,
+                                  int32_t& borderPointIndexOut,
+                                  float& distanceToNearestPointOut) const;
         
         void addBorder(Border* border);
         
@@ -84,11 +87,17 @@ namespace caret {
         
         void removeBorder(Border* border);
         
+        bool isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t browserTabIndex,
+                               const Border* border);
+        
         GiftiLabelTable* getClassColorTable();
         
         const GiftiLabelTable* getClassColorTable() const;
         
         ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        
+        const ClassAndNameHierarchyModel* getClassAndNameHierarchyModel() const;
         
         static float getFileVersion();
         

@@ -1043,6 +1043,10 @@ Brain::getBorderFile(const int32_t indx) const
  * For the given border, find in the border files, the border
  * that is closest to points in the given border in the given border.
  *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
  * @param surfaceFile
  *    Surface file used for unprojection of border points.
  * @param border
@@ -1072,7 +1076,9 @@ Brain::getBorderFile(const int32_t indx) const
  *    will be returned.
  */
 bool 
-Brain::findBorderNearestBorder(const SurfaceFile* surfaceFile,
+Brain::findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t browserTabIndex,
+                               const SurfaceFile* surfaceFile,
                               const Border* border,
                               const NearestBorderTestMode borderTestMode,
                               const float maximumDistance,
@@ -1138,7 +1144,9 @@ Brain::findBorderNearestBorder(const SurfaceFile* surfaceFile,
                 SurfaceProjectedItem* borderPoint = NULL;
                 int32_t borderPointIndex = -1;
                 float distanceToBorderPoint = 0.0;
-                if (findBorderNearestXYZ(surfaceFile, 
+                if (findBorderNearestXYZ(displayGroup,
+                                         browserTabIndex,
+                                         surfaceFile,
                                               xyz, 
                                               maximumDistance, 
                                               borderFile, 
@@ -1170,6 +1178,10 @@ Brain::findBorderNearestBorder(const SurfaceFile* surfaceFile,
  * Find the border nearest the given coordinate within
  * the given maximum distance.
  *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
  * @param surfaceFile
  *    Surface file used for unprojection of border points.
  * @param xyz
@@ -1197,7 +1209,9 @@ Brain::findBorderNearestBorder(const SurfaceFile* surfaceFile,
  *    will be returned.
  */
 bool 
-Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+Brain::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t browserTabIndex,
+                            const SurfaceFile* surfaceFile,
                            const float xyz[3],
                            const float maximumDistance,
                            BorderFile*& borderFileOut,
@@ -1226,14 +1240,16 @@ Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
         SurfaceProjectedItem* borderPoint = NULL;
         int32_t borderPointIndex;
         float distanceToNearestBorderPoint = 0.0;
-        bool valid = borderFile->findBorderNearestXYZ(surfaceFile,
-                                xyz,
-                                maximumDistance,
-                                border,
-                                borderIndex,
-                                borderPoint,
-                                borderPointIndex,
-                                distanceToNearestBorderPoint);
+        bool valid = borderFile->findBorderNearestXYZ(displayGroup,
+                                                      browserTabIndex,
+                                                      surfaceFile,
+                                                      xyz,
+                                                      maximumDistance,
+                                                      border,
+                                                      borderIndex,
+                                                      borderPoint,
+                                                      borderPointIndex,
+                                                      distanceToNearestBorderPoint);
         if (valid) {
             if (distanceToNearestBorderPoint < distanceToBorderPointOut) {
                 CaretAssert(border);

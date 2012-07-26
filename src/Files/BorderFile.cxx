@@ -257,6 +257,10 @@ BorderFile::getBorder(const int32_t indx) const
  * Find the border nearest the given coordinate within
  * the given tolerance.
  *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
  * @param surfaceFile
  *    Surface file used for unprojection of border points.
  * @param xyz
@@ -280,7 +284,9 @@ BorderFile::getBorder(const int32_t indx) const
  *    will be returned.
  */
 bool 
-BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t browserTabIndex,
+                                 const SurfaceFile* surfaceFile,
                                 const float xyz[3],
                                 const float maximumDistance,
                                 Border*& borderOut,
@@ -299,9 +305,16 @@ BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
     
     float nearestDistance = std::numeric_limits<float>::max();
     
+    BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
+    
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         Border* border = this->borders[i];
+        if (nonConstBorderFile->isBorderDisplayed(displayGroup,
+                                                  browserTabIndex,
+                                                  border) == false) {
+            continue;
+        }
         float distanceToPoint = 0.0;
         const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile, 
                                                               xyz,
@@ -385,9 +398,48 @@ BorderFile::removeBorder(Border* border)
 }
 
 /**
+ * Is the given border, that MUST be in this file, displayed?
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
+ * @param border
+ *    Border that is tested to see if it is displayed.
+ * @return 
+ *    true if border is displayed, else false.
+ */
+bool
+BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                              const int32_t browserTabIndex,
+                              const Border* border)
+{
+    const ClassAndNameHierarchyModel* classAndNameSelection = this->getClassAndNameHierarchyModel();
+    if (classAndNameSelection->isSelected(displayGroup,
+                                          browserTabIndex) == false) {
+        return false;
+    }
+    
+    const int32_t selectionClassKey = border->getSelectionClassKey();
+    const int32_t selectionNameKey  = border->getSelectionNameKey();
+    if (classAndNameSelection->isClassSelected(displayGroup,
+                                               browserTabIndex,
+                                               selectionClassKey) == false) {
+        return false;
+    }
+    if (classAndNameSelection->isNameSelected(displayGroup,
+                                              browserTabIndex,
+                                              selectionClassKey,
+                                              selectionNameKey) == false) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchyModel* 
+ClassAndNameHierarchyModel*
 BorderFile::getClassAndNameHierarchyModel()
 {
     this->classNameHierarchy->update(this,

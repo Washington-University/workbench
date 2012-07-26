@@ -463,7 +463,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             SurfaceProjectedItem* borderPoint;
             int32_t borderPointIndex;
             float distanceToNearestBorder;
-            if (brain->findBorderNearestBorder(surface, 
+            if (brain->findBorderNearestBorder(displayGroup,
+                                               browserTabIndex,
+                                               surface,
                                                this->inputModeBorders->borderBeingDrawnByOpenGL,
                                                Brain::NEAREST_BORDER_TEST_MODE_ENDPOINTS, 
                                                nearestTolerance,
