@@ -533,7 +533,7 @@ void printHelp(const AString& progName)
     << "    -no-splash" << endl
     << "        disable all splash screens" << endl
     << endl
-    << "    -scene <scene-file-name> <scene-name-or-number>" << endl
+    << "    -scene-load <scene-file-name> <scene-name-or-number>" << endl
     << "        load the specified scene file and display the scene " << endl
     << "        in the file that matches by name or number.  Name" << endl
     << "        takes precedence over number.  The scene numbers " << endl
@@ -575,7 +575,7 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     exit(0);
                 } else if (thisParam == "-no-splash") {
                     myState.showSplash = false;
-                } else if (thisParam == "-scene") {
+                } else if (thisParam == "-scene-load") {
                     if (myParams->hasNext()) {
                         myState.sceneFileName = myParams->nextString("Scene File Name");
                         if (myParams->hasNext()) {
