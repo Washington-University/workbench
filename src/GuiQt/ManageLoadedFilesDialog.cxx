@@ -473,6 +473,7 @@ ManageFileRow::removeFileToolButtonPressed()
 {
     try {
         this->brain->removeDataFile(this->caretDataFile);
+        this->saveCheckBox->setChecked(false);
         this->widgetGroup->setEnabled(false);
         this->parentWidget->updateUserInterfaceAndGraphics();
     }
