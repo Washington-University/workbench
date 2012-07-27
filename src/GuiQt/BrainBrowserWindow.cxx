@@ -72,6 +72,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneFile.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
@@ -1290,6 +1291,72 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
                     loadSpecFileMode,
                     ADD_DATA_FILE_TO_SPEC_FILE_NO);
 }
+
+/**
+ * Load the scene file and the scene with the given name or number
+ * @param sceneFileName
+ *    Name of scene file.
+ * @param sceneNameOrNumber
+ *    Name or number of scene.  Name takes precedence over number. 
+ *    Scene numbers start at one.
+ */
+void
+BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
+                                             const AString& sceneNameOrNumber)
+{
+    std::vector<AString> filenames;
+    filenames.push_back(sceneFileName);
+    
+    loadFilesFromCommandLine(filenames,
+                             LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+    
+    bool haveSceneFileError = true;
+    bool haveSceneError = true;
+    FileInformation fileInfo(sceneFileName);
+    const AString nameNoExt = fileInfo.getFileName();
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
+    for (int32_t i = 0; i < numSceneFiles; i++) {
+        SceneFile* sf = brain->getSceneFile(i);
+        if (sf->getFileName().contains(sceneFileName)) {
+            haveSceneFileError = false;
+            Scene* scene = sf->getSceneWithName(sceneNameOrNumber);
+            if (scene == NULL) {
+                bool isValidNumber = false;
+                int sceneNumber = sceneNameOrNumber.toInt(&isValidNumber);
+                if (isValidNumber) {
+                    sceneNumber--;  // convert to index (numbers start at one)
+                    if ((sceneNumber >= 0)
+                        && (sceneNumber < sf->getNumberOfScenes())) {
+                        scene = sf->getSceneAtIndex(sceneNumber);
+                    }
+                }
+            }
+            
+            if (scene != NULL) {
+                GuiManager::get()->processShowSceneDialogAndScene(this,
+                                                                  sf,
+                                                                  scene);
+                haveSceneError = false;
+                break;
+            }
+        }
+    }
+    
+    if (haveSceneFileError) {
+        const AString msg = ("No scene file named \""
+                             + sceneFileName
+                             + "\" was loaded.");
+        WuQMessageBox::errorOk(this, msg);
+    }
+    else if (haveSceneError) {
+        const AString msg = ("No scene with name/number \""
+                             + sceneNameOrNumber
+                             + "\" found in scene file.");
+        WuQMessageBox::errorOk(this, msg);
+    }
+}
+
 
 /**
  * Load data files.  If there are errors, an error message dialog

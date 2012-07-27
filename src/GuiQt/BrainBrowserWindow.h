@@ -88,6 +88,9 @@ namespace caret {
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
+        void loadSceneFromCommandLine(const AString& sceneFileName,
+                                      const AString& sceneNameOrNumber);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

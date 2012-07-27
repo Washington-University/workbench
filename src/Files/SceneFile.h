@@ -72,6 +72,8 @@ namespace caret {
         
         Scene* getSceneAtIndex(const int32_t indx);
         
+        Scene* getSceneWithName(const AString& sceneName);
+        
         void removeScene(Scene* scene);
         
         void removeSceneAtIndex(const int32_t indx);

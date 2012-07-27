@@ -826,6 +826,26 @@ GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
 }
 
 /**
+ * Show the scene dialog and load the given scene from the given scene file.
+ * @param browserWindow
+ *    Parent of scene dialog if it needs to be created.
+ * @param sceneFile
+ *    Scene File that contains the scene.
+ * @param scene
+ *    Scene that is displayed.
+ */
+void
+GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
+                                           SceneFile* sceneFile,
+                                           Scene* scene)
+{
+    processShowSceneDialog(browserWindow);
+    this->sceneDialog->displayScene(sceneFile,
+                                    scene);
+}
+
+
+/**
  * @return The action that indicates the enabled status
  * for display of the information window.
  */

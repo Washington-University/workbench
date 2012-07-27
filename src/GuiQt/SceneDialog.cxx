@@ -728,50 +728,88 @@ SceneDialog::showSceneButtonClicked()
     }
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
-        const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
-        if (guiManagerClass->getName() != "guiManager") {
-            WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
-                                   + guiManagerClass->getName());
-            return;
-        }
-
-        /*
-         * Show the wait cursor
-         */
-        CursorDisplayScoped cursor;
-        cursor.showWaitCursor();
-        
-        /*
-         * Window restoration behavior
-         */
-        const int windowBehaviorIndex = m_optionsShowSceneWindowBehaviorComboBox->currentIndex();
-        const SceneAttributes::RestoreWindowBehavior windowBehavior 
-           = static_cast<SceneAttributes::RestoreWindowBehavior>(m_optionsShowSceneWindowBehaviorComboBox->itemData(windowBehaviorIndex).toInt());
-        
-        SceneAttributes* sceneAttributes = scene->getAttributes();
-        sceneAttributes->setSceneFileName(sceneFileName);
-        sceneAttributes->setWindowRestoreBehavior(windowBehavior);
-        
-        GuiManager::get()->restoreFromScene(sceneAttributes, 
-                                            guiManagerClass);
-        
-        cursor.restoreCursor();
-        
-        const AString sceneErrorMessage = sceneAttributes->getErrorMessage();
-        if (sceneErrorMessage.isEmpty() == false) {
-            WuQMessageBox::errorOk(this, 
-                                   sceneErrorMessage);
-        }
+        displayScenePrivate(sceneFile,
+                            scene);
     }
 }
 
 /**
+ * Display the given scene from the given scene file.
+ * @param sceneFile
+ *     Scene file.
+ * @param scene
+ *     Scene that is displayed.
+ */
+void
+SceneDialog::displayScene(SceneFile* sceneFile,
+                          Scene* scene)
+{
+    displayScenePrivate(sceneFile,
+                        scene);
+    loadSceneFileComboBox(sceneFile);
+    loadSceneListWidget(scene);
+}
+
+/**
+ * Display the given scene from the given scene file.
+ * @param sceneFile
+ *     Scene file.
+ * @param scene
+ *     Scene that is displayed.
+ */
+void
+SceneDialog::displayScenePrivate(SceneFile* sceneFile,
+                                 Scene* scene)
+{
+    CaretAssert(sceneFile);
+    CaretAssert(scene);
+    
+    const AString sceneFileName = sceneFile->getFileName();
+    
+    const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
+    if (guiManagerClass->getName() != "guiManager") {
+        WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
+                               + guiManagerClass->getName());
+        return;
+    }
+    
+    /*
+     * Show the wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    /*
+     * Window restoration behavior
+     */
+    const int windowBehaviorIndex = m_optionsShowSceneWindowBehaviorComboBox->currentIndex();
+    const SceneAttributes::RestoreWindowBehavior windowBehavior
+    = static_cast<SceneAttributes::RestoreWindowBehavior>(m_optionsShowSceneWindowBehaviorComboBox->itemData(windowBehaviorIndex).toInt());
+    
+    SceneAttributes* sceneAttributes = scene->getAttributes();
+    sceneAttributes->setSceneFileName(sceneFileName);
+    sceneAttributes->setWindowRestoreBehavior(windowBehavior);
+    
+    GuiManager::get()->restoreFromScene(sceneAttributes,
+                                        guiManagerClass);
+    
+    cursor.restoreCursor();
+    
+    const AString sceneErrorMessage = sceneAttributes->getErrorMessage();
+    if (sceneErrorMessage.isEmpty() == false) {
+        WuQMessageBox::errorOk(this,
+                               sceneErrorMessage);
+    }
+}
+
+
+/**
  * Receive events from the event manager.
- * 
+ *
  * @param event
  *   Event sent by event manager.
  */
-void 
+void
 SceneDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {

@@ -180,6 +180,28 @@ SceneFile::getSceneAtIndex(const int32_t indx)
 }
 
 /**
+ * Get the scene with the given name.
+ * @param sceneName
+ *    Name of scene.
+ * @return 
+ *    Scene with given name or NULL if no scene with
+ *    the given name.
+ */
+Scene*
+SceneFile::getSceneWithName(const AString& sceneName)
+{
+    const int32_t numScenes = getNumberOfScenes();
+    for (int32_t i = 0; i < numScenes; i++) {
+        Scene* scene = getSceneAtIndex(i);
+        if (scene->getName() == sceneName) {
+            return scene;
+        }
+    }
+    return NULL;
+}
+
+
+/**
  * Remove the given scene.
  * @param scene
  *    Scene that should be removed.

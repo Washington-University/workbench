@@ -61,6 +61,9 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        void displayScene(SceneFile* sceneFile,
+                          Scene* scene);
+        
     private:
         SceneDialog(const SceneDialog&);
 
@@ -102,6 +105,9 @@ namespace caret {
         QWidget* createOptionPage();
         QWidget* createSceneCreateOptionsWidget();
         QWidget* createSceneShowOptionsWidget();
+        
+        void displayScenePrivate(SceneFile* sceneFile,
+                                 Scene* scene);
         
         // ADD_NEW_MEMBERS_HERE
 

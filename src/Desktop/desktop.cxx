@@ -141,6 +141,9 @@ struct ProgramState
     int windowSizeXY[2];
     bool showSplash;
     
+    AString sceneFileName;
+    AString sceneNameOrNumber;
+    
     ProgramState();
 };
 
@@ -346,6 +349,9 @@ main(int argc, char* argv[])
         if (myState.fileList.empty() == false) {
             showSelectionSplashScreen = false;
         }
+        if (myState.sceneFileName.isEmpty() == false) {
+            showSelectionSplashScreen = false;
+        }
         bool showImageSplashScreen = (! showSelectionSplashScreen);
         if (myState.showSplash == false) {
             showSelectionSplashScreen = false;
@@ -439,6 +445,11 @@ main(int argc, char* argv[])
             }
         }
         
+        if (myState.sceneFileName.isEmpty() == false) {
+            myWindow->loadSceneFromCommandLine(myState.sceneFileName,
+                                               myState.sceneNameOrNumber);
+        }
+        
         if (QGLPixelBuffer::hasOpenGLPbuffers()) {
             CaretLogConfig("OpenGL PBuffers are supported");
         }
@@ -522,6 +533,13 @@ void printHelp(const AString& progName)
     << "    -no-splash" << endl
     << "        disable all splash screens" << endl
     << endl
+    << "    -scene <scene-file-name> <scene-name-or-number>" << endl
+    << "        load the specified scene file and display the scene " << endl
+    << "        in the file that matches by name or number.  Name" << endl
+    << "        takes precedence over number.  The scene numbers " << endl
+    << "        start at one." << endl
+    << "        " << endl
+    << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
     << "        the following styles should always be valid:" << endl
@@ -541,47 +559,78 @@ void printHelp(const AString& progName)
 
 void parseCommandLine(const AString& progName, ProgramParameters* myParams, ProgramState& myState)
 {
-    while (myParams->hasNext())
-    {
-        AString thisParam = myParams->nextString("option");
-        if (thisParam[0] == '-')
+    bool hasFatalError = false;
+    
+    try {
+        while (myParams->hasNext())
         {
-            if (thisParam == "-style")
+            AString thisParam = myParams->nextString("option");
+            if (thisParam[0] == '-')
             {
-                myParams->nextString("style");//discard, QApplication handles this
-            } else if (thisParam == "-help") {
-                printHelp(progName);
-                exit(0);
-            } else if (thisParam == "-no-splash") {
-                myState.showSplash = false;
-            } else if (thisParam == "-spec-load-all") {
-                myState.specLoadType = 1;
-            } else if (thisParam == "-window-size") {
-                if (myParams->hasNext()) {
-                    myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
-                }
-                else {
-                    cerr << "Missing X & Y sizes for window" << endl;
-                }
-                if (myParams->hasNext()) {
-                    myState.windowSizeXY[1] = myParams->nextInt("Window Size Y");
-                }
-                else {
-                    cerr << "Missing Y sizes for window" << endl;
+                if (thisParam == "-style")
+                {
+                    myParams->nextString("style");//discard, QApplication handles this
+                } else if (thisParam == "-help") {
+                    printHelp(progName);
+                    exit(0);
+                } else if (thisParam == "-no-splash") {
+                    myState.showSplash = false;
+                } else if (thisParam == "-scene") {
+                    if (myParams->hasNext()) {
+                        myState.sceneFileName = myParams->nextString("Scene File Name");
+                        if (myParams->hasNext()) {
+                            myState.sceneNameOrNumber = myParams->nextString("Scene Name or Number");
+                        }
+                        else {
+                            cerr << "Missing scene name/number for \"-scene\" option" << std::endl;
+                            hasFatalError = true;
+                        }
+                    }
+                    else {
+                        cerr << "Missing scene file name for \"-scene\" option" << std::endl;
+                        hasFatalError = true;
+                    }
+                } else if (thisParam == "-spec-load-all") {
+                    myState.specLoadType = 1;
+                } else if (thisParam == "-window-size") {
+                    if (myParams->hasNext()) {
+                        myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
+                    }
+                    else {
+                        cerr << "Missing X & Y sizes for window" << endl;
+                        hasFatalError = true;
+                    }
+                    if (myParams->hasNext()) {
+                        myState.windowSizeXY[1] = myParams->nextInt("Window Size Y");
+                    }
+                    else {
+                        cerr << "Missing Y sizes for window" << endl;
+                        hasFatalError = true;
+                    }
+                } else {
+                    cerr << "unrecognized option \"" << thisParam << "\"" << endl;
+                    printHelp(progName);
+                    hasFatalError = true;
                 }
             } else {
-                cerr << "unrecognized option \"" << thisParam << "\"" << endl;
-                printHelp(progName);
-                exit(-1);
+                myState.fileList.push_back(thisParam);
             }
-        } else {
-            myState.fileList.push_back(thisParam);
         }
+    }
+    catch (const ProgramParametersException& e) {
+        cerr << e.whatString() << std::endl;
+        hasFatalError = true;
+    }
+    
+    if (hasFatalError) {
+        exit(-1);
     }
 }
 
 ProgramState::ProgramState()
 {
+    sceneFileName = "";
+    sceneNameOrNumber = "";
     specLoadType = 0;//0: use spec window, 1: all
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
