@@ -676,6 +676,34 @@ BrainStructure::containsSurface(const Surface* surface)
 }
 
 /**
+ * Find the surface with the given name.
+ * @param surfaceFileName
+ *    Name of surface.
+ * @param useAbsolutePath
+ *    If true the given surfaceFileName is an absolute path.
+ *    If false, the given surfaceFileName is just the file 
+ *    name without any path.
+ */
+Surface*
+BrainStructure::getSurfaceWithName(const AString& surfaceFileName,
+                                   const bool useAbsolutePath)
+{
+    for (std::vector<Surface*>::iterator iter = m_surfaces.begin();
+         iter != m_surfaces.end();
+         iter++) {
+        Surface* surface = *iter;
+        const AString name = (useAbsolutePath
+                              ? surface->getFileName()
+                              : surface->getFileNameNoPath());
+        if (surfaceFileName == name) {
+            return surface;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * Get the brain that this brain structure is in.
  */
 Brain* 

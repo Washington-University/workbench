@@ -40,9 +40,12 @@ using namespace caret;
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "ScenePrimitiveArray.h"
 #include "StructureEnum.h"
+#include "Surface.h"
 #include "SurfaceFile.h"
-#
     
 /**
  * \class ConnectivityLoaderManager 
@@ -56,8 +59,9 @@ using namespace caret;
 ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 : CaretObject()
 {
-    this->brain = brain;
-    this->reset();    
+    m_brain = brain;
+
+    this->reset();
 
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
@@ -71,6 +75,8 @@ ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 ConnectivityLoaderManager::~ConnectivityLoaderManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    this->reset();
 }
 
 /**
@@ -91,7 +97,7 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                                                   AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     AString rowColText;
     
@@ -121,6 +127,9 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                                + ", row index= "
                                + AString::number(rowIndex));
             }
+            
+            m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
+                                                        nodeIndex);
         }
     }
     
@@ -150,7 +159,7 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
                                                 const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
@@ -160,6 +169,8 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
         if (clf->isEmpty() == false) {
             if (clf->isDense()) {
                 clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+                m_denseDataLoadedForScene.setSurfaceAverageLoading(surfaceFile,
+                                                                   nodeIndices);
                 haveData = true;
             }
             else if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
@@ -192,7 +203,7 @@ ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFil
                                                 const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
@@ -226,7 +237,7 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
                                                         AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     AString rowColText;
     bool haveData = false;
@@ -237,6 +248,7 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
         if (clf->isEmpty() == false) {
             const int64_t rowIndex = clf->loadDataForVoxelAtCoordinate(xyz);
             haveData = true;
+            m_denseDataLoadedForScene.setVolumeLoading(xyz);
             if ((rowColumnInformationOut != NULL)
                 && (rowIndex >= 0)) {
                 /*
@@ -271,7 +283,7 @@ void
 ConnectivityLoaderManager::colorConnectivityData()
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
@@ -286,7 +298,7 @@ ConnectivityLoaderManager::colorConnectivityData()
             const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
             
             const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-            Palette* palette = this->brain->getPaletteFile()->getPaletteByName(paletteName);
+            Palette* palette = m_brain->getPaletteFile()->getPaletteByName(paletteName);
             if (palette != NULL) {
                 NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
                                                               paletteColorMapping, 
@@ -313,6 +325,7 @@ ConnectivityLoaderManager::colorConnectivityData()
 void 
 ConnectivityLoaderManager::reset()
 {
+    m_denseDataLoadedForScene.reset();
 }
 
 
@@ -401,7 +414,7 @@ void
 ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 {
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
     
     int indx = 0;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
@@ -431,7 +444,7 @@ void
 ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
 {
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
     
     int indx = 0;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
@@ -477,7 +490,7 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
     AString rowColText;
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
     
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
@@ -529,7 +542,7 @@ bool
 ConnectivityLoaderManager::hasNetworkFiles() const
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
@@ -565,7 +578,7 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
     
     bool haveData = false;
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
     TimeLine tl;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
          iter != connectivityTimeSeriesFiles.end();
@@ -607,3 +620,290 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
     
     return haveData;
 }
+
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
+                                       const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ConnectivityLoaderManager",
+                                            1);
+    sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
+                                                               "m_denseDataLoadedForScene"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ConnectivityLoaderManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                            const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const SceneClass* denseDataSceneClass = sceneClass->getClass("m_denseDataLoadedForScene");
+    m_denseDataLoadedForScene.restoreFromScene(sceneAttributes,
+                                               denseDataSceneClass,
+                                               m_brain,
+                                               this);
+}
+
+/*============================================================================*/
+/**
+ * \class caret::ConnectivityLoaderManager::DenseDataLoaded
+ * \brief Holds information on last loaded connectivity data.
+ */
+
+/**
+ * Constructor.
+ */
+ConnectivityLoaderManager::DenseDataLoaded::DenseDataLoaded()
+{
+    reset();
+}
+
+/**
+ * Destructor.
+ */
+ConnectivityLoaderManager::DenseDataLoaded::~DenseDataLoaded()
+{
+    reset();
+}
+
+void
+ConnectivityLoaderManager::DenseDataLoaded::reset()
+{
+    m_mode = MODE_NONE;
+    m_surfaceFileName = "";
+    m_surfaceFileNodeIndices.clear();
+}
+
+/**
+ * Setup for single node dense connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndex
+ *     Index of node on the surface.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setSurfaceLoading(const SurfaceFile* surfaceFile,
+                                                              const int32_t nodeIndex)
+{
+    reset();
+    m_mode = MODE_SURFACE_NODE;
+    m_surfaceFileName      = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices.push_back(nodeIndex);
+}
+
+/**
+ * Setup for multiple nodes average connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndices
+ *     Indices of node on the surface.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                                                     const std::vector<int32_t>& nodeIndices)
+{
+    reset();
+    m_mode = MODE_SURFACE_AVERAGE;
+    m_surfaceFileName        = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices = nodeIndices;
+}
+
+/**
+ * Setup for voxel loading at a coordinate.
+ * @param xyz
+ *     Coordinate at a voxel.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setVolumeLoading(const float xyz[3])
+{
+    reset();
+    m_mode = MODE_VOXEL_XYZ;
+    m_voxelXYZ[0] = xyz[0];
+    m_voxelXYZ[1] = xyz[1];
+    m_voxelXYZ[2] = xyz[2];
+}
+
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                             const SceneClass* sceneClass,
+                                                             Brain* brain,
+                                                             ConnectivityLoaderManager* connMan)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_mode = MODE_NONE;
+    const AString modeName = sceneClass->getStringValue("m_mode");
+    if (modeName == "MODE_NONE") {
+        m_mode = MODE_NONE;
+    }
+    else if (modeName == "MODE_SURFACE_AVERAGE") {
+        m_mode = MODE_SURFACE_AVERAGE;
+    }
+    else if (modeName == "MODE_SURFACE_NODE") {
+        m_mode = MODE_SURFACE_NODE;
+    }
+    else if (modeName == "MODE_VOXEL_XYZ") {
+        m_mode = MODE_VOXEL_XYZ;
+    }
+    else {
+        sceneAttributes->addToErrorMessage("Unrecognized mode=" + modeName);
+        return;
+    }
+    
+    m_surfaceFileName      = sceneClass->getStringValue("m_surfaceFileName");
+    m_surfaceFileNodeIndices.clear();
+    const ScenePrimitiveArray* nodeIndicesArray = sceneClass->getPrimitiveArray("m_surfaceFileNodeIndices");
+    const int32_t numNodeIndices = nodeIndicesArray->getNumberOfArrayElements();
+    m_surfaceFileNodeIndices.reserve(numNodeIndices);
+    for (int32_t i = 0; i < numNodeIndices; i++) {
+        m_surfaceFileNodeIndices.push_back(nodeIndicesArray->integerValue(i));
+    }
+    sceneClass->getFloatArrayValue("m_voxelXYZ",
+                                   m_voxelXYZ,
+                                   3);
+    
+    switch (m_mode) {
+        case MODE_NONE:
+            break;
+        case MODE_SURFACE_AVERAGE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    connMan->loadAverageDataForSurfaceNodes(surface,
+                                                            m_surfaceFileNodeIndices);
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_SURFACE_NODE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    if (numNodeIndices == 1) {
+                        const int32_t nodeIndex = m_surfaceFileNodeIndices[0];
+                        if (nodeIndex < surface->getNumberOfNodes()) {
+                            connMan->loadDataForSurfaceNode(surface,
+                                                            nodeIndex);
+                        }
+                    }
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_VOXEL_XYZ:
+            connMan->loadDataForVoxelAtCoordinate(m_voxelXYZ);
+            break;
+    }
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ConnectivityLoaderManager::DenseDataLoaded::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                                        const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "DenseDataLoaded",
+                                            1);
+    
+    AString modeName = "MODE_NONE";
+    switch (m_mode) {
+        case MODE_NONE:
+            modeName = "MODE_NONE";
+            break;
+        case MODE_SURFACE_AVERAGE:
+            modeName = "MODE_SURFACE_AVERAGE";
+            break;
+        case MODE_SURFACE_NODE:
+            modeName = "MODE_SURFACE_NODE";
+            break;
+        case MODE_VOXEL_XYZ:
+            modeName = "MODE_VOXEL_XYZ";
+            break;
+    }
+    
+    sceneClass->addString("m_mode",
+                          modeName);
+    sceneClass->addString("m_surfaceFileName",
+                          m_surfaceFileName);
+    sceneClass->addIntegerArray("m_surfaceFileNodeIndices",
+                                &m_surfaceFileNodeIndices[0],
+                                m_surfaceFileNodeIndices.size());
+    sceneClass->addFloatArray("m_voxelXYZ",
+                              m_voxelXYZ,
+                              3);
+    
+    return sceneClass;
+}
+

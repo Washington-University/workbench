@@ -149,6 +149,9 @@ namespace caret {
         
         AString getSpecFileName() const;
         
+        Surface* getSurfaceWithName(const AString& surfaceFileName,
+                                    const bool useAbsolutePath);
+        
         int32_t getNumberOfVolumeFiles() const;
         
         VolumeFile* getVolumeFile(const int32_t volumeFileIndex);

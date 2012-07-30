@@ -30,6 +30,7 @@
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "TimeLine.h"
 
 namespace caret {
@@ -39,7 +40,7 @@ namespace caret {
     class DataFileException;
     class SurfaceFile;
     
-    class ConnectivityLoaderManager : public CaretObject, public EventListenerInterface {
+    class ConnectivityLoaderManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         ConnectivityLoaderManager(Brain* brain);
@@ -83,6 +84,12 @@ namespace caret {
         
         bool hasNetworkFiles() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);
 
@@ -92,9 +99,58 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class DenseDataLoaded {
+        public:
+            DenseDataLoaded();
+            
+            ~DenseDataLoaded();
+            
+            void reset();
+            
+            void setSurfaceLoading(const SurfaceFile* surfaceFile,
+                                   const int32_t nodeInde);
+            
+            void setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                          const std::vector<int32_t>& nodeIndices);
+            
+            void setVolumeLoading(const float xyz[3]);
+            
+            void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                  const SceneClass* sceneClass,
+                                  Brain* brain,
+                                  ConnectivityLoaderManager* connMan);
+            
+            SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                    const AString& instanceName);
+            
+        private:
+            enum Mode {
+                MODE_NONE,
+                MODE_SURFACE_AVERAGE,
+                MODE_SURFACE_NODE,
+                MODE_VOXEL_XYZ
+            };
+            
+            Mode m_mode;
+            
+            AString m_surfaceFileName;
+            
+            std::vector<int32_t> m_surfaceFileNodeIndices;
+            
+            float m_voxelXYZ[3];
+        };
+        
         void colorConnectivityData();
         
-        Brain* brain;
+        Brain* m_brain;
+        
+        /** 
+         * Holds information about last dense connectivity data that
+         * was loaded.  This information is then saved/restored 
+         * during scene operations.
+         */
+        DenseDataLoaded m_denseDataLoadedForScene;
+        
     };
     
 #ifdef __CONNECTIVITY_LOADER_MANAGER_DECLARE__

@@ -104,6 +104,9 @@ namespace caret {
         
         Surface* getSurfaceContainingTextInName(const AString& text);
         
+        Surface* getSurfaceWithName(const AString& surfaceFileName,
+                                    const bool useAbsolutePath);
+        
         void setVolumeInteractionSurface(Surface* surface);
         
         Brain* getBrain();

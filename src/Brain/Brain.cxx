@@ -1385,6 +1385,33 @@ Brain::getPaletteFile() const
 }
 
 /**
+ * Find the surface with the given name.
+ * @param surfaceFileName
+ *    Name of surface.
+ * @param useAbsolutePath
+ *    If true the given surfaceFileName is an absolute path.
+ *    If false, the given surfaceFileName is just the file
+ *    name without any path.
+ */
+Surface*
+Brain::getSurfaceWithName(const AString& surfaceFileName,
+                            const bool useAbsolutePath)
+{
+    for (std::vector<BrainStructure*>::iterator iter = m_brainStructures.begin();
+         iter != m_brainStructures.end();
+         iter++) {
+        BrainStructure* bs = *iter;
+        Surface* surface = bs->getSurfaceWithName(surfaceFileName,
+                                                  useAbsolutePath);
+        if (surface != NULL) {
+            return surface;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * Update the volume slice controller.
  */
 void 
@@ -2504,6 +2531,12 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     }
     sceneClass->addChild(brainStructureClassArray);
     
+    /*
+     * Save connectivity data
+     */
+    sceneClass->addClass(m_connectivityLoaderManager->saveToScene(sceneAttributes,
+                                                                  "m_connectivityLoaderManager"));
+    
     return sceneClass;
 }
 
@@ -2588,6 +2621,12 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    /*
+     * Restore connectivity data
+     */
+    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
+                                                  sceneClass->getClass("m_connectivityLoaderManager"));
+
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
