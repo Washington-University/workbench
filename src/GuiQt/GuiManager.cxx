@@ -60,6 +60,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneDialog.h"
+#include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"
@@ -1186,7 +1187,13 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
-    }    
+    }
+    
+    /*
+     * Invalid first window position used when 
+     * positioning other windows
+     */
+    SceneWindowGeometry::setFirstBrowserWindowCoordinatesInvalid();
         
     /*
      * Reset the brain

@@ -474,14 +474,43 @@ main(int argc, char* argv[])
         const int numScreens = dw->screenCount();
         for (int i = 0; i < numScreens; i++) {
             const QRect rect = dw->screenGeometry(i);
+            const int x = rect.x();
+            const int y = rect.y();
             const int w = rect.width();
             const int h = rect.height();
-            screenSizeText += ("("
+            screenSizeText += ("(index="
+                               + AString::number(i)
+                               + ", x="
+                               + AString::number(x)
+                               + ", y="
+                               + AString::number(y)
+                               + ", w="
                                + AString::number(w)
-                               + ", "
+                               + ", h="
                                + AString::number(h)
                                + ")  ");
         }
+        screenSizeText += ("(Primary Screen="
+                           + AString::number(dw->primaryScreen())
+                           + ")   ");
+        if (dw->isVirtualDesktop()) {
+            screenSizeText += ("Virtual Desktop=YES)   ");
+        }
+        else {
+            screenSizeText += ("Virtual Desktop=NO)   ");
+        }
+        QWidget* screenWidget = dw->screen();
+        QRect screenWidgetRect = screenWidget->geometry();
+        screenSizeText += ("(Desktop: x="
+                           + AString::number(screenWidgetRect.x())
+                           + ", y="
+                           + AString::number(screenWidgetRect.y())
+                           + ", w="
+                           + AString::number(screenWidgetRect.width())
+                           + ", h="
+                           + AString::number(screenWidgetRect.height())
+                           + ")   ");
+        
         CaretLogConfig(screenSizeText);
         
         /*

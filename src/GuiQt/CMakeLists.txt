@@ -156,6 +156,7 @@ PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
+SceneWindowGeometry.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
 SplashScreen.h
@@ -247,6 +248,7 @@ PlotMagnifier.cxx
 PlotPanner.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneDialog.cxx
+SceneWindowGeometry.cxx
 SpecFileCreateAddToDialog.cxx
 SpecFileDialog.cxx
 SplashScreen.cxx

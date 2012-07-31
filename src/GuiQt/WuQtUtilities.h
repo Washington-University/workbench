@@ -105,6 +105,13 @@ namespace caret {
         static void moveWindowToSideOfParent(QWidget* parent,
                                              QWidget* window);
         
+        static void moveAndSizeWindow(QWidget* window,
+                                      const int32_t x,
+                                      const int32_t y,
+                                      const int32_t w,
+                                      const int32_t h,
+                                      int32_t* xywhOut);
+        
         static void matchWidgetHeights(QWidget* w1,
                                        QWidget* w2,
                                        QWidget* w3 = 0,

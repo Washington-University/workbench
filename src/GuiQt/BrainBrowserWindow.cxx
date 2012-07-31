@@ -73,6 +73,7 @@
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "SceneFile.h"
+#include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
@@ -2328,14 +2329,9 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     /*
      * Position and size
      */
-    sceneClass->addInteger("geometryX",
-                           x());
-    sceneClass->addInteger("geometryY",
-                           y());
-    sceneClass->addInteger("geometryWidth",
-                           width());
-    sceneClass->addInteger("geometryHeight",
-                           height());
+    SceneWindowGeometry swg(this);
+    sceneClass->addClass(swg.saveToScene(sceneAttributes,
+                                         "geometry"));
     
     return sceneClass;
 }
@@ -2454,92 +2450,99 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Get window geometry geometry
      */
-    int32_t x = sceneClass->getIntegerValue("geometryX",
-                                              -1);
-    int32_t y = sceneClass->getIntegerValue("geometryY",
-                                              -1);
-    const int32_t w = sceneClass->getIntegerValue("geometryWidth",
-                                              -1);
-    const int32_t h = sceneClass->getIntegerValue("geometryHeight",
-                                              -1);
-    
-    /**
-     * Determine if this is the first window
+    /*
+     * Position and size
      */
-    BrainBrowserWindow* firstWindow = NULL;
-    int32_t firstWindowX = -1;
-    int32_t firstWindowY = -1;
-    std::vector<BrainBrowserWindow*> allWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-    for (std::vector<BrainBrowserWindow*>::iterator iter = allWindows.begin();
-         iter != allWindows.end();
-         iter++) {
-        BrainBrowserWindow* bbw = *iter;
-        if (bbw != NULL) {
-            if (firstWindow == NULL) {
-                firstWindow = bbw;
-                firstWindowX = bbw->x();
-                firstWindowY = bbw->y();
-            }
-            break;
-        }
-    }
-    const bool isFirstWindow = (firstWindow == this);
-    if (isFirstWindow) {
-        s_sceneFileFirstWindowX = x;
-        s_sceneFileFirstWindowY = y;
-    }
+    SceneWindowGeometry swg(this);
+    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
     
-    bool isResizeWindow = false;
-    bool isMoveWindow   = false;    
-    bool isMoveWindowRelative = false;
-    switch (sceneAttributes->getRestoreWindowBehavior()) {
-        case SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES:
-            isResizeWindow = true;
-            isMoveWindow   = true;
-            break;
-        case SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES:
-            break;
-        case SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES:
-            if (isFirstWindow == false) {
-                isMoveWindow = true;
-                isMoveWindowRelative = true;
-            }
-            isResizeWindow = true;
-            break;
-    }
     
-    const QSize screenSize = WuQtUtilities::getMinimumScreenSize();
-    const int maxX = screenSize.width() - 100;
-    const int maxY = screenSize.height() - 100;
-    
-    if (isMoveWindow) {
-        if ((x > 0)
-            & (y > 0)) {
-            if (isMoveWindowRelative) {
-                if ((firstWindowX > 0) 
-                    && (firstWindowY > 0)) {
-                    const int32_t dx = x - s_sceneFileFirstWindowX;
-                    const int32_t dy = y - s_sceneFileFirstWindowY;
-                    x = firstWindowX + dx;
-                    y = firstWindowY + dy;
-                }
-                else {
-                    
-                }
-            }
-            x = std::min(x, maxX);
-            y = std::min(y, maxY);
-            move(x,
-                 y);
-        }
-    }
-    
-    if (isResizeWindow) {
-        if ((w > 0)
-            && (h > 0)) {
-            resize(w, h);
-        }
-    }
+//    int32_t x = sceneClass->getIntegerValue("geometryX",
+//                                              -1);
+//    int32_t y = sceneClass->getIntegerValue("geometryY",
+//                                              -1);
+//    const int32_t w = sceneClass->getIntegerValue("geometryWidth",
+//                                              -1);
+//    const int32_t h = sceneClass->getIntegerValue("geometryHeight",
+//                                              -1);
+//    
+//    /**
+//     * Determine if this is the first window
+//     */
+//    BrainBrowserWindow* firstWindow = NULL;
+//    int32_t firstWindowX = -1;
+//    int32_t firstWindowY = -1;
+//    std::vector<BrainBrowserWindow*> allWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+//    for (std::vector<BrainBrowserWindow*>::iterator iter = allWindows.begin();
+//         iter != allWindows.end();
+//         iter++) {
+//        BrainBrowserWindow* bbw = *iter;
+//        if (bbw != NULL) {
+//            if (firstWindow == NULL) {
+//                firstWindow = bbw;
+//                firstWindowX = bbw->x();
+//                firstWindowY = bbw->y();
+//            }
+//            break;
+//        }
+//    }
+//    const bool isFirstWindow = (firstWindow == this);
+//    if (isFirstWindow) {
+//        s_sceneFileFirstWindowX = x;
+//        s_sceneFileFirstWindowY = y;
+//    }
+//    
+//    bool isResizeWindow = false;
+//    bool isMoveWindow   = false;    
+//    bool isMoveWindowRelative = false;
+//    switch (sceneAttributes->getRestoreWindowBehavior()) {
+//        case SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES:
+//            isResizeWindow = true;
+//            isMoveWindow   = true;
+//            break;
+//        case SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES:
+//            break;
+//        case SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES:
+//            if (isFirstWindow == false) {
+//                isMoveWindow = true;
+//                isMoveWindowRelative = true;
+//            }
+//            isResizeWindow = true;
+//            break;
+//    }
+//    
+//    const QSize screenSize = WuQtUtilities::getMinimumScreenSize();
+//    const int maxX = screenSize.width() - 100;
+//    const int maxY = screenSize.height() - 100;
+//    
+//    if (isMoveWindow) {
+//        if ((x > 0)
+//            & (y > 0)) {
+//            if (isMoveWindowRelative) {
+//                if ((firstWindowX > 0) 
+//                    && (firstWindowY > 0)) {
+//                    const int32_t dx = x - s_sceneFileFirstWindowX;
+//                    const int32_t dy = y - s_sceneFileFirstWindowY;
+//                    x = firstWindowX + dx;
+//                    y = firstWindowY + dy;
+//                }
+//                else {
+//                    
+//                }
+//            }
+//            x = std::min(x, maxX);
+//            y = std::min(y, maxY);
+//            move(x,
+//                 y);
+//        }
+//    }
+//    
+//    if (isResizeWindow) {
+//        if ((w > 0)
+//            && (h > 0)) {
+//            resize(w, h);
+//        }
+//    }
     
 }
 

@@ -353,6 +353,109 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
 }
 
 /**
+ * Move and size a window limiting window so that 
+ * it fits within the screen.
+ * @param x
+ *    X-coordinate of window.
+ * @param y 
+ *    Y-coordinate of window.
+ * @param w
+ *    Width of window.
+ * @param h
+ *    Height of window.
+ * @param xywhOut
+ *    On exit contains 4 values that are the actual
+ *    x, y, width, and height of the window after 
+ *    any needed adjustments for screen sizes.
+ */
+void
+WuQtUtilities::moveAndSizeWindow(QWidget* window,
+                                  const int32_t x,
+                                  const int32_t y,
+                                  const int32_t w,
+                                 const int32_t h,
+                                 int32_t* xywhOut)
+{
+    QDesktopWidget* dw = QApplication::desktop();
+    
+    /*
+     * Get available geometry where window is to be placed
+     * This geometry is all screens together as one large screen
+     */
+    QPoint pXY(x,
+               y);
+    const QRect availableRect = dw->screen()->geometry();
+    const int32_t screenSizeX = availableRect.width();
+    const int32_t screenSizeY = availableRect.height();
+    
+    /*
+     * Limit width/height in desktop
+     */
+    int32_t width  = std::min(w, screenSizeX);
+    int32_t height = std::min(h, screenSizeY);
+    
+    /*
+     * Limit window position in desktop
+     */
+    int32_t xPos = x;
+    if (xPos < availableRect.x()) {
+        xPos = availableRect.x();
+    }
+    const int32_t maxX = screenSizeX - 200;
+    if (xPos >= maxX) {
+        xPos = maxX;
+    }
+    int32_t yPos = y;
+    if (yPos < availableRect.y()) {
+        yPos = availableRect.y();
+    }
+    const int32_t maxY = screenSizeY - 200;
+    if (yPos >= maxY) {
+        yPos = maxY;
+    }
+        
+    /*
+     * Make sure visible in closest screen
+     */
+    pXY.setX(xPos);
+    pXY.setY(yPos);
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+        if (xPos < screenRect.x()) {
+            xPos = screenRect.x();
+        }
+        const int32_t maxX = screenRect.right() - 200;
+        if (xPos > maxX) {
+            xPos = maxX;
+        }
+        if (yPos < screenRect.y()) {
+            yPos = screenRect.y();
+        }
+        const int32_t maxY = screenRect.bottom() - 200;
+        if (yPos > maxY) {
+            yPos = maxY;
+        }
+    }
+    /*
+     * Move and size window
+     */
+//    std::cout << "Moving to " << xPos << ", " << yPos << std::endl;
+//    std::cout << "Width " << width << ", " << height << std::endl;
+    window->move(xPos,
+                 yPos);
+    window->resize(width,
+                   height);
+    
+    if (xywhOut != NULL) {
+        xywhOut[0] = window->x();
+        xywhOut[1] = window->y();
+        xywhOut[2] = window->width();
+        xywhOut[3] = window->height();
+    }
+}
+
+/**
  * Set the tool tip and status tip for a widget.
  * 
  * @param widget
