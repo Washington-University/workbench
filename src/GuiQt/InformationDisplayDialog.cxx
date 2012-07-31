@@ -39,6 +39,7 @@
 #include "BrainBrowserWindow.h"
 #include "InformationDisplayWidget.h"
 #include "SceneClass.h"
+#include "SceneWindowGeometry.h"
 
 using namespace caret;
 
@@ -107,6 +108,13 @@ InformationDisplayDialog::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(m_informationWidget->saveToScene(sceneAttributes,
                                                           "m_informationWidget"));
     
+    /*
+     * Position and size
+     */
+    SceneWindowGeometry swg(this);
+    sceneClass->addClass(swg.saveToScene(sceneAttributes,
+                                         "geometry"));
+    
     return sceneClass;
 }
 
@@ -134,5 +142,11 @@ InformationDisplayDialog::restoreFromScene(const SceneAttributes* sceneAttribute
     
     m_informationWidget->restoreFromScene(sceneAttributes,
                                           sceneClass->getClass("m_informationWidget"));
+
+    /*
+     * Position and size
+     */
+    SceneWindowGeometry swg(this);
+    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));    
 }
 

@@ -2448,9 +2448,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }    
     
     /*
-     * Get window geometry geometry
-     */
-    /*
      * Position and size
      */
     SceneWindowGeometry swg(this);
