@@ -38,6 +38,7 @@
 
 #include "BrainBrowserWindow.h"
 #include "InformationDisplayWidget.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -63,8 +64,8 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
      */
     this->setApplyButtonText("");
     
-    InformationDisplayWidget* infoWidget = new InformationDisplayWidget(this);
-    this->setCentralWidget(infoWidget);
+    m_informationWidget = new InformationDisplayWidget(this);
+    this->setCentralWidget(m_informationWidget);
 }
 
 /**
@@ -82,5 +83,56 @@ void
 InformationDisplayDialog::updateDialog()
 {
     
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+InformationDisplayDialog::saveToScene(const SceneAttributes* sceneAttributes,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "InformationDisplayDialog",
+                                            1);
+    sceneClass->addClass(m_informationWidget->saveToScene(sceneAttributes,
+                                                          "m_informationWidget"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+InformationDisplayDialog::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        m_informationWidget->restoreFromScene(sceneAttributes,
+                                              NULL);
+        return;
+    }
+    
+    m_informationWidget->restoreFromScene(sceneAttributes,
+                                          sceneClass->getClass("m_informationWidget"));
 }
 

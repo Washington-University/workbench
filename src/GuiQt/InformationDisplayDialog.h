@@ -34,14 +34,16 @@
  */
 /*LICENSE_END*/
 
+#include "SceneableInterface.h"
 
 #include "WuQDialogNonModal.h"
 
 namespace caret {
 
     class BrainBrowserWindow;
+    class InformationDisplayWidget;
     
-    class InformationDisplayDialog : public WuQDialogNonModal {
+    class InformationDisplayDialog : public WuQDialogNonModal, public SceneableInterface {
         Q_OBJECT
         
     public:
@@ -51,13 +53,17 @@ namespace caret {
         
         virtual void updateDialog();
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         InformationDisplayDialog(const InformationDisplayDialog&);
 
         InformationDisplayDialog& operator=(const InformationDisplayDialog&);
-        
-    public:
-    private:
+
+        InformationDisplayWidget* m_informationWidget;
     };
     
 #ifdef __INFORMATION_DISPLAY_DIALOG_DECLARE__

@@ -29,7 +29,7 @@
 
 #include <QWidget>
 #include "EventListenerInterface.h"
-
+#include "SceneableInterface.h"
 class QAction;
 
 namespace caret {
@@ -37,7 +37,7 @@ namespace caret {
     class EventInformationTextDisplay;
     class HyperLinkTextBrowser;
     
-    class InformationDisplayWidget : public QWidget, public EventListenerInterface {
+    class InformationDisplayWidget : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -52,6 +52,11 @@ namespace caret {
         
         void updateInformationDisplayWidget();
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private slots:
         
         void clearInformationText();
@@ -71,19 +76,19 @@ namespace caret {
         
         void updateAllInformationDisplayWidgets();
         
-        HyperLinkTextBrowser* informationTextBrowser;
+        HyperLinkTextBrowser* m_informationTextBrowser;
         
-        static std::set<InformationDisplayWidget*> allInformationDisplayWidgets;
+        static std::set<InformationDisplayWidget*> s_allInformationDisplayWidgets;
         
-        QAction* contralateralIdentificationAction;
+        QAction* m_contralateralIdentificationAction;
         
-        QAction* volumeSliceIdentificationAction;
+        QAction* m_volumeSliceIdentificationAction;
         
-        QString informationText;
+        QString m_informationText;
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__
-    std::set<InformationDisplayWidget*> InformationDisplayWidget::allInformationDisplayWidgets;
+    std::set<InformationDisplayWidget*> InformationDisplayWidget::s_allInformationDisplayWidgets;
 #endif // __INFORMATION_DISPLAY_WIDGET_DECLARE__
 
 } // namespace

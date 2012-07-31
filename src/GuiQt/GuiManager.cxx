@@ -82,7 +82,7 @@ GuiManager::GuiManager(QObject* parent)
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     this->imageCaptureDialog = NULL;
-    this->informationDisplayDialog = NULL;
+    m_informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     this->sceneDialog = NULL;
@@ -98,7 +98,7 @@ GuiManager::GuiManager(QObject* parent)
                             infoDisplayIcon);
     
 
-    this->informationDisplayDialogEnabledAction =
+    m_informationDisplayDialogEnabledAction =
     WuQtUtilities::createAction("Information...",
                                 "Enables display of the Information Window\n"
                                 "when new information is available",
@@ -106,19 +106,19 @@ GuiManager::GuiManager(QObject* parent)
                                 this,
                                 SLOT(showHideInfoWindowSelected(bool))); 
     if (infoDisplayIconValid) {
-        this->informationDisplayDialogEnabledAction->setIcon(infoDisplayIcon);
-        this->informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
+        m_informationDisplayDialogEnabledAction->setIcon(infoDisplayIcon);
+        m_informationDisplayDialogEnabledAction->setIconVisibleInMenu(false);
     }
     else {
-        this->informationDisplayDialogEnabledAction->setIconText("Info");
+        m_informationDisplayDialogEnabledAction->setIconText("Info");
     }
     
-    this->informationDisplayDialogEnabledAction->blockSignals(true);
-    this->informationDisplayDialogEnabledAction->setCheckable(true);
-    this->informationDisplayDialogEnabledAction->setChecked(true);
-    this->showHideInfoWindowSelected(this->informationDisplayDialogEnabledAction->isChecked());
-    this->informationDisplayDialogEnabledAction->setIconText("Info"); 
-    this->informationDisplayDialogEnabledAction->blockSignals(false);
+    m_informationDisplayDialogEnabledAction->blockSignals(true);
+    m_informationDisplayDialogEnabledAction->setCheckable(true);
+    m_informationDisplayDialogEnabledAction->setChecked(true);
+    this->showHideInfoWindowSelected(m_informationDisplayDialogEnabledAction->isChecked());
+    m_informationDisplayDialogEnabledAction->setIconText("Info"); 
+    m_informationDisplayDialogEnabledAction->blockSignals(false);
         
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
@@ -852,7 +852,7 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
 QAction* 
 GuiManager::getInformationDisplayDialogEnabledAction()
 {
-    return this->informationDisplayDialogEnabledAction;
+    return m_informationDisplayDialogEnabledAction;
 }
 
 /**
@@ -870,7 +870,7 @@ GuiManager::showHideInfoWindowSelected(bool status)
     QString text("Show Information Window");
     if (status) {
         text = "Hide Information Window";
-        if (this->informationDisplayDialogEnabledAction->signalsBlocked() == false) {
+        if (m_informationDisplayDialogEnabledAction->signalsBlocked() == false) {
             this->processShowInformationDisplayDialog(true);
         }
     }
@@ -880,7 +880,7 @@ GuiManager::showHideInfoWindowSelected(bool status)
              "is automatically displayed when an identification\n"
              "operation (mouse click over surface or volume slice)\n"
              "is performed.  ");
-    this->informationDisplayDialogEnabledAction->setToolTip(text);
+    m_informationDisplayDialogEnabledAction->setToolTip(text);
 }
 
 
@@ -893,26 +893,26 @@ GuiManager::showHideInfoWindowSelected(bool status)
 void 
 GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 {
-    if (this->informationDisplayDialog == NULL) {
+    if (m_informationDisplayDialog == NULL) {
         std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
         if (bbws.empty() == false) {
             BrainBrowserWindow* parentWindow = bbws[0];
-            this->informationDisplayDialog = new InformationDisplayDialog(parentWindow);
-            this->nonModalDialogs.push_back(this->informationDisplayDialog);
+            m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
+            this->nonModalDialogs.push_back(m_informationDisplayDialog);
             
-            this->informationDisplayDialog->resize(600, 200);
-            this->informationDisplayDialog->setSavePositionForNextTime(true);
+            m_informationDisplayDialog->resize(600, 200);
+            m_informationDisplayDialog->setSavePositionForNextTime(true);
             WuQtUtilities::moveWindowToSideOfParent(parentWindow,
-                                                    this->informationDisplayDialog);
+                                                    m_informationDisplayDialog);
         }
     }
     
     if (forceDisplayOfDialog
-        || this->informationDisplayDialogEnabledAction->isChecked()) {
-        if (this->informationDisplayDialog != NULL) {
-            this->informationDisplayDialog->setVisible(true);
-            this->informationDisplayDialog->show();
-            this->informationDisplayDialog->activateWindow();
+        || m_informationDisplayDialogEnabledAction->isChecked()) {
+        if (m_informationDisplayDialog != NULL) {
+            m_informationDisplayDialog->setVisible(true);
+            m_informationDisplayDialog->show();
+            m_informationDisplayDialog->activateWindow();
         }
     }
 }
@@ -1143,6 +1143,14 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
                                                               browserWindowClasses);
     sceneClass->addChild(browserWindowArray);
 
+    /*
+     * Save information window
+     */
+    if (m_informationDisplayDialog != NULL) {
+        sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
+                                                                     "m_informationDisplayDialog"));
+    }
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -1260,6 +1268,30 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
 //        BrainBrowserWindow* bbw = *iter;
 //        bbw->close();
 //    }
+    
+    /*
+     * Restore information window
+     */
+    const SceneClass* infoWindowClass = sceneClass->getClass("m_informationDisplayDialog");
+    if (infoWindowClass != NULL) {
+        if (m_informationDisplayDialog == NULL) {
+            processShowInformationWindow();
+        }
+        else if (m_informationDisplayDialog->isVisible() == false) {
+            processShowInformationWindow();
+        }
+        m_informationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                     infoWindowClass);
+    }
+    else {
+        if (m_informationDisplayDialog != NULL) {
+            /*
+             * Will clear text
+             */
+            m_informationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                         NULL);
+        }
+    }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

@@ -185,7 +185,7 @@ namespace caret {
         
         PreferencesDialog* preferencesDialog;       
         
-        InformationDisplayDialog* informationDisplayDialog;
+        InformationDisplayDialog* m_informationDisplayDialog;
         
         SceneDialog* sceneDialog;
         
@@ -193,7 +193,7 @@ namespace caret {
         
         CursorManager* cursorManager;
         
-        QAction* informationDisplayDialogEnabledAction;
+        QAction* m_informationDisplayDialogEnabledAction;
         
         /** 
          * Tracks non-modal dialogs that are created only one time

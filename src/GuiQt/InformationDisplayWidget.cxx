@@ -42,6 +42,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
+#include "SceneClass.h"
 #include "WuQtUtilities.h"
 #include "WuQDataEntryDialog.h"
 
@@ -60,25 +61,25 @@ using namespace caret;
 InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
 : QWidget(parent)
 {
-    this->informationTextBrowser = new HyperLinkTextBrowser();
-    this->informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
+    m_informationTextBrowser = new HyperLinkTextBrowser();
+    m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     QAction* clearAction = WuQtUtilities::createAction("Clear", 
                                                        "Clear contents of information display", 
                                                        this, 
                                                        this, 
                                                        SLOT(clearInformationText()));
 
-    this->contralateralIdentificationAction = WuQtUtilities::createAction("Contra ID", 
+    m_contralateralIdentificationAction = WuQtUtilities::createAction("Contra ID", 
                                                                           "Enable contralateral identification", 
                                                                           this, 
                                                                           this, 
                                                                           SLOT(contralateralIdentificationToggled(bool)));
-    this->contralateralIdentificationAction->setCheckable(true);
+    m_contralateralIdentificationAction->setCheckable(true);
     
     QAction* copyAction = WuQtUtilities::createAction("Copy", 
                                                       "Copy selection from information display", 
                                                       this, 
-                                                      this->informationTextBrowser, 
+                                                      m_informationTextBrowser, 
                                                       SLOT(copy()));
     
     QAction* removeIdSymbolAction = WuQtUtilities::createAction("RID", 
@@ -93,14 +94,14 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                           this,
                                                           SLOT(showPropertiesDialog()));
     
-    this->volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID", 
+    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID", 
                                                                         "Enable volume slice movement to identified brainordinate.", 
                                                                         this, 
                                                                         this, 
                                                                         SLOT(volumeSliceIdentificationToggled(bool)));
-    this->volumeSliceIdentificationAction->setCheckable(true);
+    m_volumeSliceIdentificationAction->setCheckable(true);
     
-    QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
+    QObject::connect(m_informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
     copyAction->setEnabled(false);
     
@@ -119,9 +120,9 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->setMovable(false);
     idToolBarRight->addAction(removeIdSymbolAction);
     idToolBarRight->addSeparator();
-    idToolBarRight->addAction(this->contralateralIdentificationAction);
+    idToolBarRight->addAction(m_contralateralIdentificationAction);
     idToolBarRight->addSeparator();
-    idToolBarRight->addAction(this->volumeSliceIdentificationAction);
+    idToolBarRight->addAction(m_volumeSliceIdentificationAction);
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
@@ -129,15 +130,15 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(idToolBarLeft);
-    layout->addWidget(this->informationTextBrowser);
+    layout->addWidget(m_informationTextBrowser);
     layout->addWidget(idToolBarRight);
     layout->setStretchFactor(idToolBarLeft, 0);
-    layout->setStretchFactor(this->informationTextBrowser, 100);
+    layout->setStretchFactor(m_informationTextBrowser, 100);
     layout->setStretchFactor(idToolBarRight, 0);
     
-    InformationDisplayWidget::allInformationDisplayWidgets.insert(this);
-    this->updateInformationDisplayWidget();
-    this->clearInformationText();
+    s_allInformationDisplayWidgets.insert(this);
+    updateInformationDisplayWidget();
+    clearInformationText();
     
     /*
      * Use processed event listener since the text event
@@ -153,7 +154,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
  */
 InformationDisplayWidget::~InformationDisplayWidget()
 {
-    InformationDisplayWidget::allInformationDisplayWidgets.erase(this);
+    s_allInformationDisplayWidgets.erase(this);
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -165,7 +166,7 @@ InformationDisplayWidget::contralateralIdentificationToggled(bool)
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    info->setContralateralIdentificationEnabled(this->contralateralIdentificationAction->isChecked());
+    info->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
     InformationDisplayWidget::updateAllInformationDisplayWidgets();
 }
 
@@ -177,7 +178,7 @@ InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    info->setVolumeIdentificationEnabled(this->volumeSliceIdentificationAction->isChecked());
+    info->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
     InformationDisplayWidget::updateAllInformationDisplayWidgets();    
 }
 
@@ -187,9 +188,9 @@ InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
 void 
 InformationDisplayWidget::clearInformationText()
 {
-    this->informationText = "";
-    this->informationText.reserve(32000);
-    this->informationTextBrowser->setHtml("");
+    m_informationText = "";
+    m_informationText.reserve(32000);
+    m_informationTextBrowser->setHtml("");
 }
 
 
@@ -211,19 +212,19 @@ InformationDisplayWidget::updateInformationDisplayWidget()
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    this->contralateralIdentificationAction->blockSignals(true);
-    this->contralateralIdentificationAction->setChecked(info->isContralateralIdentificationEnabled());
-    this->contralateralIdentificationAction->blockSignals(false);
-    this->volumeSliceIdentificationAction->blockSignals(true);
-    this->volumeSliceIdentificationAction->setChecked(info->isVolumeIdentificationEnabled());
-    this->volumeSliceIdentificationAction->blockSignals(false);
+    m_contralateralIdentificationAction->blockSignals(true);
+    m_contralateralIdentificationAction->setChecked(info->isContralateralIdentificationEnabled());
+    m_contralateralIdentificationAction->blockSignals(false);
+    m_volumeSliceIdentificationAction->blockSignals(true);
+    m_volumeSliceIdentificationAction->setChecked(info->isVolumeIdentificationEnabled());
+    m_volumeSliceIdentificationAction->blockSignals(false);
 }
 
 void 
 InformationDisplayWidget::updateAllInformationDisplayWidgets()
 {
-    for (std::set<InformationDisplayWidget*>::iterator iter = InformationDisplayWidget::allInformationDisplayWidgets.begin();
-         iter != InformationDisplayWidget::allInformationDisplayWidgets.end();
+    for (std::set<InformationDisplayWidget*>::iterator iter = s_allInformationDisplayWidgets.begin();
+         iter != s_allInformationDisplayWidgets.end();
          iter++) {
         InformationDisplayWidget* idw = *iter;
         if (idw != this) {
@@ -243,9 +244,9 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
 {
     const AString text = informationEvent->getText();
     if (text.isEmpty() == false) {
-        this->informationText.append(informationEvent->getText());
-        this->informationText.append("<br><br>");
-        this->informationTextBrowser->setContentToHtml(this->informationText);
+        m_informationText.append(informationEvent->getText());
+        m_informationText.append("<br><br>");
+        m_informationTextBrowser->setContentToHtml(m_informationText);
     }
 }
 
@@ -267,7 +268,7 @@ InformationDisplayWidget::receiveEvent(Event* event)
         
         const AString text = textEvent->getText();
         if (text.isEmpty() == false) {
-            this->processTextEvent(textEvent);
+            processTextEvent(textEvent);
             textEvent->setEventProcessed();
         }
     }
@@ -304,5 +305,57 @@ InformationDisplayWidget::showPropertiesDialog()
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+InformationDisplayWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "InformationDisplayWidget",
+                                            1);
+    sceneClass->addString("m_informationText",
+                          m_informationText);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+InformationDisplayWidget::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                           const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        m_informationText = "";
+    }
+    else {
+        m_informationText = sceneClass->getStringValue("m_informationText");
+    }
+    
+    m_informationTextBrowser->setContentToHtml(m_informationText);
+}
+
 
 
