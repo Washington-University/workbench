@@ -2195,6 +2195,18 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 const int vpSizeX = viewport[2] / numCols;
                 const int vpSizeY = viewport[3] / numRows;
                 
+                /*
+                 * Voxel sizes for underlay volume
+                 */
+                float originX, originY, originZ;
+                float x1, y1, z1;
+                underlayVolumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+                underlayVolumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+                float sliceThickness = 0.0;
+                float sliceOrigin    = 0.0;
+                
+                AString axisLetter = "";
+                
                 int sliceIndex = -1;
                 int maximumSliceIndex = -1;
                 std::vector<int64_t> dimensions;
@@ -2208,17 +2220,27 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         sliceIndex = selectedSlices->getSliceIndexAxial(underlayVolumeFile);
                         maximumSliceIndex = dimensions[2];
+                        sliceThickness = z1 - originZ;
+                        sliceOrigin = originZ;
+                        axisLetter = "Z";
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         sliceIndex = selectedSlices->getSliceIndexCoronal(underlayVolumeFile);
                         maximumSliceIndex = dimensions[1];
+                        sliceThickness = y1 - originY;
+                        sliceOrigin = originY;
+                        axisLetter = "Y";
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         sliceIndex = selectedSlices->getSliceIndexParasagittal(underlayVolumeFile);
                         maximumSliceIndex = dimensions[0];
+                        sliceThickness = x1 - originX;
+                        sliceOrigin = originX;
+                        axisLetter = "X";
                         break;
                 }
 
+                
                 /*
                  * Determine a slice offset to selected slices is in
                  * the center of the montage
@@ -2245,10 +2267,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                 this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                              this->windowTabIndex, 
                                                                              slicePlane);
-                                this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
+                                this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
                                                                 sliceIndex, 
                                                                 volumeDrawInfo);
-                                this->drawVolumeSurfaceOutlines(brain, 
+                                this->drawVolumeSurfaceOutlines(brain,
                                                                 volumeController,
                                                                 browserTabContent,
                                                                 slicePlane, 
@@ -2256,6 +2278,17 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                 underlayVolumeFile);
                                 this->drawVolumeAxesCrosshairs(slicePlane, 
                                                                selectedVoxelXYZ);
+                                const float sliceCoord = (sliceOrigin
+                                                          + sliceThickness * sliceIndex);
+                                const AString coordText = (axisLetter
+                                                           + "="
+                                                           + AString::number(sliceCoord, 'f', 0)
+                                                           + "mm");
+                                this->drawTextWindowCoords((vpSizeX - 5),
+                                                           5,
+                                                           coordText,
+                                                           BrainOpenGLTextRenderInterface::X_RIGHT,
+                                                           BrainOpenGLTextRenderInterface::Y_BOTTOM);
                             }
                             sliceIndex += sliceStep;
                         }
