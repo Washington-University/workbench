@@ -55,12 +55,31 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for window that is child of the first browser window.
+ * @param window
+ *    The window for which geometry is restored/saved
  */
 SceneWindowGeometry::SceneWindowGeometry(QWidget* window)
 : CaretObject()
 {
     m_window = window;
+    m_parentWindow = NULL;
+}
+
+/**
+ * Constructor for window that is child of the given parent window.
+ * The window is ALWAYS positioned relative to the parent.  
+ * @param window
+ *    The window for which geometry is restored/saved
+ * @param parentWindow
+ *    The parent window of 'window'.
+ */
+SceneWindowGeometry::SceneWindowGeometry(QWidget* window,
+                                         QWidget* parentWindow)
+: CaretObject()
+{
+    m_window = window;
+    m_parentWindow = parentWindow;
 }
 
 /**
@@ -114,6 +133,16 @@ SceneWindowGeometry::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                            m_window->width());
     sceneClass->addInteger("geometryHeight",
                            m_window->height());
+    int32_t geometryOffsetX = 0;
+    int32_t geometryOffsetY = 0;
+    if (m_parentWindow != NULL) {
+        geometryOffsetX = m_window->x() - m_parentWindow->x();
+        geometryOffsetY = m_window->y() - m_parentWindow->y();
+    }
+    sceneClass->addInteger("geometryOffsetX",
+                           geometryOffsetX);
+    sceneClass->addInteger("geometryOffsetY",
+                           geometryOffsetY);
     
     return sceneClass;
 }
@@ -138,19 +167,44 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-     /*
+    /*
      * Get window geometry from the scene
      */
     const int32_t sceneX = sceneClass->getIntegerValue("geometryX",
-                                            100);
+                                                       100);
     const int32_t sceneY = sceneClass->getIntegerValue("geometryY",
-                                            100);
+                                                       100);
     const int32_t sceneWidth = sceneClass->getIntegerValue("geometryWidth",
-                                                  -1);
+                                                           -1);
     const int32_t sceneHeight = sceneClass->getIntegerValue("geometryHeight",
-                                                  -1);
+                                                            -1);
     
-    
+    /*
+     * Is this window always positions relative to parent window?
+     */
+    if (m_parentWindow != NULL) {
+        /*
+         * Get offset from parent
+         */
+        const int32_t offsetX = sceneClass->getIntegerValue("geometryOffsetX", 100);
+        const int32_t offsetY = sceneClass->getIntegerValue("geometryOffsetY", 100);
+        const int32_t windowX = m_parentWindow->x() + offsetX;
+        const int32_t windowY = m_parentWindow->y() + offsetY;
+        
+        /*
+         * Move the window to its desired position and set its width/height
+         * but limit to available screen space
+         */
+        int32_t xywh[4];
+        WuQtUtilities::moveAndSizeWindow(m_window,
+                                         windowX,
+                                         windowY,
+                                         sceneWidth,
+                                         sceneHeight,
+                                         xywh);
+        return;
+    }
+        
     /*
      * Is this a browser window?
      */
@@ -168,7 +222,7 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Determine how windows are poistions and sized
+     * Determine how windows are positions and sized
      */
     bool isResizeWindow = false;
     bool isMoveWindow   = false;

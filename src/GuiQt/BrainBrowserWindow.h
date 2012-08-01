@@ -44,6 +44,7 @@ class QMenu;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
+    class BrainBrowserWindowOrientedToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
     class SceneClassAssistant;
@@ -274,10 +275,10 @@ namespace caret {
         
         QMenu* m_recentSpecFileMenu;
         
-        QDockWidget* m_overlayHorizontalToolBox;
-        QDockWidget* m_overlayVerticalToolBox;
-        QDockWidget* m_overlayActiveToolBox;
-        QDockWidget* m_featuresToolBox;
+        BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
+        BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;
+        BrainBrowserWindowOrientedToolBox* m_overlayActiveToolBox;
+        BrainBrowserWindowOrientedToolBox* m_featuresToolBox;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;

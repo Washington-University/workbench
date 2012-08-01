@@ -51,6 +51,9 @@ namespace caret {
     public:
         SceneWindowGeometry(QWidget* window);
         
+        SceneWindowGeometry(QWidget* window,
+                            QWidget* parentWindow);
+        
         virtual ~SceneWindowGeometry();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -66,8 +69,12 @@ namespace caret {
 
         SceneWindowGeometry& operator=(const SceneWindowGeometry&);
         
+        /** The window whose geometry is restored/saved */
         QWidget* m_window;
 
+        /** Optional parent window (may be NULL) */
+        QWidget* m_parentWindow;
+        
         /** X-coordinate of first browser window from the scene file */
         static int32_t s_firstBrowserWindowSceneX;
         

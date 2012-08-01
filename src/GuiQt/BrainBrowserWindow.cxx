@@ -207,15 +207,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_overlayHorizontalToolBox",
-                          "BrainBrowserWindowOrientedToolBox",
-                          dynamic_cast<SceneableInterface*>(m_overlayHorizontalToolBox));
-    m_sceneAssistant->add("m_overlayVerticalToolBox",
-                          "BrainBrowserWindowOrientedToolBox",
-                          dynamic_cast<SceneableInterface*>(m_overlayVerticalToolBox));
-    m_sceneAssistant->add("m_featuresToolBox",
-                          "BrainBrowserWindowOrientedToolBox",
-                          dynamic_cast<SceneableInterface*>(m_featuresToolBox));
     
     m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
     m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayActiveToolBox->isVisible();
@@ -2297,6 +2288,9 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
         overlayToolBoxClass->addBoolean("visible", 
                                         m_overlayActiveToolBox->isVisible());
         sceneClass->addClass(overlayToolBoxClass);
+        
+        sceneClass->addClass(m_overlayActiveToolBox->saveToScene(sceneAttributes,
+                                                                 "m_overlayActiveToolBox"));
     }
     
     switch (sceneAttributes->getSceneType()) {
@@ -2318,8 +2312,10 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
         featureToolBoxClass->addBoolean("visible",
                                         m_featuresToolBox->isVisible());
         sceneClass->addClass(featureToolBoxClass);
+        sceneClass->addClass(m_featuresToolBox->saveToScene(sceneAttributes,
+                                                            "m_featuresToolBox"));
     }
-
+    
     /*
      * Screen mode (normal, full, etc)
      */
@@ -2415,6 +2411,8 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             processMoveOverlayToolBoxToFloat();
         }
         processShowOverlayToolBox(toolBoxVisible);
+        m_overlayActiveToolBox->restoreFromScene(sceneAttributes,
+                                                 sceneClass->getClass("m_overlayActiveToolBox"));
     }
     
     /*
@@ -2438,6 +2436,8 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_featuresToolBoxAction->blockSignals(false);
         m_featuresToolBoxAction->trigger();
         //processShowFeaturesToolBox(toolBoxVisible);
+        m_featuresToolBox->restoreFromScene(sceneAttributes,
+                                            sceneClass->getClass("m_featuresToolBox"));
     }
     
     switch (sceneAttributes->getSceneType()) {

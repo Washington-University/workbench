@@ -9,13 +9,16 @@
 #include <QTabWidget>
 
 #include "BorderSelectionViewController.h"
+#include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
 #include "FociSelectionViewController.h"
+#include "GuiManager.h"
 #include "OverlaySetViewController.h"
 #include "SceneClass.h"
+#include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
 #include "WuQtUtilities.h"
@@ -211,7 +214,7 @@ BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool /*status*/)
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass* 
-BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttributes,
                                 const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -226,6 +229,16 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* /*sceneAtt
     }
     sceneClass->addString("selectedTabName",
                           tabName);
+    
+    if (isFloating()) {
+        /*
+         * Position and size
+         */
+        SceneWindowGeometry swg(this,
+                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+        sceneClass->addClass(swg.saveToScene(sceneAttributes,
+                                             "geometry"));
+    }
     
     return sceneClass;
 }
@@ -243,7 +256,7 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* /*sceneAtt
  *     saved and should be restored.
  */
 void 
-BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* sceneAttributes,
                                      const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -257,6 +270,15 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* /*sce
             m_tabWidget->setCurrentIndex(i);
             break;
         }
+    }
+    
+    if (isFloating() && isVisible()) {
+        /*
+         * Position and size
+         */
+        SceneWindowGeometry swg(this,
+                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+        swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
     }
 }
 
