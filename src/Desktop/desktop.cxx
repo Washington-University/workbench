@@ -494,10 +494,10 @@ main(int argc, char* argv[])
                            + AString::number(dw->primaryScreen())
                            + ")   ");
         if (dw->isVirtualDesktop()) {
-            screenSizeText += ("Virtual Desktop=YES)   ");
+            screenSizeText += ("(Virtual Desktop=YES)   ");
         }
         else {
-            screenSizeText += ("Virtual Desktop=NO)   ");
+            screenSizeText += ("(Virtual Desktop=NO)   ");
         }
         QWidget* screenWidget = dw->screen();
         QRect screenWidgetRect = screenWidget->geometry();
