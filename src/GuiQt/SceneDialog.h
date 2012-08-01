@@ -109,6 +109,8 @@ namespace caret {
         void displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene);
         
+        bool checkForModifiedFiles();
+        
         // ADD_NEW_MEMBERS_HERE
 
         QComboBox* m_sceneFileSelectionComboBox;

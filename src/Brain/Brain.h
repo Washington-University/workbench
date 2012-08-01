@@ -194,6 +194,9 @@ namespace caret {
         
         void determineDisplayedDataFiles();
         
+        bool areFilesModified(const bool excludeConnectivityFiles,
+                              const bool excludeSceneFiles);
+        
         void writeDataFile(CaretDataFile* caretDataFile,
                            const bool isAddToSpecFile) throw (DataFileException);
         

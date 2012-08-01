@@ -2217,6 +2217,56 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
 }
 
 /**
+ * Are any data files modified?
+ * @param excludeConnectivityFiles
+ *    If true, do not check connectivity files for modification status
+ * @param excludeSceneFiles
+ *    If true, do not check scene files for modification status
+ */
+bool
+Brain::areFilesModified(const bool excludeConnectivityFiles,
+                        const bool excludeSceneFiles)
+{
+    std::vector<CaretDataFile*> dataFiles;
+    getAllDataFiles(dataFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+         iter != dataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        
+        /**
+         * Do not check connectivity files for modified status
+         */
+        bool checkIfModified = true;
+        switch (cdf->getDataFileType()) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                if (excludeConnectivityFiles) {
+                    checkIfModified = false;
+                }
+                break;
+            case DataFileTypeEnum::SCENE:
+                if (excludeSceneFiles) {
+                    checkIfModified = false;
+                }
+                break;
+            default:
+                break;
+        }
+        
+        if (checkIfModified) {
+            if (cdf->isModified()) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+
+/**
  * Write a data file.
  * @param caretDataFile
  *    Data file to write.

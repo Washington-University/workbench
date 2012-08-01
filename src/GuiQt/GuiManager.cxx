@@ -429,34 +429,35 @@ GuiManager::exitProgram(QWidget* parent)
     /*
      * Are files modified?
      */
-    bool areFilesModified = false;
-    std::vector<CaretDataFile*> dataFiles;
-    this->getBrain()->getAllDataFiles(dataFiles);
-    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
-         iter != dataFiles.end();
-         iter++) {
-        CaretDataFile* cdf = *iter;
-
-        /**
-         * Do not check connectivity files for modified status
-         */ 
-        bool checkIfModified = true;
-        switch (cdf->getDataFileType()) {
-            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                checkIfModified = false;
-                break;
-            default:
-                break;
-        }
-        
-        if (checkIfModified) {
-            if (cdf->isModified()) {
-                areFilesModified = true;
-                break;
-            }
-        }
-    }
+    const bool areFilesModified = this->getBrain()->areFilesModified(true,
+                                                               false);
+//    std::vector<CaretDataFile*> dataFiles;
+//    this->getBrain()->getAllDataFiles(dataFiles);
+//    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+//         iter != dataFiles.end();
+//         iter++) {
+//        CaretDataFile* cdf = *iter;
+//
+//        /**
+//         * Do not check connectivity files for modified status
+//         */ 
+//        bool checkIfModified = true;
+//        switch (cdf->getDataFileType()) {
+//            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+//            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+//                checkIfModified = false;
+//                break;
+//            default:
+//                break;
+//        }
+//        
+//        if (checkIfModified) {
+//            if (cdf->isModified()) {
+//                areFilesModified = true;
+//                break;
+//            }
+//        }
+//    }
          
     if (areFilesModified) {
         WuQMessageBox::StandardButton buttonPressed = 

@@ -301,6 +301,10 @@ SceneDialog::sceneSelected()
 void 
 SceneDialog::addNewSceneButtonClicked()
 {
+    if (checkForModifiedFiles() == false) {
+        return;
+    }
+    
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
         /*
@@ -364,6 +368,10 @@ SceneDialog::addNewSceneButtonClicked()
 void
 SceneDialog::replaceSceneButtonClicked()
 {
+    if (checkForModifiedFiles() == false) {
+        return;
+    }
+    
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
         Scene* scene = getSelectedScene();
@@ -434,6 +442,29 @@ SceneDialog::replaceSceneButtonClicked()
         }
     }
 }
+
+/**
+ * Check to see if there are modified files.  If there are
+ * allow the user to continue or cancel creation of the scene.
+ *
+ * @return
+ *     true if the scene should be created, otherwise false.
+ */
+bool
+SceneDialog::checkForModifiedFiles()
+{
+    bool result = true;
+    if (GuiManager::get()->getBrain()->areFilesModified(true, true)) {
+        result = WuQMessageBox::warningOkCancel(this,
+                                           "Files are modified and should be saved "
+                                           "before creating the scene.\n"
+                                           "\n"
+                                                "Continue creating scene?");
+    }
+
+    return result;
+}
+
 
 /**
  * Create the main page.
