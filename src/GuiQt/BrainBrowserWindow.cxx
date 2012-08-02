@@ -730,17 +730,26 @@ BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
     
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
     for (int32_t i = 0; i < numRecentSpecFiles; i++) {
-        FileInformation fileInfo(recentSpecFiles[i]);
-        QString path = fileInfo.getPathName();
-        QString name = fileInfo.getFileName();
-        if (path.isEmpty() == false) {
-            name += (" (" + path + ")");
+        AString actionName;
+        AString actionFullPath;
+        if (DataFile::isFileOnNetwork(recentSpecFiles[i])) {
+            actionName     = recentSpecFiles[i];
+            actionFullPath = recentSpecFiles[i];
         }
-        QString fullPath = fileInfo.getFilePath();
+        else {
+            FileInformation fileInfo(recentSpecFiles[i]);
+            QString path = fileInfo.getPathName();
+            QString name = fileInfo.getFileName();
+            if (path.isEmpty() == false) {
+                name += (" (" + path + ")");
+            }
+            actionName = name;
+            actionFullPath = fileInfo.getFilePath();
+        }
         
-        QAction* action = new QAction(name,
+        QAction* action = new QAction(actionName,
                                       m_recentSpecFileMenu);
-        action->setData(fullPath);
+        action->setData(actionFullPath);
         m_recentSpecFileMenu->addAction(action);
     } 
     

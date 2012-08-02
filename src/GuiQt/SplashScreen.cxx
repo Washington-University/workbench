@@ -54,6 +54,7 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretPreferences.h"
+#include "DataFile.h"
 #include "DataFileTypeEnum.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
@@ -363,21 +364,36 @@ SplashScreen::addRecentSpecFiles()
     
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
     for (int32_t i = 0; i < numRecentSpecFiles; i++) {
-        FileInformation fileInfo(recentSpecFiles[i]);
-        if (fileInfo.exists()) {
-            if (firstItem == NULL) {
-                QStringList itemText;
-                itemText.append("Recent Spec Files");
-                itemText.append("-------------------------------");
-                QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-                titleItem->setDisabled(true);
-                m_specFileTreeWidget->addTopLevelItem(titleItem);
+        QString path;
+        QString name;
+        QString fullPath;
+        
+        const QString specFileName = recentSpecFiles[i];
+        if (DataFile::isFileOnNetwork(specFileName)) {
+            const int lastSlash = specFileName.lastIndexOf('/');
+            name = specFileName.mid(lastSlash + 1);
+            path = specFileName.left(lastSlash);
+            fullPath = specFileName;
+        }
+        else {
+            FileInformation fileInfo(specFileName);
+            if (fileInfo.exists()) {
+                if (firstItem == NULL) {
+                    QStringList itemText;
+                    itemText.append("Recent Spec Files");
+                    itemText.append("-------------------------------");
+                    QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+                    titleItem->setDisabled(true);
+                    m_specFileTreeWidget->addTopLevelItem(titleItem);
+                }
+                
+                path = fileInfo.getPathName().trimmed();
+                name = fileInfo.getFileName().trimmed();
+                fullPath = fileInfo.getFilePath();
             }
+        }
             
-            const QString path = fileInfo.getPathName().trimmed();
-            const QString name = fileInfo.getFileName().trimmed();
-            const QString fullPath = fileInfo.getFilePath();
-            
+        if (name.isEmpty() == false) {
             QStringList treeText;
             treeText.append("    " + name);
             treeText.append(path);
