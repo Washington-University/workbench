@@ -394,7 +394,13 @@ Brain::readSurfaceFile(const AString& filename,
                        const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     Surface* surface = new Surface();
-    surface->readFile(filename);
+    try {
+        surface->readFile(filename);
+    }
+    catch (const DataFileException& dfe) {
+        delete surface;
+        throw dfe;
+    }
     
     if (structureIn != StructureEnum::INVALID) {
         surface->setStructure(structureIn);
@@ -448,7 +454,13 @@ Brain::readLabelFile(const AString& filename,
                      const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     LabelFile* labelFile = new LabelFile();
-    labelFile->readFile(filename);
+    try {
+        labelFile->readFile(filename);
+    }
+    catch (const DataFileException& dfe) {
+        delete labelFile;
+        throw dfe;
+    }
     
     if (structureIn != StructureEnum::INVALID) {
         labelFile->setStructure(structureIn);
@@ -507,7 +519,13 @@ Brain::readMetricFile(const AString& filename,
                       const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     MetricFile* metricFile = new MetricFile();
-    metricFile->readFile(filename);
+    try {
+        metricFile->readFile(filename);
+    }
+    catch (const DataFileException& dfe) {
+        delete metricFile;
+        throw dfe;
+    }
     
     if (structureIn != StructureEnum::INVALID) {
         metricFile->setStructure(structureIn);
@@ -566,7 +584,13 @@ Brain::readRgbaFile(const AString& filename,
                     const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     RgbaFile* rgbaFile = new RgbaFile();
-    rgbaFile->readFile(filename);
+    try {
+        rgbaFile->readFile(filename);
+    }
+    catch (const DataFileException& dfe) {
+        delete rgbaFile;
+        throw dfe;
+    }
     
     if (structureIn != StructureEnum::INVALID) {
         rgbaFile->setStructure(structureIn);
