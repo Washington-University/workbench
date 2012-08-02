@@ -1258,8 +1258,10 @@ BrainBrowserWindow::processDataFileOpen()
             
             if (isLoadDataFiles) {
                 loadFiles(filenamesVector,
-                                LOAD_SPEC_FILE_WITH_DIALOG,
-                                addDataFileToSpecFileMode);
+                          LOAD_SPEC_FILE_WITH_DIALOG,
+                          addDataFileToSpecFileMode,
+                          "",
+                          "");
             }
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
@@ -1267,6 +1269,30 @@ BrainBrowserWindow::processDataFileOpen()
         s_previousOpenFileAddToSpecFileSelection = addFileToSpecFileCheckBox->isChecked();
     }
 }
+
+/**
+ * Load files that are on the network
+ * @param
+ *    List of filenames to read.
+ * @param username
+ *    Username for network file reading
+ * @param password
+ *    Password for network file reading
+ */
+void
+BrainBrowserWindow::loadFilesFromNetwork(const std::vector<AString>& filenames,
+                                         const AString& username,
+                                         const AString& password)
+{    
+//    this->loadFilesFromCommandLine(filenames,
+//                                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
+    loadFiles(filenames,
+              BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
+              ADD_DATA_FILE_TO_SPEC_FILE_NO,
+              username,
+              password);
+}
+
 
 /**
  * Load the files that were specified on the command line.
@@ -1280,8 +1306,10 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
                                              const LoadSpecFileMode loadSpecFileMode)
 {
     loadFiles(filenames,
-                    loadSpecFileMode,
-                    ADD_DATA_FILE_TO_SPEC_FILE_NO);
+              loadSpecFileMode,
+              ADD_DATA_FILE_TO_SPEC_FILE_NO,
+              "",
+              "");
 }
 
 /**
@@ -1360,11 +1388,17 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
  *    Specifies handling of SpecFiles
  * @param commandLineFlag
  *    True if files are being loaded from the command line.
+ * @param username
+ *    Username for network file reading
+ * @param password
+ *    Password for network file reading
  */
 void 
 BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               const LoadSpecFileMode loadSpecFileMode,
-                              const AddDataFileToSpecFileMode addDataFileToSpecFileMode)
+                              const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
+                              const AString& username,
+                              const AString& password)
 {
     /*
      * Pick out specific file types.
@@ -1488,6 +1522,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                         
                         EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                      &specFile);
+                        if (username.isEmpty() == false) {
+                            readSpecFileEvent.setUsernameAndPassword(username,
+                                                                     password);
+                        }
                         
                         EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                         
@@ -1524,6 +1562,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             
                             EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                          &specFile);
+                            if (username.isEmpty() == false) {
+                                readSpecFileEvent.setUsernameAndPassword(username,
+                                                                         password);
+                            }
                             
                             EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                             
@@ -1564,6 +1606,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                                 fileType,
                                                 name,
                                                 addDataFileToSpecFile);
+                if (username.isEmpty() == false) {
+                    loadFileEvent.setUsernameAndPassword(username,
+                                                         password);
+                }
                 
                 EventManager::get()->sendEvent(loadFileEvent.getPointer());
                 
@@ -1599,6 +1645,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                                                      fileType,
                                                                      name,
                                                                      addDataFileToSpecFile);
+                            if (username.isEmpty() == false) {
+                                loadFileEventStructure.setUsernameAndPassword(username,
+                                                                              password);
+                            }
                             
                             EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
                             if (loadFileEventStructure.isError()) {

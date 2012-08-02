@@ -92,6 +92,10 @@ namespace caret {
         void loadSceneFromCommandLine(const AString& sceneFileName,
                                       const AString& sceneNameOrNumber);
         
+        void loadFilesFromNetwork(const std::vector<AString>& filenames,
+                                  const AString& username,
+                                  const AString& password);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -178,7 +182,9 @@ namespace caret {
         
         void loadFiles(const std::vector<AString>& filenames,
                        const LoadSpecFileMode loadSpecFileMode,
-                       const AddDataFileToSpecFileMode addDataFileToSpecFileMode);
+                       const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
+                       const AString& username,
+                       const AString& password);
         
         void createActions();
         void createActionsUsedByToolBar();

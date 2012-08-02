@@ -1728,16 +1728,23 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     }
     
     const AString specFileName = sf->getFileName();
-    FileInformation specFileInfo(specFileName);
-    if (specFileInfo.exists()) {
+    if (DataFile::isFileOnNetwork(specFileName)) {
         m_specFileName = specFileName;
-    }
-    else {
-        m_specFileName = "";
-    }
-    if (specFileInfo.isAbsolute()) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         prefs->addToPreviousSpecFiles(specFileName);
+    }
+    else {
+        FileInformation specFileInfo(specFileName);
+        if (specFileInfo.exists()) {
+            m_specFileName = specFileName;
+        }
+        else {
+            m_specFileName = "";
+        }
+        if (specFileInfo.isAbsolute()) {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->addToPreviousSpecFiles(specFileName);
+        }
     }
     
     if (errorMessage.isEmpty() == false) {
@@ -1857,8 +1864,10 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
      * Set current directory to directory containing scene file
      * but only if there is NOT a valid spec file
      */
+    const AString sceneFileName = sceneAttributes->getSceneFileName();
+    const bool sceneFileOnNetwork = DataFile::isFileOnNetwork(sceneFileName);
     if (specFileValid == false) {
-        FileInformation sceneFileInfo(sceneAttributes->getSceneFileName());
+        FileInformation sceneFileInfo(sceneFileName);
         if (sceneFileInfo.exists()) {
             setCurrentDirectory(sceneFileInfo.getPathName());
         }
@@ -1872,8 +1881,20 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
             SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
             if (fileInfo->isSelected()) {
-                const AString filename = fileInfo->getFileName();
+                AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
+                
+                if (sceneFileOnNetwork) {
+                    if (DataFile::isFileOnNetwork(filename) == false) {
+                        const int32_t lastSlashIndex = sceneFileName.lastIndexOf("/");
+                        if (lastSlashIndex >= 0) {
+                            const AString newName = (sceneFileName.left(lastSlashIndex)
+                                                     + "/"
+                                                     + filename);
+                            filename = newName;
+                        }
+                    }
+                }
                 try {
                     readDataFile(dataFileType, 
                                        structure, 

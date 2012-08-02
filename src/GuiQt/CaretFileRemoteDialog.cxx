@@ -162,6 +162,9 @@ CaretFileRemoteDialog::okButtonClicked()
     std::vector<DataFileTypeEnum::Enum> connectivityDataFileTypes;
     DataFileTypeEnum::getAllConnectivityEnums(connectivityDataFileTypes);
     
+    /*
+     * Is this a connectivity file?
+     */
     if (std::find(connectivityDataFileTypes.begin(),
                   connectivityDataFileTypes.end(),
                   CaretFileRemoteDialog::previousNetworkDataFileType)
@@ -209,8 +212,9 @@ CaretFileRemoteDialog::okButtonClicked()
         if (dataFileType == DataFileTypeEnum::SPECIFICATION) {
             cursor.restoreCursor();
         }
-        browserWindow->loadFilesFromCommandLine(files,
-                                                BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
+        browserWindow->loadFilesFromNetwork(files,
+                                            CaretFileRemoteDialog::previousNetworkUsername,
+                                            CaretFileRemoteDialog::previousNetworkPassword);
     }
     
     WuQDialogModal::okButtonClicked();
