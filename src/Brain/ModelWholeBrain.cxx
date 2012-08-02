@@ -410,7 +410,9 @@ ModelWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
     BrowserTabContent* btc = getBrowserTabEvent.getBrowserTab();
     if (btc != NULL) {
         OverlaySet* overlaySet = btc->getOverlaySet();
-        vf = overlaySet->getUnderlayVolume();
+        if (overlaySet != NULL) {
+            vf = overlaySet->getUnderlayVolume();
+        }
     }
     
     return vf;
