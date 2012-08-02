@@ -102,6 +102,13 @@ FileAdapter::openQTextStreamForWritingFile(const AString& filename,
     errorMessageOut = "";
     
     if (m_file != NULL) {
+        errorMessageOut = ("A file named "
+                           + m_file->fileName()
+                           + " is currently open with this FileAdapter");
+        return NULL;
+    }
+    
+    if (m_file != NULL) {
         errorMessageOut = "This file is already open and has not been closed.";
         return NULL;
     }
@@ -125,6 +132,8 @@ FileAdapter::openQTextStreamForWritingFile(const AString& filename,
         errorMessageOut = ("Unable to open "
                            + filename
                            + " for writing.");
+        delete m_file;
+        m_file = NULL;
     }
     
     m_textStream = new QTextStream(m_file);
@@ -148,6 +157,7 @@ FileAdapter::close() {
     if (m_file != NULL) {
         m_file->flush();
         m_file->close();
+        delete m_file;
         m_file = NULL;
     }
 }

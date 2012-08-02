@@ -70,7 +70,7 @@ namespace caret {
     };
     
 #ifdef __CARET_FILE_REMOTE_DIALOG_DECLARE__
-    DataFileTypeEnum::Enum CaretFileRemoteDialog::previousNetworkDataFileType = DataFileTypeEnum::UNKNOWN;
+    DataFileTypeEnum::Enum CaretFileRemoteDialog::previousNetworkDataFileType = DataFileTypeEnum::CONNECTIVITY_DENSE;
     AString CaretFileRemoteDialog::previousNetworkFileName = "";
     AString CaretFileRemoteDialog::previousNetworkUsername = "";
     AString CaretFileRemoteDialog::previousNetworkPassword = "";

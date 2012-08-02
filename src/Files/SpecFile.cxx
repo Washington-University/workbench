@@ -203,14 +203,34 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const bool fileSelectionStatus) throw (DataFileException)
 {
     AString name = filename;
-    
-    FileInformation specFileInfo(getFileName());
-    if (specFileInfo.isAbsolute()) {
-        FileInformation fileInfo(name);
-        if (fileInfo.isRelative()) {
-            FileInformation fileInfo(specFileInfo.getPathName(),
-                                     name);
-            name = fileInfo.getFilePath();
+
+    const bool dataFileOnNetwork = DataFile::isFileOnNetwork(name);
+    const bool specFileOnNetwork = DataFile::isFileOnNetwork(getFileName());
+
+    if (dataFileOnNetwork) {
+        /* nothing */
+    }
+    else if (specFileOnNetwork) {
+        const int32_t lastSlashIndex = getFileName().lastIndexOf("/");
+        if (lastSlashIndex >= 0) {
+            const AString newName = (getFileName().left(lastSlashIndex)
+                                     + "/"
+                                     + name);
+            name = newName;
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else {
+        FileInformation specFileInfo(getFileName());
+        if (specFileInfo.isAbsolute()) {
+            FileInformation fileInfo(name);
+            if (fileInfo.isRelative()) {
+                FileInformation fileInfo(specFileInfo.getPathName(),
+                                         name);
+                name = fileInfo.getFilePath();
+            }
         }
     }
     

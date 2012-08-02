@@ -42,6 +42,7 @@
 #undef __CARET_FILE_REMOTE_DIALOG_DECLARE__
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "CursorDisplayScoped.h"
 #include "DataFileTypeEnum.h"
 #include "EventDataFileRead.h"
@@ -70,8 +71,8 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
 {
     QStringList filenameFilterList;
     std::vector<DataFileTypeEnum::Enum> dataFileTypes;
-    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypes);
-    
+    DataFileTypeEnum::getAllEnums(dataFileTypes);
+
     QLabel* urlLabel = new QLabel("URL: ");
     m_urlLineEdit = new QLineEdit();
     m_urlLineEdit->setText(CaretFileRemoteDialog::previousNetworkFileName);
@@ -158,39 +159,58 @@ CaretFileRemoteDialog::okButtonClicked()
     
     Brain* brain = GuiManager::get()->getBrain();
     
-    EventDataFileRead readFileEvent(brain,
-                                    CaretFileRemoteDialog::previousNetworkDataFileType,
-                                    CaretFileRemoteDialog::previousNetworkFileName,
-                                    false);
-    readFileEvent.setUsernameAndPassword(CaretFileRemoteDialog::previousNetworkUsername,
-                                         CaretFileRemoteDialog::previousNetworkPassword);
-
-    bool isError = false;
-    EventManager::get()->sendEvent(readFileEvent.getPointer());
-    if (readFileEvent.isError()) {
-        cursor.restoreCursor();
-        WuQMessageBox::errorOk(this, 
-                               readFileEvent.getErrorMessage());  
-        isError = true;
-        cursor.showWaitCursor();
-    }    
-
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    std::vector<DataFileTypeEnum::Enum> connectivityDataFileTypes;
+    DataFileTypeEnum::getAllConnectivityEnums(connectivityDataFileTypes);
     
-    EventUserInterfaceUpdate uiUpdateEvent;
-    switch (dataFileType) {
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            uiUpdateEvent.addConnectivity();
-            break;
-        default:
-            break;
+    if (std::find(connectivityDataFileTypes.begin(),
+                  connectivityDataFileTypes.end(),
+                  CaretFileRemoteDialog::previousNetworkDataFileType)
+        != connectivityDataFileTypes.end()) {
+        EventDataFileRead readFileEvent(brain,
+                                        CaretFileRemoteDialog::previousNetworkDataFileType,
+                                        CaretFileRemoteDialog::previousNetworkFileName,
+                                        false);
+        readFileEvent.setUsernameAndPassword(CaretFileRemoteDialog::previousNetworkUsername,
+                                             CaretFileRemoteDialog::previousNetworkPassword);
+        
+        bool isError = false;
+        EventManager::get()->sendEvent(readFileEvent.getPointer());
+        if (readFileEvent.isError()) {
+            cursor.restoreCursor();
+            WuQMessageBox::errorOk(this,
+                                   readFileEvent.getErrorMessage());
+            isError = true;
+            cursor.showWaitCursor();
+        }
+        
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        
+        EventUserInterfaceUpdate uiUpdateEvent;
+        switch (dataFileType) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                uiUpdateEvent.addConnectivity();
+                break;
+            default:
+                break;
+        }
+        EventManager::get()->sendEvent(uiUpdateEvent.getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
+        if (isError) {
+            return;
+        }
     }
-    EventManager::get()->sendEvent(uiUpdateEvent.getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-    if (isError) {
-        return;
+    else {
+        BrainBrowserWindow* browserWindow = GuiManager::get()->getOpenBrowserWindow();
+        std::vector<AString> files;
+        files.push_back(filename);
+        
+        if (dataFileType == DataFileTypeEnum::SPECIFICATION) {
+            cursor.restoreCursor();
+        }
+        browserWindow->loadFilesFromCommandLine(files,
+                                                BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
     }
     
     WuQDialogModal::okButtonClicked();

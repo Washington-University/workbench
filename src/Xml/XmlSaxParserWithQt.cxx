@@ -23,11 +23,13 @@
  */ 
 
 #include <QFile>
-#include <AString.h>
 #include <QXmlParseException>
 #include <QXmlSimpleReader> 
 #include <QXmlAttributes>
 
+#include "AString.h"
+#include "CaretHttpManager.h"
+#include "DataFile.h"
 #include "XmlAttributes.h"
 #include "XmlSaxParserHandlerInterface.h"
 #include "XmlSaxParserWithQt.h"
@@ -59,10 +61,94 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
     
 }
 
+///**
+// * Parse the contents of the specified file using
+// * the specified handler.
+// * 
+// * @param filename
+// *    Name of file that is to be parsed.
+// * @param handler
+// *    Handler that will be called to process XML
+// *    as it is read.
+// * @throws XmlSaxParserException
+// *    If an error occurs.
+// */
+//void 
+//XmlSaxParserWithQt::parseFile(const QString& filename,
+//                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+//{
+//    PrivateHandler privateHandler(handler);
+//    
+//    QXmlSimpleReader reader;
+//    reader.setContentHandler(&privateHandler);
+//    reader.setErrorHandler(&privateHandler);
+//
+//    /*
+//     * buffer for data read
+//     */
+//    const qint64 oneMegaByte = 1048576;
+//    const qint64 bufferSize = oneMegaByte;
+//    char buffer[bufferSize];
+//    
+//    /*
+//     * Open file for reading.
+//     */
+//    QFile file(filename);
+//    if (file.open(QFile::ReadOnly) == false) {
+//        throw XmlSaxParserException("Unable to open file " + filename);
+//    }
+//    
+//    /*
+//     * the XML input source
+//     */
+//    QXmlInputSource xmlInput;
+//    
+//    int totalRead = 0;
+//    
+//    bool firstTime = true;
+//    while (file.atEnd() == false) {
+//        int numRead = file.read(buffer, bufferSize);
+//        if (numRead <= 0) {
+//            break;
+//        }
+//        
+//        totalRead += numRead;
+//        
+//        /*
+//         * Place the input data into the XML input
+//         */
+//        xmlInput.setData(QByteArray(buffer, numRead));
+//        
+//        /*
+//         * Process the data that was just read
+//         */
+//        if (firstTime) {
+//            if (reader.parse(&xmlInput, true) == false) {
+//                throw XmlSaxParserException(privateHandler.errorString());            
+//            }
+//        }
+//        else {
+//            if (reader.parseContinue() == false) {
+//                throw XmlSaxParserException(privateHandler.errorString());
+//            }
+//        }
+//        
+//        firstTime = false;
+//    }
+//    
+//    /*
+//     * Tells parser that there is no more data
+//     */
+//    xmlInput.setData(QByteArray());
+//    if (reader.parseContinue() == false) {
+//        throw XmlSaxParserException(privateHandler.errorString());
+//    }
+//}
+
 /**
  * Parse the contents of the specified file using
  * the specified handler.
- * 
+ *
  * @param filename
  *    Name of file that is to be parsed.
  * @param handler
@@ -71,22 +157,40 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
  * @throws XmlSaxParserException
  *    If an error occurs.
  */
-void 
+void
 XmlSaxParserWithQt::parseFile(const QString& filename,
-                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+                              XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
 {
+    if (DataFile::isFileOnNetwork(filename)) {
+        CaretHttpRequest request;
+        request.m_method = CaretHttpManager::GET;
+        request.m_url = filename;
+        CaretHttpResponse response;
+        CaretHttpManager::httpRequest(request,
+                                      response);
+        if (response.m_ok == false) {
+            QString msg = ("HTTP error retrieving: "
+                           + filename
+                           + "\nHTTP Response Code="
+                           + AString::number(response.m_responseCode));
+            throw XmlSaxParserException(msg);
+        }
+        
+        /*
+         * Parse the text that was received via the HTTP request
+         */
+        response.m_body.push_back('\0');
+        QString s(&response.m_body[0]);
+        parseString(s,
+                    handler);
+        return;
+    }
+    
     PrivateHandler privateHandler(handler);
     
     QXmlSimpleReader reader;
     reader.setContentHandler(&privateHandler);
     reader.setErrorHandler(&privateHandler);
-
-    /*
-     * buffer for data read
-     */
-    const qint64 oneMegaByte = 1048576;
-    const qint64 bufferSize = oneMegaByte;
-    char buffer[bufferSize];
     
     /*
      * Open file for reading.
@@ -99,48 +203,16 @@ XmlSaxParserWithQt::parseFile(const QString& filename,
     /*
      * the XML input source
      */
-    QXmlInputSource xmlInput;
+    QXmlInputSource xmlInput(&file);
     
-    int totalRead = 0;
-    
-    bool firstTime = true;
-    while (file.atEnd() == false) {
-        int numRead = file.read(buffer, bufferSize);
-        if (numRead <= 0) {
-            break;
-        }
-        
-        totalRead += numRead;
-        
-        /*
-         * Place the input data into the XML input
-         */
-        xmlInput.setData(QByteArray(buffer, numRead));
-        
-        /*
-         * Process the data that was just read
-         */
-        if (firstTime) {
-            if (reader.parse(&xmlInput, true) == false) {
-                throw XmlSaxParserException(privateHandler.errorString());            
-            }
-        }
-        else {
-            if (reader.parseContinue() == false) {
-                throw XmlSaxParserException(privateHandler.errorString());
-            }
-        }
-        
-        firstTime = false;
+    if (reader.parse(&xmlInput) == false) {
+        throw XmlSaxParserException(privateHandler.errorString());
     }
     
     /*
-     * Tells parser that there is no more data
+     * Close the file
      */
-    xmlInput.setData(QByteArray());
-    if (reader.parseContinue() == false) {
-        throw XmlSaxParserException(privateHandler.errorString());
-    }
+    file.close();
 }
 
 /**
