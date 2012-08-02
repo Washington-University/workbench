@@ -75,7 +75,7 @@ using namespace caret;
 
 /**
  * Create a new instance of the SpecFile Dialog for
- * loading a spec file.  Run the retured dialog
+ * loading a spec file.  Run the returned dialog
  * with 'exec()'.
  * @param specFile
  *    The spec file that will be loaded.
@@ -104,12 +104,19 @@ SpecFileDialog::createForLoadingSpecFile(SpecFile* specFile,
  * Dialog will be deleted automatically when it is closed.
  */
 void 
-SpecFileDialog::displayFastOpenDataFile(SpecFile* specFile,
+SpecFileDialog::displayFastOpenDataFile(const SpecFile* specFile,
                                             QWidget* parent)
 {
+    /*
+     * Spec file must be copied since the spec file is non-modal
+     * for this usage and some operations reference the spec file's
+     * content.
+     */
+    SpecFile* specFileCopy = new SpecFile(*specFile);
     SpecFileDialog* sfd = new SpecFileDialog(SpecFileDialog::MODE_FAST_OPEN,
-                                             specFile,
+                                             specFileCopy,
                                              parent);
+    sfd->m_specFileCopyThatIsDeletedWhenDialogDestroyed = specFileCopy;
     sfd->setDeleteWhenClosed(true);
     sfd->setVisible(true);
     sfd->show();
@@ -126,8 +133,8 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
 : WuQDialogModal(("Spec File Data File Selection: " + specFile->getFileNameNoPath()),
                  parent)
 {
+    m_specFileCopyThatIsDeletedWhenDialogDestroyed = NULL;
     m_mode = mode;
-    
     
     /*
      * Mac wheel event causes unintentional selection of combo box
@@ -327,6 +334,10 @@ SpecFileDialog::~SpecFileDialog()
     const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     for (int32_t ig = 0; ig < numGroups; ig++) {
         delete m_dataTypeGroups[ig];
+    }
+    if (m_specFileCopyThatIsDeletedWhenDialogDestroyed != NULL) {
+        delete m_specFileCopyThatIsDeletedWhenDialogDestroyed;
+        m_specFileCopyThatIsDeletedWhenDialogDestroyed = NULL;
     }
 }
 

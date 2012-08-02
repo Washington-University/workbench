@@ -1390,6 +1390,32 @@ Brain::getSpecFileName() const
     return m_specFileName;
 }
 
+/**
+ * Is the spec file valid?
+ *
+ * The spec file is valid when:
+ *    (1) The spec file's name is a path on the network (http..., etc)
+ *    (2) The path is not on the network and the file exists.
+ * 
+ * @return Validity of spec file.
+ */
+bool
+Brain::isSpecFileValid() const
+{
+    bool valid = false;
+    
+    if (DataFile::isFileOnNetwork(m_specFileName)) {
+        valid = true;
+    }
+    else {
+        FileInformation fileInfo(m_specFileName);
+        valid = fileInfo.exists();
+    }
+    
+    return valid;
+}
+
+
 /*
  * @return The palette file.
  */

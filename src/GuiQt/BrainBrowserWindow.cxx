@@ -710,9 +710,9 @@ BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
 void 
 BrainBrowserWindow::processFileMenuAboutToShow()
 {
-    const AString specFileName = GuiManager::get()->getBrain()->getSpecFileName();
-    FileInformation fileInfo(specFileName);
-    m_openFileViaSpecFileAction->setEnabled(fileInfo.exists());
+    const bool enabled = GuiManager::get()->getBrain()->isSpecFileValid();
+    
+    m_openFileViaSpecFileAction->setEnabled(enabled);
 }
 
 /**
@@ -1747,12 +1747,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
 void 
 BrainBrowserWindow::processDataFileOpenFromSpecFile()
 {
-    const AString specFileName = GuiManager::get()->getBrain()->getSpecFileName();
-    FileInformation fileInfo(specFileName);
-    if (fileInfo.exists()) {
+    const bool valid = GuiManager::get()->getBrain()->isSpecFileValid();
+    if (valid) {
         try {
             SpecFile sf;
-            sf.readFile(specFileName);
+            sf.readFile(GuiManager::get()->getBrain()->getSpecFileName());
             SpecFileDialog::displayFastOpenDataFile(&sf,
                                                     this);
         }

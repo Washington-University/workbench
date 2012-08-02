@@ -54,7 +54,7 @@ namespace caret {
         static SpecFileDialog* createForLoadingSpecFile(SpecFile* specFile,
                                                 QWidget* parent);
         
-        static void displayFastOpenDataFile(SpecFile* specFile,
+        static void displayFastOpenDataFile(const SpecFile* specFile,
                                                     QWidget* parent);
     private:
         enum Mode {
@@ -116,6 +116,8 @@ namespace caret {
         WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
         
         QPushButton* m_loadScenesPushButton;
+        
+        SpecFile* m_specFileCopyThatIsDeletedWhenDialogDestroyed;
         
         friend class GuiSpecDataFileInfo;
     };

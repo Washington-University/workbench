@@ -149,6 +149,8 @@ namespace caret {
         
         AString getSpecFileName() const;
         
+        bool isSpecFileValid() const;
+        
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
         
