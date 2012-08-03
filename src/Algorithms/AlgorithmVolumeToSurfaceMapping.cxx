@@ -588,7 +588,7 @@ void TriInfo::initialize(const float* xyz1, const float* xyz2, const float* xyz3
     }
 }
 
-//Original copyright for PNPOLY, even though my version is entirely rewritten
+//Original copyright for PNPOLY, even though my version is entirely rewritten and modified
 //Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 /**
 Copyright (c) 1970-2003, Wm. Randolph Franklin
@@ -629,7 +629,14 @@ bool TriInfo::vertRayHit(const float* xyz)
     {
         if ((m_xyz[i][0] < xyz[0]) != (m_xyz[j][0] < xyz[0]))
         {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
-            if ((m_xyz[i][1] - m_xyz[j][1]) / (m_xyz[i][0] - m_xyz[j][0]) * (xyz[0] - m_xyz[j][0]) + m_xyz[j][1] > xyz[1])
+            int ti, tj;
+            if (m_xyz[i][0] < m_xyz[j][0])//reorient the segment consistently to prevent rounding error from affecting the result
+            {
+                ti = i; tj = j;
+            } else {
+                ti = j; tj = i;
+            }
+            if ((m_xyz[ti][1] - m_xyz[tj][1]) / (m_xyz[ti][0] - m_xyz[tj][0]) * (xyz[0] - m_xyz[tj][0]) + m_xyz[tj][1] > xyz[1])
             {//if the point on the line described by the two vertices with the same x coordinate is above (greater y) than the test point
                 inside = !inside;//even/odd winding rule again
             }
