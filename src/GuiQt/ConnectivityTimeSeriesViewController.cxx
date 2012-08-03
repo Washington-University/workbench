@@ -294,6 +294,10 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         this->graphToolButton->setChecked(enabledState);
         this->graphToolButton->blockSignals(false);
 
+        this->frameSpinBox->blockSignals(true);
+        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame());
+        this->frameSpinBox->blockSignals(false);
+
         this->frameName->blockSignals(true);
         if(this->connectivityLoaderFile->hasDataSeriesLabels())
         {
