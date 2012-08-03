@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
