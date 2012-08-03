@@ -33,6 +33,7 @@
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ClassAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
@@ -177,15 +178,12 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     /*
      * Drawing type for labels
      */
-    LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+    DisplayPropertiesLabels* displayPropertiesLabels = NULL;
     if (browserTabContent != NULL) {
         if (surfaceController != NULL) {
             Brain* brain = surfaceController->getBrain();
             if (brain != NULL) {
-                DisplayPropertiesLabels* dpl = brain->getDisplayPropertiesLabels();
-                const DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
-                labelDrawingType = dpl->getDrawingType(displayGroup,
-                                                       browserTabIndex);
+                displayPropertiesLabels = brain->getDisplayPropertiesLabels();
             }
         }
     }
@@ -197,7 +195,8 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     /*
      * Color the surface nodes
      */
-    this->colorSurfaceNodes(labelDrawingType,
+    this->colorSurfaceNodes(displayPropertiesLabels,
+                            browserTabIndex,
                             surface,
                             overlaySet, 
                             rgbaColor);
@@ -234,7 +233,8 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
  *    RGBA color components that are set by this method.
  */
 void 
-SurfaceNodeColoring::colorSurfaceNodes(const LabelDrawingTypeEnum::Enum labelDrawingType,
+SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                       const int32_t browserTabIndex,
                                        const Surface* surface,
                                        OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
@@ -286,7 +286,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const LabelDrawingTypeEnum::Enum labelDra
                 }
                     break;
                 case DataFileTypeEnum::LABEL:
-                    isColoringValid = this->assignLabelColoring(labelDrawingType,
+                    isColoringValid = this->assignLabelColoring(displayPropertiesLabels,
+                                                                browserTabIndex,
                                                                 brainStructure,
                                                                 surface,
                                                                 dynamic_cast<LabelFile*>(selectedMapFile),
@@ -370,7 +371,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const LabelDrawingTypeEnum::Enum labelDra
  *    True if coloring is valid, else false.
  */
 bool 
-SurfaceNodeColoring::assignLabelColoring(const LabelDrawingTypeEnum::Enum labelDrawingType,
+SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                         const int32_t browserTabIndex,
                                          const BrainStructure* brainStructure,
                                          const Surface* surface,
                                          const LabelFile* labelFile,
@@ -398,6 +400,19 @@ SurfaceNodeColoring::assignLabelColoring(const LabelDrawingTypeEnum::Enum labelD
         }
     }
     
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::getDefaultValue();
+    LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+    if (displayPropertiesLabels != NULL) {
+        displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+        labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+                                           browserTabIndex);
+    }
+    
+    
+    const ClassAndNameHierarchyModel* classNameModel = labelFile->getClassAndNameHierarchyModel();
+    if (classNameModel->isSelected(displayGroup, browserTabIndex) == false) {
+        return false;
+    }
     if (displayColumn < 0) {
         return false;
     }

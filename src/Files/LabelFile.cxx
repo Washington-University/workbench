@@ -127,6 +127,19 @@ LabelFile::getClassAndNameHierarchyModel()
 }
 
 /**
+ * @return The class and name hierarchy.
+ */
+const ClassAndNameHierarchyModel*
+LabelFile::getClassAndNameHierarchyModel() const
+{
+    m_classNameHierarchy->update(const_cast<LabelFile*>(this),
+                                 m_forceUpdateOfClassAndNameHierarchy);
+    m_forceUpdateOfClassAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
  * Validate the contents of the file after it
  * has been read such as correct number of 
  * data arrays and proper data types/dimensions.

@@ -275,9 +275,8 @@ LabelSelectionViewController::updateLabelViewController()
     /*
      * Update the class/name hierarchy
      */
-//    m_labelClassNameHierarchyViewController->updateContents(allLabelFiles,
-//                                                             displayGroup);
-
+    m_labelClassNameHierarchyViewController->updateContents(allLabelFiles,
+                                                             displayGroup);
 }
 
 /**

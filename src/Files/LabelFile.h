@@ -88,6 +88,8 @@ namespace caret {
         
         ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
         
+        const ClassAndNameHierarchyModel* getClassAndNameHierarchyModel() const;
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -108,7 +110,7 @@ namespace caret {
         mutable ClassAndNameHierarchyModel* m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        bool m_forceUpdateOfClassAndNameHierarchy;
+        mutable bool m_forceUpdateOfClassAndNameHierarchy;
         
     };
 
