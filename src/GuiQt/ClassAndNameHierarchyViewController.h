@@ -48,6 +48,7 @@ namespace caret {
 
     class BorderFile;
     class FociFile;
+    class LabelFile;
     class ClassAndNameHierarchyModel;
     class ClassAndNameHierarchySelectedItem;
     class WuQTreeWidget;
@@ -66,6 +67,9 @@ namespace caret {
                             const DisplayGroupEnum::Enum displayGroup);
         
         void updateContents(std::vector<FociFile*> fociFiles,
+                            const DisplayGroupEnum::Enum displayGroup);
+        
+        void updateContents(std::vector<LabelFile*> labelFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
     signals:

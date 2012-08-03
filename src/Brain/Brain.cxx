@@ -39,6 +39,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
+#include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
@@ -99,6 +100,9 @@ Brain::Brain()
     m_displayPropertiesInformation = new DisplayPropertiesInformation(this);
     m_displayProperties.push_back(m_displayPropertiesInformation);
     
+    m_displayPropertiesLabels = new DisplayPropertiesLabels(this);
+    m_displayProperties.push_back(m_displayPropertiesLabels);
+    
     m_displayPropertiesVolume = new DisplayPropertiesVolume(this);
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
@@ -127,7 +131,11 @@ Brain::Brain()
                           "DisplayPropertiesInformation", 
                           m_displayPropertiesInformation);
     
-    m_sceneAssistant->add("displayPropertiesVolume", 
+    m_sceneAssistant->add("m_displayPropertiesLabels",
+                          "m_displayPropertiesLabels",
+                          m_displayPropertiesLabels);
+    
+    m_sceneAssistant->add("displayPropertiesVolume",
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
 }
@@ -2532,9 +2540,27 @@ Brain::getDisplayPropertiesFoci() const
 }
 
 /**
+ * @return The label display properties.
+ */
+DisplayPropertiesLabels*
+Brain::getDisplayPropertiesLabels()
+{
+    return m_displayPropertiesLabels;
+}
+
+/**
+ * @return The label display properties.
+ */
+const DisplayPropertiesLabels* 
+Brain::getDisplayPropertiesLabels() const
+{
+    return m_displayPropertiesLabels;
+}
+
+/**
  * @return The volume display properties.
  */
-DisplayPropertiesVolume* 
+DisplayPropertiesVolume*
 Brain::getDisplayPropertiesVolume()
 {
     return m_displayPropertiesVolume;
@@ -2543,7 +2569,7 @@ Brain::getDisplayPropertiesVolume()
 /**
  * @return The volume display properties.
  */
-const DisplayPropertiesVolume* 
+const DisplayPropertiesVolume*
 Brain::getDisplayPropertiesVolume() const
 {
     return m_displayPropertiesVolume;

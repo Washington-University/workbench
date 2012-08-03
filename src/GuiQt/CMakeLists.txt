@@ -46,6 +46,7 @@ ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
+EnumComboBoxTemplate.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
 GuiManager.h
@@ -53,6 +54,7 @@ HyperLinkTextBrowser.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
+LabelSelectionViewController.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 OverlaySetViewController.h
@@ -128,6 +130,7 @@ CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
 DisplayGroupEnumComboBox.h
+EnumComboBoxTemplate.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowCreateTabs.h
 EventBrowserWindowNew.h
@@ -145,6 +148,7 @@ HyperLinkTextBrowser.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
+LabelSelectionViewController.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
@@ -237,6 +241,7 @@ HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
+LabelSelectionViewController.cxx
 ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx

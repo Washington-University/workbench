@@ -61,6 +61,7 @@ DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFoci.h
 DisplayPropertiesInformation.h
+DisplayPropertiesLabels.h
 DisplayPropertiesVolume.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
@@ -92,6 +93,7 @@ IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
 IdentificationWithColor.h
+LabelDrawingTypeEnum.h
 Model.h
 ModelSurface.h
 ModelSurfaceMontage.h
@@ -130,6 +132,7 @@ DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesInformation.cxx
+DisplayPropertiesLabels.cxx
 DisplayPropertiesVolume.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
@@ -161,6 +164,7 @@ IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx
+LabelDrawingTypeEnum.cxx
 Model.cxx
 ModelSurface.cxx
 ModelSurfaceMontage.cxx

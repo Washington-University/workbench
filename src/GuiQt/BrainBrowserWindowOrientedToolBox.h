@@ -14,6 +14,7 @@ namespace caret {
     class BorderSelectionViewController;
     class ConnectivityManagerViewController;
     class FociSelectionViewController;
+    class LabelSelectionViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
@@ -22,7 +23,7 @@ namespace caret {
         
     public:
         enum ToolBoxType {
-            TOOL_BOX_LAYERS,
+            TOOL_BOX_FEATURES,
             TOOL_BOX_OVERLAYS_HORIZONTAL,
             TOOL_BOX_OVERLAYS_VERTICAL
         };
@@ -51,22 +52,18 @@ namespace caret {
                            const QString& label);
         
         OverlaySetViewController* m_overlaySetViewController;
-        int m_overlaySetTabIndex;
         
         BorderSelectionViewController* m_borderSelectionViewController;
-        int m_borderSelectionTabIndex;
         
         ConnectivityManagerViewController* m_connectivityViewController;
-        int m_connectivityTabIndex;
         
         ConnectivityManagerViewController* m_timeSeriesViewController;
-        int m_timeSeriesTabIndex;
         
         FociSelectionViewController* m_fociSelectionViewController;
-        int m_fociSelectionTabIndex;
+        
+        LabelSelectionViewController* m_labelSelectionViewController;
         
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
-        int m_volumeSurfaceOutlineTabIndex;
         
         QTabWidget* m_tabWidget;
         

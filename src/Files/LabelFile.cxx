@@ -23,7 +23,8 @@
  */ 
 
 #include "CaretAssert.h"
-
+#include "CaretLogger.h"
+#include "ClassAndNameHierarchyModel.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
@@ -37,6 +38,7 @@ using namespace caret;
 LabelFile::LabelFile()
 : GiftiTypeFile(DataFileTypeEnum::LABEL)
 {
+    m_classNameHierarchy = NULL;
     this->initializeMembersLabelFile();
 }
 
@@ -49,6 +51,7 @@ LabelFile::LabelFile()
 LabelFile::LabelFile(const LabelFile& sf)
 : GiftiTypeFile(sf)
 {
+    m_classNameHierarchy = NULL;
     this->copyHelperLabelFile(sf);
 }
 
@@ -78,6 +81,7 @@ LabelFile::operator=(const LabelFile& sf)
 LabelFile::~LabelFile()
 {
     this->columnDataPointers.clear();
+    delete m_classNameHierarchy;
 }
 
 /**
@@ -88,6 +92,7 @@ LabelFile::clear()
 {
     GiftiTypeFile::clear();
     this->columnDataPointers.clear();
+    m_classNameHierarchy->clear();
 }
 
 /** 
@@ -109,6 +114,19 @@ LabelFile::getLabelTable() const
 }
 
 /**
+ * @return The class and name hierarchy.
+ */
+ClassAndNameHierarchyModel*
+LabelFile::getClassAndNameHierarchyModel()
+{
+    m_classNameHierarchy->update(this,
+                                 m_forceUpdateOfClassAndNameHierarchy);
+    m_forceUpdateOfClassAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
  * Validate the contents of the file after it
  * has been read such as correct number of 
  * data arrays and proper data types/dimensions.
@@ -126,6 +144,16 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
         this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerInt());
     }
+    
+    m_classNameHierarchy->update(this,
+                                 true);
+    m_forceUpdateOfClassAndNameHierarchy = false;
+    m_classNameHierarchy->setAllSelected(true);
+    
+    CaretLogFiner("CLASS/NAME Table for : "
+                  + this->getFileNameNoPath()
+                  + "\n"
+                  + m_classNameHierarchy->toString());
 }
 
 /**
@@ -165,6 +193,11 @@ LabelFile::getNumberOfColumns() const
 void 
 LabelFile::initializeMembersLabelFile()
 {
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
+    }
+    m_classNameHierarchy = new ClassAndNameHierarchyModel();
+    m_forceUpdateOfClassAndNameHierarchy = true;
 }
 
 /**
@@ -176,6 +209,12 @@ LabelFile::initializeMembersLabelFile()
 void 
 LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
 {
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
+    }
+    m_classNameHierarchy = new ClassAndNameHierarchyModel();
+    m_forceUpdateOfClassAndNameHierarchy = true;
+    
     this->validateDataArraysAfterReading();
 }
 
@@ -240,6 +279,7 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
     
     this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
     this->setModified();
+    m_forceUpdateOfClassAndNameHierarchy = true;
 }
 
 /**
@@ -301,6 +341,7 @@ void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
         }
     }
     setModified();
+    m_forceUpdateOfClassAndNameHierarchy = true;
 }
 
 /**
@@ -364,6 +405,7 @@ LabelFile::addMaps(const int32_t numberOfNodes,
                                          numberOfMaps);
     }
     
+    m_forceUpdateOfClassAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -376,5 +418,35 @@ void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* 
     {
         myColumn[i] = valuesIn[i];
     }
+    m_forceUpdateOfClassAndNameHierarchy = true;
     setModified();
 }
+
+/**
+ * Return a vector containing the keys used in a map.  Each key is listed
+ * once and the keys will be in ascending order. 
+ * @param mapIndex
+ *   Index of map.
+ * @return
+ *   Vector containing the keys.
+ */
+std::vector<int32_t>
+LabelFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(this->columnDataPointers, mapIndex);
+    
+    std::set<int32_t> uniqueKeys;
+    const int32_t numNodes = getNumberOfNodes();
+    for (int32_t i = 0; i < numNodes; i++) {
+        const int32_t key = getLabelKey(i, mapIndex);
+        uniqueKeys.insert(key);
+    }
+    
+    std::vector<int32_t> keyVector;
+    keyVector.insert(keyVector.end(),
+                     uniqueKeys.begin(),
+                     uniqueKeys.end());
+    return keyVector;
+}
+
+

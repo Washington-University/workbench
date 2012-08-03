@@ -34,6 +34,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
+#include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "GiftiLabel.h"
@@ -53,6 +54,7 @@
 #include "PaletteScalarAndColor.h"
 #include "RgbaFile.h"
 #include "Surface.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 
@@ -112,8 +114,12 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     OverlaySet* overlaySet = NULL;
     float* rgba = NULL;
 
+    EventBrowserTabGet getBrowserTab(browserTabIndex);
+    EventManager::get()->sendEvent(getBrowserTab.getPointer());
+    BrowserTabContent* browserTabContent = getBrowserTab.getBrowserTab();
+    
     /*
-     * For a NULL controller, find and use the surface controller for the 
+     * For a NULL controller, find and use the surface controller for the
      * surface and in the same tab as the volume controller.  This typically 
      * occurs when the volume surface outline is drawn over a volume slice.
      */
@@ -127,9 +133,6 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
          * If whole brain is displayed in the tab, use coloring
          * from whole brain instead of surface.
          */
-        EventBrowserTabGet getBrowserTab(browserTabIndex);
-        EventManager::get()->sendEvent(getBrowserTab.getPointer());
-        BrowserTabContent* browserTabContent = getBrowserTab.getBrowserTab();
         if (browserTabContent != NULL) {
             ModelWholeBrain* wholeBrain = browserTabContent->getDisplayedWholeBrainModel();
             if (wholeBrain != NULL) {
@@ -171,6 +174,22 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         return rgba;
     }
     
+    /*
+     * Drawing type for labels
+     */
+    LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+    if (browserTabContent != NULL) {
+        if (surfaceController != NULL) {
+            Brain* brain = surfaceController->getBrain();
+            if (brain != NULL) {
+                DisplayPropertiesLabels* dpl = brain->getDisplayPropertiesLabels();
+                const DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
+                labelDrawingType = dpl->getDrawingType(displayGroup,
+                                                       browserTabIndex);
+            }
+        }
+    }
+    
     const int numNodes = surface->getNumberOfNodes();
     const int numColorComponents = numNodes * 4;
     float *rgbaColor = new float[numColorComponents];
@@ -178,7 +197,8 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     /*
      * Color the surface nodes
      */
-    this->colorSurfaceNodes(surface, 
+    this->colorSurfaceNodes(labelDrawingType,
+                            surface,
                             overlaySet, 
                             rgbaColor);
     
@@ -214,7 +234,8 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
  *    RGBA color components that are set by this method.
  */
 void 
-SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
+SurfaceNodeColoring::colorSurfaceNodes(const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                       const Surface* surface,
                                        OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
 {
@@ -265,7 +286,9 @@ SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
                 }
                     break;
                 case DataFileTypeEnum::LABEL:
-                    isColoringValid = this->assignLabelColoring(brainStructure, 
+                    isColoringValid = this->assignLabelColoring(labelDrawingType,
+                                                                brainStructure,
+                                                                surface,
                                                                 dynamic_cast<LabelFile*>(selectedMapFile),
                                                                 selectedMapUniqueID, 
                                                                 numNodes, 
@@ -347,7 +370,9 @@ SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
  *    True if coloring is valid, else false.
  */
 bool 
-SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure, 
+SurfaceNodeColoring::assignLabelColoring(const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                         const BrainStructure* brainStructure,
+                                         const Surface* surface,
                                          const LabelFile* labelFile,
                                          const AString& labelMapUniqueID,
                                          const int32_t numberOfNodes,
@@ -386,23 +411,66 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
     
     const GiftiLabelTable* labelTable = labelFile->getLabelTable();
     
-    /*
-     * Assign colors from labels to nodes
-     */
-    float labelRGBA[4];
-    for (int i = 0; i < numberOfNodes; i++) {
-        int labelKey= labelFile->getLabelKey(i, displayColumn);
-        const GiftiLabel* gl = labelTable->getLabel(labelKey);
-        if (gl != NULL) {
-            gl->getColor(labelRGBA);
-            if (labelRGBA[3] > 0.0) {
-                const int32_t i4 = i * 4;
-                rgbv[i4]   = labelRGBA[0];
-                rgbv[i4+1] = labelRGBA[1];
-                rgbv[i4+2] = labelRGBA[2];
-                rgbv[i4+3] = 1.0;
+    switch (labelDrawingType) {
+        case LabelDrawingTypeEnum::DRAW_FILLED:
+        {
+            /*
+             * Assign colors from labels to nodes
+             */
+            float labelRGBA[4];
+            for (int32_t i = 0; i < numberOfNodes; i++) {
+                const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
+                const GiftiLabel* gl = labelTable->getLabel(labelKey);
+                if (gl != NULL) {
+                    gl->getColor(labelRGBA);
+                    if (labelRGBA[3] > 0.0) {
+                        const int32_t i4 = i * 4;
+                        rgbv[i4]   = labelRGBA[0];
+                        rgbv[i4+1] = labelRGBA[1];
+                        rgbv[i4+2] = labelRGBA[2];
+                        rgbv[i4+3] = 1.0;
+                    }
+                }
             }
         }
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+        {
+            CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
+            float labelRGBA[4];
+            for (int32_t i = 0; i < numberOfNodes; i++) {
+                const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
+                bool colorValid = false;
+                
+                /*
+                 * Check for any neighbors with different label key.
+                 */
+                int32_t numNeighbors = 0;
+                const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+                for (int32_t n = 0; n < numNeighbors; n++) {
+                    const int32_t neighbor = allNeighbors[n];
+                    if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
+                        colorValid = true;
+                        break;
+                    }
+                }
+                
+                if (colorValid) {
+                    const GiftiLabel* gl = labelTable->getLabel(labelKey);
+                    if (gl != NULL) {
+                        gl->getColor(labelRGBA);
+                        if (labelRGBA[3] > 0.0) {
+                            const int32_t i4 = i * 4;
+                            rgbv[i4]   = labelRGBA[0];
+                            rgbv[i4+1] = labelRGBA[1];
+                            rgbv[i4+2] = labelRGBA[2];
+                            rgbv[i4+3] = 1.0;
+                        }
+                    }
+                }
+            }
+        }
+            break;
     }
 
     return true;

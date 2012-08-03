@@ -27,6 +27,7 @@
 
 
 #include "CaretObject.h"
+#include "LabelDrawingTypeEnum.h"
 
 namespace caret {
 
@@ -54,9 +55,6 @@ namespace caret {
                                  Surface* surface,
                                  const int32_t browserTabIndex);
         
-        void colorSurfaceNodes(const Surface* surface,
-                               OverlaySet* overlaySet,
-                               float* rgbaNodeColors);
     private:
         SurfaceNodeColoring(const SurfaceNodeColoring&);
 
@@ -73,12 +71,19 @@ namespace caret {
             METRIC_COLOR_TYPE_DO_NOT_COLOR
         };        
         
+        void colorSurfaceNodes(const LabelDrawingTypeEnum::Enum labelDrawingType,
+                               const Surface* surface,
+                               OverlaySet* overlaySet,
+                               float* rgbaNodeColors);
+        
         bool assignConnectivityColoring(const BrainStructure* brainStructure,
                                         ConnectivityLoaderFile* connectivityLoaderFile,
                                         const int32_t numberOfNodes,
                                         float* rgbv);
         
-        bool assignLabelColoring(const BrainStructure* brainStructure,
+        bool assignLabelColoring(const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                 const BrainStructure* brainStructure,
+                                 const Surface* surface,
                                  const LabelFile* labelFile,
                                  const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,

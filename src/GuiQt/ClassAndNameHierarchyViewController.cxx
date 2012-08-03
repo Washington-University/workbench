@@ -54,6 +54,7 @@
 #include "GuiManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "LabelFile.h"
 #include "WuQtUtilities.h"
 #include "WuQTreeWidget.h"
 
@@ -369,7 +370,33 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
     this->treeWidget->resizeToFitContent();
 }
 
-void 
+/**
+ * Update with label files.
+ * @param labelFiles
+ *    The label files.
+ * @param displayGroup
+ *    The selected display group.
+ */
+void
+ClassAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labelFiles,
+                                                    const DisplayGroupEnum::Enum displayGroup)
+{
+    this->displayGroup = displayGroup;
+    std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+    for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
+         iter != labelFiles.end();
+         iter++) {
+        LabelFile* lf = *iter;
+        CaretAssert(lf);
+        classAndNameHierarchyModels.push_back(lf->getClassAndNameHierarchyModel());
+    }
+    
+    this->updateContents(classAndNameHierarchyModels);
+    
+    this->treeWidget->resizeToFitContent();
+}
+
+void
 ClassAndNameHierarchyViewController::deleteItemSelectionInfo()
 {
     for (std::vector<ClassAndNameHierarchySelectedItem*>::iterator itemSelIter = this->itemSelectionInfo.begin();

@@ -38,9 +38,11 @@
 
 #include "Border.h"
 #include "BorderFile.h"
+#include "CaretAssert.h"
 #include "FociFile.h"
 #include "Focus.h"
-#include "CaretAssert.h"
+#include "GiftiLabelTable.h"
+#include "LabelFile.h"
 
 using namespace caret;
 
@@ -340,6 +342,92 @@ ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(BorderFile* borderFile)
         }
     }
 }
+
+/**
+ * Update this class hierarchy with the label names
+ * and maps (as class).
+ *
+ * @param labelFile
+ *    The label file from which classes (map) and names are from.
+ * @parm forceUpdate
+ *    If true, force an update.
+ */
+void
+ClassAndNameHierarchyModel::update(LabelFile* labelFile,
+                                   const bool forceUpdate)
+{
+    bool needToGenerateKeys = forceUpdate;
+    
+    this->name = labelFile->getFileNameNoPath();
+    
+    if (needToGenerateKeys) {
+        /*
+         * Names for missing class names or foci names.
+         */
+        const AString missingClassName = "NoClass";
+        const AString missingName = "NoName";
+        
+        /*
+         * Reset the counts for all class and children names.
+         */
+        const int32_t numberOfClassKeys = static_cast<int32_t>(this->keyToClassNameSelectorVector.size());
+        for (int32_t classKey = 0; classKey < numberOfClassKeys; classKey++) {
+            ClassDisplayGroupSelector* cs = this->keyToClassNameSelectorVector[classKey];
+            if (cs != NULL) {
+                cs->clearAllNameCounters();
+            }
+        }
+        
+        /*
+         * Update with labels from maps
+         */
+        const int32_t numMaps = labelFile->getNumberOfMaps();
+        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+            /*
+             * Get the class.  If it is empty, use the default name.
+             */
+            AString theClassName = labelFile->getMapName(iMap);
+            if (theClassName.isEmpty()) {
+                theClassName = missingClassName;
+            }
+            
+            /*
+             * Get indices of labels used in this map
+             */
+            std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
+            
+            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
+                AString labelName = labelFile->getLabelTable()->getLabelName(labelKeys[iLabel]);
+                if (labelName.isEmpty()) {
+                    labelName = missingName;
+                }
+                
+                /*
+                 * Add class and name
+                 */
+                int32_t classKey = -1;
+                int32_t nameKey = -1;
+                this->addName(theClassName,
+                              labelName,
+                              classKey,
+                              nameKey);
+            }
+        }
+    }
+}
+
+/**
+ * Remove any unused names and classes.
+ * @param labelFile
+ *    Label file that contains names and classes.
+ */
+void
+ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(LabelFile* labelFile)
+{
+    
+}
+
 
 /**
  * Update this class hierarchy with the foci names

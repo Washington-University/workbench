@@ -170,7 +170,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_featuresToolBox = 
     new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
                                           "Features ToolBox",
-                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_LAYERS,
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_FEATURES,
                                           this);
     m_featuresToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, m_featuresToolBox);

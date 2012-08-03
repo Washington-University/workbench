@@ -16,6 +16,7 @@
 #include "ConnectivityManagerViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
+#include "LabelSelectionViewController.h"
 #include "OverlaySetViewController.h"
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
@@ -48,13 +49,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_toolBoxTitle = title;
     setWindowTitle(m_toolBoxTitle);
     
-    bool isLayersToolBox  = false;
+    bool isFeaturesToolBox  = false;
     bool isOverlayToolBox = false;
     Qt::Orientation orientation = Qt::Horizontal;
     switch (toolBoxType) {
-        case TOOL_BOX_LAYERS:
+        case TOOL_BOX_FEATURES:
             orientation = Qt::Vertical;
-            isLayersToolBox = true;
+            isFeaturesToolBox = true;
             toggleViewAction()->setText("Features Toolbox");
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
@@ -70,25 +71,17 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_borderSelectionViewController = NULL;
     m_connectivityViewController = NULL;
     m_fociSelectionViewController = NULL;
+    m_labelSelectionViewController = NULL;
     m_overlaySetViewController = NULL;
     m_timeSeriesViewController = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
-    m_overlaySetTabIndex = -1;
-    m_connectivityTabIndex = -1;
-    m_timeSeriesTabIndex = -1;
-    m_borderSelectionTabIndex = -1;
-    m_fociSelectionTabIndex = -1;
-    m_volumeSurfaceOutlineTabIndex = -1;
-    
     m_tabWidget = new QTabWidget();
     
     if (isOverlayToolBox) {
         m_overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-//        m_addToTabWidget(m_overlaySetViewController, 
-//                             "Overlay");
         m_tabWidget->addTab(m_overlaySetViewController ,
                                 "Layers");
     }
@@ -106,18 +99,25 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         addToTabWidget(m_timeSeriesViewController, 
                              "Data Series");
     }
-    if (isLayersToolBox) {
+    if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
         addToTabWidget(m_borderSelectionViewController, 
                              "Borders");
     }
     
-    if (isLayersToolBox) {
+    if (isFeaturesToolBox) {
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                                 this);
         addToTabWidget(m_fociSelectionViewController, 
                              "Foci");
+    }
+    
+    if (isFeaturesToolBox) {
+        m_labelSelectionViewController = new LabelSelectionViewController(browserWindowIndex,
+                                                                          this);
+        addToTabWidget(m_labelSelectionViewController,
+                       "Labels");
     }
     
     if (isOverlayToolBox) {
