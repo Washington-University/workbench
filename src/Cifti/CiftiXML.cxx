@@ -38,6 +38,11 @@ CiftiXML::CiftiXML()
     m_colMapIndex = -1;
 }
 
+AString CiftiXML::getVersion() const
+{
+    return m_root.m_version;
+}
+
 int64_t CiftiXML::getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myElement) const
 {
     if (myElement == NULL || myElement->m_modelType != CIFTI_MODEL_TYPE_SURFACE) return -1;
@@ -1554,6 +1559,8 @@ int CiftiXML::getNumberOfColumns() const
             return getNewRangeStart(m_rowMapIndex);
         } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS || myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) {
             return myMap->m_namedMaps.size();
+        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
+            return myMap->m_parcels.size();
         } else {
             throw CiftiFileException("unknown cifti mapping type");
         }
@@ -1579,6 +1586,8 @@ int CiftiXML::getNumberOfRows() const
             return getNewRangeStart(m_colMapIndex);
         } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS || myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) {
             return myMap->m_namedMaps.size();
+        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
+            return myMap->m_parcels.size();
         } else {
             throw CiftiFileException("unknown cifti mapping type");
         }

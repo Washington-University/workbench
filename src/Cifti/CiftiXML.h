@@ -136,6 +136,7 @@ namespace caret {
         * @param xml_root
         */
         void setXMLRoot (CiftiRootElement &xml_root) { m_root = xml_root; rootChanged(); }
+        
         /**
         * getXMLRoot
         *
@@ -143,6 +144,8 @@ namespace caret {
         * @param xml_root
         */
         void getXMLRoot (CiftiRootElement &xml_root) const { xml_root = m_root; }
+        
+        AString getVersion() const;
         
         ///get the row index for a node, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
