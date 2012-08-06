@@ -465,7 +465,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                  nameIter != nameKeysVector.end();
                  nameIter++) {
                 const int32_t nameKey = *nameIter;
-                ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = classSelector->getNameSelector(nameKey);
+                ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
                 CaretAssert(nameSelector);
                 if (nameSelector->getCounter() > 0) {
                     ClassAndNameHierarchySelectedItem* nameInfo = 

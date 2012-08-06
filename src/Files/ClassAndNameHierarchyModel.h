@@ -101,18 +101,17 @@ namespace caret {
         };
         
         class ClassDisplayGroupSelector : public NameDisplayGroupSelector {
-        public:
+        protected:
             ClassDisplayGroupSelector(const AString& name,
                                       const int32_t key);
             
-            ~ClassDisplayGroupSelector();
+        public:
+            virtual ~ClassDisplayGroupSelector();
             
-            void clear();
+            virtual void clear();
             
             void copySelections(const int32_t sourceTabIndex,
                                 const int32_t targetTabIndex);
-            
-            int32_t addName(const AString& name);
             
             void setAllSelected(const bool status);
             
@@ -122,17 +121,11 @@ namespace caret {
             
             std::vector<int32_t> getAllNameKeysSortedByName() const;
             
-            NameDisplayGroupSelector* getNameSelector(const int32_t nameKey);
+            virtual NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey) = 0;
             
-            const NameDisplayGroupSelector* getNameSelector(const int32_t nameKey) const;
+            virtual const NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey) const = 0;
             
-            NameDisplayGroupSelector* getNameSelector(const AString& name);
-            
-            int32_t getNumberOfNamesWithCountersGreaterThanZero() const;
-            
-            void clearAllNameCounters();
-            
-            void removeNamesWithCountersEqualZero();
+            NameDisplayGroupSelector* getNameSelectorWithName(const AString& name);
             
             bool isExpanded(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const;
@@ -140,6 +133,52 @@ namespace caret {
             void setExpanded(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const bool expanded);
+
+            virtual int32_t getNumberOfNamesWithCountersGreaterThanZero() const = 0;
+            
+            virtual void clearAllNameCounters() = 0;
+            
+            virtual void removeNamesWithCountersEqualZero() = 0;
+            
+        protected:
+            void addToNameSelectorMap(const AString& name,
+                                      NameDisplayGroupSelector* nameSelector);
+            
+            void removeNameSelector(NameDisplayGroupSelector* nameSelector);
+            
+        private:
+            void clearPrivate();
+            
+            /** Maps a name to its name information.  Map is fastest way to search by name.   */
+            std::map<AString, NameDisplayGroupSelector*> nameToNameSelectorMap;
+            
+            /** Expanded (collapsed) status in display group */
+            bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            
+            /** Expanded (collapsed) status in tab */
+            bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        };
+        
+        class ClassDisplayGroupSelectorGeneratedKey : public ClassDisplayGroupSelector {
+        public:
+            ClassDisplayGroupSelectorGeneratedKey(const AString& name,
+                                      const int32_t key);
+            
+            ~ClassDisplayGroupSelectorGeneratedKey();
+            
+            void clear();
+            
+            int32_t addName(const AString& name);
+
+            NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey);
+            
+            const NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey) const;
+            
+            int32_t getNumberOfNamesWithCountersGreaterThanZero() const;
+            
+            void clearAllNameCounters();
+            
+            void removeNamesWithCountersEqualZero();
             
         private:
             /** If keys are removed, they are stored here for future reuse. */
@@ -147,15 +186,6 @@ namespace caret {
             
             /** Indexes name information by name key.  Vector provides fast access by key. */
             std::vector<NameDisplayGroupSelector*> keyToNameSelectorVector;
-            
-            /** Maps a name to its name information.  Map is fastest way to search by name.   */
-            std::map<AString, NameDisplayGroupSelector*> nameToNameSelectorMap;
-            
-            /** Expanded (collapsed) status in display group */        
-            bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-            
-            /** Expanded (collapsed) status in tab */        
-            bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         };
         
     public:
