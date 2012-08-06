@@ -437,8 +437,7 @@ ClassAndNameHierarchyModel::update(LabelFile* labelFile,
     }
     
     
-    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
-
+//    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
 }
 
 /**
