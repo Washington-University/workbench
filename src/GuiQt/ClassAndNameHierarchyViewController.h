@@ -106,15 +106,17 @@ namespace caret {
         
         void setAllSelected(bool selected);
         
-        std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+        std::vector<ClassAndNameHierarchyModel*> m_classAndNameHierarchyModels;
         
-        WuQTreeWidget* treeWidget;
+        WuQTreeWidget* m_treeWidget;
         
-        std::vector<ClassAndNameHierarchySelectedItem*> itemSelectionInfo;
+        std::vector<ClassAndNameHierarchySelectedItem*> m_itemSelectionInfo;
 
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
         
-        DisplayGroupEnum::Enum displayGroup;
+        DisplayGroupEnum::Enum m_displayGroup;
+        
+        bool m_alwaysDisplayNames;
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__

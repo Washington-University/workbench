@@ -409,39 +409,37 @@ ClassAndNameHierarchyModel::update(LabelFile* labelFile,
             /*
              * Create the class
              */
-//            ClassDisplayGroupSelector* classSelector = new ClassDisplayGroupSelectorGeneratedKey(theClassName,
-//                                                                                     iMap);
+            ClassDisplayGroupSelectorUserKey* classSelector = new ClassDisplayGroupSelectorUserKey(theClassName,
+                                                                                                   iMap);
 //            const int32_t numClasses = static_cast<int32_t>(this->keyToClassNameSelectorVector.size());
 //            CaretAssert(numClasses == iMap);
 //            this->keyToClassNameSelectorVector.push_back(classSelector);
-//            
-//            /*
-//             * Get indices of labels used in this map
-//             */
-//            std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
-//            
-//            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
-//            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
-//                AString labelName = labelFile->getLabelTable()->getLabelName(labelKeys[iLabel]);
-//                if (labelName.isEmpty()) {
-//                    labelName = missingName;
-//                }                
-//            }
+
+            /*
+             * Get indices of labels used in this map
+             */
+            std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
+            
+            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
+                const int32_t labelKey = labelKeys[iLabel];
+                AString labelName = labelFile->getLabelTable()->getLabelName(labelKey);
+                if (labelName.isEmpty()) {
+                    labelName = missingName;
+                }
+                
+                classSelector->addNameWithKey(labelName,
+                                              labelKey);
+            }
+            
+            this->addClass(classSelector);
         }
     }
-}
-
-/**
- * Remove any unused names and classes.
- * @param labelFile
- *    Label file that contains names and classes.
- */
-void
-ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(LabelFile* labelFile)
-{
     
-}
+    
+    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
 
+}
 
 /**
  * Update this class hierarchy with the foci names
@@ -538,8 +536,6 @@ ClassAndNameHierarchyModel::update(FociFile* fociFile,
                                                  nameKey);
         }
     }
-    
-    std::cout << "FOCI: " << qPrintable(this->toString()) << std::endl;
 }
 
 /**
@@ -866,6 +862,39 @@ ClassAndNameHierarchyModel::addName(const AString& parentClassName,
     CaretAssert(classKeyOut >= 0);
     
     nameKeyOut = classSelector->addName(name);
+}
+
+/**
+ * Add a class using the key contained in the given class group.
+ * @param classDisplayGroup
+ *    Class display group that is added using its key.
+ */
+void
+ClassAndNameHierarchyModel::addClass(ClassDisplayGroupSelector* classDisplayGroup)
+{
+    CaretAssert(classDisplayGroup);
+    
+    const int32_t key = classDisplayGroup->getKey();
+    CaretAssert(key >= 0);
+    
+    const AString className = classDisplayGroup->getName();
+    
+    const int32_t numberOfClasses = this->keyToClassNameSelectorVector.size();
+    
+    if (key < numberOfClasses) {
+        if (this->keyToClassNameSelectorVector[key] != NULL) {
+            delete this->keyToClassNameSelectorVector[key];
+            this->keyToClassNameSelectorVector[key] = NULL;
+            this->classNameToClassSelectorMap.erase(className);
+        }
+    }
+    else {
+        this->keyToClassNameSelectorVector.resize(key + 1, NULL);
+    }
+    
+    this->keyToClassNameSelectorVector[key] = classDisplayGroup;
+    this->classNameToClassSelectorMap.insert(std::make_pair(className,
+                                                            classDisplayGroup));
 }
 
 /**
@@ -1389,6 +1418,36 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setAllSelected(const Disp
 }
 
 /**
+ * Is this class and all of its child names selected?
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return
+ *    true if everything is selected, else false.
+ */
+bool
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::isAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                                     const int32_t tabIndex) const
+{
+    if (isSelected(displayGroup, tabIndex) == false) {
+        return false;
+    }
+    
+    for (std::map<AString, NameDisplayGroupSelector*>::const_iterator iter = this->nameToNameSelectorMap.begin();
+         iter != this->nameToNameSelectorMap.end();
+         iter++) {
+        const NameDisplayGroupSelector* nameSelector = iter->second;
+        if (nameSelector->isSelected(displayGroup, tabIndex) == false) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+
+/**
  * @return All keys for the names.
  */
 std::vector<int32_t>
@@ -1417,6 +1476,7 @@ void
 ClassAndNameHierarchyModel::ClassDisplayGroupSelector::addToNameSelectorMap(const AString& name,
                                                  NameDisplayGroupSelector* nameSelector)
 {
+    CaretAssert(nameSelector);
     this->nameToNameSelectorMap.insert(std::make_pair(name, nameSelector));
 }
 
@@ -1522,6 +1582,7 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setExpanded(const Display
 /**
  * \class caret::ClassAndNameHierarchyModel::ClassDisplayGroupSelectorGeneratedKey
  * \brief Maintains selection of a class and name in each 'DisplayGroupEnum'.
+ * The name's "key" is generated by this class and returned when a name is added.
  */
 
 /**
@@ -1555,19 +1616,7 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelectorGeneratedKey::clear()
 {
     ClassDisplayGroupSelector::clear();
     
-    /*
-     * While both maps point to NameDisplayGroupSelectors, both maps point
-     * to the same selectors so only need to delete them one time.
-     */
-    for (std::vector<NameDisplayGroupSelector*>::iterator iter = this->keyToNameSelectorVector.begin();
-         iter != this->keyToNameSelectorVector.end();
-         iter++) {
-        NameDisplayGroupSelector* ns = *iter;
-        if (ns != NULL) {
-            delete ns;
-        }
-    }
-    
+    /* Note: parent class' clear() method deletes all name selectors, so just clear vector */
     this->keyToNameSelectorVector.clear();
     
     this->availableNameKeys.clear();
@@ -1718,5 +1767,153 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelectorGeneratedKey::removeNamesWi
             }
         }
     }
+}
+
+//===================================================================
+
+/**
+ * \class caret::ClassAndNameHierarchyModel::ClassDisplayGroupSelectorGeneratedKey
+ * \brief Maintains selection of a class and name in each 'DisplayGroupEnum'.
+ * The name's "key" is generated by this class and returned when a name is added.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    The name.
+ * @param key
+ *    Key assigned to the name.
+ */
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::ClassDisplayGroupSelectorUserKey(const AString& name,
+                                                                                                         const int32_t key)
+: ClassAndNameHierarchyModel::ClassDisplayGroupSelector(name,
+                                                        key)
+{
+    this->clear();
+}
+
+/**
+ * Destructor.
+ */
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::~ClassDisplayGroupSelectorUserKey()
+{
+    this->clear();
+}
+
+/**
+ * Clear the contents of this class selector.
+ */
+void
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::clear()
+{
+    ClassDisplayGroupSelector::clear();
+    
+    /* Note: parent class' clear() method deletes all name selectors, so just clear map */
+    this->keyToNameSelectorMap.clear();
+}
+
+/**
+ * Add a name and key to the hierarchy.  Note, a name may be associated
+ * with more than one key for this type of selector.
+ *
+ * @param name
+ *    Name that is added.
+ * @param nameKey
+ *    Key associated with the name.
+ */
+void
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::addNameWithKey(const AString& name,
+                                                                             const int32_t nameKey)
+{
+    /*
+     * Does selector with key exist?
+     */
+    NameDisplayGroupSelector* nameSelector = this->getNameSelectorWithKey(nameKey);
+    if (nameSelector != NULL) {
+        const int32_t existingNameKey = nameSelector->getKey();
+        
+        /*
+         * Does key match? If so, do not need to make any changes and exit.
+         */
+        if (existingNameKey == nameKey) {
+            return;
+        }
+        
+        /*
+         * Remove the name selector since key exists and replace it
+         */
+        this->removeNameSelector(nameSelector);
+        this->keyToNameSelectorMap.erase(existingNameKey);
+        delete nameSelector;
+    }
+    
+    nameSelector = new NameDisplayGroupSelector(name, nameKey);
+    this->addToNameSelectorMap(name, nameSelector);
+    this->keyToNameSelectorMap.insert(std::make_pair(nameKey, nameSelector));
+}
+
+/**
+ * Get the name selector for the name with the given key.
+ * @param nameKey
+ *    Key for name.
+ * @return
+ *    Name selector for the given key or NULL if there
+ *    is no name selector with the given key.
+ */
+ClassAndNameHierarchyModel::NameDisplayGroupSelector*
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::getNameSelectorWithKey(const int32_t nameKey)
+{
+    std::map<int32_t, NameDisplayGroupSelector*>::iterator iter = this->keyToNameSelectorMap.find(nameKey);
+    if (iter != this->keyToNameSelectorMap.end()) {
+        NameDisplayGroupSelector* ns = iter->second;
+        return ns;
+    }
+    
+    return NULL;
+}
+
+/**
+ * Get the name selector for the name with the given key.
+ * @param nameKey
+ *    Key for name.
+ * @return
+ *    Name selector for the given key or NULL if there
+ *    is no name selector with the given key.
+ */
+const ClassAndNameHierarchyModel::NameDisplayGroupSelector*
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::getNameSelectorWithKey(const int32_t nameKey) const
+{
+    std::map<int32_t, NameDisplayGroupSelector*>::const_iterator iter = this->keyToNameSelectorMap.find(nameKey);
+    if (iter != this->keyToNameSelectorMap.end()) {
+        NameDisplayGroupSelector* ns = iter->second;
+        return ns;
+    }
+    
+    return NULL;
+}
+
+/**
+ * Clear (set to zero) counters for all names in this class.
+ */
+void
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::clearAllNameCounters()
+{
+    /* not used */
+}
+
+int32_t
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::getNumberOfNamesWithCountersGreaterThanZero() const
+{
+    /* not used */
+    return 1;
+}
+
+/**
+ * Remove any names that have a count equal to zero.
+ */
+void
+ClassAndNameHierarchyModel::ClassDisplayGroupSelectorUserKey::removeNamesWithCountersEqualZero()
+{
+    /* not used */
 }
 

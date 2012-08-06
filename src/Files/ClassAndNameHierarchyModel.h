@@ -119,6 +119,9 @@ namespace caret {
                                 const int32_t tabIndex,
                                 const bool status);
             
+            bool isAllSelected(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex) const;
+            
             std::vector<int32_t> getAllNameKeysSortedByName() const;
             
             virtual NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey) = 0;
@@ -188,6 +191,33 @@ namespace caret {
             std::vector<NameDisplayGroupSelector*> keyToNameSelectorVector;
         };
         
+        class ClassDisplayGroupSelectorUserKey : public ClassDisplayGroupSelector {
+        public:
+            ClassDisplayGroupSelectorUserKey(const AString& name,
+                                             const int32_t key);
+            
+            ~ClassDisplayGroupSelectorUserKey();
+            
+            void clear();
+            
+            void addNameWithKey(const AString& name,
+                                const int32_t nameKey);
+            
+            NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey);
+            
+            const NameDisplayGroupSelector* getNameSelectorWithKey(const int32_t nameKey) const;
+            
+            int32_t getNumberOfNamesWithCountersGreaterThanZero() const;
+            
+            void clearAllNameCounters();
+            
+            void removeNamesWithCountersEqualZero();
+            
+        private:            
+            /** Indexes name information by name key.  Vector provides fast access by key. */
+            std::map<int32_t, NameDisplayGroupSelector*> keyToNameSelectorMap;
+        };
+        
     public:
         ClassAndNameHierarchyModel();
         
@@ -201,8 +231,6 @@ namespace caret {
         void removeUnusedNamesAndClasses(BorderFile* borderFile);
         
         void removeUnusedNamesAndClasses(FociFile* fociFile);
-        
-        void removeUnusedNamesAndClasses(LabelFile* labelFile);
         
         bool isClassValid(const int32_t classKey) const;
         
@@ -246,6 +274,8 @@ namespace caret {
                      const AString& name,
                      int32_t& parentClassKeyOut,
                      int32_t& nameKeyOut);
+        
+        void addClass(ClassDisplayGroupSelector* classDisplayGroup);
         
         bool isClassSelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
