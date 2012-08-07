@@ -49,7 +49,6 @@
 #include "CaretAssert.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
-//#include "DisplayPropertiesBorders.h"
 #include "FociFile.h"
 #include "GuiManager.h"
 #include "GiftiLabel.h"
@@ -60,8 +59,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::ClassAndNameHierarchyViewController 
  * \brief View controller for ClassAndNameHierarchyModels
@@ -200,8 +197,6 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
     BrowserTabContent* browserTabContent = 
        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-//    const DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -250,8 +245,6 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -293,8 +286,6 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -431,13 +422,12 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
      */
     m_treeWidget->blockSignals(true);
     m_treeWidget->clear();
+
     deleteItemSelectionInfo();
     
     BrowserTabContent* browserTabContent = 
         GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     /*
      * Loop through the models.
@@ -533,14 +523,6 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
             expandCollapseTreeWidgetItem(child);
         }
     }
-
-    /*
-     * File Open, Class Closed
-     */
-//    m_treeWidget->collapseAll();
-//    m_treeWidget->expandToDepth(0);
-    
-//    m_treeWidget->expandAll();
     
     m_treeWidget->blockSignals(false);
 }
@@ -560,8 +542,6 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-//    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroupForTab(browserTabIndex);
     
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
@@ -609,6 +589,11 @@ ClassAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
         twi->setCheckState(0, Qt::Unchecked);
     }
     twi->setData(0, Qt::UserRole, qVariantFromValue((void*)selectionInfo));
+    
+//    QPixmap pm(10, 10);
+//    pm.fill(QColor(255, 255, 0));
+//    QIcon icon(pm);
+//    twi->setIcon(0, icon);
     
     m_itemSelectionInfo.push_back(selectionInfo);
     
