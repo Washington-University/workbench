@@ -33,7 +33,7 @@
 
 namespace caret {
 
-    class ClassAndNameHierarchyModel;
+    class GroupAndNameHierarchyModel;
     class GiftiDataArray;
     class GiftiLabelTable;
     
@@ -86,9 +86,9 @@ namespace caret {
         
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
-        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
-        const ClassAndNameHierarchyModel* getClassAndNameHierarchyModel() const;
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
     protected:
         /**
@@ -107,10 +107,10 @@ namespace caret {
         std::vector<int32_t*> columnDataPointers;
 
         /** Holds class and name hierarchy used for display selection */
-        mutable ClassAndNameHierarchyModel* m_classNameHierarchy;
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        mutable bool m_forceUpdateOfClassAndNameHierarchy;
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
         
     };
 

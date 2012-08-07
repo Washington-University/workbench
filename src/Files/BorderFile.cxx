@@ -38,7 +38,7 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
@@ -92,9 +92,9 @@ void
 BorderFile::initializeBorderFile()
 {
     this->classColorTable = new GiftiLabelTable();
-    this->classNameHierarchy = new ClassAndNameHierarchyModel();
+    this->classNameHierarchy = new GroupAndNameHierarchyModel();
     this->metadata = new GiftiMetaData();
-    this->forceUpdateOfClassAndNameHierarchy = true;
+    this->forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -140,14 +140,14 @@ BorderFile::copyHelperBorderFile(const BorderFile& obj)
     if (this->classNameHierarchy != NULL) {
         delete this->classNameHierarchy;
     }
-    this->classNameHierarchy = new ClassAndNameHierarchyModel();
+    this->classNameHierarchy = new GroupAndNameHierarchyModel();
     *this->metadata = *obj.metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         this->borders.push_back(new Border(*obj.getBorder(i)));
     }
-    this->forceUpdateOfClassAndNameHierarchy = true;
+    this->forceUpdateOfGroupAndNameHierarchy = true;
     
     this->setModified();
 }
@@ -358,7 +358,7 @@ BorderFile::addBorder(Border* border)
             this->classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 0.0f);
         }
     }
-    this->forceUpdateOfClassAndNameHierarchy = true;
+    this->forceUpdateOfGroupAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -374,7 +374,7 @@ BorderFile::removeBorder(const int32_t indx)
     Border* border = this->getBorder(indx);
     this->borders.erase(this->borders.begin() + indx);
     delete border;
-    this->forceUpdateOfClassAndNameHierarchy = true;
+    this->forceUpdateOfGroupAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -413,7 +413,7 @@ BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
                               const int32_t browserTabIndex,
                               const Border* border)
 {
-    const ClassAndNameHierarchyModel* classAndNameSelection = this->getClassAndNameHierarchyModel();
+    const GroupAndNameHierarchyModel* classAndNameSelection = this->getGroupAndNameHierarchyModel();
     if (classAndNameSelection->isSelected(displayGroup,
                                           browserTabIndex) == false) {
         return false;
@@ -421,7 +421,7 @@ BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
     
     const int32_t selectionClassKey = border->getSelectionClassKey();
     const int32_t selectionNameKey  = border->getSelectionNameKey();
-    if (classAndNameSelection->isClassSelected(displayGroup,
+    if (classAndNameSelection->isGroupSelected(displayGroup,
                                                browserTabIndex,
                                                selectionClassKey) == false) {
         return false;
@@ -439,12 +439,12 @@ BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
 /**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchyModel*
-BorderFile::getClassAndNameHierarchyModel()
+GroupAndNameHierarchyModel*
+BorderFile::getGroupAndNameHierarchyModel()
 {
     this->classNameHierarchy->update(this,
-                                     this->forceUpdateOfClassAndNameHierarchy);
-    this->forceUpdateOfClassAndNameHierarchy = false;
+                                     this->forceUpdateOfGroupAndNameHierarchy);
+    this->forceUpdateOfGroupAndNameHierarchy = false;
     
     return this->classNameHierarchy;
 }
@@ -530,7 +530,7 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     
     this->classNameHierarchy->update(this,
                                      true);
-    this->forceUpdateOfClassAndNameHierarchy = false;
+    this->forceUpdateOfGroupAndNameHierarchy = false;
     this->classNameHierarchy->setAllSelected(true);
     
     CaretLogFiner("CLASS/NAME Table for : "

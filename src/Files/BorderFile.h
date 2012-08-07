@@ -32,7 +32,7 @@
 namespace caret {
 
     class Border;
-    class ClassAndNameHierarchyModel;
+    class GroupAndNameHierarchyModel;
     class GiftiLabelTable;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -95,9 +95,9 @@ namespace caret {
         
         const GiftiLabelTable* getClassColorTable() const;
         
-        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
-        const ClassAndNameHierarchyModel* getClassAndNameHierarchyModel() const;
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
         static float getFileVersion();
         
@@ -126,10 +126,10 @@ namespace caret {
         GiftiLabelTable* classColorTable;
         
         /** Holds class and name hierarchy used for display selection */
-        mutable ClassAndNameHierarchyModel* classNameHierarchy;
+        mutable GroupAndNameHierarchyModel* classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        bool forceUpdateOfClassAndNameHierarchy;
+        bool forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this BorderFile */
         static const float borderFileVersion;

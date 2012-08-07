@@ -47,7 +47,9 @@
 #include "BorderFile.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyGroup.h"
+#include "GroupAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyName.h"
 #include "ClassAndNameHierarchySelectedItem.h"
 #include "FociFile.h"
 #include "GuiManager.h"
@@ -163,10 +165,10 @@ ClassAndNameHierarchyViewController::setAllSelected(bool selected)
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     if (browserTabContent != NULL) {
         const int32_t browserTabIndex = browserTabContent->getTabNumber();
-        for (std::vector<ClassAndNameHierarchyModel*>::iterator iter = m_classAndNameHierarchyModels.begin();
+        for (std::vector<GroupAndNameHierarchyModel*>::iterator iter = m_classAndNameHierarchyModels.begin();
              iter != m_classAndNameHierarchyModels.end();
              iter++) {
-            ClassAndNameHierarchyModel* model = *iter;
+            GroupAndNameHierarchyModel* model = *iter;
             model->setAllSelected(m_displayGroup,
                                   browserTabIndex,
                                   selected);
@@ -201,7 +203,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
-            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
             hierarchyModel->setSelected(m_displayGroup,
                                         browserTabIndex,
@@ -210,7 +212,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
-            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
             classSelector->setSelected(m_displayGroup,
                                        browserTabIndex,
                                        isSelected);
@@ -218,7 +220,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
         {
-            ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = selectionInfo->getNameDisplayGroupSelector();
+            GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
             nameSelector->setSelected(m_displayGroup,
                                       browserTabIndex,
                                       isSelected);
@@ -249,7 +251,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
-            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
             hierarchyModel->setExpanded(m_displayGroup,
                                         browserTabIndex,
@@ -258,7 +260,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
-            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
             classSelector->setExpanded(m_displayGroup,
                                        browserTabIndex,
@@ -290,7 +292,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
-            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
             hierarchyModel->setExpanded(m_displayGroup,
                                         browserTabIndex,
@@ -299,7 +301,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* ite
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
-            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
             classSelector->setExpanded(m_displayGroup, 
                                        browserTabIndex,
@@ -323,13 +325,13 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     m_displayGroup = displayGroup;
-    std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<BorderFile*>::iterator iter = borderFiles.begin();
          iter != borderFiles.end();
          iter++) {
         BorderFile* bf = *iter;
         CaretAssert(bf);
-        classAndNameHierarchyModels.push_back(bf->getClassAndNameHierarchyModel());
+        classAndNameHierarchyModels.push_back(bf->getGroupAndNameHierarchyModel());
     }
     
     updateContents(classAndNameHierarchyModels);
@@ -349,13 +351,13 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     m_displayGroup = displayGroup;
-    std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
          iter != fociFiles.end();
          iter++) {
         FociFile* ff = *iter;
         CaretAssert(ff);
-        classAndNameHierarchyModels.push_back(ff->getClassAndNameHierarchyModel());
+        classAndNameHierarchyModels.push_back(ff->getGroupAndNameHierarchyModel());
     }
     
     updateContents(classAndNameHierarchyModels);
@@ -376,13 +378,13 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labe
 {
     m_alwaysDisplayNames = true;
     m_displayGroup = displayGroup;
-    std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
          iter != labelFiles.end();
          iter++) {
         LabelFile* lf = *iter;
         CaretAssert(lf);
-        classAndNameHierarchyModels.push_back(lf->getClassAndNameHierarchyModel());
+        classAndNameHierarchyModels.push_back(lf->getGroupAndNameHierarchyModel());
     }
     
     updateContents(classAndNameHierarchyModels);
@@ -410,7 +412,7 @@ ClassAndNameHierarchyViewController::deleteItemSelectionInfo()
  *    If true, display names even if the usage count is zero.
  */
 void 
-ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHierarchyModel*>& classAndNameHierarchyModels)
+ClassAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels)
 {
     /*
      * Copy the models
@@ -434,19 +436,19 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
      */
     const int32_t numberOfModels = static_cast<int32_t>(m_classAndNameHierarchyModels.size());
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        ClassAndNameHierarchyModel* classNamesModel = m_classAndNameHierarchyModels[iModel];
+        GroupAndNameHierarchyModel* classNamesModel = m_classAndNameHierarchyModels[iModel];
         
         QList<QTreeWidgetItem*> classTreeWidgets;
         
         /*
          * Loop through each class
          */
-        const std::vector<int32_t> classKeysVector = classNamesModel->getAllClassKeysSortedByName();
+        const std::vector<int32_t> classKeysVector = classNamesModel->getAllGroupKeysSortedByName();
         for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
              classIter != classKeysVector.end();
              classIter++) {
             const int32_t classKey = *classIter;
-            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = classNamesModel->getClassSelectorForClassKey(classKey);
+            GroupAndNameHierarchyGroup* classSelector = classNamesModel->getGroupSelectorForGroupKey(classKey);
             CaretAssert(classSelector);
                 
             /*
@@ -458,7 +460,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                  nameIter != nameKeysVector.end();
                  nameIter++) {
                 const int32_t nameKey = *nameIter;
-                ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
+                GroupAndNameHierarchyName* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
                 CaretAssert(nameSelector);
                 
                 if ((nameSelector->getCounter() > 0)
@@ -546,7 +548,7 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
-            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
             item->setExpanded(hierarchyModel->isExpanded(m_displayGroup,
                                                          browserTabIndex));
@@ -554,7 +556,7 @@ ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
-            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
             CaretAssert(classSelector);
             item->setExpanded(classSelector->isExpanded(m_displayGroup,
                                                         browserTabIndex));

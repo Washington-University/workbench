@@ -39,7 +39,7 @@
 
 namespace caret {
 
-    class ClassAndNameHierarchyModel;
+    class GroupAndNameHierarchyModel;
     class Focus;
     class GiftiLabelTable;
     class GiftiMetaData;
@@ -87,7 +87,7 @@ namespace caret {
         
         const GiftiLabelTable* getColorTable() const;
         
-        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
         virtual bool isModified() const;
         
@@ -116,10 +116,10 @@ namespace caret {
         GiftiLabelTable* m_colorTable;
         
         /** Holds class and name hierarchy used for display selection */
-        mutable ClassAndNameHierarchyModel* m_classNameHierarchy;
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        bool m_forceUpdateOfClassAndNameHierarchy;
+        bool m_forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this FociFile */
         static const float fociFileVersion;

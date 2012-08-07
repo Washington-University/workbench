@@ -33,13 +33,14 @@
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GroupAndNameHierarchyGroup.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
@@ -409,7 +410,7 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     }
     
     
-    const ClassAndNameHierarchyModel* classNameModel = labelFile->getClassAndNameHierarchyModel();
+    const GroupAndNameHierarchyModel* classNameModel = labelFile->getGroupAndNameHierarchyModel();
     if (classNameModel->isSelected(displayGroup, browserTabIndex) == false) {
         return false;
     }
@@ -418,7 +419,7 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     }
     
     bool allNamesSelected = false;
-    const ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classGroup = classNameModel->getClassSelectorForClassKey(displayColumn);
+    const GroupAndNameHierarchyGroup* classGroup = classNameModel->getGroupSelectorForGroupKey(displayColumn);
     CaretAssert(classGroup);
     if (classGroup->isSelected(displayGroup, browserTabIndex) == false) {
         return false;

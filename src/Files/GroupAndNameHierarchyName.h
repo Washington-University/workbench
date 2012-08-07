@@ -1,5 +1,5 @@
-#ifndef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
-#define __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
+#ifndef __CLASS_AND_NAME_HIERARCHY_NAME__H_
+#define __CLASS_AND_NAME_HIERARCHY_NAME__H_
 
 /*LICENSE_START*/
 /*
@@ -34,60 +34,75 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainConstants.h"
 #include "CaretObject.h"
-#include "GroupAndNameHierarchyModel.h"
+#include "DisplayGroupEnum.h"
+
+class QIcon;
 
 namespace caret {
 
-    class ClassAndNameHierarchySelectedItem : public CaretObject {
-        
+    class GroupAndNameHierarchyName : public CaretObject {
     public:
-        /** Type of item within the hierarchy */
-        enum ItemType {
-            /** The class/name hierarchy model */
-            ITEM_TYPE_HIERARCHY_MODEL,
-            /** Class in the class/name hierarchy */
-            ITEM_TYPE_CLASS,
-            /** Name in the class/name hieracrchy */
-            ITEM_TYPE_NAME
-        };
+        GroupAndNameHierarchyName(const AString& name,
+                                 const int32_t key);
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel);
+        ~GroupAndNameHierarchyName();
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector);
+        void copySelections(const int32_t sourceTabIndex,
+                            const int32_t targetTabIndex);
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector);
+        AString getName() const;
         
-        ~ClassAndNameHierarchySelectedItem();
+        int32_t getKey() const;
         
-        ItemType getItemType() const;
+        bool isSelected(const DisplayGroupEnum::Enum displayGroup,
+                        const int32_t tabIndex) const;
         
-        GroupAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex,
+                         const bool status);
         
-        GroupAndNameHierarchyGroup* getClassDisplayGroupSelector();
+        void clearCounter();
         
-        GroupAndNameHierarchyName* getNameDisplayGroupSelector();
+        void incrementCounter();
         
+        int32_t getCounter() const;
+        
+        QIcon* getIcon() const;
+        
+        // ADD_NEW_METHODS_HERE
+    
     private:
-        ClassAndNameHierarchySelectedItem(const ClassAndNameHierarchySelectedItem&);
+        GroupAndNameHierarchyName(const GroupAndNameHierarchyName&);
         
-        ClassAndNameHierarchySelectedItem& operator=(const ClassAndNameHierarchySelectedItem&);
+        GroupAndNameHierarchyName& operator=(const GroupAndNameHierarchyName&);
         
-        void initialize(const ItemType itemType);
+        /** Name of an item (border, focus, etc) */
+        AString name;
         
-        ItemType itemType;
+        /** Key for quickly locating item */
+        int32_t key;
         
-        GroupAndNameHierarchyModel* classAndNameHierarchyModel;
+        /** Selection for each display group */
+        bool selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        GroupAndNameHierarchyGroup* classDisplayGroupSelector;
+        /** Selection for each tab */
+        bool selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        GroupAndNameHierarchyName* nameDisplayGroupSelector;
+        /** Counter for tracking usage of item */
+        int32_t counter;
+        
+        /** Icon for color, will be NULL when invalid */
+        QIcon* icon;
+
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
+#ifdef __CLASS_AND_NAME_HIERARCHY_NAME_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
+#endif // __CLASS_AND_NAME_HIERARCHY_NAME_DECLARE__
 
 } // namespace
-#endif  //__CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
+#endif  //__CLASS_AND_NAME_HIERARCHY_NAME__H_

@@ -49,7 +49,7 @@ namespace caret {
     class BorderFile;
     class FociFile;
     class LabelFile;
-    class ClassAndNameHierarchyModel;
+    class GroupAndNameHierarchyModel;
     class ClassAndNameHierarchySelectedItem;
     class WuQTreeWidget;
     
@@ -92,7 +92,7 @@ namespace caret {
 
         ClassAndNameHierarchyViewController& operator=(const ClassAndNameHierarchyViewController&);
         
-        void updateContents(std::vector<ClassAndNameHierarchyModel*>& ClassAndNameHierarchyModels);
+        void updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels);
         
         void deleteItemSelectionInfo();
         
@@ -106,7 +106,7 @@ namespace caret {
         
         void setAllSelected(bool selected);
         
-        std::vector<ClassAndNameHierarchyModel*> m_classAndNameHierarchyModels;
+        std::vector<GroupAndNameHierarchyModel*> m_classAndNameHierarchyModels;
         
         WuQTreeWidget* m_treeWidget;
         

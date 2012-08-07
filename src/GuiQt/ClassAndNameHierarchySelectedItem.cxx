@@ -52,7 +52,7 @@ using namespace caret;
  * @param classAndNameHierarchyModel
  *   The class name hierarchy model.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel* classAndNameHierarchyModel)
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel)
 {
     this->initialize(ITEM_TYPE_HIERARCHY_MODEL);
     this->classAndNameHierarchyModel = classAndNameHierarchyModel;
@@ -63,7 +63,7 @@ ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNam
  * @param classDisplayGroupSelector
  *   The class display group selector.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classDisplayGroupSelector)
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector)
 {
     this->initialize(ITEM_TYPE_CLASS);
     this->classDisplayGroupSelector = classDisplayGroupSelector;    
@@ -74,7 +74,7 @@ ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNam
  * @param nameDisplayGroupSelector
  *   The name display group selector.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameDisplayGroupSelector)
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector)
 {
     this->initialize(ITEM_TYPE_NAME);
     this->nameDisplayGroupSelector = nameDisplayGroupSelector;
@@ -116,7 +116,7 @@ ClassAndNameHierarchySelectedItem::getItemType() const
  * @return The class name and hierarchy model.  NULL
  * if this instance contains another type of data.
  */
-ClassAndNameHierarchyModel* 
+GroupAndNameHierarchyModel* 
 ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
 {
     CaretAssert(this->itemType == ITEM_TYPE_HIERARCHY_MODEL);
@@ -127,7 +127,7 @@ ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
  * @return The class name and hierarchy model.  NULL
  * if this instance contains another type of data.
  */
-ClassAndNameHierarchyModel::ClassDisplayGroupSelector* 
+GroupAndNameHierarchyGroup*
 ClassAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
 {
     CaretAssert(this->itemType == ITEM_TYPE_CLASS);
@@ -138,7 +138,7 @@ ClassAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
  * @return The class name and hierarchy model.  NULL
  * if this instance contains another type of data.
  */
-ClassAndNameHierarchyModel::NameDisplayGroupSelector* 
+GroupAndNameHierarchyName*
 ClassAndNameHierarchySelectedItem::getNameDisplayGroupSelector()
 {
     CaretAssert(this->itemType == ITEM_TYPE_NAME);

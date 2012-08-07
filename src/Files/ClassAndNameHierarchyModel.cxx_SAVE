@@ -1122,6 +1122,7 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::NameDisplayGroupSelector(c
 {
     this->name = name;
     this->key  = key;
+    this->icon = NULL;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         this->selectedInDisplayGroup[i] = true;
     }
@@ -1151,6 +1152,17 @@ ClassAndNameHierarchyModel::NameDisplayGroupSelector::copySelections(const int32
 {
     this->selectedInTab[targetTabIndex] = this->selectedInTab[sourceTabIndex];
 }
+
+/**
+ * @return The icon for this name selector.
+ * Value is NULL if there is not a valid icon.
+ */
+QIcon*
+ClassAndNameHierarchyModel::NameDisplayGroupSelector::getIcon() const
+{
+    return this->icon;
+}
+
 
 /**
  * @return The name.

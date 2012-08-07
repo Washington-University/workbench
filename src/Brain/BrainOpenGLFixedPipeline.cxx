@@ -57,7 +57,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
@@ -1742,7 +1742,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     for (int32_t i = 0; i < numFociFiles; i++) {
         FociFile* fociFile = brain->getFociFile(i);
         
-        const ClassAndNameHierarchyModel* classAndNameSelection = fociFile->getClassAndNameHierarchyModel();
+        const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
         if (classAndNameSelection->isSelected(displayGroup,
                                               this->windowTabIndex) == false) {
             continue;
@@ -1756,7 +1756,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             Focus* focus = fociFile->getFocus(j);
             const int32_t selectionClassKey = focus->getSelectionClassKey();
             const int32_t selectionNameKey  = focus->getSelectionNameKey();
-            if (classAndNameSelection->isClassSelected(displayGroup, 
+            if (classAndNameSelection->isGroupSelected(displayGroup,
                                                        this->windowTabIndex,
                                                        selectionClassKey) == false) {
                 continue;
@@ -1924,7 +1924,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
+        const GroupAndNameHierarchyModel* classAndNameSelection = borderFile->getGroupAndNameHierarchyModel();
         if (classAndNameSelection->isSelected(displayGroup,
                                               this->windowTabIndex) == false) {
             continue;

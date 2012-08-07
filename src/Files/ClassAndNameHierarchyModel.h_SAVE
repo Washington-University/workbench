@@ -41,6 +41,8 @@
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 
+class QIcon;
+
 namespace caret {
 
     class BorderFile;
@@ -83,6 +85,8 @@ namespace caret {
             
             int32_t getCounter() const;
             
+            QIcon* getIcon() const;
+            
         private:
             /** Name of an item (border, focus, etc) */
             AString name;
@@ -98,6 +102,9 @@ namespace caret {
             
             /** Counter for tracking usage of item */
             int32_t counter;
+            
+            /** Icon for color, will be NULL when invalid */
+            QIcon* icon;
         };
         
         class ClassDisplayGroupSelector : public NameDisplayGroupSelector {

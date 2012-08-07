@@ -26,7 +26,6 @@ BorderFileSaxReader.h
 CaretDataFile.h
 CaretMappableDataFile.h
 CaretVolumeExtension.h
-ClassAndNameHierarchyModel.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
@@ -36,6 +35,11 @@ FociFileSaxReader.h
 Focus.h
 GeodesicHelper.h
 GiftiTypeFile.h
+GroupAndNameHierarchyGroup.h
+GroupAndNameHierarchyGroupGeneratedKey.h
+GroupAndNameHierarchyGroupUserKey.h
+GroupAndNameHierarchyModel.h
+GroupAndNameHierarchyName.h
 ImageFile.h
 LabelFile.h
 MetricFile.h
@@ -73,7 +77,6 @@ DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx
 CaretVolumeExtension.cxx
-ClassAndNameHierarchyModel.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
@@ -82,6 +85,11 @@ FociFileSaxReader.cxx
 Focus.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
+GroupAndNameHierarchyGroup.cxx
+GroupAndNameHierarchyGroupGeneratedKey.cxx
+GroupAndNameHierarchyGroupUserKey.cxx
+GroupAndNameHierarchyModel.cxx
+GroupAndNameHierarchyName.cxx
 ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx

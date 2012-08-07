@@ -33,7 +33,9 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyGroup.h"
+#include "GroupAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyName.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventModelGetAll.h"
@@ -155,14 +157,14 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
         const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
         for (int32_t i = 0; i < numBorderFiles; i++) {
             BorderFile* bf = brain->getBorderFile(i);
-            bf->getClassAndNameHierarchyModel()->copyClassNameAndHierarchy(tabToClone->getTabNumber(),
+            bf->getGroupAndNameHierarchyModel()->copyGroupNameAndHierarchy(tabToClone->getTabNumber(),
                                                                            getTabNumber());
         }
         
         const int32_t numFociFiles = brain->getNumberOfFociFiles();
         for (int32_t i = 0; i < numFociFiles; i++) {
             FociFile* ff = brain->getFociFile(i);
-            ff->getClassAndNameHierarchyModel()->copyClassNameAndHierarchy(tabToClone->getTabNumber(),
+            ff->getGroupAndNameHierarchyModel()->copyGroupNameAndHierarchy(tabToClone->getTabNumber(),
                                                                            getTabNumber());
         }
     }
@@ -931,7 +933,7 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
         for (int32_t i = 0; i < numBorderFiles; i++) {
             BorderFile* borderFile = brain->getBorderFile(i);
-            const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
+            const GroupAndNameHierarchyModel* classAndNameSelection = borderFile->getGroupAndNameHierarchyModel();
             if (classAndNameSelection->isSelected(borderDisplayGroup,
                                                   tabIndex)) {
                 displayedDataFilesOut.push_back(borderFile);
@@ -951,7 +953,7 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         for (int32_t i = 0; i < numFociFiles; i++) {
             FociFile* fociFile = brain->getFociFile(i);
             
-            const ClassAndNameHierarchyModel* classAndNameSelection = fociFile->getClassAndNameHierarchyModel();
+            const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
             if (classAndNameSelection->isSelected(fociDisplayGroup,
                                                   tabIndex)) {
                 displayedDataFilesOut.push_back(fociFile);

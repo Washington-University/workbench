@@ -41,7 +41,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretFileDialog.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"

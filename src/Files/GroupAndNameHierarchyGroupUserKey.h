@@ -1,5 +1,5 @@
-#ifndef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
-#define __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
+#ifndef __CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY__H_
+#define __CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY__H_
 
 /*LICENSE_START*/
 /*
@@ -35,59 +35,49 @@
 /*LICENSE_END*/
 
 
-#include "CaretObject.h"
-#include "GroupAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyGroup.h"
 
 namespace caret {
 
-    class ClassAndNameHierarchySelectedItem : public CaretObject {
-        
+    class GroupAndNameHierarchyGroupUserKey : public GroupAndNameHierarchyGroup {
     public:
-        /** Type of item within the hierarchy */
-        enum ItemType {
-            /** The class/name hierarchy model */
-            ITEM_TYPE_HIERARCHY_MODEL,
-            /** Class in the class/name hierarchy */
-            ITEM_TYPE_CLASS,
-            /** Name in the class/name hieracrchy */
-            ITEM_TYPE_NAME
-        };
+        GroupAndNameHierarchyGroupUserKey(const AString& name,
+                                         const int32_t key);
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel);
+        ~GroupAndNameHierarchyGroupUserKey();
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector);
+        void clear();
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector);
+        void addNameWithKey(const AString& name,
+                            const int32_t nameKey);
         
-        ~ClassAndNameHierarchySelectedItem();
+        GroupAndNameHierarchyName* getNameSelectorWithKey(const int32_t nameKey);
         
-        ItemType getItemType() const;
+        const GroupAndNameHierarchyName* getNameSelectorWithKey(const int32_t nameKey) const;
         
-        GroupAndNameHierarchyModel* getClassAndNameHierarchyModel();
+        int32_t getNumberOfNamesWithCountersGreaterThanZero() const;
         
-        GroupAndNameHierarchyGroup* getClassDisplayGroupSelector();
+        void clearAllNameCounters();
         
-        GroupAndNameHierarchyName* getNameDisplayGroupSelector();
+        void removeNamesWithCountersEqualZero();
+        
+        // ADD_NEW_METHODS_HERE
         
     private:
-        ClassAndNameHierarchySelectedItem(const ClassAndNameHierarchySelectedItem&);
+        /** Indexes name information by name key.  Vector provides fast access by key. */
+        std::map<int32_t, GroupAndNameHierarchyName*> keyToNameSelectorMap;
+
+        GroupAndNameHierarchyGroupUserKey(const GroupAndNameHierarchyGroupUserKey&);
+
+        GroupAndNameHierarchyGroupUserKey& operator=(const GroupAndNameHierarchyGroupUserKey&);
         
-        ClassAndNameHierarchySelectedItem& operator=(const ClassAndNameHierarchySelectedItem&);
-        
-        void initialize(const ItemType itemType);
-        
-        ItemType itemType;
-        
-        GroupAndNameHierarchyModel* classAndNameHierarchyModel;
-        
-        GroupAndNameHierarchyGroup* classDisplayGroupSelector;
-        
-        GroupAndNameHierarchyName* nameDisplayGroupSelector;
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
+#ifdef __CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
+#endif // __CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY_DECLARE__
 
 } // namespace
-#endif  //__CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM__H_
+#endif  //__CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY__H_

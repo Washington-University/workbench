@@ -43,7 +43,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "FileAdapter.h"
 #include "FociFileSaxReader.h"
 #include "Focus.h"
@@ -124,9 +124,9 @@ void
 FociFile::initializeFociFile()
 {
     m_colorTable = new GiftiLabelTable();
-    m_classNameHierarchy = new ClassAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
     m_metadata = new GiftiMetaData();
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 
@@ -143,7 +143,7 @@ FociFile::copyHelperFociFile(const FociFile& ff)
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new ClassAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
     
     *m_metadata = *ff.m_metadata;
     
@@ -152,7 +152,7 @@ FociFile::copyHelperFociFile(const FociFile& ff)
         m_foci.push_back(new Focus(*ff.getFocus(i)));
     }
     
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     
     setModified();
 }
@@ -280,7 +280,7 @@ FociFile::addFocus(Focus* focus)
             m_colorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 0.0f);
         }
     }
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
 
@@ -296,7 +296,7 @@ FociFile::removeFocus(const int32_t indx)
     Focus* focus = this->getFocus(indx);
     m_foci.erase(m_foci.begin() + indx);
     delete focus;
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
 
@@ -322,12 +322,12 @@ FociFile::removeFocus(Focus* focus)
 /**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchyModel* 
-FociFile::getClassAndNameHierarchyModel()
+GroupAndNameHierarchyModel* 
+FociFile::getGroupAndNameHierarchyModel()
 {
     m_classNameHierarchy->update(this,
-                                     m_forceUpdateOfClassAndNameHierarchy);
-    m_forceUpdateOfClassAndNameHierarchy = false;
+                                     m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
     
     return m_classNameHierarchy;
 }
@@ -413,7 +413,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
     
     m_classNameHierarchy->update(this,
                                      true);
-    m_forceUpdateOfClassAndNameHierarchy = false;
+    m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
     
     CaretLogFiner("CLASS/NAME Table for : "

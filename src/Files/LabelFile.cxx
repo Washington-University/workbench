@@ -24,7 +24,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchyModel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
@@ -116,12 +116,12 @@ LabelFile::getLabelTable() const
 /**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchyModel*
-LabelFile::getClassAndNameHierarchyModel()
+GroupAndNameHierarchyModel*
+LabelFile::getGroupAndNameHierarchyModel()
 {
     m_classNameHierarchy->update(this,
-                                 m_forceUpdateOfClassAndNameHierarchy);
-    m_forceUpdateOfClassAndNameHierarchy = false;
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
     
     return m_classNameHierarchy;
 }
@@ -129,12 +129,12 @@ LabelFile::getClassAndNameHierarchyModel()
 /**
  * @return The class and name hierarchy.
  */
-const ClassAndNameHierarchyModel*
-LabelFile::getClassAndNameHierarchyModel() const
+const GroupAndNameHierarchyModel*
+LabelFile::getGroupAndNameHierarchyModel() const
 {
     m_classNameHierarchy->update(const_cast<LabelFile*>(this),
-                                 m_forceUpdateOfClassAndNameHierarchy);
-    m_forceUpdateOfClassAndNameHierarchy = false;
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
     
     return m_classNameHierarchy;
 }
@@ -160,7 +160,7 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
     
     m_classNameHierarchy->update(this,
                                  true);
-    m_forceUpdateOfClassAndNameHierarchy = false;
+    m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
     
     CaretLogFiner("CLASS/NAME Table for : "
@@ -209,8 +209,8 @@ LabelFile::initializeMembersLabelFile()
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new ClassAndNameHierarchyModel();
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -225,8 +225,8 @@ LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new ClassAndNameHierarchyModel();
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     
     this->validateDataArraysAfterReading();
 }
@@ -292,7 +292,7 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
     
     this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
     this->setModified();
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -354,7 +354,7 @@ void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
         }
     }
     setModified();
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -418,7 +418,7 @@ LabelFile::addMaps(const int32_t numberOfNodes,
                                          numberOfMaps);
     }
     
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -431,7 +431,7 @@ void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* 
     {
         myColumn[i] = valuesIn[i];
     }
-    m_forceUpdateOfClassAndNameHierarchy = true;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
 
