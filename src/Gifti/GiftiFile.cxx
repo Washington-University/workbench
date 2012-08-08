@@ -450,7 +450,7 @@ GiftiFile::setDefaultDataArrayIntent(const NiftiIntentEnum::Enum newIntent)
  *
  */
 void
-GiftiFile::clear()
+GiftiFile::clear(bool keepMetadata)
 {
     DataFile::clear();
     
@@ -463,7 +463,7 @@ GiftiFile::clear()
    dataArrays.clear();
    
    labelTable.clear();
-   metaData.clear();
+   if (!keepMetadata) metaData.clear();
    
    // do not clear
    // giftiElementName

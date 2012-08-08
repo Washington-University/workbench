@@ -26,6 +26,7 @@
 #define __CIFTI_XML_ELEMENTS
 #include <QtCore>
 #include <vector>
+#include <map>
 #include "AString.h"
 #include "CaretPointer.h"
 #include "nifti2.h"
@@ -173,7 +174,7 @@ public:
 class CiftiMatrixElement {
 public:
     std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO: replace this with GiftiLabelTable (or remove? not being used for anything)
-    QHash<QString, QString> m_userMetaData;/*!< User Meta Data*/
+    std::map<AString, AString> m_userMetaData;/*!< User Meta Data*/
     std::vector<CiftiMatrixIndicesMapElement> m_matrixIndicesMap;/*!< Vector array of one or more Matrix Indices Map Elements*/
     std::vector<CiftiVolumeElement> m_volume;/*!< Volume Element*/
 };
@@ -182,7 +183,7 @@ public:
 class CiftiRootElement {
 public:
     CiftiRootElement() { m_numberOfMatrices = 0; }
-    QString m_version;/*!<  Version String*/
+    AString m_version;/*!<  Version String*/
     unsigned long m_numberOfMatrices;/*!< Number of Matrices*/
     std::vector<CiftiMatrixElement> m_matrices; /*!< Matrices, currently there is only matrix, but future versions may allow for more */
 };

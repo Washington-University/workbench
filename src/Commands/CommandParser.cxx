@@ -24,6 +24,7 @@
 
 #include "CommandParser.h"
 #include "CaretAssert.h"
+#include "CaretCommandLine.h"
 #include "CiftiFile.h"
 #include "MetricFile.h"
 #include "LabelFile.h"
@@ -37,6 +38,9 @@
 using namespace caret;
 using namespace std;
 
+const AString CommandParser::PROVENANCE_NAME = "Provenance";
+const AString CommandParser::PARENT_PROVENANCE_NAME = "ParentProvenance";
+
 CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription()),
     OperationParserInterface(myAutoOper)
@@ -49,13 +53,17 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     {
         CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
         vector<OutputAssoc> myOutAssoc;
-        
+        m_provenance = caret_global_commandLine;//NOTE: m_provenance must be complete before parsing begins, because it sets it on output files as they are encountered in parseComponent
+        //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
+        //the parent provenance should never be generated manually
+        m_parentProvenance = "";//in case someone tries to use the same instance more than once
+        //this gets set on output files during writeOutput
         parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
         parameters.verifyAllParametersProcessed();
         //code to show what arguments map to what parameters should go here
-        
+        provenanceForOnDiskOutputs(myOutAssoc);//on-disk writing poses challenges for persistent metadata, this is where the special handling goes
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
-        
+        //TODO: deallocate input files - give abstract parameter a virtual deallocate method?
         writeOutput(myOutAssoc);
     } catch (ProgramParametersException& e) {
         throw e;
@@ -121,6 +129,15 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<CiftiFile> myFile(new CiftiFile());
                 myFile->openFile(nextArg, ON_DISK);
+                const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
+                if (md != NULL)
+                {
+                    map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
+                    if (iter != md->end() && iter->second != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                    }
+                }
                 ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {
@@ -155,6 +172,15 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<LabelFile> myFile(new LabelFile());
                 myFile->readFile(nextArg);
+                const GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    AString prov = md->get(PROVENANCE_NAME);
+                    if (prov != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                    }
+                }
                 ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {
@@ -167,6 +193,15 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<MetricFile> myFile(new MetricFile());
                 myFile->readFile(nextArg);
+                const GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    AString prov = md->get(PROVENANCE_NAME);
+                    if (prov != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                    }
+                }
                 ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {
@@ -189,6 +224,15 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<SurfaceFile> myFile(new SurfaceFile());
                 myFile->readFile(nextArg);
+                const GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    AString prov = md->get(PROVENANCE_NAME);
+                    if (prov != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                    }
+                }
                 ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {
@@ -201,6 +245,15 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<VolumeFile> myFile(new VolumeFile());
                 myFile->readFile(nextArg);
+                const GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    AString prov = md->get(PROVENANCE_NAME);
+                    if (prov != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                    }
+                }
                 ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {
@@ -231,13 +284,56 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         OutputAssoc tempItem;
         tempItem.m_fileName = nextArg;
         tempItem.m_param = myComponent->m_outputList[i];
-        switch (myComponent->m_outputList[i]->getType())
+        switch (myComponent->m_outputList[i]->getType())//set the immediate provenance metadata so that it can be overridden, but the parent provenance metadata can be incomplete at this point and should not be overridden
         {
-        case OperationParametersEnum::CIFTI:
-            ((CiftiParameter*)myComponent->m_outputList[i])->m_parameter->setCiftiCacheFile(nextArg);
-            break;
-        default:
-            break;
+            case OperationParametersEnum::CIFTI:
+            {
+                CiftiParameter* myParam = (CiftiParameter*)myComponent->m_outputList[i];
+                myParam->m_parameter->setCiftiCacheFile(nextArg);
+                break;//we do the metadata stuff in provenanceForOnDiskOutputs() for this type
+            }
+            case OperationParametersEnum::LABEL:
+            {
+                LabelFile* myFile = ((LabelParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    md->set(PROVENANCE_NAME, m_provenance);
+                }
+                break;
+            }
+            case OperationParametersEnum::METRIC:
+            {
+                MetricFile* myFile = ((MetricParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    md->set(PROVENANCE_NAME, m_provenance);
+                }
+                break;
+            }
+            case OperationParametersEnum::SURFACE:
+            {
+                SurfaceFile* myFile = ((SurfaceParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    md->set(PROVENANCE_NAME, m_provenance);
+                }
+                break;
+            }
+            case OperationParametersEnum::VOLUME:
+            {
+                VolumeFile* myFile = ((VolumeParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    md->set(PROVENANCE_NAME, m_provenance);
+                }
+                break;
+            }
+            default:
+                break;
         }
         outAssociation.push_back(tempItem);
         if (debug)
@@ -295,6 +391,34 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
     }
 }
 
+void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
+{
+    for (uint32_t i = 0; i < outAssociation.size(); ++i)
+    {
+        AbstractParameter* myParam = outAssociation[i].m_param;
+        switch (myParam->getType())
+        {
+            case OperationParametersEnum::CIFTI:
+            {
+                CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;
+                CiftiXML myXML;
+                myXML.resetColumnsToTimepoints(1.0f, 1);
+                myXML.applyColumnMapToRows();
+                map<AString, AString>* md = myXML.getFileMetaData();
+                (*md)[PROVENANCE_NAME] = m_provenance;
+                if (m_parentProvenance != "")
+                {
+                    (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
+                }
+                myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
 void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
 {
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
@@ -306,8 +430,11 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 cout << "Output Boolean \"" << myParam->m_shortName << "\" value is " << ((BooleanParameter*)myParam)->m_parameter << endl;
                 break;
             case OperationParametersEnum::CIFTI:
-                ((CiftiParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
+            {
+                CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;//we can't set metadata here because the XML is already on disk, see provenanceForOnDiskOutputs
+                myFile->writeFile(outAssociation[i].m_fileName);//this is basically a noop, we opened ON_DISK and set cache file to this name back in parseComponent
                 break;
+            }
             case OperationParametersEnum::DOUBLE:
                 cout << "Output Floating Point \"" << myParam->m_shortName << "\" value is " << ((DoubleParameter*)myParam)->m_parameter << endl;
                 break;
@@ -315,20 +442,52 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 cout << "Output Integer \"" << myParam->m_shortName << "\" value is " << ((IntegerParameter*)myParam)->m_parameter << endl;
                 break;
             case OperationParametersEnum::LABEL:
-                ((LabelParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
+            {
+                LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL && m_parentProvenance != "")
+                {
+                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                }
+                myFile->writeFile(outAssociation[i].m_fileName);
                 break;
+            }
             case OperationParametersEnum::METRIC:
-                ((MetricParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
+            {
+                MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL && m_parentProvenance != "")
+                {
+                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                }
+                myFile->writeFile(outAssociation[i].m_fileName);
                 break;
+            }
             case OperationParametersEnum::STRING:
                 cout << "Output String \"" << myParam->m_shortName << "\" value is " << ((StringParameter*)myParam)->m_parameter << endl;
                 break;
             case OperationParametersEnum::SURFACE:
-                ((SurfaceParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
+            {
+                SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL && m_parentProvenance != "")
+                {
+                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                }
+                myFile->writeFile(outAssociation[i].m_fileName);
                 break;
+            }
             case OperationParametersEnum::VOLUME:
-                ((VolumeParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
+            {
+                VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL && m_parentProvenance != "")
+                {
+                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                }
+                myFile->writeFile(outAssociation[i].m_fileName);
                 break;
+            }
             default:
                 CaretAssertMessage(false, "Writing of this parameter type has not been implemented in this parser");//assert instead of throw because this is a code error, not a user error
                 throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either

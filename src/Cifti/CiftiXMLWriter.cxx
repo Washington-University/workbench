@@ -27,6 +27,7 @@
 #include "GiftiLabelTable.h"
 
 using namespace caret;
+using namespace std;
 
 void caret::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
 {  
@@ -48,7 +49,7 @@ void caret::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootEle
 void caret::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
 { 
     xml.writeStartElement("Matrix");
-    if(matrixElement.m_userMetaData.count() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
+    if(matrixElement.m_userMetaData.size() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
     if(matrixElement.m_volume.size() > 0) writeVolume(xml, matrixElement.m_volume[0]);
     if(matrixElement.m_labelTable.size() > 0) writeLabelTable(xml, matrixElement.m_labelTable);
 
@@ -60,20 +61,20 @@ void caret::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &
     xml.writeEndElement();//Matrix
 }
 
-void caret::writeMetaData(QXmlStreamWriter &xml, const QHash<QString, QString> &metaData)
+void caret::writeMetaData(QXmlStreamWriter &xml, const map<AString, AString> &metaData)
 {     
     xml.writeStartElement("MetaData");
 
-    QHash<QString, QString>::ConstIterator i;
+    map<AString, AString>::const_iterator i;
 
     for (i = metaData.begin(); i != metaData.end(); ++i)
     {
-        writeMetaDataElement(xml,i.key(),i.value());
+        writeMetaDataElement(xml,i->first,i->second);
     }
     xml.writeEndElement();
 }
 
-void caret::writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value)
+void caret::writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value)
 {     
     xml.writeStartElement("MD");
 

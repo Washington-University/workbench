@@ -32,6 +32,7 @@
 #include "GiftiLabelTable.h"
 
 using namespace caret;
+using namespace std;
 
 void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
 {
@@ -106,7 +107,7 @@ void caret::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrix
         xml.raiseError("Matrix end tag not found.");
 }
 
-void caret::parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMetaData)
+void caret::parseMetaData(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
 {
     while (!(xml.isEndElement()  && (xml.name().toString() == "MetaData")) && !xml.hasError()) {// && xml.name() == "MetaData") {
         xml.readNext();
@@ -125,11 +126,12 @@ void caret::parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMe
         xml.raiseError("MetaData end tag not found.");
 }
 
-void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &userMetaData)
+void caret::parseMetaDataElement(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
 {
     QString name;
     QString value;
     QString test;
+    bool haveName = false, haveValue = false;
     while (!(xml.isEndElement() && (xml.name().toString() == "MD")) && !xml.hasError()) {
         test = xml.name().toString();
         xml.readNext();
@@ -144,6 +146,7 @@ void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &
                     return;
                 }
                 name = xml.text().toString();
+                haveName = true;
                 xml.readNext();
                 if(!xml.isEndElement())
                     xml.raiseError("End element for meta data name tag not found.");
@@ -155,6 +158,7 @@ void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &
                     return;
                 }
                 value = xml.text().toString();
+                haveValue = true;
                 xml.readNext();
                 if(!xml.isEndElement())
                     xml.raiseError("End element for meta data value tag not found.");
@@ -163,7 +167,9 @@ void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &
         }
 
     }
-    userMetaData.insert(name,value);
+    if (!haveName || !haveValue)
+        xml.raiseError("MD element is missing name or value");
+    userMetaData[name] = value;
     if(!xml.isEndElement() || (xml.name().toString() != "MD"))
         xml.raiseError("End element for MD tag not found");
 }

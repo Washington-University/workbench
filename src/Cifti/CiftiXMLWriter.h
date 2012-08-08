@@ -32,8 +32,8 @@ namespace caret {
 
 void writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement);
 void writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement);
-void writeMetaData(QXmlStreamWriter &xml, const QHash<QString, QString> &metaData);
-void writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value);
+void writeMetaData(QXmlStreamWriter &xml, const std::map<AString, AString> &metaData);
+void writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value);
 void writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement);
 void writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label);
 void writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap);

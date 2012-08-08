@@ -38,9 +38,21 @@ CiftiXML::CiftiXML()
     m_colMapIndex = -1;
 }
 
-AString CiftiXML::getVersion() const
+const AString& CiftiXML::getVersion() const
 {
     return m_root.m_version;
+}
+
+const map<AString, AString>* CiftiXML::getFileMetaData() const
+{
+    if (m_root.m_matrices.size() == 0) return NULL;
+    return &(m_root.m_matrices[0].m_userMetaData);
+}
+
+map<AString, AString>* CiftiXML::getFileMetaData()
+{
+    if (m_root.m_matrices.size() == 0) m_root.m_matrices.resize(1);
+    return &(m_root.m_matrices[0].m_userMetaData);
 }
 
 int64_t CiftiXML::getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myElement) const

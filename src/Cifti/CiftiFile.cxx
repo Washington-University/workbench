@@ -33,6 +33,7 @@
 #include <iostream>
 #include <FileInformation.h>
 using namespace caret;
+using namespace std;
 
 /**
  * Default Constructor
@@ -363,9 +364,25 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
  *
  * @param ciftixml
  */
-void CiftiFile::setCiftiXML(const CiftiXML & xml) throw (CiftiFileException)
+void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata) throw (CiftiFileException)
 {
-    this->m_xml = xml;
+    if (useOldMetadata)
+    {
+        const map<AString, AString>* oldmd = m_xml.getFileMetaData();
+        if (oldmd != NULL)
+        {
+            map<AString, AString> newmd = *oldmd;
+            oldmd = NULL;//don't leave a dangling pointer around
+            m_xml = xml;//because this will probably result in a new pointer for the metadata
+            map<AString, AString>* changemd = m_xml.getFileMetaData();
+            if (changemd != NULL)
+            {
+                *changemd = newmd;
+            }
+        }
+    } else {
+        this->m_xml = xml;
+    }
     setupMatrix();//this also populates the header with the dimensions from the CiftiXML object
 }
 

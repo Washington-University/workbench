@@ -64,7 +64,7 @@ public:
     //TODO, put some thought into whether we want to hand back an xml tree vs handing back a class that manages
     //the tree in an intelligent way.
     /// set CiftiXML
-    virtual void setCiftiXML(const CiftiXML &ciftixml) throw (CiftiFileException);
+    virtual void setCiftiXML(const CiftiXML &ciftixml, const bool useOldMetadata = true) throw (CiftiFileException);
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
     /// get Row

@@ -32,8 +32,8 @@ namespace caret {
 
 void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement);
 void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement);
-void parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &matrixElement);
-void parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &userMetaData);
+void parseMetaData(QXmlStreamReader &xml, std::map<AString, AString> &matrixElement);
+void parseMetaDataElement(QXmlStreamReader &xml, std::map<AString, AString> &userMetaData);
 void parseLabelTable(QXmlStreamReader &xml, std::vector <CiftiLabelElement> &labelElement);
 void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label);
 void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);

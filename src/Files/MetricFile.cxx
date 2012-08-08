@@ -229,7 +229,7 @@ MetricFile::getValuePointerForColumn(const int32_t columnIndex) const
 
 void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
 {
-    giftiFile->clear();
+    giftiFile->clear(true);
     columnDataPointers.clear();
     std::vector<int64_t> dimensions;
     dimensions.push_back(nodes);

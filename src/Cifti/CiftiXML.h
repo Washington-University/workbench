@@ -145,7 +145,7 @@ namespace caret {
         */
         void getXMLRoot (CiftiRootElement &xml_root) const { xml_root = m_root; }
         
-        AString getVersion() const;
+        const AString& getVersion() const;
         
         ///get the row index for a node, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
@@ -372,6 +372,10 @@ namespace caret {
         bool matchesVolumeSpace(const CiftiXML& rhs) const;
         bool operator==(const CiftiXML& rhs) const;
         bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
+        
+        const std::map<AString, AString>* getFileMetaData() const;
+        
+        std::map<AString, AString>* getFileMetaData();
         
     protected:
         CiftiRootElement m_root;
