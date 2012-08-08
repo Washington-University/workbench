@@ -169,6 +169,18 @@ ConnectivityLoaderFile::isDataLoadingEnabled() const
     return this->dataLoadingEnabled;
 }
 
+bool
+ConnectivityLoaderFile::isAnimationEnabled() const
+{
+    return this->animationEnabled;
+}
+
+void
+ConnectivityLoaderFile::setAnimationEnabled(const bool animationEnabled)
+{
+    this->animationEnabled = animationEnabled;
+}
+
 /**
  * Set loading of data enabled.  Note that if
  * disabled, any previously loaded data is NOT removed

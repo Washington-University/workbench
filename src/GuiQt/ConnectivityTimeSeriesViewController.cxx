@@ -100,8 +100,8 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
                                                       this,
                                                       SLOT(animateActionTriggered(bool)));
     this->animateAction->setCheckable(true);
-    QToolButton* animateToolButton = new QToolButton();
-    animateToolButton->setDefaultAction(this->animateAction);
+    this->animateToolButton = new QToolButton();
+    this->animateToolButton->setDefaultAction(this->animateAction);
     
     QIcon graphIcon;
     const bool graphIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
@@ -356,6 +356,44 @@ ConnectivityTimeSeriesViewController::updateOtherYokedFrameSpinBoxes(int frame)
 }
 
 /**
+ * Update other connectivity view controllers other than 'this' instance
+ * that contain the same connectivity file.
+ */
+void 
+ConnectivityTimeSeriesViewController::updateOtherYokedAnimationButtons(bool checked)
+{   
+    if (this->connectivityLoaderFile != NULL) {
+        for (std::set<ConnectivityTimeSeriesViewController*>::iterator iter = allConnectivityTimeSeriesViewControllers.begin();
+             iter != allConnectivityTimeSeriesViewControllers.end();
+             iter++) {
+            ConnectivityTimeSeriesViewController* clvc = *iter;
+            if (clvc != this) {
+                if(clvc->animateAction->isChecked()!=checked)
+                {
+                    if(clvc->connectivityLoaderFile == this->connectivityLoaderFile)
+                    {
+                        //clvc->animateAction->blockSignals(true);
+                        clvc->animateAction->setChecked(checked);
+                        clvc->connectivityLoaderFile->setAnimationEnabled(checked);
+                        if(!checked) clvc->animator->stop();
+                        //clvc->animateAction->blockSignals(false);                                        
+                        
+                    }
+                    else if(this->yokeCheckBox->isChecked() && clvc->yokeCheckBox->isChecked())
+                    {
+                        //clvc->animateAction->blockSignals(true);
+                        clvc->animateAction->setChecked(checked);
+                        clvc->connectivityLoaderFile->setAnimationEnabled(checked);
+                        if(!checked) clvc->animator->stop();
+                        //clvc->animateAction->blockSignals(false);                                        
+                    }                                    
+                }
+            }
+        }
+    }    
+}
+
+/**
  * Update this view controller.
  * @param connectivityLoaderFile
  *    Connectivity loader file in this view controller.
@@ -376,9 +414,10 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
         else if(timeSeriesViewController->yokeCheckBox->checkState() == Qt::Checked && 
                 this->yokeCheckBox->checkState() == Qt::Checked)
         {
+            if(this->connectivityLoaderFile->getNumberOfTimePoints() <= frame) return;
             if(alreadyLoaded.value(this->connectivityLoaderFile, false))
             {
-                this->frameSpinBox->blockSignals(true);            
+                this->frameSpinBox->blockSignals(true);
                 this->frameSpinBox->setValue(frame);
                 this->frameSpinBox->update();
                 this->frameSpinBox->blockSignals(false);
@@ -473,10 +512,14 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
  *    New status.
  */
 void 
-ConnectivityTimeSeriesViewController::animateActionTriggered(bool /*status*/)
+ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
 {
     if (this->connectivityLoaderFile != NULL) {
-        this->animator->toggleAnimation();
+        
+        if(status && !(this->connectivityLoaderFile->isAnimationEnabled())) this->animator->play();
+        else this->animator->stop();
+        this->connectivityLoaderFile->setAnimationEnabled(status);
+        this->updateOtherYokedAnimationButtons(status);
     }
 }
 
@@ -579,6 +622,18 @@ QSpinBox *
 ConnectivityTimeSeriesViewController::getFrameSpinBox()
 {
     return this->frameSpinBox;
+}
+
+QToolButton* 
+ConnectivityTimeSeriesViewController::getAnimateToolButton()
+{
+    return this->animateToolButton;
+}
+
+QAction*
+ConnectivityTimeSeriesViewController::getAnimateAction()
+{
+    return this->animateAction;
 }
 
 void 

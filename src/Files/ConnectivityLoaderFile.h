@@ -145,6 +145,10 @@ namespace caret {
         bool isDenseTimeSeries() const;
 
         bool hasDataSeriesLabels();
+
+        bool isAnimationEnabled() const;
+        
+        void setAnimationEnabled(const bool animationEnabled);
         
         AString getCiftiTypeName() const;
         
@@ -278,7 +282,9 @@ namespace caret {
         int selectedFrame;
 
         TimeLine tl;
-        
+
+        bool animationEnabled;
+                
         AString uniqueID; // DO NOT COPY
     };
     

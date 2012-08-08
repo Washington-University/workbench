@@ -31,6 +31,7 @@
 #include "GuiManager.h"
 #include "QCoreApplication"
 #include "Brain.h"
+#include "QAction"
 #include "QSpinBox"
 #include "SessionManager.h"
 #include "CaretPreferences.h"
@@ -89,13 +90,15 @@ void TimeSeriesManagerForViewController::update()
     {
         stop();//prevent timer events from piling up if the CPU is bogging down        
         QCoreApplication::instance()->processEvents();//give mouse events a chance to process
-        emit frameSpinBoxValueChanged(m_frameIndex);
-        
+        emit frameSpinBoxValueChanged(m_frameIndex);        
         play();
     }
     else {
         m_frameIndex=0;
         stop();
+        m_ctsvc->getAnimateAction()->setChecked(false);
+        m_ctsvc->animateActionTriggered(false);        
+        QCoreApplication::instance()->processEvents();
     }
 }
 

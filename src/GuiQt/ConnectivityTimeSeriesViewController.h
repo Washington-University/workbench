@@ -76,17 +76,22 @@ namespace caret {
         void receiveEvent(Event* event);
         
         QSpinBox *getFrameSpinBox();
+
+        QToolButton *getAnimateToolButton();
+
+        QAction *getAnimateAction();
         
         void setAnimationStartTime(const double &value);
         
         ConnectivityLoaderFile* getConnectivityLoaderFile();
+
+    public slots:
+        void animateActionTriggered(bool);
         
     private slots:
         void yokeCheckBoxStateChanged(int);
 
         void graphDisplayActionTriggered(bool);
-        
-        void animateActionTriggered(bool);
         
         void frameSpinBoxValueChanged(int);
         
@@ -104,6 +109,8 @@ namespace caret {
         void updateFrameSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded, int frame);        
 
         void updateOtherYokedFrameSpinBoxes(int frame);
+
+        void updateOtherYokedAnimationButtons(bool checked);
         
         void deleteAnimator();
         
@@ -118,6 +125,8 @@ namespace caret {
         QToolButton *graphToolButton;
         
         QAction* graphDisplayAction;
+
+        QToolButton* animateToolButton;
         
         QAction* animateAction;
         
