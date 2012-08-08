@@ -84,7 +84,6 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
     m_browserWindowIndex = browserWindowIndex;
     m_treeWidget = new WuQTreeWidget();
     m_treeWidget->setStyleSheet("background-color: rgba(125,125,125,0)");
-    m_treeWidget->setColumnCount(1);
     QObject::connect(m_treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
                      this, SLOT(treeWidgetItemChanged(QTreeWidgetItem*,int)));
     QObject::connect(m_treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
@@ -424,7 +423,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
      */
     m_treeWidget->blockSignals(true);
     m_treeWidget->clear();
-
+    
     deleteItemSelectionInfo();
     
     BrowserTabContent* browserTabContent = 
@@ -614,5 +613,34 @@ GroupAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
     m_itemSelectionInfo.push_back(selectionInfo);
     
     return twi;
+
+//    QTreeWidgetItem* twi = new QTreeWidgetItem();
+//    twi->setText(0, name);
+//    twi->setFlags(Qt::ItemIsUserCheckable
+//                  | Qt::ItemIsEnabled);
+//    if (isSelected) {
+//        twi->setCheckState(0, Qt::Checked);
+//    }
+//    else {
+//        twi->setCheckState(0, Qt::Unchecked);
+//    }
+//    twi->setData(0, Qt::UserRole, qVariantFromValue((void*)selectionInfo));
+//    
+//    if (iconColorRGBA != NULL) {
+//        if (iconColorRGBA[3] > 0.0) {
+//            QPixmap pm(10, 10);
+//            pm.fill(QColor::fromRgbF(iconColorRGBA[0],
+//                                     iconColorRGBA[1],
+//                                     iconColorRGBA[2]));
+//            QIcon icon(pm);
+//            twi->setIcon(0, icon);
+//        }
+//    }
+//    
+//    m_itemSelectionInfo.push_back(selectionInfo);
+//    
+//    return twi;
+/*
+ */
 }
 
