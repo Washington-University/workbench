@@ -33,7 +33,7 @@
 /*LICENSE_END*/
 
 #define __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
-#include "ClassAndNameHierarchySelectedItem.h"
+#include "GroupAndNameHierarchySelectedItem.h"
 #undef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
 
 #include "CaretAssert.h"
@@ -52,7 +52,7 @@ using namespace caret;
  * @param classAndNameHierarchyModel
  *   The class name hierarchy model.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel)
+GroupAndNameHierarchySelectedItem::GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel)
 {
     this->initialize(ITEM_TYPE_HIERARCHY_MODEL);
     this->classAndNameHierarchyModel = classAndNameHierarchyModel;
@@ -63,7 +63,7 @@ ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNam
  * @param classDisplayGroupSelector
  *   The class display group selector.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector)
+GroupAndNameHierarchySelectedItem::GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector)
 {
     this->initialize(ITEM_TYPE_CLASS);
     this->classDisplayGroupSelector = classDisplayGroupSelector;    
@@ -74,7 +74,7 @@ ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNam
  * @param nameDisplayGroupSelector
  *   The name display group selector.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector)
+GroupAndNameHierarchySelectedItem::GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector)
 {
     this->initialize(ITEM_TYPE_NAME);
     this->nameDisplayGroupSelector = nameDisplayGroupSelector;
@@ -84,7 +84,7 @@ ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(GroupAndNam
 /**
  * Destructor.
  */
-ClassAndNameHierarchySelectedItem::~ClassAndNameHierarchySelectedItem()
+GroupAndNameHierarchySelectedItem::~GroupAndNameHierarchySelectedItem()
 {
 }
 
@@ -94,7 +94,7 @@ ClassAndNameHierarchySelectedItem::~ClassAndNameHierarchySelectedItem()
  *    Type of item contained in this instance.
  */
 void 
-ClassAndNameHierarchySelectedItem::initialize(const ItemType itemType)
+GroupAndNameHierarchySelectedItem::initialize(const ItemType itemType)
 {
     this->itemType = itemType;
     this->classAndNameHierarchyModel = NULL;
@@ -106,8 +106,8 @@ ClassAndNameHierarchySelectedItem::initialize(const ItemType itemType)
 /**
  * @return ItemType of the selected item.
  */
-ClassAndNameHierarchySelectedItem::ItemType 
-ClassAndNameHierarchySelectedItem::getItemType() const 
+GroupAndNameHierarchySelectedItem::ItemType 
+GroupAndNameHierarchySelectedItem::getItemType() const 
 { 
     return this->itemType; 
 }
@@ -117,7 +117,7 @@ ClassAndNameHierarchySelectedItem::getItemType() const
  * if this instance contains another type of data.
  */
 GroupAndNameHierarchyModel* 
-ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
+GroupAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
 {
     CaretAssert(this->itemType == ITEM_TYPE_HIERARCHY_MODEL);
     return this->classAndNameHierarchyModel;
@@ -128,7 +128,7 @@ ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
  * if this instance contains another type of data.
  */
 GroupAndNameHierarchyGroup*
-ClassAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
+GroupAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
 {
     CaretAssert(this->itemType == ITEM_TYPE_CLASS);
     return this->classDisplayGroupSelector;
@@ -139,7 +139,7 @@ ClassAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
  * if this instance contains another type of data.
  */
 GroupAndNameHierarchyName*
-ClassAndNameHierarchySelectedItem::getNameDisplayGroupSelector()
+GroupAndNameHierarchySelectedItem::getNameDisplayGroupSelector()
 {
     CaretAssert(this->itemType == ITEM_TYPE_NAME);
     return this->nameDisplayGroupSelector;

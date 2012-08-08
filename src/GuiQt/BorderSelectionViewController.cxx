@@ -51,7 +51,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClassAndNameHierarchyViewController.h"
+#include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -127,9 +127,9 @@ BorderSelectionViewController::~BorderSelectionViewController()
 QWidget* 
 BorderSelectionViewController::createSelectionWidget()
 {
-    m_borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
-                     this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
+    m_borderClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
+    QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+                     this, SLOT(bordersSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_borderClassNameHierarchyViewController;
 }
@@ -305,7 +305,7 @@ BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum
  * graphics.
  */
 void 
-BorderSelectionViewController::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
+BorderSelectionViewController::bordersSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
 {
     processBorderSelectionChanges();
 }

@@ -49,7 +49,8 @@ namespace caret {
         void clear();
         
         void addNameWithKey(const AString& name,
-                            const int32_t nameKey);
+                            const int32_t nameKey,
+                            const float* iconRGB);
         
         GroupAndNameHierarchyName* getNameSelectorWithKey(const int32_t nameKey);
         

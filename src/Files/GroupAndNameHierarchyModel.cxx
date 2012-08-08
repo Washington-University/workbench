@@ -409,6 +409,11 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
 //            this->keyToGroupNameSelectorVector.push_back(groupSelector);
 
             /*
+             * The label table
+             */
+            const GiftiLabelTable* labelTable = labelFile->getLabelTable();
+            
+            /*
              * Get indices of labels used in this map
              */
             std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
@@ -421,8 +426,13 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                     labelName = missingName;
                 }
                 
+                float rgba[4] = { 1.0, 1.0, 1.0, 1.0 };
+                labelTable->getLabelColor(labelKey,
+                                          rgba);
+                
                 groupSelector->addNameWithKey(labelName,
-                                              labelKey);
+                                              labelKey,
+                                              rgba);
             }
             
             this->addGroup(groupSelector);

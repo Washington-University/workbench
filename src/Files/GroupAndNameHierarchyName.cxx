@@ -57,7 +57,10 @@ GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
 {
     this->name = name;
     this->key  = key;
-    this->icon = NULL;
+    this->iconRGBA[0] = 0.0;
+    this->iconRGBA[1] = 0.0;
+    this->iconRGBA[2] = 0.0;
+    this->iconRGBA[3] = 0.0;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         this->selectedInDisplayGroup[i] = true;
     }
@@ -89,15 +92,30 @@ GroupAndNameHierarchyName::copySelections(const int32_t sourceTabIndex,
 }
 
 /**
- * @return The icon for this name selector.
- * Value is NULL if there is not a valid icon.
+ * @return The RGBA color components for the icon.
+ * Valid when alpha is greater than zero.
+ * The color components range [0.0, 1.0]
  */
-QIcon*
-GroupAndNameHierarchyName::getIcon() const
+const float*
+GroupAndNameHierarchyName::getIconColorRGBA() const
 {
-    return this->icon;
+    return this->iconRGBA;
 }
 
+/**
+ * Set the RGBA color components for the icon.
+ * Valid when alpha is greater than zero.
+ * @param rgba
+ *     The color components ranging [0.0, 1.0]
+ */
+void
+GroupAndNameHierarchyName::setIconColorRGBA(const float rgba[4])
+{
+    this->iconRGBA[0] = rgba[0];
+    this->iconRGBA[1] = rgba[1];
+    this->iconRGBA[2] = rgba[2];
+    this->iconRGBA[3] = rgba[3];
+}
 
 /**
  * @return The name.

@@ -51,7 +51,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClassAndNameHierarchyViewController.h"
+#include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -128,9 +128,9 @@ LabelSelectionViewController::~LabelSelectionViewController()
 QWidget* 
 LabelSelectionViewController::createSelectionWidget()
 {
-    m_labelClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_labelClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
-                     this, SLOT(labelsSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
+    m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
+    QObject::connect(m_labelClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+                     this, SLOT(labelsSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_labelClassNameHierarchyViewController;
 }
@@ -231,7 +231,7 @@ LabelSelectionViewController::labelDisplayGroupSelected(const DisplayGroupEnum::
  * graphics.
  */
 void 
-LabelSelectionViewController::labelsSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
+LabelSelectionViewController::labelsSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
 {
     processLabelSelectionChanges();
 }

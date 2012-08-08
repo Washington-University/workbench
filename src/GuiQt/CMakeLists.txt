@@ -39,7 +39,6 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
-ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
@@ -49,6 +48,7 @@ DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
+GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
@@ -119,8 +119,6 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
-ClassAndNameHierarchySelectedItem.h
-ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
@@ -143,6 +141,8 @@ EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
+GroupAndNameHierarchySelectedItem.h
+GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
@@ -213,8 +213,6 @@ CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
-ClassAndNameHierarchySelectedItem.cxx
-ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityDenseViewController.cxx
 ConnectivityManagerViewController.cxx
@@ -236,6 +234,8 @@ EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 FociSelectionViewController.cxx
 GiftiLabelTableEditor.cxx
+GroupAndNameHierarchySelectedItem.cxx
+GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx

@@ -40,7 +40,7 @@
 
 namespace caret {
 
-    class ClassAndNameHierarchySelectedItem : public CaretObject {
+    class GroupAndNameHierarchySelectedItem : public CaretObject {
         
     public:
         /** Type of item within the hierarchy */
@@ -53,13 +53,13 @@ namespace caret {
             ITEM_TYPE_NAME
         };
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel);
+        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel);
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector);
+        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector);
         
-        ClassAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector);
+        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector);
         
-        ~ClassAndNameHierarchySelectedItem();
+        ~GroupAndNameHierarchySelectedItem();
         
         ItemType getItemType() const;
         
@@ -70,9 +70,9 @@ namespace caret {
         GroupAndNameHierarchyName* getNameDisplayGroupSelector();
         
     private:
-        ClassAndNameHierarchySelectedItem(const ClassAndNameHierarchySelectedItem&);
+        GroupAndNameHierarchySelectedItem(const GroupAndNameHierarchySelectedItem&);
         
-        ClassAndNameHierarchySelectedItem& operator=(const ClassAndNameHierarchySelectedItem&);
+        GroupAndNameHierarchySelectedItem& operator=(const GroupAndNameHierarchySelectedItem&);
         
         void initialize(const ItemType itemType);
         

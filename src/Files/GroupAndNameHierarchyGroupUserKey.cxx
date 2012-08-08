@@ -89,10 +89,13 @@ GroupAndNameHierarchyGroupUserKey::clear()
  *    Name that is added.
  * @param nameKey
  *    Key associated with the name.
+ * @param iconRGB
+ *    RGB color components for icon (may be NULL if no colors available)
  */
 void
 GroupAndNameHierarchyGroupUserKey::addNameWithKey(const AString& name,
-                                                                             const int32_t nameKey)
+                                                  const int32_t nameKey,
+                                                  const float* iconRGB)
 {
     /*
      * Does selector with key exist?
@@ -117,6 +120,9 @@ GroupAndNameHierarchyGroupUserKey::addNameWithKey(const AString& name,
     }
     
     nameSelector = new GroupAndNameHierarchyName(name, nameKey);
+    if (iconRGB != NULL) {
+        nameSelector->setIconColorRGBA(iconRGB);
+    }
     this->addToNameSelectorMap(name, nameSelector);
     this->keyToNameSelectorMap.insert(std::make_pair(nameKey, nameSelector));
 }

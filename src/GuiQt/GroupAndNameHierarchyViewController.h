@@ -50,18 +50,18 @@ namespace caret {
     class FociFile;
     class LabelFile;
     class GroupAndNameHierarchyModel;
-    class ClassAndNameHierarchySelectedItem;
+    class GroupAndNameHierarchySelectedItem;
     class WuQTreeWidget;
     
-    class ClassAndNameHierarchyViewController : public QWidget {
+    class GroupAndNameHierarchyViewController : public QWidget {
         
         Q_OBJECT
 
     public:
-        ClassAndNameHierarchyViewController(const int32_t browserWindowIndex,
+        GroupAndNameHierarchyViewController(const int32_t browserWindowIndex,
                                             QWidget* parent = 0);
         
-        virtual ~ClassAndNameHierarchyViewController();
+        virtual ~GroupAndNameHierarchyViewController();
         
         void updateContents(std::vector<BorderFile*> borderFiles,
                             const DisplayGroupEnum::Enum displayGroup);
@@ -73,7 +73,7 @@ namespace caret {
                             const DisplayGroupEnum::Enum displayGroup);
         
     signals:
-        void itemSelected(ClassAndNameHierarchySelectedItem* selectedItem);
+        void itemSelected(GroupAndNameHierarchySelectedItem* selectedItem);
         
     private slots:
         void treeWidgetItemChanged(QTreeWidgetItem* item,
@@ -88,17 +88,18 @@ namespace caret {
         void allOffPushButtonClicked();
         
     private:
-        ClassAndNameHierarchyViewController(const ClassAndNameHierarchyViewController&);
+        GroupAndNameHierarchyViewController(const GroupAndNameHierarchyViewController&);
 
-        ClassAndNameHierarchyViewController& operator=(const ClassAndNameHierarchyViewController&);
+        GroupAndNameHierarchyViewController& operator=(const GroupAndNameHierarchyViewController&);
         
         void updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels);
         
         void deleteItemSelectionInfo();
         
         QTreeWidgetItem* createTreeWidgetItem(const AString& name,
+                                              const float* iconColorRGBA,
                                               const bool isSelected,
-                                              ClassAndNameHierarchySelectedItem* selectionInfo);
+                                              GroupAndNameHierarchySelectedItem* selectionInfo);
         
         void expandCollapseTreeWidgetItem(QTreeWidgetItem* twi);
         
@@ -110,7 +111,7 @@ namespace caret {
         
         WuQTreeWidget* m_treeWidget;
         
-        std::vector<ClassAndNameHierarchySelectedItem*> m_itemSelectionInfo;
+        std::vector<GroupAndNameHierarchySelectedItem*> m_itemSelectionInfo;
 
         int32_t m_browserWindowIndex;
         

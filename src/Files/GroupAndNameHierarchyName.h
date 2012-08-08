@@ -38,8 +38,6 @@
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 
-class QIcon;
-
 namespace caret {
 
     class GroupAndNameHierarchyName : public CaretObject {
@@ -69,7 +67,9 @@ namespace caret {
         
         int32_t getCounter() const;
         
-        QIcon* getIcon() const;
+        const float* getIconColorRGBA() const;
+        
+        void setIconColorRGBA(const float rgba[4]);
         
         // ADD_NEW_METHODS_HERE
     
@@ -93,8 +93,8 @@ namespace caret {
         /** Counter for tracking usage of item */
         int32_t counter;
         
-        /** Icon for color, will be NULL when invalid */
-        QIcon* icon;
+        /** Color for icon, valid when (iconRGBA[3] > 0.0) */
+        float iconRGBA[4];
 
         // ADD_NEW_MEMBERS_HERE
 

@@ -48,8 +48,8 @@ class QCheckBox;
 
 namespace caret {
 
-    class ClassAndNameHierarchySelectedItem;
-    class ClassAndNameHierarchyViewController;
+    class GroupAndNameHierarchySelectedItem;
+    class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
     
     class FociSelectionViewController : public QWidget, public EventListenerInterface {
@@ -65,7 +65,7 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private slots:
-        void fociSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem);
+        void fociSelectionsChanged(GroupAndNameHierarchySelectedItem* selectedItem);
         
         void processFociSelectionChanges();
         
@@ -90,7 +90,7 @@ namespace caret {
         
         int32_t m_browserWindowIndex;
         
-        ClassAndNameHierarchyViewController* m_fociClassNameHierarchyViewController;
+        GroupAndNameHierarchyViewController* m_fociClassNameHierarchyViewController;
         
         QCheckBox* m_fociDisplayCheckBox;
         

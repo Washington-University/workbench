@@ -50,7 +50,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClassAndNameHierarchyViewController.h"
+#include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFoci.h"
 #include "FociColoringTypeEnum.h"
@@ -127,9 +127,9 @@ FociSelectionViewController::~FociSelectionViewController()
 QWidget* 
 FociSelectionViewController::createSelectionWidget()
 {
-    m_fociClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
-                     this, SLOT(fociSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
+    m_fociClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
+    QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+                     this, SLOT(fociSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_fociClassNameHierarchyViewController;
 }
@@ -320,7 +320,7 @@ FociSelectionViewController::fociDisplayGroupSelected(const DisplayGroupEnum::En
  * graphics.
  */
 void 
-FociSelectionViewController::fociSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
+FociSelectionViewController::fociSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
 {
     processFociSelectionChanges();
 }
