@@ -25,8 +25,10 @@
 #include <QApplication>
 #include <iostream>
 
+#include "AString.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretCommandLine.h"
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
@@ -39,14 +41,11 @@ using namespace caret;
 static void runCommand(int argc, char* argv[]) {
     
     ProgramParameters parameters(argc, argv);
-    
+    caret_global_commandLine = AString(argv[0]) + " " + parameters.getAllParametersInString();
     /*
      * Log the command parameters.
      */
-    CaretLogFine("Running: "
-                 + AString(argv[0])
-                 + " "
-                 + parameters.getAllParametersInString());
+    CaretLogFine("Running: " + caret_global_commandLine);
     
     CommandOperationManager* commandManager = NULL;
     try {

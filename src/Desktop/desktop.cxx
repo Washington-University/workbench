@@ -36,6 +36,7 @@
 
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
+#include "CaretCommandLine.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -301,14 +302,12 @@ main(int argc, char* argv[])
         * Parameters for the program.
         */
         ProgramParameters* parameters = new ProgramParameters(argc, argv);
+        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
 
         /*
         * Log the command parameters.
         */
-        CaretLogFine("Running: "
-                    + AString(argv[0])
-                    + " "
-                    + parameters->getAllParametersInString());
+        CaretLogFine("Running: " + caret_global_commandLine);
         
         //begin parsing command line
         ProgramState myState;

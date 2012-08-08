@@ -30,6 +30,7 @@
 #include "TestInterface.h"
 #include "SessionManager.h"
 #include "CaretHttpManager.h"
+#include "CaretCommandLine.h"
 
 //tests
 #include "CiftiFileTest.h"
@@ -61,6 +62,12 @@ int main(int argc, char** argv)
 {
     {
         QCoreApplication myApp(argc, argv);
+        caret_global_commandLine = argv[0];
+        for (int i = 1; i < argc; ++i)
+        {
+            caret_global_commandLine += " ";
+            caret_global_commandLine += argv[i];
+        }
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
