@@ -53,6 +53,8 @@ namespace caret {
             INVALID,
             /** Border Operations */
             BORDERS,
+            /** Foci Operations */
+            FOCI,
             /** Viewing Operations */
             VIEW
         };

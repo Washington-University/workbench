@@ -2069,6 +2069,16 @@ BrainBrowserWindowToolBar::createToolsWidget()
     inputModeBordersToolButton->setDefaultAction(this->toolsInputModeBordersAction);
     
     /*
+     * Foci
+     */
+    this->toolsInputModeFociAction = WuQtUtilities::createAction("F",
+                                                                 "Perform foci operations with mouse",
+                                                                 this);
+    QToolButton* inputModeFociToolButton = new QToolButton();
+    this->toolsInputModeFociAction->setCheckable(true);
+    inputModeFociToolButton->setDefaultAction(this->toolsInputModeFociAction);
+    
+    /*
      * View Mode
      */
     this->toolsInputModeViewAction = WuQtUtilities::createAction("V",
@@ -2094,10 +2104,12 @@ BrainBrowserWindowToolBar::createToolsWidget()
     QGridLayout* inputModeLayout = new QGridLayout(inputModeWidget);
     WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 0);
     inputModeLayout->addWidget(inputModeBordersToolButton, 0, 0);
-    inputModeLayout->addWidget(inputModeViewToolButton, 0, 1);
+    inputModeLayout->addWidget(inputModeFociToolButton, 0, 1);
+    inputModeLayout->addWidget(inputModeViewToolButton, 0, 2);
     
     this->toolsInputModeActionGroup = new QActionGroup(this);
     this->toolsInputModeActionGroup->addAction(this->toolsInputModeBordersAction);
+    this->toolsInputModeActionGroup->addAction(this->toolsInputModeFociAction);
     this->toolsInputModeActionGroup->addAction(this->toolsInputModeViewAction);
     QObject::connect(this->toolsInputModeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(toolsInputModeActionTriggered(QAction*)));
@@ -2153,6 +2165,9 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
             this->updateGraphicsWindow();
         }
     }
+    else if (action == this->toolsInputModeFociAction) {
+        inputMode = UserInputReceiverInterface::FOCI;
+    }
     else if (action == this->toolsInputModeViewAction) {
         inputMode = UserInputReceiverInterface::VIEW;
     }
@@ -2193,6 +2208,9 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
         case UserInputReceiverInterface::BORDERS:
             this->toolsInputModeBordersAction->setChecked(true);
             break;
+        case UserInputReceiverInterface::FOCI:
+            this->toolsInputModeFociAction->setChecked(true);
+            break;
         case UserInputReceiverInterface::VIEW:
             this->toolsInputModeViewAction->setChecked(true);
             break;
@@ -2220,6 +2238,7 @@ BrainBrowserWindowToolBar::updateDisplayedToolsUserInputWidget()
      */
     if (this->userInputControlsWidgetActiveInputWidget != NULL) {
         if (userInputWidget != this->userInputControlsWidgetActiveInputWidget) {
+            this->userInputControlsWidgetActiveInputWidget->setVisible(false);
             this->userInputControlsWidgetLayout->removeWidget(this->userInputControlsWidgetActiveInputWidget);
             this->userInputControlsWidgetActiveInputWidget = NULL;
         }
@@ -2227,8 +2246,10 @@ BrainBrowserWindowToolBar::updateDisplayedToolsUserInputWidget()
     if (this->userInputControlsWidgetActiveInputWidget == NULL) {
         if (userInputWidget != NULL) {
             this->userInputControlsWidgetActiveInputWidget = userInputWidget;
+            this->userInputControlsWidgetActiveInputWidget->setVisible(true);
             this->userInputControlsWidgetLayout->addWidget(this->userInputControlsWidgetActiveInputWidget);
             this->userInputControlsWidget->setVisible(true);
+            this->userInputControlsWidgetLayout->update();
         }
         else {
             this->userInputControlsWidget->setVisible(false);

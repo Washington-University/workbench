@@ -47,6 +47,7 @@ namespace caret {
     class MouseEvent;
     class SurfaceProjectedItem;
     class UserInputModeBorders;
+    class UserInputModeFoci;
     class UserInputModeView;
     class UserInputReceiverInterface;
     
@@ -135,6 +136,7 @@ namespace caret {
         UserInputReceiverInterface* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;
         UserInputModeBorders* userInputBordersModeProcessor;
+        UserInputModeFoci* userInputFociModeProcessor;
         
         Border* borderBeingDrawn;
     };

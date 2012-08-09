@@ -74,6 +74,7 @@ TimeCourseDialog.h
 TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
+UserInputModeFociWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
@@ -172,6 +173,8 @@ TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
+UserInputModeFociWidget.h
+UserInputModeFoci.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -265,6 +268,8 @@ TimeCoursePlotter.cxx
 TimeSeriesManagerForViewController.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
+UserInputModeFoci.cxx
+UserInputModeFociWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx

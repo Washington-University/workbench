@@ -407,6 +407,7 @@ namespace caret {
         void updateDisplayedToolsUserInputWidget();
         QActionGroup* toolsInputModeActionGroup;
         QAction* toolsInputModeBordersAction;
+        QAction* toolsInputModeFociAction;
         QAction* toolsInputModeViewAction;
         
     private:
