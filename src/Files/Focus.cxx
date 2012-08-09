@@ -279,6 +279,25 @@ Focus::setExtent(const float extent)
 }
 
 /**
+ * @return Geography
+ */
+AString
+Focus::getGeography() const
+{
+    return m_geography;
+}
+
+/**
+ * Set the geography.
+ * @param geography
+ */
+void
+Focus::setGeography(const AString& geography)
+{
+    m_geography = geography;
+}
+
+/**
  * @return Name
  */
 AString

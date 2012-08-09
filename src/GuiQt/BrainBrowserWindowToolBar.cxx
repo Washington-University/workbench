@@ -2223,7 +2223,7 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
-void 
+void
 BrainBrowserWindowToolBar::updateDisplayedToolsUserInputWidget()
 {
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);

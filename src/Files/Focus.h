@@ -71,6 +71,10 @@ namespace caret {
         
         void setExtent(const float extent);
         
+        AString getGeography() const;
+        
+        void setGeography(const AString& geography);
+        
         AString getName() const;
         
         void setName(const AString& name);

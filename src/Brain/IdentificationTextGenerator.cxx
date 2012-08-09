@@ -407,7 +407,7 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
         
         idText.addLine(true,
                        "Geography",
-                       focus->getArea());
+                       focus->getGeography());
         
         idText.addLine(true,
                        "Region of Interest",
