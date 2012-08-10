@@ -62,6 +62,8 @@ SurfaceProjectedItemSaxReader.h
 SurfaceProjection.h
 SurfaceProjectionBarycentric.h
 SurfaceProjectionVanEssen.h
+SurfaceProjector.h
+SurfaceProjectorException.h
 SurfaceTypeEnum.h
 TimeLine.h
 TextFile.h
@@ -112,6 +114,8 @@ SurfaceProjectedItemSaxReader.cxx
 SurfaceProjection.cxx
 SurfaceProjectionBarycentric.cxx
 SurfaceProjectionVanEssen.cxx
+SurfaceProjector.cxx
+SurfaceProjectorException.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 TimeLine.cxx
