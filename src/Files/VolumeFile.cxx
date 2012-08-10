@@ -116,9 +116,10 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         myNifti.readVolumeFile(*this, filename);
         parseExtensions();
         clearModified();
-    }
-    catch (const CaretException& e) {
+    } catch (const CaretException& e) {
         throw DataFileException(e);
+    } catch (...) {
+        throw DataFileException("unknown error while trying to open volume file " + filename);
     }
 }
 
