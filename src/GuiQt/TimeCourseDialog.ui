@@ -270,6 +270,43 @@
           </item>
          </layout>
         </item>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QPushButton" name="openTimeLineButton">
+            <property name="toolTip">
+             <string>Open Plot Data ...</string>
+            </property>
+            <property name="text">
+             <string>Open...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="exportImageButton">
+            <property name="toolTip">
+             <string>Export to Image File</string>
+            </property>
+            <property name="text">
+             <string>Export...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
        </layout>
       </widget>
      </item>
@@ -383,20 +420,5 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>   
-   <hints>
-    <hint type="sourcelabel">
-     <x>339</x>
-     <y>269</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1205</x>
-     <y>824</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>  
- </slots>
+ <connections/>
 </ui>

@@ -24,6 +24,13 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include "QImageWriter"
+#include "QFileDialog"
+#include "QMessageBox"
+#include "QPainter"
+#include "qwt_plot_renderer.h"
+#include "CaretPreferences.h"
+#include "SessionManager.h"
 #include "TimeCourseDialog.h"
 #include "ui_TimeCourseDialog.h"
 
@@ -66,7 +73,11 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
                     this, SLOT(plotTimeEndValueChanged(double)));    
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
-    ui->verticalLayout_4->insertWidget(0,plot,100);    
+    ui->verticalLayout_4->insertWidget(0,plot,100);
+    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    double time = 0.0;
+    prefs->getAnimationStartTime(time);
+    this->setAnimationStartTime(time);
 }
 
 
@@ -282,4 +293,75 @@ void TimeCourseDialog::on_resetViewButton_clicked()
 {
     this->plot->resetView();
     this->updateDialog(true);
+}
+
+void TimeCourseDialog::on_exportImageButton_clicked()
+{
+    QStringList formats;
+    QString formatString("Image Files (");
+    
+    for ( int i = 0; i < QImageWriter::supportedImageFormats().count(); i++ ) {
+        QString str = QString( QImageWriter::supportedImageFormats().at( i ) );
+        formats.append( str );
+        formatString.append("*."+str);
+        if(i<(QImageWriter::supportedImageFormats().count()-1)) formatString.append(" ");
+        else formatString.append(")");
+    }
+    QStringList files;
+
+    QString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+    if ( !fileName.isEmpty() )
+    {
+        /*QPixmap *image = new QPixmap(this->plot->width(),this->plot->height());
+        //image->setDotsPerMeterX(1000);
+        //image->setDotsPerMeterY(1000);
+        QwtPlotRenderer *renderer = new QwtPlotRenderer();
+        renderer->renderDocument(this->plot, filename, QRectF(this->plot->width(),this->plot->height());
+        image->save(filename, "*.jpg");
+        std::cout << "File Saved" << std::endl;
+        delete image;*/
+
+        const QRect imageRect = this->plot->rect();
+        const int dotsPerMeter = 1000;
+        QImage image( imageRect.size(), QImage::Format_ARGB32 );
+        image.setDotsPerMeterX( dotsPerMeter );
+        image.setDotsPerMeterY( dotsPerMeter );
+        image.fill( QColor( Qt::white ).rgb() );
+
+        QPainter painter( &image );
+        QwtPlotRenderer * renderer = new QwtPlotRenderer();
+        renderer->render( plot, &painter, imageRect );
+        painter.end();
+
+        image.save( fileName );
+    }
+}
+
+#include "CaretLogger.h"
+
+void TimeCourseDialog::on_openTimeLineButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName( this, tr("Open Dvars File"),QString::null, tr("Dvars Files (*.txt)") );
+    QFile file(fileName);
+    //file.open(QIODevice::ReadOnly);
+    TimeLine tl;
+    tl.timeStep = 1.0;
+    tl.label = fileName;
+    tl.filename = fileName;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        
+        CaretLogWarning("There was an error reading the dvars file.");
+        return;
+    }
+    while(!file.atEnd())
+    {
+        QByteArray line = file.readLine(100);
+        float var = 0.0;
+        sscanf(line,"%g ", &var);
+        tl.y.push_back(var);        
+    }
+    tl.x.resize(tl.y.count());
+    this->addTimeLine(tl);
+    this->updateDialog();
 }

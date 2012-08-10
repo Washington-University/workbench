@@ -82,6 +82,10 @@ private slots:
 
     void on_resetViewButton_clicked();
 
+    void on_exportImageButton_clicked();
+
+    void on_openTimeLineButton_clicked();
+
 public slots:
     virtual void plotTimeEndValueChanged(double time);
     virtual void plotTimeStartValueChanged(double time);
