@@ -46,6 +46,7 @@ ConnectivityTimeSeriesViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
+FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
 GroupAndNameHierarchyViewController.h
@@ -140,6 +141,7 @@ EventMapScalarDataColorMappingEditorShow.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
+FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
 GroupAndNameHierarchySelectedItem.h
@@ -235,6 +237,7 @@ EventMapScalarDataColorMappingEditorShow.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
+FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx
 GiftiLabelTableEditor.cxx
 GroupAndNameHierarchySelectedItem.cxx

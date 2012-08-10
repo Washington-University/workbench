@@ -205,7 +205,7 @@ Border::setClassRgba(const float rgba[3])
     m_classRgbaColor[0] = rgba[0];
     m_classRgbaColor[1] = rgba[1];
     m_classRgbaColor[2] = rgba[2];
-    m_classRgbaColor[3] = rgba[2];
+    m_classRgbaColor[3] = rgba[3];
     m_classRgbaColorValid = true;
 }
 

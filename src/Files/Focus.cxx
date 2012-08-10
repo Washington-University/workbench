@@ -68,6 +68,7 @@ Focus::Focus()
 Focus::~Focus()
 {
     clear();
+    removeAllProjections();
     delete m_studyMetaDataLinkSet;
 }
 
@@ -110,6 +111,7 @@ Focus::clear()
 {
     m_area = "";
     m_className = "";
+    m_color = CaretColorEnum::CLASS;
     m_comment = "";
     m_extent = 0.0;
     m_geography = "";
@@ -160,6 +162,7 @@ Focus::copyHelperFocus(const Focus& focus)
     
     m_area = focus.m_area;
     m_className = focus.m_className;
+    m_color = focus.m_color;
     m_comment = focus.m_comment;
     m_extent = focus.m_extent;
     m_geography = focus.m_geography;
@@ -232,6 +235,26 @@ Focus::setArea(const AString& area)
         m_area = area;
         setModified();
     }
+}
+
+/**
+ * @return Color of the border.
+ */
+CaretColorEnum::Enum
+Focus::getColor() const
+{
+    return m_color;
+}
+
+/**
+ * Set the color of the border.
+ * @param color
+ *    New color for border.
+ */
+void
+Focus::setColor(const CaretColorEnum::Enum color)
+{
+    m_color = color;
 }
 
 /**
@@ -441,7 +464,7 @@ void Focus::setClassRgba(const float rgba[3])
     m_classRgbaColor[0] = rgba[0];
     m_classRgbaColor[1] = rgba[1];
     m_classRgbaColor[2] = rgba[2];
-    m_classRgbaColor[3] = rgba[2];
+    m_classRgbaColor[3] = rgba[3];
     m_classRgbaColorValid = true;
 }
 
@@ -495,7 +518,7 @@ void Focus::setNameRgba(const float rgba[4])
     m_nameRgbaColor[0] = rgba[0];
     m_nameRgbaColor[1] = rgba[1];
     m_nameRgbaColor[2] = rgba[2];
-    m_nameRgbaColor[2] = rgba[2];
+    m_nameRgbaColor[3] = rgba[3];
     m_nameRgbaColorValid = true;
 }
 
@@ -642,6 +665,8 @@ Focus::getNumberOfProjections() const
 
 /**
  * Get the projection at the given index.
+ * Note: There may not be zero projections.
+ *
  * @param indx
  *    Index of projection
  * @return
@@ -656,6 +681,8 @@ Focus::getProjection(const int32_t indx) const
 
 /**
  * Get the projection at the given index.
+ * Note: There may not be zero projections.
+ *
  * @param indx
  *    Index of projection
  * @return
@@ -685,7 +712,10 @@ Focus::addProjection(SurfaceProjectedItem* projection)
 }
 
 /**
- * Remove all of the projections.
+ * Remove all of the projections.  A focus always
+ * has one projection but this method removes all
+ * projections so caller will need to to add a 
+ * projection.
  */
 void 
 Focus::removeAllProjections()
@@ -733,6 +763,7 @@ Focus::writeAsXML(XmlWriter& xmlWriter,
     
     xmlWriter.writeElementCData(XML_TAG_AREA, m_area);
     xmlWriter.writeElementCData(XML_TAG_CLASS_NAME, m_className);
+    xmlWriter.writeElementCData(XML_TAG_COLOR, CaretColorEnum::toName(m_color));
     xmlWriter.writeElementCData(XML_TAG_COMMENT, m_comment);
     xmlWriter.writeElementCharacters(XML_TAG_EXTENT, m_extent);
     xmlWriter.writeElementCData(XML_TAG_GEOGRAPHY, m_geography);
@@ -847,6 +878,13 @@ Focus::setElementFromText(const AString& elementName,
     }
     else if (elementName == Focus::XML_TAG_CLASS_NAME) {
         m_className = textValue;
+    }
+    else if (elementName == Focus::XML_TAG_COLOR) {
+        bool isValid = false;
+        m_color = CaretColorEnum::fromName(textValue, &isValid);
+        if (isValid == false) {
+            m_color = CaretColorEnum::CLASS;
+        }
     }
     else if (elementName == Focus::XML_TAG_COMMENT) {
         m_comment = textValue;

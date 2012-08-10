@@ -86,6 +86,8 @@ namespace caret {
         
         virtual void setSlicesToOrigin(const int32_t windowTabNumber);
         
+        std::vector<Surface*> getSelectedSurfaces(const int32_t windowTabNumber);
+        
         Surface* getSelectedSurface(const StructureEnum::Enum structure,
                                     const int32_t windowTabNumber);
         

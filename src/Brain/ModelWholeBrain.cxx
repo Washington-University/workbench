@@ -429,6 +429,33 @@ ModelWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 }
 
 /**
+ * @return Return the surfaces displayed in the given tab.
+ * @param windowTabIndex
+ *    THe tab.
+ */
+std::vector<Surface*>
+ModelWholeBrain::getSelectedSurfaces(const int32_t windowTabIndex)
+{
+    std::vector<Surface*> surfaces;
+    
+    /*
+     * Get the surfaces.
+     */
+    Brain* brain = getBrain();
+    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+        BrainStructure* brainStructure = brain->getBrainStructure(i);
+        const StructureEnum::Enum structure = brainStructure->getStructure();
+        Surface* surface = getSelectedSurface(structure,
+                                              windowTabIndex);
+        surfaces.push_back(surface);
+    }
+
+    return surfaces;
+}
+
+
+/**
  * Get the surface for the given structure in the given tab that is for
  * the currently selected surface type.
  *

@@ -44,6 +44,8 @@ class QStackedWidget;
 
 namespace caret {
 
+    class Focus;
+    class FociFile;
     class UserInputModeFoci;
     
     class UserInputModeFociWidget : public QWidget {
@@ -52,6 +54,7 @@ namespace caret {
 
     public:
         UserInputModeFociWidget(UserInputModeFoci* inputModeFoci,
+                                const int32_t windowIndex,
                                 QWidget* parent = 0);
         
         virtual ~UserInputModeFociWidget();
@@ -59,6 +62,8 @@ namespace caret {
         void updateWidget();
         
         // ADD_NEW_METHODS_HERE
+        
+        static void deleteStaticMembers();
         
     private slots:
         void createOperationActionTriggered(QAction*);
@@ -86,6 +91,8 @@ namespace caret {
 
         UserInputModeFoci* m_inputModeFoci;
         
+        const int32_t m_windowIndex;
+        
         QComboBox* m_modeComboBox;
         
         QAction* m_createFociAction;
@@ -99,10 +106,14 @@ namespace caret {
         QWidget* m_editOperationWidget;
         
         QStackedWidget* m_operationStackedWidget;
+        
+        static FociFile* s_previousFociFile;
+        static Focus* s_previousFocus;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    FociFile* UserInputModeFociWidget::s_previousFociFile = NULL;
+    Focus* UserInputModeFociWidget::s_previousFocus = NULL;
 #endif // __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
 
 } // namespace

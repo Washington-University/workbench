@@ -44,8 +44,22 @@
 #include "UserInputModeFociWidget.h"
 #undef __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
 
+#include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "DisplayPropertiesFoci.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "FociFile.h"
+#include "FociPropertiesEditorDialog.h"
+#include "Focus.h"
+#include "GuiManager.h"
+#include "ModelSurface.h"
+#include "ModelWholeBrain.h"
+#include "Surface.h"
 #include "UserInputModeFoci.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -59,10 +73,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param inputModeFoci
+ *    Process of mouse input for foci
+ * @param windowIndex
+ *    Index of browser window
+ * @param parent
+ *    Parent widget
  */
 UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoci,
+                                                 const int32_t windowIndex,
                                                  QWidget* parent)
-: QWidget(parent)
+: QWidget(parent),
+  m_windowIndex(windowIndex)
 {
     m_inputModeFoci = inputModeFoci;
     QLabel* nameLabel = new QLabel("Foci ");
@@ -222,8 +244,42 @@ UserInputModeFociWidget::createCreateOperationWidget()
 void
 UserInputModeFociWidget::createOperationActionTriggered(QAction* action)
 {
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(m_windowIndex);
+    if (browserWindow == NULL) {
+        return;
+    }
+    BrowserTabContent* btc = browserWindow->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    const int32_t browserTabIndex = btc->getTabNumber();
+    
+    DisplayPropertiesFoci* dpf = GuiManager::get()->getBrain()->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(btc->getTabNumber());
+    dpf->setDisplayed(displayGroup,
+                      browserTabIndex,
+                      true);
+    
     if (action == m_createFociAction) {
-        
+        Focus* focus = new Focus();
+        if (s_previousFocus == NULL) {
+            s_previousFocus = new Focus();
+        }
+        *focus = *s_previousFocus;
+        FociPropertiesEditorDialog focusCreateDialog("Create Focus",
+                                                     s_previousFociFile,
+                                                     focus,
+                                                     true,
+                                                     this);
+        if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
+            s_previousFociFile = focusCreateDialog.getSelectedFociFile();
+            focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
+            s_previousFociFile->addFocus(focus);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+        else {
+            delete focus;
+        }
     }
     else {
         CaretAssertMessage(0,
@@ -288,4 +344,15 @@ UserInputModeFociWidget::editOperationActionTriggered(QAction* action)
     m_inputModeFoci->setEditOperation(editOperation);
 }
 
+/**
+ * Delete all static members to eliminate reported memory leaks.
+ */
+void
+UserInputModeFociWidget::deleteStaticMembers()
+{
+    if (s_previousFocus != NULL) {
+        delete s_previousFocus;
+    }
+    s_previousFocus = NULL;
+}
 

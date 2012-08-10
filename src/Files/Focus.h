@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SurfaceProjectedItem.h"
 
@@ -62,6 +62,10 @@ namespace caret {
         AString getArea() const;
         
         void setArea(const AString& area);
+        
+        CaretColorEnum::Enum getColor() const;
+        
+        void setColor(const CaretColorEnum::Enum color);
         
         AString getComment() const;
         
@@ -168,6 +172,7 @@ namespace caret {
         static const AString XML_TAG_FOCUS;
         static const AString XML_TAG_AREA;
         static const AString XML_TAG_CLASS_NAME;
+        static const AString XML_TAG_COLOR;
         static const AString XML_TAG_COMMENT;
         static const AString XML_TAG_EXTENT;
         static const AString XML_TAG_GEOGRAPHY;
@@ -191,6 +196,8 @@ namespace caret {
         
         AString m_className;
 
+        CaretColorEnum::Enum m_color;
+        
         AString m_comment;
         
         float m_extent;
@@ -253,6 +260,7 @@ namespace caret {
     const AString Focus::XML_TAG_FOCUS = "Focus";
     const AString Focus::XML_TAG_AREA = "Area";
     const AString Focus::XML_TAG_CLASS_NAME = "ClassName";
+    const AString Focus::XML_TAG_COLOR = "Color";
     const AString Focus::XML_TAG_COMMENT = "Comment";
     const AString Focus::XML_TAG_EXTENT = "Extent";
     const AString Focus::XML_TAG_GEOGRAPHY = "Geography";

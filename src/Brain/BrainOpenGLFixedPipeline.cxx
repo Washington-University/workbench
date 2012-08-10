@@ -1811,6 +1811,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     if (focusStructure == surfaceStructure) {
                         drawIt = true;
                     }
+                    else if (focusStructure == StructureEnum::INVALID) {
+                        drawIt = true;
+                    }
                     else if (isContralateralEnabled) {
                         if (focusStructure == surfaceContralateralStructure) {
                             drawIt = true;

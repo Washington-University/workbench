@@ -62,6 +62,7 @@
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
+#include "UserInputModeFociWidget.h"
 
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -139,6 +140,8 @@ GuiManager::~GuiManager()
     if (this->connectomeDatabaseWebView != NULL) {
         delete this->connectomeDatabaseWebView;
     }
+    
+    UserInputModeFociWidget::deleteStaticMembers();
     
 //    if (this->brainOpenGL != NULL) {
 //        delete this->brainOpenGL;

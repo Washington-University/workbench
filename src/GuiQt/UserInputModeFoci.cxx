@@ -56,7 +56,8 @@ UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
 : CaretObject(),
   m_windowIndex(windowIndex)
 {
-    m_inputModeFociWidget = new UserInputModeFociWidget(this);
+    m_inputModeFociWidget = new UserInputModeFociWidget(this,
+                                                        windowIndex);
     m_mode = MODE_CREATE;
 }
 

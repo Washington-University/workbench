@@ -1470,6 +1470,22 @@ Brain::getSurfaceWithName(const AString& surfaceFileName,
 }
 
 /**
+ * @return The volume interaction surfaces from all brain structures.
+ */
+std::vector<Surface*>
+Brain::getVolumeInteractionSurfaces() const
+{
+    std::vector<Surface*> surfaces;
+    
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        surfaces.push_back(m_brainStructures[i]->getVolumeInteractionSurface());
+    }
+    
+    return surfaces;
+}
+
+/**
  * Update the volume slice controller.
  */
 void 

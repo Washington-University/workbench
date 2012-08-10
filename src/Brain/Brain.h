@@ -155,6 +155,8 @@ namespace caret {
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
         
+        std::vector<Surface*> getVolumeInteractionSurfaces() const;
+        
         int32_t getNumberOfVolumeFiles() const;
         
         VolumeFile* getVolumeFile(const int32_t volumeFileIndex);
