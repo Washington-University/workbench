@@ -73,6 +73,10 @@ namespace caret {
         
         bool isValid();
         
+        void setDegenerate(const bool degenerate);
+        
+        bool isDegenerate();
+        
         void setValid(const bool valid);
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
@@ -98,6 +102,7 @@ namespace caret {
 
         bool projectionValid;
         
+        bool m_degenerate;
     };
     
 #ifdef __SURFACE_PROJECTION_BARYCENTRIC_DECLARE__

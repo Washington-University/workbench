@@ -528,6 +528,19 @@ SurfaceProjectionVanEssen::setVertex(const int32_t vertex[2])
 }
 
 /**
+ * Set vertex
+ * @param vertex
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setVertex(const int32_t indx1,
+                                     const int32_t vertex)
+{
+    this->vertex[indx1] = vertex;
+    this->setModified();
+}
+
+/**
  * Get vertex
  * @param vertex
  *    Output values.
@@ -553,6 +566,22 @@ SurfaceProjectionVanEssen::setTriAnatomical(const float triAnatomical[2][3][3])
                 this->triAnatomical[i][j][k] = triAnatomical[i][j][k];
             }
         }
+    }
+    this->setModified();
+}
+
+/**
+ * Set triAnatomical
+ * @param triAnatomical
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setTriAnatomical(const int32_t indx1,
+                                            const int32_t indx2,
+                                            const float triAnatomical[3])
+{
+    for (int32_t k = 0; k < 3; k++) {
+        this->triAnatomical[indx1][indx2][k] = triAnatomical[k];
     }
     this->setModified();
 }
@@ -588,6 +617,21 @@ SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][3
     this->vertexAnatomical[1][0] = vertexAnatomical[1][0];
     this->vertexAnatomical[1][1] = vertexAnatomical[1][1];
     this->vertexAnatomical[1][2] = vertexAnatomical[1][2];
+    this->setModified();
+}
+
+/**
+ * Set vertexAnatomical
+ * @param vertexAnatomical
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setVertexAnatomical(const int32_t indx1,
+                                               const float vertexAnatomical[3])
+{
+    this->vertexAnatomical[indx1][0] = vertexAnatomical[0];
+    this->vertexAnatomical[indx1][1] = vertexAnatomical[1];
+    this->vertexAnatomical[indx1][2] = vertexAnatomical[2];
     this->setModified();
 }
 

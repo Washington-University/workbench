@@ -336,6 +336,53 @@ SurfaceFile::getTriangle(const int32_t indx) const
 }
 
 /**
+ * Find the triangle that has an edge formed by "n1" and "n2"
+ * but its not "oppositeTriangle".
+ * 
+ * @param n1
+ *    First node in the edge.
+ * @param n2
+ *    Second node in the edge.
+ * @param oppositeTriangle
+ *    Triangle that on opposite side of the edge.
+ * @return
+ *    Index of triangle or -1 if not found.  If not
+ *    found surface must be open/cut.
+ */
+int32_t
+SurfaceFile::getTriangleThatSharesEdge(const int32_t n1,
+                                  const int32_t n2,
+                                  const int32_t oppositeTriangle) const
+{
+    CaretPointer<TopologyHelper> topoHelp = getTopologyHelper();
+
+    /*
+     * Get the triangles used by one of the nodes
+     */
+    int32_t numTriangles = 0;
+    const int32_t* triangles = topoHelp->getNodeTiles(n1, numTriangles);
+    
+    for (int32_t i = 0; i < numTriangles; i++) {
+        const int32_t t = triangles[i];
+        if (t != oppositeTriangle) {
+            const int* nodes = this->getTriangle(t);
+            if ((n1 == nodes[0])
+                || (n1 == nodes[1])
+                || (n1 == nodes[2])) {
+                if ((n2 == nodes[0])
+                    || (n2 == nodes[1])
+                    || (n2 == nodes[2])) {
+                    return t;
+                }
+            }
+        }
+    }
+    
+    return -1;
+}
+
+
+/**
  * Initialize members of this class.
  */
 void 
@@ -692,6 +739,20 @@ SurfaceFile::getBoundingBox() const
     return this->boundingBox;
 }
 
+/**
+ * @return The radius of the spherical surface.
+ *    Surface is assumed spherical.
+ */
+float
+SurfaceFile::getSphericalRadius() const
+{
+    const BoundingBox* bb = getBoundingBox();
+    const float radius = bb->getMaxX() - bb->getCenterX();
+    return radius;
+}
+
+
+
 void SurfaceFile::computeNodeAreas(std::vector<float>& areasOut) const
 {
     CaretAssert(this->trianglePointer);
@@ -787,25 +848,28 @@ SurfaceFile::getInformation() const
             + AString::fromNumbers(this->getBoundingBox()->getBounds(), 6, ", ")
             + ")\n");
     
-    if (numberOfNodes > 0) {        
-        std::vector<float> nodeSpacing;
-        nodeSpacing.reserve(numberOfNodes * 10);
-        CaretPointer<TopologyHelper> th = this->getTopologyHelper();
-        int numberOfNeighbors;
-        for (int32_t i = 0; i < numberOfNodes; i++) {
-            const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
-            for (int32_t j = 0; j < numberOfNeighbors; j++) {
-                const int n = neighbors[j];
-                if (n > i) {
-                    const float dist = MathFunctions::distance3D(this->getCoordinate(i),
-                                                                 this->getCoordinate(n));
-                    nodeSpacing.push_back(dist);
-                }
-            }
-        }
-        
+    if (numberOfNodes > 0) {
+//        std::vector<float> nodeSpacing;
+//        nodeSpacing.reserve(numberOfNodes * 10);
+//        CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+//        int numberOfNeighbors;
+//        for (int32_t i = 0; i < numberOfNodes; i++) {
+//            const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+//            for (int32_t j = 0; j < numberOfNeighbors; j++) {
+//                const int n = neighbors[j];
+//                if (n > i) {
+//                    const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+//                                                                 this->getCoordinate(n));
+//                    nodeSpacing.push_back(dist);
+//                }
+//            }
+//        }
+//        
+//        DescriptiveStatistics stats;
+//        stats.update(nodeSpacing);
+
         DescriptiveStatistics stats;
-        stats.update(nodeSpacing);
+        getNodesSpacingStatistics(stats);
         const float mean = stats.getMean();
         const float stdDev = stats.getStandardDeviationSample();
         const float minValue = stats.getMinimumValue();
@@ -830,9 +894,39 @@ SurfaceFile::getInformation() const
 }
 
 /**
+ * Get statistics on node spacing.
+ * @param statsOut
+ *    Upon exit, contains node spacing descriptive statistics.
+ */
+void
+SurfaceFile::getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const
+{
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    std::vector<float> nodeSpacing;
+    nodeSpacing.reserve(numberOfNodes * 10);
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    int numberOfNeighbors;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+        for (int32_t j = 0; j < numberOfNeighbors; j++) {
+            const int n = neighbors[j];
+            if (n > i) {
+                const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+                                                             this->getCoordinate(n));
+                nodeSpacing.push_back(dist);
+            }
+        }
+    }
+    
+    statsOut.update(nodeSpacing);
+
+}
+
+
+/**
  * Invalidate surface coloring.
  */
-void 
+void
 SurfaceFile::invalidateNodeColoringForBrowserTabs()
 {
     /*

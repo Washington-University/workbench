@@ -343,6 +343,28 @@ SurfaceProjectionBarycentric::setValid(const bool valid)
 }
 
 /**
+ * Set the projection is degenerate (on
+ * an edge or just outside the edge).
+ * @param degenerate
+ *     New status.
+ */
+void
+SurfaceProjectionBarycentric::setDegenerate(const bool degenerate)
+{
+    m_degenerate = degenerate;
+}
+
+/**
+ * @return Is the projection degenerate (on
+ * an edge or just outside the edge).
+ */
+bool
+SurfaceProjectionBarycentric::isDegenerate()
+{
+    return m_degenerate;
+}
+
+/**
  * Since reset overrides the 'super' class it should
  * never be called from a constructor.  So, this 
  * method does the actual reset, and since it does
@@ -353,6 +375,7 @@ void
 SurfaceProjectionBarycentric::resetAllValues()
 {
     this->projectionValid  = false;
+    m_degenerate = false;
     
     this->triangleAreas[0] = -1.0;
     this->triangleAreas[1] = -1.0;
@@ -375,6 +398,9 @@ SurfaceProjectionBarycentric::resetAllValues()
 void 
 SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
 {
+    /*
+     * Note: Degenerate status is not saved!
+     */
     if (this->projectionValid) {
         xmlWriter.writeStartElement(XML_TAG_PROJECTION_BARYCENTRIC);
         xmlWriter.writeElementCharacters(XML_TAG_TRIANGLE_AREAS, this->triangleAreas, 3);

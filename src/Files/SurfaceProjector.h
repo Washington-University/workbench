@@ -36,8 +36,9 @@
 namespace caret {
     
     class SurfaceFile;
-    class SurfaceNodeLocator;
     class SurfaceProjectedItem;
+    class SurfaceProjectionBarycentric;
+    class SurfaceProjectionVanEssen;
     class TopologyHelper;
     
     /**
@@ -64,8 +65,7 @@ namespace caret {
             PROJECTION_POSITION_SOURCE_STEREOTAXIC_XYZ
         };
         
-        SurfaceProjector(
-                         const SurfaceFile* surface,
+        SurfaceProjector(const SurfaceFile* surface,
                          const SurfaceHintType surfaceTypeHint,
                          const ProjectionsAllowedType projectionsAllowed,
                          const bool surfaceMayGetModifiedFlag);
@@ -76,17 +76,12 @@ namespace caret {
         SurfaceProjector(const SurfaceProjector& o);
         
         SurfaceProjector& operator=(const SurfaceProjector& o);
-        
-        void copyHelper(const SurfaceProjector& o);
-        
-        void initializeMembersSurfaceProjector();
-        
+
         void setSurfaceOffset(const float surfaceOffset);
         
-        void projectToSurface(
-                              SurfaceProjectedItem* spi,
+        void projectToSurface(SurfaceProjectedItem* spi,
                               const ProjectionPositionSourceType positionSource)
-        throw (SurfaceProjectorException);
+                                                    throw (SurfaceProjectorException);
         
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
         //            throw (SurfaceProjectorException);
@@ -94,19 +89,23 @@ namespace caret {
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceForRegistration(const float xyz[3])
         //            throw (SurfaceProjectorException);
         //
-        //    SurfaceProjectorBarycentricInformation* projectToSurface(const float xyz[3])
-        //            throw (SurfaceProjectorException);
-        //
-        //    SurfaceProjectorBarycentricInformation projectToSurfaceAux(const float xyzIn[3])
-        //            throw (SurfaceProjectorException);
-        //
+        void projectToSurface(const float xyz[3],
+                              SurfaceProjectionBarycentric* baryProj)
+                    throw (SurfaceProjectorException);
+
+        int32_t projectToSurfaceAux(const float xyzIn[3],
+                                  SurfaceProjectionBarycentric* baryProj)
+                    throw (SurfaceProjectorException);
+        
         void findEnclosingTriangle(
                                    const int32_t nearestNode,
-                                   const float xyz[3]);
+                                   const float xyz[3],
+                                   SurfaceProjectionBarycentric* baryProj);
         
         void checkItemInTriangle(
                                  const int32_t triangleNumber,
-                                 const float xyz[3]);
+                                 const float xyz[3],
+                                 SurfaceProjectionBarycentric* baryProj);
         
         int32_t triangleAreas(
                               const float p1[3],
@@ -114,44 +113,38 @@ namespace caret {
                               const float p3[3],
                               const float normal[3],
                               const float xyz[3],
-                              const float areasOut[3]);
+                              float areasOut[3]);
         
-        void projectWithVanEssenAlgorithm(
-                                          const SurfaceProjectedItem* spi,
-                                          const int32_t nearestTriangleIn,
-                                          const float xyzIn[3])
-        throw (SurfaceProjectorException);
+        void projectWithVanEssenAlgorithm(const int32_t nearestTriangleIn,
+                                          const float xyzIn[3],
+                                          SurfaceProjectionVanEssen* spve)
+            throw (SurfaceProjectorException);
         
         int32_t findNearestTriangle(const float xyz[3]);
         
-        SurfaceNodeLocator* createSurfaceNodeLocator();
+        const SurfaceFile* m_surface;
         
-    private:
-        const SurfaceFile* surface;
+        SurfaceHintType m_surfaceTypeHint;
         
-        int32_t numberOfNodes;
+        const ProjectionsAllowedType m_projectionsAllowed;
         
-        SurfaceHintType* surfaceTypeHint;
+        const bool m_surfaceMayGetModifiedFlag;
         
-        ProjectionsAllowedType* projectionsAllowed;
+        int32_t m_numberOfNodes;
         
-        SurfaceNodeLocator* surfaceNodeLocator;
+        TopologyHelper* m_topologyHelper;
         
-        TopologyHelper* topologyHelper;
+        std::set<int32_t> m_searchedTriangleIndices;
         
-        std::set<int32_t> searchedTriangleIndices;
+        static float s_triangleAreaTolerance;
         
-        static float triangleAreaTolerance;
+        float m_nearestNodeToleranceSquared;
         
-        float nearestNodeToleranceSquared;
+        float m_sphericalSurfaceRadius;
         
-        float sphericalSurfaceRadius;
+        float m_surfaceOffset;
         
-        float surfaceOffset;
-        
-        bool surfaceOffsetValid;
-        
-        bool surfaceMayGetModifiedFlag;
+        bool m_surfaceOffsetValid;
         
     };
     

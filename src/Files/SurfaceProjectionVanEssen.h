@@ -77,17 +77,30 @@ namespace caret {
         
         void setTriVertices(const int32_t triVertices[2][3]);
         
+        void setTriVertices(const int32_t indx1,
+                            const int32_t vertices[3]);
+        
         void getTriVertices(int32_t triVertices[2][3]) const;
         
         void setVertex(const int32_t vertex[2]);
+        
+        void setVertex(const int32_t indx1,
+                       const int32_t vertex);
         
         void getVertex(int32_t vertex[2]) const;
         
         void setTriAnatomical(const float triAnatomical[2][3][3]);
         
+        void setTriAnatomical(const int32_t indx1,
+                              const int32_t indx2,
+                              const float anatomical[3]);
+        
         void getTriAnatomical(float triAnatomical[2][3][3]) const;
         
         void setVertexAnatomical(const float vertexAnatomical[2][3]);
+        
+        void setVertexAnatomical(const int32_t indx1,
+                                 const float anatomical[3]);
         
         void getVertexAnatomical(float vertexAnatomical[2][3]) const;
         

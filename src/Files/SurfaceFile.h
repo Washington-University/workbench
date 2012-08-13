@@ -44,6 +44,7 @@
 namespace caret {
 
     class BoundingBox;
+    class DescriptiveStatistics;
     class GiftiDataArray;
     
     /**
@@ -83,6 +84,10 @@ namespace caret {
         
         const int32_t* getTriangle(const int32_t) const;
         
+        int32_t getTriangleThatSharesEdge(const int32_t n1,
+                                          const int32_t n2,
+                                          const int32_t oppositeTriangle) const;
+        
         void computeNormals(bool averageNormals = false);
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
@@ -95,6 +100,8 @@ namespace caret {
         
         void setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType);
         
+        float getSphericalRadius() const;
+        
         CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false) const;
         
         void getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted = false) const;
@@ -104,6 +111,8 @@ namespace caret {
         void getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const;
         
         const BoundingBox* getBoundingBox() const;
+        
+        void getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const;
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
