@@ -25,7 +25,9 @@
 #include <cmath>
 #include <limits>
 
+#define __SURFACE_PROJECTOR_DEFINE__
 #include "SurfaceProjector.h"
+#undef __SURFACE_PROJECTOR_DEFINE__
 
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"

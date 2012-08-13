@@ -1,5 +1,5 @@
-#ifndef __SURFACEPROJECTOR_H__
-#define __SURFACEPROJECTOR_H__
+#ifndef __SURFACE_PROJECTOR_H__
+#define __SURFACE_PROJECTOR_H__
 
 /*LICENSE_START*/
 /*
@@ -148,6 +148,9 @@ namespace caret {
         
     };
     
+#ifdef __SURFACE_PROJECTOR_DEFINE__
+    float SurfaceProjector::s_triangleAreaTolerance = -0.01;
+#endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 
-#endif // __SURFACEPROJECTOR_H__
+#endif // __SURFACE_PROJECTOR_H__
