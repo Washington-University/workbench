@@ -31,6 +31,8 @@
 
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
+#include "FociFile.h"
+#include "Focus.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
@@ -52,16 +54,11 @@ using namespace caret;
  *    Surface to which projection takes place.  For proper
  *    projection (particularly flat and spherical) surfaces, it is important
  *    that the surface's type is correctly set.
- * @param projectionsAllowed 
- *   Allows barycentric (triangle) or both barycentric and van-essen (edge)
- *   projections.
- *
  */
-SurfaceProjector::SurfaceProjector(const SurfaceFile* surfaceFile,
-                                   const ProjectionsAllowedType projectionsAllowed)
-    : CaretObject(),
-      m_projectionsAllowed(projectionsAllowed)
+SurfaceProjector::SurfaceProjector(const SurfaceFile* surfaceFile)
+    : CaretObject()
 {
+    CaretAssert(surfaceFile);
     m_surfaceFiles.push_back(surfaceFile);
     m_surfaceOffset = 0.0;    
 }
@@ -73,15 +70,9 @@ SurfaceProjector::SurfaceProjector(const SurfaceFile* surfaceFile,
  *    Vector of Surfaces to which projection takes place.  For proper
  *    projection (particularly flat and spherical) surfaces, it is important
  *    that the surface's type is correctly set.
- * @param projectionsAllowed
- *   Allows barycentric (triangle) or both barycentric and van-essen (edge)
- *   projections.
- *
  */
-SurfaceProjector::SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles,
-                                   const ProjectionsAllowedType projectionsAllowed)
-: CaretObject(),
-m_projectionsAllowed(projectionsAllowed)
+SurfaceProjector::SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles)
+: CaretObject()
 {
     const int32_t numberOfSurfaces = static_cast<int32_t>(surfaceFiles.size());
     for (int32_t i = 0; i < numberOfSurfaces; i++) {
@@ -110,14 +101,111 @@ SurfaceProjector::setSurfaceOffset(const float surfaceOffset)
 }
 
 /**
- * Project to the surface
+ * Project all foci in a foci file.
+ * @param fociFile
+ *     The foci file.
+ * @throws SurfaceProjectorException
+ *      If projecting an item failed.
+ */
+void
+SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException)
+{
+    CaretAssert(fociFile);
+    const int32_t numberOfFoci = fociFile->getNumberOfFoci();
+    
+    AString errorMessage = "";
+    for (int32_t i = 0; i < numberOfFoci; i++) {
+        Focus* focus = fociFile->getFocus(i);
+        try {
+            projectFocus(focus);
+        }
+        catch (const SurfaceProjectorException& spe) {
+            if (errorMessage.isEmpty() == false) {
+                errorMessage += "\n";
+            }
+            errorMessage += (focus->getName()
+                             + ", index="
+                             + AString::number(i)
+                             + ": "
+                             + spe.whatString());
+        }
+    }
+    
+    if (errorMessage.isEmpty() == false) {
+        throw SurfaceProjectorException(errorMessage);
+    }
+}
+
+/**
+ * Project a focus.
+ * @param focus
+ *    The focus.
+ * @throws SurfaceProjectorException
+ *      If projecting an item failed.
+ */
+void
+SurfaceProjector::projectFocus(Focus* focus) throw (SurfaceProjectorException)
+{
+    const int32_t numberOfProjections = focus->getNumberOfProjections();
+    CaretAssert(numberOfProjections > 0);
+    if (numberOfProjections < 0) {
+        throw SurfaceProjectorException("Focus has no projections, no stereotaxic coordinate.");
+    }
+    focus->removeExtraProjections();
+    SurfaceProjectedItem* spi = focus->getProjection(0);
+    projectItemToTriangleOrEdge(spi);
+}
+
+/**
+ * Project to the surface(s) triangles (barycentric projection)
+ *
  * @param spi
  *    Item that is to be projected.  Its contents will be
- *    updated to reflect the projection.  This items XYZ coordinate
+ *    updated to reflect the projection.  This item's stereotaxic coordinate
  *    is used for the projection point.
  *
- * @throws SurfaceProjectorException  If projecting an item
- *   failed.
+ * @throws SurfaceProjectorException
+ *      If projecting an item failed.
+ */
+void
+SurfaceProjector::projectItemToTriangle(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+{
+    CaretAssert(spi);
+    m_allowEdgeProjection = false;
+    projectItem(spi);
+}
+
+/**
+ * Project to the surface(s) triangles (barycentric projection)
+ * or edges (van-essen projection).
+ *
+ * @param spi
+ *    Item that is to be projected.  Its contents will be
+ *    updated to reflect the projection.  This item's stereotaxic coordinate
+ *    is used for the projection point.
+ *
+ * @throws SurfaceProjectorException
+ *      If projecting an item failed.
+ */
+void
+SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+{
+    CaretAssert(spi);
+    m_allowEdgeProjection = true;
+    projectItem(spi);
+}
+
+
+/**
+ * Project to the surface(s)
+ *
+ * @param spi
+ *    Item that is to be projected.  Its contents will be
+ *    updated to reflect the projection.  This item's stereotaxic coordinate
+ *    is used for the projection point.
+ *
+ * @throws SurfaceProjectorException  
+ *      If projecting an item failed.
  */
 void
 SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
@@ -246,21 +334,17 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
      * Should a van-essen projection be attempted?
      */
     bool tryVanEssenProjection = false;
-    switch (m_projectionsAllowed) {
-        case PROJECTION_ALLOW_BARYCENTRIC:
-            break;
-        case PROJECTION_ALLOW_BARYCENTRIC_AND_VAN_ESSEN:
-            tryVanEssenProjection = true;
-            if (baryProj->isValid()) {
-                if (baryProj->isDegenerate() == false) {
-                    /*
-                     * Since barycentric fully successful,
-                     * no need to try van essen projection.
-                     */
-                    tryVanEssenProjection = false;
-                }
+    if (m_allowEdgeProjection) {
+        tryVanEssenProjection = true;
+        if (baryProj->isValid()) {
+            if (baryProj->isDegenerate() == false) {
+                /*
+                 * Since barycentric fully successful,
+                 * no need to try van essen projection.
+                 */
+                tryVanEssenProjection = false;
             }
-            break;
+        }
     }
     
     if (tryVanEssenProjection) {

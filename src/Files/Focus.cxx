@@ -728,6 +728,19 @@ Focus::removeAllProjections()
 }
 
 /**
+ * Remove all but the first projection.
+ */
+void
+Focus::removeExtraProjections()
+{
+    const int32_t numProj = getNumberOfProjections();
+    for (int32_t i = (numProj - 1); i > 0; i--) {
+        delete m_projections[i];
+    }
+    m_projections.resize(1);
+}
+
+/**
  * @return The study meta data link set.
  */
 StudyMetaDataLinkSet*

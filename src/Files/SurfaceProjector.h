@@ -35,6 +35,8 @@
 
 namespace caret {
     
+    class FociFile;
+    class Focus;
     class SurfaceFile;
     class SurfaceProjectedItem;
     class SurfaceProjectionBarycentric;
@@ -48,21 +50,19 @@ namespace caret {
         
     public:
         
-        enum ProjectionsAllowedType {
-            PROJECTION_ALLOW_BARYCENTRIC,
-            PROJECTION_ALLOW_BARYCENTRIC_AND_VAN_ESSEN
-        };
+        SurfaceProjector(const SurfaceFile* surfaceFile);
         
-        SurfaceProjector(const SurfaceFile* surfaceFile,
-                         const ProjectionsAllowedType projectionsAllowed);
-        
-        SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles,
-                         const ProjectionsAllowedType projectionsAllowed);
+        SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles);
         
         virtual ~SurfaceProjector();
         
-        void projectItem(SurfaceProjectedItem* spi)
-                              throw (SurfaceProjectorException);
+        void projectItemToTriangle(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        
+        void projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        
+        void projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException);
+        
+        void projectFocus(Focus* focus) throw (SurfaceProjectorException);
         
         void setSurfaceOffset(const float surfaceOffset);
         
@@ -77,6 +77,8 @@ namespace caret {
         
         SurfaceProjector& operator=(const SurfaceProjector& o);
 
+        void projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
         //            throw (SurfaceProjectorException);
         //
@@ -128,9 +130,7 @@ namespace caret {
         std::vector<const SurfaceFile*> m_surfaceFiles;
         
         SurfaceHintType m_surfaceTypeHint;
-        
-        const ProjectionsAllowedType m_projectionsAllowed;
-        
+
         std::vector<bool> m_searchedTriangleFlags;
         
         static const float s_triangleAreaTolerance;
@@ -140,6 +140,8 @@ namespace caret {
         float m_sphericalSurfaceRadius;
         
         float m_surfaceOffset;
+        
+        bool m_allowEdgeProjection;
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__

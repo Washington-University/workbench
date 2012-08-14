@@ -149,6 +149,8 @@ namespace caret {
         
         void removeAllProjections();
         
+        void removeExtraProjections();
+        
         StudyMetaDataLinkSet* getStudyMetaDataLinkSet();
         
         const StudyMetaDataLinkSet* getStudyMetaDataLinkSet() const;
