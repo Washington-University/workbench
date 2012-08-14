@@ -111,10 +111,18 @@ void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDi
     if(!this->isEnabled) return;
     if(!(this->filename.length())) 
     {   
-        this->filename = tlV[0].filename;
-        AString temp = filename;
-        if(temp.length() > 80) temp = "..." + temp.right(80);
-        this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
+        if(this->tlV.count())
+        {
+            this->filename = tlV[0].filename;
+            AString temp = filename;
+            if(temp.length() > 80) temp = "..." + temp.right(80);
+            this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
+        }
+        else 
+        {
+            this->filename = " ";
+            this->setWindowTitle("Time Course");
+        }
     }
     plot->detachItems();
     plot->populate(tlV,forceDisableAutoScale);    

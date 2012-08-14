@@ -43,14 +43,16 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 
+class QAction;
 class QGridLayout;
+class QToolButton;
+class TimeCourseDialog;
 
 namespace caret {
 
     class ConnectivityLoaderFile;
     class ConnectivityTimeSeriesViewController;
     class ConnectivityDenseViewController;
-    
     class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
@@ -66,6 +68,7 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private slots:
+        void graphActionTriggered();
         
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
@@ -89,6 +92,12 @@ namespace caret {
         std::vector<ConnectivityDenseViewController*> denseViewControllers;
 
         std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
+
+        QToolButton *graphToolButton;
+
+        QAction* graphAction;
+
+        TimeCourseDialog *tcDialog;
         
         static std::set<ConnectivityManagerViewController*> allManagerViewControllers;
         

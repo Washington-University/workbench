@@ -49,6 +49,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "TimeCourseDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -74,13 +75,36 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->connectivityFileType = connectivityFileType;
     
     this->viewControllerGridLayout = NULL;
+
+    this->tcDialog = NULL;
+
+    this->graphToolButton = NULL;
+
+    this->graphAction = NULL;
     
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             this->viewControllerGridLayout = ConnectivityDenseViewController::createGridLayout(orientation);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+        {
+            QIcon graphIcon;
+            const bool graphIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
+                graphIcon);
+            
+            this->graphAction = WuQtUtilities::createAction("Graph...",
+                "Launch Time Course Dialog...",
+                this,
+                this,
+                SLOT(graphActionTriggered()));           
+            
+            if (graphIconValid) {
+                this->graphAction->setIcon(graphIcon);
+            }            
+            this->graphToolButton = new QToolButton();
+            this->graphToolButton->setDefaultAction(this->graphAction);
             this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);
+        }
             break;
         default:
             CaretAssertMessage(0, ("Unrecognized connectivity file type "
@@ -90,6 +114,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     }
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    if(this->graphToolButton) layout->addWidget(this->graphToolButton,100);
     layout->addLayout(this->viewControllerGridLayout);
     layout->addStretch();    
 
@@ -103,6 +128,20 @@ ConnectivityManagerViewController::~ConnectivityManagerViewController()
 {    
     EventManager::get()->removeAllEventsFromListener(this);
 }
+
+void
+ConnectivityManagerViewController::graphActionTriggered()
+{
+    if(!this->tcDialog)
+    {
+        this->tcDialog = new TimeCourseDialog(this);
+    }
+    tcDialog->setTimeSeriesGraphEnabled(true);
+    //tcDialog->show();
+    tcDialog->updateDialog(true);
+   
+}
+
 
 void 
 ConnectivityManagerViewController::updateManagerViewController()
