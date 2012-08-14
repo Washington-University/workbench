@@ -553,6 +553,31 @@ SurfaceFile::computeNormals(const bool averageNormals)
 }
 
 /**
+ * Get the normal vector for a triangle.
+ * @param triangleIndex
+ *    Index of the triangle.
+ * @param normalOut
+ *    Output containing the normal for the triangle.
+ */
+void
+SurfaceFile::getTriangleNormalVector(const int32_t triangleIndex,
+                                     float normalOut[3]) const
+{
+    const int32_t it3 = triangleIndex * 3;
+    const int n1 = this->trianglePointer[it3];
+    const int n2 = this->trianglePointer[it3 + 1];
+    const int n3 = this->trianglePointer[it3 + 2];
+    const int32_t c1 = n1 * 3;
+    const int32_t c2 = n2 * 3;
+    const int32_t c3 = n3 * 3;
+    MathFunctions::normalVector(&this->coordinatePointer[c1],
+                                &this->coordinatePointer[c2],
+                                &this->coordinatePointer[c3],
+                                normalOut);
+}
+
+
+/**
  * Get the coloring for a node.
  *
  * @param nodeIndex

@@ -96,6 +96,9 @@ namespace caret {
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
         
+        void getTriangleNormalVector(const int32_t triangleIndex,
+                                     float normalOut[3]) const;
+        
         SurfaceTypeEnum::Enum getSurfaceType() const;
         
         void setSurfaceType(const SurfaceTypeEnum::Enum surfaceType);
