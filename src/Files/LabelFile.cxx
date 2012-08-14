@@ -337,7 +337,7 @@ LabelFile::getLabelKeyPointerForColumn(const int32_t columnIndex) const
 
 void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
 {
-    giftiFile->clear(true);
+    giftiFile->clearAndKeepMetadata();
     columnDataPointers.clear();
 
     const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();

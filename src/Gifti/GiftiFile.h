@@ -86,7 +86,9 @@ class GiftiFile : public DataFile {
                                              AString& messageOut) const;
                                      
       // Clear the gifti array data file.
-      virtual void clear(bool keepMetadata = false);
+      virtual void clear();
+      
+      virtual void clearAndKeepMetadata();
       
       // returns true if the file is isEmpty() (contains no data)
       virtual bool isEmpty() const;
