@@ -189,6 +189,11 @@ namespace caret {
             return m_edgeInfo;
         }
 
+        /// Get the tile information
+        const std::vector<TopologyTileInfo>& getTileInfo() const {
+            return m_tileInfo;
+        }
+
         /// Get the number of edges
         int32_t getNumberOfEdges() const {
             return m_edgeInfo.size();
