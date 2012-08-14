@@ -48,61 +48,62 @@ namespace caret {
         
     public:
         
-        enum SurfaceHintType {
-            SURFACE_HINT_FLAT,
-            SURFACE_HINT_SPHERE,
-            SURFACE_HINT_THREE_DIMENSIONAL,
-            SURFACE_HINT_UNKNOWN
-        };
-        
         enum ProjectionsAllowedType {
             PROJECTION_ALLOW_BARYCENTRIC,
             PROJECTION_ALLOW_BARYCENTRIC_AND_VAN_ESSEN
         };
         
-        enum ProjectionPositionSourceType {
-            PROJECTION_POSITION_SOURCE_PROJECTED_XYZ,
-            PROJECTION_POSITION_SOURCE_STEREOTAXIC_XYZ
-        };
+        SurfaceProjector(const SurfaceFile* surfaceFile,
+                         const ProjectionsAllowedType projectionsAllowed);
         
-        SurfaceProjector(const SurfaceFile* surface,
-                         const SurfaceHintType surfaceTypeHint,
-                         const ProjectionsAllowedType projectionsAllowed,
-                         const bool surfaceMayGetModifiedFlag);
+        SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles,
+                         const ProjectionsAllowedType projectionsAllowed);
         
         virtual ~SurfaceProjector();
         
+        void projectItem(SurfaceProjectedItem* spi)
+                              throw (SurfaceProjectorException);
+        
+        void setSurfaceOffset(const float surfaceOffset);
+        
     private:
+        enum SurfaceHintType {
+            SURFACE_HINT_FLAT,
+            SURFACE_HINT_SPHERE,
+            SURFACE_HINT_THREE_DIMENSIONAL
+        };
+        
         SurfaceProjector(const SurfaceProjector& o);
         
         SurfaceProjector& operator=(const SurfaceProjector& o);
 
-        void setSurfaceOffset(const float surfaceOffset);
-        
-        void projectToSurface(SurfaceProjectedItem* spi,
-                              const ProjectionPositionSourceType positionSource)
-                                                    throw (SurfaceProjectorException);
-        
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
         //            throw (SurfaceProjectorException);
         //
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceForRegistration(const float xyz[3])
         //            throw (SurfaceProjectorException);
         //
-        void projectToSurface(const float xyz[3],
+        void projectToSurface(const SurfaceFile* surfaceFile,
+                              const float xyz[3],
+                              SurfaceProjectedItem* spi)
+                                  throw (SurfaceProjectorException);
+        
+        void projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
+                              const float xyz[3],
                               SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
 
-        int32_t projectToSurfaceAux(const float xyzIn[3],
+        int32_t projectToSurfaceAux(const SurfaceFile* surfaceFile,
+                                    const float xyzIn[3],
                                   SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
         
-        void findEnclosingTriangle(
+        void findEnclosingTriangle(const SurfaceFile* surfaceFile,
                                    const int32_t nearestNode,
                                    const float xyz[3],
                                    SurfaceProjectionBarycentric* baryProj);
         
-        void checkItemInTriangle(
+        void checkItemInTriangle(const SurfaceFile* surfaceFile,
                                  const int32_t triangleNumber,
                                  const float xyz[3],
                                  SurfaceProjectionBarycentric* baryProj);
@@ -115,41 +116,34 @@ namespace caret {
                               const float xyz[3],
                               float areasOut[3]);
         
-        void projectWithVanEssenAlgorithm(const int32_t nearestTriangleIn,
+        void projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
+                                          const int32_t nearestTriangleIn,
                                           const float xyzIn[3],
                                           SurfaceProjectionVanEssen* spve)
             throw (SurfaceProjectorException);
         
-        int32_t findNearestTriangle(const float xyz[3]);
+        int32_t findNearestTriangle(const SurfaceFile* surfaceFile,
+                                    const float xyz[3]);
         
-        const SurfaceFile* m_surface;
+        std::vector<const SurfaceFile*> m_surfaceFiles;
         
         SurfaceHintType m_surfaceTypeHint;
         
         const ProjectionsAllowedType m_projectionsAllowed;
         
-        const bool m_surfaceMayGetModifiedFlag;
+        std::vector<bool> m_searchedTriangleFlags;
         
-        int32_t m_numberOfNodes;
-        
-        TopologyHelper* m_topologyHelper;
-        
-        std::set<int32_t> m_searchedTriangleIndices;
-        
-        static float s_triangleAreaTolerance;
+        static const float s_triangleAreaTolerance;
         
         float m_nearestNodeToleranceSquared;
         
         float m_sphericalSurfaceRadius;
         
         float m_surfaceOffset;
-        
-        bool m_surfaceOffsetValid;
-        
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__
-    float SurfaceProjector::s_triangleAreaTolerance = -0.01;
+    const float SurfaceProjector::s_triangleAreaTolerance = -0.01;
 #endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 
