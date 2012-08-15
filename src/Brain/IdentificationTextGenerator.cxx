@@ -379,6 +379,10 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
                        focus->getName());
 
         idText.addLine(true,
+                       "Index",
+                       AString::number(idSurfaceFocus->getFocusIndex()));
+        
+        idText.addLine(true,
                        "Structure",
                        StructureEnum::toGuiName(spi->getStructure()));
 
