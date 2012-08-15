@@ -734,7 +734,7 @@ void
 Focus::removeExtraProjections()
 {
     const int32_t numProj = getNumberOfProjections();
-    for (int32_t i = (numProj - 1); i > 0; i--) {
+    for (int32_t i = 1; i < numProj; i++) {
         delete m_projections[i];
     }
     m_projections.resize(1);

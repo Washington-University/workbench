@@ -153,6 +153,8 @@ namespace caret {
                 
         void processShowSceneDialog();
         
+        void processProjectFoci();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -276,6 +278,8 @@ namespace caret {
         QAction* m_overlayToolBoxAction;
         
         QAction* m_featuresToolBoxAction;
+        
+        QAction* m_projectFociAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

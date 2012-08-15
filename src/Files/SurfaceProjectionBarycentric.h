@@ -71,7 +71,7 @@ namespace caret {
         
         void reset();
         
-        bool isValid();
+        bool isValid() const;
         
         void setDegenerate(const bool degenerate);
         

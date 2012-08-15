@@ -47,6 +47,8 @@
 #include "MetricFile.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
+#include "SurfaceProjectionVanEssen.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -371,8 +373,10 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
     if (idSurfaceFocus->isValid()) {
         const Focus* focus = idSurfaceFocus->getFocus();
         const SurfaceProjectedItem* spi = focus->getProjection(idSurfaceFocus->getFocusProjectionIndex());
-        float xyz[3];
-        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyz, false);
+        float xyzProj[3];
+        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
+        float xyzStereo[3];
+        spi->getStereotaxicXYZ(xyzStereo);
         
         idText.addLine(false, 
                        "FOCUS", 
@@ -386,11 +390,41 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
                        "Structure",
                        StructureEnum::toGuiName(spi->getStructure()));
 
-        idText.addLine(true,
-                       "XYZ",
-                       xyz,
-                       3,
-                       true);
+        if (spi->isStereotaxicXYZValid()) {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           xyzStereo,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           "Invalid");
+        }
+        
+        bool projValid = false;
+        AString xyzProjName = "XYZ (Projected)";
+        if (spi->getBarycentricProjection()->isValid()) {
+            xyzProjName = "XYZ (Projected to Triangle)";
+            projValid = true;
+        }
+        else if (spi->getVanEssenProjection()->isValid()) {
+            xyzProjName = "XYZ (Projected to Edge)";
+            projValid = true;
+        }
+        if (projValid) {
+            idText.addLine(true,
+                           xyzProjName,
+                           xyzProj,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           xyzProjName,
+                           "Invalid");
+        }
         
         idText.addLine(true,
                        "Area",

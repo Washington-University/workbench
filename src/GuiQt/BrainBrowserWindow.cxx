@@ -64,6 +64,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
+#include "FociFile.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
@@ -80,6 +81,7 @@
 #include "SpecFileDialog.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
+#include "SurfaceProjector.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
@@ -347,6 +349,90 @@ BrainBrowserWindow::processShowSceneDialog()
     GuiManager::get()->processShowSceneDialog(this);
 }
 
+void
+BrainBrowserWindow::processProjectFoci()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+
+    const int32_t numberOfFociFiles = brain->getNumberOfFociFiles();
+    if (numberOfFociFiles <= 0) {
+        return;
+    }
+
+    WuQDataEntryDialog ded("Project Foci",
+                           this,
+                           false);
+    
+    std::vector<QCheckBox*> fociFileCheckBoxes;
+    for (int32_t i = 0; i < numberOfFociFiles; i++) {
+        FociFile* ff = brain->getFociFile(i);
+        fociFileCheckBoxes.push_back(ded.addCheckBox(ff->getFileNameNoPath(),
+                                                      true));
+    }
+    ded.setTextAtTop("Select foci file for projection:",
+                     false);
+
+    BrainStructure* leftBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT,
+                                                                  false);
+    BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT,
+                                                                  false);
+    BrainStructure* cerebellumBrainStructure = brain->getBrainStructure(StructureEnum::CEREBELLUM,
+                                                                  false);
+    
+    SurfaceSelectionViewController* leftSurfaceControl = NULL;
+    if (leftBrainStructure != NULL) {
+        leftSurfaceControl = ded.addSurfaceSelectionViewController("Left: ",
+                                                                   leftBrainStructure);
+        
+        leftSurfaceControl->updateControl();
+    }
+    
+    SurfaceSelectionViewController* rightSurfaceControl = NULL;
+    if (rightBrainStructure != NULL) {
+        rightSurfaceControl = ded.addSurfaceSelectionViewController("Right: ",
+                                                                   rightBrainStructure);
+        rightSurfaceControl->updateControl();
+    }
+    
+    SurfaceSelectionViewController* cerebellumSurfaceControl = NULL;
+    if (cerebellumBrainStructure != NULL) {
+        cerebellumSurfaceControl = ded.addSurfaceSelectionViewController("Cerebellum: ",
+                                                                   cerebellumBrainStructure);
+        cerebellumSurfaceControl->updateControl();
+    }
+    
+    std::vector<const SurfaceFile*> surfaces;
+    if (leftSurfaceControl != NULL) {
+        surfaces.push_back(leftSurfaceControl->getSurface());
+    }
+    if (rightSurfaceControl != NULL) {
+        surfaces.push_back(rightSurfaceControl->getSurface());
+    }
+    if (cerebellumSurfaceControl != NULL) {
+        surfaces.push_back(cerebellumSurfaceControl->getSurface());
+    }
+    
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        SurfaceProjector projector(surfaces);
+        
+        AString errorMessages = "";
+        for (int32_t i = 0; i < numberOfFociFiles; i++) {
+            if (fociFileCheckBoxes[i]->isChecked()) {
+                FociFile* ff = brain->getFociFile(i);
+                try {
+                    projector.projectFociFile(ff);
+                }
+                catch (const SurfaceProjectorException& spe) {
+                    WuQMessageBox::errorOk(this, spe.whatString());
+                }
+            }
+        }
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+
 /**
  * Create actions for this window.
  * NOTE: This is called AFTER the toolbar is created.
@@ -583,6 +669,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processConnectToConnectomeDataBase()));
+    
+    m_projectFociAction =
+    WuQtUtilities::createAction("Project Foci...",
+                                "Project the foci to the volume interaction surfaces",
+                                this,
+                                this,
+                                SLOT(processProjectFoci()));
 }
 
 /**
@@ -913,11 +1006,11 @@ BrainBrowserWindow::createMenuConnect()
 QMenu* 
 BrainBrowserWindow::createMenuData()
 {
-/*
     QMenu* menu = new QMenu("Data", this);
+    
+    menu->addAction(m_projectFociAction);
+    
     return menu;
-*/
-    return NULL;
 }
 
 /**

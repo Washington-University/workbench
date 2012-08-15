@@ -109,6 +109,7 @@ SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const Surfa
     this->setTriangleNodes(obj.getTriangleNodes());
     this->signedDistanceAboveSurface = obj.signedDistanceAboveSurface;
     this->projectionValid = obj.projectionValid;
+    this->m_degenerate = obj.m_degenerate;
 }
 
 /**
@@ -327,7 +328,7 @@ SurfaceProjectionBarycentric::reset()
  * @return Is the projection valid?
  */
 bool 
-SurfaceProjectionBarycentric::isValid()
+SurfaceProjectionBarycentric::isValid() const
 {
     return this->projectionValid;
 }

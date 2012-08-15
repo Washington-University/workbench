@@ -110,7 +110,7 @@ namespace caret {
         
         void reset();
         
-        bool isValid();
+        bool isValid() const;
         
         void setValid(const bool valid);
         

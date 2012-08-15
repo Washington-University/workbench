@@ -501,6 +501,24 @@ SurfaceProjectionVanEssen::setTriVertices(const int32_t triVertices[2][3])
 }
 
 /**
+ * Set triVertices
+ * @param indx1
+ *    Index of vertices being set.
+ * @param triVertices
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setTriVertices(const int32_t indx1,
+                                          const int32_t vertices[3])
+{
+    CaretAssertArrayIndex(this->triVertices, 2, indx1);
+    for (int32_t j = 0; j < 3; j++) {
+        this->triVertices[indx1][j] = vertices[j];
+    }
+    setModified();
+}
+
+/**
  * Get triVertices
  * @param triVertices
  *    Output values.
@@ -537,6 +555,7 @@ void
 SurfaceProjectionVanEssen::setVertex(const int32_t indx1,
                                      const int32_t vertex)
 {
+    CaretAssertArrayIndex(this->vertex, 2, indx1);
     this->vertex[indx1] = vertex;
     this->setModified();
 }
@@ -581,6 +600,8 @@ SurfaceProjectionVanEssen::setTriAnatomical(const int32_t indx1,
                                             const int32_t indx2,
                                             const float triAnatomical[3])
 {
+    CaretAssertArrayIndex(this->triAnatomical, 2, indx1);
+    CaretAssertArrayIndex(this->triAnatomical, 3, indx2);
     for (int32_t k = 0; k < 3; k++) {
         this->triAnatomical[indx1][indx2][k] = triAnatomical[k];
     }
@@ -630,6 +651,7 @@ void
 SurfaceProjectionVanEssen::setVertexAnatomical(const int32_t indx1,
                                                const float vertexAnatomical[3])
 {
+    CaretAssertArrayIndex(this->vertexAnatomical, 2, indx1);
     this->vertexAnatomical[indx1][0] = vertexAnatomical[0];
     this->vertexAnatomical[indx1][1] = vertexAnatomical[1];
     this->vertexAnatomical[indx1][2] = vertexAnatomical[2];
@@ -736,7 +758,7 @@ SurfaceProjectionVanEssen::resetAllValues()
  * @return Is the projection valid?
  */
 bool 
-SurfaceProjectionVanEssen::isValid()
+SurfaceProjectionVanEssen::isValid() const
 {
     return this->projectionValid;
 }
@@ -750,6 +772,7 @@ void
 SurfaceProjectionVanEssen::setValid(const bool valid)
 {
     this->projectionValid = valid;
+    setModified();
 }
 
 /**

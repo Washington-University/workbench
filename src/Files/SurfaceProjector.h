@@ -77,6 +77,8 @@ namespace caret {
         
         SurfaceProjector& operator=(const SurfaceProjector& o);
 
+        void initializeMembersSurfaceProjector();
+        
         void projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
         
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
@@ -127,25 +129,30 @@ namespace caret {
         int32_t findNearestTriangle(const SurfaceFile* surfaceFile,
                                     const float xyz[3]);
         
+        void computeSurfaceNearestNodeTolerances();
+        
         std::vector<const SurfaceFile*> m_surfaceFiles;
         
         SurfaceHintType m_surfaceTypeHint;
 
         std::vector<bool> m_searchedTriangleFlags;
         
-        static const float s_triangleAreaTolerance;
+        static float s_triangleAreaTolerance;
+        
+        std::vector<float> m_surfaceNearestNodeToleranceSquared;
         
         float m_nearestNodeToleranceSquared;
         
         float m_sphericalSurfaceRadius;
         
         float m_surfaceOffset;
+        bool m_surfaceOffsetValid;
         
         bool m_allowEdgeProjection;
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__
-    const float SurfaceProjector::s_triangleAreaTolerance = -0.01;
+    float SurfaceProjector::s_triangleAreaTolerance = -0.01;
 #endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 

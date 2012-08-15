@@ -57,7 +57,7 @@ namespace caret {
         /**
          * @return Is the projection valid?
          */
-        virtual bool isValid() = 0;
+        virtual bool isValid() const = 0;
         
         /**
          * Set the validity of the projection.
