@@ -64,11 +64,20 @@ namespace caret {
         friend class SignedDistanceHelper;
     };
     
-    struct NodeWeight
+    struct BarycentricInfo
     {
-        int32_t m_node;
-        float m_weight;
-        NodeWeight(int32_t node, float weight) : m_node(node), m_weight(weight) { }
+        enum POINT_TYPE
+        {
+            NODE,
+            EDGE,
+            TRIANGLE
+        };
+        int32_t triangle;
+        Vector3D point;
+        POINT_TYPE type;
+        float absDistance;
+        int32_t nodes[3];
+        float baryWeights[3];
     };
     
     class SignedDistanceHelper
@@ -99,8 +108,13 @@ namespace caret {
         bool pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis);
     public:
         SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase> myBase);
+        
+        ///return the signed distance value at the point
         float dist(const float coord[3], WindingLogic myWinding);
-        void barycentricWeights(const float coord[3], std::vector<NodeWeight>& weightsOut);
+        
+        ///find the closest point ON the surface, and return information about it
+        ///will never have negative barycentric weights, or a point outside the triangle
+        void barycentricWeights(const float coordIn[3], BarycentricInfo& baryInfoOut);
     };
 
 }

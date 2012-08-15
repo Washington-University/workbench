@@ -85,7 +85,7 @@ float SignedDistanceHelper::dist(const float coord[3], WindingLogic myWinding)
     return bestTriDist * computeSign(coord, bestInfo, myWinding);
 }
 
-void SignedDistanceHelper::barycentricWeights(const float coord[3], vector<NodeWeight>& weightsOut)
+void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricInfo& baryInfoOut)
 {
     CaretMutexLocker locked(&m_mutex);
     CaretSimpleMinHeap<Oct<SignedDistanceHelperBase::TriVector>*, float> myHeap;
@@ -137,36 +137,36 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], vector<NodeW
     {
         m_triMarked[m_triMarkChanged[--numChanged]] = 0;//clean up
     }
-    weightsOut.clear();
+    baryInfoOut.triangle = bestInfo.triangle;
+    baryInfoOut.point = bestInfo.tempPoint;
+    baryInfoOut.absDistance = bestTriDist;
+    const int32_t* triNodes = m_base->m_surface->getTriangle(bestInfo.triangle);
+    baryInfoOut.nodes[0] = triNodes[0];
+    baryInfoOut.nodes[1] = triNodes[1];
+    baryInfoOut.nodes[2] = triNodes[2];
     switch (bestInfo.type)
     {
         case 2:
             {
-                const int32_t* triNodes = m_base->m_surface->getTriangle(bestInfo.triangle);
+                baryInfoOut.type = BarycentricInfo::TRIANGLE;
                 Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
                 Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
                 Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
-                Vector3D v21hat = vert2 - vert1;
-                float origLength;
-                v21hat = v21hat.normal(&origLength);
-                float tempf = v21hat.dot(bestInfo.tempPoint - vert1);
-                float weight2 = tempf / origLength;
-                float weight1 = 1.0f - weight2;
-                Vector3D edgepoint = v21hat * tempf + vert1;
-                Vector3D v3ehat = vert3 - edgepoint;
-                v3ehat = v3ehat.normal(&origLength);
-                tempf = v3ehat.dot(bestInfo.tempPoint - edgepoint);
-                float weight3 = tempf / origLength;
-                tempf = 1.0f - weight3;
-                weight1 *= tempf;
-                weight2 *= tempf;
-                weightsOut.push_back(NodeWeight(triNodes[0], weight1));
-                weightsOut.push_back(NodeWeight(triNodes[1], weight2));
-                weightsOut.push_back(NodeWeight(triNodes[2], weight3));
+                Vector3D vp1 = vert1 - bestInfo.tempPoint;
+                Vector3D vp2 = vert2 - bestInfo.tempPoint;
+                Vector3D vp3 = vert3 - bestInfo.tempPoint;
+                float weight1 = vp2.cross(vp3).length();
+                float weight2 = vp1.cross(vp3).length();
+                float weight3 = vp1.cross(vp2).length();
+                float weightsum = weight1 + weight2 + weight3;
+                baryInfoOut.baryWeights[0] = weight1 / weightsum;
+                baryInfoOut.baryWeights[1] = weight2 / weightsum;
+                baryInfoOut.baryWeights[2] = weight3 / weightsum;
             }
             break;
         case 1:
             {
+                baryInfoOut.type = BarycentricInfo::EDGE;
                 Vector3D vert1 = m_base->m_surface->getCoordinate(bestInfo.node1);
                 Vector3D vert2 = m_base->m_surface->getCoordinate(bestInfo.node2);
                 Vector3D v21hat = vert2 - vert1;
@@ -175,12 +175,30 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], vector<NodeW
                 float tempf = v21hat.dot(bestInfo.tempPoint - vert1);
                 float weight2 = tempf / origLength;
                 float weight1 = 1.0f - weight2;
-                weightsOut.push_back(NodeWeight(bestInfo.node1, weight1));
-                weightsOut.push_back(NodeWeight(bestInfo.node2, weight2));
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (triNodes[i] == bestInfo.node1)
+                    {
+                        baryInfoOut.baryWeights[i] = weight1;
+                    } else if (triNodes[i] == bestInfo.node2) {
+                        baryInfoOut.baryWeights[i] = weight2;
+                    } else {
+                        baryInfoOut.baryWeights[i] = 0.0f;
+                    }
+                }
             }
             break;
         case 0:
-            weightsOut.push_back(NodeWeight(bestInfo.node1, 1.0f));
+            baryInfoOut.type = BarycentricInfo::NODE;
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (triNodes[i] == bestInfo.node1)
+                    {
+                        baryInfoOut.baryWeights[i] = 1.0f;
+                    } else {
+                        baryInfoOut.baryWeights[i] = 0.0f;
+                    }
+                }
             break;
     };
 }
