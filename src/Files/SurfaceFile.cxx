@@ -702,18 +702,57 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted) con
     return ret;
 }
 
-void caret::SurfaceFile::invalidateHelpers()
+void SurfaceFile::getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const
+{
+    {
+        CaretMutexLocker myLock(&m_distHelperMutex);//lock before searching with the shared index
+        int32_t& myIndex = m_distHelperIndex;
+        int32_t myEnd = m_distHelpers.size();
+        for (int32_t i = 0; i < myEnd; ++i)
+        {
+            if (myIndex >= myEnd) myIndex = 0;
+            if (m_distHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
+            {
+                helpOut = m_distHelpers[myIndex];
+                ++myIndex;
+                return;
+            }
+            ++myIndex;
+        }
+        if (m_distBase == NULL)
+        {
+            m_distBase.grabNew(new SignedDistanceHelperBase(this));
+        }
+    }
+    CaretPointer<SignedDistanceHelper> ret(new SignedDistanceHelper(m_distBase));
+    CaretMutexLocker myLock(&m_distHelperMutex);//lock before modifying the array
+    m_distHelpers.push_back(ret);
+    helpOut = ret;
+}
+
+CaretPointer<SignedDistanceHelper> SurfaceFile::getSignedDistanceHelper() const
+{//see convenience function for geo helper for explanation
+    CaretPointer<SignedDistanceHelper> ret;
+    getSignedDistanceHelper(ret);
+    return ret;
+}
+
+void SurfaceFile::invalidateHelpers()
 {
     CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
     CaretMutexLocker myLock2(&m_topoHelperMutex);
     CaretMutexLocker myLock3(&m_locatorMutex);
+    CaretMutexLocker myLock4(&m_distHelperMutex);
     m_topoHelperIndex = 0;
-    m_topoHelpers.clear();
     m_geoHelperIndex = 0;
-    m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+    m_distHelperIndex = 0;
+    m_topoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+    m_geoHelpers.clear();
+    m_distHelpers.clear();//TODO: make signed distance not keep a pointer to the surface file
     m_geoBase.grabNew(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
     m_locator.grabNew(NULL);
     m_topoBase.grabNew(NULL);
+    m_distBase.grabNew(NULL);
 }
 
 /**

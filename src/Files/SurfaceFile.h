@@ -37,6 +37,7 @@
 #include "EventListenerInterface.h"
 #include "GeodesicHelper.h"
 #include "GiftiTypeFile.h"
+#include "SignedDistanceHelper.h"
 #include "SurfaceTypeEnum.h"
 #include "TimeLine.h"
 #include "TopologyHelper.h"
@@ -109,6 +110,10 @@ namespace caret {
         CaretPointer<GeodesicHelper> getGeodesicHelper() const;
         
         void getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const;
+        
+        CaretPointer<SignedDistanceHelper> getSignedDistanceHelper() const;
+        
+        void getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const;
         
         const BoundingBox* getBoundingBox() const;
         
@@ -226,6 +231,15 @@ namespace caret {
         ///used to search through geodesic helpers without starting from 0 every time, wraps around
         mutable int32_t m_geoHelperIndex;
         
+        ///the geodesic base for this surface
+        mutable CaretPointer<SignedDistanceHelperBase> m_distBase;
+        
+        ///tracks allocated geodesic helpers for this class
+        mutable std::vector<CaretPointer<SignedDistanceHelper> > m_distHelpers;
+        
+        ///used to search through geodesic helpers without starting from 0 every time, wraps around
+        mutable int32_t m_distHelperIndex;
+        
         ///used to search for the closest point in the surface
         mutable CaretPointer<CaretPointLocator> m_locator;
         
@@ -234,7 +248,7 @@ namespace caret {
         
         mutable BoundingBox* boundingBox;
         
-        mutable CaretMutex m_topoHelperMutex, m_geoHelperMutex, m_locatorMutex;
+        mutable CaretMutex m_topoHelperMutex, m_geoHelperMutex, m_locatorMutex, m_distHelperMutex;
     };
 
 } // namespace
