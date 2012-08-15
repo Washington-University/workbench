@@ -33,7 +33,6 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
-#include <iostream>
 
 using namespace caret;
 using namespace std;
@@ -175,7 +174,6 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         volMarked[i] = 0;
     }
     myProgress.setTask("marking voxel to be calculated exactly");
-    cout << "marking voxels to be calculated exactly" << endl;
 #pragma omp CARET_PARFOR
     for (int node = 0; node < numNodes; ++node)
     {
@@ -241,30 +239,25 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             }
         }
         myProgress.reportProgress(markweight);
-        myProgress.setTask("generating indexing structure");
-        cout << "generating indexing structure" << endl;
-        CaretPointer<SignedDistanceHelperBase> myDistBase(new SignedDistanceHelperBase(mySurf));
         myProgress.setTask("computing exact distances");
-        cout << "computing exact distances" << endl;
 #pragma omp CARET_PAR
         {
-            SignedDistanceHelper myDist(myDistBase);
+            CaretPointer<SignedDistanceHelper> myDist = mySurf->getSignedDistanceHelper();
             int numExact = (int)exactVoxelList.size();
             Vector3D thisCoord;
 #pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < numExact; i += 3)
             {
                 myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord.m_vec);
-                myVolOut->setValue(myDist.dist(thisCoord.m_vec, myWinding), exactVoxelList.data() + i);
+                myVolOut->setValue(myDist->dist(thisCoord.m_vec, myWinding), exactVoxelList.data() + i);
                 volMarked[myVolOut->getIndex(exactVoxelList.data() + i)] |= 22;//set marked to have valid value (positive and negative), and frozen
             }
         }
     }
     myProgress.reportProgress(markweight + exactweight);
-    myProgress.setTask("approximating distances in extended region");
     if (approxLim > exactLim)
     {
-        cout << "approximating distances in extended region" << endl;
+        myProgress.setTask("approximating distances in extended region");
         int faceNeigh[] = { 1, 0, 0, 
                             -1, 0, 0,
                             0, 1, 0,

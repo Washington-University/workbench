@@ -93,16 +93,15 @@ void AlgorithmSignedDistanceToSurface::useParameters(OperationParameters* myPara
 AlgorithmSignedDistanceToSurface::AlgorithmSignedDistanceToSurface(ProgressObject* myProgObj, const SurfaceFile* testSurf, const SurfaceFile* levelSetSurf, MetricFile* myMetricOut, SignedDistanceHelper::WindingLogic myWinding) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CaretPointer<SignedDistanceHelperBase> myBase(new SignedDistanceHelperBase(levelSetSurf));
     int numNodes = testSurf->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
 #pragma omp CARET_PAR
     {
-        SignedDistanceHelper myHelp(myBase);
+        CaretPointer<SignedDistanceHelper> myHelp = levelSetSurf->getSignedDistanceHelper();
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
-            myMetricOut->setValue(i, 0, myHelp.dist(testSurf->getCoordinate(i), myWinding));
+            myMetricOut->setValue(i, 0, myHelp->dist(testSurf->getCoordinate(i), myWinding));
         }
     }
 }
