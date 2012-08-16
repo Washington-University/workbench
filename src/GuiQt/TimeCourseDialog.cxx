@@ -24,16 +24,19 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include "QApplication"
+#include "QDesktopWidget"
 #include "QImageWriter"
 #include "QFileDialog"
 #include "QMessageBox"
 #include "QPainter"
 #include "qwt_plot_renderer.h"
+
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "SessionManager.h"
 #include "TimeCourseDialog.h"
 #include "ui_TimeCourseDialog.h"
-
 #include "TimeCoursePlotter.h"
 
 using namespace caret;
@@ -123,6 +126,7 @@ void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDi
             this->filename = " ";
             this->setWindowTitle("Time Course");
         }
+        
     }
     plot->detachItems();
     plot->populate(tlV,forceDisableAutoScale);    
@@ -134,6 +138,9 @@ void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDi
     plot->replot();
     plot->setFocus();
     this->setAttribute(Qt::WA_NoMousePropagation,true);    
+    plot->legend()->setVisible(false);
+    plot->legend()->setDisabled(true);
+    plot->legend()->clear();
 }
 
 void TimeCourseDialog::populateHistory()
@@ -330,13 +337,14 @@ void TimeCourseDialog::on_exportImageButton_clicked()
         delete image;*/
 
         const QRect imageRect = this->plot->rect();
-        const int dotsPerMeter = 1000;
+        const int dotsPerMeter = 3863;//85 DPI converted to meters
         QImage image( imageRect.size(), QImage::Format_ARGB32 );
-        image.setDotsPerMeterX( dotsPerMeter );
-        image.setDotsPerMeterY( dotsPerMeter );
+        image.setDotsPerMeterX( float(QApplication::desktop()->physicalDpiX())/0.0254);//dotsPerMeter );
+        image.setDotsPerMeterY( float(QApplication::desktop()->physicalDpiY())/0.0254);//dotsPerMeter );
         image.fill( QColor( Qt::white ).rgb() );
 
         QPainter painter( &image );
+        
         QwtPlotRenderer * renderer = new QwtPlotRenderer();
         renderer->render( plot, &painter, imageRect );
         painter.end();
@@ -344,8 +352,6 @@ void TimeCourseDialog::on_exportImageButton_clicked()
         image.save( fileName );
     }
 }
-
-#include "CaretLogger.h"
 
 void TimeCourseDialog::on_openTimeLineButton_clicked()
 {
