@@ -158,19 +158,24 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
                                 spi->getStereotaxicXYZ(stereoXYZ);
                                 const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
                                 if (dist > 1.0) {
-                                    bool degenString = "";
+                                    AString projTypeString = "Unprojected";
                                     if (spi->getBarycentricProjection()->isValid()) {
+                                        projTypeString = "Triangle";
                                         if (spi->getBarycentricProjection()->isDegenerate()) {
-                                            degenString = " DEGENERATE";
+                                            projTypeString = "-degenerate";
                                         }
                                     }
+                                    else if (spi->getVanEssenProjection()->isValid()) {
+                                        projTypeString = "Edge";
+                                    }
                                     validateString += (focus->getName()
-                                                     + " Index="
-                                                     + AString::number(i)
-                                                     + ": stereo/proj positions differ by "
-                                                     + AString::number(dist, 'f', 3)
-                                                     + degenString
-                                                     + "\n");
+                                                       + " Index="
+                                                       + AString::number(i)
+                                                       + " projType="
+                                                       + projTypeString
+                                                       + ": stereo/proj positions differ by "
+                                                       + AString::number(dist, 'f', 3)
+                                                       + "\n");
                                 }
                             }
                         }
@@ -418,8 +423,10 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
      * Should a van-essen projection be attempted?
      */
     bool tryVanEssenProjection = false;
+    bool tryDegenerateBarycentricProjection = false;
     if (m_allowEdgeProjection) {
         tryVanEssenProjection = true;
+        tryDegenerateBarycentricProjection = true;
         if (baryProj->isValid()) {
             if (baryProj->isDegenerate() == false) {
                 /*
@@ -427,11 +434,13 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                  * no need to try van essen projection.
                  */
                 tryVanEssenProjection = false;
+                tryDegenerateBarycentricProjection = false;
             }
         }
     }
     
-    if (tryVanEssenProjection) {
+    tryDegenerateBarycentricProjection = false;
+    if (tryDegenerateBarycentricProjection) {
         const int32_t nearestTriangle = findNearestTriangle(surfaceFile,
                                                             xyz);
         if (nearestTriangle >= 0) {
@@ -449,6 +458,8 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
     }
     
     if (tryVanEssenProjection) {
+        baryProj->setValid(false);
+        
         const int32_t nearestTriangle = findNearestTriangle(surfaceFile,
                                                             xyz);
         if (nearestTriangle < 0) {
@@ -460,9 +471,7 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                                      xyz,
                                      vanEssenProj);
         if (vanEssenProj->isValid() == false) {
-            if (baryProj->isValid() == false) {
-                throw SurfaceProjectorException("Van Essen projection failed.");
-            }
+            throw SurfaceProjectorException("Van Essen projection failed.");
         }
     }
     else if (baryProj->isValid() == false) {
@@ -999,7 +1008,7 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     }
     
     //
-    // Get triangle nodes and their coordinates
+    // Get triangle's nodes and their coordinates
     //
     const int32_t* tn = surfaceFile->getTriangle(nearestTriangle);
     int32_t n1 = tn[0];
@@ -1026,9 +1035,10 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
         }
     }
     
-    //
-    // Find edge of triangle closest to coordinate projected to triangle
-    //
+    /*
+     * With the nearest triangle, determine which edge is closest
+     * to the coordinate
+     */
     float dist1 = MathFunctions::distanceToLine3D(p1, p2, xyz);
     float dist2 = MathFunctions::distanceToLine3D(p2, p3, xyz);
     float dist3 = MathFunctions::distanceToLine3D(p3, p1, xyz);
@@ -1048,6 +1058,9 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
         closestVertices[1] = n1;
     }
     
+    /*
+     * Nodes and triangles using the edge
+     */
     int32_t iR = closestVertices[0];
     int32_t jR = closestVertices[1];
     int32_t triA = nearestTriangle;
@@ -1056,14 +1069,20 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     const float* coordJR = surfaceFile->getCoordinate(jR);
     const float* coordIR = surfaceFile->getCoordinate(iR);
     
+    /*
+     * Normal vector for triangle nearest the coordinate
+     */
     float normalA[3];
     surfaceFile->getTriangleNormalVector(triA, normalA);
     
-    //
-    // Second triangle might not be found if topology is open or cut.
-    //
+    /*
+     * Second triangle might not be found if topology is open or cut.
+     */
     float normalB[3] = { 0.0f, 0.0f, 0.0f };
     if (triB >= 0) {
+        /*
+         * Normal vector for triangle sharing edge with nearest triangle
+         */
         surfaceFile->getTriangleNormalVector(triB, normalB);
     }
     else {
@@ -1127,10 +1146,18 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
         }
     }
     
+    /*
+     * Vector from "IR" to "JR"
+     */
     float v[3];
     MathFunctions::subtractVectors(coordJR, coordIR, v);
+
+    /*
+     * Vector from "IR" to "xyz"
+     */
     float t1[3];
     MathFunctions::subtractVectors(xyz, coordIR, t1);
+    
     float t2 = MathFunctions::dotProduct(v, v);
     float t3 = MathFunctions::dotProduct(t1, v);
     float QR[3] = { 0.0f, 0.0f, 0.0f };
@@ -1139,21 +1166,36 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     }
     
     if ((triA >= 0) && (triB >= 0)) {
+        /*
+         * t2 is arccos of angle between the normal vectors of the two triangles
+         */
         t2 = MathFunctions::dotProduct(normalA, normalB);
         t2 = std::min(t2, 1.0f);
+        
+        /*
+         * Angle formed by the normal vectors of the two triangles
+         */
         spve->setPhiR((float)std::acos(t2));
     }
     else {
         spve->setPhiR(0.0f);
     }
     
+    /*
+     * Vector from "QR" to "xyz"
+     */
     MathFunctions::subtractVectors(xyz, QR, t1);
-    t2 = MathFunctions::vectorLength(t1);
-    if (t2 > 0.0f) {
-        for (int32_t j = 0; j < 3; j++) {
-            t1[j] = t1[j] / t2;
-        }
-    }
+    MathFunctions::normalizeVector(t1);
+//    t2 = MathFunctions::vectorLength(t1);
+//    if (t2 > 0.0f) {
+//        for (int32_t j = 0; j < 3; j++) {
+//            t1[j] = t1[j] / t2;
+//        }
+//    }
+    
+    /*
+     * t3 is arccos of nearest triangle and "t1"
+     */
     t3 = MathFunctions::dotProduct(normalA, t1);
     if (t3 > 0.0f) {
         spve->setThetaR((float)std::acos(t3 * (t3/std::fabs(t3))));
