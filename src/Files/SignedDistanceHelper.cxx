@@ -679,7 +679,7 @@ SignedDistanceHelperBase::SignedDistanceHelperBase(const SurfaceFile* mySurf)
     minCoord[0] = myBB[0]; maxCoord[0] = myBB[1];
     minCoord[1] = myBB[2]; maxCoord[1] = myBB[3];
     minCoord[2] = myBB[4]; maxCoord[2] = myBB[5];
-    m_indexRoot = new Oct<TriVector>(minCoord, maxCoord);
+    m_indexRoot.grabNew(new Oct<TriVector>(minCoord, maxCoord));
     const float* myCoordData = mySurf->getCoordinateData();
     m_numNodes = mySurf->getNumberOfNodes();
     int32_t numNodes3 = m_numNodes * 3;

@@ -133,8 +133,8 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, exactLim, approxLim, approxNeighborhood, myWinding);//executes the algorithm
 }
 
-AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim,
-                                                                         float approxLim, int approxNeighborhood, SignedDistanceHelper::WindingLogic myWinding) : AbstractAlgorithm(myProgObj)
+AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& exactLim,
+                                                                         const float& approxLim, const int& approxNeighborhood, const SignedDistanceHelper::WindingLogic& myWinding) : AbstractAlgorithm(myProgObj)
 {
     if (exactLim <= 0.0f)
     {

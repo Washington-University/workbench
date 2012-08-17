@@ -54,7 +54,7 @@ namespace caret {
         };
         static const int NUM_TRIS_TO_TEST = 50;//test for whether to split leaf at this number
         static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
-        Oct<TriVector>* m_indexRoot;
+        CaretPointer<Oct<TriVector> > m_indexRoot;
         int32_t m_numTris, m_numNodes;
         std::vector<float> m_coordList;//make a copy of what we need from SurfaceFile so that if the SurfaceFile gets destroyed, we don't crash
         std::vector<int32_t> m_triangleList;
