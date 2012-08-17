@@ -23,8 +23,10 @@
  */
 
 #include "BoundingBox.h"
+#include "CaretHeap.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include <cmath>
 
 using namespace std;
@@ -140,7 +142,7 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
     baryInfoOut.triangle = bestInfo.triangle;
     baryInfoOut.point = bestInfo.tempPoint;
     baryInfoOut.absDistance = bestTriDist;
-    const int32_t* triNodes = m_base->m_surface->getTriangle(bestInfo.triangle);
+    const int32_t* triNodes = m_base->getTriangle(bestInfo.triangle);
     baryInfoOut.nodes[0] = triNodes[0];
     baryInfoOut.nodes[1] = triNodes[1];
     baryInfoOut.nodes[2] = triNodes[2];
@@ -149,9 +151,9 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
         case 2:
             {
                 baryInfoOut.type = BarycentricInfo::TRIANGLE;
-                Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
-                Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
-                Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
+                Vector3D vert1 = m_base->getCoordinate(triNodes[0]);
+                Vector3D vert2 = m_base->getCoordinate(triNodes[1]);
+                Vector3D vert3 = m_base->getCoordinate(triNodes[2]);
                 Vector3D vp1 = vert1 - bestInfo.tempPoint;
                 Vector3D vp2 = vert2 - bestInfo.tempPoint;
                 Vector3D vp3 = vert3 - bestInfo.tempPoint;
@@ -167,8 +169,8 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
         case 1:
             {
                 baryInfoOut.type = BarycentricInfo::EDGE;
-                Vector3D vert1 = m_base->m_surface->getCoordinate(bestInfo.node1);
-                Vector3D vert2 = m_base->m_surface->getCoordinate(bestInfo.node2);
+                Vector3D vert1 = m_base->getCoordinate(bestInfo.node1);
+                Vector3D vert2 = m_base->getCoordinate(bestInfo.node2);
                 Vector3D v21hat = vert2 - vert1;
                 float origLength;
                 v21hat = v21hat.normal(&origLength);
@@ -234,11 +236,11 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                             {
                                 m_triMarked[myVecRef[i]] = 1;
                                 m_triMarkChanged[numChanged++] = myVecRef[i];
-                                const int32_t* myTileNodes = m_base->m_surface->getTriangle(myVecRef[i]);
+                                const int32_t* myTileNodes = m_base->getTriangle(myVecRef[i]);
                                 Vector3D verts[3];
-                                verts[0] = m_base->m_surface->getCoordinate(myTileNodes[0]);
-                                verts[1] = m_base->m_surface->getCoordinate(myTileNodes[1]);
-                                verts[2] = m_base->m_surface->getCoordinate(myTileNodes[2]);
+                                verts[0] = m_base->getCoordinate(myTileNodes[0]);
+                                verts[1] = m_base->getCoordinate(myTileNodes[1]);
+                                verts[2] = m_base->getCoordinate(myTileNodes[2]);
                                 Vector3D triNormal;
                                 MathFunctions::normalVector(verts[0], verts[1], verts[2], triNormal);
                                 float factor = triNormal[2];//equivalent to dot product with positiveZ
@@ -308,10 +310,10 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                         Vector3D tempvec, tempvec2, bestCent;
                         for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
                         {//should be least likely to have an intervening triangle
-                            const int32_t* myTileNodes = m_base->m_surface->getTriangle(myTiles[i]);
-                            Vector3D vert1 = m_base->m_surface->getCoordinate(myTileNodes[0]);
-                            Vector3D vert2 = m_base->m_surface->getCoordinate(myTileNodes[1]);
-                            Vector3D vert3 = m_base->m_surface->getCoordinate(myTileNodes[2]);
+                            const int32_t* myTileNodes = m_base->getTriangle(myTiles[i]);
+                            Vector3D vert1 = m_base->getCoordinate(myTileNodes[0]);
+                            Vector3D vert2 = m_base->getCoordinate(myTileNodes[1]);
+                            Vector3D vert3 = m_base->getCoordinate(myTileNodes[2]);
                             Vector3D centroid = (vert1 + vert2 + vert3) / 3.0f;
                             if (MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec))//make sure the triangle has a valid normal
                             {
@@ -360,11 +362,11 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                                     {
                                         m_triMarked[myVecRef[i]] = 1;
                                         m_triMarkChanged[numChanged++] = myVecRef[i];
-                                        const int32_t* myTileNodes = m_base->m_surface->getTriangle(myVecRef[i]);
+                                        const int32_t* myTileNodes = m_base->getTriangle(myVecRef[i]);
                                         Vector3D verts[3];
-                                        verts[0] = m_base->m_surface->getCoordinate(myTileNodes[0]);
-                                        verts[1] = m_base->m_surface->getCoordinate(myTileNodes[1]);
-                                        verts[2] = m_base->m_surface->getCoordinate(myTileNodes[2]);
+                                        verts[0] = m_base->getCoordinate(myTileNodes[0]);
+                                        verts[1] = m_base->getCoordinate(myTileNodes[1]);
+                                        verts[2] = m_base->getCoordinate(myTileNodes[2]);
                                         Vector3D triNormal;
                                         MathFunctions::normalVector(verts[0], verts[1], verts[2], triNormal);
                                         float factor = triNormal.dot(segNormal);
@@ -429,18 +431,18 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                         Vector3D normalaccum, tempvec;//default constructor initializes it to the zero vector
                         if (tile1 > -1)
                         {
-                            const int32_t* tile1nodes = m_base->m_surface->getTriangle(tile1);
-                            MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile1nodes[0]),
-                                                        m_base->m_surface->getCoordinate(tile1nodes[1]),
-                                                        m_base->m_surface->getCoordinate(tile1nodes[2]), tempvec.m_vec);
+                            const int32_t* tile1nodes = m_base->getTriangle(tile1);
+                            MathFunctions::normalVector(m_base->getCoordinate(tile1nodes[0]),
+                                                        m_base->getCoordinate(tile1nodes[1]),
+                                                        m_base->getCoordinate(tile1nodes[2]), tempvec.m_vec);
                             normalaccum += tempvec;
                         }
                         if (tile2 > -1)
                         {
-                            const int32_t *tile2nodes = m_base->m_surface->getTriangle(tile2);
-                            MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile2nodes[0]),
-                                                        m_base->m_surface->getCoordinate(tile2nodes[1]),
-                                                        m_base->m_surface->getCoordinate(tile2nodes[2]), tempvec.m_vec);
+                            const int32_t *tile2nodes = m_base->getTriangle(tile2);
+                            MathFunctions::normalVector(m_base->getCoordinate(tile2nodes[0]),
+                                                        m_base->getCoordinate(tile2nodes[1]),
+                                                        m_base->getCoordinate(tile2nodes[2]), tempvec.m_vec);
                             normalaccum += tempvec;
                         }
                         if (normalaccum.dot(result) < 0.0f)
@@ -452,10 +454,10 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                 case 2://face
                     {
                         Vector3D triNormal;
-                        const int32_t* triNodes = m_base->m_surface->getTriangle(myInfo.triangle);
-                        Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
-                        Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
-                        Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
+                        const int32_t* triNodes = m_base->getTriangle(myInfo.triangle);
+                        Vector3D vert1 = m_base->getCoordinate(triNodes[0]);
+                        Vector3D vert2 = m_base->getCoordinate(triNodes[1]);
+                        Vector3D vert3 = m_base->getCoordinate(triNodes[2]);
                         MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, triNormal.m_vec);
                         if (triNormal.dot(result) < 0.0f)
                         {
@@ -521,15 +523,15 @@ bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int m
 ///there are faster implementations out there, but this is easier to follow
 float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t triangle, ClosestPointInfo& myInfo)
 {
-    const int32_t* triNodes = m_base->m_surface->getTriangle(triangle);
+    const int32_t* triNodes = m_base->getTriangle(triangle);
     Vector3D point = coord;
     Vector3D verts[3];
     int type = 0;//tracks whether it is closest to a node, an edge, or the face
     int32_t node1 = -1, node2 = -1;//tracks which nodes are involved
     Vector3D bestPoint;
-    verts[0] = m_base->m_surface->getCoordinate(triNodes[0]);
-    verts[1] = m_base->m_surface->getCoordinate(triNodes[1]);
-    verts[2] = m_base->m_surface->getCoordinate(triNodes[2]);
+    verts[0] = m_base->getCoordinate(triNodes[0]);
+    verts[1] = m_base->getCoordinate(triNodes[1]);
+    verts[2] = m_base->getCoordinate(triNodes[2]);
     Vector3D v10 = verts[1] - verts[0];
     Vector3D xhat = v10.normal();
     Vector3D v20 = verts[2] - verts[0];
@@ -660,7 +662,7 @@ SignedDistanceHelper::SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase
 {
     m_base = myBase;
     m_topoHelp = myBase->m_topoHelp;//because we don't need neighborsToDepth, just share the same one
-    int32_t numTris = m_base->m_surface->getNumberOfTriangles();
+    int32_t numTris = m_base->m_numTris;
     m_triMarked = CaretArray<int>(numTris);
     m_triMarkChanged = CaretArray<int>(numTris);
     for (int32_t i = 0; i < numTris; ++i)
@@ -671,7 +673,6 @@ SignedDistanceHelper::SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase
 
 SignedDistanceHelperBase::SignedDistanceHelperBase(const SurfaceFile* mySurf)
 {
-    m_surface = mySurf;
     m_topoHelp = mySurf->getTopologyHelper();
     const float* myBB = mySurf->getBoundingBox()->getBounds();
     Vector3D minCoord, maxCoord;
@@ -680,10 +681,22 @@ SignedDistanceHelperBase::SignedDistanceHelperBase(const SurfaceFile* mySurf)
     minCoord[2] = myBB[4]; maxCoord[2] = myBB[5];
     m_indexRoot = new Oct<TriVector>(minCoord, maxCoord);
     const float* myCoordData = mySurf->getCoordinateData();
-    int32_t numTris = mySurf->getNumberOfTriangles();
-    for (int32_t i = 0; i < numTris; ++i)
+    m_numNodes = mySurf->getNumberOfNodes();
+    int32_t numNodes3 = m_numNodes * 3;
+    m_coordList.resize(numNodes3);
+    for (int32_t i = 0; i < numNodes3; ++i)
     {
+        m_coordList[i] = myCoordData[i];
+    }
+    m_numTris = mySurf->getNumberOfTriangles();
+    m_triangleList.resize(m_numTris * 3);
+    for (int32_t i = 0; i < m_numTris; ++i)
+    {
+        int32_t i3 = i * 3;
         const int32_t* thisTri = mySurf->getTriangle(i);
+        m_triangleList[i3] = thisTri[0];
+        m_triangleList[i3 + 1] = thisTri[1];
+        m_triangleList[i3 + 2] = thisTri[2];
         maxCoord = minCoord = myCoordData + thisTri[0] * 3;//set both to the coordinates of the first node in the triangle
         for (int j = 1; j < 3; ++j)
         {
@@ -708,12 +721,12 @@ void SignedDistanceHelperBase::addTriangle(Oct<TriVector>* thisOct, int32_t tria
         if (numTris >= NUM_TRIS_TO_TEST && numTris % NUM_TRIS_TEST_INCR == NUM_TRIS_TO_TEST % NUM_TRIS_TEST_INCR)//the second modulus should const out
         {
             Vector3D tempMinCoord, tempMaxCoord;
-            const float* myCoordData = m_surface->getCoordinateData();
+            const float* myCoordData = m_coordList.data();
             int totalSize = 0;
             int numSplit = 0;
             for (int i = 0; i < numTris; ++i)//gather data on how it would end up splitting
             {
-                const int32_t* tempTri = m_surface->getTriangle((*(thisOct->m_data.m_triList))[i]);
+                const int32_t* tempTri = getTriangle((*(thisOct->m_data.m_triList))[i]);
                 tempMaxCoord = tempMinCoord = myCoordData + tempTri[0] * 3;//set both to the coordinates of the first node in the triangle
                 for (int j = 1; j < 3; ++j)
                 {
@@ -740,7 +753,7 @@ void SignedDistanceHelperBase::addTriangle(Oct<TriVector>* thisOct, int32_t tria
                 thisOct->makeChildren();//do the split
                 for (int i = 0; i < numTris; ++i)//gather data on how it would end up splitting
                 {
-                    const int32_t* tempTri = m_surface->getTriangle((*(thisOct->m_data.m_triList))[i]);
+                    const int32_t* tempTri = getTriangle((*(thisOct->m_data.m_triList))[i]);
                     tempMaxCoord = tempMinCoord = myCoordData + tempTri[0] * 3;//set both to the coordinates of the first node in the triangle
                     for (int j = 1; j < 3; ++j)
                     {
@@ -784,4 +797,16 @@ void SignedDistanceHelperBase::addTriangle(Oct<TriVector>* thisOct, int32_t tria
             }
         }
     }
+}
+
+const float* SignedDistanceHelperBase::getCoordinate(const int32_t nodeIndex) const
+{
+    CaretAssert(nodeIndex >= 0 && nodeIndex < m_numNodes);
+    return m_coordList.data() + (nodeIndex * 3);
+}
+
+const int32_t* SignedDistanceHelperBase::getTriangle(const int32_t tileIndex) const
+{
+    CaretAssert(tileIndex >= 0 && tileIndex < m_numTris);
+    return m_triangleList.data() + (tileIndex * 3);
 }

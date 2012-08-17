@@ -55,10 +55,14 @@ namespace caret {
         static const int NUM_TRIS_TO_TEST = 50;//test for whether to split leaf at this number
         static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
         Oct<TriVector>* m_indexRoot;
-        const SurfaceFile* m_surface;
+        int32_t m_numTris, m_numNodes;
+        std::vector<float> m_coordList;//make a copy of what we need from SurfaceFile so that if the SurfaceFile gets destroyed, we don't crash
+        std::vector<int32_t> m_triangleList;
         CaretPointer<TopologyHelper> m_topoHelp;
         SignedDistanceHelperBase();
         void addTriangle(Oct<TriVector>* thisOct, int32_t triangle, float minCoord[3], float maxCoord[3]);
+        const float* getCoordinate(const int32_t nodeIndex) const;//make these public? probably don't want them to be widely used, that is what SurfaceFile is for (but we don't want to store a SurfaceFile pointer)
+        const int32_t* getTriangle(const int32_t tileIndex) const;
     public:
         SignedDistanceHelperBase(const SurfaceFile* mySurf);
         friend class SignedDistanceHelper;
