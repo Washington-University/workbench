@@ -22,6 +22,8 @@
  *
  */
 
+#include <cmath>
+
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmException.h"
@@ -31,6 +33,7 @@
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 using namespace std;

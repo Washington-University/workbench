@@ -24,9 +24,11 @@
 
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmException.h"
+#include "GeodesicHelper.h"
 #include "LabelFile.h"
 #include "GiftiLabelTable.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 using namespace std;

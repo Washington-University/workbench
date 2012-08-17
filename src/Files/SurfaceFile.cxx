@@ -38,6 +38,11 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 
+#include "CaretPointLocator.h"
+#include "GeodesicHelper.h"
+#include "SignedDistanceHelper.h"
+#include "TopologyHelper.h"
+
 using namespace caret;
 
 /**

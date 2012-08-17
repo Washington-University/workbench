@@ -23,6 +23,7 @@
  */ 
 #include "TopologyHelperTest.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "TopologyHelperOld.h"
 
 #include <ctime>

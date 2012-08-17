@@ -26,6 +26,7 @@
 #include "AlgorithmException.h"
 #include "VolumeFile.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "MetricFile.h"
 #include "MathFunctions.h"
 #include <cmath>

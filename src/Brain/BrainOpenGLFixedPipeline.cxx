@@ -44,6 +44,7 @@
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 #include <limits>
+#include <cmath>
 
 #include "Border.h"
 #include "BorderFile.h"

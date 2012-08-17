@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "XmlWriter.h"
 
 using namespace caret;

@@ -24,7 +24,9 @@
 
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmException.h"
+#include "GeodesicHelper.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "MetricFile.h"
 
 using namespace caret;

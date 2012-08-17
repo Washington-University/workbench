@@ -30,6 +30,7 @@
 #include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "CiftiFile.h"
+#include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "Vector3D.h"

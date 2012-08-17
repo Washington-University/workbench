@@ -32,21 +32,24 @@
 #include "BrainConstants.h"
 #include "CaretMutex.h"
 #include "CaretPointer.h"
-#include "CaretPointLocator.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
-#include "GeodesicHelper.h"
 #include "GiftiTypeFile.h"
-#include "SignedDistanceHelper.h"
 #include "SurfaceTypeEnum.h"
 #include "TimeLine.h"
-#include "TopologyHelper.h"
 
 namespace caret {
 
     class BoundingBox;
+    class CaretPointLocator;
     class DescriptiveStatistics;
+    class GeodesicHelper;
+    class GeodesicHelperBase;
     class GiftiDataArray;
+    class SignedDistanceHelper;
+    class SignedDistanceHelperBase;
+    class TopologyHelper;
+    class TopologyHelperBase;
     
     /**
      * A surface data file.
