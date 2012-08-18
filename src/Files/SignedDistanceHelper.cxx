@@ -546,7 +546,7 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
             float length;
             Vector3D norm = (verts[j] - verts[i]).normal(&length);
             Vector3D mypoint;
-            int temptype = 0, tempnode1, tempnode2;
+            int temptype = 0, tempnode1, tempnode2 = -1;
             if (length > 0.0f)
             {
                 Vector3D diff = point - verts[i];
