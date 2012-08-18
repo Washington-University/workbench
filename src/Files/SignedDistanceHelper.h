@@ -64,6 +64,7 @@ namespace caret {
         const float* getCoordinate(const int32_t nodeIndex) const;//make these public? probably don't want them to be widely used, that is what SurfaceFile is for (but we don't want to store a SurfaceFile pointer)
         const int32_t* getTriangle(const int32_t tileIndex) const;
     public:
+        ~SignedDistanceHelperBase();//in order to let us not include TopologyHelper
         SignedDistanceHelperBase(const SurfaceFile* mySurf);
         friend class SignedDistanceHelper;
     };
@@ -95,7 +96,6 @@ namespace caret {
             NORMALS
         };
     private:
-        CaretPointer<TopologyHelper> m_topoHelp;
         CaretMutex m_mutex;
         CaretPointer<SignedDistanceHelperBase> m_base;
         CaretArray<int> m_triMarked;

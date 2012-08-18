@@ -304,7 +304,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                     {
                         int curSign = 0;
                         int numChanged = 0;
-                        const vector<int>& myTiles = m_topoHelp->getNodeTiles(myInfo.node1);
+                        const vector<int>& myTiles = m_base->m_topoHelp->getNodeTiles(myInfo.node1);
                         bool first = true;
                         float bestNorm = 0;
                         Vector3D tempvec, tempvec2, bestCent;
@@ -416,8 +416,8 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                     break;
                 case 1://edge
                     {
-                        const vector<TopologyEdgeInfo>& edgeInfo = m_topoHelp->getEdgeInfo();
-                        const vector<int>& edges = m_topoHelp->getNodeEdges(myInfo.node1);
+                        const vector<TopologyEdgeInfo>& edgeInfo = m_base->m_topoHelp->getEdgeInfo();
+                        const vector<int>& edges = m_base->m_topoHelp->getNodeEdges(myInfo.node1);
                         int whichEdge = -1, numEdges = (int)edges.size();
                         for (int i = 0; i < numEdges; ++i)
                         {
@@ -661,7 +661,6 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
 SignedDistanceHelper::SignedDistanceHelper(CaretPointer<SignedDistanceHelperBase> myBase)
 {
     m_base = myBase;
-    m_topoHelp = myBase->m_topoHelp;//because we don't need neighborsToDepth, just share the same one
     int32_t numTris = m_base->m_numTris;
     m_triMarked = CaretArray<int>(numTris);
     m_triMarkChanged = CaretArray<int>(numTris);
@@ -809,4 +808,8 @@ const int32_t* SignedDistanceHelperBase::getTriangle(const int32_t tileIndex) co
 {
     CaretAssert(tileIndex >= 0 && tileIndex < m_numTris);
     return m_triangleList.data() + (tileIndex * 3);
+}
+
+SignedDistanceHelperBase::~SignedDistanceHelperBase()
+{//just so that it compiles the destructor into an object file rather than regenerating default one in every file it is included into, which lets us hide TopologyHelper's definition
 }
