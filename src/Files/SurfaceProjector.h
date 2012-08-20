@@ -73,11 +73,52 @@ namespace caret {
             SURFACE_HINT_THREE_DIMENSIONAL
         };
         
+        class ProjectionLocation {
+        public:
+            enum Type {
+                EDGE,
+                INVALID,
+                NODE,
+                TRIANGLE
+            };
+            
+            ProjectionLocation();
+            
+            ~ProjectionLocation();
+            
+            AString toString() const;
+            
+            /** Type of surface item projected to */
+            Type m_type;
+            /** Coordinate that was projected */
+            float m_pointXYZ[3];
+            /** Nearest coordinate on surface */
+            float m_surfaceXYZ[3];
+            /** Nearest triangle(s) indices (closest triangle always first) */
+            int32_t* m_triangleIndices;
+            /** Number of triangles */
+            int32_t m_numberOfTriangles;
+            /** Absolute distance to the surface */
+            float m_absoluteDistance;
+            /** Signed distance to surface (positive=>above, negative=>below) */
+            float m_signedDistance;
+            /** Nodes of node/edge/triangle (node has 1 element, edge 2, triangle 3) */
+            int32_t m_nodes[3];
+            /** Weights cooresponding to nodes (node has 1 element, edge 2, triangle 3) */
+            float m_weights[3];
+            /** Node nearest to the coordinate that was projected */
+            int32_t m_nearestNode;
+        };
+        
         SurfaceProjector(const SurfaceProjector& o);
         
         SurfaceProjector& operator=(const SurfaceProjector& o);
 
         void initializeMembersSurfaceProjector();
+        
+        void getProjectionLocation(const SurfaceFile* surfaceFile,
+                                   const float xyz[3],
+                                   ProjectionLocation& projectionLocation) const throw (SurfaceProjectorException);
         
         void projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
         
