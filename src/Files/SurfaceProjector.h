@@ -97,7 +97,7 @@ namespace caret {
                               SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
 
-        int32_t projectToSurfaceAux(const SurfaceFile* surfaceFile,
+        int32_t projectToSurfaceTriangleAux(const SurfaceFile* surfaceFile,
                                     const float xyzIn[3],
                                   SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);

@@ -50,7 +50,8 @@ namespace caret {
     public:
         enum Mode {
             MODE_CREATE,
-            MODE_EDIT
+            MODE_EDIT,
+            MODE_OPERATIONS
         };
         
         enum EditOperation {

@@ -52,6 +52,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "FociFile.h"
+#include "FociProjectionDialog.h"
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GuiManager.h"
@@ -95,9 +96,12 @@ UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoc
     
     m_editOperationWidget = createEditOperationWidget();
     
+    m_taskOperationWidget = createTaskOperationWidget();
+    
     m_operationStackedWidget = new QStackedWidget();
     m_operationStackedWidget->addWidget(m_createOperationWidget);
     m_operationStackedWidget->addWidget(m_editOperationWidget);
+    m_operationStackedWidget->addWidget(m_taskOperationWidget);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
@@ -135,6 +139,9 @@ UserInputModeFociWidget::updateWidget()
             m_operationStackedWidget->setCurrentWidget(m_editOperationWidget);
             setActionGroupByActionData(m_createOperationActionGroup,
                                              m_inputModeFoci->getEditOperation());
+            break;
+        case UserInputModeFoci::MODE_OPERATIONS:
+            m_operationStackedWidget->setCurrentWidget(m_taskOperationWidget);
             break;
     }
     const int selectedModeInteger = (int)m_inputModeFoci->getMode();
@@ -181,6 +188,7 @@ UserInputModeFociWidget::createModeWidget()
     m_modeComboBox = new QComboBox();
     m_modeComboBox->addItem("Create", (int)UserInputModeFoci::MODE_CREATE);
     m_modeComboBox->addItem("Edit", (int)UserInputModeFoci::MODE_EDIT);
+    m_modeComboBox->addItem("Tasks", (int)UserInputModeFoci::MODE_OPERATIONS);
     QObject::connect(m_modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
     
@@ -329,6 +337,41 @@ UserInputModeFociWidget::createEditOperationWidget()
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
+
+/**
+ * @return The task operation widget.
+ */
+QWidget*
+UserInputModeFociWidget::createTaskOperationWidget()
+{
+    QAction* projectAction = WuQtUtilities::createAction("Project",
+                                                         "Project the Foci",
+                                                         this,
+                                                         this,
+                                                         SLOT(taskProjectFociTriggered()));
+    
+    QToolButton* projectToolButton = new QToolButton();
+    projectToolButton->setDefaultAction(projectAction);
+    
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    layout->addWidget(projectToolButton);
+    
+    widget->setFixedWidth(widget->sizeHint().width());
+    return widget;
+}
+
+/**
+ * Called to project foci.
+ */
+void
+UserInputModeFociWidget::taskProjectFociTriggered()
+{
+    FociProjectionDialog fpd(this);
+    fpd.exec();
+}
+
 
 /**
  * Called when an edit operation button is selected.

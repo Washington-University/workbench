@@ -72,6 +72,8 @@ namespace caret {
         
         void modeComboBoxSelection(int);
         
+        void taskProjectFociTriggered();
+        
     private:
         UserInputModeFociWidget(const UserInputModeFociWidget&);
 
@@ -82,6 +84,8 @@ namespace caret {
         QWidget* createCreateOperationWidget();
         
         QWidget* createEditOperationWidget();
+        
+        QWidget* createTaskOperationWidget();
         
         void setActionGroupByActionData(QActionGroup* actionGroup,
                                         const int dataInteger);
@@ -104,6 +108,8 @@ namespace caret {
         QWidget* m_createOperationWidget;
         
         QWidget* m_editOperationWidget;
+        
+        QWidget* m_taskOperationWidget;
         
         QStackedWidget* m_operationStackedWidget;
         
