@@ -36,9 +36,13 @@
 #include "UserInputModeFoci.h"
 #undef __USER_INPUT_MODE_FOCI_DECLARE__
 
+#include "BrainOpenGLViewportContent.h"
+#include "BrowserTabContent.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "MouseEvent.h"
 #include "UserInputModeFociWidget.h"
+#include "UserInputModeView.h"
 
 using namespace caret;
 
@@ -139,6 +143,36 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                         BrainOpenGLViewportContent* viewportContent,
                                         BrainOpenGLWidget* openGLWidget)
 {
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    Model* modelController = browserTabContent->getModelControllerForDisplay();
+    if (modelController != NULL) {
+        //const int32_t tabIndex = browserTabContent->getTabNumber();
+        //const float dx = mouseEvent->getDx();
+        //const float dy = mouseEvent->getDy();
+        const int mouseX = mouseEvent->getX();
+        const int mouseY = mouseEvent->getY();
+        
+        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_PRESSED) {
+            m_mousePressX = mouseX;
+            m_mousePressY = mouseY;
+        }
+        const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
+        const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
+        const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
+        const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
+        const bool isLeftDragWithControlAndShiftKeyDown = (isLeftDrag
+                                                           && mouseEvent->isControlAndShiftKeyDown());
+        const bool isWheelWithControlAndShiftKeyDown = (isWheel
+                                                        && mouseEvent->isControlAndShiftKeyDown());
+        const bool isLeftClickWithShiftKeyDown = (isLeftClick
+                                                  && mouseEvent->isShiftKeyDown());
+        
+        UserInputModeView::processModelViewTransformation(mouseEvent,
+                                                          viewportContent,
+                                                          openGLWidget,
+                                                          m_mousePressX,
+                                                          m_mousePressY);
+    }
 }
 
 /**

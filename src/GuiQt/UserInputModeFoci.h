@@ -105,6 +105,9 @@ namespace caret {
         Mode m_mode;
         
         EditOperation m_editOperation;
+
+        int32_t m_mousePressX;
+        int32_t m_mousePressY;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_DECLARE__
