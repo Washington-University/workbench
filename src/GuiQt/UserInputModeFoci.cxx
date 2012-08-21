@@ -167,11 +167,13 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
                                                   && mouseEvent->isShiftKeyDown());
         
-        UserInputModeView::processModelViewTransformation(mouseEvent,
-                                                          viewportContent,
-                                                          openGLWidget,
-                                                          m_mousePressX,
-                                                          m_mousePressY);
+        if (isLeftDrag || isWheel) {
+            UserInputModeView::processModelViewTransformation(mouseEvent,
+                                                              viewportContent,
+                                                              openGLWidget,
+                                                              m_mousePressX,
+                                                              m_mousePressY);
+        }
     }
 }
 
