@@ -34,6 +34,7 @@
 #include "FociFile.h"
 #include "Focus.h"
 #include "MathFunctions.h"
+#include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
