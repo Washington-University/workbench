@@ -119,10 +119,15 @@ SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const Surfa
 AString 
 SurfaceProjectionBarycentric::toString() const
 {
-    const AString txt = (SurfaceProjection::toString()
-                         + "\nSurfaceProjectionBarycentric::triangleAreas=" + AString::fromNumbers(this->triangleAreas, 3, ",")
-                         + "triangleNodes=" + AString::fromNumbers(this->triangleNodes, 3, ",")
-                         + "signedDistanceAboveSurface=" + AString::number(this->signedDistanceAboveSurface));
+    AString txt = SurfaceProjection::toString();
+    if (txt.isEmpty() == false) {
+        txt += ", ";
+    }
+    txt += ("projectionValid=" + AString::fromBool(projectionValid)
+            + ", triangleAreas=(" + AString::fromNumbers(this->triangleAreas, 3, ",")
+            + "), triangleNodes=(" + AString::fromNumbers(this->triangleNodes, 3, ",")
+            + "), signedDistanceAboveSurface=" + AString::number(this->signedDistanceAboveSurface));
+    
     return txt;
 }
 
@@ -411,3 +416,4 @@ SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlExcepti
         xmlWriter.writeEndElement();
     }
 }
+

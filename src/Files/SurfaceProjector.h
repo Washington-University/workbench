@@ -86,7 +86,7 @@ namespace caret {
             
             ~ProjectionLocation();
             
-            AString toString() const;
+            AString toString(const SurfaceFile* surfaceFile) const;
             
             /** Type of surface item projected to */
             Type m_type;
@@ -134,13 +134,13 @@ namespace caret {
                                   throw (SurfaceProjectorException);
         
         void projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
-                              const float xyz[3],
+                              const ProjectionLocation& projectionLocation,
                               SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
 
         int32_t projectToSurfaceTriangleAux(const SurfaceFile* surfaceFile,
-                                    const float xyzIn[3],
-                                  SurfaceProjectionBarycentric* baryProj)
+                                            const ProjectionLocation& projectionLocation,
+                                            SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
         
         void findEnclosingTriangle(const SurfaceFile* surfaceFile,
@@ -161,9 +161,11 @@ namespace caret {
                               const float xyz[3],
                               float areasOut[3]);
         
+        void convertToTriangleProjection(const SurfaceFile* surfaceFile,
+                                         ProjectionLocation& projectionLocation);
+        
         void projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
-                                          const int32_t nearestTriangleIn,
-                                          const float xyzIn[3],
+                                          const ProjectionLocation& projectionLocation,
                                           SurfaceProjectionVanEssen* spve)
             throw (SurfaceProjectorException);
         
@@ -190,6 +192,11 @@ namespace caret {
         bool m_surfaceOffsetValid;
         
         bool m_allowEdgeProjection;
+        
+        bool m_validateFlag;
+        
+        AString m_validateItemName;
+        
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__

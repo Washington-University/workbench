@@ -97,6 +97,8 @@ SurfaceProjector::initializeMembersSurfaceProjector()
     m_surfaceOffset = 0.0;
     m_surfaceOffsetValid = false;
     computeSurfaceNearestNodeTolerances();
+    m_validateFlag = false;
+    m_validateItemName = "";
 }
 
 
@@ -123,64 +125,72 @@ SurfaceProjector::setSurfaceOffset(const float surfaceOffset)
 void
 SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException)
 {
+    m_validateFlag = true;
+    
     CaretAssert(fociFile);
     const int32_t numberOfFoci = fociFile->getNumberOfFoci();
     
-    AString validateString;
-    bool validateFlag = true;
+//    AString validateString;
+//    bool validateFlag = true;
     AString errorMessage = "";
     for (int32_t i = 0; i < numberOfFoci; i++) {
         Focus* focus = fociFile->getFocus(i);
         try {
-            projectFocus(focus);
-            
-            if (validateFlag) {
-                SurfaceProjectedItem* spi = focus->getProjection(0);
-                if (spi->getBarycentricProjection()->isValid()
-                    || spi->getVanEssenProjection()->isValid()) {
-                    for (std::vector<const SurfaceFile*>::const_iterator iter = m_surfaceFiles.begin();
-                         iter != m_surfaceFiles.end();
-                         iter++) {
-                        const SurfaceFile* sf = *iter;
-                        if (sf->getStructure() == spi->getStructure()) {
-                            float projXYZ[3];
-                            spi->getProjectedPosition(*sf, projXYZ, false);
-                            float stereoXYZ[3];
-                            spi->getStereotaxicXYZ(stereoXYZ);
-                            const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
-                            AString projTypeString = "Unprojected";
-                            if (spi->getBarycentricProjection()->isValid()) {
-                                projTypeString = "Triangle";
-                                if (spi->getBarycentricProjection()->isDegenerate()) {
-                                    projTypeString = "-degenerate";
-                                }
-                            }
-                            else if (spi->getVanEssenProjection()->isValid()) {
-                                projTypeString = "Edge";
-                            }
-                            AString matchString = "";
-                            if (dist < 0.25) {
-                                matchString = " MATCH";
-                            }
-                            validateString += (focus->getName()
-                                               + " Index="
-                                               + AString::number(i)
-                                               + " projType="
-                                               + projTypeString
-                                               + ": stereo/proj positions differ by "
-                                               + AString::number(dist, 'f', 3)
-                                               + matchString
-                                               + "\n");
-                        }
-                    }
-                }
-                else {
-                    validateString += (focus->getName()
-                                       + " Index="
-                                       + AString::number(i)
-                                       + " failed to project\n");
-                }
+            if (m_validateFlag) {
+                m_validateItemName = ("Focus "
+                                      + AString::number(i)
+                                      + ", "
+                                      + focus->getName());
             }
+            projectFocus(focus);
+//            
+//            if (validateFlag) {
+//                SurfaceProjectedItem* spi = focus->getProjection(0);
+//                if (spi->getBarycentricProjection()->isValid()
+//                    || spi->getVanEssenProjection()->isValid()) {
+//                    for (std::vector<const SurfaceFile*>::const_iterator iter = m_surfaceFiles.begin();
+//                         iter != m_surfaceFiles.end();
+//                         iter++) {
+//                        const SurfaceFile* sf = *iter;
+//                        if (sf->getStructure() == spi->getStructure()) {
+//                            float projXYZ[3];
+//                            spi->getProjectedPosition(*sf, projXYZ, false);
+//                            float stereoXYZ[3];
+//                            spi->getStereotaxicXYZ(stereoXYZ);
+//                            const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
+//                            AString projTypeString = "Unprojected";
+//                            if (spi->getBarycentricProjection()->isValid()) {
+//                                projTypeString = "Triangle";
+//                                if (spi->getBarycentricProjection()->isDegenerate()) {
+//                                    projTypeString = "-degenerate";
+//                                }
+//                            }
+//                            else if (spi->getVanEssenProjection()->isValid()) {
+//                                projTypeString = "Edge";
+//                            }
+//                            AString matchString = " FAILED";
+//                            if (dist < 0.25) {
+//                                matchString = "";
+//                            }
+//                            validateString += (focus->getName()
+//                                               + " Index="
+//                                               + AString::number(i)
+//                                               + " projType="
+//                                               + projTypeString
+//                                               + ": stereo/proj positions differ by "
+//                                               + AString::number(dist, 'f', 3)
+//                                               + matchString
+//                                               + "\n");
+//                        }
+//                    }
+//                }
+//                else {
+//                    validateString += (focus->getName()
+//                                       + " Index="
+//                                       + AString::number(i)
+//                                       + " failed to project\n");
+//                }
+//            }
         }
         catch (const SurfaceProjectorException& spe) {
             if (errorMessage.isEmpty() == false) {
@@ -194,9 +204,9 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
         }
     }
     
-    if (validateString.isEmpty() == false) {
-        std::cout << qPrintable(validateString) << std::endl;
-    }
+//    if (validateString.isEmpty() == false) {
+//        std::cout << qPrintable(validateString) << std::endl;
+//    }
     
     if (errorMessage.isEmpty() == false) {
         throw SurfaceProjectorException(errorMessage);
@@ -291,16 +301,14 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
     }
     spi->getStereotaxicXYZ(xyz);
     
+    int32_t nearestSurfaceIndex = -1;
     if (numberOfSurfaceFiles == 1) {
-        projectToSurface(m_surfaceFiles[0],
-                         xyz,
-                         spi);
+        nearestSurfaceIndex = 0;
     }
     else {
         /*
          * Find surface closest to node.
          */
-        int32_t nearestSurfaceIndex = 0;
         float nearestDistance = std::numeric_limits<float>::max();
         for (int32_t i = 0; i < numberOfSurfaceFiles; i++) {
             const SurfaceFile* sf = m_surfaceFiles[i];
@@ -310,16 +318,69 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
                 nearestDistance = absDist;
                 nearestSurfaceIndex = i;
             }
+        }        
+    }
+    
+    if (nearestSurfaceIndex < 0) {
+        throw SurfaceProjectorException("Failed to find surface for projection.");
+    }
+    CaretAssertVectorIndex(m_surfaceNearestNodeToleranceSquared, nearestSurfaceIndex);
+    m_nearestNodeToleranceSquared = m_surfaceNearestNodeToleranceSquared[nearestSurfaceIndex];
+    const SurfaceFile* projectionSurfaceFile = m_surfaceFiles[nearestSurfaceIndex];
+    projectToSurface(projectionSurfaceFile,
+                     xyz,
+                     spi);
+    
+    
+    if (m_validateFlag) {
+        bool errorFlag = false;
+        AString validateString;
+        if (spi->getBarycentricProjection()->isValid()
+            || spi->getVanEssenProjection()->isValid()) {
+            float projXYZ[3];
+            spi->getProjectedPosition(*projectionSurfaceFile, projXYZ, false);
+            float stereoXYZ[3];
+            spi->getStereotaxicXYZ(stereoXYZ);
+            const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
+            AString projTypeString = "Unprojected";
+            AString projInfo;
+            if (spi->getBarycentricProjection()->isValid()) {
+                projTypeString = "Triangle";
+                if (spi->getBarycentricProjection()->isDegenerate()) {
+                    projTypeString = "-degenerate";
+                }
+                projInfo = spi->getBarycentricProjection()->toString();
+            }
+            else if (spi->getVanEssenProjection()->isValid()) {
+                projTypeString = "Edge";
+                errorFlag = true;
+            }
+            AString matchString = "";
+            if (dist > 0.01) {
+                matchString = " FAILED *************************";
+                errorFlag = true;
+            }
+            validateString += (m_validateItemName
+                               + ": projType="
+                               + projTypeString
+                               + ": stereo/proj positions differ by "
+                               + AString::number(dist, 'f', 3)
+                               + matchString
+                               + "\n");
+            if (projInfo.isEmpty() == false) {
+                validateString += (projInfo
+                                   + "\n");
+            }
+        }
+        else {
+            validateString += (m_validateItemName
+                               + ": failed to project\n");
+            errorFlag = true;
         }
         
-        if (nearestSurfaceIndex >= 0) {
-            CaretAssertVectorIndex(m_surfaceNearestNodeToleranceSquared, nearestSurfaceIndex);
-            m_nearestNodeToleranceSquared = m_surfaceNearestNodeToleranceSquared[nearestSurfaceIndex];
-            
-            const SurfaceFile* sf = m_surfaceFiles[nearestSurfaceIndex];
-            projectToSurface(sf,
-                             xyz,
-                             spi);
+        if (errorFlag
+            && (validateString.isEmpty() == false)) {
+            std::cout << qPrintable(validateString) << std::endl;
         }
     }
 }
@@ -375,6 +436,10 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
     
     m_searchedTriangleFlags.resize(surfaceFile->getNumberOfTriangles(),
                                    false);
+    std::fill(m_searchedTriangleFlags.begin(),
+              m_searchedTriangleFlags.end(),
+              false);
+    
     m_sphericalSurfaceRadius = 0.0;
     m_surfaceTypeHint = SURFACE_HINT_THREE_DIMENSIONAL;
     switch (surfaceFile->getSurfaceType()) {
@@ -405,78 +470,107 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
     getProjectionLocation(surfaceFile,
                           xyz,
                           projectionLocation);
-    std::cout << qPrintable(projectionLocation.toString()) << std::endl;
-    
-    //
-    // Project item
-    //
-    projectToSurfaceTriangle(surfaceFile,
-                     xyz,
-                     spi->getBarycentricProjection());
+    if (m_validateFlag) {
+        if (m_validateItemName.isEmpty() == false) {
+            m_validateItemName += "\n";
+        }
+        m_validateItemName += ("ORIGINAL: "
+                               + projectionLocation.toString(surfaceFile));
+    }
+    //std::cout << "ORIGINAL: " << qPrintable(projectionLocation.toString(surfaceFile)) << std::endl;
     
     /*
-     * Should a van-essen projection be attempted?
+     * If projected to edge and edge projection allowed
      */
-    bool tryVanEssenProjection = false;
-    bool tryDegenerateBarycentricProjection = false;
-    if (m_allowEdgeProjection) {
-        tryVanEssenProjection = true;
-        tryDegenerateBarycentricProjection = true;
-        if (baryProj->isValid()) {
-            if (baryProj->isDegenerate() == false) {
-                /*
-                 * Since barycentric fully successful,
-                 * no need to try van essen projection.
-                 */
-                tryVanEssenProjection = false;
-                tryDegenerateBarycentricProjection = false;
-            }
-        }
-    }
-    
-    tryDegenerateBarycentricProjection = false;
-    if (tryDegenerateBarycentricProjection) {
-        const int32_t nearestTriangle = findNearestTriangle(surfaceFile,
-                                                            xyz);
-        if (nearestTriangle >= 0) {
-            SurfaceProjectionBarycentric bp;
-            m_searchedTriangleFlags[nearestTriangle] = false;
-            float savedTol = s_triangleAreaTolerance;
-            s_triangleAreaTolerance = -std::numeric_limits<float>::max();
-            checkItemInTriangle(surfaceFile, nearestTriangle, xyz, &bp);
-            if (bp.isValid()) {
-                *baryProj = bp;
-                tryVanEssenProjection = false;
-            }
-            s_triangleAreaTolerance = savedTol;
-        }
-    }
-    
-    if (tryVanEssenProjection) {
-        baryProj->setValid(false);
-        
-        const int32_t nearestTriangle = findNearestTriangle(surfaceFile,
-                                                            xyz);
-        if (nearestTriangle < 0) {
-            throw SurfaceProjectorException("Unable to find nearest triangle for VanEssen Projection");
-        }
+    if (m_allowEdgeProjection
+        && (projectionLocation.m_type == ProjectionLocation::EDGE)) {
         vanEssenProj->setPosAnatomical(xyz);
         projectWithVanEssenAlgorithm(surfaceFile,
-                                     nearestTriangle,
-                                     xyz,
+                                     projectionLocation,
                                      vanEssenProj);
+        
         if (vanEssenProj->isValid() == false) {
-            throw SurfaceProjectorException("Van Essen projection failed.");
+            throw SurfaceProjectorException("Edge projection failed.");
         }
     }
-    else if (baryProj->isValid() == false) {
-        throw SurfaceProjectorException("Barycentric projection failed.");
+    else {
+        /*
+         * Convert the projection to a triangle projection.
+         */
+        if ((projectionLocation.m_type == ProjectionLocation::EDGE) ||
+            (projectionLocation.m_type == ProjectionLocation::NODE)) {
+            convertToTriangleProjection(surfaceFile,
+                                        projectionLocation);
+            if (m_validateFlag) {
+                if (m_validateItemName.isEmpty() == false) {
+                    m_validateItemName += "\n";
+                }
+                m_validateItemName += ("ALTERED: "
+                                       + projectionLocation.toString(surfaceFile));
+            }
+            //std::cout << "ALTERED: " << qPrintable(projectionLocation.toString(surfaceFile)) << std::endl;
+        }
+        
+        
+        projectToSurfaceTriangle(surfaceFile,
+                                 projectionLocation,
+                                 spi->getBarycentricProjection());
+        
+        if (baryProj->isValid() == false) {
+            throw SurfaceProjectorException("Triangle projection failed.");
+        }
     }
+    
+    spi->setStructure(surfaceFile->getStructure());
+}
 
-    if (baryProj->isValid()
-        || vanEssenProj->isValid()) {
-        spi->setStructure(surfaceFile->getStructure());
+/**
+ * Convert an edge or node projection to a triangle projection which
+ * may become a degenerate triangle projection.
+ */
+void
+SurfaceProjector::convertToTriangleProjection(const SurfaceFile* surfaceFile,
+                                              ProjectionLocation& projectionLocation)
+{
+    bool doIt = false;
+    
+    switch (projectionLocation.m_type) {
+        case ProjectionLocation::EDGE:
+            doIt = true;
+            break;
+        case ProjectionLocation::INVALID:
+            break;
+        case ProjectionLocation::NODE:
+            doIt = true;
+            break;
+        case ProjectionLocation::TRIANGLE:
+            break;
     }
+    
+    if (doIt) {
+        SurfaceProjectionBarycentric baryProj;
+        const float savedTriangleAreaTolerance = s_triangleAreaTolerance;
+        s_triangleAreaTolerance = -std::numeric_limits<float>::max();
+        checkItemInTriangle(surfaceFile,
+                            projectionLocation.m_triangleIndices[0],
+                            projectionLocation.m_pointXYZ,
+                            &baryProj);
+        s_triangleAreaTolerance = savedTriangleAreaTolerance;
+        if (baryProj.isValid()) {
+            projectionLocation.m_type = ProjectionLocation::TRIANGLE;
+            const int32_t* nodes = baryProj.getTriangleNodes();
+            projectionLocation.m_nodes[0] = nodes[0];
+            projectionLocation.m_nodes[1] = nodes[1];
+            projectionLocation.m_nodes[2] = nodes[2];
+            const float* areas = baryProj.getTriangleAreas();
+            projectionLocation.m_weights[0] = areas[0];
+            projectionLocation.m_weights[1] = areas[1];
+            projectionLocation.m_weights[2] = areas[2];
+            projectionLocation.m_signedDistance = baryProj.getSignedDistanceAboveSurface();
+            projectionLocation.m_absoluteDistance = std::fabs(projectionLocation.m_signedDistance);
+        }
+    }
+    
 }
 
 ///**
@@ -527,8 +621,8 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
  */
 void
 SurfaceProjector::projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
-                                   const float xyz[3],
-                                   SurfaceProjectionBarycentric* baryProj)
+                                           const ProjectionLocation& projectionLocation,
+                                           SurfaceProjectionBarycentric* baryProj)
                                             throw (SurfaceProjectorException)
 {
     /*
@@ -538,7 +632,7 @@ SurfaceProjector::projectToSurfaceTriangle(const SurfaceFile* surfaceFile,
     
     
     projectToSurfaceTriangleAux(surfaceFile,
-                        xyz,
+                        projectionLocation,
                         baryProj);
     
     if (baryProj->isValid()) {
@@ -562,7 +656,6 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
                                         const float xyz[3],
                                         ProjectionLocation& projectionLocation) const throw (SurfaceProjectorException)
 {
-
     /*
      * Find nearest point on the surface
      */
@@ -737,7 +830,7 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
     float distError = std::fabs(signedDistance) - baryInfo.absDistance;
     if (distError > 0.01) {
         throw SurfaceProjectorException("ERROR: signed/abs distance mismatch: "
-                                        + projectionLocation.toString());
+                                        + projectionLocation.toString(surfaceFile));
     }
 }
 
@@ -754,214 +847,234 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
  */
 int32_t
 SurfaceProjector::projectToSurfaceTriangleAux(const SurfaceFile* surfaceFile,
-                                      const float xyzIn[3],
+                                              const ProjectionLocation& projectionLocation,
                                       SurfaceProjectionBarycentric* baryProj)
                                              throw (SurfaceProjectorException)
 {
-    float xyz[3] = { xyzIn[0], xyzIn[1], xyzIn[2] };
-
     /*
-     * If spherical surface, place point on the sphere
+     * Set the projection.
      */
-    if (m_surfaceTypeHint == SURFACE_HINT_SPHERE) {
-        if (m_sphericalSurfaceRadius > 0.0f) {
-            MathFunctions::normalizeVector(xyz);
-            xyz[0] *= m_sphericalSurfaceRadius;
-            xyz[1] *= m_sphericalSurfaceRadius;
-            xyz[2] *= m_sphericalSurfaceRadius;
-        }
+    baryProj->setTriangleAreas(projectionLocation.m_weights);
+    baryProj->setTriangleNodes(projectionLocation.m_nodes);
+    baryProj->setProjectionSurfaceNumberOfNodes(surfaceFile->getNumberOfNodes());
+    if (m_surfaceOffsetValid) {
+        baryProj->setSignedDistanceAboveSurface(m_surfaceOffset);
     }
+    else {
+        baryProj->setSignedDistanceAboveSurface(projectionLocation.m_signedDistance);
+    }
+    baryProj->setValid(true);
     
-    //
-    // Initialize projection information
-    //
-    baryProj->reset();
+    return projectionLocation.m_nearestNode;
     
-    /*
-     * Find nearest point on the surface
-     */
-    CaretPointer<SignedDistanceHelper> sdh = surfaceFile->getSignedDistanceHelper();
-    BarycentricInfo baryInfo;
-    sdh->barycentricWeights(xyz, baryInfo);
-    
-    std::vector<int32_t> nodes;
-    for (int32_t i = 0; i < 3; i++) {
-        if (baryInfo.baryWeights[i] > 0.0) {
-            nodes.push_back(baryInfo.nodes[i]);
-        }
-    }
-    float signedDistance = 0.0;
-    AString typeString = "Error";
-    switch (baryInfo.type) {
-        case BarycentricInfo::NODE:
-        {
-            if (nodes.size() != 1) {
-                typeString = (" ERROR: project to node weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                typeString = " Node, ";
-                const float* nodeNormal = surfaceFile->getNormalVector(nodes[0]);
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                const float aboveBelowPlane =
-                MathFunctions::signedDistanceFromPlane(nodeNormal, c1, xyz);
-                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
-                signedDistance = (MathFunctions::distance3D(xyz, c1) * signValue);
-            }
-        }
-            break;
-        case BarycentricInfo::EDGE:
-        {
-            if (nodes.size() != 2) {
-                typeString = (" ERROR: project to edge weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                typeString = "Edge, ";
-                const float* n1 = surfaceFile->getNormalVector(nodes[0]);
-                const float* n2 = surfaceFile->getNormalVector(nodes[1]);
-                float avgNormal[3];
-                MathFunctions::addVectors(n1, n2, avgNormal);
-                MathFunctions::normalizeVector(avgNormal);
-                
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                const float* c2 = surfaceFile->getCoordinate(nodes[1]);
-                MathFunctions::distanceToLine3D(c1, c2, xyz);
-                
-                const float aboveBelowPlane =
-                MathFunctions::signedDistanceFromPlane(avgNormal, baryInfo.point, xyz);
-                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
-                signedDistance = (MathFunctions::distance3D(xyz, baryInfo.point) * signValue);
-            }
-        }
-            break;
-        case BarycentricInfo::TRIANGLE:
-        {
-            if (nodes.size() != 3) {
-                typeString = (" ERROR: project to triangle weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                float triangleNormal[3];
-                surfaceFile->getTriangleNormalVector(baryInfo.triangle, triangleNormal);
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                signedDistance =
-                MathFunctions::signedDistanceFromPlane(triangleNormal, c1, xyz);
-            }
-        }
-            typeString = " Triangle, ";
-            break;
-    }
-
-    AString distErrorMessage = "";
-    float distError = std::fabs(signedDistance) - baryInfo.absDistance;
-    if (distError > 0.01) {
-        distErrorMessage += "DISTANCE ERROR: ";
-    }
-    AString msg = (distErrorMessage
-                   + " Pos ("
-                   + AString::fromNumbers(xyz, 3, ",")
-                   + "): Type="
-                   + typeString
-                   + " triangle="
-                   + AString::number(baryInfo.triangle)
-                   + " point=("
-                   + AString::fromNumbers(baryInfo.point, 3, ", ")
-                   + ") absDistance="
-                   + AString::number(baryInfo.absDistance)
-                   + " signedDistance="
-                   + AString::number(signedDistance)
-                   + " nodes=("
-                   + AString::fromNumbers(baryInfo.nodes, 3, ", ")
-                   + ") weights=("
-                   + AString::fromNumbers(baryInfo.baryWeights, 3, ", ")
-                   + ")");
-    //std::cout << qPrintable(msg) << std::endl;
-    
-    //
-    // Get the nearest node
-    //
-    int32_t nearestNode = surfaceFile->closestNode(xyz);
-    if (nearestNode < 0) {
-        throw SurfaceProjectorException("Failed to find nearest node in surface.");
-    }
-    CaretAssertArrayIndex("nodes", surfaceFile->getNumberOfNodes(), nearestNode);
-    
-    //
-    // Check the triangles used by the nearest node
-    //
-    findEnclosingTriangle(surfaceFile,
-                          nearestNode,
-                          xyz,
-                          baryProj);
-    
-    //
-    // If not found in triangles used by nearest nodes, check triangles
-    // used by neighbors of nearest node
-    //
-    bool checkOtherTriangles = true;
-    if (baryProj->isValid()) {
-        if (baryProj->isDegenerate() == false) {
-            checkOtherTriangles = false;
-        }
-    }
-    if (checkOtherTriangles) {
-        /*
-         * Look for non-degenerate point in triangle
-         */
-        int32_t numberOfNeighbors = 0;
-        CaretPointer<TopologyHelper> topoHelper = surfaceFile->getTopologyHelper();
-        const int32_t* nodeNeighbors = topoHelper->getNodeNeighbors(nearestNode, numberOfNeighbors);
-        for (int32_t i = 0; i < numberOfNeighbors; i++) {
-            const int32_t node = nodeNeighbors[i];
-            findEnclosingTriangle(surfaceFile, node, xyz, baryProj);
-            if (baryProj->isValid()) {
-                if (baryProj->isDegenerate() == false) {
-                    break;
-                }
-            }
-        }
-    }
-    
-    /*
-     * If still not found, see if "on" the nearest node
-     */
-    bool checkOnNodes = true;
-    if (baryProj->isValid()) {
-        if (baryProj->isDegenerate() == false) {
-            checkOnNodes = false;
-        }
-    }
-    if (checkOnNodes) {
-        float distanceSquared =
-        MathFunctions::distanceSquared3D(xyz,
-                                        surfaceFile->getCoordinate(nearestNode));
-        if (distanceSquared <= m_nearestNodeToleranceSquared) {
-            baryProj->setValid(true);
-            baryProj->setDegenerate(false);
-            const float areas[3] = { 1.0, 0.0, 0.0 };
-            baryProj->setTriangleAreas(areas);
-            const int32_t nodes[3] = { nearestNode, nearestNode, nearestNode };
-            baryProj->setTriangleNodes(nodes);
-        }
-        else {
-            CaretLogInfo("Nearest node tolerance="
-                         + AString::number(std::sqrt(m_nearestNodeToleranceSquared))
-                                         + " failed for distance="
-                         + AString::number(std::sqrt(distanceSquared)));
-        }
-    }
-    
-//    if (this.barycentricProjectionInfo.getProjectionStatus() ==
-//        SurfaceProjectorBarycentricInformation.ProjectionStatus.NOT_FOUND) {
-//        // do nothing
+//    float xyz[3] = {
+//        projectionLocation.m_pointXYZ[0],
+//        projectionLocation.m_pointXYZ[1],
+//        projectionLocation.m_pointXYZ[2]
+//    };
+//
+//    /*
+//     * If spherical surface, place point on the sphere
+//     */
+//    if (m_surfaceTypeHint == SURFACE_HINT_SPHERE) {
+//        if (m_sphericalSurfaceRadius > 0.0f) {
+//            MathFunctions::normalizeVector(xyz);
+//            xyz[0] *= m_sphericalSurfaceRadius;
+//            xyz[1] *= m_sphericalSurfaceRadius;
+//            xyz[2] *= m_sphericalSurfaceRadius;
+//        }
 //    }
-//    else {
-//        this.barycentricProjectionInfo.setStructure(
-//                                                    this.surface.getStructure());
+//    
+//    //
+//    // Initialize projection information
+//    //
+//    baryProj->reset();
+//    
+//    /*
+//     * Find nearest point on the surface
+//     */
+//    CaretPointer<SignedDistanceHelper> sdh = surfaceFile->getSignedDistanceHelper();
+//    BarycentricInfo baryInfo;
+//    sdh->barycentricWeights(xyz, baryInfo);
+//    
+//    std::vector<int32_t> nodes;
+//    for (int32_t i = 0; i < 3; i++) {
+//        if (baryInfo.baryWeights[i] > 0.0) {
+//            nodes.push_back(baryInfo.nodes[i]);
+//        }
 //    }
-    
-    return nearestNode;
+//    float signedDistance = 0.0;
+//    AString typeString = "Error";
+//    switch (baryInfo.type) {
+//        case BarycentricInfo::NODE:
+//        {
+//            if (nodes.size() != 1) {
+//                typeString = (" ERROR: project to node weights incorrect="
+//                              + AString::number(nodes.size()));
+//            }
+//            else {
+//                typeString = " Node, ";
+//                const float* nodeNormal = surfaceFile->getNormalVector(nodes[0]);
+//                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
+//                const float aboveBelowPlane =
+//                MathFunctions::signedDistanceFromPlane(nodeNormal, c1, xyz);
+//                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
+//                signedDistance = (MathFunctions::distance3D(xyz, c1) * signValue);
+//            }
+//        }
+//            break;
+//        case BarycentricInfo::EDGE:
+//        {
+//            if (nodes.size() != 2) {
+//                typeString = (" ERROR: project to edge weights incorrect="
+//                              + AString::number(nodes.size()));
+//            }
+//            else {
+//                typeString = "Edge, ";
+//                const float* n1 = surfaceFile->getNormalVector(nodes[0]);
+//                const float* n2 = surfaceFile->getNormalVector(nodes[1]);
+//                float avgNormal[3];
+//                MathFunctions::addVectors(n1, n2, avgNormal);
+//                MathFunctions::normalizeVector(avgNormal);
+//                
+//                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
+//                const float* c2 = surfaceFile->getCoordinate(nodes[1]);
+//                MathFunctions::distanceToLine3D(c1, c2, xyz);
+//                
+//                const float aboveBelowPlane =
+//                MathFunctions::signedDistanceFromPlane(avgNormal, baryInfo.point, xyz);
+//                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
+//                signedDistance = (MathFunctions::distance3D(xyz, baryInfo.point) * signValue);
+//            }
+//        }
+//            break;
+//        case BarycentricInfo::TRIANGLE:
+//        {
+//            if (nodes.size() != 3) {
+//                typeString = (" ERROR: project to triangle weights incorrect="
+//                              + AString::number(nodes.size()));
+//            }
+//            else {
+//                float triangleNormal[3];
+//                surfaceFile->getTriangleNormalVector(baryInfo.triangle, triangleNormal);
+//                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
+//                signedDistance =
+//                MathFunctions::signedDistanceFromPlane(triangleNormal, c1, xyz);
+//            }
+//        }
+//            typeString = " Triangle, ";
+//            break;
+//    }
+//
+//    AString distErrorMessage = "";
+//    float distError = std::fabs(signedDistance) - baryInfo.absDistance;
+//    if (distError > 0.01) {
+//        distErrorMessage += "DISTANCE ERROR: ";
+//    }
+//    AString msg = (distErrorMessage
+//                   + " Pos ("
+//                   + AString::fromNumbers(xyz, 3, ",")
+//                   + "): Type="
+//                   + typeString
+//                   + " triangle="
+//                   + AString::number(baryInfo.triangle)
+//                   + " point=("
+//                   + AString::fromNumbers(baryInfo.point, 3, ", ")
+//                   + ") absDistance="
+//                   + AString::number(baryInfo.absDistance)
+//                   + " signedDistance="
+//                   + AString::number(signedDistance)
+//                   + " nodes=("
+//                   + AString::fromNumbers(baryInfo.nodes, 3, ", ")
+//                   + ") weights=("
+//                   + AString::fromNumbers(baryInfo.baryWeights, 3, ", ")
+//                   + ")");
+//    //std::cout << qPrintable(msg) << std::endl;
+//    
+//    //
+//    // Get the nearest node
+//    //
+//    int32_t nearestNode = surfaceFile->closestNode(xyz);
+//    if (nearestNode < 0) {
+//        throw SurfaceProjectorException("Failed to find nearest node in surface.");
+//    }
+//    CaretAssertArrayIndex("nodes", surfaceFile->getNumberOfNodes(), nearestNode);
+//    
+//    //
+//    // Check the triangles used by the nearest node
+//    //
+//    findEnclosingTriangle(surfaceFile,
+//                          nearestNode,
+//                          xyz,
+//                          baryProj);
+//    
+//    //
+//    // If not found in triangles used by nearest nodes, check triangles
+//    // used by neighbors of nearest node
+//    //
+//    bool checkOtherTriangles = true;
+//    if (baryProj->isValid()) {
+//        if (baryProj->isDegenerate() == false) {
+//            checkOtherTriangles = false;
+//        }
+//    }
+//    if (checkOtherTriangles) {
+//        /*
+//         * Look for non-degenerate point in triangle
+//         */
+//        int32_t numberOfNeighbors = 0;
+//        CaretPointer<TopologyHelper> topoHelper = surfaceFile->getTopologyHelper();
+//        const int32_t* nodeNeighbors = topoHelper->getNodeNeighbors(nearestNode, numberOfNeighbors);
+//        for (int32_t i = 0; i < numberOfNeighbors; i++) {
+//            const int32_t node = nodeNeighbors[i];
+//            findEnclosingTriangle(surfaceFile, node, xyz, baryProj);
+//            if (baryProj->isValid()) {
+//                if (baryProj->isDegenerate() == false) {
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * If still not found, see if "on" the nearest node
+//     */
+//    bool checkOnNodes = true;
+//    if (baryProj->isValid()) {
+//        if (baryProj->isDegenerate() == false) {
+//            checkOnNodes = false;
+//        }
+//    }
+//    if (checkOnNodes) {
+//        float distanceSquared =
+//        MathFunctions::distanceSquared3D(xyz,
+//                                        surfaceFile->getCoordinate(nearestNode));
+//        if (distanceSquared <= m_nearestNodeToleranceSquared) {
+//            baryProj->setValid(true);
+//            baryProj->setDegenerate(false);
+//            const float areas[3] = { 1.0, 0.0, 0.0 };
+//            baryProj->setTriangleAreas(areas);
+//            const int32_t nodes[3] = { nearestNode, nearestNode, nearestNode };
+//            baryProj->setTriangleNodes(nodes);
+//        }
+//        else {
+//            CaretLogInfo("Nearest node tolerance="
+//                         + AString::number(std::sqrt(m_nearestNodeToleranceSquared))
+//                                         + " failed for distance="
+//                         + AString::number(std::sqrt(distanceSquared)));
+//        }
+//    }
+//    
+////    if (this.barycentricProjectionInfo.getProjectionStatus() ==
+////        SurfaceProjectorBarycentricInformation.ProjectionStatus.NOT_FOUND) {
+////        // do nothing
+////    }
+////    else {
+////        this.barycentricProjectionInfo.setStructure(
+////                                                    this.surface.getStructure());
+////    }
+//    
+//    return nearestNode;
 }
 
 /**
@@ -1272,25 +1385,20 @@ SurfaceProjector::triangleAreas(
  */
 void
 SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
-                                               const int32_t nearestTriangleIn,
-                                               const float xyzIn[3],
+                                               const ProjectionLocation& projectionLocation,
                                                SurfaceProjectionVanEssen* spve)
             throw (SurfaceProjectorException)
 {
     float xyz[3] = {
-        xyzIn[0],
-        xyzIn[1],
-        xyzIn[2]
+        projectionLocation.m_pointXYZ[0],
+        projectionLocation.m_pointXYZ[1],
+        projectionLocation.m_pointXYZ[2]
     };
     
     //
     // Find nearest triangle to coordinate
     //
-    int32_t nearestTriangle = nearestTriangleIn;
-    if (nearestTriangle < 0) {
-        nearestTriangle = findNearestTriangle(surfaceFile,
-                                              xyz);
-    }
+    const int32_t nearestTriangle = projectionLocation.m_triangleIndices[0];
     if (nearestTriangle < 0) {
         throw new SurfaceProjectorException(
                                             "Unable to find nearest triangle for VanEssen projection.");
@@ -1328,24 +1436,28 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
      * With the nearest triangle, determine which edge is closest
      * to the coordinate
      */
-    float dist1 = MathFunctions::distanceToLine3D(p1, p2, xyz);
-    float dist2 = MathFunctions::distanceToLine3D(p2, p3, xyz);
-    float dist3 = MathFunctions::distanceToLine3D(p3, p1, xyz);
-    int32_t closestVertices[2] = { -1, -1 };
-    if ((dist1 < dist2) &&
-        (dist1 < dist3)) {
-        closestVertices[0] = n1;
-        closestVertices[1] = n2;
-    }
-    else if ((dist2 < dist1) &&
-             (dist2 < dist3)) {
-        closestVertices[0] = n2;
-        closestVertices[1] = n3;
-    }
-    else {
-        closestVertices[0] = n3;
-        closestVertices[1] = n1;
-    }
+    const int32_t closestVertices[2] = {
+        projectionLocation.m_nodes[0],
+        projectionLocation.m_nodes[1]
+    };
+//    float dist1 = MathFunctions::distanceToLine3D(p1, p2, xyz);
+//    float dist2 = MathFunctions::distanceToLine3D(p2, p3, xyz);
+//    float dist3 = MathFunctions::distanceToLine3D(p3, p1, xyz);
+//    int32_t closestVertices[2] = { -1, -1 };
+//    if ((dist1 < dist2) &&
+//        (dist1 < dist3)) {
+//        closestVertices[0] = n1;
+//        closestVertices[1] = n2;
+//    }
+//    else if ((dist2 < dist1) &&
+//             (dist2 < dist3)) {
+//        closestVertices[0] = n2;
+//        closestVertices[1] = n3;
+//    }
+//    else {
+//        closestVertices[0] = n3;
+//        closestVertices[1] = n1;
+//    }
     
     /*
      * Nodes and triangles using the edge
@@ -1353,7 +1465,7 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     int32_t iR = closestVertices[0];
     int32_t jR = closestVertices[1];
     int32_t triA = nearestTriangle;
-    int32_t triB = surfaceFile->getTriangleThatSharesEdge(iR, jR, triA);
+    int32_t triB = projectionLocation.m_triangleIndices[1];
     
     const float* coordJR = surfaceFile->getCoordinate(jR);
     const float* coordIR = surfaceFile->getCoordinate(iR);
@@ -1657,10 +1769,14 @@ SurfaceProjector::ProjectionLocation::~ProjectionLocation() {
 }
 
 /**
- * @return String describing content.
+ * Get String describing content.
+ * @param surfaceFile
+ *    Surface file used for projection
+ * @return
+ *    Description.
  */
 AString
-SurfaceProjector::ProjectionLocation::toString() const
+SurfaceProjector::ProjectionLocation::toString(const SurfaceFile* surfaceFile) const
 {
     AString typeString;
     switch (m_type) {
@@ -1677,6 +1793,7 @@ SurfaceProjector::ProjectionLocation::toString() const
             typeString = "TRIANGLE";
             break;
     }
+    
     AString msg = (" Type="
                    + typeString
                    + " Pos=("
@@ -1690,11 +1807,14 @@ SurfaceProjector::ProjectionLocation::toString() const
                    + " SignedDistance="
                    + AString::number(m_signedDistance)
                    + " Nodes=("
-                   + AString::fromNumbers(m_nodes, 3, ", ")
+                   + AString::fromNumbers(m_nodes, 3, ",")
                    + ") Weights=("
-                   + AString::fromNumbers(m_weights, 3, ", ")
+                   + AString::fromNumbers(m_weights, 3, ",")
                    + ") NearestNode="
-                   + AString::number(m_nearestNode));
+                   + AString::number(m_nearestNode)
+                   + " Node-XYZ=("
+                   + AString::fromNumbers(surfaceFile->getCoordinate(m_nearestNode), 3,",")
+                   + ")");
     
     return msg;
 }

@@ -106,6 +106,9 @@ namespace caret {
          */
         virtual void writeAsXML(XmlWriter& xmlWriter) throw (XmlException) = 0;
         
+        /* @return a string describing the projection */
+        virtual AString toString() const;
+        
     protected:
         /** Number of nodes in surface to which item is projected. */
         int32_t projectionSurfaceNumberOfNodes;
