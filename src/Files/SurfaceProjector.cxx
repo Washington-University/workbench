@@ -304,16 +304,31 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
             }
             else if (spi->getVanEssenProjection()->isValid()) {
                 projTypeString = "Edge";
+                projInfo = spi->getVanEssenProjection()->toString();
             }
             AString matchString = "";
-            if (dist > 0.01) {
+            if (dist > 0.001) {
                 matchString = " FAILED *************************";
                 errorFlag = true;
+            }
+            if (validateString.isEmpty() == false) {
+                validateString += "\n";
+            }
+            if (spi->getStructure() == StructureEnum::CEREBELLUM) {
+                if (spi->getVanEssenProjection()->isValid()) {
+                    errorFlag = true;
+                }
             }
             validateString += (m_validateItemName
                                + ": projType="
                                + projTypeString
-                               + ": stereo/proj positions differ by "
+                               + ": structure="
+                               + StructureEnum::toName(spi->getStructure())
+                               + ", stereoPos=("
+                               + AString::fromNumbers(stereoXYZ, 3, ",")
+                               + "), projPos=("
+                               + AString::fromNumbers(projXYZ, 3, ",")
+                               + "): stereo/proj positions differ by "
                                + AString::number(dist, 'f', 3)
                                + matchString
                                + "\n");
@@ -1536,6 +1551,12 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
          * Angle formed by the normal vectors of the two triangles
          */
         spve->setPhiR((float)std::acos(t2));
+        if (m_validateFlag) {
+            m_validateItemName += (", t2="
+                                   + AString::number(t2)
+                                   + ", angleDegrees="
+                                   + AString::number(MathFunctions::toDegrees(spve->getPhiR())));
+        }
     }
     else {
         spve->setPhiR(0.0f);
@@ -1559,9 +1580,25 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     t3 = MathFunctions::dotProduct(normalA, t1);
     if (t3 > 0.0f) {
         spve->setThetaR((float)std::acos(t3 * (t3/std::fabs(t3))));
+        if ((spve->getThetaR() > -0.001)
+            && (spve->getThetaR() < 0.001)) {
+            const float oneDegreeRadians = (1.0 * M_PI) / 180.0;
+            if (spve->getPhiR() < oneDegreeRadians) {
+                m_validateItemName += (",t3="
+                                       + AString::number(t3)
+                                       + ",thetaR="
+                                       + AString::number(spve->getThetaR(), 'f', 10)
+                                       + "THETAR=NEAR0,t2=SMALL-POSITIVE***");
+            }
+        }
     }
     else {
         spve->setThetaR(0.0f);
+        if (m_validateFlag) {
+            if (t2 < 0.0) {
+                m_validateItemName += (" ***THETAR=0,t2=NEG***");
+            }
+        }
     }
     
     MathFunctions::subtractVectors(coordJR, coordIR, v);

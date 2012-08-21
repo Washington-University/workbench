@@ -306,6 +306,16 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
         thetaS = 0.5f * phiS;
     }
     
+    /*
+     * Fixes unprojection when thetaR is zero NOT ALL CASES YET
+     */
+    if (thetaR == 0.0) {
+//        thetaS = M_PI / 2.0;
+//        if (this->phiR > 0.0) {
+//            thetaS = ((M_PI / 2.0) / this->phiR) * phiS;
+//        }
+    }
+    
     MathFunctions::subtractVectors(posPJS, posPIS, v);
     MathFunctions::normalizeVector(v);
     
@@ -816,4 +826,30 @@ SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     }
 }
 
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+SurfaceProjectionVanEssen::toString() const
+{
+    AString txt = SurfaceProjection::toString();
+    if (txt.isEmpty() == false) {
+        txt += ", ";
+    }
+    txt += ("dR=" + AString::number(dR)
+            + ", thetaR=" + AString::number(thetaR)
+            + ", phiR=" + AString::number(phiR)
+            + ", fracRI=" + AString::number(fracRI)
+            + ", fracRJ=" + AString::number(fracRJ)
+            + ", triVertices=" + AString::fromNumbers((int32_t*)triVertices, 6, ",")
+            + ", vertex=" + AString::fromNumbers(vertex, 2, ",")
+            + ", triAnatomical=" + AString::fromNumbers((float*)triAnatomical, 18, ",")
+            + ", vertexAnatomical=" + AString::fromNumbers((float*)vertexAnatomical, 6, ",")
+            + ", posAnatomical=" + AString::fromNumbers(posAnatomical, 3, ",")
+            );
+    
+    return txt;
+}
 

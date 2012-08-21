@@ -114,6 +114,8 @@ namespace caret {
         
         void setValid(const bool valid);
         
+        virtual AString toString() const;
+        
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
         static  const AString XML_TAG_PROJECTION_VAN_ESSEN;
