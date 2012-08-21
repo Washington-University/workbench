@@ -151,6 +151,7 @@ namespace caret {
         void checkItemInTriangle(const SurfaceFile* surfaceFile,
                                  const int32_t triangleNumber,
                                  const float xyz[3],
+                                 const float degenerateTolerance,
                                  SurfaceProjectionBarycentric* baryProj);
         
         int32_t triangleAreas(
@@ -159,10 +160,12 @@ namespace caret {
                               const float p3[3],
                               const float normal[3],
                               const float xyz[3],
+                              const float degenerateTolerance,
                               float areasOut[3]);
         
         void convertToTriangleProjection(const SurfaceFile* surfaceFile,
-                                         ProjectionLocation& projectionLocation);
+                                         ProjectionLocation& projectionLocation) throw (SurfaceProjectorException);
+
         
         void projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
                                           const ProjectionLocation& projectionLocation,
@@ -180,8 +183,6 @@ namespace caret {
 
         std::vector<bool> m_searchedTriangleFlags;
         
-        static float s_triangleAreaTolerance;
-        
         std::vector<float> m_surfaceNearestNodeToleranceSquared;
         
         float m_nearestNodeToleranceSquared;
@@ -197,10 +198,17 @@ namespace caret {
         
         AString m_validateItemName;
         
+        /** Point in triangle test tolerance that requires point inside triangle */
+        static float s_normalTriangleAreaTolerance;
+        
+        /** Point in triangle test tolerance that allows point outside triangle (degenerate case) */
+        static float s_extremeTriangleAreaTolerance;
+        
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__
-    float SurfaceProjector::s_triangleAreaTolerance = -0.01;
+    float SurfaceProjector::s_normalTriangleAreaTolerance = -0.01;
+    float SurfaceProjector::s_extremeTriangleAreaTolerance = -10000000.0;
 #endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 

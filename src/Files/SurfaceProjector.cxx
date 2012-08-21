@@ -97,7 +97,13 @@ SurfaceProjector::initializeMembersSurfaceProjector()
     m_surfaceOffset = 0.0;
     m_surfaceOffsetValid = false;
     computeSurfaceNearestNodeTolerances();
-    m_validateFlag = false;
+
+    /*
+     * Validate when logger is set at a specified level
+     * If the level is changed, all need to change level
+     * where validation message is logged.
+     */
+    m_validateFlag = CaretLogger::getLogger()->isFine();
     m_validateItemName = "";
 }
 
@@ -125,13 +131,9 @@ SurfaceProjector::setSurfaceOffset(const float surfaceOffset)
 void
 SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException)
 {
-    m_validateFlag = true;
-    
     CaretAssert(fociFile);
     const int32_t numberOfFoci = fociFile->getNumberOfFoci();
     
-//    AString validateString;
-//    bool validateFlag = true;
     AString errorMessage = "";
     for (int32_t i = 0; i < numberOfFoci; i++) {
         Focus* focus = fociFile->getFocus(i);
@@ -143,54 +145,6 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
                                       + focus->getName());
             }
             projectFocus(focus);
-//            
-//            if (validateFlag) {
-//                SurfaceProjectedItem* spi = focus->getProjection(0);
-//                if (spi->getBarycentricProjection()->isValid()
-//                    || spi->getVanEssenProjection()->isValid()) {
-//                    for (std::vector<const SurfaceFile*>::const_iterator iter = m_surfaceFiles.begin();
-//                         iter != m_surfaceFiles.end();
-//                         iter++) {
-//                        const SurfaceFile* sf = *iter;
-//                        if (sf->getStructure() == spi->getStructure()) {
-//                            float projXYZ[3];
-//                            spi->getProjectedPosition(*sf, projXYZ, false);
-//                            float stereoXYZ[3];
-//                            spi->getStereotaxicXYZ(stereoXYZ);
-//                            const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
-//                            AString projTypeString = "Unprojected";
-//                            if (spi->getBarycentricProjection()->isValid()) {
-//                                projTypeString = "Triangle";
-//                                if (spi->getBarycentricProjection()->isDegenerate()) {
-//                                    projTypeString = "-degenerate";
-//                                }
-//                            }
-//                            else if (spi->getVanEssenProjection()->isValid()) {
-//                                projTypeString = "Edge";
-//                            }
-//                            AString matchString = " FAILED";
-//                            if (dist < 0.25) {
-//                                matchString = "";
-//                            }
-//                            validateString += (focus->getName()
-//                                               + " Index="
-//                                               + AString::number(i)
-//                                               + " projType="
-//                                               + projTypeString
-//                                               + ": stereo/proj positions differ by "
-//                                               + AString::number(dist, 'f', 3)
-//                                               + matchString
-//                                               + "\n");
-//                        }
-//                    }
-//                }
-//                else {
-//                    validateString += (focus->getName()
-//                                       + " Index="
-//                                       + AString::number(i)
-//                                       + " failed to project\n");
-//                }
-//            }
         }
         catch (const SurfaceProjectorException& spe) {
             if (errorMessage.isEmpty() == false) {
@@ -203,10 +157,6 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
                              + spe.whatString());
         }
     }
-    
-//    if (validateString.isEmpty() == false) {
-//        std::cout << qPrintable(validateString) << std::endl;
-//    }
     
     if (errorMessage.isEmpty() == false) {
         throw SurfaceProjectorException(errorMessage);
@@ -353,7 +303,6 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
             }
             else if (spi->getVanEssenProjection()->isValid()) {
                 projTypeString = "Edge";
-                errorFlag = true;
             }
             AString matchString = "";
             if (dist > 0.01) {
@@ -380,7 +329,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
         
         if (errorFlag
             && (validateString.isEmpty() == false)) {
-            std::cout << qPrintable(validateString) << std::endl;
+            CaretLogFine(validateString);
         }
     }
 }
@@ -477,7 +426,6 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
         m_validateItemName += ("ORIGINAL: "
                                + projectionLocation.toString(surfaceFile));
     }
-    //std::cout << "ORIGINAL: " << qPrintable(projectionLocation.toString(surfaceFile)) << std::endl;
     
     /*
      * If projected to edge and edge projection allowed
@@ -508,7 +456,6 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                 m_validateItemName += ("ALTERED: "
                                        + projectionLocation.toString(surfaceFile));
             }
-            //std::cout << "ALTERED: " << qPrintable(projectionLocation.toString(surfaceFile)) << std::endl;
         }
         
         
@@ -531,6 +478,7 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
 void
 SurfaceProjector::convertToTriangleProjection(const SurfaceFile* surfaceFile,
                                               ProjectionLocation& projectionLocation)
+                                                         throw (SurfaceProjectorException)
 {
     bool doIt = false;
     
@@ -549,13 +497,11 @@ SurfaceProjector::convertToTriangleProjection(const SurfaceFile* surfaceFile,
     
     if (doIt) {
         SurfaceProjectionBarycentric baryProj;
-        const float savedTriangleAreaTolerance = s_triangleAreaTolerance;
-        s_triangleAreaTolerance = -std::numeric_limits<float>::max();
         checkItemInTriangle(surfaceFile,
                             projectionLocation.m_triangleIndices[0],
                             projectionLocation.m_pointXYZ,
+                            s_extremeTriangleAreaTolerance,
                             &baryProj);
-        s_triangleAreaTolerance = savedTriangleAreaTolerance;
         if (baryProj.isValid()) {
             projectionLocation.m_type = ProjectionLocation::TRIANGLE;
             const int32_t* nodes = baryProj.getTriangleNodes();
@@ -568,6 +514,9 @@ SurfaceProjector::convertToTriangleProjection(const SurfaceFile* surfaceFile,
             projectionLocation.m_weights[2] = areas[2];
             projectionLocation.m_signedDistance = baryProj.getSignedDistanceAboveSurface();
             projectionLocation.m_absoluteDistance = std::fabs(projectionLocation.m_signedDistance);
+        }
+        else {
+            throw SurfaceProjectorException("Failed to convert from edge/node projection to triangle projection");
         }
     }
     
@@ -1108,6 +1057,7 @@ SurfaceProjector::findEnclosingTriangle(const SurfaceFile* surfaceFile,
         checkItemInTriangle(surfaceFile,
                             triangle,
                             xyz,
+                            s_normalTriangleAreaTolerance,
                             baryProj);
         
         if (baryProj->isValid()) {
@@ -1128,15 +1078,18 @@ SurfaceProjector::findEnclosingTriangle(const SurfaceFile* surfaceFile,
  *    Triangle to check.
  * @param xyz
  *    The coordinate
- * @param spb
+ * @param degenerateTolerance
+ *    If the point is outside the triangle, an output area will be negative.
+ *    In most cases use zero or a negative value (-0.01) very near zero.  A very
+ *    negative value can be used to allow degenerate cases.
+ * @param baryProj
  *    Barycentric projection into triangle.
- * @return
- *    true if within triangle.
  */
 void
 SurfaceProjector::checkItemInTriangle(const SurfaceFile* surfaceFile,
                                       const int32_t triangleNumber,
                                       const float xyz[3],
+                                      const float degenerateTolerance,
                                       SurfaceProjectionBarycentric* baryProj)
 {
     //
@@ -1226,7 +1179,13 @@ SurfaceProjector::checkItemInTriangle(const SurfaceFile* surfaceFile,
     // then there is no need to continue searching.
     //
     float areas[3] = { 0.0f, 0.0f, 0.0f };
-    int result = triangleAreas(v1, v2, v3, normal, queryXYZ, areas);
+    int result = triangleAreas(v1,
+                               v2,
+                               v3,
+                               normal,
+                               queryXYZ,
+                               degenerateTolerance,
+                               areas);
     if (result != 0) {
         baryProj->setValid(true);
         if (result < 0) {
@@ -1257,6 +1216,10 @@ SurfaceProjector::checkItemInTriangle(const SurfaceFile* surfaceFile,
  *    Triangle's normal vector.
  * @param xyz
  *    The coordinate being examined.
+ * @param degenerateTolerance
+ *    If the point is outside the triangle, an output area will be negative.
+ *    In most cases use zero or a negative value (-0.01) very near zero.  A very
+ *    negative value can be used to allow degenerate cases.
  * @param areasOut
  *    Output barycentric areas of xyz in the triangle OUTPUT.
  * @return
@@ -1273,6 +1236,7 @@ SurfaceProjector::triangleAreas(
                    const float p3[3],
                    const float normal[3],
                    const float xyz[3],
+                   const float degenerateTolerance,
                    float areasOut[3])
 {
     float area1 = 0.0f;
@@ -1284,25 +1248,12 @@ SurfaceProjector::triangleAreas(
     
     switch (m_surfaceTypeHint) {
         case SURFACE_HINT_FLAT:
-            //            area1 = MathFunctions::triangleAreaSigned2D(p1, p2, xyz);
-            //            if (area1 > triangleAreaTolerance) {
-            //               area2 = MathFunctions::triangleAreaSigned2D(p2, p3, xyz);
-            //               if (area2 > triangleAreaTolerance) {
-            //                  area3 = MathFunctions::triangleAreaSigned2D(p3, p1, xyz);
-            //                  if (area3 > triangleAreaTolerance) {
-            //                     inside = true;
-            //                     triangleArea = MathFunctions::triangleAreaSigned2D(p1,
-            //                                                                       p2,
-            //                                                                       p3);
-            //                  }
-            //               }
-            //            }
             area1 = MathFunctions::triangleAreaSigned2D(p2, p3, xyz);
-            if (area1 > s_triangleAreaTolerance) {
+            if (area1 > degenerateTolerance) {
                 area2 = MathFunctions::triangleAreaSigned2D(p3, p1, xyz);
-                if (area2 > s_triangleAreaTolerance) {
+                if (area2 > degenerateTolerance) {
                     area3 = MathFunctions::triangleAreaSigned2D(p1, p2, xyz);
-                    if (area3 > s_triangleAreaTolerance) {
+                    if (area3 > degenerateTolerance) {
                         inside = true;
                         triangleArea = MathFunctions::triangleAreaSigned2D(p1,
                                                                           p2,
@@ -1313,25 +1264,12 @@ SurfaceProjector::triangleAreas(
             break;
         case SURFACE_HINT_SPHERE:
         case SURFACE_HINT_THREE_DIMENSIONAL:
-            /*
-             area1 = MathFunctions::triangleAreaSigned3D(normal, p1, p2, xyz);
-             if (area1 >= triangleAreaTolerance) {
-             area2 = MathFunctions::triangleAreaSigned3D(normal, p2, p3, xyz);
-             if (area2 >= triangleAreaTolerance) {
-             area3 = MathFunctions::triangleAreaSigned3D(normal, p3,p1,xyz);
-             if (area3 >= triangleAreaTolerance) {
-             inside = true;
-             triangleArea = MathFunctions::triangleArea(p1, p2, p3);
-             }
-             }
-             }
-             */
             area1 = MathFunctions::triangleAreaSigned3D(normal, p2, p3, xyz);
-            if (area1 >= s_triangleAreaTolerance) {
+            if (area1 >= degenerateTolerance) {
                 area2 = MathFunctions::triangleAreaSigned3D(normal, p3, p1, xyz);
-                if (area2 >= s_triangleAreaTolerance) {
+                if (area2 >= degenerateTolerance) {
                     area3 = MathFunctions::triangleAreaSigned3D(normal, p1,p2,xyz);
-                    if (area3 >= s_triangleAreaTolerance) {
+                    if (area3 >= degenerateTolerance) {
                         inside = true;
                         triangleArea = MathFunctions::triangleArea(p1, p2, p3);
                     }
@@ -1394,6 +1332,8 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
         projectionLocation.m_pointXYZ[1],
         projectionLocation.m_pointXYZ[2]
     };
+    
+    const bool pointIsUnderSurface = (projectionLocation.m_signedDistance < 0.0);
     
     //
     // Find nearest triangle to coordinate
@@ -1477,6 +1417,15 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     surfaceFile->getTriangleNormalVector(triA, normalA);
     
     /*
+     * When point is under surface, need to flip the normal vector
+     */
+    if (pointIsUnderSurface) {
+        for (int32_t i = 0; i < 3; i++) {
+            normalA[i] *= -1.0;
+        }
+    }
+    
+    /*
      * Second triangle might not be found if topology is open or cut.
      */
     float normalB[3] = { 0.0f, 0.0f, 0.0f };
@@ -1485,6 +1434,15 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
          * Normal vector for triangle sharing edge with nearest triangle
          */
         surfaceFile->getTriangleNormalVector(triB, normalB);
+        
+        /*
+         * When point is under surface, need to flip the normal vector
+         */
+        if (pointIsUnderSurface) {
+            for (int32_t i = 0; i < 3; i++) {
+                normalB[i] *= -1.0;
+            }
+        }
     }
     else {
         float dR =
