@@ -62,7 +62,8 @@ namespace caret {
         
         void projectFociFile(FociFile* fociFile) throw (SurfaceProjectorException);
         
-        void projectFocus(Focus* focus) throw (SurfaceProjectorException);
+        void projectFocus(const int32_t focusIndex,
+                          Focus* focus) throw (SurfaceProjectorException);
         
         void setSurfaceOffset(const float surfaceOffset);
         
@@ -197,6 +198,8 @@ namespace caret {
         bool m_validateFlag;
         
         AString m_validateItemName;
+        
+        AString m_projectionWarning;
         
         /** Point in triangle test tolerance that requires point inside triangle */
         static float s_normalTriangleAreaTolerance;

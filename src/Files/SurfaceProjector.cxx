@@ -145,7 +145,8 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
                                       + ", "
                                       + focus->getName());
             }
-            projectFocus(focus);
+            projectFocus(i,
+                         focus);
         }
         catch (const SurfaceProjectorException& spe) {
             if (errorMessage.isEmpty() == false) {
@@ -172,7 +173,8 @@ SurfaceProjector::projectFociFile(FociFile* fociFile) throw (SurfaceProjectorExc
  *      If projecting an item failed.
  */
 void
-SurfaceProjector::projectFocus(Focus* focus) throw (SurfaceProjectorException)
+SurfaceProjector::projectFocus(const int32_t focusIndex,
+                               Focus* focus) throw (SurfaceProjectorException)
 {
     const int32_t numberOfProjections = focus->getNumberOfProjections();
     CaretAssert(numberOfProjections > 0);
@@ -182,6 +184,16 @@ SurfaceProjector::projectFocus(Focus* focus) throw (SurfaceProjectorException)
     focus->removeExtraProjections();
     SurfaceProjectedItem* spi = focus->getProjection(0);
     projectItemToTriangleOrEdge(spi);
+
+    if (m_projectionWarning.isEmpty() == false) {
+        AString msg = ("Focus: Name="
+                       + focus->getName()
+                       + ", Index="
+                       + AString::number(focusIndex)
+                       + ": "
+                       + m_projectionWarning);
+        CaretLogWarning(msg);;
+    }
 }
 
 /**
@@ -238,6 +250,8 @@ SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (
 void
 SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
 {
+    m_projectionWarning = "";
+    
     const int32_t numberOfSurfaceFiles = static_cast<int32_t>(m_surfaceFiles.size());
     if (numberOfSurfaceFiles <= 0) {
         throw SurfaceProjectorException("No surface for projection!");
@@ -283,16 +297,34 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
                      spi);
     
     
+    float projXYZ[3];
+    float stereoXYZ[3];
+    float distanceError = 0.0;
+    bool projectionValid = false;
+    if (spi->getBarycentricProjection()->isValid()
+        || spi->getVanEssenProjection()->isValid()) {
+        spi->getProjectedPosition(*projectionSurfaceFile, projXYZ, false);
+        spi->getStereotaxicXYZ(stereoXYZ);
+        distanceError = MathFunctions::distance3D(projXYZ, stereoXYZ);
+        projectionValid = true;
+    }
+    
+    if (m_validateFlag == false) {
+        if (distanceError > 0.001) {
+            m_projectionWarning = ("Projection Warning: Error="
+                                   + AString::number(distanceError)
+                                   + "mm, Stereotaxic=("
+                                   + AString::fromNumbers(stereoXYZ, 3, ",")
+                                   + "), Projected=("
+                                   + AString::fromNumbers(projXYZ, 3, ",")
+                                   + ")");
+        }
+    }
+    
     if (m_validateFlag) {
         bool errorFlag = false;
         AString validateString;
-        if (spi->getBarycentricProjection()->isValid()
-            || spi->getVanEssenProjection()->isValid()) {
-            float projXYZ[3];
-            spi->getProjectedPosition(*projectionSurfaceFile, projXYZ, false);
-            float stereoXYZ[3];
-            spi->getStereotaxicXYZ(stereoXYZ);
-            const float dist = MathFunctions::distance3D(projXYZ, stereoXYZ);
+        if (projectionValid) {
             AString projTypeString = "Unprojected";
             AString projInfo;
             if (spi->getBarycentricProjection()->isValid()) {
@@ -307,7 +339,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
                 projInfo = spi->getVanEssenProjection()->toString();
             }
             AString matchString = "";
-            if (dist > 0.001) {
+            if (distanceError > 0.001) {
                 matchString = " FAILED *************************";
                 errorFlag = true;
             }
@@ -329,7 +361,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
                                + "), projPos=("
                                + AString::fromNumbers(projXYZ, 3, ",")
                                + "): stereo/proj positions differ by "
-                               + AString::number(dist, 'f', 3)
+                               + AString::number(distanceError, 'f', 3)
                                + matchString
                                + "\n");
             if (projInfo.isEmpty() == false) {
@@ -1459,6 +1491,11 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
                 normalB[i] *= -1.0;
             }
         }
+//        const float invCosAngle = MathFunctions::dotProduct(normalA, normalB);
+//        if ((invCosAngle > 0.999)
+//            || (invCosAngle < -0.999)) {
+//            triB = -1;
+//        }
     }
     else {
         float dR =
