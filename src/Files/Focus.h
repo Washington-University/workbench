@@ -170,6 +170,10 @@ namespace caret {
         bool setElementFromText(const AString& elementName,
                                 const AString& textValue);
         
+        virtual void clearModified();
+        
+        virtual bool isModified() const;
+        
         static const AString XML_ATTRIBUTE_FOCUS_INDEX;
         static const AString XML_TAG_FOCUS;
         static const AString XML_TAG_AREA;

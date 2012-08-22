@@ -951,4 +951,39 @@ Focus::setElementFromText(const AString& elementName,
     return true;
 }
 
+/**
+ * Clear the modification status of the focus.
+ */
+void
+Focus::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    
+    const int numProj = getNumberOfProjections();
+    for (int32_t i = 0; i < numProj; i++) {
+        SurfaceProjectedItem* spi = getProjection(i);
+        spi->clearModified();
+    }
+}
+
+/**
+ * @return The modification status.
+ */
+bool
+Focus::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    
+    const int numProj = getNumberOfProjections();
+    for (int32_t i = 0; i < numProj; i++) {
+        const SurfaceProjectedItem* spi = getProjection(i);
+        if (spi->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
