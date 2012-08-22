@@ -45,7 +45,9 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
+#include "CaretLogger.h"
 #include "GuiManager.h"
+#include "SurfaceProjector.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -70,7 +72,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     /*
      * File selection combo box
      */
-    QLabel* fociFileLabel = new QLabel("Focus File");
+    QLabel* fociFileLabel = new QLabel("File");
     m_fociFileSelectionComboBox = new QComboBox();
     loadFociFileComboBox(fociFile);
     WuQtUtilities::setToolTipAndStatusTip(m_fociFileSelectionComboBox, 
@@ -169,6 +171,9 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     QLabel* statisticLabel = new QLabel("Statistic");
     m_statisticLineEdit = new QLineEdit();
     
+    m_projectCheckBox = new QCheckBox("Project to Surface");
+    m_projectCheckBox->setChecked(s_previousFociProjectSelected);
+    
     /*
      * Layout widgets
      */
@@ -220,6 +225,10 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     row++;
     gridLayout->addWidget(statisticLabel, row, 0);
     gridLayout->addWidget(m_statisticLineEdit, row, 1, 1, 3);
+    row++;
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
+    row++;
+    gridLayout->addWidget(m_projectCheckBox, row, 0, 1, 4);
     row++;
 
     /*
@@ -419,10 +428,32 @@ FociPropertiesEditorDialog::okButtonClicked()
     }
     
     /*
+     * Project the focus
+     */
+    if (m_projectCheckBox->isChecked()) {
+        Brain* brain = GuiManager::get()->getBrain();
+        
+        std::vector<const SurfaceFile*> surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
+        
+        try {
+            SurfaceProjector projector(surfaceFiles);
+            projector.projectFocus(0, m_focus);
+        }
+        catch (SurfaceProjectorException& spe) {
+            CaretLogSevere(spe.whatString());
+        }        
+    }
+                                   
+    /*
      * Copy data to the focus
      */
     loadFromDialogIntoFocusData(m_focus);
 
+    /*
+     * Save project status
+     */
+    s_previousFociProjectSelected = m_projectCheckBox->isChecked();
+    
     /*
      * continue with OK button processing
      */
@@ -519,6 +550,27 @@ FociPropertiesEditorDialog::displayClassEditor()
         }
     }
 }
+
+/**
+ * @return Is the project checkbox selected?
+ */
+bool
+FociPropertiesEditorDialog::isProjectSelected()
+{
+    return m_projectCheckBox->isChecked();
+}
+
+/**
+ * set the status of the project checkbox.
+ * @param selected
+ *    New status.
+ */
+void
+FociPropertiesEditorDialog::setProjectSelected(const bool selected)
+{
+    m_projectCheckBox->setChecked(selected);
+}
+
 
 
 

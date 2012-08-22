@@ -59,6 +59,10 @@ namespace caret {
 
         void loadFromDialogIntoFocusData(Focus* focus) const;
         
+        bool isProjectSelected();
+        
+        void setProjectSelected(const bool selected);
+        
     protected:
         virtual void okButtonClicked();
         
@@ -103,9 +107,14 @@ namespace caret {
         QLineEdit* m_regionOfInterestLineEdit;
         
         QLineEdit* m_statisticLineEdit;
+        
+        QCheckBox* m_projectCheckBox;
+
+        static bool s_previousFociProjectSelected;
     };
     
 #ifdef __FOCI_PROPERTIES_EDITOR_DIALOG__DECLARE__
+    bool FociPropertiesEditorDialog::s_previousFociProjectSelected = true;
 #endif // __FOCI_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
 } // namespace

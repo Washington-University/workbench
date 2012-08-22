@@ -72,7 +72,7 @@ FociProjectionDialog::FociProjectionDialog(QWidget* parent)
 : WuQDialogModal("Project Foci",
                  parent)
 {
-    QWidget* surfaceWidget = createSurfaceSelectionWidget();
+    QWidget* surfaceWidget = NULL; //createSurfaceSelectionWidget();
     
     QWidget* fociFileWidget = createFociFileSelectionWidget();
     
@@ -80,7 +80,9 @@ FociProjectionDialog::FociProjectionDialog(QWidget* parent)
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(surfaceWidget);
+    if (surfaceWidget != NULL) {
+        layout->addWidget(surfaceWidget);
+    }
     layout->addWidget(fociFileWidget);
     layout->addWidget(optionsWidget);
     
@@ -105,33 +107,35 @@ FociProjectionDialog::okButtonClicked()
     cursor.showWaitCursor();
     
     std::vector<const SurfaceFile*> surfaceFiles;
-    if (m_leftSurfaceCheckBox != NULL) {
-        if (m_leftSurfaceCheckBox->isChecked()) {
-            const Surface* sf = m_leftSurfaceViewController->getSurface();
-            if (sf != NULL) {
-                surfaceFiles.push_back(sf);
-            }
-        }
-    }
-    if (m_rightSurfaceCheckBox != NULL) {
-        if (m_rightSurfaceCheckBox->isChecked()) {
-            const Surface* sf = m_rightSurfaceViewController->getSurface();
-            if (sf != NULL) {
-                surfaceFiles.push_back(sf);
-            }
-        }
-    }
-    if (m_cerebellumSurfaceCheckBox != NULL) {
-        if (m_cerebellumSurfaceCheckBox->isChecked()) {
-            const Surface* sf = m_cerebellumSurfaceViewController->getSurface();
-            if (sf != NULL) {
-                surfaceFiles.push_back(sf);
-            }
-        }
-    }
+//    if (m_leftSurfaceCheckBox != NULL) {
+//        if (m_leftSurfaceCheckBox->isChecked()) {
+//            const Surface* sf = m_leftSurfaceViewController->getSurface();
+//            if (sf != NULL) {
+//                surfaceFiles.push_back(sf);
+//            }
+//        }
+//    }
+//    if (m_rightSurfaceCheckBox != NULL) {
+//        if (m_rightSurfaceCheckBox->isChecked()) {
+//            const Surface* sf = m_rightSurfaceViewController->getSurface();
+//            if (sf != NULL) {
+//                surfaceFiles.push_back(sf);
+//            }
+//        }
+//    }
+//    if (m_cerebellumSurfaceCheckBox != NULL) {
+//        if (m_cerebellumSurfaceCheckBox->isChecked()) {
+//            const Surface* sf = m_cerebellumSurfaceViewController->getSurface();
+//            if (sf != NULL) {
+//                surfaceFiles.push_back(sf);
+//            }
+//        }
+//    }
     
     AString errorMessages = "";
     Brain* brain = GuiManager::get()->getBrain();
+    
+    surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
     
     const int32_t numberOfFociFiles = static_cast<int32_t>(m_fociFiles.size());
     for (int32_t i = 0; i < numberOfFociFiles; i++) {

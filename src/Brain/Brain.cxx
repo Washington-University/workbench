@@ -1472,10 +1472,10 @@ Brain::getSurfaceWithName(const AString& surfaceFileName,
 /**
  * @return The volume interaction surfaces from all brain structures.
  */
-std::vector<Surface*>
+std::vector<const Surface*>
 Brain::getVolumeInteractionSurfaces() const
 {
-    std::vector<Surface*> surfaces;
+    std::vector<const Surface*> surfaces;
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
@@ -1483,6 +1483,21 @@ Brain::getVolumeInteractionSurfaces() const
     }
     
     return surfaces;
+}
+
+/**
+ * @return The volume interaction surfaces from all brain structures.
+ */
+std::vector<const SurfaceFile*>
+Brain::getVolumeInteractionSurfaceFiles() const
+{
+    std::vector<const Surface*> surfaces = getVolumeInteractionSurfaces();
+    std::vector<const SurfaceFile*> surfaceFiles;
+    surfaceFiles.insert(surfaceFiles.end(),
+                        surfaces.begin(),
+                        surfaces.end());
+    
+    return surfaceFiles;
 }
 
 /**
