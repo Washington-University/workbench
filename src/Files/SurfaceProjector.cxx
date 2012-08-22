@@ -310,7 +310,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
     }
     
     if (m_validateFlag == false) {
-        if (distanceError > 0.001) {
+        if (distanceError > s_projectionDistanceError) {
             m_projectionWarning = ("Projection Warning: Error="
                                    + AString::number(distanceError)
                                    + "mm, Stereotaxic=("
@@ -348,7 +348,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
             }
             if (spi->getStructure() == StructureEnum::CEREBELLUM) {
                 if (spi->getVanEssenProjection()->isValid()) {
-                    errorFlag = true;
+                    //errorFlag = true;
                 }
             }
             validateString += (m_validateItemName

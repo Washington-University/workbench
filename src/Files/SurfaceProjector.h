@@ -207,11 +207,15 @@ namespace caret {
         /** Point in triangle test tolerance that allows point outside triangle (degenerate case) */
         static float s_extremeTriangleAreaTolerance;
         
+        /** Projection distance error used to compare original and after projection/unprojection */
+        static float s_projectionDistanceError;
+        
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__
     float SurfaceProjector::s_normalTriangleAreaTolerance = -0.01;
     float SurfaceProjector::s_extremeTriangleAreaTolerance = -10000000.0;
+    float SurfaceProjector::s_projectionDistanceError = 0.5;
 #endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 
