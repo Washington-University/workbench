@@ -137,7 +137,7 @@ UserInputModeFociWidget::updateWidget()
             break;
         case UserInputModeFoci::MODE_EDIT:
             m_operationStackedWidget->setCurrentWidget(m_editOperationWidget);
-            setActionGroupByActionData(m_createOperationActionGroup,
+            setActionGroupByActionData(m_editOperationActionGroup,
                                              m_inputModeFoci->getEditOperation());
             break;
         case UserInputModeFoci::MODE_OPERATIONS:

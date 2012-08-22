@@ -96,6 +96,8 @@ namespace caret {
 
     private:
 
+        void updateAfterFociChanged();
+        
         // ADD_NEW_MEMBERS_HERE
         
         const int32_t m_windowIndex;

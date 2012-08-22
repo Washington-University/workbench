@@ -37,9 +37,18 @@
 #undef __USER_INPUT_MODE_FOCI_DECLARE__
 
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "CaretAssert.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "FociFile.h"
+#include "FociPropertiesEditorDialog.h"
+#include "Focus.h"
+#include "IdentificationItemFocusSurface.h"
+#include "IdentificationManager.h"
 #include "MouseEvent.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeView.h"
@@ -63,6 +72,7 @@ UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
     m_inputModeFociWidget = new UserInputModeFociWidget(this,
                                                         windowIndex);
     m_mode = MODE_CREATE;
+    m_editOperation = EDIT_OPERATION_PROPERTIES;
 }
 
 /**
@@ -166,8 +176,60 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                                         && mouseEvent->isControlAndShiftKeyDown());
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
                                                   && mouseEvent->isShiftKeyDown());
+        bool doTransformation = false;
         
-        if (isLeftDrag || isWheel) {
+        switch (m_mode){
+            case MODE_CREATE:
+                if ((isLeftDrag || isWheel)) {
+                    doTransformation = true;
+                }
+                break;
+            case MODE_EDIT:
+            {
+                FociFile* fociFile = NULL;
+                Focus*    focus = NULL;
+                
+                if (isLeftClick) {
+                    IdentificationManager* idManager =
+                       openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                    IdentificationItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
+                    if (idFocus->isValid()) {
+                        fociFile = idFocus->getFociFile();
+                        CaretAssert(fociFile);
+                        focus    = idFocus->getFocus();
+                        CaretAssert(focus);
+                        
+                        switch (m_editOperation) {
+                            case EDIT_OPERATION_DELETE:
+                                fociFile->removeFocus(focus);
+                                updateAfterFociChanged();
+                                break;
+                            case EDIT_OPERATION_PROPERTIES:
+                            {
+                                FociPropertiesEditorDialog fped("Edit Focus",
+                                                           fociFile,
+                                                           focus,
+                                                           false,
+                                                                openGLWidget);
+                                fped.exec();
+                            }
+                        }
+                    }
+                }
+                else if ((isLeftDrag || isWheel)) {
+                    doTransformation = true;
+                }
+                
+            }
+                break;
+            case MODE_OPERATIONS:
+                if ((isLeftDrag || isWheel)) {
+                    doTransformation = true;
+                }
+                break;
+        }
+        
+        if (doTransformation) {
             UserInputModeView::processModelViewTransformation(mouseEvent,
                                                               viewportContent,
                                                               openGLWidget,
@@ -234,5 +296,16 @@ UserInputModeFoci::getCursor() const
     
     return cursor;
 }
+
+void
+UserInputModeFoci::updateAfterFociChanged()
+{
+    /*
+     * Need to update all graphics windows and all border controllers.
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addFoci().getPointer());
+}
+
 
 
