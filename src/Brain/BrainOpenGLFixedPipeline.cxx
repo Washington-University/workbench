@@ -2244,6 +2244,14 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                 }
 
+                /*
+                 * Foreground color for slice coordinate text
+                 */
+                const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                uint8_t foregroundRGB[3];
+                prefs->getColorForeground(foregroundRGB);
+                const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
+
                 
                 /*
                  * Determine a slice offset to selected slices is in
@@ -2284,15 +2292,18 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                selectedVoxelXYZ);
                                 const float sliceCoord = (sliceOrigin
                                                           + sliceThickness * sliceIndex);
-                                const AString coordText = (axisLetter
-                                                           + "="
-                                                           + AString::number(sliceCoord, 'f', 0)
-                                                           + "mm");
-                                this->drawTextWindowCoords((vpSizeX - 5),
-                                                           5,
-                                                           coordText,
-                                                           BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                           BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                                if (showCoordinates) {
+                                    const AString coordText = (axisLetter
+                                                               + "="
+                                                               + AString::number(sliceCoord, 'f', 0)
+                                                               + "mm");
+                                    glColor3ubv(foregroundRGB);
+                                    this->drawTextWindowCoords((vpSizeX - 5),
+                                                               5,
+                                                               coordText,
+                                                               BrainOpenGLTextRenderInterface::X_RIGHT,
+                                                               BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                                }
                             }
                             sliceIndex += sliceStep;
                         }

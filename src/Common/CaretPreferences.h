@@ -86,6 +86,10 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
+        bool isVolumeMontageAxesCoordinatesDisplayed() const;
+        
+        void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
+        
         bool isDataFileAddToSpecFileEnabled() const;
         
         void setDataFileAddToSpecFileEnabled(const bool enabled);
@@ -154,6 +158,8 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
+        bool displayVolumeAxesCoordinates;
+        
         bool dataFileAddToSpecFileEnabled;
         
         bool splashScreenEnabled;
@@ -167,6 +173,7 @@ namespace caret {
         static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_AXES_CROSSHAIRS;
         static const AString NAME_AXES_LABELS;
+        static const AString NAME_AXES_COORDINATE;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
         static const AString NAME_DATA_FILE_ADD_TO_SPEC_FILE;
@@ -184,6 +191,7 @@ namespace caret {
     const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
     const AString CaretPreferences::NAME_AXES_CROSSHAIRS = "volumeAxesCrosshairs";
     const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
+    const AString CaretPreferences::NAME_AXES_COORDINATE     = "volumeAxesCoordinates";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
     const AString CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE = "dataFileAddToSpecFile";

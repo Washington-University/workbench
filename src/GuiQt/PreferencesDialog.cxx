@@ -182,7 +182,7 @@ PreferencesDialog::updateDialog()
     
     this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
-    
+    this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
     this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     
     this->allWidgets->blockAllSignals(false);
@@ -351,14 +351,20 @@ PreferencesDialog::addVolumeItems()
     QObject::connect(this->volumeAxesLabelsComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(volumeAxesLabelsComboBoxToggled(bool)));
     
+    this->volumeAxesMontageCoordinatesComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesMontageCoordinatesComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
     
     this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
     this->allWidgets->add(this->volumeAxesLabelsComboBox);
+    this->allWidgets->add(this->volumeAxesMontageCoordinatesComboBox);
     
     this->addWidgetToLayout("Volume Axes Crosshairs: ", 
                             this->volumeAxesCrosshairsComboBox->getWidget());
-    this->addWidgetToLayout("Volume Axes Labels: ", 
+    this->addWidgetToLayout("Volume Axes Labels: ",
                             this->volumeAxesLabelsComboBox->getWidget());
+    this->addWidgetToLayout("Volume Montage Slice Coord: ",
+                            this->volumeAxesMontageCoordinatesComboBox->getWidget());
 }
 
 /**
@@ -384,6 +390,19 @@ PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesLabelsDisplayed(value);    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when volume labels is toggled.
+ * @param value
+ *    New value.
+ */
+void
+PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeMontageAxesCoordinatesDisplayed(value);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

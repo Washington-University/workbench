@@ -551,6 +551,29 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
                      this->displayVolumeAxesLabels);
 }
 
+
+/**
+ * @return  Are montage axes coordinates displayed?
+ */
+bool
+CaretPreferences::isVolumeMontageAxesCoordinatesDisplayed() const
+{
+    return this->displayVolumeAxesCoordinates;
+}
+
+/**
+ * Set montage axes coordinates displayed
+ * @param displayed
+ *   New status.
+ */
+void
+CaretPreferences::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
+{
+    this->displayVolumeAxesCoordinates = displayed;
+    this->setBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+                     this->displayVolumeAxesCoordinates);
+}
+
 /**
  * @return Is add data file to spec file enabled?
  */
@@ -709,7 +732,8 @@ CaretPreferences::readPreferences()
                                                      true);
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
                                                          true);    
-
+    this->displayVolumeAxesCoordinates = this->getBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+                                                          true);
     this->dataFileAddToSpecFileEnabled = this->getBoolean(CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE,
                                                           true);
     
