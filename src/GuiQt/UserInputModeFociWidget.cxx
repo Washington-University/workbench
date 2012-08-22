@@ -274,20 +274,21 @@ UserInputModeFociWidget::createOperationActionTriggered(QAction* action)
             s_previousFocus = new Focus();
         }
         *focus = *s_previousFocus;
-        FociPropertiesEditorDialog focusCreateDialog("Create Focus",
-                                                     s_previousFociFile,
-                                                     focus,
-                                                     true,
-                                                     this);
-        if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
-            s_previousFociFile = focusCreateDialog.getSelectedFociFile();
-            focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
-            s_previousFociFile->addFocus(focus);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        }
-        else {
-            delete focus;
-        }
+        displayFocusCreationDialog(focus);
+//        FociPropertiesEditorDialog focusCreateDialog("Create Focus",
+//                                                     s_previousFociFile,
+//                                                     focus,
+//                                                     true,
+//                                                     this);
+//        if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
+//            s_previousFociFile = focusCreateDialog.getSelectedFociFile();
+//            focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
+//            s_previousFociFile->addFocus(focus);
+//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//        }
+//        else {
+//            delete focus;
+//        }
     }
     else {
         CaretAssertMessage(0,
@@ -295,6 +296,68 @@ UserInputModeFociWidget::createOperationActionTriggered(QAction* action)
     }
 }
 
+/**
+ * Display the focus creation dialog for creating a focus with
+ * the given name, coordinate, and comment.
+ * @param name
+ *    Name for focus.
+ * @param xyz
+ *    Coordinate for focus.
+ * @param comment
+ *    Comment for focus.
+ */
+void
+UserInputModeFociWidget::displayFocusCreationDialog(const AString& name,
+                                                    const float xyz[3],
+                                                    const AString& comment)
+{
+    if (s_previousFocus == NULL) {
+        s_previousFocus = new Focus();
+    }
+
+    Focus* focus = new Focus(*s_previousFocus);
+    focus->setName(name);
+    if (focus->getNumberOfProjections() <= 0) {
+        focus->addProjection(new SurfaceProjectedItem());
+    }
+    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+    focus->setComment(comment);
+
+    displayFocusCreationDialog(focus);
+}
+
+/**
+ * Display the focus creation dialog with the given focus.  After
+ * calling this method, the caller must not manipulate the given
+ * focus!!!
+ *
+ * @param newFocus
+ *    Focus that will be created if the user presses the OK button.
+ *    If the user cancels, this focus will be deleted.
+ */
+void
+UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus)
+{
+    CaretAssert(newFocus);
+    
+    FociPropertiesEditorDialog focusCreateDialog("Create Focus",
+                                                 s_previousFociFile,
+                                                 newFocus,
+                                                 true,
+                                                 this);
+    if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
+        s_previousFociFile = focusCreateDialog.getSelectedFociFile();
+        if (s_previousFocus == NULL) {
+            s_previousFocus = new Focus();
+        }
+        focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
+        s_previousFociFile->addFocus(newFocus);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else {
+        delete newFocus;
+    }
+}
 
 /**
  * @return The edit widget.

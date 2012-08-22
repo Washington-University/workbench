@@ -48,10 +48,14 @@
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "MouseEvent.h"
+#include "Surface.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeView.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -178,9 +182,59 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                                   && mouseEvent->isShiftKeyDown());
         bool doTransformation = false;
         
+        IdentificationManager* idManager =
+            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+        if (idManager->getSurfaceNodeIdentification()->isValid()
+            && idManager->getVoxelIdentification()->isValid()) {
+            std::cout << "GET BOTH NODE AND VOXEL" << std::endl;
+        }
+        
         switch (m_mode){
             case MODE_CREATE:
-                if ((isLeftDrag || isWheel)) {
+                if (isLeftClick) {
+                    IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+                    IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+                    if (idNode->isValid()) {
+                        if (idNode->isContralateral() == false) {
+                            const Surface* surface = idNode->getSurface();
+                            CaretAssert(surface);
+                            const StructureEnum::Enum structure = surface->getStructure();
+                            const int32_t nodeIndex = idNode->getNodeNumber();
+                            
+                            const AString focusName = (StructureEnum::toGuiName(structure)
+                                                       + " Node "
+                                                       + AString::number(nodeIndex));
+                            const float* xyz = surface->getCoordinate(nodeIndex);
+                            
+                            const AString comment = ("Created from "
+                                                     + focusName);
+
+                            m_inputModeFociWidget->displayFocusCreationDialog(focusName,
+                                                                              xyz,
+                                                                              comment);
+                        }
+                    }
+                    else if (idVoxel->isValid()) {
+                        const VolumeFile* vf = idVoxel->getVolumeFile();
+                        int64_t ijk[3];
+                        idVoxel->getVoxelIJK(ijk);
+                        float xyz[3];
+                        vf->indexToSpace(ijk, xyz);
+
+                        const AString focusName = (vf->getFileNameNoPath()
+                                                   + " IJK ("
+                                                   + AString::fromNumbers(ijk, 3, ",")
+                                                   + ")");
+                        
+                        const AString comment = ("Created from "
+                                                 + focusName);
+                        
+                        m_inputModeFociWidget->displayFocusCreationDialog(focusName,
+                                                                          xyz,
+                                                                          comment);
+                    }
+                }
+                else if ((isLeftDrag || isWheel)) {
                     doTransformation = true;
                 }
                 break;
@@ -190,8 +244,6 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                 Focus*    focus = NULL;
                 
                 if (isLeftClick) {
-                    IdentificationManager* idManager =
-                       openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
                     IdentificationItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
                     if (idFocus->isValid()) {
                         fociFile = idFocus->getFociFile();
@@ -207,9 +259,9 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                             case EDIT_OPERATION_PROPERTIES:
                             {
                                 FociPropertiesEditorDialog fped("Edit Focus",
-                                                           fociFile,
-                                                           focus,
-                                                           false,
+                                                                fociFile,
+                                                                focus,
+                                                                false,
                                                                 openGLWidget);
                                 fped.exec();
                             }

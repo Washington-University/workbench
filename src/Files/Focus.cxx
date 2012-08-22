@@ -665,7 +665,7 @@ Focus::getNumberOfProjections() const
 
 /**
  * Get the projection at the given index.
- * Note: There may not be zero projections.
+ * Note: There may be zero projections.
  *
  * @param indx
  *    Index of projection
@@ -681,7 +681,7 @@ Focus::getProjection(const int32_t indx) const
 
 /**
  * Get the projection at the given index.
- * Note: There may not be zero projections.
+ * Note: There may be zero projections.
  *
  * @param indx
  *    Index of projection

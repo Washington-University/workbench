@@ -37,6 +37,8 @@
 #include <stdint.h>
 #include <QWidget>
 
+#include "AString.h"
+
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -79,6 +81,12 @@ namespace caret {
 
         UserInputModeFociWidget& operator=(const UserInputModeFociWidget&);
         
+        void displayFocusCreationDialog(const AString& name,
+                                        const float xyz[3],
+                                        const AString& comment);
+        
+        void displayFocusCreationDialog(Focus* newFocus);
+        
         QWidget* createModeWidget();
         
         QWidget* createCreateOperationWidget();
@@ -115,6 +123,8 @@ namespace caret {
         
         static FociFile* s_previousFociFile;
         static Focus* s_previousFocus;
+        
+        friend class UserInputModeFoci;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
