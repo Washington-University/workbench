@@ -54,6 +54,10 @@ namespace caret {
         
         SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles);
         
+        SurfaceProjector(const SurfaceFile* leftSurfaceFile,
+                         const SurfaceFile* rightSurfaceFile,
+                         const SurfaceFile* cerebellumSurfaceFile);
+        
         virtual ~SurfaceProjector();
         
         void projectItemToTriangle(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
@@ -72,6 +76,11 @@ namespace caret {
             SURFACE_HINT_FLAT,
             SURFACE_HINT_SPHERE,
             SURFACE_HINT_THREE_DIMENSIONAL
+        };
+        
+        enum Mode {
+            MODE_LEFT_RIGHT_CEREBELLUM,
+            MODE_SURFACES
         };
         
         class ProjectionLocation {
@@ -121,7 +130,11 @@ namespace caret {
                                    const float xyz[3],
                                    ProjectionLocation& projectionLocation) const throw (SurfaceProjectorException);
         
-        void projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
+        void projectItem(SurfaceProjectedItem* spi,
+                         SurfaceProjectedItem* secondSpi) throw (SurfaceProjectorException);
+        
+        void projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
+                                  SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
         
         //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
         //            throw (SurfaceProjectorException);
@@ -178,7 +191,16 @@ namespace caret {
         
         void computeSurfaceNearestNodeTolerances();
         
+        
         std::vector<const SurfaceFile*> m_surfaceFiles;
+        
+        const SurfaceFile* m_surfaceFileLeft;
+        
+        const SurfaceFile* m_surfaceFileRight;
+        
+        const SurfaceFile* m_surfaceFileCerebellum;
+        
+        const Mode m_mode;
         
         SurfaceHintType m_surfaceTypeHint;
 
@@ -191,6 +213,7 @@ namespace caret {
         float m_sphericalSurfaceRadius;
         
         float m_surfaceOffset;
+        
         bool m_surfaceOffsetValid;
         
         bool m_allowEdgeProjection;
@@ -210,12 +233,20 @@ namespace caret {
         /** Projection distance error used to compare original and after projection/unprojection */
         static float s_projectionDistanceError;
         
+        /** Cutoff for item that that is projected to cortex and not cerebellum */
+        static float s_corticalSurfaceCutoff;
+        
+        /** Cutoff for item that that is projected to cerebellum and not cortex */
+        static float s_cerebellumSurfaceCutoff;
+        
     };
     
 #ifdef __SURFACE_PROJECTOR_DEFINE__
     float SurfaceProjector::s_normalTriangleAreaTolerance = -0.01;
     float SurfaceProjector::s_extremeTriangleAreaTolerance = -10000000.0;
     float SurfaceProjector::s_projectionDistanceError = 0.5;
+    float SurfaceProjector::s_corticalSurfaceCutoff = 2.0;
+    float SurfaceProjector::s_cerebellumSurfaceCutoff = 4.0;
 #endif // __SURFACE_PROJECTOR_DEFINE__
 } // namespace
 

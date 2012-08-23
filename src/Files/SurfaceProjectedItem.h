@@ -96,6 +96,8 @@ namespace caret {
         
         SurfaceProjectionVanEssen* getVanEssenProjection();
         
+        bool hasValidProjection() const;
+        
         void reset();
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);

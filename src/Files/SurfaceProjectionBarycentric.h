@@ -77,6 +77,8 @@ namespace caret {
         
         bool isDegenerate();
         
+        bool isDegenerate() const;
+        
         void setValid(const bool valid);
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);

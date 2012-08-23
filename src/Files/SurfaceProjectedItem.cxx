@@ -489,4 +489,20 @@ SurfaceProjectedItem::isModified() const
     return false;
 }
 
+/**
+ * @return True if a projection (barycentric, vanessen)
+ * is valid.  Otherwise, false.
+ */
+bool
+SurfaceProjectedItem::hasValidProjection() const
+{
+    if (barycentricProjection->isValid()) {
+        return true;
+    }
+    if (vanEssenProjection->isValid()) {
+        return true;
+    }
+    return false;
+}
+
 

@@ -57,7 +57,11 @@ using namespace caret;
  *    that the surface's type is correctly set.
  */
 SurfaceProjector::SurfaceProjector(const SurfaceFile* surfaceFile)
-    : CaretObject()
+    : CaretObject(),
+    m_surfaceFileLeft(NULL),
+    m_surfaceFileRight(NULL),
+    m_surfaceFileCerebellum(NULL),
+    m_mode(MODE_SURFACES)
 {
     CaretAssert(surfaceFile);
     m_surfaceFiles.push_back(surfaceFile);
@@ -73,7 +77,11 @@ SurfaceProjector::SurfaceProjector(const SurfaceFile* surfaceFile)
  *    that the surface's type is correctly set.
  */
 SurfaceProjector::SurfaceProjector(const std::vector<const SurfaceFile*>& surfaceFiles)
-: CaretObject()
+: CaretObject(),
+m_surfaceFileLeft(NULL),
+m_surfaceFileRight(NULL),
+m_surfaceFileCerebellum(NULL),
+m_mode(MODE_SURFACES)
 {
     const int32_t numberOfSurfaces = static_cast<int32_t>(surfaceFiles.size());
     for (int32_t i = 0; i < numberOfSurfaces; i++) {
@@ -81,6 +89,32 @@ SurfaceProjector::SurfaceProjector(const std::vector<const SurfaceFile*>& surfac
     }
     initializeMembersSurfaceProjector();
 }
+
+/**
+ * Constructor that allows ambiguous projections for items between a cortical
+ * surface and the cerebellum.  Items that have a positive X-coordinate
+ * are projected to the right cortex or the cerebellum.  Items that have
+ * a negative X-coordinate are projected to the left cortex or the cerebellum.
+ * Some of the surface files may be NULL but at least one must be valid.
+ *
+ * @param leftSurfaceFile
+ *     Surface file for left cortex.
+ * @param rightSurfaceFile
+ *     Surface file for right cortex.
+ * @param cerebellumSurfaceFile
+ *     Surface file for cerebellum cortex.
+ */
+SurfaceProjector::SurfaceProjector(const SurfaceFile* leftSurfaceFile,
+                                   const SurfaceFile* rightSurfaceFile,
+                                   const SurfaceFile* cerebellumSurfaceFile)
+: CaretObject(),
+m_surfaceFileLeft(leftSurfaceFile),
+m_surfaceFileRight(rightSurfaceFile),
+m_surfaceFileCerebellum(cerebellumSurfaceFile),
+m_mode(MODE_LEFT_RIGHT_CEREBELLUM)
+{
+}
+
 
 /**
  * Destructor
@@ -183,8 +217,26 @@ SurfaceProjector::projectFocus(const int32_t focusIndex,
     }
     focus->removeExtraProjections();
     SurfaceProjectedItem* spi = focus->getProjection(0);
-    projectItemToTriangleOrEdge(spi);
 
+    SurfaceProjectedItem* spiSecond = NULL;
+    if (m_surfaceFileCerebellum != NULL) {
+        spiSecond = new SurfaceProjectedItem();
+    }
+    
+    m_allowEdgeProjection = true;
+    projectItem(spi,
+                spiSecond);
+    
+    if (spiSecond != NULL) {
+        if (spiSecond->hasValidProjection()) {
+            focus->addProjection(spiSecond);
+        }
+        else {
+            delete spiSecond;
+            spiSecond = NULL;
+        }
+    }
+    
     if (m_projectionWarning.isEmpty() == false) {
         AString msg = ("Focus: Name="
                        + focus->getName()
@@ -212,7 +264,8 @@ SurfaceProjector::projectItemToTriangle(SurfaceProjectedItem* spi) throw (Surfac
 {
     CaretAssert(spi);
     m_allowEdgeProjection = false;
-    projectItem(spi);
+    projectItem(spi,
+                NULL);
 }
 
 /**
@@ -232,7 +285,8 @@ SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (
 {
     CaretAssert(spi);
     m_allowEdgeProjection = true;
-    projectItem(spi);
+    projectItem(spi,
+                NULL);
 }
 
 
@@ -243,19 +297,18 @@ SurfaceProjector::projectItemToTriangleOrEdge(SurfaceProjectedItem* spi) throw (
  *    Item that is to be projected.  Its contents will be
  *    updated to reflect the projection.  This item's stereotaxic coordinate
  *    is used for the projection point.
- *
+ * @param secondSpi
+ *    For left/right/cerebellum projections, if there is ambiguity for an
+ *    item (between cortex and cerebellum), this projection will be set if
+ *    it is not NULL.
  * @throws SurfaceProjectorException  
  *      If projecting an item failed.
  */
 void
-SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+SurfaceProjector::projectItem(SurfaceProjectedItem* spi,
+                              SurfaceProjectedItem* secondSpi) throw (SurfaceProjectorException)
 {
     m_projectionWarning = "";
-    
-    const int32_t numberOfSurfaceFiles = static_cast<int32_t>(m_surfaceFiles.size());
-    if (numberOfSurfaceFiles <= 0) {
-        throw SurfaceProjectorException("No surface for projection!");
-    }
     
     /*
      * Get position of item.
@@ -266,33 +319,146 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
     }
     spi->getStereotaxicXYZ(xyz);
     
-    int32_t nearestSurfaceIndex = -1;
-    if (numberOfSurfaceFiles == 1) {
-        nearestSurfaceIndex = 0;
-    }
-    else {
-        /*
-         * Find surface closest to node.
-         */
-        float nearestDistance = std::numeric_limits<float>::max();
-        for (int32_t i = 0; i < numberOfSurfaceFiles; i++) {
-            const SurfaceFile* sf = m_surfaceFiles[i];
-            CaretPointer<SignedDistanceHelper> sdh = sf->getSignedDistanceHelper();
-            const float absDist = std::fabs(sdh->dist(xyz, SignedDistanceHelper::NORMALS));
-            if (absDist < nearestDistance) {
-                nearestDistance = absDist;
-                nearestSurfaceIndex = i;
-            }
-        }        
+    if (secondSpi != NULL) {
+        secondSpi->setStereotaxicXYZ(xyz);
     }
     
-    if (nearestSurfaceIndex < 0) {
-        throw SurfaceProjectorException("Failed to find surface for projection.");
+    switch (m_mode) {
+        case MODE_LEFT_RIGHT_CEREBELLUM:
+        {
+            if (xyz[0] < 0.0) {
+                if (m_surfaceFileLeft != NULL) {
+                    if (m_surfaceFileCerebellum != NULL) {
+                        const float leftDist = m_surfaceFileLeft->getSignedDistanceHelper()->dist(xyz,
+                                                                                                  SignedDistanceHelper::NORMALS);
+                        const float cerebellumDist = m_surfaceFileCerebellum->getSignedDistanceHelper()->dist(xyz,
+                                                                                                              SignedDistanceHelper::NORMALS);
+                        float ratio = 1000000.0;
+                        if (cerebellumDist != 0.0) {
+                            ratio = leftDist / cerebellumDist;
+                        }
+                        
+                        if (ratio > s_cerebellumSurfaceCutoff) {
+                            projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                             spi);
+                        }
+                        else if (ratio < s_corticalSurfaceCutoff) {
+                            projectItemToSurfaceFile(m_surfaceFileLeft,
+                                                     spi);
+                        }
+                        else {
+                            projectItemToSurfaceFile(m_surfaceFileLeft,
+                                                     spi);
+                            if (secondSpi != NULL) {
+                                projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                                         secondSpi);
+                                std::cout << "DOING SECOND PROJECTION" << std::endl;
+                            }
+                        }
+                    }
+                    else {
+                        projectItemToSurfaceFile(m_surfaceFileLeft,
+                                                 spi);
+                    }
+                }
+                else if (m_surfaceFileCerebellum != NULL) {
+                    projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                             spi);
+                }
+            }
+            else {
+                if (m_surfaceFileRight != NULL) {
+                    if (m_surfaceFileCerebellum != NULL) {
+                        const float rightDist = m_surfaceFileRight->getSignedDistanceHelper()->dist(xyz,
+                                                                                                  SignedDistanceHelper::NORMALS);
+                        const float cerebellumDist = m_surfaceFileCerebellum->getSignedDistanceHelper()->dist(xyz,
+                                                                                                              SignedDistanceHelper::NORMALS);
+                        float ratio = 1000000.0;
+                        if (cerebellumDist != 0.0) {
+                            ratio = rightDist / cerebellumDist;
+                        }
+                        
+                        if (ratio > s_cerebellumSurfaceCutoff) {
+                            projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                                     spi);
+                        }
+                        else if (ratio < s_corticalSurfaceCutoff) {
+                            projectItemToSurfaceFile(m_surfaceFileRight,
+                                                     spi);
+                        }
+                        else {
+                            projectItemToSurfaceFile(m_surfaceFileRight,
+                                                     spi);
+                            if (secondSpi != NULL) {
+                                projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                                         secondSpi);
+                                std::cout << "DOING SECOND PROJECTION" << std::endl;
+                            }
+                        }
+                    }
+                    else {
+                        projectItemToSurfaceFile(m_surfaceFileRight,
+                                                 spi);
+                    }
+                }
+                else if (m_surfaceFileCerebellum != NULL) {
+                    projectItemToSurfaceFile(m_surfaceFileCerebellum,
+                                             spi);
+                }
+            }
+        }
+            break;
+        case MODE_SURFACES:
+        {
+            const int32_t numberOfSurfaceFiles = static_cast<int32_t>(m_surfaceFiles.size());
+            if (numberOfSurfaceFiles <= 0) {
+                throw SurfaceProjectorException("No surface for projection!");
+            }
+            
+            int32_t nearestSurfaceIndex = -1;
+            if (numberOfSurfaceFiles == 1) {
+                nearestSurfaceIndex = 0;
+            }
+            else {
+                /*
+                 * Find surface closest to node.
+                 */
+                float nearestDistance = std::numeric_limits<float>::max();
+                for (int32_t i = 0; i < numberOfSurfaceFiles; i++) {
+                    const SurfaceFile* sf = m_surfaceFiles[i];
+                    CaretPointer<SignedDistanceHelper> sdh = sf->getSignedDistanceHelper();
+                    const float absDist = std::fabs(sdh->dist(xyz, SignedDistanceHelper::NORMALS));
+                    if (absDist < nearestDistance) {
+                        nearestDistance = absDist;
+                        nearestSurfaceIndex = i;
+                    }
+                }
+            }
+            
+            if (nearestSurfaceIndex < 0) {
+                throw SurfaceProjectorException("Failed to find surface for projection.");
+            }
+            CaretAssertVectorIndex(m_surfaceNearestNodeToleranceSquared, nearestSurfaceIndex);
+            m_nearestNodeToleranceSquared = m_surfaceNearestNodeToleranceSquared[nearestSurfaceIndex];
+            const SurfaceFile* projectionSurfaceFile = m_surfaceFiles[nearestSurfaceIndex];
+            projectItemToSurfaceFile(projectionSurfaceFile,
+                                     spi);
+        }
+            break;
     }
-    CaretAssertVectorIndex(m_surfaceNearestNodeToleranceSquared, nearestSurfaceIndex);
-    m_nearestNodeToleranceSquared = m_surfaceNearestNodeToleranceSquared[nearestSurfaceIndex];
-    const SurfaceFile* projectionSurfaceFile = m_surfaceFiles[nearestSurfaceIndex];
-    projectToSurface(projectionSurfaceFile,
+}
+
+/**
+ * Project to the given surface
+ */
+void
+SurfaceProjector::projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
+                                              SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
+{
+    float xyz[3];
+    spi->getStereotaxicXYZ(xyz);
+    
+    projectToSurface(surfaceFile,
                      xyz,
                      spi);
     
@@ -303,7 +469,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
     bool projectionValid = false;
     if (spi->getBarycentricProjection()->isValid()
         || spi->getVanEssenProjection()->isValid()) {
-        spi->getProjectedPosition(*projectionSurfaceFile, projXYZ, false);
+        spi->getProjectedPosition(*surfaceFile, projXYZ, false);
         spi->getStereotaxicXYZ(stereoXYZ);
         distanceError = MathFunctions::distance3D(projXYZ, stereoXYZ);
         projectionValid = true;
@@ -381,6 +547,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi) throw (SurfaceProjector
         }
     }
 }
+
 
 /**
  * Compute the nearest node tolerances for each surface.

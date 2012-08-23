@@ -372,6 +372,16 @@ SurfaceProjectionBarycentric::isDegenerate()
 }
 
 /**
+ * @return Is the projection degenerate (on
+ * an edge or just outside the edge).
+ */
+bool
+SurfaceProjectionBarycentric::isDegenerate() const
+{
+    return m_degenerate;
+}
+
+/**
  * Since reset overrides the 'super' class it should
  * never be called from a constructor.  So, this 
  * method does the actual reset, and since it does

@@ -106,7 +106,33 @@ FociProjectionDialog::okButtonClicked()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
-    std::vector<const SurfaceFile*> surfaceFiles;
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<const SurfaceFile*> surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
+
+    SurfaceFile* leftSurfaceFile = NULL;
+    SurfaceFile* rightSurfaceFile = NULL;
+    SurfaceFile* cerebellumSurfaceFile = NULL;
+    
+    for (std::vector<const SurfaceFile*>::iterator iter = surfaceFiles.begin();
+         iter != surfaceFiles.end();
+         iter++) {
+        const SurfaceFile* sf = *iter;
+        
+        switch (sf->getStructure()) {
+            case StructureEnum::CORTEX_LEFT:
+                leftSurfaceFile = const_cast<SurfaceFile*>(sf);
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                rightSurfaceFile = const_cast<SurfaceFile*>(sf);
+                break;
+            case StructureEnum::CEREBELLUM:
+                cerebellumSurfaceFile = const_cast<SurfaceFile*>(sf);
+                break;
+            default:
+                break;
+        }
+    }
+    
 //    if (m_leftSurfaceCheckBox != NULL) {
 //        if (m_leftSurfaceCheckBox->isChecked()) {
 //            const Surface* sf = m_leftSurfaceViewController->getSurface();
@@ -133,14 +159,13 @@ FociProjectionDialog::okButtonClicked()
 //    }
     
     AString errorMessages = "";
-    Brain* brain = GuiManager::get()->getBrain();
-    
-    surfaceFiles = brain->getVolumeInteractionSurfaceFiles();
     
     const int32_t numberOfFociFiles = static_cast<int32_t>(m_fociFiles.size());
     for (int32_t i = 0; i < numberOfFociFiles; i++) {
         if (m_fociFileCheckBoxes[i]->isChecked()) {
-            SurfaceProjector projector(surfaceFiles);
+            SurfaceProjector projector(leftSurfaceFile,
+                                       rightSurfaceFile,
+                                       cerebellumSurfaceFile);
 
             if (m_projectAboveSurfaceCheckBox->isChecked()) {
                 projector.setSurfaceOffset(m_projectAboveSurfaceSpinBox->value());
