@@ -361,15 +361,15 @@ SurfaceProjectionBarycentric::setDegenerate(const bool degenerate)
     m_degenerate = degenerate;
 }
 
-/**
- * @return Is the projection degenerate (on
- * an edge or just outside the edge).
- */
-bool
-SurfaceProjectionBarycentric::isDegenerate()
-{
-    return m_degenerate;
-}
+///**
+// * @return Is the projection degenerate (on
+// * an edge or just outside the edge).
+// */
+//bool
+//SurfaceProjectionBarycentric::isDegenerate()
+//{
+//    return m_degenerate;
+//}
 
 /**
  * @return Is the projection degenerate (on
