@@ -171,10 +171,10 @@ void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AStrin
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description)
+/*void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new DoubleParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
@@ -183,10 +183,10 @@ void ParameterComponent::addMetricOutputParameter(const int32_t key, const AStri
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
+/*void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new IntegerParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
@@ -195,10 +195,10 @@ void ParameterComponent::addLabelOutputParameter(const int32_t key, const AStrin
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addStringOutputParameter(const int32_t key, const AString& name, const AString& description)
+/*void ParameterComponent::addStringOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new StringParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
