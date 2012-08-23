@@ -171,15 +171,15 @@ void OperationVolumePalette::useParameters(OperationParameters* myParams, Progre
     {
         myMapping.setDisplayNegativeDataFlag(displayNegative->getBoolean(1));
     }
+    OptionalParameter* displayZero = myParams->getOptionalParameter(8);
+    if (displayZero->m_present)
+    {
+        myMapping.setDisplayZeroDataFlag(displayZero->getBoolean(1));
+    }
     OptionalParameter* interpolate = myParams->getOptionalParameter(9);
     if (interpolate->m_present)
     {
         myMapping.setInterpolatePaletteFlag(interpolate->getBoolean(1));
-    }
-    OptionalParameter* displayZero = myParams->getOptionalParameter(8);
-    if (interpolate->m_present)
-    {
-        myMapping.setDisplayZeroDataFlag(displayZero->getBoolean(1));
     }
     OptionalParameter* paletteName = myParams->getOptionalParameter(10);
     if (paletteName->m_present)
