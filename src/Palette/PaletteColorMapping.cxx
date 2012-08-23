@@ -219,6 +219,15 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);
+    float normalValues[2] = {
+        this->thresholdNormalMinimum,
+        this->thresholdNormalMaximum
+    };
+    xmlWriter.writeElementCharacters(
+                                     PaletteXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES,
+                                     normalValues,
+                                     2);
+    
     float mappedValues[2] = {
         this->thresholdMappedMinimum,
         this->thresholdMappedMaximum
