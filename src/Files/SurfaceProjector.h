@@ -136,12 +136,6 @@ namespace caret {
         void projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
                                   SurfaceProjectedItem* spi) throw (SurfaceProjectorException);
         
-        //    SurfaceProjectorBarycentricInformation* projectToSurfaceBestTriangle2D(const float xyz[3])
-        //            throw (SurfaceProjectorException);
-        //
-        //    SurfaceProjectorBarycentricInformation* projectToSurfaceForRegistration(const float xyz[3])
-        //            throw (SurfaceProjectorException);
-        //
         void projectToSurface(const SurfaceFile* surfaceFile,
                               const float xyz[3],
                               SurfaceProjectedItem* spi)
@@ -156,11 +150,6 @@ namespace caret {
                                             const ProjectionLocation& projectionLocation,
                                             SurfaceProjectionBarycentric* baryProj)
                     throw (SurfaceProjectorException);
-        
-        void findEnclosingTriangle(const SurfaceFile* surfaceFile,
-                                   const int32_t nearestNode,
-                                   const float xyz[3],
-                                   SurfaceProjectionBarycentric* baryProj);
         
         void checkItemInTriangle(const SurfaceFile* surfaceFile,
                                  const int32_t triangleNumber,
@@ -186,12 +175,6 @@ namespace caret {
                                           SurfaceProjectionVanEssen* spve)
             throw (SurfaceProjectorException);
         
-        int32_t findNearestTriangle(const SurfaceFile* surfaceFile,
-                                    const float xyz[3]);
-        
-        void computeSurfaceNearestNodeTolerances();
-        
-        
         std::vector<const SurfaceFile*> m_surfaceFiles;
         
         const SurfaceFile* m_surfaceFileLeft;
@@ -205,10 +188,6 @@ namespace caret {
         SurfaceHintType m_surfaceTypeHint;
 
         std::vector<bool> m_searchedTriangleFlags;
-        
-        std::vector<float> m_surfaceNearestNodeToleranceSquared;
-        
-        float m_nearestNodeToleranceSquared;
         
         float m_sphericalSurfaceRadius;
         
