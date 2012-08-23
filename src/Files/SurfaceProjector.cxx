@@ -38,6 +38,7 @@
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
+#include "SurfaceProjectionMultiBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "TopologyHelper.h"
 
@@ -485,7 +486,7 @@ SurfaceProjector::projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
     
     if (m_validateFlag == false) {
         if (distanceError > s_projectionDistanceError) {
-            m_projectionWarning = ("Projection Warning: Error="
+            m_projectionWarning += ("Projection Warning: Error="
                                    + AString::number(distanceError)
                                    + "mm, Stereotaxic=("
                                    + AString::fromNumbers(stereoXYZ, 3, ",")
@@ -589,12 +590,6 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                                         + surfaceFile->getFileNameNoPath());
     }
     
-    m_searchedTriangleFlags.resize(surfaceFile->getNumberOfTriangles(),
-                                   false);
-    std::fill(m_searchedTriangleFlags.begin(),
-              m_searchedTriangleFlags.end(),
-              false);
-    
     m_sphericalSurfaceRadius = 0.0;
     m_surfaceTypeHint = SURFACE_HINT_THREE_DIMENSIONAL;
     switch (surfaceFile->getSurfaceType()) {
@@ -603,12 +598,12 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
             break;
         case SurfaceTypeEnum::SPHERICAL:
             m_surfaceTypeHint = SURFACE_HINT_SPHERE;
+            m_sphericalSurfaceRadius = surfaceFile->getSphericalRadius();
             break;
         default:
             m_surfaceTypeHint = SURFACE_HINT_THREE_DIMENSIONAL;
             break;
     }
-    m_sphericalSurfaceRadius = surfaceFile->getSphericalRadius();
     
     //
     // Default to invalid projection
@@ -631,6 +626,52 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
         }
         m_validateItemName += ("ORIGINAL: "
                                + projectionLocation.toString(surfaceFile));
+    }
+    
+    /*
+     * Test multi-barycentric projection
+     */
+    bool testMultBaryProj = true;
+    if (testMultBaryProj) {
+        if ((projectionLocation.m_type == ProjectionLocation::EDGE)
+            || (projectionLocation.m_type == ProjectionLocation::NODE)) {
+            SurfaceProjectionMultiBarycentric multiBaryProj;
+            
+            const int32_t numTriangles = projectionLocation.m_numberOfTriangles;
+            for (int32_t i = 0; i < numTriangles; i++) {
+                SurfaceProjectionBarycentric* baryProj = new SurfaceProjectionBarycentric();
+                checkItemInTriangle(surfaceFile,
+                                    projectionLocation.m_triangleIndices[i],
+                                    projectionLocation.m_pointXYZ,
+                                    s_extremeTriangleAreaTolerance,
+                                    baryProj);
+                if (baryProj->isValid()) {
+                    multiBaryProj.addProjection(baryProj);
+                }
+                else {
+                    delete baryProj;
+                }
+            }
+            
+            if (multiBaryProj.isValid()) {
+                float projXYZ[3];
+                multiBaryProj.unprojectToSurface(*surfaceFile,
+                                                 projXYZ,
+                                                 0.0,
+                                                 false);
+                const float dist = MathFunctions::distance3D(projXYZ, xyz);
+                if (dist > 0.01) {
+                    m_projectionWarning += ("MultiBaryProj Warning: Error="
+                                            + AString::number(dist)
+                                            + "mm, Stereotaxic=("
+                                            + AString::fromNumbers(xyz, 3, ",")
+                                            + "), Projected=("
+                                            + AString::fromNumbers(projXYZ, 3, ",")
+                                            + ") triangles="
+                                            + AString::number(numTriangles));
+                }
+            }
+        }
     }
     
     /*
@@ -1022,15 +1063,6 @@ SurfaceProjector::checkItemInTriangle(const SurfaceFile* surfaceFile,
                                       SurfaceProjectionBarycentric* baryProj)
 {
     //
-    // Triangle already examined?
-    //
-    CaretAssertVectorIndex(m_searchedTriangleFlags, triangleNumber);
-    if (m_searchedTriangleFlags[triangleNumber]) {
-        return;
-    }
-    m_searchedTriangleFlags[triangleNumber] = true;
-    
-    //
     // Vertices of the triangle
     //
     const int32_t* tn = surfaceFile->getTriangle(triangleNumber);
@@ -1068,6 +1100,13 @@ SurfaceProjector::checkItemInTriangle(const SurfaceFile* surfaceFile,
             break;
         case SURFACE_HINT_SPHERE:
         {
+            if (m_sphericalSurfaceRadius > 0.0) {
+                MathFunctions::normalizeVector(queryXYZ);
+                queryXYZ[0] *= m_sphericalSurfaceRadius;
+                queryXYZ[1] *= m_sphericalSurfaceRadius;
+                queryXYZ[2] *= m_sphericalSurfaceRadius;
+            }
+            
             float origin[3] = { 0.0f, 0.0f, 0.0f };
             float xyzDistance[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
             if (MathFunctions::rayIntersectPlane(v1, v2, v3,

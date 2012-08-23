@@ -187,8 +187,6 @@ namespace caret {
         
         SurfaceHintType m_surfaceTypeHint;
 
-        std::vector<bool> m_searchedTriangleFlags;
-        
         float m_sphericalSurfaceRadius;
         
         float m_surfaceOffset;

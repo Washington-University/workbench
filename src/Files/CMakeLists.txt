@@ -61,6 +61,7 @@ SurfaceProjectedItem.h
 SurfaceProjectedItemSaxReader.h
 SurfaceProjection.h
 SurfaceProjectionBarycentric.h
+SurfaceProjectionMultiBarycentric.h
 SurfaceProjectionVanEssen.h
 SurfaceProjector.h
 SurfaceProjectorException.h
@@ -113,6 +114,7 @@ SurfaceProjectedItem.cxx
 SurfaceProjectedItemSaxReader.cxx
 SurfaceProjection.cxx
 SurfaceProjectionBarycentric.cxx
+SurfaceProjectionMultiBarycentric.cxx
 SurfaceProjectionVanEssen.cxx
 SurfaceProjector.cxx
 SurfaceProjectorException.cxx
