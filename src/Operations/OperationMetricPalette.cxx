@@ -80,16 +80,34 @@ OperationParameters* OperationMetricPalette::getParameters()
     OptionalParameter* paletteName = ret->createOptionalParameter(10, "-palette-name", "set the palette used");
     paletteName->addStringParameter(1, "name", "the name of the palette");
     
-    //TODO: add thresholding options once you can write good descriptions of what they do
+    OptionalParameter* thresholdOpt = ret->createOptionalParameter(13, "-thresholding", "set the thresholding");
+    thresholdOpt->addStringParameter(1, "type", "thresholding setting");
+    thresholdOpt->addStringParameter(2, "test", "show values inside or outside thresholds");
+    thresholdOpt->addDoubleParameter(3, "min", "lower threshold");
+    thresholdOpt->addDoubleParameter(4, "max", "upper threshold");
     
     AString myText = AString("The original metric file is overwritten with the modified version.  By default, all columns of the metric file are adjusted ") +
             "to the new settings, use the -column option to change only one column.  Mapping settings not specified in options will be taken from the first column.  " +
-            "The mode argument must be one of the following:\n\n";
+            "The <mode> argument must be one of the following:\n\n";
     vector<PaletteScaleModeEnum::Enum> myEnums;
     PaletteScaleModeEnum::getAllEnums(myEnums);
     for (int i = 0; i < (int)myEnums.size(); ++i)
     {
         myText += PaletteScaleModeEnum::toName(myEnums[i]) + "\n";
+    }
+    myText += "\nThe <type> argument to -thresholding must be one of the following:\n\n";
+    vector<PaletteThresholdTypeEnum::Enum> myEnums2;
+    PaletteThresholdTypeEnum::getAllEnums(myEnums2);
+    for (int i = 0; i < (int)myEnums2.size(); ++i)
+    {
+        myText += PaletteThresholdTypeEnum::toName(myEnums2[i]) + "\n";
+    }
+    myText += "\nThe <test> argument to -thresholding must be one of the following:\n\n";
+    vector<PaletteThresholdTestEnum::Enum> myEnums3;
+    PaletteThresholdTestEnum::getAllEnums(myEnums3);
+    for (int i = 0; i < (int)myEnums3.size(); ++i)
+    {
+        myText += PaletteThresholdTestEnum::toName(myEnums3[i]) + "\n";
     }
     ret->setHelpText(myText);
     return ret;
@@ -168,6 +186,19 @@ void OperationMetricPalette::useParameters(OperationParameters* myParams, Progre
     if (paletteName->m_present)
     {
         myMapping.setSelectedPaletteName(paletteName->getString(1));
+    }
+    OptionalParameter* thresholdOpt = myParams->getOptionalParameter(13);
+    if (thresholdOpt->m_present)
+    {
+        bool ok = false;
+        PaletteThresholdTypeEnum::Enum mytype = PaletteThresholdTypeEnum::fromName(thresholdOpt->getString(1), &ok);
+        if (!ok) throw OperationException("unrecognized threshold type string: " + thresholdOpt->getString(1));
+        PaletteThresholdTestEnum::Enum mytest = PaletteThresholdTestEnum::fromName(thresholdOpt->getString(2), &ok);
+        if (!ok) throw OperationException("unrecognized threshold test string: " + thresholdOpt->getString(2));
+        myMapping.setThresholdType(mytype);
+        myMapping.setThresholdTest(mytest);
+        myMapping.setThresholdMinimum(mytype, thresholdOpt->getDouble(3));
+        myMapping.setThresholdMaximum(mytype, thresholdOpt->getDouble(4));
     }
     if (myColumn == -1)
     {
