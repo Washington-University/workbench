@@ -221,6 +221,7 @@ BrainOpenGLWidget::paintGL()
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
         BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(viewport,
+                                                                        GuiManager::get()->getBrain(),
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
@@ -256,7 +257,8 @@ BrainOpenGLWidget::paintGL()
                     viewport[3] = vpHeight;
                     BrainOpenGLViewportContent* vc = 
                        new BrainOpenGLViewportContent(viewport,
-                                                   getModelEvent.getTabContentToDraw(iModel));
+                                                      GuiManager::get()->getBrain(),
+                                                      getModelEvent.getTabContentToDraw(iModel));
                     this->drawingViewportContents.push_back(vc);
                 }
                 iModel++;
@@ -491,7 +493,7 @@ BrainOpenGLWidget::performIdentification(const int x,
 
     this->makeCurrent();
     CaretLogFine("Performing selection");
-    IdentificationManager* idManager = this->openGL->getIdentificationManager();
+    IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     idManager->reset();
     idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
     idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);

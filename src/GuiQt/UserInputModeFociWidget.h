@@ -68,7 +68,9 @@ namespace caret {
         static void deleteStaticMembers();
         
     private slots:
-        void createOperationActionTriggered(QAction*);
+        void createNewFocusActionTriggered();
+        
+        void createLastIdentificationFocusActionTriggered();
         
         void editOperationActionTriggered(QAction*);
         
@@ -99,6 +101,8 @@ namespace caret {
                                         const int dataInteger);
         
 
+        bool isMouseClickCreateFocusEnabled() const;
+        
         // ADD_NEW_MEMBERS_HERE
 
         UserInputModeFoci* m_inputModeFoci;
@@ -106,10 +110,6 @@ namespace caret {
         const int32_t m_windowIndex;
         
         QComboBox* m_modeComboBox;
-        
-        QAction* m_createFociAction;
-        
-        QActionGroup* m_createOperationActionGroup;
         
         QActionGroup* m_editOperationActionGroup;
         
@@ -120,6 +120,8 @@ namespace caret {
         QWidget* m_taskOperationWidget;
         
         QStackedWidget* m_operationStackedWidget;
+        
+        QAction* m_createFocusMouseClickAction;
         
         static FociFile* s_previousFociFile;
         static Focus* s_previousFocus;

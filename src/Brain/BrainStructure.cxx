@@ -1127,7 +1127,7 @@ BrainStructure::getNodeAttributes() const
  *    Data files are loaded into this parameter.
  */
 void 
-BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
+BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
 {
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_surfaces.begin(),

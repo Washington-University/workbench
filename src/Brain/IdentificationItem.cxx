@@ -44,16 +44,16 @@ using namespace caret;
 IdentificationItem::IdentificationItem(const IdentificationItemDataTypeEnum::Enum itemDataType)
 : CaretObject()
 {
-    this->itemDataType = itemDataType;
-    this->enabledForSelection = true;
-    this->brain = NULL;
-    this->screenDepth = 0.0;
-    this->screenXYZ[0] = 0.0;
-    this->screenXYZ[1] = 0.0;
-    this->screenXYZ[2] = std::numeric_limits<double>::max();
-    this->modelXYZ[0] = 0.0;
-    this->modelXYZ[1] = 0.0;
-    this->modelXYZ[2] = 0.0;
+    m_itemDataType = itemDataType;
+    m_enabledForSelection = true;
+    m_brain = NULL;
+    m_screenDepth = 0.0;
+    m_screenXYZ[0] = 0.0;
+    m_screenXYZ[1] = 0.0;
+    m_screenXYZ[2] = std::numeric_limits<double>::max();
+    m_modelXYZ[0] = 0.0;
+    m_modelXYZ[1] = 0.0;
+    m_modelXYZ[2] = 0.0;
 }
 
 /**
@@ -65,6 +65,53 @@ IdentificationItem::~IdentificationItem()
 }
 
 /**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+IdentificationItem::IdentificationItem(const IdentificationItem& obj)
+: CaretObject(obj)
+{
+    copyHelperIdentificationItem(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+IdentificationItem&
+IdentificationItem::operator=(const IdentificationItem& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        copyHelperIdentificationItem(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param ff
+ *    Object that is copied.
+ */
+void
+IdentificationItem::copyHelperIdentificationItem(const IdentificationItem& idItem)
+{
+    m_brain = idItem.m_brain;
+    m_enabledForSelection = idItem.m_enabledForSelection;
+    m_screenDepth  = idItem.m_screenDepth;
+    m_screenXYZ[0] = idItem.m_screenXYZ[0];
+    m_screenXYZ[1] = idItem.m_screenXYZ[1];
+    m_screenXYZ[2] = idItem.m_screenXYZ[2];
+    m_modelXYZ[0]  = idItem.m_modelXYZ[0];
+    m_modelXYZ[1]  = idItem.m_modelXYZ[1];
+    m_modelXYZ[2]  = idItem.m_modelXYZ[2];
+}
+
+/**
  * Reset this selection item.  Deriving
  * classes should override this method to
  * reset its selection data and also call
@@ -73,14 +120,14 @@ IdentificationItem::~IdentificationItem()
 void 
 IdentificationItem::reset()
 {
-    this->brain = NULL;
-    this->screenDepth = 0.0;
-    this->screenXYZ[0] = 0.0;
-    this->screenXYZ[1] = 0.0;
-    this->screenXYZ[2] = std::numeric_limits<double>::max();
-    this->modelXYZ[0] = 0.0;
-    this->modelXYZ[1] = 0.0;
-    this->modelXYZ[2] = 0.0;
+    m_brain = NULL;
+    m_screenDepth = 0.0;
+    m_screenXYZ[0] = 0.0;
+    m_screenXYZ[1] = 0.0;
+    m_screenXYZ[2] = std::numeric_limits<double>::max();
+    m_modelXYZ[0] = 0.0;
+    m_modelXYZ[1] = 0.0;
+    m_modelXYZ[2] = 0.0;
 }
 
 
@@ -92,9 +139,9 @@ AString
 IdentificationItem::toString() const
 {
     AString text = "";
-    text += ("Depth: " + AString::number(screenDepth) + "\n");
-    text += ("Model XYZ:  " + AString::fromNumbers(this->modelXYZ, 3, ", "));
-    text += ("Screen XYZ: " + AString::fromNumbers(this->screenXYZ, 3, ", "));
+    text += ("Depth: " + AString::number(m_screenDepth) + "\n");
+    text += ("Model XYZ:  " + AString::fromNumbers(m_modelXYZ, 3, ", "));
+    text += ("Screen XYZ: " + AString::fromNumbers(m_screenXYZ, 3, ", "));
     return text;
 }
 
@@ -104,7 +151,7 @@ IdentificationItem::toString() const
 IdentificationItemDataTypeEnum::Enum 
 IdentificationItem::getItemDataType() const
 {
-    return this->itemDataType;
+    return m_itemDataType;
 }
 
 /**
@@ -113,7 +160,7 @@ IdentificationItem::getItemDataType() const
 bool 
 IdentificationItem::isEnabledForSelection() const
 {
-    return this->enabledForSelection;
+    return m_enabledForSelection;
 }
 
 /**
@@ -124,7 +171,7 @@ IdentificationItem::isEnabledForSelection() const
 void 
 IdentificationItem::setEnabledForSelection(const bool enabled)
 {
-    this->enabledForSelection = enabled;
+    m_enabledForSelection = enabled;
 }
 
 /**
@@ -133,7 +180,7 @@ IdentificationItem::setEnabledForSelection(const bool enabled)
 Brain* 
 IdentificationItem::getBrain()
 {
-    return this->brain;
+    return m_brain;
 }
 
 /**
@@ -145,7 +192,7 @@ IdentificationItem::getBrain()
 void 
 IdentificationItem::setBrain(Brain* brain)
 {
-    this->brain = brain;
+    m_brain = brain;
 }
 
 /**
@@ -154,7 +201,7 @@ IdentificationItem::setBrain(Brain* brain)
 double 
 IdentificationItem::getScreenDepth() const
 {
-    return this->screenDepth;
+    return m_screenDepth;
 }
 
 /**
@@ -165,7 +212,7 @@ IdentificationItem::getScreenDepth() const
 void 
 IdentificationItem::setScreenDepth(const double screenDepth)
 {
-    this->screenDepth = screenDepth;
+    m_screenDepth = screenDepth;
 }
 
 /**
@@ -176,9 +223,9 @@ IdentificationItem::setScreenDepth(const double screenDepth)
 void 
 IdentificationItem::getScreenXYZ(double screenXYZ[3]) const
 {
-    screenXYZ[0] = this->screenXYZ[0];
-    screenXYZ[1] = this->screenXYZ[1];
-    screenXYZ[2] = this->screenXYZ[2];
+    screenXYZ[0] = m_screenXYZ[0];
+    screenXYZ[1] = m_screenXYZ[1];
+    screenXYZ[2] = m_screenXYZ[2];
 }
 
 /**
@@ -189,9 +236,9 @@ IdentificationItem::getScreenXYZ(double screenXYZ[3]) const
 void 
 IdentificationItem::setScreenXYZ(const double screenXYZ[3])
 {
-    this->screenXYZ[0] = screenXYZ[0];
-    this->screenXYZ[1] = screenXYZ[1];
-    this->screenXYZ[2] = screenXYZ[2];
+    m_screenXYZ[0] = screenXYZ[0];
+    m_screenXYZ[1] = screenXYZ[1];
+    m_screenXYZ[2] = screenXYZ[2];
 }
 
 /**
@@ -202,9 +249,9 @@ IdentificationItem::setScreenXYZ(const double screenXYZ[3])
 void 
 IdentificationItem::getModelXYZ(double modelXYZ[3]) const
 {
-    modelXYZ[0] = this->modelXYZ[0];
-    modelXYZ[1] = this->modelXYZ[1];
-    modelXYZ[2] = this->modelXYZ[2];
+    modelXYZ[0] = m_modelXYZ[0];
+    modelXYZ[1] = m_modelXYZ[1];
+    modelXYZ[2] = m_modelXYZ[2];
 }
 
 /**
@@ -215,9 +262,9 @@ IdentificationItem::getModelXYZ(double modelXYZ[3]) const
 void 
 IdentificationItem::setModelXYZ(const double modelXYZ[3])
 {
-    this->modelXYZ[0] = modelXYZ[0];
-    this->modelXYZ[1] = modelXYZ[1];
-    this->modelXYZ[2] = modelXYZ[2];
+    m_modelXYZ[0] = modelXYZ[0];
+    m_modelXYZ[1] = modelXYZ[1];
+    m_modelXYZ[2] = modelXYZ[2];
 }
 
 /**
@@ -237,11 +284,11 @@ IdentificationItem::setModelXYZ(const double modelXYZ[3])
 bool 
 IdentificationItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) const
 {
-    if (this->isValid() == false) {
+    if (isValid() == false) {
         return true;
     }
     
-    if (otherScreenDepth < this->screenDepth) {
+    if (otherScreenDepth < m_screenDepth) {
         return true;
     }
 

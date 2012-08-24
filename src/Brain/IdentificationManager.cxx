@@ -38,6 +38,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventIdentificationSymbolRemoval.h"
 
 #define __IDENTIFICATION_MANAGER_DECLARE__
 #include "IdentificationManager.h"
@@ -68,29 +69,36 @@ using namespace caret;
 IdentificationManager::IdentificationManager()
 : CaretObject()
 {
-    this->surfaceBorderIdentification = new IdentificationItemBorderSurface();
-    this->surfaceFocusIdentification = new IdentificationItemFocusSurface();
-    this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
-    this->surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
-    this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
-    this->voxelIdentification = new IdentificationItemVoxel();
+    m_surfaceBorderIdentification = new IdentificationItemBorderSurface();
+    m_surfaceFocusIdentification = new IdentificationItemFocusSurface();
+    m_surfaceNodeIdentification = new IdentificationItemSurfaceNode();
+    m_surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
+    m_surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
+    m_voxelIdentification = new IdentificationItemVoxel();
     
-    this->allIdentificationItems.push_back(this->surfaceBorderIdentification);
-    this->allIdentificationItems.push_back(this->surfaceFocusIdentification);
-    this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
-    this->allIdentificationItems.push_back(this->surfaceNodeIdentificationSymbol);
-    this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
-    this->allIdentificationItems.push_back(this->voxelIdentification);
+    m_allIdentificationItems.push_back(m_surfaceBorderIdentification);
+    m_allIdentificationItems.push_back(m_surfaceFocusIdentification);
+    m_allIdentificationItems.push_back(m_surfaceNodeIdentification);
+    m_allIdentificationItems.push_back(m_surfaceNodeIdentificationSymbol);
+    m_allIdentificationItems.push_back(m_surfaceTriangleIdentification);
+    m_allIdentificationItems.push_back(m_voxelIdentification);
     
-    this->surfaceSelectedItems.push_back(this->surfaceNodeIdentification);
-    this->surfaceSelectedItems.push_back(this->surfaceTriangleIdentification);
+    m_surfaceSelectedItems.push_back(m_surfaceNodeIdentification);
+    m_surfaceSelectedItems.push_back(m_surfaceTriangleIdentification);
     
-    this->layeredSelectedItems.push_back(this->surfaceBorderIdentification);
-    this->layeredSelectedItems.push_back(this->surfaceFocusIdentification);
+    m_layeredSelectedItems.push_back(m_surfaceBorderIdentification);
+    m_layeredSelectedItems.push_back(m_surfaceFocusIdentification);
     
-    this->volumeSelectedItems.push_back(this->voxelIdentification);
+    m_volumeSelectedItems.push_back(m_voxelIdentification);
     
-    this->idTextGenerator = new IdentificationTextGenerator();
+    m_idTextGenerator = new IdentificationTextGenerator();
+    
+    m_lastIdentifiedItem = NULL;
+    
+    reset();
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
 }
 
 /**
@@ -98,23 +106,49 @@ IdentificationManager::IdentificationManager()
  */
 IdentificationManager::~IdentificationManager()
 {
-    this->reset();
-    delete this->surfaceBorderIdentification;
-    this->surfaceBorderIdentification = NULL;
-    delete this->surfaceFocusIdentification;
-    this->surfaceFocusIdentification = NULL;
-    delete this->surfaceNodeIdentification;
-    this->surfaceNodeIdentification = NULL;
-    delete this->surfaceNodeIdentificationSymbol;
-    this->surfaceNodeIdentificationSymbol = NULL;
-    delete this->surfaceTriangleIdentification;
-    this->surfaceTriangleIdentification = NULL;
-    delete this->voxelIdentification;
-    this->voxelIdentification = NULL;
-    delete this->idTextGenerator;
-    this->idTextGenerator = NULL;
+    reset();
+    delete m_surfaceBorderIdentification;
+    m_surfaceBorderIdentification = NULL;
+    delete m_surfaceFocusIdentification;
+    m_surfaceFocusIdentification = NULL;
+    delete m_surfaceNodeIdentification;
+    m_surfaceNodeIdentification = NULL;
+    delete m_surfaceNodeIdentificationSymbol;
+    m_surfaceNodeIdentificationSymbol = NULL;
+    delete m_surfaceTriangleIdentification;
+    m_surfaceTriangleIdentification = NULL;
+    delete m_voxelIdentification;
+    m_voxelIdentification = NULL;
+    delete m_idTextGenerator;
+    m_idTextGenerator = NULL;
+    
+    if (m_lastIdentifiedItem != NULL) {
+        delete m_lastIdentifiedItem;
+    }
+
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   The event.
+ */
+void
+IdentificationManager::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
+        EventIdentificationSymbolRemoval* removeIdEvent =
+        dynamic_cast<EventIdentificationSymbolRemoval*>(event);
+        CaretAssert(removeIdEvent);
+        
+        /*
+         * Remove last event since all ID symbols being removed
+         */
+        setLastIdentifiedItem(NULL);
+    }
+}
 /**
  * Filter selections to arbitrate between triangle/node
  * and to remove any selections behind another selection.
@@ -123,8 +157,8 @@ void
 IdentificationManager::filterSelections()
 {
     AString logText;
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
+    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
+         iter != m_allIdentificationItems.end();
          iter++) {
         IdentificationItem* item = *iter;
         if (item->isValid()) {
@@ -133,8 +167,8 @@ IdentificationManager::filterSelections()
     }
     CaretLogFine("Selected Items BEFORE filtering: " + logText);
     
-    IdentificationItemSurfaceTriangle* triangleID = this->surfaceTriangleIdentification;
-    IdentificationItemSurfaceNode* nodeID = this->surfaceNodeIdentification;
+    IdentificationItemSurfaceTriangle* triangleID = m_surfaceTriangleIdentification;
+    IdentificationItemSurfaceNode* nodeID = m_surfaceNodeIdentification;
     
     //
     // If both a node and triangle are found
@@ -144,13 +178,13 @@ IdentificationManager::filterSelections()
         //
         // Is node further from user than triangle?
         //
-        double depthDiff = this->surfaceNodeIdentification->getScreenDepth()
+        double depthDiff = m_surfaceNodeIdentification->getScreenDepth()
         - triangleID->getScreenDepth();
         if (depthDiff > 0.00001) {
             //
             // Do not use node
             //
-            this->surfaceNodeIdentification->reset();
+            m_surfaceNodeIdentification->reset();
         }
     }
     
@@ -162,7 +196,7 @@ IdentificationManager::filterSelections()
         //
         // If no node, use node in nearest triangle
         //
-        if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
+        if (m_surfaceNodeIdentification->getNodeNumber() < 0) {
             const int32_t nearestNode = triangleID->getNearestNodeNumber();
             if (nearestNode >= 0) {
                 CaretLogFine("Switched node to triangle nearest node ."
@@ -184,23 +218,23 @@ IdentificationManager::filterSelections()
      * See if node identification symbol is too far from selected node.
      * This may occur if the symbol is on the other side of the surface.
      */
-    if ((this->surfaceNodeIdentificationSymbol->getNodeNumber() >= 0)
-        && (this->surfaceNodeIdentification->getNodeNumber() >= 0)) {
-        const double depthDiff = (this->surfaceNodeIdentificationSymbol->getScreenDepth()
-                                  - this->surfaceNodeIdentification->getScreenDepth());
+    if ((m_surfaceNodeIdentificationSymbol->getNodeNumber() >= 0)
+        && (m_surfaceNodeIdentification->getNodeNumber() >= 0)) {
+        const double depthDiff = (m_surfaceNodeIdentificationSymbol->getScreenDepth()
+                                  - m_surfaceNodeIdentification->getScreenDepth());
         if (depthDiff > 0.00001) {
-            this->surfaceNodeIdentificationSymbol->reset();
+            m_surfaceNodeIdentificationSymbol->reset();
         }
         else {
-            this->surfaceNodeIdentification->reset();
+            m_surfaceNodeIdentification->reset();
         }
     }
     
-    this->clearDistantSelections();
+    clearDistantSelections();
     
     logText = "";
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
+    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
+         iter != m_allIdentificationItems.end();
          iter++) {
         IdentificationItem* item = *iter;
         if (item->isValid()) {
@@ -223,17 +257,17 @@ IdentificationManager::clearDistantSelections()
      * Make layers items slightly closer since they are 
      * often pasted onto the surface.
      */
-    for (std::vector<IdentificationItem*>::iterator iter = this->layeredSelectedItems.begin();
-         iter != this->layeredSelectedItems.end();
+    for (std::vector<IdentificationItem*>::iterator iter = m_layeredSelectedItems.begin();
+         iter != m_layeredSelectedItems.end();
          iter++) {
         IdentificationItem* item = *iter;
         item->setScreenDepth(item->getScreenDepth()* 0.99);
     }
 
     
-    itemGroups.push_back(&this->layeredSelectedItems);
-    itemGroups.push_back(&this->surfaceSelectedItems);
-    itemGroups.push_back(&this->volumeSelectedItems);
+    itemGroups.push_back(&m_layeredSelectedItems);
+    itemGroups.push_back(&m_surfaceSelectedItems);
+    itemGroups.push_back(&m_volumeSelectedItems);
     
     std::vector<IdentificationItem*>* minDepthGroup = NULL;
     double minDepth = std::numeric_limits<double>::max();
@@ -242,7 +276,7 @@ IdentificationManager::clearDistantSelections()
          iter++) {
         std::vector<IdentificationItem*>* group = *iter;
         IdentificationItem* minDepthItem =
-        this->getMinimumDepthFromMultipleSelections(*group);
+        getMinimumDepthFromMultipleSelections(*group);
         if (minDepthItem != NULL) {
             double md = minDepthItem->getScreenDepth();
             if (md < minDepth) {
@@ -277,8 +311,8 @@ IdentificationManager::clearDistantSelections()
 void 
 IdentificationManager::clearOtherIdentifiedItems(IdentificationItem* identifiedItem)
 {
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
+    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
+         iter != m_allIdentificationItems.end();
          iter++) {
         IdentificationItem* item = *iter;
         if (item != identifiedItem) {
@@ -328,7 +362,7 @@ AString
 IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent,
                                              const Brain* brain) const
 {
-    const AString text = this->idTextGenerator->createIdentificationText(this, 
+    const AString text = m_idTextGenerator->createIdentificationText(this, 
                                                                          browserTabContent,
                                                                          brain);
     return text;
@@ -340,19 +374,19 @@ IdentificationManager::getIdentificationText(const BrowserTabContent* browserTab
 void 
 IdentificationManager::reset()
 {
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
+    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
+         iter != m_allIdentificationItems.end();
          iter++) {
         IdentificationItem* item = *iter;
         item->reset();
     }
     
-    for (std::vector<IdentificationItemSurfaceNode*>::iterator iter = this->additionalSurfaceNodeIdentifications.begin();
-         iter != this->additionalSurfaceNodeIdentifications.end();
+    for (std::vector<IdentificationItemSurfaceNode*>::iterator iter = m_additionalSurfaceNodeIdentifications.begin();
+         iter != m_additionalSurfaceNodeIdentifications.end();
          iter++) {
         delete *iter;
     }
-    this->additionalSurfaceNodeIdentifications.clear();
+    m_additionalSurfaceNodeIdentifications.clear();
 }
 
 /**
@@ -361,7 +395,7 @@ IdentificationManager::reset()
 IdentificationItemSurfaceNode* 
 IdentificationManager::getSurfaceNodeIdentification()
 {
-    return this->surfaceNodeIdentification;
+    return m_surfaceNodeIdentification;
 }
 
 /**
@@ -370,7 +404,7 @@ IdentificationManager::getSurfaceNodeIdentification()
 const IdentificationItemSurfaceNode* 
 IdentificationManager::getSurfaceNodeIdentification() const
 {
-    return this->surfaceNodeIdentification;
+    return m_surfaceNodeIdentification;
 }
 
 /**
@@ -379,7 +413,7 @@ IdentificationManager::getSurfaceNodeIdentification() const
 const IdentificationItemSurfaceNodeIdentificationSymbol* 
 IdentificationManager::getSurfaceNodeIdentificationSymbol() const
 {
-    return this->surfaceNodeIdentificationSymbol;
+    return m_surfaceNodeIdentificationSymbol;
 }
 
 /**
@@ -388,7 +422,7 @@ IdentificationManager::getSurfaceNodeIdentificationSymbol() const
 IdentificationItemSurfaceNodeIdentificationSymbol* 
 IdentificationManager::getSurfaceNodeIdentificationSymbol()
 {
-    return this->surfaceNodeIdentificationSymbol;
+    return m_surfaceNodeIdentificationSymbol;
 }
 
 /**
@@ -397,7 +431,7 @@ IdentificationManager::getSurfaceNodeIdentificationSymbol()
 IdentificationItemSurfaceTriangle* 
 IdentificationManager::getSurfaceTriangleIdentification()
 {
-    return this->surfaceTriangleIdentification;
+    return m_surfaceTriangleIdentification;
 }
 
 /**
@@ -406,7 +440,7 @@ IdentificationManager::getSurfaceTriangleIdentification()
 const IdentificationItemSurfaceTriangle* 
 IdentificationManager::getSurfaceTriangleIdentification() const
 {
-    return this->surfaceTriangleIdentification;
+    return m_surfaceTriangleIdentification;
 }
 
 /**
@@ -415,7 +449,7 @@ IdentificationManager::getSurfaceTriangleIdentification() const
 const IdentificationItemVoxel* 
 IdentificationManager::getVoxelIdentification() const
 {
-    return this->voxelIdentification;
+    return m_voxelIdentification;
 }
 
 /**
@@ -424,7 +458,7 @@ IdentificationManager::getVoxelIdentification() const
 IdentificationItemVoxel* 
 IdentificationManager::getVoxelIdentification()
 {
-    return this->voxelIdentification;
+    return m_voxelIdentification;
 }
 
 /**
@@ -433,7 +467,7 @@ IdentificationManager::getVoxelIdentification()
 IdentificationItemBorderSurface* 
 IdentificationManager::getSurfaceBorderIdentification()
 {
-    return this->surfaceBorderIdentification;
+    return m_surfaceBorderIdentification;
 }
 
 /**
@@ -442,7 +476,7 @@ IdentificationManager::getSurfaceBorderIdentification()
 const IdentificationItemBorderSurface* 
 IdentificationManager::getSurfaceBorderIdentification() const
 {
-    return this->surfaceBorderIdentification;
+    return m_surfaceBorderIdentification;
 }
 
 /**
@@ -451,7 +485,7 @@ IdentificationManager::getSurfaceBorderIdentification() const
 IdentificationItemFocusSurface* 
 IdentificationManager::getSurfaceFocusIdentification()
 {
-    return this->surfaceFocusIdentification;
+    return m_surfaceFocusIdentification;
 }
 
 /**
@@ -460,7 +494,7 @@ IdentificationManager::getSurfaceFocusIdentification()
 const IdentificationItemFocusSurface* 
 IdentificationManager::getSurfaceFocusIdentification() const
 {
-    return this->surfaceFocusIdentification;
+    return m_surfaceFocusIdentification;
 }
 
 /**
@@ -479,12 +513,12 @@ IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
                                                               const int32_t nodeIndex,
                                                               bool isContralateralIdentification)
 {
-    if (surface != this->surfaceNodeIdentification->getSurface()) {
+    if (surface != m_surfaceNodeIdentification->getSurface()) {
         IdentificationItemSurfaceNode* nodeID = new IdentificationItemSurfaceNode();
         nodeID->setSurface(surface);
         nodeID->setNodeNumber(nodeIndex);
         nodeID->setContralateral(isContralateralIdentification);
-        this->additionalSurfaceNodeIdentifications.push_back(nodeID);
+        m_additionalSurfaceNodeIdentifications.push_back(nodeID);
     }
 }
 
@@ -496,7 +530,7 @@ IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
 int32_t 
 IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
 {
-    return this->additionalSurfaceNodeIdentifications.size();
+    return m_additionalSurfaceNodeIdentifications.size();
 }
 
 /**
@@ -507,8 +541,8 @@ IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
 IdentificationItemSurfaceNode* 
 IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
-    return this->additionalSurfaceNodeIdentifications[indx];
+    CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
+    return m_additionalSurfaceNodeIdentifications[indx];
 }
 
 /**
@@ -519,8 +553,8 @@ IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx
 const IdentificationItemSurfaceNode* 
 IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
-    return this->additionalSurfaceNodeIdentifications[indx];
+    CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
+    return m_additionalSurfaceNodeIdentifications[indx];
 }
 
 /**
@@ -532,3 +566,44 @@ IdentificationManager::toString() const
 {
     return "IdentificationManager";
 }
+
+/**
+ * @return The last identified item (may be NULL).
+ */
+const IdentificationItem*
+IdentificationManager::getLastIdentifiedItem() const
+{
+    return m_lastIdentifiedItem;
+}
+
+/**
+ * Set the last identified item to the given item.
+ *
+ * @param lastItem
+ *     The last item that was identified;
+ */
+void
+IdentificationManager::setLastIdentifiedItem(const IdentificationItem* lastItem)
+{
+    if (m_lastIdentifiedItem != NULL) {
+        delete m_lastIdentifiedItem;
+    }
+    m_lastIdentifiedItem = NULL;
+    
+    if (lastItem != NULL) {
+        const IdentificationItemSurfaceNode* nodeID = dynamic_cast<const IdentificationItemSurfaceNode*>(lastItem);
+        const IdentificationItemVoxel* voxelID = dynamic_cast<const IdentificationItemVoxel*>(lastItem);
+        if (nodeID != NULL) {
+            m_lastIdentifiedItem = new IdentificationItemSurfaceNode(*nodeID);
+        }
+        else if (voxelID != NULL) {
+            m_lastIdentifiedItem = new IdentificationItemVoxel(*voxelID);
+        }
+        else {
+            CaretAssertMessage(0,
+                               ("Unsupported last ID type" + lastItem->toString()));
+        }
+    }
+}
+
+

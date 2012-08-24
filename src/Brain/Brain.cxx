@@ -52,6 +52,7 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "IdentificationManager.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -138,6 +139,7 @@ Brain::Brain()
     m_sceneAssistant->add("displayPropertiesVolume",
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
+    this->m_identificationManager = new IdentificationManager();
 }
 
 /**
@@ -169,6 +171,7 @@ Brain::~Brain()
     if (m_wholeBrainController != NULL) {
         delete m_wholeBrainController;
     }
+    this->m_identificationManager = NULL;
 }
 
 /**
@@ -205,6 +208,22 @@ Brain::addBrainStructure(BrainStructure* brainStructure)
  */
 BrainStructure* 
 Brain::getBrainStructure(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_brainStructures, indx);
+    return m_brainStructures[indx];
+    
+}
+
+/**
+ * Get a brain structure at specified index.
+ *
+ * @param indx
+ *    Index of brain structure.
+ * @return
+ *    Pointer to brain structure at index.
+ */
+const BrainStructure*
+Brain::getBrainStructure(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_brainStructures, indx);
     return m_brainStructures[indx];
@@ -339,6 +358,9 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
          iter++) {
         (*iter)->reset();
     }
+    
+    m_identificationManager->reset();
+    m_identificationManager->setLastIdentifiedItem(NULL);
     
     updateVolumeSliceController();
     updateWholeBrainController();
@@ -2290,7 +2312,7 @@ Brain::determineDisplayedDataFiles()
  *    Data files are loaded into this parameter.
  */
 void 
-Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
+Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
 {
     allDataFilesOut.clear();
     
@@ -2325,6 +2347,31 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
                            m_volumeFiles.begin(),
                            m_volumeFiles.end());    
 }
+
+/**
+ * Determine if a file is still valid (pointer is for an existing data
+ * of the same DataFileType.
+ */
+bool
+Brain::isFileValid(const CaretDataFile* caretDataFile) const
+{
+    std::vector<CaretDataFile*> allDataFiles;
+    getAllDataFiles(allDataFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+         iter != allDataFiles.end();
+         iter++) {
+        const CaretDataFile* cdf = *iter;
+        if (caretDataFile == cdf) {
+            if (caretDataFile->getDataFileType() == cdf->getDataFileType()) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * Are any data files modified?
@@ -2813,4 +2860,14 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
 }
+
+/**
+ * @return The identification manager.
+ */
+IdentificationManager*
+Brain::getIdentificationManager()
+{
+    return this->m_identificationManager;
+}
+
 

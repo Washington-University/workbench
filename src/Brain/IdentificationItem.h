@@ -38,6 +38,10 @@ namespace caret {
     protected:
         IdentificationItem(const IdentificationItemDataTypeEnum::Enum itemDataType);
     
+        IdentificationItem(const IdentificationItem&);
+        
+        IdentificationItem& operator=(const IdentificationItem&);
+        
     public:
         virtual ~IdentificationItem();
         
@@ -73,25 +77,24 @@ namespace caret {
         virtual void reset();
         
     private:
-        IdentificationItem(const IdentificationItem&);
-
-        IdentificationItem& operator=(const IdentificationItem&);
-        
     public:
         virtual AString toString() const;
         
     protected:
-        IdentificationItemDataTypeEnum::Enum itemDataType;
+        IdentificationItemDataTypeEnum::Enum m_itemDataType;
         
-        bool enabledForSelection;
+        bool m_enabledForSelection;
         
-        Brain* brain;
+        Brain* m_brain;
         
-        double screenDepth;
+        double m_screenDepth;
         
-        double screenXYZ[3];
+        double m_screenXYZ[3];
         
-        double modelXYZ[3];
+        double m_modelXYZ[3];
+        
+    private:
+        void copyHelperIdentificationItem(const IdentificationItem& idItem);
     };
     
 #ifdef __IDENTIFICATION_ITEM_DECLARE__

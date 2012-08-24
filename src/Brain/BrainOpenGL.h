@@ -35,7 +35,6 @@ namespace caret {
     class Border;
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
-    class IdentificationManager;
     class SurfaceProjectedItem;
     
     /**
@@ -99,11 +98,6 @@ namespace caret {
          */
         static float getModelViewingHalfWindowHeight() { return 90.0f; }
         
-        /**
-         * @return The identification manager.
-         */
-        IdentificationManager* getIdentificationManager();
-
         void setBorderBeingDrawn(Border* borderBeingDrawn);
         
         static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
@@ -137,8 +131,6 @@ namespace caret {
         static float maxLineWidth;
         
     private:
-        /** Identification manager */
-        IdentificationManager* identificationManager;
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H

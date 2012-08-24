@@ -30,21 +30,30 @@
 
 namespace caret {
 
+    class Brain;
     class BrowserTabContent;
     
     class BrainOpenGLViewportContent : public CaretObject {
         
     public:
         BrainOpenGLViewportContent(const int viewport[4],
-                         BrowserTabContent* browserTabContent);
+                                   Brain* brain,
+                                   BrowserTabContent* browserTabContent);
+        
         ~BrainOpenGLViewportContent();
         
         void getViewport(int viewport[4]) const;
+        
         BrowserTabContent* getBrowserTabContent();
         
+        Brain* getBrain();
+        
     private:
-        int viewport[4];
-        BrowserTabContent* browserTabContent;
+        int m_viewport[4];
+        
+        BrowserTabContent* m_browserTabContent;
+        
+        Brain* m_brain;
         
         BrainOpenGLViewportContent(const BrainOpenGLViewportContent&);
 

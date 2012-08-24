@@ -58,6 +58,11 @@ namespace caret {
                                                    const int32_t mousePressedX,
                                                    const int32_t mousePressedY);
         
+        static void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
+                                                   BrainOpenGLWidget* openGLWidget,
+                                                   const int32_t mouseClickX,
+                                                   const int32_t mouseClickY);
+        
     private:
         UserInputModeView(const UserInputModeView&);
 

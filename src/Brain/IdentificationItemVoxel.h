@@ -39,6 +39,10 @@ namespace caret {
         
         virtual ~IdentificationItemVoxel();
         
+        IdentificationItemVoxel(const IdentificationItemVoxel&);
+        
+        IdentificationItemVoxel& operator=(const IdentificationItemVoxel&);
+        
         virtual bool isValid() const;
         
         const VolumeFile* getVolumeFile() const;
@@ -52,15 +56,13 @@ namespace caret {
         virtual void reset();
         
         virtual AString toString() const;
-    private:
-        IdentificationItemVoxel(const IdentificationItemVoxel&);
 
-        IdentificationItemVoxel& operator=(const IdentificationItemVoxel&);
-        
     private:
-        VolumeFile* volumeFile;
+        void copyHelperIdentificationItemVoxel(const IdentificationItemVoxel& idItem);
+
+        VolumeFile* m_volumeFile;
         
-        int64_t voxelIJK[3];
+        int64_t m_voxelIJK[3];
     };
     
 #ifdef __IDENTIFICATION_ITEM_VOXEL_DECLARE__

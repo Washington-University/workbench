@@ -39,17 +39,26 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param viewport
+ *    Viewport in which drawing takes place.
+ * @param brain
+ *    Brain that is the source of the data.
+ * @param browserTabContent
+ *    Tab's content that is being drawn.
  */
 BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int viewport[4],
+                                                       Brain* brain,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
 {
-    this->viewport[0] = viewport[0];
-    this->viewport[1] = viewport[1];
-    this->viewport[2] = viewport[2];
-    this->viewport[3] = viewport[3];
+    m_viewport[0] = viewport[0];
+    m_viewport[1] = viewport[1];
+    m_viewport[2] = viewport[2];
+    m_viewport[3] = viewport[3];
     
-    this->browserTabContent = browserTabContent;
+    m_brain = brain;
+    
+    m_browserTabContent = browserTabContent;
 }
 
 /**
@@ -68,10 +77,16 @@ BrainOpenGLViewportContent::~BrainOpenGLViewportContent()
 void
 BrainOpenGLViewportContent::getViewport(int viewport[4]) const
 {
-    viewport[0] = this->viewport[0];
-    viewport[1] = this->viewport[1];
-    viewport[2] = this->viewport[2];
-    viewport[3] = this->viewport[3];
+    viewport[0] = m_viewport[0];
+    viewport[1] = m_viewport[1];
+    viewport[2] = m_viewport[2];
+    viewport[3] = m_viewport[3];
+}
+
+Brain*
+BrainOpenGLViewportContent::getBrain()
+{
+    return m_brain;
 }
 
 /**
@@ -80,7 +95,7 @@ BrainOpenGLViewportContent::getViewport(int viewport[4]) const
 BrowserTabContent* 
 BrainOpenGLViewportContent::getBrowserTabContent()
 {
-    return this->browserTabContent;
+    return m_browserTabContent;
 }
 
 /**

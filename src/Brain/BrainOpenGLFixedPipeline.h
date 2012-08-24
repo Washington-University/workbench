@@ -290,6 +290,9 @@ namespace caret {
         /** Content of browser tab being drawn */
         BrowserTabContent* browserTabContent;
         
+        /** Source brain of content being drawn DOES NOT get deleted! */
+        Brain* m_brain;
+        
         /** Index of window tab */
         int32_t windowTabIndex;
         

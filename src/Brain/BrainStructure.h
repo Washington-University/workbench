@@ -147,7 +147,7 @@ namespace caret {
         
         const BrainStructureNodeAttributes* getNodeAttributes() const;
         
-        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
         
         bool removeDataFile(CaretDataFile* caretDataFile);
         

@@ -56,10 +56,14 @@
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GuiManager.h"
+#include "IdentificationManager.h"
+#include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemVoxel.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "Surface.h"
 #include "UserInputModeFoci.h"
+#include "VolumeFile.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -221,36 +225,61 @@ UserInputModeFociWidget::modeComboBoxSelection(int indx)
 QWidget*
 UserInputModeFociWidget::createCreateOperationWidget()
 {
-    m_createFociAction = WuQtUtilities::createAction("Create",
-                                                     "Display the Create Foci Window\n",
-                                                     this);
-//    m_createFociAction->setCheckable(true);
-    QToolButton* createFociToolButton = new QToolButton();
-    createFociToolButton->setDefaultAction(m_createFociAction);
+    QAction* newFocusAction = WuQtUtilities::createAction("New...",
+                                                          "Display the create focus window for entering new focus data\n",
+                                                          this,
+                                                          this,
+                                                          SLOT(createNewFocusActionTriggered()));
+    QToolButton* newFocusToolButton = new QToolButton();
+    newFocusToolButton->setDefaultAction(newFocusAction);
     
-    m_createOperationActionGroup= new QActionGroup(this);
-    m_createOperationActionGroup->addAction(m_createFociAction);
-    QObject::connect(m_createOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(createOperationActionTriggered(QAction*)));
+    QAction* lastIdFocusAction = WuQtUtilities::createAction("Last ID",
+                                                          "Display the create focus findow with position of last ID\n",
+                                                          this,
+                                                          this,
+                                                          SLOT(createLastIdentificationFocusActionTriggered()));
+    QToolButton* lastIdFocusToolButton = new QToolButton();
+    lastIdFocusToolButton->setDefaultAction(lastIdFocusAction);
+    
+    m_createFocusMouseClickAction = WuQtUtilities::createAction("From Mouse-Click",
+                                                             "Display the create focus findow with position mouse click\n",
+                                                             this);
+    m_createFocusMouseClickAction->setCheckable(true);
+    m_createFocusMouseClickAction->setChecked(false);
+    QToolButton* mouseClickFocusToolButton = new QToolButton();
+    mouseClickFocusToolButton->setDefaultAction(m_createFocusMouseClickAction);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 0);
-    layout->addWidget(createFociToolButton);
+    layout->addWidget(newFocusToolButton);
+    layout->addSpacing(5);
+    layout->addWidget(lastIdFocusToolButton);
     layout->addSpacing(10);
-//    layout->addWidget(drawToolButton);
+    layout->addWidget(mouseClickFocusToolButton);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
 
 /**
- * Called when a create operation button is selected.
+ * @return true if a mouse click should pop create focus window
+ * in Create Mode.
+ */
+bool
+UserInputModeFociWidget::isMouseClickCreateFocusEnabled() const
+{
+    return m_createFocusMouseClickAction->isChecked();
+}
+
+
+/**
+ * Called when new focus button is triggered
  * @param action
  *     Action that was selected.
  */
 void
-UserInputModeFociWidget::createOperationActionTriggered(QAction* action)
+UserInputModeFociWidget::createNewFocusActionTriggered()
 {
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(m_windowIndex);
     if (browserWindow == NULL) {
@@ -268,33 +297,81 @@ UserInputModeFociWidget::createOperationActionTriggered(QAction* action)
                       browserTabIndex,
                       true);
     
-    if (action == m_createFociAction) {
-        Focus* focus = new Focus();
-        if (s_previousFocus == NULL) {
-            s_previousFocus = new Focus();
-        }
-        *focus = *s_previousFocus;
-        displayFocusCreationDialog(focus);
-//        FociPropertiesEditorDialog focusCreateDialog("Create Focus",
-//                                                     s_previousFociFile,
-//                                                     focus,
-//                                                     true,
-//                                                     this);
-//        if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
-//            s_previousFociFile = focusCreateDialog.getSelectedFociFile();
-//            focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
-//            s_previousFociFile->addFocus(focus);
-//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//        }
-//        else {
-//            delete focus;
-//        }
+    Focus* focus = new Focus();
+    if (s_previousFocus == NULL) {
+        s_previousFocus = new Focus();
     }
-    else {
-        CaretAssertMessage(0,
-                           ("Action not handled: " + action->text()));
+    *focus = *s_previousFocus;
+    displayFocusCreationDialog(focus);
+}
+
+/**
+ * Called when last ID focus button is triggered
+ * @param action
+ *     Action that was selected.
+ */
+void
+UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const IdentificationManager* idManager = brain->getIdentificationManager();
+    const IdentificationItem* idItem = idManager->getLastIdentifiedItem();
+    if (idItem != NULL) {
+        const IdentificationItemSurfaceNode* nodeID = dynamic_cast<const IdentificationItemSurfaceNode*>(idItem);
+        const IdentificationItemVoxel* voxelID = dynamic_cast<const IdentificationItemVoxel*>(idItem);
+        
+        if (nodeID != NULL) {
+            if (nodeID->isValid()
+                && (nodeID->isContralateral() == false)) {
+                const Surface* surface = nodeID->getSurface();
+                if (brain->isFileValid(surface)) {
+                    CaretAssert(surface);
+                    const StructureEnum::Enum structure = surface->getStructure();
+                    const int32_t nodeIndex = nodeID->getNodeNumber();
+                    
+                    const AString focusName = ("Last ID "
+                                               + StructureEnum::toGuiName(structure)
+                                               + " Node "
+                                               + AString::number(nodeIndex));
+                    const float* xyz = surface->getCoordinate(nodeIndex);
+                    
+                    const AString comment = ("Created from "
+                                             + focusName);
+                    
+                    displayFocusCreationDialog(focusName,
+                                               xyz,
+                                               comment);
+                }
+            }
+        }
+        else if (voxelID != NULL) {
+            if (voxelID->isValid()) {
+                const VolumeFile* volumeFile = voxelID->getVolumeFile();
+                if (brain->isFileValid(volumeFile)) {
+                    CaretAssert(volumeFile);
+                    int64_t ijk[3];
+                    voxelID->getVoxelIJK(ijk);
+                    float xyz[3];
+                    volumeFile->indexToSpace(ijk, xyz);
+                    
+                    const AString focusName = ("Last ID "
+                                               + volumeFile->getFileNameNoPath()
+                                               + " IJK ("
+                                               + AString::fromNumbers(ijk, 3, ",")
+                                               + ")");
+                    
+                    const AString comment = ("Created from "
+                                             + focusName);
+                    
+                    displayFocusCreationDialog(focusName,
+                                               xyz,
+                                               comment);
+                }
+            }
+        }
     }
 }
+
 
 /**
  * Display the focus creation dialog for creating a focus with

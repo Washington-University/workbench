@@ -39,6 +39,10 @@ namespace caret {
         
         virtual ~IdentificationItemSurfaceNode();
         
+        IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode&);
+        
+        IdentificationItemSurfaceNode& operator=(const IdentificationItemSurfaceNode&);
+        
         virtual bool isValid() const;
         
         Surface* getSurface();
@@ -58,18 +62,17 @@ namespace caret {
         virtual void reset();
         
         virtual AString toString() const;
-    private:
-        IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode&);
 
-        IdentificationItemSurfaceNode& operator=(const IdentificationItemSurfaceNode&);
+    private:
+        void copyHelperIdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& idItem);
         
     public:
     private:
-        Surface* surface;
+        Surface* m_surface;
         
-        int32_t nodeNumber;
+        int32_t m_nodeNumber;
         
-        bool contralateralFlag;
+        bool m_contralateralFlag;
     };
     
 #ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__

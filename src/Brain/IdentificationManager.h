@@ -26,6 +26,7 @@
  */ 
 
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
     class Brain;
@@ -40,12 +41,14 @@ namespace caret {
     class IdentificationTextGenerator;
     class Surface;
     
-    class IdentificationManager : public CaretObject {
+    class IdentificationManager : public CaretObject, public EventListenerInterface {
         
     public:
         IdentificationManager();
         
         virtual ~IdentificationManager();
+        
+        void receiveEvent(Event* event);
         
         void reset();
         
@@ -92,6 +95,9 @@ namespace caret {
         
         const IdentificationItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx) const;
         
+        const IdentificationItem* getLastIdentifiedItem() const;
+        
+        void setLastIdentifiedItem(const IdentificationItem* lastItem);
         
     private:
         IdentificationManager(const IdentificationManager&);
@@ -105,32 +111,35 @@ namespace caret {
         IdentificationItem* getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const;
 
         /** ALL items */
-        std::vector<IdentificationItem*> allIdentificationItems;
+        std::vector<IdentificationItem*> m_allIdentificationItems;
         
         /** Layered items (foci, borders, etc.) */
-        std::vector<IdentificationItem*> layeredSelectedItems;
+        std::vector<IdentificationItem*> m_layeredSelectedItems;
         
         /** Surface items (nodes, triangles) */
-        std::vector<IdentificationItem*> surfaceSelectedItems;
+        std::vector<IdentificationItem*> m_surfaceSelectedItems;
         
         /** Volume items */
-        std::vector<IdentificationItem*> volumeSelectedItems;
+        std::vector<IdentificationItem*> m_volumeSelectedItems;
         
-        IdentificationItemBorderSurface* surfaceBorderIdentification;
+        IdentificationItemBorderSurface* m_surfaceBorderIdentification;
         
-        IdentificationItemFocusSurface* surfaceFocusIdentification;
+        IdentificationItemFocusSurface* m_surfaceFocusIdentification;
         
-        IdentificationItemSurfaceNode* surfaceNodeIdentification;
+        IdentificationItemSurfaceNode* m_surfaceNodeIdentification;
         
-        IdentificationItemSurfaceNodeIdentificationSymbol* surfaceNodeIdentificationSymbol;
+        IdentificationItemSurfaceNodeIdentificationSymbol* m_surfaceNodeIdentificationSymbol;
         
-        IdentificationItemSurfaceTriangle* surfaceTriangleIdentification;
+        IdentificationItemSurfaceTriangle* m_surfaceTriangleIdentification;
         
-        IdentificationTextGenerator* idTextGenerator;
+        IdentificationTextGenerator* m_idTextGenerator;
         
-        IdentificationItemVoxel* voxelIdentification;
+        IdentificationItemVoxel* m_voxelIdentification;
         
-        std::vector<IdentificationItemSurfaceNode*> additionalSurfaceNodeIdentifications;
+        std::vector<IdentificationItemSurfaceNode*> m_additionalSurfaceNodeIdentifications;
+        
+        /** Last identified item DOES NOT GET PUT IN m_allIdentificationItems */
+        IdentificationItem* m_lastIdentifiedItem;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

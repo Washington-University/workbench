@@ -46,10 +46,10 @@ using namespace caret;
 IdentificationItemVoxel::IdentificationItemVoxel()
 : IdentificationItem(IdentificationItemDataTypeEnum::VOXEL)
 {
-    this->volumeFile = NULL;
-    this->voxelIJK[0] = -1;
-    this->voxelIJK[1] = -1;
-    this->voxelIJK[2] = -1;
+    m_volumeFile = NULL;
+    m_voxelIJK[0] = -1;
+    m_voxelIJK[1] = -1;
+    m_voxelIJK[2] = -1;
 }
 
 /**
@@ -61,16 +61,58 @@ IdentificationItemVoxel::~IdentificationItemVoxel()
 }
 
 /**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+IdentificationItemVoxel::IdentificationItemVoxel(const IdentificationItemVoxel& obj)
+: IdentificationItem(obj)
+{
+    copyHelperIdentificationItemVoxel(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to m_.
+ * @return
+ *    Reference to m_ object.
+ */
+IdentificationItemVoxel&
+IdentificationItemVoxel::operator=(const IdentificationItemVoxel& obj)
+{
+    if (this != &obj) {
+        IdentificationItem::operator=(obj);
+        copyHelperIdentificationItemVoxel(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of m_ type.
+ * @param ff
+ *    Object that is copied.
+ */
+void
+IdentificationItemVoxel::copyHelperIdentificationItemVoxel(const IdentificationItemVoxel& idItem)
+{
+    m_volumeFile  = idItem.m_volumeFile;
+    m_voxelIJK[0] = idItem.m_voxelIJK[0];
+    m_voxelIJK[1] = idItem.m_voxelIJK[1];
+    m_voxelIJK[2] = idItem.m_voxelIJK[2];
+}
+
+/**
  * Reset this selection item. 
  */
 void 
 IdentificationItemVoxel::reset()
 {
     IdentificationItem::reset();
-    this->volumeFile = NULL;
-    this->voxelIJK[0] = -1;
-    this->voxelIJK[1] = -1;
-    this->voxelIJK[2] = -1;
+    m_volumeFile = NULL;
+    m_voxelIJK[0] = -1;
+    m_voxelIJK[1] = -1;
+    m_voxelIJK[2] = -1;
 }
 
 /**
@@ -79,7 +121,7 @@ IdentificationItemVoxel::reset()
 const VolumeFile* 
 IdentificationItemVoxel::getVolumeFile() const
 {
-    return this->volumeFile;
+    return m_volumeFile;
 }
 
 /**
@@ -90,9 +132,9 @@ IdentificationItemVoxel::getVolumeFile() const
 void 
 IdentificationItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 {
-    voxelIJK[0] = this->voxelIJK[0];
-    voxelIJK[1] = this->voxelIJK[1];
-    voxelIJK[2] = this->voxelIJK[2];
+    voxelIJK[0] = m_voxelIJK[0];
+    voxelIJK[1] = m_voxelIJK[1];
+    voxelIJK[2] = m_voxelIJK[2];
 }
 
 /**
@@ -103,7 +145,7 @@ IdentificationItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 void 
 IdentificationItemVoxel::setVolumeFile(VolumeFile* volumeFile)
 {
-    this->volumeFile = volumeFile;
+    m_volumeFile = volumeFile;
 }
 
 /**
@@ -114,9 +156,9 @@ IdentificationItemVoxel::setVolumeFile(VolumeFile* volumeFile)
 void 
 IdentificationItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
 {
-    this->voxelIJK[0] = voxelIJK[0];
-    this->voxelIJK[1] = voxelIJK[1];
-    this->voxelIJK[2] = voxelIJK[2];
+    m_voxelIJK[0] = voxelIJK[0];
+    m_voxelIJK[1] = voxelIJK[1];
+    m_voxelIJK[2] = voxelIJK[2];
 }
 
 /**
@@ -125,7 +167,7 @@ IdentificationItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
 bool 
 IdentificationItemVoxel::isValid() const
 {
-    return (this->volumeFile != NULL);
+    return (m_volumeFile != NULL);
 }
 
 /**
@@ -138,11 +180,11 @@ IdentificationItemVoxel::toString() const
     AString text = "IdentificationItemVoxel\n";
     
     text += IdentificationItem::toString() + "\n";
-    text += "Volume: " + this->volumeFile->getFileNameNoPath() + "\n";
+    text += "Volume: " + m_volumeFile->getFileNameNoPath() + "\n";
     text += ("Voxel: " 
-             + AString::number(this->voxelIJK[0]) + ", "
-             + AString::number(this->voxelIJK[1]) + ", "
-             + AString::number(this->voxelIJK[2]) + "\n");
+             + AString::number(m_voxelIJK[0]) + ", "
+             + AString::number(m_voxelIJK[1]) + ", "
+             + AString::number(m_voxelIJK[2]) + "\n");
     
     return text;
 }

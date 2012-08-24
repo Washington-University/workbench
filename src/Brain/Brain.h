@@ -53,6 +53,7 @@ namespace caret {
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
+    class IdentificationManager;    
     class LabelFile;
     class MetricFile;
     class ModelSurfaceMontage;
@@ -86,6 +87,8 @@ namespace caret {
         
         BrainStructure* getBrainStructure(const int32_t indx);
 
+        const BrainStructure* getBrainStructure(const int32_t indx) const;
+        
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
@@ -197,8 +200,10 @@ namespace caret {
         
         void setCurrentDirectory(const AString& currentDirectory);
         
-        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
         
+        bool isFileValid(const CaretDataFile* caretDataFile) const;
+
         void determineDisplayedDataFiles();
         
         bool areFilesModified(const bool excludeConnectivityFiles,
@@ -237,6 +242,8 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        IdentificationManager* getIdentificationManager();
         
     private:
         enum ResetBrainKeepSceneFiles {
@@ -373,6 +380,9 @@ namespace caret {
         AString m_fileReadingPassword;
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        /** Identification manager */
+        IdentificationManager* m_identificationManager;
     };
 
 } // namespace

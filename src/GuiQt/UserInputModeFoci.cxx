@@ -181,6 +181,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
                                                   && mouseEvent->isShiftKeyDown());
         bool doTransformation = false;
+        bool doIdentification = false;
         
         IdentificationManager* idManager =
             openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
@@ -191,7 +192,8 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         
         switch (m_mode){
             case MODE_CREATE:
-                if (isLeftClick) {
+                if (isLeftClick
+                    && m_inputModeFociWidget->isMouseClickCreateFocusEnabled()) {
                     IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
                     IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
                     if (idNode->isValid()) {
@@ -234,6 +236,9 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                                                           comment);
                     }
                 }
+                else if (isLeftClick) {
+                    doIdentification = true;
+                }
                 else if ((isLeftDrag || isWheel)) {
                     doTransformation = true;
                 }
@@ -275,10 +280,20 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
             }
                 break;
             case MODE_OPERATIONS:
-                if ((isLeftDrag || isWheel)) {
+                if (isLeftClick) {
+                    doIdentification = true;
+                }
+                else if ((isLeftDrag || isWheel)) {
                     doTransformation = true;
                 }
                 break;
+        }
+        
+        if (doIdentification) {
+            UserInputModeView::processModelViewIdentification(viewportContent,
+                                                              openGLWidget,
+                                                              mouseEvent->getX(),
+                                                              mouseEvent->getY());
         }
         
         if (doTransformation) {

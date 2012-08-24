@@ -45,8 +45,9 @@ using namespace caret;
 IdentificationItemSurfaceNode::IdentificationItemSurfaceNode()
 : IdentificationItem(IdentificationItemDataTypeEnum::SURFACE_NODE)
 {
-    this->surface = NULL;
-    this->nodeNumber = -1;
+    m_surface = NULL;
+    m_contralateralFlag = false;
+    m_nodeNumber = -1;
 }
 
 /**
@@ -58,24 +59,65 @@ IdentificationItemSurfaceNode::~IdentificationItemSurfaceNode()
 }
 
 /**
- * Reset this selection item. 
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+IdentificationItemSurfaceNode::IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& obj)
+: IdentificationItem(obj)
+{
+    copyHelperIdentificationItemSurfaceNode(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to m_.
+ * @return
+ *    Reference to m_ object.
+ */
+IdentificationItemSurfaceNode&
+IdentificationItemSurfaceNode::operator=(const IdentificationItemSurfaceNode& obj)
+{
+    if (this != &obj) {
+        IdentificationItem::operator=(obj);
+        copyHelperIdentificationItemSurfaceNode(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of m_ type.
+ * @param ff
+ *    Object that is copied.
+ */
+void
+IdentificationItemSurfaceNode::copyHelperIdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& idItem)
+{
+    m_surface = idItem.m_surface;
+    m_nodeNumber = idItem.m_nodeNumber;
+    m_contralateralFlag = idItem.m_contralateralFlag;
+}
+
+/**
+ * Reset the selection item. 
  */
 void 
 IdentificationItemSurfaceNode::reset()
 {
     IdentificationItem::reset();
-    this->surface = NULL;
-    this->nodeNumber = -1;
-    this->contralateralFlag = false;
+    m_surface = NULL;
+    m_nodeNumber = -1;
+    m_contralateralFlag = false;
 }
 
 /**
- * @return Is this identified item valid?
+ * @return Is m_ identified item valid?
  */
 bool 
 IdentificationItemSurfaceNode::isValid() const
 {
-    return (this->nodeNumber >= 0);
+    return (m_nodeNumber >= 0);
 }
 
 /**
@@ -84,7 +126,7 @@ IdentificationItemSurfaceNode::isValid() const
 const Surface* 
 IdentificationItemSurfaceNode::getSurface() const
 {
-    return this->surface;
+    return m_surface;
 }
 
 /**
@@ -93,7 +135,7 @@ IdentificationItemSurfaceNode::getSurface() const
 Surface* 
 IdentificationItemSurfaceNode::getSurface()
 {
-    return this->surface;
+    return m_surface;
 }
 
 /**
@@ -105,7 +147,7 @@ IdentificationItemSurfaceNode::getSurface()
 void 
 IdentificationItemSurfaceNode::setSurface(Surface* surface)
 {
-    this->surface = surface;
+    m_surface = surface;
 }
 
 /**
@@ -114,7 +156,7 @@ IdentificationItemSurfaceNode::setSurface(Surface* surface)
 int32_t 
 IdentificationItemSurfaceNode::getNodeNumber() const
 {
-    return this->nodeNumber;
+    return m_nodeNumber;
 }
 
 /**
@@ -125,16 +167,16 @@ IdentificationItemSurfaceNode::getNodeNumber() const
 void 
 IdentificationItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
 {
-    this->nodeNumber = nodeNumber;
+    m_nodeNumber = nodeNumber;
 }
 
 /**
- * @return Is this a contralateral identification?
+ * @return Is m_ a contralateral identification?
  */
 bool 
 IdentificationItemSurfaceNode::isContralateral() const
 {
-    return this->contralateralFlag;
+    return m_contralateralFlag;
 }
 
 /**
@@ -145,23 +187,23 @@ IdentificationItemSurfaceNode::isContralateral() const
 void 
 IdentificationItemSurfaceNode::setContralateral(const bool status)
 {
-    this->contralateralFlag = status;
+    m_contralateralFlag = status;
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
+ * Get a description of m_ object's content.
+ * @return String describing m_ object's content.
  */
 AString 
 IdentificationItemSurfaceNode::toString() const
 {
     AString text = "IdentificationItemSurfaceNode\n";
     text += IdentificationItem::toString() + "\n";
-    text += "Surface: " + surface->getFileNameNoPath() + "\n";
-    text += "Node: " + AString::number(this->nodeNumber) + "\n";
-    if (this->isValid()) {
-        text += "Coordinate: " + AString::fromNumbers(surface->getCoordinate(this->nodeNumber), 3, ", ");
+    text += "Surface: " + m_surface->getFileNameNoPath() + "\n";
+    text += "Node: " + AString::number(m_nodeNumber) + "\n";
+    if (isValid()) {
+        text += "Coordinate: " + AString::fromNumbers(m_surface->getCoordinate(m_nodeNumber), 3, ", ");
     }
-    text += "Contralateral: " + AString::fromBool(this->contralateralFlag);
+    text += "Contralateral: " + AString::fromBool(m_contralateralFlag);
     return text;
 }

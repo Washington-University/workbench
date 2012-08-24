@@ -127,6 +127,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->sphereDisplayList = 0;
     this->sphereOpenGL = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
+    m_brain = NULL;
 }
 
 /**
@@ -164,6 +165,9 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
                          const int32_t mouseX,
                          const int32_t mouseY)
 {
+    m_brain = viewportContent->getBrain();
+    CaretAssert(m_brain);
+    
     this->inverseRotationMatrixValid = false;
     
     /*
@@ -181,7 +185,9 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    this->getIdentificationManager()->filterSelections();
+    m_brain->getIdentificationManager()->filterSelections();
+    
+    m_brain = NULL;
 }
 
 /**
@@ -203,7 +209,10 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
                                          const int32_t mouseY,
                                          SurfaceProjectedItem& projectionOut)
 {
-    this->getIdentificationManager()->reset();
+    m_brain = viewportContent->getBrain();
+    CaretAssert(m_brain);
+    
+    m_brain->getIdentificationManager()->reset();
     
     this->modeProjectionData = &projectionOut;
     this->modeProjectionData->reset();
@@ -225,6 +234,7 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
                             viewportContent);
     
     this->modeProjectionData = NULL;
+    m_brain = NULL;
 }
 
 /**
@@ -252,9 +262,15 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        m_brain = viewportContents[i]->getBrain();
+        CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,
                                 viewportContents[i]);
+        m_brain = NULL;
     }
+    
+    this->checkForOpenGLError(NULL, "At end of drawModels()");
+    
 }
 /**
  * Draw a model.
@@ -923,7 +939,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         case MODE_DRAWING:
             break;
         case MODE_IDENTIFICATION:
-            triangleID = this->getIdentificationManager()->getSurfaceTriangleIdentification();
+            triangleID = m_brain->getIdentificationManager()->getSurfaceTriangleIdentification();
             if (triangleID->isEnabledForSelection()) {
                 isSelect = true;
             }
@@ -1267,7 +1283,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
     const float* normals     = surface->getNormalVector(0);
     
     IdentificationItemSurfaceNode* nodeID = 
-    this->getIdentificationManager()->getSurfaceNodeIdentification();
+    m_brain->getIdentificationManager()->getSurfaceNodeIdentification();
     /*
      * Check for a 'selection' type mode
      */
@@ -1394,7 +1410,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     const float symbolSize = infoProp->getIdentificationSymbolSize();
     
     IdentificationItemSurfaceNodeIdentificationSymbol* symbolID = 
-        this->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
+        m_brain->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
     
     /*
      * Check for a 'selection' type mode
@@ -1687,7 +1703,7 @@ BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 {
-    IdentificationItemFocusSurface* idFocus = this->getIdentificationManager()->getSurfaceFocusIdentification();
+    IdentificationItemFocusSurface* idFocus = m_brain->getIdentificationManager()->getSurfaceFocusIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -1928,7 +1944,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 {
-    IdentificationItemBorderSurface* idBorder = this->getIdentificationManager()->getSurfaceBorderIdentification();
+    IdentificationItemBorderSurface* idBorder = m_brain->getIdentificationManager()->getSurfaceBorderIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -2633,7 +2649,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
     
     IdentificationItemVoxel* voxelID = 
-    this->getIdentificationManager()->getVoxelIdentification();
+    m_brain->getIdentificationManager()->getVoxelIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -3215,7 +3231,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
     
     IdentificationItemVoxel* voxelID = 
-    this->getIdentificationManager()->getVoxelIdentification();
+    m_brain->getIdentificationManager()->getVoxelIdentification();
 
     /*
      * Check for a 'selection' type mode

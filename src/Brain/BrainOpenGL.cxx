@@ -30,8 +30,6 @@
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
 
-#include "IdentificationManager.h"
-
 using namespace caret;
 
 /**
@@ -45,7 +43,6 @@ using namespace caret;
 BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
 {
     this->textRenderer = textRenderer;
-    this->identificationManager = new IdentificationManager();
 }
 
 /**
@@ -53,17 +50,6 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
  */
 BrainOpenGL::~BrainOpenGL()
 {
-    delete this->identificationManager;
-    this->identificationManager = NULL;
-}
-
-/**
- * @return The identification manager.
- */
-IdentificationManager* 
-BrainOpenGL::getIdentificationManager()
-{
-    return this->identificationManager;
 }
 
 /**
