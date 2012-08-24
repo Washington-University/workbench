@@ -32,7 +32,7 @@ namespace caret {
 
     class Focus;
     class FociFile;
-    class Surface;
+    class VolumeFile;
     
     class IdentificationItemFocusVolume : public IdentificationItem {
         
@@ -43,9 +43,9 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        Surface* getSurface();
+        VolumeFile* getVolumeFile();
         
-        const Surface* getSurface() const;
+        const VolumeFile* getVolumeFile() const;
 
         Focus* getFocus();
         
@@ -59,7 +59,7 @@ namespace caret {
         
         void setFociFile(FociFile* fociFile);
         
-        void setSurface(Surface* surface);
+        void setVolumeFile(VolumeFile* volumeFile);
         
         int32_t getFocusIndex() const;
         
@@ -78,7 +78,7 @@ namespace caret {
         
         Focus* focus;
         FociFile* fociFile;
-        Surface* surface; 
+        VolumeFile* volumeFile;
         int32_t focusIndex;
         int32_t focusProjectionIndex;
     };

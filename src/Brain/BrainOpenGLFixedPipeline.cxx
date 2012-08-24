@@ -4285,6 +4285,37 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             }
         }
     }
+    
+    if (isSelect) {
+        int32_t fociFileIndex = -1;
+        int32_t focusIndex = -1;
+        int32_t focusProjectionIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::FOCUS_VOLUME,
+                                         this->mouseX,
+                                         this->mouseY,
+                                         fociFileIndex,
+                                         focusIndex,
+                                         focusProjectionIndex,
+                                         depth);
+        if (fociFileIndex >= 0) {
+            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                Focus* focus = brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                idFocus->setBrain(brain);
+                idFocus->setFocus(focus);
+                idFocus->setFociFile(brain->getFociFile(fociFileIndex));
+                idFocus->setFocusIndex(focusIndex);
+                idFocus->setFocusProjectionIndex(focusProjectionIndex);
+                idFocus->setVolumeFile(underlayVolume);
+                idFocus->setScreenDepth(depth);
+                float xyz[3];
+                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
+                spi->getVolumeXYZ(xyz);
+                this->setIdentifiedItemScreenXYZ(idFocus, xyz);
+                CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
+            }
+        }
+    }
 }
 
 /**

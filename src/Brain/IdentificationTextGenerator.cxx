@@ -39,6 +39,7 @@
 #include "GiftiLabel.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemFocusVolume.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
@@ -122,6 +123,9 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     
     this->generateSurfaceFociIdentifcationText(idText, 
                                                idManager->getSurfaceFocusIdentification());
+    
+    this->generateVolumeFociIdentifcationText(idText,
+                                              idManager->getVolumeFocusIdentification());
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
@@ -458,6 +462,87 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
     }
 }
 
+/**
+ * Generate identification text for a volume focus identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idVolumeFocus
+ *     Information for surface focus ID.
+ */void
+IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
+                                                                  const IdentificationItemFocusVolume* idVolumeFocus) const
+{
+    if (idVolumeFocus->isValid()) {
+        const Focus* focus = idVolumeFocus->getFocus();
+        const SurfaceProjectedItem* spi = focus->getProjection(idVolumeFocus->getFocusProjectionIndex());
+        float xyzVolume[3];
+        spi->getVolumeXYZ(xyzVolume);
+        float xyzStereo[3];
+        spi->getStereotaxicXYZ(xyzStereo);
+        
+        idText.addLine(false,
+                       "FOCUS",
+                       focus->getName());
+        
+        idText.addLine(true,
+                       "Index",
+                       AString::number(idVolumeFocus->getFocusIndex()));
+        
+        idText.addLine(true,
+                       "Structure",
+                       StructureEnum::toGuiName(spi->getStructure()));
+        
+        if (spi->isStereotaxicXYZValid()) {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           xyzStereo,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           "Invalid");
+        }
+        
+        AString xyzVolumeName = "XYZ (Volume)";
+        idText.addLine(true,
+                       xyzVolumeName,
+                       xyzVolume,
+                       3,
+                       true);
+        
+        idText.addLine(true,
+                       "Area",
+                       focus->getArea());
+        
+        idText.addLine(true,
+                       "Class Name",
+                       focus->getClassName());
+        
+        idText.addLine(true,
+                       "Comment",
+                       focus->getComment());
+        
+        idText.addLine(true,
+                       "Extent",
+                       focus->getExtent(),
+                       true);
+        
+        idText.addLine(true,
+                       "Geography",
+                       focus->getGeography());
+        
+        idText.addLine(true,
+                       "Region of Interest",
+                       focus->getRegionOfInterest());
+        
+        idText.addLine(true,
+                       "Statistic",
+                       focus->getStatistic());
+        
+    }
+}
 
 
 /**

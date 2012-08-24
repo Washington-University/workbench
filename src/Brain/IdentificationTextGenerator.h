@@ -34,6 +34,7 @@ namespace caret {
     class BrowserTabContent;
     class IdentificationItemBorderSurface;
     class IdentificationItemFocusSurface;
+    class IdentificationItemFocusVolume;
     class IdentificationItemSurfaceNode;
     class IdentificationManager;
     class IdentificationStringBuilder;
@@ -62,7 +63,10 @@ namespace caret {
                                                     const IdentificationItemBorderSurface* idSurfaceBorder) const;
         
         void generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                    const IdentificationItemFocusSurface* idSurfaceBorder) const;
+                                                    const IdentificationItemFocusSurface* idSurfaceFocus) const;
+        
+        void generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
+                                                  const IdentificationItemFocusVolume* idVolumeFocus) const;
         
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,

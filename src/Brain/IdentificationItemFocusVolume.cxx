@@ -41,7 +41,7 @@ using namespace caret;
 IdentificationItemFocusVolume::IdentificationItemFocusVolume()
 : IdentificationItem(IdentificationItemDataTypeEnum::FOCUS_VOLUME)
 {
-    this->surface = NULL;
+    this->volumeFile = NULL;
     this->focus = NULL;
     this->fociFile = NULL;
     this->focusIndex = -1;
@@ -62,7 +62,7 @@ void
 IdentificationItemFocusVolume::reset()
 {
     IdentificationItem::reset();
-    this->surface = NULL;
+    this->volumeFile = NULL;
     this->focus = NULL;
     this->fociFile = NULL;
     this->focusIndex = -1;
@@ -79,32 +79,32 @@ IdentificationItemFocusVolume::isValid() const
 }
 
 /**
- * @return Surface on which focus was drawn.
+ * @return VolumeFile on which focus was drawn.
  */
-const Surface* 
-IdentificationItemFocusVolume::getSurface() const
+const VolumeFile*
+IdentificationItemFocusVolume::getVolumeFile() const
 {
-    return this->surface;
+    return this->volumeFile;
 }
 
 /**
- * @return Surface on which focus was drawn.
+ * @return VolumeFile on which focus was drawn.
  */
-Surface* 
-IdentificationItemFocusVolume::getSurface()
+VolumeFile* 
+IdentificationItemFocusVolume::getVolumeFile()
 {
-    return this->surface;
+    return this->volumeFile;
 }
 
 /**
- * Set the surface on which focus was drawn.
- * @param surface
- *    New value for surface.
+ * Set the volume file on which focus was drawn.
+ * @param volumeFile
+ *    New value for volumeFile.
  */
 void 
-IdentificationItemFocusVolume::setSurface(Surface* surface)
+IdentificationItemFocusVolume::setVolumeFile(VolumeFile* volumeFile)
 {
-    this->surface = surface;
+    this->volumeFile = volumeFile;
 }
 
 /**
