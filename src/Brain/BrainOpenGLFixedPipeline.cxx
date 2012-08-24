@@ -76,6 +76,7 @@
 #include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemFocusVolume.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -2342,6 +2343,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                 slicePlane, 
                                                                 sliceIndex, 
                                                                 underlayVolumeFile);
+                                this->drawVolumeFoci(brain,
+                                                     volumeController,
+                                                     browserTabContent,
+                                                     slicePlane,
+                                                     sliceIndex,
+                                                     underlayVolumeFile);
                                 this->drawVolumeAxesCrosshairs(slicePlane, 
                                                                selectedVoxelXYZ);
                                 const float sliceCoord = (sliceOrigin
@@ -2397,7 +2404,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             VolumeSliceViewPlaneEnum::AXIAL,
+                                             selectedSlices->getSliceIndexAxial(underlayVolumeFile),
+                                             underlayVolumeFile);
+                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::AXIAL, 
                                                    axialVP);
@@ -2417,7 +2430,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                       this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             VolumeSliceViewPlaneEnum::CORONAL,
+                                             selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
+                                             underlayVolumeFile);
+                       this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::CORONAL, 
                                                    coronalVP);
@@ -2437,7 +2456,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                             selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
+                                             underlayVolumeFile);
+                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                    parasagittalVP);
@@ -2459,7 +2484,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             slicePlane,
+                                             selectedSlices->getSliceIndexAxial(underlayVolumeFile),
+                                             underlayVolumeFile);
+                        this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
@@ -2479,7 +2510,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             slicePlane,
+                                             selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
+                                             underlayVolumeFile);
+                        this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
@@ -2499,7 +2536,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane, 
+                        this->drawVolumeFoci(brain,
+                                             volumeController,
+                                             browserTabContent,
+                                             slicePlane,
+                                             selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
+                                             underlayVolumeFile);
+                        this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
@@ -4004,6 +4047,244 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
     }
     
     this->disableLineAntiAliasing();
+}
+
+/**
+ * Draw surface outlines on volume slices.
+ *
+ * @param brain
+ *    The brain.
+ * @param modelDisplayController
+ *    Model display controller in which surface outlines are drawn.
+ * @param browserTabContent
+ *    Tab content that is being drawn.
+ * @param slicePlane
+ *    Plane on which surface outlines are drawn.
+ * @param sliceIndex
+ *    Index of slice.
+ * @param underlayVolume
+ *    Bottom-most displayed volume.
+ */
+void
+BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
+                                         ModelVolume* /*modelVolume*/,
+                                         BrowserTabContent* /*browserTabContent*/,
+                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                         const int64_t sliceIndex,
+                                         VolumeFile* underlayVolume)
+{
+    CaretAssert(brain);
+    CaretAssert(underlayVolume);
+    
+    IdentificationItemFocusVolume* idFocus = m_brain->getIdentificationManager()->getVolumeFocusIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (idFocus->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    std::vector<int64_t> dim;
+    underlayVolume->getDimensions(dim);
+    
+    /*
+     * Slice thicknesses
+     */
+    float sliceXYZ[3];
+    float sliceNextXYZ[3];
+    int64_t sliceIJK[3] = { 0, 0, 0 };
+    int64_t sliceNextIJK[3] = { 1, 1, 1 };
+    underlayVolume->indexToSpace(sliceIJK, sliceXYZ);
+    underlayVolume->indexToSpace(sliceNextIJK, sliceNextXYZ);
+    const float sliceThicknesses[3] = {
+        sliceNextXYZ[0] - sliceXYZ[0],
+        sliceNextXYZ[1] - sliceXYZ[1],
+        sliceNextXYZ[2] - sliceXYZ[2]
+    };
+    
+    /*
+     * Find three points on the slice so that the equation for a Plane
+     * can be formed.
+     */
+    float p1[3];
+    float p2[3];
+    float p3[3];
+    float sliceThickness = 0.0;
+    switch(slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+            sliceThickness = sliceThicknesses[0];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+            sliceThickness = sliceThicknesses[1];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+            sliceThickness = sliceThicknesses[2];
+        }
+            break;
+    }
+    const float halfSliceThickness = sliceThickness * 0.5;
+    
+    Plane plane(p1, p2, p3);
+    if (plane.isValidPlane() == false) {
+        return;
+    }
+    
+    
+    const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
+    
+    if (fociDisplayProperties->isDisplayed(displayGroup,
+                                           this->windowTabIndex) == false) {
+        return;
+    }
+    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
+                                                                 this->windowTabIndex) / 2.0;
+    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+                                                                                               this->windowTabIndex);
+    
+    bool drawAsSpheres = false;
+    switch (fociDisplayProperties->getDrawingType(displayGroup,
+                                                  this->windowTabIndex)) {
+        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
+            drawAsSpheres = true;
+            break;
+        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
+            break;
+    }
+    
+    /*
+     * Process each foci file
+     */
+    const int32_t numberOfFociFiles = brain->getNumberOfFociFiles();
+    for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
+        FociFile* fociFile = brain->getFociFile(iFile);
+    
+    const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
+    if (classAndNameSelection->isSelected(displayGroup,
+                                          this->windowTabIndex) == false) {
+        continue;
+    }
+    
+    const GiftiLabelTable* colorTable = fociFile->getColorTable();
+    
+    const int32_t numFoci = fociFile->getNumberOfFoci();
+    
+        for (int32_t j = 0; j < numFoci; j++) {
+            Focus* focus = fociFile->getFocus(j);
+            const int32_t selectionClassKey = focus->getSelectionClassKey();
+            const int32_t selectionNameKey  = focus->getSelectionNameKey();
+            if (classAndNameSelection->isGroupSelected(displayGroup,
+                                                       this->windowTabIndex,
+                                                       selectionClassKey) == false) {
+                continue;
+            }
+            if (classAndNameSelection->isNameSelected(displayGroup,
+                                                      this->windowTabIndex,
+                                                      selectionClassKey,
+                                                      selectionNameKey) == false) {
+                continue;
+            }
+            
+            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            switch (fociColoringType) {
+                case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
+                    if (focus->isClassRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getClassName());
+                        if (colorLabel != NULL) {
+                            focus->setClassRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setClassRgba(rgba);
+                        }
+                    }
+                    focus->getClassRgba(rgba);
+                    break;
+                case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
+                    if (focus->isNameRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getName());
+                        if (colorLabel != NULL) {
+                            focus->setNameRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setNameRgba(rgba);
+                        }
+                    }
+                    focus->getNameRgba(rgba);
+                    break;
+            }
+            
+            glColor3fv(rgba);
+            
+            
+            const int32_t numProjections = focus->getNumberOfProjections();
+            for (int32_t k = 0; k < numProjections; k++) {
+                const SurfaceProjectedItem* spi = focus->getProjection(k);
+                if (spi->isVolumeXYZValid()) {
+                    float xyz[3];
+                    spi->getVolumeXYZ(xyz);
+                    
+                    bool drawIt = false;
+                    if (plane.absDistanceToPlane(xyz) < halfSliceThickness) {
+                        drawIt = true;
+                    }
+                    
+                    if (drawIt) {
+                        if (isSelect) {
+                            uint8_t idRGB[3];
+                            this->colorIdentification->addItem(idRGB,
+                                                               IdentificationItemDataTypeEnum::FOCUS_VOLUME,
+                                                               iFile, // file index
+                                                               j, // focus index
+                                                               k);// projection index
+                            glColor3ubv(idRGB);
+                        }
+                        
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        if (drawAsSpheres) {
+                            this->drawSphere(focusRadius);
+                        }
+                        else {
+                            this->drawSquare(focusRadius);
+                        }
+                        glPopMatrix();
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**

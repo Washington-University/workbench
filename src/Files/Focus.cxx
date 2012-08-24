@@ -375,6 +375,16 @@ Focus::setRegionOfInterest(const AString& regionOfInterest)
 const float*
 Focus::getSearchXYZ() const
 {
+    /*
+     * If not set, return stereotaxic coordinate
+     */
+    if ((m_searchXYZ[0] == 0.0)
+        && (m_searchXYZ[1] == 0.0)
+        && (m_searchXYZ[2] == 0.0)) {
+        const float* stereoXYZ = m_projections[0]->getStereotaxicXYZ();
+        return stereoXYZ;
+    }
+    
     return m_searchXYZ;
 }
 

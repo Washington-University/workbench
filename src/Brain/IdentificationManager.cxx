@@ -46,6 +46,7 @@
 
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemFocusVolume.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -71,6 +72,7 @@ IdentificationManager::IdentificationManager()
 {
     m_surfaceBorderIdentification = new IdentificationItemBorderSurface();
     m_surfaceFocusIdentification = new IdentificationItemFocusSurface();
+    m_volumeFocusIdentification = new IdentificationItemFocusVolume();
     m_surfaceNodeIdentification = new IdentificationItemSurfaceNode();
     m_surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
@@ -82,6 +84,7 @@ IdentificationManager::IdentificationManager()
     m_allIdentificationItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allIdentificationItems.push_back(m_surfaceTriangleIdentification);
     m_allIdentificationItems.push_back(m_voxelIdentification);
+    m_allIdentificationItems.push_back(m_volumeFocusIdentification);
     
     m_surfaceSelectedItems.push_back(m_surfaceNodeIdentification);
     m_surfaceSelectedItems.push_back(m_surfaceTriangleIdentification);
@@ -90,6 +93,7 @@ IdentificationManager::IdentificationManager()
     m_layeredSelectedItems.push_back(m_surfaceFocusIdentification);
     
     m_volumeSelectedItems.push_back(m_voxelIdentification);
+    m_volumeSelectedItems.push_back(m_volumeFocusIdentification);
     
     m_idTextGenerator = new IdentificationTextGenerator();
     
@@ -119,6 +123,8 @@ IdentificationManager::~IdentificationManager()
     m_surfaceTriangleIdentification = NULL;
     delete m_voxelIdentification;
     m_voxelIdentification = NULL;
+    delete m_volumeFocusIdentification;
+    m_volumeFocusIdentification = NULL;
     delete m_idTextGenerator;
     m_idTextGenerator = NULL;
     
@@ -495,6 +501,24 @@ const IdentificationItemFocusSurface*
 IdentificationManager::getSurfaceFocusIdentification() const
 {
     return m_surfaceFocusIdentification;
+}
+
+/**
+ * @return Identification for foci.
+ */
+IdentificationItemFocusVolume*
+IdentificationManager::getVolumeFocusIdentification()
+{
+    return m_volumeFocusIdentification;
+}
+
+/**
+ * @return Identification for foci.
+ */
+const IdentificationItemFocusVolume*
+IdentificationManager::getVolumeFocusIdentification() const
+{
+    return m_volumeFocusIdentification;
 }
 
 /**

@@ -85,6 +85,7 @@ IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemBorderSurface.h
 IdentificationItemFocusSurface.h
+IdentificationItemFocusVolume.h
 IdentificationItemSurfaceNode.h
 IdentificationItemSurfaceNodeIdentificationSymbol.h
 IdentificationItemSurfaceTriangle.h
@@ -156,6 +157,7 @@ IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemBorderSurface.cxx
 IdentificationItemFocusSurface.cxx
+IdentificationItemFocusVolume.cxx
 IdentificationItemSurfaceNode.cxx
 IdentificationItemSurfaceNodeIdentificationSymbol.cxx
 IdentificationItemSurfaceTriangle.cxx

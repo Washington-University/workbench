@@ -34,6 +34,7 @@ namespace caret {
     class IdentificationItem;
     class IdentificationItemBorderSurface;
     class IdentificationItemFocusSurface;
+    class IdentificationItemFocusVolume;
     class IdentificationItemSurfaceNode;
     class IdentificationItemSurfaceNodeIdentificationSymbol;
     class IdentificationItemSurfaceTriangle;
@@ -59,6 +60,10 @@ namespace caret {
         IdentificationItemFocusSurface* getSurfaceFocusIdentification();
         
         const IdentificationItemFocusSurface* getSurfaceFocusIdentification() const;
+        
+        IdentificationItemFocusVolume* getVolumeFocusIdentification();
+        
+        const IdentificationItemFocusVolume* getVolumeFocusIdentification() const;
         
         IdentificationItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -125,6 +130,8 @@ namespace caret {
         IdentificationItemBorderSurface* m_surfaceBorderIdentification;
         
         IdentificationItemFocusSurface* m_surfaceFocusIdentification;
+        
+        IdentificationItemFocusVolume* m_volumeFocusIdentification;
         
         IdentificationItemSurfaceNode* m_surfaceNodeIdentification;
         

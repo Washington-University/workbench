@@ -339,6 +339,15 @@ SurfaceProjectedItem::setStereotaxicXYZ(const float stereotaxicXYZ[3])
 const float*
 SurfaceProjectedItem::getVolumeXYZ() const
 {
+    /*
+     * If not set, return stereotaxic coordinate
+     */
+    if ((volumeXYZ[0] == 0.0)
+        && (volumeXYZ[1] == 0.0)
+        && (volumeXYZ[2] == 0.0)) {
+        const float* stereoXYZ = getStereotaxicXYZ();
+        return stereoXYZ;
+    }
     return this->volumeXYZ;
 }
 
@@ -350,6 +359,16 @@ SurfaceProjectedItem::getVolumeXYZ() const
 void
 SurfaceProjectedItem::getVolumeXYZ(float xyzOut[3]) const
 {
+    /*
+     * If not set, return stereotaxic coordinate
+     */
+    if ((volumeXYZ[0] == 0.0)
+        && (volumeXYZ[1] == 0.0)
+        && (volumeXYZ[2] == 0.0)) {
+        getStereotaxicXYZ(xyzOut);
+        return;
+    }
+    
     xyzOut[0] = this->volumeXYZ[0];
     xyzOut[1] = this->volumeXYZ[1];
     xyzOut[2] = this->volumeXYZ[2];
