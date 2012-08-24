@@ -147,6 +147,7 @@ Focus::clear()
     setNameOrClassModified(); // new name/class so modified
     
     removeAllProjections();
+    addProjection(new SurfaceProjectedItem());
 }
 
 
@@ -187,6 +188,9 @@ Focus::copyHelperFocus(const Focus& focus)
     for (int32_t i = 0; i < numProj; i++) {
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*focus.getProjection(i));
         this->addProjection(spi);
+    }
+    if (m_projections.empty()) {
+        this->addProjection(new SurfaceProjectedItem());
     }
     
     setNameOrClassModified(); // new name/class so modified
@@ -665,7 +669,7 @@ Focus::getNumberOfProjections() const
 
 /**
  * Get the projection at the given index.
- * Note: There may be zero projections.
+ * Note: Index 0 will ALWAYS return a valid projection.
  *
  * @param indx
  *    Index of projection
@@ -681,7 +685,7 @@ Focus::getProjection(const int32_t indx) const
 
 /**
  * Get the projection at the given index.
- * Note: There may be zero projections.
+ * Note: Index 0 will ALWAYS return a valid projection.
  *
  * @param indx
  *    Index of projection

@@ -428,6 +428,11 @@ FociPropertiesEditorDialog::okButtonClicked()
     }
     
     /*
+     * Copy data to the focus
+     */
+    loadFromDialogIntoFocusData(m_focus);
+
+    /*
      * Project the focus
      */
     if (m_projectCheckBox->isChecked()) {
@@ -441,14 +446,9 @@ FociPropertiesEditorDialog::okButtonClicked()
         }
         catch (SurfaceProjectorException& spe) {
             CaretLogSevere(spe.whatString());
-        }        
+        }
     }
-                                   
-    /*
-     * Copy data to the focus
-     */
-    loadFromDialogIntoFocusData(m_focus);
-
+    
     /*
      * Save project status
      */
@@ -502,10 +502,7 @@ FociPropertiesEditorDialog::loadFromDialogIntoFocusData(Focus* focus) const
         m_yCoordSpinBox->value(),
         m_zCoordSpinBox->value()
     };
-    if (focus->getNumberOfProjections() <= 0) {
-        focus->addProjection(new SurfaceProjectedItem());
-        focus->setSearchXYZ(xyz);
-    }
+    CaretAssert(focus->getNumberOfProjections() > 0);
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(m_commentTextEdit->toPlainText().trimmed());
     focus->setArea(m_areaLineEdit->text().trimmed());

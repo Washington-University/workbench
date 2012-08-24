@@ -147,8 +147,6 @@ namespace caret {
         
         void addProjection(SurfaceProjectedItem* projection);
         
-        void removeAllProjections();
-        
         void removeExtraProjections();
         
         StudyMetaDataLinkSet* getStudyMetaDataLinkSet();
@@ -197,6 +195,8 @@ namespace caret {
         void copyHelperFocus(const Focus& obj);
 
         void setNameOrClassModified();
+        
+        void removeAllProjections();
         
         AString m_area;
         

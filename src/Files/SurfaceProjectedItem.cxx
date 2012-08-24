@@ -27,6 +27,7 @@
 #undef __SURFACE_PROJECTED_ITEM_DEFINE__
 
 #include "SurfaceProjectionBarycentric.h"
+#include "SurfaceProjectionMultiBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "XmlWriter.h"
 
@@ -60,6 +61,7 @@ SurfaceProjectedItem::SurfaceProjectedItem()
 SurfaceProjectedItem::~SurfaceProjectedItem()
 {
     delete this->barycentricProjection;
+    delete this->multiBarycentricProjection;
     delete this->vanEssenProjection;
 }
 
@@ -103,6 +105,7 @@ SurfaceProjectedItem::copyHelper(const SurfaceProjectedItem& spi)
     this->structure = spi.structure;
     
     *this->barycentricProjection = *spi.barycentricProjection;
+    *this->multiBarycentricProjection = *spi.multiBarycentricProjection;
     *this->vanEssenProjection    = *spi.vanEssenProjection;
 }
 
@@ -122,6 +125,7 @@ SurfaceProjectedItem::reset()
     this->volumeXYZValid = false;
     this->structure = StructureEnum::INVALID;
     this->barycentricProjection->reset();
+    this->multiBarycentricProjection->reset();
     this->vanEssenProjection->reset();
 }
 
@@ -129,6 +133,7 @@ void
 SurfaceProjectedItem::initializeMembersSurfaceProjectedItem()
 {
     this->barycentricProjection = new SurfaceProjectionBarycentric();
+    this->multiBarycentricProjection = new SurfaceProjectionMultiBarycentric();
     this->vanEssenProjection    = new SurfaceProjectionVanEssen();
     this->reset();
 }
@@ -419,7 +424,25 @@ SurfaceProjectedItem::getBarycentricProjection() const
     return this->barycentricProjection;
 }
 
-/** 
+/**
+ * @return the multi-barycentric projection
+ */
+SurfaceProjectionMultiBarycentric*
+SurfaceProjectedItem::getMultiBarycentricProjection()
+{
+    return this->multiBarycentricProjection;
+}
+
+/**
+ * @return the multi-barycentric projection
+ */
+const SurfaceProjectionMultiBarycentric*
+SurfaceProjectedItem::getMultiBarycentricProjection() const
+{
+    return this->multiBarycentricProjection;
+}
+
+/**
  * @return the Van Essen projection 
  */
 SurfaceProjectionVanEssen* 
@@ -466,6 +489,7 @@ SurfaceProjectedItem::clearModified()
 {
     CaretObjectTracksModification::clearModified();
     this->barycentricProjection->clearModified();
+    this->multiBarycentricProjection->clearModified();
     this->vanEssenProjection->clearModified();
 }
 
@@ -480,6 +504,9 @@ SurfaceProjectedItem::isModified() const
         return true;
     }
     if (this->barycentricProjection->isModified()) {
+        return true;
+    }
+    if (this->multiBarycentricProjection->isModified()) {
         return true;
     }
     if (this->vanEssenProjection->isModified()) {

@@ -631,11 +631,12 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
     /*
      * Test multi-barycentric projection
      */
-    bool testMultBaryProj = true;
+    bool testMultBaryProj = false;
     if (testMultBaryProj) {
         if ((projectionLocation.m_type == ProjectionLocation::EDGE)
             || (projectionLocation.m_type == ProjectionLocation::NODE)) {
-            SurfaceProjectionMultiBarycentric multiBaryProj;
+            SurfaceProjectionMultiBarycentric* multiBaryProj = spi->getMultiBarycentricProjection();
+            multiBaryProj->reset();
             
             const int32_t numTriangles = projectionLocation.m_numberOfTriangles;
             for (int32_t i = 0; i < numTriangles; i++) {
@@ -646,16 +647,16 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
                                     s_extremeTriangleAreaTolerance,
                                     baryProj);
                 if (baryProj->isValid()) {
-                    multiBaryProj.addProjection(baryProj);
+                    multiBaryProj->addProjection(baryProj);
                 }
                 else {
                     delete baryProj;
                 }
             }
             
-            if (multiBaryProj.isValid()) {
+            if (multiBaryProj->isValid()) {
                 float projXYZ[3];
-                multiBaryProj.unprojectToSurface(*surfaceFile,
+                multiBaryProj->unprojectToSurface(*surfaceFile,
                                                  projXYZ,
                                                  0.0,
                                                  false);

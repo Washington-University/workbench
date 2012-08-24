@@ -101,6 +101,8 @@
 #include "SurfaceNodeColoring.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
+#include "SurfaceProjectionMultiBarycentric.h"
+#include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
@@ -1822,6 +1824,29 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     
                     if (drawIt) {
+                        bool multiBaryValid = false;
+                        float multiBaryXYZ[3];
+                        if (spi->getBarycentricProjection()->isValid() == false) {
+                            if (spi->getVanEssenProjection()->isValid()) {
+                                if (spi->getMultiBarycentricProjection()->isValid()) {
+                                    float veXYZ[3];
+                                    spi->getVanEssenProjection()->unprojectToSurface(*surface, veXYZ, 0.0, isPasteOntoSurface);
+                                    spi->getMultiBarycentricProjection()->unprojectToSurface(*surface, multiBaryXYZ, 0.0, isPasteOntoSurface);
+                                    const float dist = MathFunctions::distance3D(veXYZ, multiBaryXYZ);
+                                    if (dist > 5.0) {
+                                        const AString msg = ("Focus "
+                                                             + AString::number(j)
+                                                             + " "
+                                                             + focus->getName()
+                                                             + " MB-VE error="
+                                                             + AString::number(dist));
+                                        std::cout << qPrintable(msg) << std::endl;
+                                    }
+                                    multiBaryValid = true;
+                                }
+                            }
+                        }
+                        
                         if (isSelect) {
                             uint8_t idRGB[3];
                             this->colorIdentification->addItem(idRGB, 
@@ -1841,6 +1866,19 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             this->drawSquare(focusRadius);
                         }
                         glPopMatrix();
+                        
+                        if (multiBaryValid) {
+                            glColor3f(1.0, 0.0, 0.0);
+                            glPushMatrix();
+                            glTranslatef(multiBaryXYZ[0], multiBaryXYZ[1], multiBaryXYZ[2]);
+                            if (drawAsSpheres) {
+                                this->drawSphere(focusRadius);
+                            }
+                            else {
+                                this->drawSquare(focusRadius);
+                            }
+                            glPopMatrix();
+                        }
                     }
                 }                
             }

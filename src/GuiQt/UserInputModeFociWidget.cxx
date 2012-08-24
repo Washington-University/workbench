@@ -317,9 +317,7 @@ UserInputModeFociWidget::displayFocusCreationDialog(const AString& name,
 
     Focus* focus = new Focus(*s_previousFocus);
     focus->setName(name);
-    if (focus->getNumberOfProjections() <= 0) {
-        focus->addProjection(new SurfaceProjectedItem());
-    }
+    CaretAssert(focus->getNumberOfProjections() > 0);
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
 
