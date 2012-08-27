@@ -65,6 +65,7 @@ FociFileSaxReader::FociFileSaxReader(FociFile* fociFile)
     m_focus = NULL;
     m_surfaceProjectedItem = NULL;
     m_studyMetaDataLinkSetSaxReader = NULL;
+    m_projectionCounter = 0;
 }
 
 /**
@@ -159,6 +160,7 @@ FociFileSaxReader::startElement(const AString& namespaceURI,
          else if (qName == Focus::XML_TAG_FOCUS) {
              m_state = STATE_FOCUS;
              m_focus = new Focus();
+             m_projectionCounter = 0;
          }
          else {
              const AString msg = XmlUtilities::createInvalidChildElementMessage(FociFile::XML_TAG_FOCI_FILE, 
@@ -206,6 +208,7 @@ FociFileSaxReader::endElement(const AString& namespaceURI,
            if (qName == Focus::XML_TAG_FOCUS) {
                m_fociFile->addFocus(m_focus);
                m_focus = NULL;  // do not delete since added to foci file
+               m_projectionCounter = 0;
            }
            else {
                m_focus->setElementFromText(qName, m_elementText.trimmed());
@@ -233,6 +236,15 @@ FociFileSaxReader::endElement(const AString& namespaceURI,
            CaretAssert(m_surfaceProjectedItemSaxReader);
            m_surfaceProjectedItemSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
+               if (m_projectionCounter == 0) {
+                   /*
+                    * Remove all projections when the first projection
+                    * is read so that projections can be added as
+                    * they are read.
+                    */
+                   m_focus->removeAllProjections();
+               }
+               m_projectionCounter++;
                m_focus->addProjection(m_surfaceProjectedItem);
                m_surfaceProjectedItem = NULL; // do not delete since added to focus
                delete m_surfaceProjectedItemSaxReader;

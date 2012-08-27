@@ -109,6 +109,9 @@ namespace caret {
         /// Focus that is being read
         Focus* m_focus;
         
+        /// Counts projections as they are read
+        int32_t m_projectionCounter;
+        
         /// surface projected item that is being read
         SurfaceProjectedItem* m_surfaceProjectedItem;
         

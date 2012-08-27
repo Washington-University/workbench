@@ -319,7 +319,7 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi,
      */
     float xyz[3];
     if (spi->isStereotaxicXYZValid() == false) {
-        throw new SurfaceProjectorException( "Stereotaxic position is invalid, cannot project.");
+        throw SurfaceProjectorException( "Stereotaxic position is invalid, cannot project.");
     }
     spi->getStereotaxicXYZ(xyz);
     
@@ -1308,7 +1308,7 @@ SurfaceProjector::projectWithVanEssenAlgorithm(const SurfaceFile* surfaceFile,
     //
     const int32_t nearestTriangle = projectionLocation.m_triangleIndices[0];
     if (nearestTriangle < 0) {
-        throw new SurfaceProjectorException(
+        throw SurfaceProjectorException(
                                             "Unable to find nearest triangle for VanEssen projection.");
     }
     

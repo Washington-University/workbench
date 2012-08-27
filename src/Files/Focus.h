@@ -40,6 +40,7 @@
 
 namespace caret {
 
+    class FociFileSaxReader;
     class StudyMetaDataLinkSet;
     
     class Focus : public CaretObjectTracksModification {
@@ -259,6 +260,10 @@ namespace caret {
          * that tracks all modifications to a border.
          */
         bool m_selectionClassNameModificationStatus;
+        
+        /** Allow foci file SAX reader to remove all projections */
+        friend class FociFileSaxReader;
+        
     };
     
 #ifdef __FOCUS_DECLARE__
