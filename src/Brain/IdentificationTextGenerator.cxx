@@ -376,19 +376,20 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
 {
     if (idSurfaceFocus->isValid()) {
         const Focus* focus = idSurfaceFocus->getFocus();
-        const SurfaceProjectedItem* spi = focus->getProjection(idSurfaceFocus->getFocusProjectionIndex());
-        float xyzProj[3];
-        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
-        float xyzStereo[3];
-        spi->getStereotaxicXYZ(xyzStereo);
-        
-        idText.addLine(false, 
+        idText.addLine(false,
                        "FOCUS", 
                        focus->getName());
 
         idText.addLine(true,
                        "Index",
                        AString::number(idSurfaceFocus->getFocusIndex()));
+        
+        const int32_t projectionIndex = idSurfaceFocus->getFocusProjectionIndex();
+        const SurfaceProjectedItem* spi = focus->getProjection(projectionIndex);
+        float xyzProj[3];
+        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
+        float xyzStereo[3];
+        spi->getStereotaxicXYZ(xyzStereo);
         
         idText.addLine(true,
                        "Structure",
@@ -428,6 +429,31 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
             idText.addLine(true,
                            xyzProjName,
                            "Invalid");
+        }
+        
+        const int32_t numberOfProjections = focus->getNumberOfProjections();
+        for (int32_t i = 0; i < numberOfProjections; i++) {
+            if (i != projectionIndex) {
+                const SurfaceProjectedItem* proj = focus->getProjection(i);
+                AString projTypeName = "";
+                if (proj->getBarycentricProjection()->isValid()) {
+                    projTypeName = "Triangle";
+                    
+                }
+                else if (proj->getVanEssenProjection()->isValid()) {
+                    projTypeName = "Edge";
+                }
+                if (projTypeName.isEmpty() == false) {
+                    const AString txt = (StructureEnum::toGuiName(proj->getStructure())
+                                         + " ("
+                                         + projTypeName
+                                         + ")");
+                                         
+                    idText.addLine(true,
+                                   "Ambiguous Projection",
+                                   txt);
+                }
+            }
         }
         
         idText.addLine(true,
