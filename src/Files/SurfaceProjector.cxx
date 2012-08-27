@@ -464,24 +464,109 @@ void
 SurfaceProjector::projectItemToSurfaceFile(const SurfaceFile* surfaceFile,
                                               SurfaceProjectedItem* spi) throw (SurfaceProjectorException)
 {
-    float xyz[3];
-    spi->getStereotaxicXYZ(xyz);
+    float originalXYZ[3];
+    spi->getStereotaxicXYZ(originalXYZ);
     
-    projectToSurface(surfaceFile,
-                     xyz,
-                     spi);
-    
+    float xyz[3] = {
+        originalXYZ[0],
+        originalXYZ[1],
+        originalXYZ[2]
+    };
     
     float projXYZ[3];
     float stereoXYZ[3];
     float distanceError = 0.0;
     bool projectionValid = false;
+    
+    projectToSurface(surfaceFile,
+                     xyz,
+                     spi);
+    
     if (spi->getBarycentricProjection()->isValid()
         || spi->getVanEssenProjection()->isValid()) {
         spi->getProjectedPosition(*surfaceFile, projXYZ, false);
         spi->getStereotaxicXYZ(stereoXYZ);
         distanceError = MathFunctions::distance3D(projXYZ, stereoXYZ);
         projectionValid = true;
+    }
+    
+    if (distanceError > s_projectionDistanceError) {
+        bool perturbIfError = true;
+        if (perturbIfError) {
+            /*
+             * Initialize with first try
+             */
+            float bestXYZ[3] = {
+                xyz[0],
+                xyz[1],
+                xyz[2]
+            };
+            float bestDistance = distanceError;
+            bool bestValid = true;
+            const float originalDistanceError = distanceError;
+            
+            for (int32_t iTry = 0; iTry < 10; iTry++) {
+                const float randomZeroToOne = ((float)std::rand()) / ((float)RAND_MAX);
+                const float randomPlusMinusOneHalf = randomZeroToOne - 0.5;
+                const float moveLittleBit = randomPlusMinusOneHalf * 0.5;
+                xyz[0] = originalXYZ[0] + moveLittleBit;
+                xyz[1] = originalXYZ[1] + moveLittleBit;
+                xyz[2] = originalXYZ[2] + moveLittleBit;
+                
+                SurfaceProjectedItem spiTest;
+                spiTest.setStereotaxicXYZ(originalXYZ);
+                projectToSurface(surfaceFile,
+                                 xyz,
+                                 &spiTest);
+                
+                if (spiTest.getBarycentricProjection()->isValid()
+                    || spiTest.getVanEssenProjection()->isValid()) {
+                    spiTest.getProjectedPosition(*surfaceFile, projXYZ, false);
+                    spiTest.getStereotaxicXYZ(stereoXYZ);
+                    distanceError = MathFunctions::distance3D(projXYZ, stereoXYZ);
+                    projectionValid = true;
+                    
+//                    std::cout << "Moved from original ("
+//                    << AString::fromNumbers(originalXYZ, 3, ",")
+//                    << ") to ("
+//                    << AString::fromNumbers(xyz, 3, ",")
+//                    << ") distance error now="
+//                    << distanceError
+//                    << std::endl;
+                    
+                    if (distanceError < bestDistance) {
+                        bestXYZ[0] = xyz[0];
+                        bestXYZ[1] = xyz[1];
+                        bestXYZ[2] = xyz[2];
+                        bestDistance = distanceError;
+                        bestValid = true;
+                    }
+                }
+            }
+            
+            if (bestValid) {
+                projectToSurface(surfaceFile,
+                                 bestXYZ,
+                                 spi);
+                
+                if (spi->getBarycentricProjection()->isValid()
+                    || spi->getVanEssenProjection()->isValid()) {
+                    spi->getProjectedPosition(*surfaceFile, projXYZ, false);
+                    spi->getStereotaxicXYZ(stereoXYZ);
+                    distanceError = MathFunctions::distance3D(projXYZ, stereoXYZ);
+                    
+                    m_projectionWarning += ("Was moved due to projection error from ("
+                                            + AString::fromNumbers(originalXYZ, 3, ",")
+                                            + ") to ("
+                                            + AString::fromNumbers(bestXYZ, 3, ",")
+                                            + ") with distance error reduced from "
+                                            + AString::number(originalDistanceError)
+                                            + " to "
+                                            + AString::number(distanceError));
+                }
+            }
+        }
+        
     }
     
     if (m_validateFlag == false) {
