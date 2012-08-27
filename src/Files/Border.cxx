@@ -602,7 +602,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
     
     const int numberOfSegmentPoints = segment->getNumberOfPoints();
     if (numberOfSegmentPoints <= 0) {
-        throw new BorderException("Border segment for erasing contains no points");
+        throw BorderException("Border segment for erasing contains no points");
     }
     
     /*
@@ -727,7 +727,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
      */
     const int numberOfSegmentPoints = segment->getNumberOfPoints();
     if (numberOfSegmentPoints <= 0) {
-        throw new BorderException("Border segment for erasing contains no points");
+        throw BorderException("Border segment for erasing contains no points");
     }
     float segmentStartXYZ[3];
     if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
@@ -818,7 +818,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
      */
     const int numberOfSegmentPoints = segment->getNumberOfPoints();
     if (numberOfSegmentPoints <= 0) {
-        throw new BorderException("Border segment for erasing contains no points");
+        throw BorderException("Border segment for erasing contains no points");
     }
     float segmentStartXYZ[3];
     if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
