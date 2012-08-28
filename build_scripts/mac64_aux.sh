@@ -1,4 +1,4 @@
-:w#!/bin/sh
+#!/bin/sh
 
 #
 # This file is executed by (via "launchd")
