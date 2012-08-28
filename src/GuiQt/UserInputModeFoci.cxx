@@ -219,6 +219,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                             focus->getProjection(0)->setStereotaxicXYZ(xyz);
                             focus->setComment(comment);
                             FociPropertiesEditorDialog::createFocus(focus,
+                                                                    browserTabContent,
                                                                     m_inputModeFociWidget);
                         }
                     }
@@ -242,6 +243,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                         focus->getProjection(0)->setStereotaxicXYZ(xyz);
                         focus->setComment(comment);
                         FociPropertiesEditorDialog::createFocus(focus,
+                                                                browserTabContent,
                                                                 m_inputModeFociWidget);
                     }
                 }

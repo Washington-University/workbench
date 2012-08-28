@@ -299,6 +299,7 @@ UserInputModeFociWidget::createNewFocusActionTriggered()
                       true);
     
     FociPropertiesEditorDialog::createFocus(new Focus(),
+                                            btc,
                                             this);
 }
 
@@ -316,6 +317,12 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
     if (idItem != NULL) {
         const IdentificationItemSurfaceNode* nodeID = dynamic_cast<const IdentificationItemSurfaceNode*>(idItem);
         const IdentificationItemVoxel* voxelID = dynamic_cast<const IdentificationItemVoxel*>(idItem);
+        
+        BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(m_windowIndex);
+        BrowserTabContent* browserTabContent = NULL;
+        if (browserWindow != NULL) {
+            browserTabContent = browserWindow->getBrowserTabContent();
+        }
         
         if (nodeID != NULL) {
             if (nodeID->isValid()
@@ -340,6 +347,7 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                     focus->getProjection(0)->setStereotaxicXYZ(xyz);
                     focus->setComment(comment);
                     FociPropertiesEditorDialog::createFocus(focus,
+                                                            browserTabContent,
                                                             this);
                 }
             }
@@ -368,6 +376,7 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                     focus->getProjection(0)->setStereotaxicXYZ(xyz);
                     focus->setComment(comment);
                     FociPropertiesEditorDialog::createFocus(focus,
+                                                            browserTabContent,
                                                             this);
                 }
             }

@@ -797,6 +797,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
     FociPropertiesEditorDialog::createFocus(focus,
+                                            this->browserTabContent,
                                             this->parentWidget);
 }
 
@@ -825,6 +826,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
     FociPropertiesEditorDialog::createFocus(focus,
+                                            this->browserTabContent,
                                             this->parentWidget);
 }
 /**
@@ -853,6 +855,7 @@ BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
     focus->setComment(comment);
     
     FociPropertiesEditorDialog::createFocus(focus,
+                                            this->browserTabContent,
                                             this->parentWidget);
 }
 

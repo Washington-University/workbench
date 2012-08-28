@@ -37,6 +37,7 @@ class QTextEdit;
 
 namespace caret {
 
+    class BrowserTabContent;
     class Focus;
     class FociFile;
     class CaretColorEnumComboBox;
@@ -46,6 +47,7 @@ namespace caret {
         
     public:
         static bool createFocus(Focus* focus,
+                                BrowserTabContent* browserTabContent,
                                 QWidget* parent);
 
         static bool editFocus(FociFile* fociFile,

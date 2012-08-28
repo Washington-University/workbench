@@ -37,11 +37,13 @@
 #undef __FOCI_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "Focus.h"
 #include "FociFile.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretFileDialog.h"
+#include "DisplayPropertiesFoci.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -67,6 +69,8 @@ using namespace caret;
  *     user cancels, the focus will be destroyed.  Thus,
  *     the caller MUST NEVER access the focus after calling
  *     this static method.
+ * @param browserTabContent
+ *     Tab content on which focis are created.
  * @param parent
  *     Parent widget on which dialog is displayed.
  * @return  
@@ -74,6 +78,7 @@ using namespace caret;
  */
 bool
 FociPropertiesEditorDialog::createFocus(Focus* focus,
+                                        BrowserTabContent* browserTabContent,
                                         QWidget* parent)
 {
     CaretAssert(focus);
@@ -117,8 +122,18 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
         }
         focusCreateDialog.loadFromDialogIntoFocusData(s_previousCreateFocus);
         s_previousCreateFociFile->addFocus(focus);
+        
+        if (browserTabContent != NULL) {
+            const int32_t tabIndex = browserTabContent->getTabNumber();
+            DisplayPropertiesFoci* dsf = GuiManager::get()->getBrain()->getDisplayPropertiesFoci();
+            DisplayGroupEnum::Enum displayGroup = dsf->getDisplayGroupForTab(tabIndex);
+            dsf->setDisplayed(displayGroup,
+                              tabIndex,
+                              true);
+        }
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
         return true;
     }
     
