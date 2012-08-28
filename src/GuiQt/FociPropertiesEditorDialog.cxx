@@ -177,10 +177,6 @@ FociPropertiesEditorDialog::editFocus(FociFile* fociFile,
 void
 FociPropertiesEditorDialog::deleteStaticMembers()
 {
-    if (s_previousCreateFociFile != NULL) {
-        delete s_previousCreateFociFile;
-        s_previousCreateFociFile = NULL;
-    }
     if (s_previousCreateFocus != NULL) {
         delete s_previousCreateFocus;
         s_previousCreateFocus = NULL;

@@ -123,7 +123,11 @@ namespace caret {
 
         static bool s_previousFociProjectSelected;
 
-        /** Previous selected foci file for creation of foci */
+        /** 
+         * Previous selected foci file for creation of foci 
+         * NOTE: DO NOT DELETE THIS SINCE IT POINTS TO
+         *       AN EXISTING FOCI FILE
+         */
         static FociFile* s_previousCreateFociFile;
         
         /** Copy of previously created focus */
