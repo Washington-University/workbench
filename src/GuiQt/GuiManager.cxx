@@ -50,6 +50,7 @@
 #include "EventMapScalarDataColorMappingEditorShow.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FociPropertiesEditorDialog.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -62,7 +63,6 @@
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
-#include "UserInputModeFociWidget.h"
 
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -141,7 +141,7 @@ GuiManager::~GuiManager()
         delete this->connectomeDatabaseWebView;
     }
     
-    UserInputModeFociWidget::deleteStaticMembers();
+    FociPropertiesEditorDialog::deleteStaticMembers();
     
 //    if (this->brainOpenGL != NULL) {
 //        delete this->brainOpenGL;

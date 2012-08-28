@@ -42,6 +42,9 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretFileDialog.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
@@ -54,6 +57,120 @@
 
 using namespace caret;
     
+/**
+ * Create (edit and add) a new focus.
+ *
+ * @param focus 
+ *     The focus that will be displayed in the focus editor.
+ *     If the user accepts (presses OK) to add the focus
+ *     it will be added to the selected foci file.  If the
+ *     user cancels, the focus will be destroyed.  Thus,
+ *     the caller MUST NEVER access the focus after calling
+ *     this static method.
+ * @param parent
+ *     Parent widget on which dialog is displayed.
+ * @return  
+ *     true if user pressed OK, else false.
+ */
+bool
+FociPropertiesEditorDialog::createFocus(Focus* focus,
+                                        QWidget* parent)
+{
+    CaretAssert(focus);
+    
+    if (s_previousCreateFocus != NULL) {
+        if (focus->getName().isEmpty()) {
+            focus->setName(s_previousCreateFocus->getName());
+        }
+        if (focus->getArea().isEmpty()) {
+            focus->setArea(s_previousCreateFocus->getArea());
+        }
+        if (focus->getClassName().isEmpty()) {
+            focus->setClassName(s_previousCreateFocus->getClassName());
+        }
+        if (focus->getComment().isEmpty()) {
+            focus->setComment(s_previousCreateFocus->getComment());
+        }
+        if (focus->getExtent() == 0.0) {
+            focus->setExtent(s_previousCreateFocus->getExtent());
+        }
+        if (focus->getGeography().isEmpty()) {
+            focus->setGeography(s_previousCreateFocus->getGeography());
+        }
+        if (focus->getRegionOfInterest().isEmpty()) {
+            focus->setRegionOfInterest(s_previousCreateFocus->getRegionOfInterest());
+        }
+        if (focus->getStatistic().isEmpty()) {
+            focus->setStatistic(s_previousCreateFocus->getStatistic());
+        }
+    }
+    
+    FociPropertiesEditorDialog focusCreateDialog("Create Focus",
+                                                 s_previousCreateFociFile,
+                                                 focus,
+                                                 true,
+                                                 parent);
+    if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
+        s_previousCreateFociFile = focusCreateDialog.getSelectedFociFile();
+        if (s_previousCreateFocus == NULL) {
+            s_previousCreateFocus = new Focus();
+        }
+        focusCreateDialog.loadFromDialogIntoFocusData(s_previousCreateFocus);
+        s_previousCreateFociFile->addFocus(focus);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        return true;
+    }
+    
+    delete focus;
+    return false;
+}
+
+
+/**
+ * Edit an existing focus.
+ *
+ * @param focus
+ *     The focus that will be displayed in the focus editor.
+ *     If the user presses the OK button the focus will be
+ *     updated.  Otherwise, no further action is taken.
+ * @param parent
+ *     Parent widget on which dialog is displayed.
+ * @return
+ *     true if user pressed OK, else false.
+ */
+bool
+FociPropertiesEditorDialog::editFocus(FociFile* fociFile,
+                                      Focus* focus,
+                                      QWidget* parent)
+{
+    FociPropertiesEditorDialog fped("Edit Focus",
+                                    fociFile,
+                                    focus,
+                                    false,
+                                    parent);
+    if (fped.exec() == FociPropertiesEditorDialog::Accepted) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Delete all static members to eliminate reported memory leaks.
+ */
+void
+FociPropertiesEditorDialog::deleteStaticMembers()
+{
+    if (s_previousCreateFociFile != NULL) {
+        delete s_previousCreateFociFile;
+        s_previousCreateFociFile = NULL;
+    }
+    if (s_previousCreateFocus != NULL) {
+        delete s_previousCreateFocus;
+        s_previousCreateFocus = NULL;
+    }
+}
 /**
  * Constructor.
  */

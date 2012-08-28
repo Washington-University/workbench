@@ -298,13 +298,8 @@ UserInputModeFociWidget::createNewFocusActionTriggered()
                       browserTabIndex,
                       true);
     
-    Focus* focus = new Focus();
-    if (s_previousFocus == NULL) {
-        s_previousFocus = new Focus();
-    }
-    *focus = *s_previousFocus;
-    displayFocusCreationDialog(focus,
-                               this);
+    FociPropertiesEditorDialog::createFocus(new Focus(),
+                                            this);
 }
 
 /**
@@ -340,9 +335,12 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                     const AString comment = ("Created from "
                                              + focusName);
                     
-                    displayFocusCreationDialog(focusName,
-                                               xyz,
-                                               comment);
+                    Focus* focus = new Focus();
+                    focus->setName(focusName);
+                    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                    focus->setComment(comment);
+                    FociPropertiesEditorDialog::createFocus(focus,
+                                                            this);
                 }
             }
         }
@@ -365,79 +363,15 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                     const AString comment = ("Created from "
                                              + focusName);
                     
-                    displayFocusCreationDialog(focusName,
-                                               xyz,
-                                               comment);
+                    Focus* focus = new Focus();
+                    focus->setName(focusName);
+                    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                    focus->setComment(comment);
+                    FociPropertiesEditorDialog::createFocus(focus,
+                                                            this);
                 }
             }
         }
-    }
-}
-
-
-/**
- * Display the focus creation dialog for creating a focus with
- * the given name, coordinate, and comment.
- * @param name
- *    Name for focus.
- * @param xyz
- *    Coordinate for focus.
- * @param comment
- *    Comment for focus.
- */
-void
-UserInputModeFociWidget::displayFocusCreationDialog(const AString& name,
-                                                    const float xyz[3],
-                                                    const AString& comment)
-{
-    if (s_previousFocus == NULL) {
-        s_previousFocus = new Focus();
-    }
-
-    Focus* focus = new Focus(*s_previousFocus);
-    focus->setName(name);
-    CaretAssert(focus->getNumberOfProjections() > 0);
-    focus->getProjection(0)->setStereotaxicXYZ(xyz);
-    focus->setComment(comment);
-
-    displayFocusCreationDialog(focus,
-                               this);
-}
-
-/**
- * Display the focus creation dialog with the given focus.  After
- * calling this method, the caller must not manipulate the given
- * focus!!!
- *
- * @param newFocus
- *    Focus that will be created if the user presses the OK button.
- *    If the user cancels, this focus will be deleted.
- * @param focusDialogParent
- *    Parent for the create focus dialog.
- */
-void
-UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus,
-                                                    QWidget* focusDialogParent)
-{
-    CaretAssert(newFocus);
-    
-    FociPropertiesEditorDialog focusCreateDialog("Create Focus",
-                                                 s_previousFociFile,
-                                                 newFocus,
-                                                 true,
-                                                 focusDialogParent);
-    if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
-        s_previousFociFile = focusCreateDialog.getSelectedFociFile();
-        if (s_previousFocus == NULL) {
-            s_previousFocus = new Focus();
-        }
-        focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
-        s_previousFociFile->addFocus(newFocus);
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
-    else {
-        delete newFocus;
     }
 }
 
@@ -530,17 +464,5 @@ UserInputModeFociWidget::editOperationActionTriggered(QAction* action)
     const UserInputModeFoci::EditOperation editOperation =
     static_cast<UserInputModeFoci::EditOperation>(editModeInteger);
     m_inputModeFoci->setEditOperation(editOperation);
-}
-
-/**
- * Delete all static members to eliminate reported memory leaks.
- */
-void
-UserInputModeFociWidget::deleteStaticMembers()
-{
-    if (s_previousFocus != NULL) {
-        delete s_previousFocus;
-    }
-    s_previousFocus = NULL;
 }
 

@@ -65,11 +65,6 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
-        static void deleteStaticMembers();
-        
-        static void displayFocusCreationDialog(Focus* newFocus,
-                                               QWidget* focusDialogParent);
-        
     private slots:
         void createNewFocusActionTriggered();
         
@@ -85,10 +80,6 @@ namespace caret {
         UserInputModeFociWidget(const UserInputModeFociWidget&);
 
         UserInputModeFociWidget& operator=(const UserInputModeFociWidget&);
-        
-        void displayFocusCreationDialog(const AString& name,
-                                        const float xyz[3],
-                                        const AString& comment);
         
         QWidget* createModeWidget();
         
@@ -124,15 +115,10 @@ namespace caret {
         
         QAction* m_createFocusMouseClickAction;
         
-        static FociFile* s_previousFociFile;
-        static Focus* s_previousFocus;
-        
         friend class UserInputModeFoci;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
-    FociFile* UserInputModeFociWidget::s_previousFociFile = NULL;
-    Focus* UserInputModeFociWidget::s_previousFocus = NULL;
 #endif // __USER_INPUT_MODE_FOCI_WIDGET_DECLARE__
 
 } // namespace

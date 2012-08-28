@@ -45,6 +45,13 @@ namespace caret {
         Q_OBJECT
         
     public:
+        static bool createFocus(Focus* focus,
+                                QWidget* parent);
+
+        static bool editFocus(FociFile* fociFile,
+                              Focus* focus,
+                              QWidget* parent);
+        
         FociPropertiesEditorDialog(const QString& title,
                                    FociFile* fociFile,
                                    Focus* focus,
@@ -62,6 +69,8 @@ namespace caret {
         bool isProjectSelected();
         
         void setProjectSelected(const bool selected);
+        
+        static void deleteStaticMembers();
         
     protected:
         virtual void okButtonClicked();
@@ -111,10 +120,19 @@ namespace caret {
         QCheckBox* m_projectCheckBox;
 
         static bool s_previousFociProjectSelected;
+
+        /** Previous selected foci file for creation of foci */
+        static FociFile* s_previousCreateFociFile;
+        
+        /** Copy of previously created focus */
+        static Focus* s_previousCreateFocus;
+        
     };
     
 #ifdef __FOCI_PROPERTIES_EDITOR_DIALOG__DECLARE__
     bool FociPropertiesEditorDialog::s_previousFociProjectSelected = true;
+    FociFile* FociPropertiesEditorDialog::s_previousCreateFociFile = NULL;
+    Focus* FociPropertiesEditorDialog::s_previousCreateFocus = NULL;
 #endif // __FOCI_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
 } // namespace

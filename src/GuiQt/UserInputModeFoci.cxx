@@ -214,9 +214,12 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                             const AString comment = ("Created from "
                                                      + focusName);
 
-                            m_inputModeFociWidget->displayFocusCreationDialog(focusName,
-                                                                              xyz,
-                                                                              comment);
+                            Focus* focus = new Focus();
+                            focus->setName(focusName);
+                            focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                            focus->setComment(comment);
+                            FociPropertiesEditorDialog::createFocus(focus,
+                                                                    m_inputModeFociWidget);
                         }
                     }
                     else if (idVoxel->isValid()) {
@@ -234,9 +237,12 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                         const AString comment = ("Created from "
                                                  + focusName);
                         
-                        m_inputModeFociWidget->displayFocusCreationDialog(focusName,
-                                                                          xyz,
-                                                                          comment);
+                        Focus* focus = new Focus();
+                        focus->setName(focusName);
+                        focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                        focus->setComment(comment);
+                        FociPropertiesEditorDialog::createFocus(focus,
+                                                                m_inputModeFociWidget);
                     }
                 }
                 else if (isLeftClick) {
@@ -248,32 +254,16 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                 break;
             case MODE_EDIT:
             {
-                FociFile* fociFile = NULL;
-                Focus*    focus = NULL;
-                
                 if (isLeftClick) {
+                    FociFile* fociFile = NULL;
+                    Focus*    focus = NULL;
+                    
                     IdentificationItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
                     if (idVolFocus->isValid()) {
                         fociFile = idVolFocus->getFociFile();
                         CaretAssert(fociFile);
                         focus    = idVolFocus->getFocus();
                         CaretAssert(focus);
-                        
-                        switch (m_editOperation) {
-                            case EDIT_OPERATION_DELETE:
-                                fociFile->removeFocus(focus);
-                                updateAfterFociChanged();
-                                break;
-                            case EDIT_OPERATION_PROPERTIES:
-                            {
-                                FociPropertiesEditorDialog fped("Edit Focus",
-                                                                fociFile,
-                                                                focus,
-                                                                false,
-                                                                openGLWidget);
-                                fped.exec();
-                            }
-                        }
                     }
                     IdentificationItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
                     if (idFocus->isValid()) {
@@ -282,6 +272,10 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                         focus    = idFocus->getFocus();
                         CaretAssert(focus);
                         
+                    }
+                    
+                    if ((fociFile != NULL)
+                        && (focus != NULL)) {
                         switch (m_editOperation) {
                             case EDIT_OPERATION_DELETE:
                                 fociFile->removeFocus(focus);
@@ -289,12 +283,9 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                 break;
                             case EDIT_OPERATION_PROPERTIES:
                             {
-                                FociPropertiesEditorDialog fped("Edit Focus",
-                                                                fociFile,
-                                                                focus,
-                                                                false,
-                                                                openGLWidget);
-                                fped.exec();
+                                FociPropertiesEditorDialog::editFocus(fociFile,
+                                                                      focus,
+                                                                      openGLWidget);
                             }
                         }
                     }

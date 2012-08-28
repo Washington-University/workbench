@@ -53,6 +53,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -748,9 +749,8 @@ BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
     focus->setName(focusName);
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
-    
-    UserInputModeFociWidget::displayFocusCreationDialog(focus,
-                                                        this->parentWidget);
+    FociPropertiesEditorDialog::createFocus(focus,
+                                            this->parentWidget);
 }
 
 
@@ -777,9 +777,8 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
     focus->setName(focusName);
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
-    
-    UserInputModeFociWidget::displayFocusCreationDialog(focus,
-                                                        this->parentWidget);
+    FociPropertiesEditorDialog::createFocus(focus,
+                                            this->parentWidget);
 }
 /**
  * Called to create a focus at a voxel location
@@ -806,8 +805,8 @@ BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
     
-    UserInputModeFociWidget::displayFocusCreationDialog(focus,
-                                                        this->parentWidget);
+    FociPropertiesEditorDialog::createFocus(focus,
+                                            this->parentWidget);
 }
 
 
