@@ -68,6 +68,10 @@ namespace caret {
         
         void createVolumeFocusSelected();
         
+        void editSurfaceFocusSelected();
+        
+        void editVolumeFocusSelected();
+        
         void removeAllNodeIdentificationSymbolsSelected();
         
         void removeNodeIdentificationSymbolSelected();

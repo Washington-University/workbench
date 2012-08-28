@@ -364,7 +364,8 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     /*
      * Create focus at surface node or at ID symbol
      */
-    if (surfaceID->isValid()) {
+    if (surfaceID->isValid()
+        && (focusID->isValid() == false)) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
         const Surface* surface = surfaceID->getSurface();
         const QString text = ("Create Focus at Node "
@@ -379,7 +380,8 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                             this,
                                                             SLOT(createSurfaceFocusSelected())));
     }
-    else if (idSymbol->isValid()) {
+    else if (idSymbol->isValid()
+             && (focusID->isValid() == false)) {
         const int32_t nodeIndex = idSymbol->getNodeNumber();
         const Surface* surface = idSymbol->getSurface();
         const QString text = ("Create Focus at Identified Node "
@@ -396,9 +398,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     }
 
     /*
-     * Create focus at voxel
+     * Create focus at voxel as long as there is no volume focus ID
      */
-    if (idVoxel->isValid()) {
+    if (idVoxel->isValid()
+        && (focusVolID->isValid() == false)) {
         int64_t ijk[3];
         idVoxel->getVoxelIJK(ijk);
         float xyz[3];
@@ -423,6 +426,50 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
         }
         for (std::vector<QAction*>::iterator iter = createActions.begin();
              iter != createActions.end();
+             iter++) {
+            this->addAction(*iter);
+        }
+    }
+    
+    /*
+     * Actions for editing
+     */
+    std::vector<QAction*> editActions;
+    
+    /*
+     * Edit Surface Focus
+     */
+    if (focusID->isValid()) {
+        const QString text = ("Edit Surface Focus ("
+                              + focusID->getFocus()->getName()
+                              + ")");
+        editActions.push_back(WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(editSurfaceFocusSelected())));
+    }
+    
+    /*
+     * Edit volume focus
+     */
+    if (focusVolID->isValid()) {
+        const QString text = ("Edit Volume Focus ("
+                              + focusVolID->getFocus()->getName()
+                              + ")");
+        editActions.push_back(WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(editVolumeFocusSelected())));
+    }
+    
+    if (editActions.empty() == false) {
+        if (this->actions().count() > 0) {
+            this->addSeparator();
+        }
+        for (std::vector<QAction*>::iterator iter = editActions.begin();
+             iter != editActions.end();
              iter++) {
             this->addAction(*iter);
         }
@@ -840,6 +887,36 @@ BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
                                                                                  brain);
     
     EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+}
+
+/**
+ * Called to edit the surface focus.
+ */
+void
+BrainOpenGLWidgetContextMenu::editSurfaceFocusSelected()
+{
+    IdentificationItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    Focus* focus = focusID->getFocus();
+    FociFile* fociFile = focusID->getFociFile();
+    
+    FociPropertiesEditorDialog::editFocus(fociFile,
+                                          focus,
+                                          this->parentWidget);
+}
+
+/**
+ * Called to edit the volume focus.
+ */
+void
+BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
+{
+    IdentificationItemFocusVolume* focusID = this->identificationManager->getVolumeFocusIdentification();
+    Focus* focus = focusID->getFocus();
+    FociFile* fociFile = focusID->getFociFile();
+    
+    FociPropertiesEditorDialog::editFocus(fociFile,
+                                          focus,
+                                          this->parentWidget);
 }
 
 /**
