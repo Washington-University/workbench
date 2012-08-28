@@ -298,7 +298,9 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
         return;
     }
     
-    IdentificationManager* idManager = this->performIdentification(x, y);
+    IdentificationManager* idManager = this->performIdentification(x,
+                                                                   y,
+                                                                   false);
     
     BrainOpenGLWidgetContextMenu contextMenu(idManager,
                                              tabContent,
@@ -482,12 +484,20 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
  *    X-coordinate for identification.
  * @param y
  *    Y-coordinate for identification.
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    identified, those items "behind" other items are not reported.
+ *    For example, suppose a focus is identified and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    identified.  If this parameter is false, the node will be
+ *    identified.
  * @return
  *    IdentificationManager providing identification information.
  */
 IdentificationManager* 
 BrainOpenGLWidget::performIdentification(const int x,
-                                         const int y)
+                                         const int y,
+                                         const bool applySelectionBackgroundFiltering)
 {
     BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
 
@@ -495,8 +505,8 @@ BrainOpenGLWidget::performIdentification(const int x,
     CaretLogFine("Performing selection");
     IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     idManager->reset();
-    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
-    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
+//    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
+//    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
     
     if (idViewport != NULL) {
         /*
@@ -509,7 +519,8 @@ BrainOpenGLWidget::performIdentification(const int x,
          */
         this->openGL->selectModel(idViewport, 
                                   x, 
-                                  y);
+                                  y,
+                                  applySelectionBackgroundFiltering);
     }
     return idManager;
 }

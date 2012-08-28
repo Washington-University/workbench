@@ -51,6 +51,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
 #include "FociProjectionDialog.h"
 #include "FociPropertiesEditorDialog.h"
@@ -302,7 +303,8 @@ UserInputModeFociWidget::createNewFocusActionTriggered()
         s_previousFocus = new Focus();
     }
     *focus = *s_previousFocus;
-    displayFocusCreationDialog(focus);
+    displayFocusCreationDialog(focus,
+                               this);
 }
 
 /**
@@ -398,7 +400,8 @@ UserInputModeFociWidget::displayFocusCreationDialog(const AString& name,
     focus->getProjection(0)->setStereotaxicXYZ(xyz);
     focus->setComment(comment);
 
-    displayFocusCreationDialog(focus);
+    displayFocusCreationDialog(focus,
+                               this);
 }
 
 /**
@@ -409,9 +412,12 @@ UserInputModeFociWidget::displayFocusCreationDialog(const AString& name,
  * @param newFocus
  *    Focus that will be created if the user presses the OK button.
  *    If the user cancels, this focus will be deleted.
+ * @param focusDialogParent
+ *    Parent for the create focus dialog.
  */
 void
-UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus)
+UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus,
+                                                    QWidget* focusDialogParent)
 {
     CaretAssert(newFocus);
     
@@ -419,7 +425,7 @@ UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus)
                                                  s_previousFociFile,
                                                  newFocus,
                                                  true,
-                                                 this);
+                                                 focusDialogParent);
     if (focusCreateDialog.exec() == FociPropertiesEditorDialog::Accepted) {
         s_previousFociFile = focusCreateDialog.getSelectedFociFile();
         if (s_previousFocus == NULL) {
@@ -427,6 +433,7 @@ UserInputModeFociWidget::displayFocusCreationDialog(Focus* newFocus)
         }
         focusCreateDialog.loadFromDialogIntoFocusData(s_previousFocus);
         s_previousFociFile->addFocus(newFocus);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     else {

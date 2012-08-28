@@ -177,10 +177,8 @@ IdentificationItemVoxel::isValid() const
 AString 
 IdentificationItemVoxel::toString() const
 {
-    AString text = "IdentificationItemVoxel\n";
-    
-    text += IdentificationItem::toString() + "\n";
-    text += "Volume: " + m_volumeFile->getFileNameNoPath() + "\n";
+    AString text = IdentificationItem::toString();
+    text += ("Volume: " + ((m_volumeFile != NULL) ? m_volumeFile->getFileNameNoPath() : "INVALID"));
     text += ("Voxel: " 
              + AString::number(m_voxelIJK[0]) + ", "
              + AString::number(m_voxelIJK[1]) + ", "

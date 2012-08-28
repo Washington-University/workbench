@@ -174,7 +174,9 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     
     IdentificationManager* idManager =
-    openGLWidget->performIdentification(mouseClickX, mouseClickY);
+    openGLWidget->performIdentification(mouseClickX,
+                                        mouseClickY,
+                                        true);
     
     bool updateGraphicsFlag = false;
     

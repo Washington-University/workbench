@@ -84,7 +84,7 @@ namespace caret {
         AString getIdentificationText(const BrowserTabContent* browserTabContent,
                                       const Brain* brain) const;
         
-        void filterSelections();
+        void filterSelections(const bool applySelectionBackgroundFiltering);
         
         void clearDistantSelections();
         

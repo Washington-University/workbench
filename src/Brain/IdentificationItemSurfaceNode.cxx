@@ -197,13 +197,12 @@ IdentificationItemSurfaceNode::setContralateral(const bool status)
 AString 
 IdentificationItemSurfaceNode::toString() const
 {
-    AString text = "IdentificationItemSurfaceNode\n";
-    text += IdentificationItem::toString() + "\n";
-    text += "Surface: " + m_surface->getFileNameNoPath() + "\n";
+    AString text = IdentificationItem::toString();
+    text += ("Surface: " + ((m_surface != NULL) ? m_surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Node: " + AString::number(m_nodeNumber) + "\n";
-    if (isValid()) {
-        text += "Coordinate: " + AString::fromNumbers(m_surface->getCoordinate(m_nodeNumber), 3, ", ");
+    if (isValid() && (m_surface != NULL)) {
+        text += "Coordinate: " + AString::fromNumbers(m_surface->getCoordinate(m_nodeNumber), 3, ", ") + "\n";
     }
-    text += "Contralateral: " + AString::fromBool(m_contralateralFlag);
+    text += "Contralateral: " + AString::fromBool(m_contralateralFlag) + "\n";
     return text;
 }

@@ -160,11 +160,19 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    X position of mouse click
  * @param mouseY
  *    Y position of mouse click
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    identified, those items "behind" other items are not reported.
+ *    For example, suppose a focus is identified and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    identified.  If this parameter is false, the node will be 
+ *    identified.
  */
 void 
 BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportContent,
-                         const int32_t mouseX,
-                         const int32_t mouseY)
+                                      const int32_t mouseX,
+                                      const int32_t mouseY,
+                                      const bool applySelectionBackgroundFiltering)
 {
     m_brain = viewportContent->getBrain();
     CaretAssert(m_brain);
@@ -186,7 +194,7 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    m_brain->getIdentificationManager()->filterSelections();
+    m_brain->getIdentificationManager()->filterSelections(applySelectionBackgroundFiltering);
     
     m_brain = NULL;
 }

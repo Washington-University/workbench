@@ -43,6 +43,7 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
 #include "CursorDisplayScoped.h"
@@ -52,11 +53,15 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventUserInterfaceUpdate.h"
+#include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GuiManager.h"
 #include "IdentificationItemBorderSurface.h"
+#include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemFocusVolume.h"
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
@@ -64,6 +69,8 @@
 #include "OverlaySet.h"
 #include "Model.h"
 #include "Surface.h"
+#include "UserInputModeFociWidget.h"
+#include "VolumeFile.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -90,18 +97,19 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                            QWidget* parent)
 : QMenu(parent)
 {
+    this->parentWidget = parent;
     this->identificationManager = identificationManager;
     this->browserTabContent = browserTabContent;
     
-    this->addAction("Remove Node Identification Symbols",
-                    this,
-                    SLOT(removeNodeIdentificationSymbolsSelected()));
+    /*
+     * Accumlate identification actions
+     */
+    std::vector<QAction*> identificationActions;
     
     /*
-     * Identify actions
+     * Identify Border
      */
     IdentificationItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
-    std::vector<QAction*> identificationActions;
     if (borderID->isValid()) {
         const QString text = ("Identify Border ("
                               + borderID->getBorder()->getName()
@@ -113,25 +121,71 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                                     SLOT(identifySurfaceBorderSelected())));
     }
 
+    /*
+     * Identify Surface Focus
+     */
+    IdentificationItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    if (focusID->isValid()) {
+        const QString text = ("Identify Surface Focus ("
+                              + focusID->getFocus()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifySurfaceFocusSelected())));
+    }
+    
+    /*
+     * Identify Node
+     */
     IdentificationItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
     if (surfaceID->isValid()) {
-        const QString text = ("Identify Node ("
-                              + QString::number(surfaceID->getNodeNumber())
+        const int32_t nodeIndex = surfaceID->getNodeNumber();
+        const Surface* surface = surfaceID->getSurface();
+        const QString text = ("Identify Node "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
                               + ") Under Mouse");
 
-        identificationActions.push_back(WuQtUtilities::createAction("Identify Node Under Mouse", 
+        identificationActions.push_back(WuQtUtilities::createAction(text,
                                                                     "", 
                                                                     this, 
                                                                     this, 
                                                                     SLOT(identifySurfaceNodeSelected())));
     }
     
-    if (this->identificationManager->getVoxelIdentification()->isValid()) {
-        identificationActions.push_back(WuQtUtilities::createAction("Identify Voxel Under Mouse", 
+    /*
+     * Identify Voxel
+     */
+    IdentificationItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    if (idVoxel->isValid()) {
+        int64_t ijk[3];
+        idVoxel->getVoxelIJK(ijk);
+        const AString text = ("Identify Voxel ("
+                              + AString::fromNumbers(ijk, 3, ",")
+                              + ")");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
                                                                     "", 
                                                                     this, 
                                                                     this, 
                                                                     SLOT(identifyVoxelSelected())));
+    }
+    
+    /*
+     * Identify Volume Focus
+     */
+    IdentificationItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
+    if (focusVolID->isValid()) {
+        const QString text = ("Identify Volume Focus ("
+                              + focusVolID->getFocus()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifyVolumeFocusSelected())));
     }
     
     if (identificationActions.empty() == false) {
@@ -301,7 +355,97 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
             this->addAction(*tsIter);
         }
     }
+    
+    std::vector<QAction*> createActions;
+    
+    const IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
+
+    /*
+     * Create focus at surface node or at ID symbol
+     */
+    if (surfaceID->isValid()) {
+        const int32_t nodeIndex = surfaceID->getNodeNumber();
+        const Surface* surface = surfaceID->getSurface();
+        const QString text = ("Create Focus at Node "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+                              + ")...");
+        
+        createActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createSurfaceFocusSelected())));
+    }
+    else if (idSymbol->isValid()) {
+        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        const Surface* surface = idSymbol->getSurface();
+        const QString text = ("Create Focus at Identified Node "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+                              + ")...");
+        
+        createActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
+    }
+
+    /*
+     * Create focus at voxel
+     */
+    if (idVoxel->isValid()) {
+        int64_t ijk[3];
+        idVoxel->getVoxelIJK(ijk);
+        float xyz[3];
+        const VolumeFile* vf = idVoxel->getVolumeFile();
+        vf->indexToSpace(ijk, xyz);
+        
+        const AString text = ("Create Focus at Voxel IJK ("
+                              + AString::fromNumbers(ijk, 3, ",")
+                              + ") XYZ ("
+                              + AString::fromNumbers(xyz, 3, ",")
+                              + ")...");
+        createActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createVolumeFocusSelected())));
+    }
+    
+    if (createActions.empty() == false) {
+        if (this->actions().count() > 0) {
+            this->addSeparator();
+        }
+        for (std::vector<QAction*>::iterator iter = createActions.begin();
+             iter != createActions.end();
+             iter++) {
+            this->addAction(*iter);
+        }
+    }
+    
+    if (this->actions().count() > 0) {
+        this->addSeparator();
+    }
+    this->addAction("Remove All Node Identification Symbols",
+                    this,
+                    SLOT(removeAllNodeIdentificationSymbolsSelected()));
+    
+    if (idSymbol->isValid()) {
+        const AString text = ("Remove Identification of Node "
+                              + AString::number(idSymbol->getNodeNumber()));
+        
+        this->addAction(WuQtUtilities::createAction(text,
+                                                    "",
+                                                    this,
+                                                    this,
+                                                    SLOT(removeNodeIdentificationSymbolSelected())));
+    }
 }
+
 
 /**
  * @param brain
@@ -584,6 +728,122 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
 }
 
 /**
+ * Called to create a focus at a node location
+ */
+void
+BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
+{
+    IdentificationItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    const Surface* surface = surfaceID->getSurface();
+    const int32_t nodeIndex = surfaceID->getNodeNumber();
+    const float* xyz = surface->getCoordinate(nodeIndex);
+    
+    const AString focusName = (StructureEnum::toGuiName(surface->getStructure())
+                               + " Node "
+                               + AString::number(nodeIndex));
+    
+    const AString comment = ("Created from "
+                             + focusName);
+    Focus* focus = new Focus();
+    focus->setName(focusName);
+    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+    focus->setComment(comment);
+    
+    UserInputModeFociWidget::displayFocusCreationDialog(focus,
+                                                        this->parentWidget);
+}
+
+
+/**
+ * Called to create a focus at a node location
+ */
+void
+BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
+{
+    IdentificationItemSurfaceNodeIdentificationSymbol* nodeSymbolID =
+        this->identificationManager->getSurfaceNodeIdentificationSymbol();
+    
+    const Surface* surface = nodeSymbolID->getSurface();
+    const int32_t nodeIndex = nodeSymbolID->getNodeNumber();
+    const float* xyz = surface->getCoordinate(nodeIndex);
+    
+    const AString focusName = (StructureEnum::toGuiName(surface->getStructure())
+                               + " Node "
+                               + AString::number(nodeIndex));
+    
+    const AString comment = ("Created from "
+                             + focusName);
+    Focus* focus = new Focus();
+    focus->setName(focusName);
+    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+    focus->setComment(comment);
+    
+    UserInputModeFociWidget::displayFocusCreationDialog(focus,
+                                                        this->parentWidget);
+}
+/**
+ * Called to create a focus at a voxel location
+ */
+void
+BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
+{
+    IdentificationItemVoxel* voxelID = this->identificationManager->getVoxelIdentification();
+    const VolumeFile* vf = voxelID->getVolumeFile();
+    int64_t ijk[3];
+    voxelID->getVoxelIJK(ijk);
+    float xyz[3];
+    vf->indexToSpace(ijk, xyz);
+    
+    const AString focusName = (vf->getFileNameNoPath()
+                               + " IJK ("
+                               + AString::fromNumbers(ijk, 3, ",")
+                               + ")");
+    
+    const AString comment = ("Created from "
+                             + focusName);
+    Focus* focus = new Focus();
+    focus->setName(focusName);
+    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+    focus->setComment(comment);
+    
+    UserInputModeFociWidget::displayFocusCreationDialog(focus,
+                                                        this->parentWidget);
+}
+
+
+/**
+ * Called to display identication information on the surface focus.
+ */
+void
+BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
+{
+    IdentificationItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    Brain* brain = focusID->getBrain();
+    const BrowserTabContent* btc = NULL;
+    this->identificationManager->clearOtherIdentifiedItems(focusID);
+    const AString idMessage = this->identificationManager->getIdentificationText(btc,
+                                                                                 brain);
+    
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+}
+
+/**
+ * Called to display identication information on the volume focus.
+ */
+void
+BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
+{
+    IdentificationItemFocusVolume* focusID = this->identificationManager->getVolumeFocusIdentification();
+    Brain* brain = focusID->getBrain();
+    const BrowserTabContent* btc = NULL;
+    this->identificationManager->clearOtherIdentifiedItems(focusID);
+    const AString idMessage = this->identificationManager->getIdentificationText(btc,
+                                                                                 brain);
+    
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+}
+
+/**
  * Called to display identication information on the surface border.
  */
 void 
@@ -616,14 +876,33 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
 }
 
 /**
- * Called to remove node identification symbols.
+ * Called to remove all node identification symbols.
  */
 void 
-BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolsSelected()
+BrainOpenGLWidgetContextMenu::removeAllNodeIdentificationSymbolsSelected()
 {    
     EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Called to remove node identification symbol from node.
+ */
+void
+BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
+{
+   IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
+    if (idSymbol->isValid()) {
+        Surface* surface = idSymbol->getSurface();
+        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        BrainStructure* brainStructure = surface->getBrainStructure();
+        BrainStructureNodeAttributes* nodeAtts = brainStructure->getNodeAttributes();
+        nodeAtts->setIdentificationType(nodeIndex,
+                                        NodeIdentificationTypeEnum::NONE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
 
 /**
  * If any enabled connectivity files retrieve data from the network

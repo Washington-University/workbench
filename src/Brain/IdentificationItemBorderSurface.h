@@ -71,6 +71,8 @@ namespace caret {
         
         void reset();
         
+        virtual AString toString() const;
+        
     private:
         IdentificationItemBorderSurface(const IdentificationItemBorderSurface&);
 

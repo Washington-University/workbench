@@ -48,6 +48,7 @@
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "IdentificationItemFocusSurface.h"
+#include "IdentificationItemFocusVolume.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
@@ -184,7 +185,9 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         bool doIdentification = false;
         
         IdentificationManager* idManager =
-            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+            openGLWidget->performIdentification(mouseEvent->getX(),
+                                                mouseEvent->getY(),
+                                                true);
         if (idManager->getSurfaceNodeIdentification()->isValid()
             && idManager->getVoxelIdentification()->isValid()) {
             std::cout << "GET BOTH NODE AND VOXEL" << std::endl;
@@ -249,6 +252,29 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                 Focus*    focus = NULL;
                 
                 if (isLeftClick) {
+                    IdentificationItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
+                    if (idVolFocus->isValid()) {
+                        fociFile = idVolFocus->getFociFile();
+                        CaretAssert(fociFile);
+                        focus    = idVolFocus->getFocus();
+                        CaretAssert(focus);
+                        
+                        switch (m_editOperation) {
+                            case EDIT_OPERATION_DELETE:
+                                fociFile->removeFocus(focus);
+                                updateAfterFociChanged();
+                                break;
+                            case EDIT_OPERATION_PROPERTIES:
+                            {
+                                FociPropertiesEditorDialog fped("Edit Focus",
+                                                                fociFile,
+                                                                focus,
+                                                                false,
+                                                                openGLWidget);
+                                fped.exec();
+                            }
+                        }
+                    }
                     IdentificationItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
                     if (idFocus->isValid()) {
                         fociFile = idFocus->getFociFile();

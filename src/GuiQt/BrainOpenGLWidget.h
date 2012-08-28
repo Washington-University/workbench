@@ -65,7 +65,8 @@ namespace caret {
         void receiveEvent(Event* event);
         
         IdentificationManager* performIdentification(const int x,
-                                                     const int y);
+                                                     const int y,
+                                                     const bool applySelectionBackgroundFiltering);
         
         void performProjection(const int x,
                                const int y,

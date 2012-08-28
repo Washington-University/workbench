@@ -158,9 +158,17 @@ IdentificationManager::receiveEvent(Event* event)
 /**
  * Filter selections to arbitrate between triangle/node
  * and to remove any selections behind another selection.
+ *
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    identified, those items "behind" other items are not reported.
+ *    For example, suppose a focus is identified and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    identified.  If this parameter is false, the node will be
+ *    identified.
  */
 void 
-IdentificationManager::filterSelections()
+IdentificationManager::filterSelections(const bool applySelectionBackgroundFiltering)
 {
     AString logText;
     for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
@@ -228,7 +236,7 @@ IdentificationManager::filterSelections()
         && (m_surfaceNodeIdentification->getNodeNumber() >= 0)) {
         const double depthDiff = (m_surfaceNodeIdentificationSymbol->getScreenDepth()
                                   - m_surfaceNodeIdentification->getScreenDepth());
-        if (depthDiff > 0.00001) {
+        if (depthDiff > 0.01) {
             m_surfaceNodeIdentificationSymbol->reset();
         }
         else {
@@ -236,7 +244,9 @@ IdentificationManager::filterSelections()
         }
     }
     
-    clearDistantSelections();
+    if (applySelectionBackgroundFiltering) {
+         clearDistantSelections();
+    }
     
     logText = "";
     for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();

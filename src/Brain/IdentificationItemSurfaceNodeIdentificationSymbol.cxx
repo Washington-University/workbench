@@ -134,9 +134,8 @@ IdentificationItemSurfaceNodeIdentificationSymbol::setNodeNumber(const int32_t n
 AString 
 IdentificationItemSurfaceNodeIdentificationSymbol::toString() const
 {
-    AString text = "IdentificationItemSurfaceNodeIdentificationSymbol\n";
-    text += IdentificationItem::toString() + "\n";
-    text += "Surface: " + surface->getFileNameNoPath() + "\n";
+    AString text = IdentificationItem::toString();
+    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Node: " + AString::number(this->nodeNumber) + "\n";
     return text;
 }

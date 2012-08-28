@@ -323,10 +323,17 @@ SurfaceProjectedItem::isStereotaxicXYZValid() const
 void
 SurfaceProjectedItem::setStereotaxicXYZ(const float stereotaxicXYZ[3])
 {
+    if (this->stereotaxicXYZValid) {
+    }
     this->stereotaxicXYZ[0] = stereotaxicXYZ[0];
     this->stereotaxicXYZ[1] = stereotaxicXYZ[1];
     this->stereotaxicXYZ[2] = stereotaxicXYZ[2];
     this->stereotaxicXYZValid = true;
+
+    if (this->volumeXYZValid == false) {
+        this->setVolumeXYZ(stereotaxicXYZ);
+    }
+    
     this->setModified();
 }
 

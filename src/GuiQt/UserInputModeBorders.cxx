@@ -249,7 +249,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     case EDIT_OPERATION_DELETE:  
                         if (isLeftClick) {
                             IdentificationManager* idManager =
-                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                            openGLWidget->performIdentification(mouseEvent->getX(),
+                                                                mouseEvent->getY(),
+                                                                true);
                             IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
@@ -269,7 +271,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     case EDIT_OPERATION_PROPERTIES:
                         if (isLeftClick) {
                             IdentificationManager* idManager =
-                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                            openGLWidget->performIdentification(mouseEvent->getX(),
+                                                                mouseEvent->getY(),
+                                                                true);
                             IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
@@ -297,7 +301,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
             case MODE_ROI:
                 if (isLeftClick) {
                     IdentificationManager* idManager =
-                    openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                    openGLWidget->performIdentification(mouseEvent->getX(),
+                                                        mouseEvent->getY(),
+                                                        true);
                     IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                     if (idBorder->isValid()) {
                         Brain* brain = idBorder->getBrain();

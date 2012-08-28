@@ -27,6 +27,10 @@
 #include "IdentificationItemBorderSurface.h"
 #undef __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
 
+#include "Border.h"
+#include "BorderFile.h"
+#include "Surface.h"
+
 using namespace caret;
 
 
@@ -204,3 +208,20 @@ IdentificationItemBorderSurface::setBorderPointIndex(const int32_t borderPointIn
 {
     this->borderPointIndex = borderPointIndex;
 }
+
+/**
+ * Get a description of m_ object's content.
+ * @return String describing m_ object's content.
+ */
+AString
+IdentificationItemBorderSurface::toString() const
+{
+    AString text = IdentificationItem::toString();
+    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Border File: " + ((borderFile != NULL) ? borderFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Border: " + ((border != NULL) ? border->getName() : "INVALID") + "\n");
+    text += ("Border Index: " + AString::number(borderIndex) + "\n");
+    text += ("Border Point Index: " + AString::number(borderPointIndex) + "\n");
+    return text;
+}
+

@@ -67,6 +67,9 @@ namespace caret {
         
         static void deleteStaticMembers();
         
+        static void displayFocusCreationDialog(Focus* newFocus,
+                                               QWidget* focusDialogParent);
+        
     private slots:
         void createNewFocusActionTriggered();
         
@@ -86,8 +89,6 @@ namespace caret {
         void displayFocusCreationDialog(const AString& name,
                                         const float xyz[3],
                                         const AString& comment);
-        
-        void displayFocusCreationDialog(Focus* newFocus);
         
         QWidget* createModeWidget();
         

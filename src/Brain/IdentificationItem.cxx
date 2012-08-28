@@ -139,9 +139,10 @@ AString
 IdentificationItem::toString() const
 {
     AString text = "";
+    text += ("Type: " + IdentificationItemDataTypeEnum::toGuiName(m_itemDataType) + "\n");
     text += ("Depth: " + AString::number(m_screenDepth) + "\n");
-    text += ("Model XYZ:  " + AString::fromNumbers(m_modelXYZ, 3, ", "));
-    text += ("Screen XYZ: " + AString::fromNumbers(m_screenXYZ, 3, ", "));
+    text += ("Model XYZ:  " + AString::fromNumbers(m_modelXYZ, 3, ", ") + "\n");
+    text += ("Screen XYZ: " + AString::fromNumbers(m_screenXYZ, 3, ", ") + "\n");
     return text;
 }
 

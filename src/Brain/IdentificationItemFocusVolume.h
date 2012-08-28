@@ -71,6 +71,8 @@ namespace caret {
         
         void reset();
         
+        virtual AString toString() const;
+        
     private:
         IdentificationItemFocusVolume(const IdentificationItemFocusVolume&);
 

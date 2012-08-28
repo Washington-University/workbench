@@ -86,7 +86,8 @@ namespace caret {
         
         void selectModel(BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
-                         const int32_t mouseY);
+                         const int32_t mouseY,
+                         const bool applySelectionBackgroundFiltering);
         
         void projectToModel(BrainOpenGLViewportContent* viewportContent,
                             const int32_t mouseX,

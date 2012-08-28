@@ -27,6 +27,10 @@
 #include "IdentificationItemFocusSurface.h"
 #undef __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
 
+#include "FociFile.h"
+#include "Focus.h"
+#include "Surface.h"
+
 using namespace caret;
 
 
@@ -205,3 +209,18 @@ IdentificationItemFocusSurface::setFocusProjectionIndex(const int32_t focusProje
     this->focusProjectionIndex = focusProjectionIndex;
 }
 
+/**
+ * Get a description of m_ object's content.
+ * @return String describing m_ object's content.
+ */
+AString
+IdentificationItemFocusSurface::toString() const
+{
+    AString text = IdentificationItem::toString();
+    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Foci File: " + ((fociFile != NULL) ? fociFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Focus: " + ((focus != NULL) ? focus->getName() : "INVALID") + "\n");
+    text += ("Focus Index: " + AString::number(focusIndex) + "\n");
+    text += ("Focus Projection Index: " + AString::number(focusProjectionIndex) + "\n");
+    return text;
+}

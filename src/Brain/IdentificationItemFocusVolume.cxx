@@ -27,6 +27,10 @@
 #include "IdentificationItemFocusVolume.h"
 #undef __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
 
+#include "Focus.h"
+#include "FociFile.h"
+#include "VolumeFile.h"
+
 using namespace caret;
 
 
@@ -205,3 +209,18 @@ IdentificationItemFocusVolume::setFocusProjectionIndex(const int32_t focusProjec
     this->focusProjectionIndex = focusProjectionIndex;
 }
 
+/**
+ * Get a description of m_ object's content.
+ * @return String describing m_ object's content.
+ */
+AString
+IdentificationItemFocusVolume::toString() const
+{
+    AString text = IdentificationItem::toString();
+    text += ("Volume File: " + ((volumeFile != NULL) ? volumeFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Foci File: " + ((fociFile != NULL) ? fociFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Focus: " + ((focus != NULL) ? focus->getName() : "INVALID") + "\n");
+    text += ("Focus Index: " + AString::number(focusIndex) + "\n");
+    text += ("Focus Projection Index: " + AString::number(focusProjectionIndex) + "\n");
+    return text;
+}

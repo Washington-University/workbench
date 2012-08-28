@@ -171,7 +171,8 @@ Brain::~Brain()
     if (m_wholeBrainController != NULL) {
         delete m_wholeBrainController;
     }
-    this->m_identificationManager = NULL;
+
+    delete this->m_identificationManager;
 }
 
 /**

@@ -62,9 +62,21 @@ namespace caret {
         virtual ~BrainOpenGLWidgetContextMenu();
         
     private slots:
-        void removeNodeIdentificationSymbolsSelected();
+        void createSurfaceFocusSelected();
+        
+        void createSurfaceIDSymbolFocusSelected();
+        
+        void createVolumeFocusSelected();
+        
+        void removeAllNodeIdentificationSymbolsSelected();
+        
+        void removeNodeIdentificationSymbolSelected();
         
         void identifySurfaceBorderSelected();
+        
+        void identifySurfaceFocusSelected();
+        
+        void identifyVolumeFocusSelected();
         
         void identifySurfaceNodeSelected();
 
@@ -120,6 +132,8 @@ namespace caret {
         IdentificationManager* identificationManager;
         
         BrowserTabContent* browserTabContent;
+        
+        QWidget* parentWidget;
     };
     
 #ifdef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
