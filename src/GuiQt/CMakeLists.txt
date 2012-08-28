@@ -154,6 +154,7 @@ GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
+ImageExportDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
@@ -253,6 +254,7 @@ GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx
+ImageExportDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
@@ -308,6 +310,7 @@ WuQtUtilities.cxx
 )
 
 SET(FORMS
+    ImageExportDialog.ui
     TimeCourseDialog.ui)
 
 

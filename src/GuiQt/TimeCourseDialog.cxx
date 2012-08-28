@@ -146,13 +146,16 @@ void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDi
 void TimeCourseDialog::populateHistory()
 {
     if(tlV.isEmpty()) return;
-    this->ui->TDCoordsText->clear();
+    this->ui->TDHistoryList->clear();
     for(int i =0;i<tlV.size();i++)
     { 
         
-        this->ui->TDCoordsText->setTextColor(plot->colors.getColor(tlV[i].colorID));
-        this->ui->TDCoordsText->append(tlV[i].label);
-        this->ui->TDCoordsText->show();
+//        this->ui->TDHistoryList->setTextColor(plot->colors.getColor(tlV[i].colorID));
+//        this->ui->TDHistoryList->append(tlV[i].label);
+        QListWidgetItem *item = new QListWidgetItem(tlV[i].label);
+        item->setTextColor(plot->colors.getColor(tlV[i].colorID));
+        this->ui->TDHistoryList->addItem(item);
+        this->ui->TDHistoryList->show();
     }
 }
 
@@ -186,7 +189,7 @@ void TimeCourseDialog::on_TDClearChart_clicked()
 {
     this->plot->clear(tlV);
     tlV.clear();
-    this->ui->TDCoordsText->clear();
+    this->ui->TDHistoryList->clear();
     this->updateDialog(true);
 }
 
@@ -378,4 +381,9 @@ void TimeCourseDialog::on_openTimeLineButton_clicked()
     tl.x.resize(tl.y.count());
     this->addTimeLine(tl);
     this->updateDialog();
+}
+
+void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem *item)
+{
+
 }

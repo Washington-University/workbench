@@ -358,20 +358,10 @@
             </item>
            </layout>
           </item>
-          <item>
-           <widget class="QTextEdit" name="TDCoordsText">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
          </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QListWidget" name="TDHistoryList"/>
         </item>
        </layout>
       </widget>

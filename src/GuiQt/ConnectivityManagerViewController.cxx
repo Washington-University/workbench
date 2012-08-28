@@ -33,7 +33,9 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QDir>
 #include <QMessageBox>
+#include <QTemporaryFile>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -47,15 +49,18 @@
 #include "ConnectivityTimeSeriesViewController.h"
 #include "ConnectivityDenseViewController.h"
 #include "EventManager.h"
+#include "EventListenerInterface.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
+#include "QHBoxLayout"
 #include "TimeCourseDialog.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::ConnectivityManagerViewController 
  * \brief View-Controller for the ConnectivityLoaderManager
@@ -78,9 +83,22 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 
     this->tcDialog = NULL;
 
+    this->timeSeriesButtonLayout = NULL;
     this->graphToolButton = NULL;
-
     this->graphAction = NULL;
+    this->movieToolButton = NULL;
+    this->movieAction = NULL;
+
+	this->movieAction = WuQtUtilities::createAction("Movie...",
+		"Record Time Course Movie...",
+		this,
+		this,
+		SLOT(movieActionTriggered(bool)));
+
+	this->movieAction->setCheckable(true);
+	this->movieToolButton = new QToolButton();
+	this->movieToolButton->setDefaultAction(this->movieAction);
+	frame_number = 0;
     
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
@@ -88,6 +106,8 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
+            this->timeSeriesButtonLayout = new QHBoxLayout();
+
             QIcon graphIcon;
             const bool graphIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
                 graphIcon);
@@ -103,6 +123,9 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
             }            
             this->graphToolButton = new QToolButton();
             this->graphToolButton->setDefaultAction(this->graphAction);
+
+            
+
             this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);
         }
             break;
@@ -114,11 +137,18 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     }
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    if(this->graphToolButton) layout->addWidget(this->graphToolButton,100);
+    if(this->timeSeriesButtonLayout)
+    {
+        if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
+        if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,100,Qt::AlignLeft);
+        layout->addLayout(this->timeSeriesButtonLayout);
+    }
+    
     layout->addLayout(this->viewControllerGridLayout);
     layout->addStretch();    
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
 }
 
 /**
@@ -140,6 +170,75 @@ ConnectivityManagerViewController::graphActionTriggered()
     //tcDialog->show();
     tcDialog->updateDialog(true);
    
+}
+
+void
+ConnectivityManagerViewController::movieActionTriggered(bool status)
+{
+
+    /*if(!this->tcDialog)
+    {
+        this->tcDialog = new TimeCourseDialog(this);
+    }
+    tcDialog->setTimeSeriesGraphEnabled(true);
+    //tcDialog->show();
+    tcDialog->updateDialog(true);*/
+
+}
+
+void ConnectivityManagerViewController::captureMovie()
+{
+
+}
+
+void ConnectivityManagerViewController::captureFrame(AString filename)
+{
+    const int browserWindowIndex = 0;
+
+    int32_t imageX = 0;
+    int32_t imageY = 0;
+    
+    ImageFile imageFile;
+    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
+        imageX,
+        imageY,
+        imageFile);
+
+    if (valid == false) {
+        WuQMessageBox::errorOk(this, 
+            "Invalid window selected");
+        return;
+    }
+    
+    std::vector<AString> imageFileExtensions;
+    AString defaultFileExtension;
+    ImageFile::getImageFileExtensions(imageFileExtensions, 
+        defaultFileExtension);
+
+    
+
+    bool validExtension = false;
+    for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
+        extensionIterator != imageFileExtensions.end();
+        extensionIterator++) {
+            if (filename.endsWith(*extensionIterator)) {
+                validExtension = true;
+            }
+    }
+
+    if (validExtension == false) {
+        if (defaultFileExtension.isEmpty() == false) {
+            filename += ("." + defaultFileExtension);
+        }
+    }
+
+    try {
+        imageFile.writeFile(filename);
+    }
+    catch (const DataFileException& /*e*/) {
+        QString msg("Unable to save: " + filename);
+        WuQMessageBox::errorOk(this, msg);
+    }
 }
 
 
@@ -242,6 +341,7 @@ ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<Co
 void 
 ConnectivityManagerViewController::receiveEvent(Event* event)
 {
+    
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* uiEvent =
         dynamic_cast<EventUserInterfaceUpdate*>(event);
@@ -255,5 +355,24 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
             }
         }
     }
+    else if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
+        
+        AString tempPath = QDir::tempPath();
+
+        if(this->movieAction->isChecked())
+        {
+            this->captureFrame(tempPath + AString("movie") + AString::number(frame_number) + AString(".png"));
+			AString temp = tempPath + AString("movie") + AString::number(frame_number) + AString(".png");
+			std::cout << temp.toStdString() << std::endl;
+			std::cout << "frame number:" << frame_number << std::endl;
+			frame_number++;
+        }
+		else if(frame_number > 0)
+		{
+			//render frames....
+			frame_number = 0;
+		}
+    }
 }
+
 

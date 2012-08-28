@@ -32,7 +32,7 @@
 #include "TimeCoursePlotter.h"
 #include "QList"
 #include <stdio.h>
-
+class QListWidgetItem;
 
 
 namespace Ui {
@@ -85,6 +85,8 @@ private slots:
     void on_exportImageButton_clicked();
 
     void on_openTimeLineButton_clicked();
+
+    void on_TDHistoryList_itemActivated(QListWidgetItem *item);
 
 public slots:
     virtual void plotTimeEndValueChanged(double time);

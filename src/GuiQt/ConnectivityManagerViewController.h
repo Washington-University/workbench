@@ -46,6 +46,7 @@
 class QAction;
 class QGridLayout;
 class QToolButton;
+class QHBoxLayout;
 class TimeCourseDialog;
 
 namespace caret {
@@ -69,6 +70,8 @@ namespace caret {
         
     private slots:
         void graphActionTriggered();
+
+        void movieActionTriggered(bool status);
         
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
@@ -80,6 +83,10 @@ namespace caret {
         void updateForDenseFiles(const std::vector<ConnectivityLoaderFile*>& denseFiles);
         
         void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
+
+        void captureFrame(AString filename);
+
+        void captureMovie();
         
         Qt::Orientation orientation;
         
@@ -93,9 +100,17 @@ namespace caret {
 
         std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
 
+        QHBoxLayout *timeSeriesButtonLayout;
+
         QToolButton *graphToolButton;
 
         QAction* graphAction;
+
+        QToolButton *movieToolButton;
+
+        QAction* movieAction;
+
+		int frame_number;
 
         TimeCourseDialog *tcDialog;
         
