@@ -24,13 +24,13 @@
 
 #include "AlgorithmCiftiAverage.h"
 #include "AlgorithmException.h"
+#include "CaretAssert.h"
 #include "CaretPointer.h"
 #include "CiftiFile.h"
 #include "FileInformation.h"
 
 #include <fstream>
 #include <string>
-#include <vector>
 
 using namespace caret;
 using namespace std;
@@ -113,9 +113,11 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
     {
         throw AlgorithmException("number of weights doesn't match number of input cifti files");
     }
+    CaretAssert(ciftiList[0] != NULL);
     CiftiXML baseXML = ciftiList[0]->getCiftiXML();
     for (int i = 1; i < (int)ciftiList.size(); ++i)
     {
+        CaretAssert(ciftiList[i] != NULL);
         if (baseXML != ciftiList[i]->getCiftiXML())
         {
             throw AlgorithmException("cifti files do not match");
