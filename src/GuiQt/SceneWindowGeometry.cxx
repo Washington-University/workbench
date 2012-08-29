@@ -143,6 +143,8 @@ SceneWindowGeometry::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                            geometryOffsetX);
     sceneClass->addInteger("geometryOffsetY",
                            geometryOffsetY);
+    sceneClass->addBoolean("visibility",
+                           m_window->isVisible());
     
     return sceneClass;
 }
@@ -205,6 +207,13 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
         
+    /*
+     * Visibility
+     */
+    const bool windowVisible = sceneClass->getBooleanValue("visibility",
+                                                           true);
+    m_window->setVisible(windowVisible);
+    
     /*
      * Is this a browser window?
      */
