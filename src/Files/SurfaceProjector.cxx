@@ -23,6 +23,7 @@
  */ 
 
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 
 #define __SURFACE_PROJECTOR_DEFINE__
