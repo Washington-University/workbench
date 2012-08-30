@@ -34,6 +34,8 @@
 
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QDialog>
+#include <QDockWidget>
 #include <QWidget>
 
 #define __SCENE_WINDOW_GEOMETRY_DECLARE__
@@ -180,6 +182,43 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                            -1);
     const int32_t sceneHeight = sceneClass->getIntegerValue("geometryHeight",
                                                             -1);
+
+    const bool isDialog = (dynamic_cast<QDialog*>(m_window) != NULL);
+    QDockWidget* dockWidget = dynamic_cast<QDockWidget*>(m_window);
+    const bool isDockWidget = (dockWidget != NULL);
+    const bool isWindow = (dynamic_cast<QMainWindow*>(m_window) != NULL);
+    
+    bool isWidget = true;
+    if (isDialog
+        || isDockWidget
+        || isWindow) {
+        isWidget = false;
+    }
+    
+    /*
+     * If it is a widget
+     */
+    if (isWidget) {
+        if ((sceneWidth > 0)
+            && (sceneHeight > 0)) {
+            m_window->resize(sceneWidth,
+                             sceneHeight);
+            return;
+        }
+    }
+    
+    /*
+     * If dock widget and not floating
+     * just set size and exit
+     */
+    if (isDockWidget
+        && (dockWidget->isFloating() == false)) {
+        if ((sceneWidth > 0)
+            && (sceneHeight > 0)) {
+            m_window->resize(sceneWidth,
+                             sceneHeight);
+        }
+    }
     
     /*
      * Is this window always positions relative to parent window?

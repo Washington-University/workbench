@@ -36,8 +36,6 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QScrollArea>
-#include <QScrollBar>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -133,34 +131,15 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
                          this, SLOT(processMoveOverlayDown(const int32_t)));
     }
     
-//    QLabel* overlayCountLabel = new QLabel("Number of Layers: ");
-//    this->overlayCountSpinBox = new QSpinBox();
-//    this->overlayCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
-//                                        BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
-//    this->overlayCountSpinBox->setSingleStep(1);
-//    QObject::connect(this->overlayCountSpinBox, SIGNAL(valueChanged(int)),
-//                     this, SLOT(overlayCountSpinBoxValueChanged(int)));
-//    
-//    QHBoxLayout* overlayCountLayout = new QHBoxLayout();
-//    overlayCountLayout->addWidget(overlayCountLabel);
-//    overlayCountLayout->addWidget(this->overlayCountSpinBox);
-//    overlayCountLayout->addStretch();
-    
-    QWidget* scrolledWidget = new QWidget();
-    QVBoxLayout* scrolledWidgetLayout = new QVBoxLayout(scrolledWidget);
-    WuQtUtilities::setLayoutMargins(scrolledWidgetLayout, 2, 2);
-    scrolledWidgetLayout->addWidget(gridWidget);
-//    scrolledWidgetLayout->addLayout(overlayCountLayout);
-    scrolledWidgetLayout->addStretch();
-    
-    this->scrollArea = new QScrollArea();
-    this->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    this->scrollArea->setWidget(scrolledWidget);
-    this->scrollArea->setWidgetResizable(true);
+    QWidget* widget = new QWidget();
+    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(widgetLayout, 2, 2);
+    widgetLayout->addWidget(gridWidget);
+    widgetLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(this->scrollArea);
+    layout->addWidget(widget);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -172,33 +151,6 @@ OverlaySetViewController::~OverlaySetViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
-
-/**
- * Called when overlay count spin box value changed.
- * @param value
- *    New value.
- */
-//void 
-//OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
-//{
-//    OverlaySet* overlaySet = this->getOverlaySet();
-//    if (overlaySet != NULL) {
-//        const int oldNumberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
-//        
-//        overlaySet->setNumberOfDisplayedOverlays(value);
-//        this->updateViewController();
-//        
-//        /*
-//         * Scroll to top if an overlay is added
-//         */
-//        if (value > oldNumberOfOverlays) {
-//            this->scrollArea->widget()->adjustSize();
-//            QScrollBar* vsb = this->scrollArea->verticalScrollBar();
-//            const int maxValue = vsb->minimum();
-//            vsb->setValue(maxValue);
-//        }
-//    }
-//}
 
 /**
  * @return The overlay set in this view controller.
@@ -222,15 +174,6 @@ OverlaySetViewController::getOverlaySet()
 void 
 OverlaySetViewController::updateViewController()
 {
-    /*
-    BrowserTabContent* browserTabContent = 
-        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    
-    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
-    */
     OverlaySet* overlaySet = this->getOverlaySet();
     if (overlaySet == NULL) {
         return;
@@ -239,10 +182,6 @@ OverlaySetViewController::updateViewController()
     const int32_t numberOfOverlays = static_cast<int32_t>(this->overlayViewControllers.size());
     const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
 
-//    this->overlayCountSpinBox->blockSignals(true);
-//    this->overlayCountSpinBox->setValue(numberOfDisplayedOverlays);
-//    this->overlayCountSpinBox->blockSignals(false);
-    
     for (int32_t i = 0; i < numberOfOverlays; i++) {
         Overlay* overlay = NULL;
         if (overlaySet != NULL) {

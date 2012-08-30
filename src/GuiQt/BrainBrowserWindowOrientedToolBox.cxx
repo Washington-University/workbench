@@ -82,8 +82,10 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-        m_tabWidget->addTab(m_overlaySetViewController ,
-                                "Layers");
+//        m_tabWidget->addTab(m_overlaySetViewController ,
+//                                "Layers");
+        addToTabWidget(m_overlaySetViewController,
+                       "Layers");
     }
     if (isOverlayToolBox) {
         m_connectivityViewController = new ConnectivityManagerViewController(orientation,
@@ -177,7 +179,8 @@ BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
 {
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidget(page);
-    scrollArea->setWidgetResizable(true);    
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     
     int indx = m_tabWidget->addTab(scrollArea,
                                        label);
@@ -230,15 +233,36 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     sceneClass->addString("selectedTabName",
                           tabName);
     
-    if (isFloating()) {
-        /*
-         * Position and size
-         */
-        SceneWindowGeometry swg(this,
-                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+    /*
+     * Save current widget size
+     */
+    QWidget* childWidget = m_tabWidget->currentWidget();
+    if (childWidget != NULL) {
+        SceneWindowGeometry swg(childWidget,
+                                this);
         sceneClass->addClass(swg.saveToScene(sceneAttributes,
-                                             "geometry"));
+                                             "childWidget"));
     }
+    
+    /*
+     * Save the toolbox
+     */
+    SceneWindowGeometry swg(this,
+                            GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+    sceneClass->addClass(swg.saveToScene(sceneAttributes,
+                                         "geometry"));
+    
+////    if (isFloating()) {
+//        /*
+//         * Position and size
+//         */
+////        SceneWindowGeometry swg(this,
+////                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+//    SceneWindowGeometry swg(this->m_tabWidget->currentWidget(),
+//                            GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+//        sceneClass->addClass(swg.saveToScene(sceneAttributes,
+//                                             "geometry"));
+////    }
     
     return sceneClass;
 }
@@ -272,14 +296,46 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         }
     }
     
+    /*
+     * Restore current widget size
+     */
+    QWidget* childWidget = m_tabWidget->currentWidget();
+    QSize childMinSize;
+    if (childWidget != NULL) {
+        childMinSize = childWidget->minimumSize();
+        SceneWindowGeometry swg(childWidget,
+                                this);
+        swg.restoreFromScene(sceneAttributes,
+                             sceneClass->getClass("childWidget"));
+    }
+    
     if (isFloating() && isVisible()) {
-        /*
-         * Position and size
-         */
         SceneWindowGeometry swg(this,
                                 GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-        swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
+        swg.restoreFromScene(sceneAttributes,
+                             sceneClass->getClass("geometry"));
     }
+//    if (isVisible()) {
+//        SceneWindowGeometry swg(this,
+//                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+//        swg.restoreFromScene(sceneAttributes,
+//                             sceneClass->getClass("geometry"));
+//    }
+    
+//    //if (isFloating() && isVisible()) {
+//    if (isVisible()) {
+//        /*
+//         * Position and size
+//         */
+//        SceneWindowGeometry swg(this->m_tabWidget->currentWidget(),
+//                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+////        SceneWindowGeometry swg(this,
+////                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+//        if (isFloating() == false) {
+//            swg.setWidthHeightOnly(true);
+//        }
+//        swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
+//    }
 }
 
 

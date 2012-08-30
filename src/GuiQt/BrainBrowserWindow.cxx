@@ -2447,6 +2447,43 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
+    
+    /*
+     * Position and size
+     */
+    SceneWindowGeometry swg(this);
+    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    QApplication::processEvents();
+    
+    /*
+     * Restore feature toolbox
+     */
+    const SceneClass* featureToolBoxClass = sceneClass->getClass("featureToolBox");
+    if (featureToolBoxClass != NULL) {
+        const bool toolBoxVisible = featureToolBoxClass->getBooleanValue("visible",
+                                                                         true);
+        const bool toolBoxFloating = featureToolBoxClass->getBooleanValue("floating",
+                                                                          false);
+        
+        if (toolBoxVisible) {
+            if (toolBoxFloating) {
+                processMoveFeaturesToolBoxToFloat();
+            }
+            else {
+                processMoveFeaturesToolBoxToRight();
+            }
+        }
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(! toolBoxVisible);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+        //processShowFeaturesToolBox(toolBoxVisible);
+        m_featuresToolBox->restoreFromScene(sceneAttributes,
+                                            sceneClass->getClass("m_featuresToolBox"));
+    }
+    
     /*
      * Restore overlay toolbox
      */
@@ -2455,7 +2492,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         const AString orientationName = overlayToolBoxClass->getStringValue("orientation",
                                                                             "horizontal");
         const bool toolBoxVisible = overlayToolBoxClass->getBooleanValue("visible",
-                                                                            true);
+                                                                         true);
         const bool toolBoxFloating = overlayToolBoxClass->getBooleanValue("floating",
                                                                           false);
         if (orientationName == "horizontal") {
@@ -2472,132 +2509,12 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                  sceneClass->getClass("m_overlayActiveToolBox"));
     }
     
-    /*
-     * Restore feature toolbox
-     */
-    const SceneClass* featureToolBoxClass = sceneClass->getClass("featureToolBox");
-    if (featureToolBoxClass != NULL) {
-        const bool toolBoxVisible = featureToolBoxClass->getBooleanValue("visible",
-                                                                         true);
-        const bool toolBoxFloating = featureToolBoxClass->getBooleanValue("floating",
-                                                                          false);
-        
-        if (toolBoxFloating) {
-            processMoveFeaturesToolBoxToFloat();
-        }
-        else {
-            processMoveFeaturesToolBoxToRight();
-        }
-        m_featuresToolBoxAction->blockSignals(true);
-        m_featuresToolBoxAction->setChecked(! toolBoxVisible);
-        m_featuresToolBoxAction->blockSignals(false);
-        m_featuresToolBoxAction->trigger();
-        //processShowFeaturesToolBox(toolBoxVisible);
-        m_featuresToolBox->restoreFromScene(sceneAttributes,
-                                            sceneClass->getClass("m_featuresToolBox"));
-    }
-    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }    
-    
-    /*
-     * Position and size
-     */
-    SceneWindowGeometry swg(this);
-    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
-    
-    
-//    int32_t x = sceneClass->getIntegerValue("geometryX",
-//                                              -1);
-//    int32_t y = sceneClass->getIntegerValue("geometryY",
-//                                              -1);
-//    const int32_t w = sceneClass->getIntegerValue("geometryWidth",
-//                                              -1);
-//    const int32_t h = sceneClass->getIntegerValue("geometryHeight",
-//                                              -1);
-//    
-//    /**
-//     * Determine if this is the first window
-//     */
-//    BrainBrowserWindow* firstWindow = NULL;
-//    int32_t firstWindowX = -1;
-//    int32_t firstWindowY = -1;
-//    std::vector<BrainBrowserWindow*> allWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-//    for (std::vector<BrainBrowserWindow*>::iterator iter = allWindows.begin();
-//         iter != allWindows.end();
-//         iter++) {
-//        BrainBrowserWindow* bbw = *iter;
-//        if (bbw != NULL) {
-//            if (firstWindow == NULL) {
-//                firstWindow = bbw;
-//                firstWindowX = bbw->x();
-//                firstWindowY = bbw->y();
-//            }
-//            break;
-//        }
-//    }
-//    const bool isFirstWindow = (firstWindow == this);
-//    if (isFirstWindow) {
-//        s_sceneFileFirstWindowX = x;
-//        s_sceneFileFirstWindowY = y;
-//    }
-//    
-//    bool isResizeWindow = false;
-//    bool isMoveWindow   = false;    
-//    bool isMoveWindowRelative = false;
-//    switch (sceneAttributes->getRestoreWindowBehavior()) {
-//        case SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES:
-//            isResizeWindow = true;
-//            isMoveWindow   = true;
-//            break;
-//        case SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES:
-//            break;
-//        case SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES:
-//            if (isFirstWindow == false) {
-//                isMoveWindow = true;
-//                isMoveWindowRelative = true;
-//            }
-//            isResizeWindow = true;
-//            break;
-//    }
-//    
-//    const QSize screenSize = WuQtUtilities::getMinimumScreenSize();
-//    const int maxX = screenSize.width() - 100;
-//    const int maxY = screenSize.height() - 100;
-//    
-//    if (isMoveWindow) {
-//        if ((x > 0)
-//            & (y > 0)) {
-//            if (isMoveWindowRelative) {
-//                if ((firstWindowX > 0) 
-//                    && (firstWindowY > 0)) {
-//                    const int32_t dx = x - s_sceneFileFirstWindowX;
-//                    const int32_t dy = y - s_sceneFileFirstWindowY;
-//                    x = firstWindowX + dx;
-//                    y = firstWindowY + dy;
-//                }
-//                else {
-//                    
-//                }
-//            }
-//            x = std::min(x, maxX);
-//            y = std::min(y, maxY);
-//            move(x,
-//                 y);
-//        }
-//    }
-//    
-//    if (isResizeWindow) {
-//        if ((w > 0)
-//            && (h > 0)) {
-//            resize(w, h);
-//        }
-//    }
-    
 }
 
 
