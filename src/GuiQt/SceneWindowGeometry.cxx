@@ -217,6 +217,7 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
             && (sceneHeight > 0)) {
             m_window->resize(sceneWidth,
                              sceneHeight);
+            return;
         }
     }
     

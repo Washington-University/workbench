@@ -301,12 +301,14 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
      */
     QWidget* childWidget = m_tabWidget->currentWidget();
     QSize childMinSize;
+    QSize childSize;
     if (childWidget != NULL) {
         childMinSize = childWidget->minimumSize();
         SceneWindowGeometry swg(childWidget,
                                 this);
         swg.restoreFromScene(sceneAttributes,
                              sceneClass->getClass("childWidget"));
+        childSize = childWidget->size();
     }
     
     if (isFloating() && isVisible()) {
@@ -314,6 +316,16 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                                 GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
         swg.restoreFromScene(sceneAttributes,
                              sceneClass->getClass("geometry"));
+    }
+    else {
+//        if (childWidget != NULL) {
+//            childWidget->setMinimumSize(childSize);
+//            SceneWindowGeometry swg(this,
+//                                    GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
+//            swg.restoreFromScene(sceneAttributes,
+//                                 sceneClass->getClass("geometry"));
+//            childWidget->setMinimumSize(childMinSize);
+//        }
     }
 //    if (isVisible()) {
 //        SceneWindowGeometry swg(this,
