@@ -34,6 +34,7 @@
 
 
 #include <QGridLayout>
+#include <QBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>
@@ -108,7 +109,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 100);
+        gridLayout->setColumnStretch(3, 0);
+        gridLayout->setColumnStretch(4, 0);
+        gridLayout->setColumnStretch(5, 100);
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
@@ -130,16 +133,34 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         QObject::connect(ovc, SIGNAL(requestMoveOverlayDown(const int32_t)),
                          this, SLOT(processMoveOverlayDown(const int32_t)));
     }
+
+    if (orientation == Qt::Horizontal) {
+        QVBoxLayout* verticalLayout = new QVBoxLayout(this);
+        WuQtUtilities::setLayoutMargins(verticalLayout, 2, 2);
+        verticalLayout->addWidget(gridWidget);
+        verticalLayout->addStretch();
+    }
+    else {
+        QVBoxLayout* verticalLayout = new QVBoxLayout();
+        WuQtUtilities::setLayoutMargins(verticalLayout, 1, 1);
+        verticalLayout->addWidget(gridWidget);
+        verticalLayout->addStretch();
+        
+        QHBoxLayout* horizontalLayout = new QHBoxLayout(this);
+        WuQtUtilities::setLayoutMargins(horizontalLayout, 1, 1);
+        horizontalLayout->addLayout(verticalLayout);
+        horizontalLayout->addStretch();
+    }
     
-    QWidget* widget = new QWidget();
-    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(widgetLayout, 2, 2);
-    widgetLayout->addWidget(gridWidget);
-    widgetLayout->addStretch();
-    
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(widget);
+//    QWidget* widget = new QWidget();
+//    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
+//    WuQtUtilities::setLayoutMargins(widgetLayout, 2, 2);
+//    widgetLayout->addWidget(gridWidget);
+//    widgetLayout->addStretch();
+//    
+//    QVBoxLayout* layout = new QVBoxLayout(this);
+//    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+//    layout->addWidget(widget);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
