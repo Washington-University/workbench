@@ -447,6 +447,34 @@ SpecFile::getNumberOfFilesSelected() const
 }
 
 /**
+ * @return True if the only files selected are scene files.
+ */
+bool
+SpecFile::areAllSelectedFilesSceneFiles() const
+{
+    int32_t sceneFileCount = 0;
+    int32_t allFilesCount  = 0;
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        allFilesCount += dataFileTypeGroup->getNumberOfFilesSelected();
+        
+        if (dataFileTypeGroup->getDataFileType() == DataFileTypeEnum::SCENE) {
+            sceneFileCount += dataFileTypeGroup->getNumberOfFilesSelected();
+        }
+    }
+
+    if (sceneFileCount > 0) {
+        if (sceneFileCount == allFilesCount) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Read the file.
  *
  * @param filename

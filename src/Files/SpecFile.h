@@ -75,6 +75,8 @@ namespace caret {
         
         int32_t getNumberOfFilesSelected() const;
         
+        bool areAllSelectedFilesSceneFiles() const;
+        
         virtual void readFile(const AString& filename) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);

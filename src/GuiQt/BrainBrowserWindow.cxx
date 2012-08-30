@@ -1217,7 +1217,7 @@ BrainBrowserWindow::processDataFileOpen()
     
     AString errorMessages;
     
-    if (fd.exec()) {
+    if (fd.exec() == CaretFileDialogExtendable::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
         if (selectedFiles.empty() == false) {            
             /*
@@ -1598,6 +1598,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     }
                         break;
                 }
+                
+                sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
             }
             else {
                 bool addDataFileToSpecFile = false;
