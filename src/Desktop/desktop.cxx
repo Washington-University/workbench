@@ -140,6 +140,7 @@ struct ProgramState
     vector<AString> fileList;
     int specLoadType;
     int windowSizeXY[2];
+    int windowPosXY[2];
     bool showSplash;
     
     AString sceneFileName;
@@ -418,10 +419,24 @@ main(int argc, char* argv[])
 
         BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
         
-        if ((myState.windowSizeXY[0] > 0) 
-            && (myState.windowSizeXY[1] > 0)) {
-            myWindow->setFixedSize(myState.windowSizeXY[0],
-                                   myState.windowSizeXY[1]);
+        if ((myState.windowSizeXY[0] > 0) && (myState.windowSizeXY[1] > 0))
+        {
+            if (myState.windowPosXY[0] > 0 && myState.windowPosXY[1] > 0)
+            {
+                myWindow->setGeometry(myState.windowPosXY[0], myState.windowPosXY[1],
+                                      myState.windowSizeXY[0], myState.windowSizeXY[1]);
+            } else {
+                myWindow->setFixedSize(myState.windowSizeXY[0],
+                                       myState.windowSizeXY[1]);
+            }
+        } else {
+            if (myState.windowPosXY[0] > 0 && myState.windowPosXY[1] > 0)
+            {
+                myState.windowSizeXY[0] = myWindow->width();
+                myState.windowSizeXY[1] = myWindow->height();
+                myWindow->setGeometry(myState.windowPosXY[0], myState.windowPosXY[1],
+                                      myState.windowSizeXY[0], myState.windowSizeXY[1]);
+            }
         }
         
         //use command line
@@ -582,6 +597,9 @@ void printHelp(const AString& progName)
     << endl
     << "    -window-size  <X Y>" << endl
     << "        Set the size of the browser window" << endl
+    << endl
+    << "    -window-pos  <X Y>" << endl
+    << "        Set the position of the browser window" << endl
     << endl;
 }
 
@@ -635,6 +653,21 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                         cerr << "Missing Y sizes for window" << endl;
                         hasFatalError = true;
                     }
+                } else if (thisParam == "-window-pos") {
+                    if (myParams->hasNext()) {
+                        myState.windowPosXY[0] = myParams->nextInt("Window Position X");
+                    }
+                    else {
+                        cerr << "Missing X & Y position for window" << endl;
+                        hasFatalError = true;
+                    }
+                    if (myParams->hasNext()) {
+                        myState.windowPosXY[1] = myParams->nextInt("Window Position Y");
+                    }
+                    else {
+                        cerr << "Missing Y position for window" << endl;
+                        hasFatalError = true;
+                    }
                 } else {
                     cerr << "unrecognized option \"" << thisParam << "\"" << endl;
                     printHelp(progName);
@@ -662,5 +695,7 @@ ProgramState::ProgramState()
     specLoadType = 0;//0: use spec window, 1: all
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
+    windowPosXY[0] = -1;
+    windowPosXY[1] = -1;
     showSplash = true;
 }
