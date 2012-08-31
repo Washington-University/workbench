@@ -63,7 +63,7 @@
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
-
+#include "SurfacePropertiesEditorDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -88,6 +88,7 @@ GuiManager::GuiManager(QObject* parent)
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     this->sceneDialog = NULL;
+    m_surfacePropertiesEditorDialog = NULL;
     
     this->cursorManager = new CursorManager();
     
@@ -801,6 +802,33 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
 }
 
 /**
+ * Show the surface properties editor dialog.
+ * @param browserWindow
+ *    Browser window on which dialog is displayed.
+ */
+void
+GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browserWindow)
+{
+    bool wasCreatedFlag = false;
+    
+    if (this->m_surfacePropertiesEditorDialog == NULL) {
+        m_surfacePropertiesEditorDialog = new SurfacePropertiesEditorDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_surfacePropertiesEditorDialog);
+        m_surfacePropertiesEditorDialog->setSavePositionForNextTime(true);
+        wasCreatedFlag = true;
+    }
+    m_surfacePropertiesEditorDialog->setVisible(true);
+    m_surfacePropertiesEditorDialog->show();
+    m_surfacePropertiesEditorDialog->activateWindow();
+    
+    if (wasCreatedFlag) {
+        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                m_surfacePropertiesEditorDialog);
+    }
+}
+
+
+/**
  * Show the scene dialog.  If dialog needs to be created, use the
  * given window as the parent.
  * @param browserWindowIn
@@ -848,7 +876,6 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
     this->sceneDialog->displayScene(sceneFile,
                                     scene);
 }
-
 
 /**
  * @return The action that indicates the enabled status
@@ -1156,6 +1183,14 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
                                                                      "m_informationDisplayDialog"));
     }
     
+    /*
+     * Save surface properties window
+     */
+    if (m_surfacePropertiesEditorDialog != NULL) {
+        sceneClass->addClass(m_surfacePropertiesEditorDialog->saveToScene(sceneAttributes,
+                                                                          "m_surfacePropertiesEditorDialog"));
+    }
+    
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -1302,6 +1337,21 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_informationDisplayDialog->restoreFromScene(sceneAttributes,
                                                          NULL);
         }
+    }
+    
+    /*
+     * Restore surface properties
+     */
+    const SceneClass* surfPropClass = sceneClass->getClass("m_surfacePropertiesEditorDialog");
+    if (surfPropClass != NULL) {
+        if (m_surfacePropertiesEditorDialog == NULL) {
+            processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+        }
+        else if (m_surfacePropertiesEditorDialog->isVisible() == false) {
+            processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+        }
+        m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
+                                                          surfPropClass);
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

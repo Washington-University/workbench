@@ -65,6 +65,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
+#include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
@@ -105,6 +106,7 @@
 #include "SurfaceProjectionMultiBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
+#include "TopologyHelper.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
@@ -1007,6 +1009,8 @@ void
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                       const float* nodeColoringRGBA)
 {
+    const DisplayPropertiesSurface* dps = m_brain->getDisplayPropertiesSurface();
+    
     glMatrixMode(GL_MODELVIEW);
     
     glEnable(GL_DEPTH_TEST);
@@ -1015,8 +1019,42 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     
     switch (this->mode)  {
         case MODE_DRAWING:
-            this->drawSurfaceTrianglesWithVertexArrays(surface,
-                                                       nodeColoringRGBA);
+            switch (dps->getSurfaceDrawingType()) {
+                case SurfaceDrawingTypeEnum::DRAW_AS_LINKS:
+                    /*
+                     * Draw first as triangles without coloring which uses
+                     * the background color.  This prevents edges on back 
+                     * from being seen.
+                     */
+                    glPolygonOffset(1.0, 1.0);
+                    glEnable(GL_POLYGON_OFFSET_FILL);
+                    disableLighting();
+                    this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                               NULL);
+                    glDisable(GL_POLYGON_OFFSET_FILL);
+                    
+                    /*
+                     * Now draw as polygon but outline only, do not fill.
+                     */
+                    enableLighting();
+                    setLineWidth(dps->getLinkSize());
+                    glPolygonMode(GL_FRONT, GL_LINE);
+                    this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                               nodeColoringRGBA);
+                    glPolygonMode(GL_FRONT, GL_FILL);
+                    break;
+                case SurfaceDrawingTypeEnum::DRAW_AS_NODES:
+                    this->drawSurfaceNodes(surface,
+                                           nodeColoringRGBA);
+                    break;
+                case SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES:
+                    this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                               nodeColoringRGBA);
+                    break;
+            }
+            if (dps->isDisplayNormalVectors()) {
+                drawSurfaceNormalVectors(surface);
+            }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
@@ -1409,6 +1447,8 @@ void
 BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
                                            const float* nodeColoringRGBA)
 {
+    const DisplayPropertiesSurface* dps = m_brain->getDisplayPropertiesSurface();
+    
     const int numNodes = surface->getNumberOfNodes();
     
     const float* coordinates = surface->getCoordinate(0);
@@ -1437,8 +1477,15 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
     }
     
     uint8_t rgb[3];
+
+    float pointSize = dps->getNodeSize();
+    if (isSelect) {
+        if (pointSize < 2.0) {
+            pointSize = 2.0;
+        }
+    }
+    setPointSize(pointSize);
     
-    glPointSize(2.0);
     glBegin(GL_POINTS);
     for (int32_t i = 0; i < numNodes; i++) {
         const int32_t i3 = i * 3;
@@ -1494,17 +1541,27 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
                                                                const float* nodeColoringRGBA)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
+    if (nodeColoringRGBA != NULL) {
+        glEnableClientState(GL_COLOR_ARRAY);
+    }
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, 
                     GL_FLOAT, 
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getCoordinate(0)));
-    glColorPointer(4, 
-                   GL_FLOAT, 
-                   0, 
-                   reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
-    glNormalPointer(GL_FLOAT, 
+    if (nodeColoringRGBA != NULL) {
+        glColorPointer(4,
+                       GL_FLOAT,
+                       0,
+                       reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
+    }
+    else {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        float rgba[4];
+        prefs->getColorBackground(rgba);
+        glColor3f(rgba[0], rgba[1], rgba[2]);
+    }
+    glNormalPointer(GL_FLOAT,
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getNormalVector(0)));
     
@@ -1517,6 +1574,42 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+/**
+ * Draw a surface's normal vectors.
+ * @param surface
+ *     Surface on which normal vectors are drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface)
+{
+    disableLighting();
+    
+    const float length = 10.0;    
+    CaretPointer<TopologyHelper> topoHelper = surface->getTopologyHelper();
+    setLineWidth(1.0);
+    glColor3f(1.0, 0.0, 0.0);
+    
+    const int32_t numNodes = surface->getNumberOfNodes();
+    glBegin(GL_LINES);
+    for (int32_t i = 0; i < numNodes; i++) {
+        if (topoHelper->getNodeHasNeighbors(i)) {
+            const float* xyz = surface->getCoordinate(i);
+            const float* normal = surface->getNormalVector(i);
+            float vector[3] = {
+                xyz[0] + length * normal[0],
+                xyz[1] + length * normal[1],
+                xyz[2] + length * normal[2]
+            };
+            
+            glVertex3fv(xyz);
+            glVertex3fv(vector);
+        }
+    }
+    glEnd();
+    
+    enableLighting();
 }
 
 /**
@@ -1826,6 +1919,26 @@ BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
         glLineWidth(lineWidth);
     }
 }
+
+/**
+ * Set the OpenGL point size.  Value is clamped
+ * to minimum and maximum values to prevent
+ * OpenGL error caused by invalid point size.
+ */
+void
+BrainOpenGLFixedPipeline::setPointSize(const float pointSize)
+{
+    if (pointSize > maxPointSize) {
+        glPointSize(maxPointSize);
+    }
+    else if (pointSize < minPointSize) {
+        glPointSize(minPointSize);
+    }
+    else {
+        glPointSize(pointSize);
+    }
+}
+
 
 /**
  * Draw foci on a surface.

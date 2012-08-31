@@ -40,6 +40,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesLabels.h"
+#include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
@@ -104,6 +105,9 @@ Brain::Brain()
     m_displayPropertiesLabels = new DisplayPropertiesLabels(this);
     m_displayProperties.push_back(m_displayPropertiesLabels);
     
+    m_displayPropertiesSurface = new DisplayPropertiesSurface(this);
+    m_displayProperties.push_back(m_displayPropertiesSurface);
+    
     m_displayPropertiesVolume = new DisplayPropertiesVolume(this);
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
@@ -136,9 +140,14 @@ Brain::Brain()
                           "m_displayPropertiesLabels",
                           m_displayPropertiesLabels);
     
+    m_sceneAssistant->add("m_displayPropertiesSurface",
+                          "DisplayPropertiesSurface",
+                          m_displayPropertiesSurface);
+    
     m_sceneAssistant->add("displayPropertiesVolume",
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
+    
     this->m_identificationManager = new IdentificationManager();
 }
 
@@ -2652,6 +2661,24 @@ const DisplayPropertiesVolume*
 Brain::getDisplayPropertiesVolume() const
 {
     return m_displayPropertiesVolume;
+}
+
+/**
+ * @return The surface display properties.
+ */
+DisplayPropertiesSurface*
+Brain::getDisplayPropertiesSurface()
+{
+    return m_displayPropertiesSurface;
+}
+
+/**
+ * @return The volume display properties.
+ */
+const DisplayPropertiesSurface*
+Brain::getDisplayPropertiesSurface() const
+{
+    return m_displayPropertiesSurface;
 }
 
 /**

@@ -152,6 +152,8 @@ namespace caret {
         void processHcpWebsiteInBrowser();
                 
         void processShowSceneDialog();
+        void processShowSurfacePropertiesDialog();
+        
         
     private:
         // Contains status of components such as enter/exit full screen

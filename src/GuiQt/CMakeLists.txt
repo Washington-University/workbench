@@ -71,6 +71,7 @@ SpecFileDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
+SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
@@ -171,6 +172,7 @@ SpecFileDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
+SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
@@ -268,6 +270,7 @@ SpecFileDialog.cxx
 SplashScreen.cxx
 StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
+SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx
 TimeCoursePlotter.cxx

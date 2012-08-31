@@ -158,6 +158,8 @@ namespace caret {
         
         void drawSurfaceFoci(Surface* surface);
         
+        void drawSurfaceNormalVectors(const Surface* surface);
+        
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeController,
                                   const int32_t viewport[4]);
@@ -291,6 +293,8 @@ namespace caret {
                                           const int numberOfNodes);
         
         void setLineWidth(const float lineWidth);
+        
+        void setPointSize(const float pointSize);
         
         void applyClippingPlanes();
         

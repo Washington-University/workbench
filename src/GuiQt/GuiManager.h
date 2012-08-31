@@ -57,6 +57,7 @@ namespace caret {
     class Scene;
     class SceneDialog;
     class SceneFile;
+    class SurfacePropertiesEditorDialog;
     class ConnectivityLoaderControl;
     
     /**
@@ -113,6 +114,8 @@ namespace caret {
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
                 
         void processShowSceneDialog(BrainBrowserWindow* browserWindow);
+        
+        void processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browserWindow);
         
         void processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                             SceneFile* sceneFile,
@@ -188,6 +191,8 @@ namespace caret {
         InformationDisplayDialog* m_informationDisplayDialog;
         
         SceneDialog* sceneDialog;
+        
+        SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
         
         WuQWebView* connectomeDatabaseWebView;
         

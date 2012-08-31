@@ -50,6 +50,7 @@ namespace caret {
     class DisplayPropertiesFoci;
     class DisplayPropertiesInformation;
     class DisplayPropertiesLabels;
+    class DisplayPropertiesSurface;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
@@ -226,6 +227,11 @@ namespace caret {
         
         const DisplayPropertiesVolume* getDisplayPropertiesVolume() const;
         
+        DisplayPropertiesSurface* getDisplayPropertiesSurface();
+        
+        const DisplayPropertiesSurface* getDisplayPropertiesSurface() const;
+        
+        
         DisplayPropertiesLabels* getDisplayPropertiesLabels();
         
         const DisplayPropertiesLabels* getDisplayPropertiesLabels() const;
@@ -347,6 +353,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesVolume* m_displayPropertiesVolume;
+        
+        /**
+         * Display properties for surface - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesSurface* m_displayPropertiesSurface;
         
         /**
          * Display properties for labels - DO NOT delete since this

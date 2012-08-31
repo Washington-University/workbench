@@ -348,6 +348,15 @@ BrainBrowserWindow::processShowSceneDialog()
 }
 
 /**
+ * Show the surface properties editor dialog.
+ */
+void
+BrainBrowserWindow::processShowSurfacePropertiesDialog()
+{
+    GuiManager::get()->processShowSurfacePropertiesEditorDialog(this);
+}
+
+/**
  * Create actions for this window.
  * NOTE: This is called AFTER the toolbar is created.
  */
@@ -931,6 +940,10 @@ BrainBrowserWindow::createMenuSurface()
     menu->addAction("Information...", 
                     this, 
                     SLOT(processSurfaceMenuInformation()));
+    
+    menu->addAction("Properties...",
+                    this,
+                    SLOT(processShowSurfacePropertiesDialog()));
     
     menu->addAction("Volume Interaction...", 
                     this, 

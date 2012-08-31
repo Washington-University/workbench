@@ -62,6 +62,7 @@ DisplayPropertiesBorders.h
 DisplayPropertiesFoci.h
 DisplayPropertiesInformation.h
 DisplayPropertiesLabels.h
+DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
@@ -111,6 +112,7 @@ OverlaySet.h
 SessionManager.h
 SphereOpenGL.h
 Surface.h
+SurfaceDrawingTypeEnum.h
 SurfaceSelectionModel.h
 SurfaceNodeColoring.h
 VolumeSliceCoordinateSelection.h
@@ -134,6 +136,7 @@ DisplayPropertiesBorders.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesInformation.cxx
 DisplayPropertiesLabels.cxx
+DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
@@ -182,6 +185,7 @@ OverlaySet.cxx
 SessionManager.cxx
 SphereOpenGL.cxx
 Surface.cxx
+SurfaceDrawingTypeEnum.cxx
 SurfaceSelectionModel.cxx
 SurfaceNodeColoring.cxx
 VolumeSliceCoordinateSelection.cxx

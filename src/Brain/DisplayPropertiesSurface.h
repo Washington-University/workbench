@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_PROPERTIES_VOLUME__H_
-#define __DISPLAY_PROPERTIES_VOLUME__H_
+#ifndef __DISPLAY_PROPERTIES_SURFACE_H_
+#define __DISPLAY_PROPERTIES_SURFACE_H_
 
 /*LICENSE_START*/
 /* 
@@ -26,17 +26,18 @@
  */ 
 
 #include "DisplayProperties.h"
+#include "SurfaceDrawingTypeEnum.h"
 
 namespace caret {
 
     class Surface;
     
-    class DisplayPropertiesVolume : public DisplayProperties {
+    class DisplayPropertiesSurface : public DisplayProperties {
         
     public:
-        DisplayPropertiesVolume(Brain* brain);
+        DisplayPropertiesSurface(Brain* brain);
         
-        virtual ~DisplayPropertiesVolume();
+        virtual ~DisplayPropertiesSurface();
         
         void reset();
         
@@ -51,15 +52,38 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-    private:
-        DisplayPropertiesVolume(const DisplayPropertiesVolume&);
-
-        DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
+        SurfaceDrawingTypeEnum::Enum getSurfaceDrawingType() const;
         
+        void setSurfaceDrawingType(const SurfaceDrawingTypeEnum::Enum surfaceDrawingType);
+
+        float getNodeSize() const;
+        
+        void setNodeSize(const float nodeSize);
+        
+        float getLinkSize() const;
+        
+        void setLinkSize(const float linkSize);
+        
+        bool isDisplayNormalVectors() const;
+        
+        void setDisplayNormalVectors(const bool displayNormalVectors);
+        
+    private:
+        DisplayPropertiesSurface(const DisplayPropertiesSurface&);
+
+        DisplayPropertiesSurface& operator=(const DisplayPropertiesSurface&);
+        
+        float m_nodeSize;
+        
+        float m_linkSize;
+        
+        bool m_displayNormalVectors;
+        
+        SurfaceDrawingTypeEnum::Enum m_surfaceDrawingType;
     };
     
-#ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
-#endif // __DISPLAY_PROPERTIES_VOLUME_DECLARE__
+#ifdef __DISPLAY_PROPERTIES_SURFACE_DECLARE__
+#endif // __DISPLAY_PROPERTIES_SURFACE_DECLARE__
 
 } // namespace
-#endif  //__DISPLAY_PROPERTIES_VOLUME__H_
+#endif  //__DISPLAY_PROPERTIES_SURFACE_H_
