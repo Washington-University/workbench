@@ -130,6 +130,21 @@ namespace caret {
         
         void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
         
+        bool isClippingPlaneEnabled(const int32_t indx) const;
+        
+        void setClippingPlaneEnabled(const int32_t indx,
+                                     const bool status);
+        
+        float getClippingPlaneThickness(const int32_t indx) const;
+        
+        void setClippingPlaneThickness(const int32_t indx,
+                                       const float value);
+        
+        float getClippingPlaneCoordinate(const int32_t indx) const;
+        
+        void setClippingPlaneCoordinate(const int32_t indx,
+                                        const float value);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -172,6 +187,21 @@ namespace caret {
          */
         AString m_userName;
         
+        /**
+         * Clipping thickness along axes.
+         */
+        float m_clippingThickness[3];
+        
+        /**
+         * Clipping coordinate along axes.
+         */
+        float m_clippingCoordinate[3];
+        
+        /**
+         * Clipping enabled.
+         */
+        bool m_clippingEnabled[3];
+        
         /** Controls yoking */
         ModelYokingGroup* m_selectedYokingGroup;
         
@@ -180,6 +210,7 @@ namespace caret {
         
         /** Assists with creating/restoring scenes */
         SceneClassAssistant* m_sceneClassAssistant;
+        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

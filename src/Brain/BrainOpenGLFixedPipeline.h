@@ -292,6 +292,8 @@ namespace caret {
         
         void setLineWidth(const float lineWidth);
         
+        void applyClippingPlanes();
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

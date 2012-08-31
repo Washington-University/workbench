@@ -386,7 +386,126 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
 }
 
 /**
- * Apply the viewing transformations for the model controller 
+ * Apply the clipping planes.
+ */
+void
+BrainOpenGLFixedPipeline::applyClippingPlanes()
+{
+    glDisable(GL_CLIP_PLANE0);
+    glDisable(GL_CLIP_PLANE1);
+    glDisable(GL_CLIP_PLANE2);
+    glDisable(GL_CLIP_PLANE3);
+    glDisable(GL_CLIP_PLANE4);
+    glDisable(GL_CLIP_PLANE5);
+    
+    if (browserTabContent != NULL) {
+        /*
+         * Slab along X-Axis
+         */
+        if (browserTabContent->isClippingPlaneEnabled(0)) {
+            const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+                                     * 0.5);
+            const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                    - halfThick);
+            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                    + halfThick);
+            
+            GLdouble planeMin[4] = {
+                1.0,
+                0.0,
+                0.0,
+                -minValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE0,
+                        planeMin);
+            glEnable(GL_CLIP_PLANE0);
+
+            GLdouble planeMax[4] = {
+               -1.0,
+                0.0,
+                0.0,
+                maxValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE1,
+                        planeMax);
+            glEnable(GL_CLIP_PLANE1);
+        }
+        
+        /*
+         * Slab along Y-Axis
+         */
+        if (browserTabContent->isClippingPlaneEnabled(1)) {
+            const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+                                     * 0.5);
+            const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                    - halfThick);
+            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                    + halfThick);
+            
+            GLdouble planeMin[4] = {
+                0.0,
+                1.0,
+                0.0,
+                -minValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE2,
+                        planeMin);
+            glEnable(GL_CLIP_PLANE2);
+            
+            GLdouble planeMax[4] = {
+                0.0,
+               -1.0,
+                0.0,
+                maxValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE3,
+                        planeMax);
+            glEnable(GL_CLIP_PLANE3);
+        }
+        
+        /*
+         * Slab along Z-Axis
+         */
+        if (browserTabContent->isClippingPlaneEnabled(2)) {
+            const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+                                     * 0.5);
+            const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                    - halfThick);
+            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                    + halfThick);
+            
+            GLdouble planeMin[4] = {
+                0.0,
+                0.0,
+                1.0,
+                -minValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE4,
+                        planeMin);
+            glEnable(GL_CLIP_PLANE4);
+            
+            GLdouble planeMax[4] = {
+                0.0,
+                0.0,
+               -1.0,
+                maxValue
+            };
+            
+            glClipPlane(GL_CLIP_PLANE5,
+                        planeMax);
+            glEnable(GL_CLIP_PLANE5);
+        }
+    }
+}
+
+
+/**
+ * Apply the viewing transformations for the model controller
  * in the given tab.
  *
  * @param modelDisplayController
@@ -441,6 +560,8 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayC
          */
         glTranslatef(-objectCenterXYZ[0], -objectCenterXYZ[1], -objectCenterXYZ[2]); 
     }
+    
+    applyClippingPlanes();
 }
 
 /**
@@ -613,6 +734,8 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     glTranslatef(fitToWindowTranslation[0],
                  fitToWindowTranslation[1],
                  fitToWindowTranslation[2]);
+    
+    applyClippingPlanes();
 }
 
 void 
@@ -4799,6 +4922,8 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
             CaretAssert(0);
             break;
     }
+    
+    
 }
 
 /**

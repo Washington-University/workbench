@@ -132,6 +132,7 @@ namespace caret {
         QWidget* createSurfaceMontageOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
+        QWidget* createClippingWidget();
         
         ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
@@ -143,6 +144,7 @@ namespace caret {
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
+        void updateClippingWidget(BrowserTabContent* browserTabContent);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
@@ -160,6 +162,7 @@ namespace caret {
         QWidget* surfaceMontageSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
+        QWidget* clippingWidget;
         //QWidget* spacerWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
@@ -172,6 +175,7 @@ namespace caret {
         WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
+        WuQWidgetObjectGroup* clippingWidgetGroup;
         
         QWidget* fullToolBarWidget;
         QWidget* m_toolbarWidget;
@@ -414,6 +418,22 @@ namespace caret {
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     
+    private slots:
+        void clippingWidgetControlChanged();
+        
+    private:
+        QCheckBox* clippingXCheckBox;
+        QCheckBox* clippingYCheckBox;
+        QCheckBox* clippingZCheckBox;
+        
+        QDoubleSpinBox* clippingXThicknessSpinBox;
+        QDoubleSpinBox* clippingYThicknessSpinBox;
+        QDoubleSpinBox* clippingZThicknessSpinBox;
+        
+        QDoubleSpinBox* clippingXCoordSpinBox;
+        QDoubleSpinBox* clippingYCoordSpinBox;
+        QDoubleSpinBox* clippingZCoordSpinBox;
+        
     private:
         int32_t browserWindowIndex;
         

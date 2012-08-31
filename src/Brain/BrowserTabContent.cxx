@@ -81,6 +81,18 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_selectedYokingGroup = NULL;
     
+    m_clippingCoordinate[0] = 0.0;
+    m_clippingCoordinate[1] = 0.0;
+    m_clippingCoordinate[2] = 0.0;
+
+    m_clippingThickness[0] = 20.0;
+    m_clippingThickness[1] = 20.0;
+    m_clippingThickness[2] = 20.0;
+    
+    m_clippingEnabled[0] = false;
+    m_clippingEnabled[1] = false;
+    m_clippingEnabled[2] = false;
+    
     m_sceneClassAssistant = new SceneClassAssistant();
     m_sceneClassAssistant->add("m_tabNumber", 
                                &m_tabNumber);
@@ -94,6 +106,18 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_volumeSurfaceOutlineSetModel",
                                "VolumeSurfaceOutlineSetModel",
                                m_volumeSurfaceOutlineSetModel);
+    m_sceneClassAssistant->addArray("m_clippingCoordinate",
+                                    m_clippingCoordinate,
+                                    3,
+                                    0.0);
+    m_sceneClassAssistant->addArray("m_clippingThickness",
+                                    m_clippingThickness,
+                                    3,
+                                    100.0);
+    m_sceneClassAssistant->addArray("m_clippingEnabled",
+                                    m_clippingEnabled,
+                                    3,
+                                    false);
 }
 
 /**
@@ -1053,6 +1077,94 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 break;
             }
         }
-        
     }    
 }
+
+/**
+ * Is the clipping plane enabled?
+ * @param indx
+ *    Index of clipping plane
+ * @return
+ *    true if clipping plane enabled, else false.
+ */
+bool
+BrowserTabContent::isClippingPlaneEnabled(const int32_t indx) const
+{
+    CaretAssertArrayIndex(m_clippingEnabled, 3, indx);
+    return m_clippingEnabled[indx];
+}
+
+/**
+ * Set the clipping plane enabled
+ * @param indx
+ *    Index of clipping plane
+ * status
+ *    true if clipping plane enabled, else false.
+ */
+void
+BrowserTabContent::setClippingPlaneEnabled(const int32_t indx,
+                                           const bool status)
+{
+    CaretAssertArrayIndex(m_clippingEnabled, 3, indx);
+    m_clippingEnabled[indx] = status;
+}
+
+/**
+ * Get the clipping plane thickness.
+ * @param indx
+ *    Index of clipping plane
+ * @return
+ *    Thickeness of the clipping plane.
+ */
+float
+BrowserTabContent::getClippingPlaneThickness(const int32_t indx) const
+{
+    CaretAssertArrayIndex(m_clippingThickness, 3, indx);
+    return m_clippingThickness[indx];
+}
+
+/**
+ * Set the clipping plane thickness.
+ * @param indx
+ *    Index of clipping plane
+ * @param value
+ *    Thickeness of the clipping plane.
+ */
+void
+BrowserTabContent::setClippingPlaneThickness(const int32_t indx,
+                                             const float value)
+{
+    CaretAssertArrayIndex(m_clippingThickness, 3, indx);
+    m_clippingThickness[indx] = value;
+}
+
+/**
+ * Get the clipping plane coordinate
+ * @param indx
+ *    Index of clipping plane
+ * @return
+ *    Coordinate of the clipping plane.
+ */
+float
+BrowserTabContent::getClippingPlaneCoordinate(const int32_t indx) const
+{
+    CaretAssertArrayIndex(m_clippingCoordinate, 3, indx);
+    return m_clippingCoordinate[indx];
+}
+
+/**
+ * Set the clipping plane coordinate.
+ * @param indx
+ *    Index of clipping plane
+ * @param value
+ *    Coordinate of the clipping plane.
+ */
+void
+BrowserTabContent::setClippingPlaneCoordinate(const int32_t indx,
+                                const float value)
+{
+    CaretAssertArrayIndex(m_clippingCoordinate, 3, indx);
+    m_clippingCoordinate[indx] = value;
+}
+
+
