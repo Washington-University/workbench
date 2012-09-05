@@ -44,6 +44,7 @@ ImageFile.h
 LabelFile.h
 MetricFile.h
 MetricSmoothingObject.h
+OxfordSparseThreeFile.h
 PaletteFile.h
 RgbaFile.h
 SceneFile.h
@@ -97,6 +98,7 @@ ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
+OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 RgbaFile.cxx
 SceneFile.cxx
