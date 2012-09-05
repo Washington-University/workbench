@@ -17,6 +17,15 @@ SET(MOC_INPUT_HEADER_FILES
 QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 
 #
+# Prevents dll linkage errors on windows
+#
+IF(WIN32)
+   IF(MSVC)
+      ADD_DEFINITIONS(-DQUAZIP_GLOBAL_H)
+   ENDIF(MSVC)
+ENDIF(WIN32)
+
+#
 # Create a library
 #
 ADD_LIBRARY(Quazip
