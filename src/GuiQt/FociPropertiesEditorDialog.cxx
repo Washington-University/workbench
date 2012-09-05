@@ -655,8 +655,7 @@ FociPropertiesEditorDialog::displayClassEditor()
         return;
     }
     
-    GiftiLabelTable* classLabelTable = fociFile->getColorTable();
-    GiftiLabelTableEditor editor(classLabelTable,
+    GiftiLabelTableEditor editor(fociFile,
                                  "Edit Class Attributes",
                                  this);
     const QString className = m_classNameComboBox->currentText();

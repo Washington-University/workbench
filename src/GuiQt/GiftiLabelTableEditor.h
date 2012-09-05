@@ -45,6 +45,7 @@ class QListWidgetItem;
 namespace caret {
 
     class ColorEditorWidget;
+    class FociFile;
     class GiftiLabel;
     class GiftiLabelTable;
     class WuQWidgetObjectGroup;
@@ -54,6 +55,10 @@ namespace caret {
         
     public:
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
+                              const AString& dialogTitle,
+                              QWidget* parent);
+        
+        GiftiLabelTableEditor(FociFile* fociFile,
                               const AString& dialogTitle,
                               QWidget* parent);
         
@@ -80,6 +85,8 @@ namespace caret {
         void labelNameLineEditTextEdited(const QString&);
         
     private:
+        void initializeDialog(GiftiLabelTable* giftiLabelTable);
+        
         void loadLabels(const AString& selectedName,
                         const bool usePreviouslySelectedIndex);
         
@@ -88,19 +95,21 @@ namespace caret {
         void setWidgetItemIconColor(QListWidgetItem* item,
                                     const float rgba[4]);
         
-        QListWidget* labelSelectionListWidget;
+        QListWidget* m_labelSelectionListWidget;
         
-        GiftiLabelTable* giftiLableTable;
+        FociFile* m_fociFile;
         
-        ColorEditorWidget* colorEditorWidget;
+        GiftiLabelTable* m_giftiLableTable;
         
-        QLineEdit* labelNameLineEdit;
+        ColorEditorWidget* m_colorEditorWidget;
         
-        AString lastSelectedLabelName;
+        QLineEdit* m_labelNameLineEdit;
         
-        GiftiLabel* undoGiftiLabel;
+        AString m_lastSelectedLabelName;
         
-        WuQWidgetObjectGroup* editingGroup;
+        GiftiLabel* m_undoGiftiLabel;
+        
+        WuQWidgetObjectGroup* m_editingGroup;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__

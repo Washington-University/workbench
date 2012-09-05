@@ -826,6 +826,8 @@ void
 Focus::setNameOrClassModified()
 {
     m_selectionClassNameModificationStatus = true;
+    m_nameRgbaColorValid = false;
+    m_classRgbaColorValid = false;
 }
 
 /**
