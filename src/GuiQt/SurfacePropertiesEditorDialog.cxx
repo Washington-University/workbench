@@ -36,6 +36,8 @@
 #include "SurfacePropertiesEditorDialog.h"
 #undef __SURFACE_PROPERTIES_EDITOR_DIALOG_DECLARE__
 
+#include <limits>
+
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QGridLayout>
