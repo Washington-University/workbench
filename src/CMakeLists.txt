@@ -144,6 +144,7 @@ ENDIF (ZLIB_FOUND)
 #
 # All subdirectories that will be configured for building
 #
+ADD_SUBDIRECTORY ( Quazip )
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Scenes )
