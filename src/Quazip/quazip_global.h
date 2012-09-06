@@ -46,9 +46,7 @@ quazip/(un)zip.h files for details, basically it's zlib license.
 #endif
 #endif // QUAZIP_STATIC
 
-#ifdef 
 #define QUAZIP_EXPORT
-#endif
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((__unused__))
