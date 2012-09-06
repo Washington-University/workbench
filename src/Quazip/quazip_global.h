@@ -33,7 +33,6 @@ quazip/(un)zip.h files for details, basically it's zlib license.
   importing/exporting.
   */
 #ifdef QUAZIP_STATIC
-this is quazip static error
 #define QUAZIP_EXPORT
 #else
 /**
