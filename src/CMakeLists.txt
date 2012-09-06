@@ -142,6 +142,15 @@ ELSE (ZLIB_FOUND)
 ENDIF (ZLIB_FOUND)
 
 #
+# Quazip needs this defined here for static linking on windows
+#
+IF(WIN32)
+   IF(MSVC)
+      ADD_DEFINITIONS(-DQUAZIP_STATIC)
+   ENDIF(MSVC)
+ENDIF(WIN32)
+
+#
 # All subdirectories that will be configured for building
 #
 ADD_SUBDIRECTORY ( Quazip )
