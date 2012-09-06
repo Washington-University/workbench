@@ -447,6 +447,29 @@ SpecFile::getNumberOfFilesSelected() const
 }
 
 /**
+ * @return A vector containing all file names.
+ */
+std::vector<AString>
+SpecFile::getAllDataFileNames() const
+{
+    std::vector<AString> allFileNames;
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            const AString filename = dataFileTypeGroup->getFileInformation(i)->getFileName();
+            allFileNames.push_back(filename);
+        }
+    }
+    
+    return allFileNames;
+}
+
+/**
  * @return True if the only files selected are scene files.
  */
 bool

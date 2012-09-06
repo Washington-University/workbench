@@ -64,6 +64,7 @@
 #include "OperationSetStructure.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumePalette.h"
+#include "OperationZipSpecFile.h"
 
 #include "CommandParser.h"
 #include "AlgorithmException.h"
@@ -153,6 +154,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationZipSpecFile()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());
     this->commandOperations.push_back(new CommandClassAddMember());

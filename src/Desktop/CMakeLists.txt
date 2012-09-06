@@ -89,6 +89,7 @@ FilesBase
 Scenes
 Xml
 Common
+Quazip
 ${QT_LIBRARIES}
 ${ZLIB_LIBRARIES}
 #${LIBS}

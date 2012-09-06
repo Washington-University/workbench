@@ -31,6 +31,7 @@ OperationMetricPalette.h
 OperationSetStructure.h
 OperationVolumeLabelImport.h
 OperationVolumePalette.h
+OperationZipSpecFile.h
 
 OperationAddToSpecFile.cxx
 OperationBackendAverageDenseROI.cxx
@@ -46,6 +47,7 @@ OperationMetricPalette.cxx
 OperationSetStructure.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumePalette.cxx
+OperationZipSpecFile.cxx
 )
 
 #
@@ -61,6 +63,7 @@ ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/Quazip
 ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
