@@ -35,8 +35,6 @@
 using namespace caret;
 using namespace std;
 
-QUAZIP_EXPORT
-
 AString OperationZipSpecFile::getCommandSwitch()
 {
     return "-zip-spec-file";
