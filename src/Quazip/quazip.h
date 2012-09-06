@@ -80,7 +80,6 @@ class QuaZipPrivate;
  * detection using locale information. Does anyone know a good way to do
  * it?
  **/
-#undef QUAZIP_EXPORT
 class QUAZIP_EXPORT QuaZip {
   friend class QuaZipPrivate;
   public:
