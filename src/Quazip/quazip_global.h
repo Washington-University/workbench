@@ -32,6 +32,7 @@ quazip/(un)zip.h files for details, basically it's zlib license.
   be defined explicitly to avoid possible troubles with unnecessary
   importing/exporting.
   */
+#undef QUAZIP_EXPORT  /* Added by JWH */
 #ifdef QUAZIP_STATIC
 #define QUAZIP_EXPORT
 #else
@@ -46,7 +47,7 @@ quazip/(un)zip.h files for details, basically it's zlib license.
 #endif
 #endif // QUAZIP_STATIC
 
-#define QUAZIP_EXPORT
+//#define QUAZIP_EXPORT
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((__unused__))
