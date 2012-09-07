@@ -429,11 +429,42 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     
     bool isFileSavable = true;
     switch (caretDataFile->getDataFileType()) {
+        case DataFileTypeEnum::BORDER:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             isFileSavable = false;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
             break;
         default:
             break;

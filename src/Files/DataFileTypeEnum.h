@@ -43,8 +43,14 @@ public:
         BORDER,
         /** Connectivity - Dense */
         CONNECTIVITY_DENSE,
+        /** Connectivity - Dense Label */
+        CONNECTIVITY_DENSE_LABEL,
+        /** Connectivity - Dense Scalar */
+        CONNECTIVITY_DENSE_SCALAR,
         /** Connectivity - Dense Time Series */
-        CONNECTIVITY_DENSE_TIME_SERIES,        
+        CONNECTIVITY_DENSE_TIME_SERIES,
+        /** Connectivity - Fiber Orientations TEMPORARY */
+        CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
         /** Foci */
         FOCI,
         /** Labels */

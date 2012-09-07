@@ -279,12 +279,27 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
             
             bool isColoringValid = false;
             switch (mapDataFileType) {
+                case DataFileTypeEnum::BORDER:
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                {
+                    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(selectedMapFile);
+                    isColoringValid = this->assignConnectivityColoring(brainStructure, clf, numNodes, overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 {
                     ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(selectedMapFile);
                     isColoringValid = this->assignConnectivityColoring(brainStructure, clf, numNodes, overlayRGBV);
                 }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::FOCI:
                     break;
                 case DataFileTypeEnum::LABEL:
                     isColoringValid = this->assignLabelColoring(displayPropertiesLabels,
@@ -303,6 +318,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  numNodes, 
                                                                  overlayRGBV);
                     break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
                 case DataFileTypeEnum::RGBA:
                     isColoringValid = this->assignRgbaColoring(brainStructure, 
                                                                dynamic_cast<RgbaFile*>(selectedMapFile),
@@ -310,13 +327,15 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                numNodes, 
                                                                overlayRGBV);
                     break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    break;
                 case DataFileTypeEnum::VOLUME:
                     break;
                 case DataFileTypeEnum::UNKNOWN:
-                    break;
-                default:
-                    CaretAssertMessage(0, "File type not supported for surface overlay: " 
-                                       + DataFileTypeEnum::toName(mapDataFileType));
                     break;
             }
             

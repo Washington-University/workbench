@@ -132,14 +132,35 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "dconn.nii"));
     
-    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES, 
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL,
+                                        "CONNECTIVITY_DENSE_LABEL",
+                                        "Connectivity - Dense Label",
+                                        false,
+                                        false,
+                                        "dlabel.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SCALAR,
+                                        "CONNECTIVITY_DENSE_SCALAR",
+                                        "Connectivity - Dense Scalar",
+                                        false,
+                                        false,
+                                        "dscalar.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES,
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
                                         "Connectivity - Dense Data Series",
                                         false,
                                         false,
                                         "dtseries.nii"));
     
-    enumData.push_back(DataFileTypeEnum(FOCI, 
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+                                        "CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY",
+                                        "Connectivity - Fiber Orientations TEMPORARY",
+                                        false,
+                                        false,
+                                        "fiberTEMP.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",
                                         false,

@@ -1707,8 +1707,14 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             readConnectivityDenseFile(dataFileName);
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             readConnectivityTimeSeriesFile(dataFileName);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::FOCI:
             readFociFile(dataFileName);
@@ -2406,13 +2412,14 @@ Brain::areFilesModified(const bool excludeConnectivityFiles,
          * Do not check connectivity files for modified status
          */
         bool checkIfModified = true;
+    
+        if (DataFileTypeEnum::isConnectivityDataType(cdf->getDataFileType())) {
+            if (excludeConnectivityFiles) {
+                checkIfModified = false;
+            }
+        }
+    
         switch (cdf->getDataFileType()) {
-            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                if (excludeConnectivityFiles) {
-                    checkIfModified = false;
-                }
-                break;
             case DataFileTypeEnum::SCENE:
                 if (excludeSceneFiles) {
                     checkIfModified = false;

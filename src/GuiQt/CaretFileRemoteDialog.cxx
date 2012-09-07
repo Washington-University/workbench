@@ -191,13 +191,8 @@ CaretFileRemoteDialog::okButtonClicked()
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         
         EventUserInterfaceUpdate uiUpdateEvent;
-        switch (dataFileType) {
-            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                uiUpdateEvent.addConnectivity();
-                break;
-            default:
-                break;
+        if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+            uiUpdateEvent.addConnectivity();
         }
         EventManager::get()->sendEvent(uiUpdateEvent.getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
