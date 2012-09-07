@@ -193,6 +193,16 @@ namespace caret {
                             const int64_t sliceIndex,
                             VolumeFile* underlayVolume);
         
+        void drawVolumeFibers(Brain* brain,
+                              ModelVolume* modelVolume,
+                              BrowserTabContent* browserTabContent,
+                              const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                              const int64_t sliceIndex,
+                              VolumeFile* underlayVolume);
+        
+        void convertVolumeItemXYZToScreenXY(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                            float xyz[3]);
+        
         void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                  Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);

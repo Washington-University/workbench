@@ -71,6 +71,9 @@
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "FastStatistics.h"
+#include "Fiber.h"
+#include "FiberOrientation.h"
+#include "FiberOrientationCiftiAdapter.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
@@ -4500,7 +4503,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                     spi->getVolumeXYZ(xyz);
                     
                     bool drawIt = false;
-                    if (plane.absDistanceToPlane(xyz) < halfSliceThickness) {
+                    if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
                         drawIt = true;
                     }
                     
@@ -4560,6 +4563,251 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             }
         }
     }
+}
+
+/**
+ * Draw fiber orientations on volume slices.
+ *
+ * @param brain
+ *    The brain.
+ * @param modelDisplayController
+ *    Model display controller in which surface outlines are drawn.
+ * @param browserTabContent
+ *    Tab content that is being drawn.
+ * @param slicePlane
+ *    Plane on which surface outlines are drawn.
+ * @param sliceIndex
+ *    Index of slice.
+ * @param underlayVolume
+ *    Bottom-most displayed volume.
+ */
+void
+BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* brain,
+                                           ModelVolume* modelVolume,
+                                           BrowserTabContent* browserTabContent,
+                                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                           const int64_t sliceIndex,
+                                           VolumeFile* underlayVolume)
+{
+    std::vector<int64_t> dim;
+    underlayVolume->getDimensions(dim);
+    
+    /*
+     * Slice thicknesses
+     */
+    float sliceXYZ[3];
+    float sliceNextXYZ[3];
+    int64_t sliceIJK[3] = { 0, 0, 0 };
+    int64_t sliceNextIJK[3] = { 1, 1, 1 };
+    underlayVolume->indexToSpace(sliceIJK, sliceXYZ);
+    underlayVolume->indexToSpace(sliceNextIJK, sliceNextXYZ);
+    const float sliceThicknesses[3] = {
+        sliceNextXYZ[0] - sliceXYZ[0],
+        sliceNextXYZ[1] - sliceXYZ[1],
+        sliceNextXYZ[2] - sliceXYZ[2]
+    };
+    
+    /*
+     * Find three points on the slice so that the equation for a Plane
+     * can be formed.
+     */
+    float p1[3];
+    float p2[3];
+    float p3[3];
+    float sliceThickness = 0.0;
+    switch(slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+            sliceThickness = sliceThicknesses[0];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+            sliceThickness = sliceThicknesses[1];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+            sliceThickness = sliceThicknesses[2];
+        }
+            break;
+    }
+    const float halfSliceThickness = sliceThickness * 0.5;
+    
+    Plane plane(p1, p2, p3);
+    if (plane.isValidPlane() == false) {
+        return;
+    }
+
+        
+        
+    float upperLimit = 1.0;
+    float lowerLimit = -1.0;
+    float minimumMagnitude = 0.1;
+    float lengthMultiplier = 50.0;
+    bool  isDrawWithMagnitude = false;
+    
+    FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+    
+    /*
+     * Draw each of the fiber orientations which may contain multiple fibers
+     */
+    const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+    for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
+        const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+        if (fiberOrientation->isValid() == false) {
+            continue;
+        }
+        
+        /*
+         * Draw each of the fibers
+         */ 
+        const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+        for (int64_t j = 0; j < numberOfFibers; j++) {
+            const Fiber* fiber = fiberOrientation->m_fibers[j];
+
+            /*
+             * Apply display properties
+             */
+            bool drawIt = true;
+            const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
+            if (distToPlane > upperLimit) {
+                drawIt = false;
+            }
+            if (distToPlane < lowerLimit) {
+                drawIt = false;
+            }
+            if (fiber->m_meanF < minimumMagnitude) {
+                drawIt = false;
+            }
+            
+            if (drawIt) {
+                /*
+                 * Convert start of vector from volume space to screen space
+                 */
+                float startXYZ[3] = {
+                    fiberOrientation->m_xyz[0],
+                    fiberOrientation->m_xyz[1],
+                    fiberOrientation->m_xyz[2]
+                };
+                convertVolumeItemXYZToScreenXY(slicePlane,
+                                               startXYZ);
+
+                /*
+                 * Convert spherical angles to a vector
+                 */
+                float vectorLength = lengthMultiplier;
+                if (isDrawWithMagnitude) {
+                    vectorLength *= fiber->m_meanF;
+                }
+                const float phi   = fiber->m_phi;
+                const float theta = fiber->m_theta;
+                float vector[3] = {
+                    std::sin(phi) * std::cos(theta),
+                    std::sin(phi) * std::sin(theta),
+                    std::cos(phi)
+                };
+                
+                /*
+                 * Convert end of vector from volume space to screen space
+                 */
+                float endXYZ[3] = {
+                    fiberOrientation->m_xyz[0] + vector[0] * vectorLength,
+                    fiberOrientation->m_xyz[1] + vector[1] * vectorLength,
+                    fiberOrientation->m_xyz[2] + vector[2] * vectorLength
+                };
+                convertVolumeItemXYZToScreenXY(slicePlane,
+                                               endXYZ);
+                
+                /*
+                 * Create angle of vector in screen space
+                 */
+                const float dz = endXYZ[2] - startXYZ[2];
+                const float dy = endXYZ[1] - startXYZ[1];
+                const float dx = endXYZ[0] - startXYZ[0];
+                const float length = std::sqrt(dx*dx + dy*dy + dz*dz);
+                const float rotation = std::atan2(dy, dx);
+                glPushMatrix();
+                
+                glTranslatef(startXYZ[0], startXYZ[1], startXYZ[2]);
+                glRotatef(MathFunctions::toDegrees(rotation),
+                          0.0, 0.0, 1.0);
+                const float z = startXYZ[2];
+                
+                const float radius = 2.0;
+                setLineWidth(radius);
+                
+                glColor3fv(vector);
+
+                /*
+                 * Draw the vector
+                 */
+                glScalef(length, length * radius, 1.0);
+                glBegin(GL_LINES);
+                glVertex3f(-0.5, 0.0, z);
+                glVertex3f( 0.5, 0.0, z);
+                glEnd();
+                
+                glPopMatrix();
+            }
+        }
+    }
+}
+
+/**
+ * Convert from volume XYZ to screen XYZ for volume data
+ * @param slicePlane
+ *     Slice plane being viewed
+ * @param xyz
+ *     Coordinate that is converted.
+ */
+void
+BrainOpenGLFixedPipeline::convertVolumeItemXYZToScreenXY(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                 float xyz[3])
+{
+    const float zPos = 1.0;
+    float xyzOut[3] = { 0.0, 0.0, 0.0 };
+    switch(slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            xyzOut[0] = xyz[1];
+            xyzOut[1] = xyz[2];
+            xyzOut[2] = xyz[0];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            xyzOut[0] = xyz[0];
+            xyzOut[1] = xyz[2];
+            xyzOut[2] = xyz[1];
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            xyzOut[0] = xyz[0];
+            xyzOut[1] = xyz[1];
+            xyzOut[2] = xyz[2];
+        }
+            break;
+    }
+    xyz[0] = xyzOut[0];
+    xyz[1] = xyzOut[1];
+    xyz[2] = zPos;
 }
 
 /**

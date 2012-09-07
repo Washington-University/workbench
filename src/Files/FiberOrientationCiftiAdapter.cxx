@@ -135,7 +135,7 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
  * @return The number of orientation fiber groups.
  */
 int64_t
-FiberOrientationCiftiAdapter::getNumberOfFiberOrientationGroups() const
+FiberOrientationCiftiAdapter::getNumberOfFiberOrientations() const
 {
     return m_fiberOrientations.size();
 }
@@ -146,7 +146,7 @@ FiberOrientationCiftiAdapter::getNumberOfFiberOrientationGroups() const
  *     Index of the desired fiber orientation group.
  */
 FiberOrientation*
-FiberOrientationCiftiAdapter::getFiberOrientationGroup(const int64_t indx)
+FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx)
 {
     return m_fiberOrientations[indx];
 }
@@ -157,7 +157,7 @@ FiberOrientationCiftiAdapter::getFiberOrientationGroup(const int64_t indx)
  *     Index of the desired fiber orientation group.
  */
 const FiberOrientation*
-FiberOrientationCiftiAdapter::getFiberOrientationGroup(const int64_t indx) const
+FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx) const
 {
     return m_fiberOrientations[indx];
 }

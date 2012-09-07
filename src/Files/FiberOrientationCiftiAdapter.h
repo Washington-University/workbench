@@ -52,11 +52,11 @@ namespace caret {
         
         virtual ~FiberOrientationCiftiAdapter();
         
-        int64_t getNumberOfFiberOrientationGroups() const;
+        int64_t getNumberOfFiberOrientations() const;
         
-        FiberOrientation* getFiberOrientationGroup(const int64_t indx);
+        FiberOrientation* getFiberOrientations(const int64_t indx);
         
-        const FiberOrientation* getFiberOrientationGroup(const int64_t indx) const;
+        const FiberOrientation* getFiberOrientations(const int64_t indx) const;
         
         // ADD_NEW_METHODS_HERE
         
