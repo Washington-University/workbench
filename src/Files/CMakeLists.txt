@@ -30,6 +30,9 @@ ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
 EventSurfaceColoringInvalidate.h
+Fiber.h
+FiberOrientation.h
+FiberOrientationCiftiAdapter.h
 FociFile.h
 FociFileSaxReader.h
 Focus.h
@@ -84,6 +87,8 @@ CaretVolumeExtension.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
+FiberOrientation.cxx
+FiberOrientationCiftiAdapter.cxx
 FociFile.cxx
 FociFileSaxReader.cxx
 Focus.cxx

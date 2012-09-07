@@ -286,6 +286,8 @@ namespace caret {
         bool animationEnabled;
                 
         AString uniqueID; // DO NOT COPY
+        
+        friend class FiberOrientationCiftiAdapter;
     };
     
 } // namespace
