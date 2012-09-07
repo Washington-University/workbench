@@ -127,16 +127,29 @@ Plane::triangleIntersectPlane(
 }
 
 /**
- * Get distance of point from the plane.
+ * Get absolute distance of point from the plane.
  * @param p Point.
- * @return  Distance of "p" from plane.
+ * @return  Absolute distance of "p" from plane.
  *
  */
 double
-Plane::absDistanceToPlane(const float p[3])
+Plane::absoluteDistanceToPlane(const float p[3])
 {
     double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
     if (dist < 0.0f) dist = -dist;
+    return dist;
+}
+
+/**
+ * Get signed distance of point from the plane.
+ * @param p Point.
+ * @return  Signed distance of "p" from plane.
+ *
+ */
+double
+Plane::signedDistanceToPlane(const float p[3])
+{
+    double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
     return dist;
 }
 

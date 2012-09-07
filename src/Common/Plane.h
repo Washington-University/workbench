@@ -56,7 +56,9 @@ namespace caret {
                                     float intersectionPointOut1[3],
                                     float intersectionPointOut2[3]);
         
-        double absDistanceToPlane(const float p[3]);
+        double absoluteDistanceToPlane(const float p[3]);
+        
+        double signedDistanceToPlane(const float p[3]);
         
         bool lineSegmentIntersectPlane(
                                        const float lp1[3],
