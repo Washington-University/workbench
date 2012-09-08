@@ -26,38 +26,24 @@
  */
 /*LICENSE_END*/
 
-#include <cmath>
-#include <cstdio>
-#include <vector>
-#include "stdint.h"
-#include "AString.h"
-#include "CaretAssert.h"
-#include "DataFileException.h"
+#include "CaretSparseFile.h"
+//for the Fibers struct
 
 namespace caret {
     
-    struct Fibers
-    {
-        uint32_t count;
-        float fiberFractions[3];
-        float distance;
-        void zero();
-    };
-    
     class OxfordSparseThreeFile
     {
-        static Fibers decodeFibers(const uint64_t& coded);//takes a uint because right shift on signed is implementation dependent
-        static int myclamp(const int& input);
-        static int64_t encodeFibers(const Fibers& orig);
+        static void decodeFibers(const uint64_t& coded, FiberFractions& decoded);//takes a uint because right shift on signed is implementation dependent
         FILE* m_valueFile;//we read the other two into memory, so we only need one handle
         int64_t m_dims[2];
         std::vector<uint64_t> m_indexArray, m_scratchRow;
+        std::vector<int64_t> m_scratchArray;
         OxfordSparseThreeFile();
         OxfordSparseThreeFile(const OxfordSparseThreeFile& rhs);
     public:
         OxfordSparseThreeFile(const AString& dimFileName, const AString& indexFileName, const AString& valueFileName);
-        void getRow(int64_t* rowOut, int64_t index);
-        void getFibersRow(Fibers* rowOut, int64_t index);
+        void getRow(int64_t* rowOut, const int64_t& index);
+        void getFibersRow(FiberFractions* rowOut, const int64_t& index);
         ~OxfordSparseThreeFile();
     };
     

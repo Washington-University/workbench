@@ -25,6 +25,7 @@ BorderFile.h
 BorderFileSaxReader.h
 CaretDataFile.h
 CaretMappableDataFile.h
+CaretSparseFile.h
 CaretVolumeExtension.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
@@ -83,6 +84,7 @@ BorderFileSaxReader.cxx
 DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx
+CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
