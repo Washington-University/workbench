@@ -377,7 +377,7 @@ SplashScreen::addRecentSpecFiles()
         }
         else {
             FileInformation fileInfo(specFileName);
-            if (fileInfo.exists()) {
+//            if (fileInfo.exists()) {
                 if (firstItem == NULL) {
                     QStringList itemText;
                     itemText.append("Recent Spec Files");
@@ -390,7 +390,7 @@ SplashScreen::addRecentSpecFiles()
                 path = fileInfo.getPathName().trimmed();
                 name = fileInfo.getFileName().trimmed();
                 fullPath = fileInfo.getFilePath();
-            }
+//            }
         }
             
         if (name.isEmpty() == false) {
