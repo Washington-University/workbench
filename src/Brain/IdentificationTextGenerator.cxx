@@ -207,7 +207,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
         }
         
         std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        brain->getConnectivityFilesOfAllTypes(allConnectivityFiles);
+        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
         
         for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
              connIter != allConnectivityFiles.end();
@@ -276,7 +276,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         
         
         std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        brain->getConnectivityFilesOfAllTypes(allConnectivityFiles);
+        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
         
         for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
              connIter != allConnectivityFiles.end();

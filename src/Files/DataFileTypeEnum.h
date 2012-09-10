@@ -114,6 +114,7 @@ private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
                      const AString& guiName,
+                     const AString& overlayTypeName,
                      const bool fileIsUsedWithOneStructure,
                      const bool fileIsOpenedWithDataFileDialog,
                      const AString& fileExtensionOne,

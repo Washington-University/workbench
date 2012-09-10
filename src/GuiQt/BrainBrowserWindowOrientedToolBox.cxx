@@ -14,6 +14,7 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
+#include "FiberOrientationSelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
 #include "LabelSelectionViewController.h"
@@ -70,6 +71,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     m_borderSelectionViewController = NULL;
     m_connectivityViewController = NULL;
+    m_fiberOrientationViewController = NULL;
     m_fociSelectionViewController = NULL;
     m_labelSelectionViewController = NULL;
     m_overlaySetViewController = NULL;
@@ -82,8 +84,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-//        m_tabWidget->addTab(m_overlaySetViewController ,
-//                                "Layers");
         addToTabWidget(m_overlaySetViewController,
                        "Layers");
     }
@@ -106,6 +106,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                 this);
         addToTabWidget(m_borderSelectionViewController, 
                              "Borders");
+    }
+    
+    if (isFeaturesToolBox) {
+        m_fiberOrientationViewController = new FiberOrientationSelectionViewController(browserWindowIndex,
+                                                                                       this);
+        addToTabWidget(m_fiberOrientationViewController,
+                       "Fibers");
     }
     
     if (isFeaturesToolBox) {

@@ -97,7 +97,7 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                                                   AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     AString rowColText;
     
@@ -159,7 +159,7 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
                                                 const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
@@ -203,7 +203,7 @@ ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFil
                                                 const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
@@ -237,7 +237,7 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
                                                         AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     AString rowColText;
     bool haveData = false;
@@ -283,7 +283,7 @@ void
 ConnectivityLoaderManager::colorConnectivityData()
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
@@ -542,7 +542,7 @@ bool
 ConnectivityLoaderManager::hasNetworkFiles() const
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    m_brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();

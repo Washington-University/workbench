@@ -433,16 +433,16 @@ OverlayViewController::updateViewController(Overlay* overlay)
         CaretMappableDataFile* dataFile = dataFiles[i];
         
         AString dataTypeName = DataFileTypeEnum::toName(dataFile->getDataFileType());
-        switch (dataFile->getDataFileType()) {
-            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                dataTypeName = "CONNECTIVITY";
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                dataTypeName = "DATA_SERIES";
-                break;
-            default:
-                break;
-        }
+//        switch (dataFile->getDataFileType()) {
+//            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+//                dataTypeName = "CONNECTIVITY";
+//                break;
+//            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+//                dataTypeName = "DATA_SERIES";
+//                break;
+//            default:
+//                break;
+//        }
         AString name = dataTypeName
         + " "
         + dataFile->getFileNameNoPath();

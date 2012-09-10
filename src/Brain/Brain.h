@@ -47,6 +47,7 @@ namespace caret {
     class ConnectivityLoaderManager;
     class DisplayProperties;
     class DisplayPropertiesBorders;
+    class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFoci;
     class DisplayPropertiesInformation;
     class DisplayPropertiesLabels;
@@ -179,7 +180,7 @@ namespace caret {
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
         
-        void getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
+        void getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
         
         int32_t getNumberOfConnectivityDenseFiles() const;
         
@@ -188,6 +189,30 @@ namespace caret {
         const ConnectivityLoaderFile* getConnectivityDenseFile(int32_t indx) const;
         
         void getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const;
+        
+        int32_t getNumberOfConnectivityDenseLabelFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityDenseLabelFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityDenseLabelFile(int32_t indx) const;
+        
+        void getConnectivityDenseLabelFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseLabelFilesOut) const;
+        
+        int32_t getNumberOfConnectivityDenseScalarFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityDenseScalarFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityDenseScalarFile(int32_t indx) const;
+        
+        void getConnectivityDenseScalarFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseScalarFilesOut) const;
+        
+        int32_t getNumberOfConnectivityFiberOrientationFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityFiberOrientationFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityFiberOrientationFile(int32_t indx) const;
+        
+        void getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const;
         
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
@@ -218,6 +243,10 @@ namespace caret {
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
         const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
+        
+        DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation();
+        
+        const DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation() const;
         
         DisplayPropertiesFoci* getDisplayPropertiesFoci();
         
@@ -297,6 +326,12 @@ namespace caret {
         
         void readConnectivityDenseFile(const AString& filename) throw (DataFileException);
         
+        void readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException);
+        
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
         void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
@@ -328,6 +363,12 @@ namespace caret {
         PaletteFile* m_paletteFile;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
+        
+        std::vector<ConnectivityLoaderFile*> m_connectivityDenseLabelFiles;
+        
+        std::vector<ConnectivityLoaderFile*> m_connectivityDenseScalarFiles;
+        
+        std::vector<ConnectivityLoaderFile*> m_connectivityFiberOrientationFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
         
@@ -371,6 +412,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesBorders* m_displayPropertiesBorders;
+        
+        /**
+         * Display properties for fiber orientation - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFiberOrientation* m_displayPropertiesFiberOrientation;
         
         /**
          * Display properties for foci - DO NOT delete since this

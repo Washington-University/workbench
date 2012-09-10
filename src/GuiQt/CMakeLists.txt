@@ -46,6 +46,7 @@ ConnectivityTimeSeriesViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
+FiberOrientationSelectionViewController.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
@@ -143,6 +144,7 @@ EventMapScalarDataColorMappingEditorShow.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
+FiberOrientationSelectionViewController.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
@@ -241,6 +243,7 @@ EventMapScalarDataColorMappingEditorShow.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
+FiberOrientationSelectionViewController.cxx
 FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx

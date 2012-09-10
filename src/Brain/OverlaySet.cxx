@@ -512,7 +512,7 @@ OverlaySet::initializeOverlays()
      */
     std::vector<ConnectivityLoaderFile*> connFiles;
     if (brain != NULL) {
-        brain->getConnectivityFilesOfAllTypes(connFiles);
+        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
     }
 //    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     

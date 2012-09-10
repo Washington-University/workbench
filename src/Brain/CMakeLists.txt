@@ -59,6 +59,7 @@ BrowserTabContent.h
 ConnectivityLoaderManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
+DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
 DisplayPropertiesInformation.h
 DisplayPropertiesLabels.h
@@ -80,6 +81,7 @@ EventModelSurfaceGet.h
 EventModelYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
+FiberOrientationColoringTypeEnum.h
 FociColoringTypeEnum.h
 FociDrawingTypeEnum.h
 IdentificationItemDataTypeEnum.h
@@ -133,6 +135,7 @@ BrowserTabContent.cxx
 ConnectivityLoaderManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
+DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesInformation.cxx
 DisplayPropertiesLabels.cxx
@@ -154,6 +157,7 @@ EventModelSurfaceGet.cxx
 EventModelYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
+FiberOrientationColoringTypeEnum.cxx
 FociColoringTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 IdentificationItemDataTypeEnum.cxx

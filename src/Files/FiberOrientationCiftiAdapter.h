@@ -35,8 +35,10 @@
 /*LICENSE_END*/
 
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
 #include "DataFileException.h"
+#include "DisplayGroupEnum.h"
 
 namespace caret {
 
@@ -58,6 +60,13 @@ namespace caret {
         
         const FiberOrientation* getFiberOrientations(const int64_t indx) const;
         
+        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex) const;
+        
+        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                          const int32_t tabIndex,
+                          const bool displayStatus);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -68,7 +77,11 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         std::vector<FiberOrientation*> m_fiberOrientations;
-
+        
+        bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
     };
     
 #ifdef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__

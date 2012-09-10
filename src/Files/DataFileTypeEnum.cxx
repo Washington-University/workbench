@@ -47,6 +47,8 @@ using namespace caret;
  *    Name of enumberated value.
  * @param guiName
  *    Name displayed in the user-interface
+ * @param overlayTypeName
+ *    Name displayed in overlay type combo box
  * @param fileIsUsedWithOneStructure
  *    True if file is used with ONE structure (eg node file (surface, metric, etc).
  * @param fileIsOpenedWithDataFileDialog
@@ -61,6 +63,7 @@ using namespace caret;
 DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const AString& name,
                                    const AString& guiName,
+                                   const AString& overlayTypeName,
                                    const bool fileIsUsedWithOneStructure,
                                    const bool fileIsOpenedWithDataFileDialog,
                                    const AString& fileExtensionOne,
@@ -121,6 +124,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(BORDER, 
                                         "BORDER", 
                                         "Border",
+                                        "BORDER",
                                         false,
                                         true,
                                         "border"));
@@ -128,6 +132,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE, 
                                         "CONNECTIVITY_DENSE", 
                                         "Connectivity - Dense",
+                                        "CONNECTIVITY",
                                         false,
                                         false,
                                         "dconn.nii"));
@@ -135,6 +140,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL,
                                         "CONNECTIVITY_DENSE_LABEL",
                                         "Connectivity - Dense Label",
+                                        "CIFTI LABELS",
                                         false,
                                         false,
                                         "dlabel.nii"));
@@ -142,6 +148,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SCALAR,
                                         "CONNECTIVITY_DENSE_SCALAR",
                                         "Connectivity - Dense Scalar",
+                                        "CIFTI SCALARS",
                                         false,
                                         false,
                                         "dscalar.nii"));
@@ -149,6 +156,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES,
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
                                         "Connectivity - Dense Data Series",
+                                        "DATA SERIES",
                                         false,
                                         false,
                                         "dtseries.nii"));
@@ -156,6 +164,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
                                         "CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY",
                                         "Connectivity - Fiber Orientations TEMPORARY",
+                                        "FIBER ORIENTATION TEMPORARY",
                                         false,
                                         false,
                                         "fiberTEMP.nii"));
@@ -163,6 +172,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",
+                                        "FOCI",
                                         false,
                                         true,
                                         "foci"));
@@ -170,6 +180,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(LABEL, 
                                         "LABEL", 
                                         "Label",
+                                        "LABEL",
                                         true,
                                         true,
                                         "label.gii"));
@@ -177,6 +188,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(METRIC, 
                                         "METRIC", 
                                         "Metric",
+                                        "METRIC",
                                         true,
                                         true,
                                         "func.gii",
@@ -185,12 +197,14 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(PALETTE, 
                                         "PALETTE", 
                                         "Palette",
+                                        "PALETTE",
                                         false,
                                         true,
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
                                         "RGBA", 
+                                        "RGBA",
                                         "RGBA",
                                         true,
                                         true,
@@ -199,6 +213,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SCENE, 
                                         "SCENE", 
                                         "Scene",
+                                        "SCENE",
                                         false,
                                         true,
                                         "scene"));
@@ -206,6 +221,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
                                         "SPECIFICATION", 
                                         "Specification",
+                                        "SPECIFICATION",
                                         false,
                                         true,
                                         "spec"));
@@ -213,6 +229,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SURFACE, 
                                         "SURFACE", 
                                         "Surface",
+                                        "SURFACE",
                                         true,
                                         true,
                                         "surf.gii"));    
@@ -220,6 +237,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(UNKNOWN, 
                                         "UNKNOWN", 
                                         "Unknown",
+                                        "UNKNOWN",
                                         false,
                                         false,
                                         "unknown"));
@@ -227,11 +245,11 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(VOLUME, 
                                         "VOLUME", 
                                         "Volume",
+                                        "VOLUME",
                                         false,
                                         true,
                                         "nii",
                                         "nii.gz"));
-    
 }
 
 /**

@@ -37,6 +37,7 @@
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesLabels.h"
@@ -96,6 +97,9 @@ Brain::Brain()
     m_displayPropertiesBorders = new DisplayPropertiesBorders(this);
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
+    m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
+    m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
+    
     m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
@@ -127,6 +131,10 @@ Brain::Brain()
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
                           m_displayPropertiesBorders);
+    
+    m_sceneAssistant->add("displayPropertiesFiberOrientation",
+                          "DisplayPropertiesFiberOrientation",
+                          m_displayPropertiesFiberOrientation);
     
     m_sceneAssistant->add("displayPropertiesFoci", 
                           "DisplayPropertiesFoci", 
@@ -323,6 +331,30 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete clf;
     }
     m_connectivityDenseFiles.clear();
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityDenseLabelFiles.begin();
+         clfi != m_connectivityDenseLabelFiles.end();
+         clfi++) {
+        ConnectivityLoaderFile* clf = *clfi;
+        delete clf;
+    }
+    m_connectivityDenseLabelFiles.clear();
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
+         clfi != m_connectivityDenseScalarFiles.end();
+         clfi++) {
+        ConnectivityLoaderFile* clf = *clfi;
+        delete clf;
+    }
+    m_connectivityDenseScalarFiles.clear();
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityFiberOrientationFiles.begin();
+         clfi != m_connectivityFiberOrientationFiles.end();
+         clfi++) {
+        ConnectivityLoaderFile* clf = *clfi;
+        delete clf;
+    }
+    m_connectivityFiberOrientationFiles.clear();
     
     for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = m_connectivityTimeSeriesFiles.begin();
          cltsfi != m_connectivityTimeSeriesFiles.end();
@@ -843,6 +875,111 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
 }
 
 /**
+ * Read a connectivity dense label file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void
+Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException)
+{
+    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    
+    try {
+        if (DataFile::isFileOnNetwork(filename)) {
+            clf->setupNetworkFile(filename,
+                                  DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+                                  m_fileReadingUsername,
+                                  m_fileReadingPassword);
+        }
+        else {
+            clf->setupLocalFile(filename,
+                                DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL);
+        }
+        
+        validateConnectivityFile(clf);
+    }
+    catch (const DataFileException& dfe) {
+        delete clf;
+        throw dfe;
+    }
+    
+    m_connectivityDenseLabelFiles.push_back(clf);
+}
+
+/**
+ * Read a connectivity dense scalar file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void
+Brain::readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException)
+{
+    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    
+    try {
+        if (DataFile::isFileOnNetwork(filename)) {
+            clf->setupNetworkFile(filename,
+                                  DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+                                  m_fileReadingUsername,
+                                  m_fileReadingPassword);
+        }
+        else {
+            clf->setupLocalFile(filename,
+                                DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
+        }
+        
+        validateConnectivityFile(clf);
+    }
+    catch (const DataFileException& dfe) {
+        delete clf;
+        throw dfe;
+    }
+    
+    m_connectivityDenseScalarFiles.push_back(clf);
+}
+
+/**
+ * Read a connectivity fiber orientation file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void
+Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException)
+{
+    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    
+    try {
+        if (DataFile::isFileOnNetwork(filename)) {
+            clf->setupNetworkFile(filename,
+                                  DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+                                  m_fileReadingUsername,
+                                  m_fileReadingPassword);
+        }
+        else {
+            clf->setupLocalFile(filename,
+                                DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
+        }
+        
+        //validateConnectivityFile(clf);
+    }
+    catch (const DataFileException& dfe) {
+        delete clf;
+        throw dfe;
+    }
+    
+    m_connectivityFiberOrientationFiles.push_back(clf);
+}
+
+/**
  * Read a connectivity time series file.
  *
  * @param filename
@@ -951,17 +1088,23 @@ Brain::readSceneFile(const AString& filename) throw (DataFileException)
 }
 
 /**
- * Get connectivity files of ALL Types
+ * Get mappable connectivity files of ALL Types
  * @param connectivityFilesOut
- *   Contains all connectivity files on exit.
+ *   Contains all mappable connectivity files on exit.
  */
 void 
-Brain::getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const
+Brain::getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const
 {
     connectivityFilesOfAllTypes.clear();
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        m_connectivityDenseFiles.begin(),
                                        m_connectivityDenseFiles.end());
+    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
+                                       m_connectivityDenseLabelFiles.begin(),
+                                       m_connectivityDenseLabelFiles.end());
+    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
+                                       m_connectivityDenseScalarFiles.begin(),
+                                       m_connectivityDenseScalarFiles.end());
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        m_connectivityTimeSeriesFiles.begin(),
                                        m_connectivityTimeSeriesFiles.end());
@@ -1011,6 +1154,144 @@ void
 Brain::getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const
 {
     connectivityDenseFilesOut = m_connectivityDenseFiles;
+}
+
+/**
+ * @return Number of connectivity dense label files.
+ */
+int32_t
+Brain::getNumberOfConnectivityDenseLabelFiles() const
+{
+    return m_connectivityDenseLabelFiles.size();
+}
+
+/**
+ * Get the connectivity dense label file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity dense label file at index.
+ */
+ConnectivityLoaderFile*
+Brain::getConnectivityDenseLabelFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
+    return m_connectivityDenseLabelFiles[indx];
+}
+
+/**
+ * Get the connectivity dense label file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity dense label file at index.
+ */
+const ConnectivityLoaderFile*
+Brain::getConnectivityDenseLabelFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
+    return m_connectivityDenseLabelFiles[indx];
+}
+
+/**
+ * Get ALL connectivity dense label files.
+ * @param connectivityDenseLabelFilesOut
+ *   Contains all connectivity dense labelfiles on exit.
+ */
+void
+Brain::getConnectivityDenseLabelFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseLabelFilesOut) const
+{
+    connectivityDenseLabelFilesOut = m_connectivityDenseLabelFiles;
+}
+
+/**
+ * @return Number of connectivity dense scalar files.
+ */
+int32_t
+Brain::getNumberOfConnectivityDenseScalarFiles() const
+{
+    return m_connectivityDenseScalarFiles.size();
+}
+
+/**
+ * Get the connectivity dense scalar file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity dense scalar file at index.
+ */
+ConnectivityLoaderFile*
+Brain::getConnectivityDenseScalarFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
+    return m_connectivityDenseScalarFiles[indx];
+}
+
+/**
+ * Get the connectivity dense scalar file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity dense scalar file at index.
+ */
+const ConnectivityLoaderFile*
+Brain::getConnectivityDenseScalarFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
+    return m_connectivityDenseScalarFiles[indx];
+}
+
+/**
+ * Get ALL connectivity dense scalr files.
+ * @param connectivityDenseScalarFilesOut
+ *   Contains all connectivity dense files on exit.
+ */
+void
+Brain::getConnectivityDenseScalarFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseScalarFilesOut) const
+{
+    connectivityDenseScalarFilesOut = m_connectivityDenseScalarFiles;
+}
+
+/**
+ * @return Number of connectivity fiber orientation files.
+ */
+int32_t
+Brain::getNumberOfConnectivityFiberOrientationFiles() const
+{
+    return m_connectivityFiberOrientationFiles.size();
+}
+
+/**
+ * Get the connectivity fiber orientation file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber orientation file at index.
+ */
+ConnectivityLoaderFile*
+Brain::getConnectivityFiberOrientationFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityFiberOrientationFiles, indx);
+    return m_connectivityFiberOrientationFiles[indx];
+}
+
+/**
+ * Get the connectivity fiber orientation file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber orientation file at index.
+ */
+const ConnectivityLoaderFile*
+Brain::getConnectivityFiberOrientationFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityFiberOrientationFiles, indx);
+    return m_connectivityFiberOrientationFiles[indx];
+}
+
+/**
+ * Get ALL connectivity fiber orientation files.
+ * @param connectivityFiberOrientationFilesOut
+ *   Contains all connectivity fiber orientation files on exit.
+ */
+void
+Brain::getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const
+{
+    connectivityFiberOrientationFilesOut = m_connectivityFiberOrientationFiles;
 }
 
 /**
@@ -1708,13 +1989,16 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             readConnectivityDenseFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            readConnectivityDenseLabelFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            readConnectivityDenseScalarFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             readConnectivityTimeSeriesFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            readConnectivityFiberOrientationFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI:
             readFociFile(dataFileName);
@@ -2171,6 +2455,18 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
+        for (std::vector<ConnectivityLoaderFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
+             icf != m_connectivityDenseLabelFiles.end();
+             icf++) {
+            dataFilesEvent->addFile(*icf);
+        }
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
+             icf != m_connectivityDenseScalarFiles.end();
+             icf++) {
+            dataFilesEvent->addFile(*icf);
+        }
+        
         for (std::vector<ConnectivityLoaderFile*>::iterator ictsf = m_connectivityTimeSeriesFiles.begin();
              ictsf != m_connectivityTimeSeriesFiles.end();
              ictsf++) {
@@ -2538,6 +2834,39 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
 
+    std::vector<ConnectivityLoaderFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
+                                                                            m_connectivityDenseLabelFiles.end(),
+                                                                            caretDataFile);
+    if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
+        ConnectivityLoaderFile* connFile = *connLabelIterator;
+        delete connFile;
+        m_connectivityDenseLabelFiles.erase(connLabelIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
+    }
+    
+    std::vector<ConnectivityLoaderFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
+                                                                            m_connectivityDenseScalarFiles.end(),
+                                                                            caretDataFile);
+    if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
+        ConnectivityLoaderFile* connFile = *connScalarIterator;
+        delete connFile;
+        m_connectivityDenseFiles.erase(connScalarIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
+    }
+    
+    std::vector<ConnectivityLoaderFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
+                                                                            m_connectivityFiberOrientationFiles.end(),
+                                                                            caretDataFile);
+    if (connIterator != m_connectivityFiberOrientationFiles.end()) {
+        ConnectivityLoaderFile* connFile = *connFiberOrientationIterator;
+        delete connFile;
+        m_connectivityDenseFiles.erase(connFiberOrientationIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
+    }
+    
     std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(m_connectivityTimeSeriesFiles.begin(),
                                                                             m_connectivityTimeSeriesFiles.end(),
                                                                             caretDataFile);
@@ -2614,6 +2943,24 @@ const DisplayPropertiesBorders*
 Brain::getDisplayPropertiesBorders() const
 {
     return m_displayPropertiesBorders;
+}
+
+/**
+ * @return The fiber orientation display properties.
+ */
+DisplayPropertiesFiberOrientation*
+Brain::getDisplayPropertiesFiberOrientation()
+{
+    return m_displayPropertiesFiberOrientation;
+}
+
+/**
+ * @return The fiber orientation display properties.
+ */
+const DisplayPropertiesFiberOrientation*
+Brain::getDisplayPropertiesFiberOrientation() const
+{
+    return m_displayPropertiesFiberOrientation;
 }
 
 /**

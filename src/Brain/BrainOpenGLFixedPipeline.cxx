@@ -63,6 +63,7 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesSurface.h"
@@ -2596,7 +2597,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                      slicePlane,
                                                      sliceIndex,
                                                      underlayVolumeFile);
-                                this->drawVolumeAxesCrosshairs(slicePlane, 
+                                this->drawVolumeFibers(brain,
+                                                     volumeController,
+                                                     browserTabContent,
+                                                     slicePlane,
+                                                     sliceIndex,
+                                                     underlayVolumeFile);
+                                this->drawVolumeAxesCrosshairs(slicePlane,
                                                                selectedVoxelXYZ);
                                 const float sliceCoord = (sliceOrigin
                                                           + sliceThickness * sliceIndex);
@@ -2657,6 +2664,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              VolumeSliceViewPlaneEnum::AXIAL,
                                              selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               VolumeSliceViewPlaneEnum::AXIAL,
+                                               selectedSlices->getSliceIndexAxial(underlayVolumeFile),
+                                               underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::AXIAL, 
@@ -2683,6 +2696,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              VolumeSliceViewPlaneEnum::CORONAL,
                                              selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               VolumeSliceViewPlaneEnum::CORONAL,
+                                               selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
+                                               underlayVolumeFile);
                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::CORONAL, 
@@ -2709,6 +2728,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                              selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                               selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
+                                               underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
@@ -2737,6 +2762,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              slicePlane,
                                              selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               slicePlane,
+                                               selectedSlices->getSliceIndexAxial(underlayVolumeFile),
+                                               underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -2763,6 +2794,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              slicePlane,
                                              selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               slicePlane,
+                                               selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
+                                               underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -2789,6 +2826,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                              slicePlane,
                                              selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                              underlayVolumeFile);
+                        this->drawVolumeFibers(brain,
+                                               volumeController,
+                                               browserTabContent,
+                                               slicePlane,
+                                               selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
+                                               underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane,
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -4582,9 +4625,9 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
  *    Bottom-most displayed volume.
  */
 void
-BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* brain,
-                                           ModelVolume* modelVolume,
-                                           BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
+                                           ModelVolume* /*modelVolume*/,
+                                           BrowserTabContent* /*browserTabContent*/,
                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                            const int64_t sliceIndex,
                                            VolumeFile* underlayVolume)
@@ -4644,126 +4687,137 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* brain,
         }
             break;
     }
-    const float halfSliceThickness = sliceThickness * 0.5;
     
     Plane plane(p1, p2, p3);
     if (plane.isValidPlane() == false) {
         return;
     }
 
-        
-        
-    float upperLimit = 1.0;
-    float lowerLimit = -1.0;
-    float minimumMagnitude = 0.1;
-    float lengthMultiplier = 50.0;
-    bool  isDrawWithMagnitude = false;
-    
-    FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
-    
-    /*
-     * Draw each of the fiber orientations which may contain multiple fibers
-     */
-    const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
-    for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
-        const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
-        if (fiberOrientation->isValid() == false) {
-            continue;
-        }
-        
-        /*
-         * Draw each of the fibers
-         */ 
-        const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
-        for (int64_t j = 0; j < numberOfFibers; j++) {
-            const Fiber* fiber = fiberOrientation->m_fibers[j];
-
-            /*
-             * Apply display properties
-             */
-            bool drawIt = true;
-            const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
-            if (distToPlane > upperLimit) {
-                drawIt = false;
-            }
-            if (distToPlane < lowerLimit) {
-                drawIt = false;
-            }
-            if (fiber->m_meanF < minimumMagnitude) {
-                drawIt = false;
-            }
-            
-            if (drawIt) {
-                /*
-                 * Convert start of vector from volume space to screen space
-                 */
-                float startXYZ[3] = {
-                    fiberOrientation->m_xyz[0],
-                    fiberOrientation->m_xyz[1],
-                    fiberOrientation->m_xyz[2]
-                };
-                convertVolumeItemXYZToScreenXY(slicePlane,
-                                               startXYZ);
-
-                /*
-                 * Convert spherical angles to a vector
-                 */
-                float vectorLength = lengthMultiplier;
-                if (isDrawWithMagnitude) {
-                    vectorLength *= fiber->m_meanF;
-                }
-                const float phi   = fiber->m_phi;
-                const float theta = fiber->m_theta;
-                float vector[3] = {
-                    std::sin(phi) * std::cos(theta),
-                    std::sin(phi) * std::sin(theta),
-                    std::cos(phi)
-                };
-                
-                /*
-                 * Convert end of vector from volume space to screen space
-                 */
-                float endXYZ[3] = {
-                    fiberOrientation->m_xyz[0] + vector[0] * vectorLength,
-                    fiberOrientation->m_xyz[1] + vector[1] * vectorLength,
-                    fiberOrientation->m_xyz[2] + vector[2] * vectorLength
-                };
-                convertVolumeItemXYZToScreenXY(slicePlane,
-                                               endXYZ);
-                
-                /*
-                 * Create angle of vector in screen space
-                 */
-                const float dz = endXYZ[2] - startXYZ[2];
-                const float dy = endXYZ[1] - startXYZ[1];
-                const float dx = endXYZ[0] - startXYZ[0];
-                const float length = std::sqrt(dx*dx + dy*dy + dz*dz);
-                const float rotation = std::atan2(dy, dx);
-                glPushMatrix();
-                
-                glTranslatef(startXYZ[0], startXYZ[1], startXYZ[2]);
-                glRotatef(MathFunctions::toDegrees(rotation),
-                          0.0, 0.0, 1.0);
-                const float z = startXYZ[2];
-                
-                const float radius = 2.0;
-                setLineWidth(radius);
-                
-                glColor3fv(vector);
-
-                /*
-                 * Draw the vector
-                 */
-                glScalef(length, length * radius, 1.0);
-                glBegin(GL_LINES);
-                glVertex3f(-0.5, 0.0, z);
-                glVertex3f( 0.5, 0.0, z);
-                glEnd();
-                
-                glPopMatrix();
-            }
-        }
+    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
+    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+        return;
     }
+    const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
+    const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
+    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
+    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
+    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+
+    /*
+     * Draw the vectors from each of the connectivity files
+     */
+    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
+        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
+        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+        if (ciftiAdapter->isDisplayed(displayGroup,
+                                      this->windowTabIndex)) {
+            /*
+             * Draw each of the fiber orientations which may contain multiple fibers
+             */
+            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
+                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+                if (fiberOrientation->isValid() == false) {
+                    continue;
+                }
+                
+                /*
+                 * Draw each of the fibers
+                 */
+                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+                for (int64_t j = 0; j < numberOfFibers; j++) {
+                    const Fiber* fiber = fiberOrientation->m_fibers[j];
+                    
+                    /*
+                     * Apply display properties
+                     */
+                    bool drawIt = true;
+                    const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
+                    if (distToPlane > aboveLimit) {
+                        drawIt = false;
+                    }
+                    if (distToPlane < belowLimit) {
+                        drawIt = false;
+                    }
+                    if (fiber->m_meanF < minimumMagnitude) {
+                        drawIt = false;
+                    }
+                    
+                    if (drawIt) {
+                        /*
+                         * Convert start of vector from volume space to screen space
+                         */
+                        float startXYZ[3] = {
+                            fiberOrientation->m_xyz[0],
+                            fiberOrientation->m_xyz[1],
+                            fiberOrientation->m_xyz[2]
+                        };
+                        convertVolumeItemXYZToScreenXY(slicePlane,
+                                                       startXYZ);
+                        
+                        /*
+                         * Convert spherical angles to a vector
+                         */
+                        float vectorLength = magnitudeMultiplier;
+                        if (isDrawWithMagnitude) {
+                            vectorLength *= fiber->m_meanF;
+                        }
+                        const float phi   = fiber->m_phi;
+                        const float theta = fiber->m_theta;
+                        float vector[3] = {
+                            std::sin(phi) * std::cos(theta),
+                            std::sin(phi) * std::sin(theta),
+                            std::cos(phi)
+                        };
+                        
+                        /*
+                         * Convert end of vector from volume space to screen space
+                         */
+                        float endXYZ[3] = {
+                            fiberOrientation->m_xyz[0] + vector[0] * vectorLength,
+                            fiberOrientation->m_xyz[1] + vector[1] * vectorLength,
+                            fiberOrientation->m_xyz[2] + vector[2] * vectorLength
+                        };
+                        convertVolumeItemXYZToScreenXY(slicePlane,
+                                                       endXYZ);
+                        
+                        /*
+                         * Create angle of vector in screen space
+                         */
+                        const float dz = endXYZ[2] - startXYZ[2];
+                        const float dy = endXYZ[1] - startXYZ[1];
+                        const float dx = endXYZ[0] - startXYZ[0];
+                        const float length = std::sqrt(dx*dx + dy*dy + dz*dz);
+                        const float rotation = std::atan2(dy, dx);
+                        glPushMatrix();
+                        
+                        glTranslatef(startXYZ[0], startXYZ[1], startXYZ[2]);
+                        glRotatef(MathFunctions::toDegrees(rotation),
+                                  0.0, 0.0, 1.0);
+                        const float z = startXYZ[2];
+                        
+                        const float radius = 2.0;
+                        setLineWidth(radius);
+                        
+                        glColor3fv(vector);
+                        
+                        /*
+                         * Draw the vector
+                         */
+                        glScalef(length, length * radius, 1.0);
+                        glBegin(GL_LINES);
+                        glVertex3f(-0.5, 0.0, z);
+                        glVertex3f( 0.5, 0.0, z);
+                        glEnd();
+                        
+                        glPopMatrix();
+                    }
+                }
+            }
+        }
+    }    
 }
 
 /**

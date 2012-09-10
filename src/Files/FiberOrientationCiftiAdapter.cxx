@@ -57,7 +57,13 @@ using namespace caret;
 FiberOrientationCiftiAdapter::FiberOrientationCiftiAdapter()
 : CaretObject()
 {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_displayStatusInTab[i] = false;
+    }
     
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_displayStatusInDisplayGroup[i] = false;
+    }
 }
 
 /**
@@ -71,6 +77,57 @@ FiberOrientationCiftiAdapter::~FiberOrientationCiftiAdapter()
         delete *iter;
     }
     m_fiberOrientations.clear();
+}
+
+/**
+ * @return  Display status of borders.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+bool
+FiberOrientationCiftiAdapter::isDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_displayStatusInTab[tabIndex];
+    }
+    return m_displayStatusInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the display status for borders for the given display group.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param displayStatus
+ *    New status.
+ */
+void
+FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
+                                                const int32_t tabIndex,
+                                                const bool displayStatus)
+{
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_displayStatusInTab[tabIndex] = displayStatus;
+    }
+    else {
+        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
+    }
 }
 
 /**
