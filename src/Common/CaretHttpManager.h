@@ -50,7 +50,6 @@ namespace caret {
         std::vector<AuthEntry> m_authList;
         static AString getServerString(const AString& url);        
     public:
-        QNetworkReply *m_reply;
         enum Method
         {
             GET,
