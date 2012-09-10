@@ -63,7 +63,7 @@ namespace caret {
         static QNetworkAccessManager* getQNetManager();
         static void setAuthentication(const AString& url, const AString& user, const AString& password);
     public slots:
-        void handleSslErrors(const QList<QSslError> &/*errors*/);
+        void handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/);
         //void authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator);
     };
 
