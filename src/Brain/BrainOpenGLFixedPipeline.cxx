@@ -979,6 +979,10 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     
     this->drawSurface(surface,
                       nodeColoringRGBA);
+    
+    if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
+        this->drawSurfaceFibers();
+    }
 }
 
 /**
@@ -4703,6 +4707,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
     const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
 
     /*
      * Draw the vectors from each of the connectivity files
@@ -4801,7 +4806,25 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                         const float radius = 2.0;
                         setLineWidth(radius);
                         
-                        glColor3fv(vector);
+                        /*
+                         * Color of vector
+                         */
+                        float rgb[3] = { 0.0, 0.0, 0.0 };
+                        switch (colorType) {
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                            {
+                                const int32_t indx = j % 3;
+                                CaretAssert((indx >= 0) && (indx < 3));
+                                rgb[indx] = 1.0;
+                            }
+                                break;
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                                rgb[0] = vector[0];
+                                rgb[1] = vector[1];
+                                rgb[2] = vector[2];
+                                break;
+                        }
+                        glColor3fv(rgb);
                         
                         /*
                          * Draw the vector
@@ -4863,6 +4886,173 @@ BrainOpenGLFixedPipeline::convertVolumeItemXYZToScreenXY(const VolumeSliceViewPl
     xyz[1] = xyzOut[1];
     xyz[2] = zPos;
 }
+
+/**
+ * Draw fiber orientations on surface models.
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceFibers()
+{
+    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
+    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+        return;
+    }
+    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
+    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
+    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
+
+    /*
+     * Clipping planes
+     */
+    BoundingBox clippingBoundingBox;
+    clippingBoundingBox.resetWithMaximumExtent();
+    
+    if (browserTabContent->isClippingPlaneEnabled(0)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                + halfThick);
+        clippingBoundingBox.setMinX(minValue);
+        clippingBoundingBox.setMaxX(maxValue);
+    }
+    if (browserTabContent->isClippingPlaneEnabled(1)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                + halfThick);
+        clippingBoundingBox.setMinY(minValue);
+        clippingBoundingBox.setMaxY(maxValue);
+    }
+    if (browserTabContent->isClippingPlaneEnabled(2)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                + halfThick);
+        clippingBoundingBox.setMinZ(minValue);
+        clippingBoundingBox.setMaxZ(maxValue);
+    }
+    
+    /*
+     * Draw the vectors from each of the connectivity files
+     */
+    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
+        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
+        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+        if (ciftiAdapter->isDisplayed(displayGroup,
+                                      this->windowTabIndex)) {
+            /*
+             * Draw each of the fiber orientations which may contain multiple fibers
+             */
+            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
+                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+                if (fiberOrientation->isValid() == false) {
+                    continue;
+                }
+                
+                /*
+                 * Draw each of the fibers
+                 */
+                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+                for (int64_t j = 0; j < numberOfFibers; j++) {
+                    const Fiber* fiber = fiberOrientation->m_fibers[j];
+                    
+                    /*
+                     * Apply display properties and clipping
+                     */
+                    bool drawIt = true;
+                    if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
+                        drawIt = false;
+                    }
+                    if (fiber->m_meanF < minimumMagnitude) {
+                        drawIt = false;
+                    }
+                    
+                    if (drawIt) {
+                        /*
+                         * Length of vector
+                         */
+                        float vectorLength = magnitudeMultiplier;
+                        if (isDrawWithMagnitude) {
+                            vectorLength *= fiber->m_meanF;
+                        }
+                        
+                        /*
+                         * Convert angles to a vector
+                         */
+                        const float phi   = fiber->m_phi;
+                        const float theta = fiber->m_theta;
+                        float vector[3] = {
+                            std::sin(phi) * std::cos(theta),
+                            std::sin(phi) * std::sin(theta),
+                            std::cos(phi)
+                        };
+                        
+                        /*
+                         * Start of vector
+                         */
+                        float startXYZ[3] = {
+                            fiberOrientation->m_xyz[0] * (vector[0] * vectorLength * 0.5),
+                            fiberOrientation->m_xyz[1] * (vector[1] * vectorLength * 0.5),
+                            fiberOrientation->m_xyz[2] * (vector[2] * vectorLength * 0.5)
+                        };
+                        
+                        
+                        /*
+                         * End of vector
+                         */
+                        float endXYZ[3] = {
+                            startXYZ[0] + vector[0] * vectorLength,
+                            startXYZ[1] + vector[1] * vectorLength,
+                            startXYZ[2] + vector[2] * vectorLength
+                        };
+                        
+                        /*
+                         * Color of vector
+                         */
+                        float rgb[3] = { 0.0, 0.0, 0.0 };
+                        switch (colorType) {
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                            {
+                                const int32_t indx = j % 3;
+                                CaretAssert((indx >= 0) && (indx < 3));
+                                rgb[indx] = 1.0;
+                            }
+                                break;
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                                rgb[0] = vector[0];
+                                rgb[1] = vector[1];
+                                rgb[2] = vector[2];
+                                break;
+                        }
+                        glColor3fv(rgb);
+                        
+                        const float radius = 2.0;
+                        setLineWidth(radius);
+                        
+                        /*
+                         * Draw the vector
+                         */
+                        glBegin(GL_LINES);
+                        glVertex3fv(startXYZ);
+                        glVertex3fv(endXYZ);
+                        glEnd();
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Draw the surface montage controller.
@@ -5225,7 +5415,11 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
             }
         }
     }
-        
+
+    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
+        drawSurfaceFibers();
+    }
+
     /*
      * Need depth testing for drawing slices
      */

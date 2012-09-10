@@ -160,6 +160,8 @@ namespace caret {
         
         void drawSurfaceNormalVectors(const Surface* surface);
         
+        void drawSurfaceFibers();
+        
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeController,
                                   const int32_t viewport[4]);
