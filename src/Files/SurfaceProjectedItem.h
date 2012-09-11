@@ -34,7 +34,6 @@ namespace caret {
     
     class SurfaceFile;
     class SurfaceProjectionBarycentric;
-    class SurfaceProjectionMultiBarycentric;
     class SurfaceProjectionVanEssen;
     class XmlWriter;
     
@@ -93,10 +92,6 @@ namespace caret {
         
         SurfaceProjectionBarycentric* getBarycentricProjection();
         
-        const SurfaceProjectionMultiBarycentric* getMultiBarycentricProjection() const;
-        
-        SurfaceProjectionMultiBarycentric* getMultiBarycentricProjection();
-        
         const SurfaceProjectionVanEssen* getVanEssenProjection() const;
         
         SurfaceProjectionVanEssen* getVanEssenProjection();
@@ -137,9 +132,6 @@ namespace caret {
         
         /** The Van Essen projection */
         SurfaceProjectionVanEssen* vanEssenProjection;
-        
-        /** Multi-Barycentric projection */
-        SurfaceProjectionMultiBarycentric* multiBarycentricProjection;
     };
     
 #ifdef __SURFACE_PROJECTED_ITEM_DEFINE__

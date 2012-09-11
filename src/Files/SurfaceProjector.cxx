@@ -39,7 +39,6 @@
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
-#include "SurfaceProjectionMultiBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "TopologyHelper.h"
 
@@ -712,53 +711,6 @@ SurfaceProjector::projectToSurface(const SurfaceFile* surfaceFile,
         }
         m_validateItemName += ("ORIGINAL: "
                                + projectionLocation.toString(surfaceFile));
-    }
-    
-    /*
-     * Test multi-barycentric projection
-     */
-    bool testMultBaryProj = false;
-    if (testMultBaryProj) {
-        if ((projectionLocation.m_type == ProjectionLocation::EDGE)
-            || (projectionLocation.m_type == ProjectionLocation::NODE)) {
-            SurfaceProjectionMultiBarycentric* multiBaryProj = spi->getMultiBarycentricProjection();
-            multiBaryProj->reset();
-            
-            const int32_t numTriangles = projectionLocation.m_numberOfTriangles;
-            for (int32_t i = 0; i < numTriangles; i++) {
-                SurfaceProjectionBarycentric* baryProj = new SurfaceProjectionBarycentric();
-                checkItemInTriangle(surfaceFile,
-                                    projectionLocation.m_triangleIndices[i],
-                                    projectionLocation.m_pointXYZ,
-                                    s_extremeTriangleAreaTolerance,
-                                    baryProj);
-                if (baryProj->isValid()) {
-                    multiBaryProj->addProjection(baryProj);
-                }
-                else {
-                    delete baryProj;
-                }
-            }
-            
-            if (multiBaryProj->isValid()) {
-                float projXYZ[3];
-                multiBaryProj->unprojectToSurface(*surfaceFile,
-                                                 projXYZ,
-                                                 0.0,
-                                                 false);
-                const float dist = MathFunctions::distance3D(projXYZ, xyz);
-                if (dist > 0.01) {
-                    m_projectionWarning += ("MultiBaryProj Warning: Error="
-                                            + AString::number(dist)
-                                            + "mm, Stereotaxic=("
-                                            + AString::fromNumbers(xyz, 3, ",")
-                                            + "), Projected=("
-                                            + AString::fromNumbers(projXYZ, 3, ",")
-                                            + ") triangles="
-                                            + AString::number(numTriangles));
-                }
-            }
-        }
     }
     
     /*
