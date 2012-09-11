@@ -83,6 +83,10 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toOverlayTypeName(Enum enumValue);
+    
+    static Enum fromOverlayTypeName(const AString& overlayTypeName, bool* isValidOut);
+    
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
@@ -146,6 +150,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Name for use in overlay selection */
+    AString overlayTypeName;
     
     /** Extension(s) for the file */
     std::vector<AString> fileExtensions;

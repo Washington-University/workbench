@@ -74,6 +74,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     this->integerCode = DataFileTypeEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
+    this->overlayTypeName = overlayTypeName;
     this->oneStructureFlag = fileIsUsedWithOneStructure;
     this->fileIsOpenedWithDataFileDialog = fileIsOpenedWithDataFileDialog;
     
@@ -390,6 +391,59 @@ DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     }
     else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName \"" + guiName + "\" failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
+}
+
+/**
+ * Get a Overlay Type Name representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+DataFileTypeEnum::toOverlayTypeName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->overlayTypeName;
+}
+
+/**
+ * Get an enumerated value corresponding to its overlay type name.
+ * @param s
+ *     Overlay Name of enumerated value.
+ * @param isValidOut
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return
+ *     Enumerated value.
+ */
+DataFileTypeEnum::Enum
+DataFileTypeEnum::fromOverlayTypeName(const AString& overlayTypeName, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue = UNKNOWN;
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const DataFileTypeEnum& d = *iter;
+        if (d.overlayTypeName == overlayTypeName) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("guiName \"" + overlayTypeName + "\" failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
 }
