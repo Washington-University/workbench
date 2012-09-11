@@ -38,9 +38,10 @@
 
 #include "CaretAssert.h"
 #include "CiftiInterface.h"
+#include "ConnectivityLoaderFile.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
-#include "ConnectivityLoaderFile.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -57,13 +58,6 @@ using namespace caret;
 FiberOrientationCiftiAdapter::FiberOrientationCiftiAdapter()
 : CaretObject()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayStatusInTab[i] = false;
-    }
-    
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_displayStatusInDisplayGroup[i] = false;
-    }
 }
 
 /**
@@ -77,57 +71,6 @@ FiberOrientationCiftiAdapter::~FiberOrientationCiftiAdapter()
         delete *iter;
     }
     m_fiberOrientations.clear();
-}
-
-/**
- * @return  Display status of borders.
- * @param displayGroup
- *    The display group.
- * @param tabIndex
- *    Index of browser tab.
- */
-bool
-FiberOrientationCiftiAdapter::isDisplayed(const DisplayGroupEnum::Enum  displayGroup,
-                                               const int32_t tabIndex) const
-{
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        return m_displayStatusInTab[tabIndex];
-    }
-    return m_displayStatusInDisplayGroup[displayGroup];
-}
-
-/**
- * Set the display status for borders for the given display group.
- * @param displayGroup
- *    The display group.
- * @param tabIndex
- *    Index of browser tab.
- * @param displayStatus
- *    New status.
- */
-void
-FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
-                                                const int32_t tabIndex,
-                                                const bool displayStatus)
-{
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        m_displayStatusInTab[tabIndex] = displayStatus;
-    }
-    else {
-        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
-    }
 }
 
 /**
@@ -185,6 +128,128 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
         FiberOrientation* fiberOrient = new FiberOrientation(numberOfFibers,
                                                                 fiberGroupPointer);
         m_fiberOrientations.push_back(fiberOrient);
+    }
+}
+
+/**
+ * Initialize with test data.
+ */
+void
+FiberOrientationCiftiAdapter::initializeWithTestData()
+{
+    const int64_t fiberDataSizeInFloats = (sizeof(struct Fiber) * 3) / 4 + 3;
+    
+    {
+        float* fiberData = new float[fiberDataSizeInFloats];
+        int64_t offset = 0;
+
+        /*
+         * Coordinate of fiber orientation
+         * Slices (111, 238, 130) of ParcellationPilot_AverageT1w.nii.gz
+         * Just in anterior of ParcellationPilot.R.midthickness.32k_fs_LR.surf.gii
+         */
+        fiberData[offset+0] = 12.8;
+        fiberData[offset+1] = 72.8;
+        fiberData[offset+2] = 2.4;
+        offset += 3;
+
+        /*
+         * Along Positive X-Axis
+         */
+        fiberData[offset+0] = 10.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
+        fiberData[offset+3] = 0.0;   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+
+        /*
+         * Along Positive Y-Axis
+         */
+        fiberData[offset+0] = 20.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
+        fiberData[offset+3] = MathFunctions::toRadians(90.0);   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+
+        /*
+         * Along Positive Z-Axis
+         */
+        fiberData[offset+0] = 30.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = 0.0; // theta
+        fiberData[offset+3] = 0.0;   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+        
+        FiberOrientation* fiberOrientation = new FiberOrientation(3,
+                                                                  fiberData);
+        
+        m_fiberOrientations.push_back(fiberOrientation);
+    }
+
+    
+    {
+        float* fiberData = new float[fiberDataSizeInFloats];
+        int64_t offset = 0;
+        
+        /*
+         * Coordinate of fiber orientation
+         * Slices (203, 56, 124) of ParcellationPilot_AverageT1w.nii.gz
+         * lateral and posterior of ParcellationPilot.L.midthickness.32k_fs_LR.surf.gii
+         */
+        fiberData[offset+0] = -60.8;
+        fiberData[offset+1] = -72.8;
+        fiberData[offset+2] = -2.4;
+        offset += 3;
+        
+        /*
+         * Pointing towards forward right and up
+         */
+        fiberData[offset+0] = 10.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
+        fiberData[offset+3] = MathFunctions::toRadians(45.0);   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+        
+        /*
+         * Pointing towards forward left and down
+         */
+        fiberData[offset+0] = 20.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
+        fiberData[offset+3] = MathFunctions::toRadians(135.0);   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+        
+        /*
+         * Pointing towards backward right and up
+         */
+        fiberData[offset+0] = 30.0;  // meanF
+        fiberData[offset+1] = 2.0;   // varF
+        fiberData[offset+2] = MathFunctions::toRadians( 45.0); // theta
+        fiberData[offset+3] = MathFunctions::toRadians(-45.0);   // phi
+        fiberData[offset+4] = 1.0;   // k1
+        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+6] = 0.0;   // psi
+        offset += 7;
+        
+        FiberOrientation* fiberOrientation = new FiberOrientation(3,
+                                                                  fiberData);
+        
+        m_fiberOrientations.push_back(fiberOrientation);
     }
 }
 

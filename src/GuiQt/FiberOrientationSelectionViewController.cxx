@@ -127,6 +127,7 @@ FiberOrientationSelectionViewController::createSelectionWidget()
     m_selectionWidgetLayout = new QVBoxLayout();
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(m_selectionWidgetLayout);
     layout->addStretch();
     return widget;
 }
@@ -341,8 +342,8 @@ FiberOrientationSelectionViewController::updateViewController()
     std::vector<ConnectivityLoaderFile*> allFiberOrientFiles;
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
-        const ConnectivityLoaderFile* clf = brain->getConnectivityFiberOrientationFile(iff);
-        const FiberOrientationCiftiAdapter* foca = NULL; // clf->();
+        ConnectivityLoaderFile* clf = brain->getConnectivityFiberOrientationFile(iff);
+        FiberOrientationCiftiAdapter* foca = clf->getFiberOrientationAdapter();
         
         QCheckBox* cb = NULL;
         if (iff < numberOfFileCheckBoxes) {
@@ -356,7 +357,7 @@ FiberOrientationSelectionViewController::updateViewController()
             m_selectionWidgetLayout->addWidget(cb);
         }
         cb->setText(clf->getFileNameNoPath());
-        cb->setChecked(foca->isDisplayed(displayGroup,
+        cb->setChecked(dpfo->isDisplayed(displayGroup,
                                          browserTabIndex));
         cb->setVisible(true);
     }
@@ -396,6 +397,24 @@ FiberOrientationSelectionViewController::processSelectionChanges()
 {
     if (m_updateInProgress) {
         return;
+    }
+
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesFiberOrientation* dpfo = brain->getDisplayPropertiesFiberOrientation();
+    
+    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
+    const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
+    const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
+    CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
+    for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
+        dpfo->setDisplayed(displayGroup, browserTabIndex, m_fileSelectionCheckBoxes[iff]->isChecked());
     }
     
     updateOtherViewControllers();

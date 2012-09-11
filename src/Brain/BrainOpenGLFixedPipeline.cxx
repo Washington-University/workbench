@@ -4686,7 +4686,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             CaretLogSevere(dfe.whatString());
             continue;
         }
-        if (ciftiAdapter->isDisplayed(displayGroup,
+        if (dpfo->isDisplayed(displayGroup,
                                       this->windowTabIndex)) {
             /*
              * Draw each of the fiber orientations which may contain multiple fibers
@@ -4722,57 +4722,65 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                     
                     if (drawIt) {
                         /*
-                         * Convert start of vector from volume space to screen space
-                         */
-                        float startXYZ[3] = {
-                            fiberOrientation->m_xyz[0],
-                            fiberOrientation->m_xyz[1],
-                            fiberOrientation->m_xyz[2]
-                        };
-                        convertVolumeItemXYZToScreenXY(slicePlane,
-                                                       startXYZ);
-                        
-                        /*
-                         * Convert spherical angles to a vector
+                         * Length of vector
                          */
                         float vectorLength = magnitudeMultiplier;
                         if (isDrawWithMagnitude) {
                             vectorLength *= fiber->m_meanF;
                         }
-                        const float phi   = fiber->m_phi;
-                        const float theta = fiber->m_theta;
-                        float vector[3] = {
-                            std::sin(phi) * std::cos(theta),
-                            std::sin(phi) * std::sin(theta),
-                            std::cos(phi)
+                        
+                        /*
+                         * Convert angles to a unit-vector
+                         */
+                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
+                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
+                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
+                        const float unitVector[3] = {
+                            std::sin(azimuth) * std::cos(elevation),
+                            std::cos(azimuth) * std::cos(elevation),
+                            std::sin(elevation)
+                        };
+//                        std::cout
+//                        << "Fiber(" << i << "," << j << "): phi="
+//                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
+//                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
+//                        << MathFunctions::toDegrees(azimuth) << ", el="
+//                        << MathFunctions::toDegrees(elevation) << ", vec=("
+//                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
+//                        << ")"
+//                        << std::endl
+//                        << std::endl;
+                        
+                        /*
+                         * Vector with magnitude
+                         */
+                        const float magnitudeVector[3] = {
+                            unitVector[0] * vectorLength,
+                            unitVector[1] * vectorLength,
+                            unitVector[2] * vectorLength
                         };
                         
                         /*
-                         * Convert end of vector from volume space to screen space
+                         * Start of vector (offset by half vector length
+                         * since vector is bi-directional.
+                         * Convert to screen space.
+                         */
+                        float startXYZ[3] = {
+                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
+                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
+                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
+                        };
+                        
+                        
+                        /*
+                         * End of vector and convert to screen space
                          */
                         float endXYZ[3] = {
-                            fiberOrientation->m_xyz[0] + vector[0] * vectorLength,
-                            fiberOrientation->m_xyz[1] + vector[1] * vectorLength,
-                            fiberOrientation->m_xyz[2] + vector[2] * vectorLength
+                            startXYZ[0] + magnitudeVector[0],
+                            startXYZ[1] + magnitudeVector[1],
+                            startXYZ[2] + magnitudeVector[2]
                         };
-                        convertVolumeItemXYZToScreenXY(slicePlane,
-                                                       endXYZ);
-                        
-                        /*
-                         * Create angle of vector in screen space
-                         */
-                        const float dz = endXYZ[2] - startXYZ[2];
-                        const float dy = endXYZ[1] - startXYZ[1];
-                        const float dx = endXYZ[0] - startXYZ[0];
-                        const float length = std::sqrt(dx*dx + dy*dy + dz*dz);
-                        const float rotation = std::atan2(dy, dx);
-                        glPushMatrix();
-                        
-                        glTranslatef(startXYZ[0], startXYZ[1], startXYZ[2]);
-                        glRotatef(MathFunctions::toDegrees(rotation),
-                                  0.0, 0.0, 1.0);
-                        const float z = startXYZ[2];
-                        
+
                         const float radius = 2.0;
                         setLineWidth(radius);
                         
@@ -4789,9 +4797,9 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                             }
                                 break;
                             case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                rgb[0] = vector[0];
-                                rgb[1] = vector[1];
-                                rgb[2] = vector[2];
+                                rgb[0] = unitVector[0];
+                                rgb[1] = unitVector[1];
+                                rgb[2] = unitVector[2];
                                 break;
                         }
                         glColor3fv(rgb);
@@ -4799,62 +4807,15 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                         /*
                          * Draw the vector
                          */
-                        glScalef(length, length * radius, 1.0);
                         glBegin(GL_LINES);
-                        glVertex3f(-0.5, 0.0, z);
-                        glVertex3f( 0.5, 0.0, z);
+                        glVertex3fv(startXYZ);
+                        glVertex3fv(endXYZ);
                         glEnd();
-                        
-                        glPopMatrix();
                     }
                 }
             }
         }
     }    
-}
-
-/**
- * Convert from volume XYZ to screen XYZ for volume data
- * @param slicePlane
- *     Slice plane being viewed
- * @param xyz
- *     Coordinate that is converted.
- */
-void
-BrainOpenGLFixedPipeline::convertVolumeItemXYZToScreenXY(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                                 float xyz[3])
-{
-    const float zPos = 1.0;
-    float xyzOut[3] = { 0.0, 0.0, 0.0 };
-    switch(slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            return;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-        {
-            xyzOut[0] = xyz[1];
-            xyzOut[1] = xyz[2];
-            xyzOut[2] = xyz[0];
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-        {
-            xyzOut[0] = xyz[0];
-            xyzOut[1] = xyz[2];
-            xyzOut[2] = xyz[1];
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-        {
-            xyzOut[0] = xyz[0];
-            xyzOut[1] = xyz[1];
-            xyzOut[2] = xyz[2];
-        }
-            break;
-    }
-    xyz[0] = xyzOut[0];
-    xyz[1] = xyzOut[1];
-    xyz[2] = zPos;
 }
 
 /**
@@ -4924,7 +4885,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
             CaretLogSevere(dfe.whatString());
             continue;
         }
-        if (ciftiAdapter->isDisplayed(displayGroup,
+        if (dpfo->isDisplayed(displayGroup,
                                       this->windowTabIndex)) {
             /*
              * Draw each of the fiber orientations which may contain multiple fibers
@@ -4964,23 +4925,45 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                         }
                         
                         /*
-                         * Convert angles to a vector
+                         * Convert angles to a unit-vector
                          */
-                        const float phi   = fiber->m_phi;
-                        const float theta = fiber->m_theta;
-                        float vector[3] = {
-                            std::sin(phi) * std::cos(theta),
-                            std::sin(phi) * std::sin(theta),
-                            std::cos(phi)
+                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
+                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
+                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
+                        const float unitVector[3] = {
+                            std::sin(azimuth) * std::cos(elevation),
+                            std::cos(azimuth) * std::cos(elevation),
+                            std::sin(elevation)
+                        };
+                        
+//                        std::cout
+//                        << "Fiber(" << i << "," << j << "): phi="
+//                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
+//                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
+//                        << MathFunctions::toDegrees(azimuth) << ", el="
+//                        << MathFunctions::toDegrees(elevation) << ", vec=("
+//                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
+//                        << ")"
+//                        << std::endl
+//                        << std::endl;
+                        
+                        /*
+                         * Vector with magnitude
+                         */
+                        const float magnitudeVector[3] = {
+                            unitVector[0] * vectorLength,
+                            unitVector[1] * vectorLength,
+                            unitVector[2] * vectorLength
                         };
                         
                         /*
-                         * Start of vector
+                         * Start of vector (offset by half vector length
+                         * since vector is bi-directional.
                          */
                         float startXYZ[3] = {
-                            fiberOrientation->m_xyz[0] * (vector[0] * vectorLength * 0.5),
-                            fiberOrientation->m_xyz[1] * (vector[1] * vectorLength * 0.5),
-                            fiberOrientation->m_xyz[2] * (vector[2] * vectorLength * 0.5)
+                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
+                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
+                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
                         };
                         
                         
@@ -4988,9 +4971,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                          * End of vector
                          */
                         float endXYZ[3] = {
-                            startXYZ[0] + vector[0] * vectorLength,
-                            startXYZ[1] + vector[1] * vectorLength,
-                            startXYZ[2] + vector[2] * vectorLength
+                            startXYZ[0] + magnitudeVector[0],
+                            startXYZ[1] + magnitudeVector[1],
+                            startXYZ[2] + magnitudeVector[2]
                         };
                         
                         /*
@@ -5006,9 +4989,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                             }
                                 break;
                             case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                rgb[0] = vector[0];
-                                rgb[1] = vector[1];
-                                rgb[2] = vector[2];
+                                rgb[0] = unitVector[0];
+                                rgb[1] = unitVector[1];
+                                rgb[2] = unitVector[2];
                                 break;
                         }
                         glColor3fv(rgb);

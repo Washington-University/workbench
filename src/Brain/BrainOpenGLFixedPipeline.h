@@ -202,9 +202,6 @@ namespace caret {
                               const int64_t sliceIndex,
                               VolumeFile* underlayVolume);
         
-        void convertVolumeItemXYZToScreenXY(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                            float xyz[3]);
-        
         void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                  Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);

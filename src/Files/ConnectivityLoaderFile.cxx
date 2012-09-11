@@ -228,6 +228,15 @@ ConnectivityLoaderFile::setup(const AString& path,
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->loaderType = LOADER_TYPE_DENSE_TIME_SERIES;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            this->loaderType = LOADER_TYPE_FIBER_ORIENTATIONS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            this->loaderType = LOADER_TYPE_LABELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            this->loaderType = LOADER_TYPE_SCALARS;
+            break;
         default:
             throw DataFileException("Unsupported connectivity type " 
                                     + DataFileTypeEnum::toName(connectivityFileType));
@@ -432,6 +441,15 @@ ConnectivityLoaderFile::getNumberOfMaps() const
             case LOADER_TYPE_DENSE_TIME_SERIES:
                 numMaps = 1;
                 break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     
@@ -460,6 +478,15 @@ ConnectivityLoaderFile::getMapName(const int32_t /*mapIndex*/) const
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
                 name = "Dense Time Series";
+                break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                name = "Dense Labels";
+                break;
+            case LOADER_TYPE_SCALARS:
+                name = "Dense Scalars";
                 break;
         }
     }
@@ -796,6 +823,15 @@ ConnectivityLoaderFile::getCiftiTypeName() const
         case LOADER_TYPE_DENSE_TIME_SERIES:
             return "Dense Time";
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            return "Fiber Orientations";
+            break;
+        case LOADER_TYPE_LABELS:
+            return "Dense Labels";
+            break;
+        case LOADER_TYPE_SCALARS:
+            return "Dense Scalars";
+            break;
     }
     return "";
 }
@@ -927,7 +963,16 @@ ConnectivityLoaderFile::loadFrame(const int frame) throw (DataFileException)
                 else {
                     CaretLogSevere("FAILED to read column for frame " + AString::number(frame));
                 }
+                break;
             }
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
                 break;
         }
     }
@@ -1024,6 +1069,15 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                     }
                 }*/
             }
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_SCALARS:
+            CaretAssert(0);
             break;
         }
     }
@@ -1173,6 +1227,15 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                 
             }*/
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
@@ -1266,6 +1329,15 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
                 //throw DataFileException("Loading of average time-series data not supported.");
                 break;
             }
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
@@ -1354,6 +1426,15 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 }*/
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
@@ -1445,6 +1526,15 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
                 case LOADER_TYPE_DENSE_TIME_SERIES:
                     useColumnsFlag = true;
                     break;
+                case LOADER_TYPE_FIBER_ORIENTATIONS:
+                    CaretAssert(0);
+                    break;
+                case LOADER_TYPE_LABELS:
+                    CaretAssert(0);
+                    break;
+                case LOADER_TYPE_SCALARS:
+                    CaretAssert(0);
+                    break;
             }
             
             std::vector<CiftiVolumeMap> volumeMap;
@@ -1527,6 +1617,15 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_SCALARS:
+            CaretAssert(0);
+            break;
     }
     
     std::vector<CiftiSurfaceMap> nodeMap;
@@ -1608,6 +1707,15 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_SCALARS:
+            CaretAssert(0);
             break;
     }
     
@@ -1794,6 +1902,15 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_SCALARS:
+            CaretAssert(0);
+            break;
     }
     
     std::vector<CiftiVolumeMap> volumeMaps;
@@ -1976,6 +2093,15 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                 delete [] data;
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
@@ -2041,6 +2167,15 @@ int64_t ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz
                 delete [] data;
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
@@ -2076,6 +2211,15 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
         case LOADER_TYPE_DENSE_TIME_SERIES:
             numNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_SCALARS:
+            CaretAssert(0);
+            break;
     }
     
     return numNodes;
@@ -2101,14 +2245,24 @@ FiberOrientationCiftiAdapter*
 ConnectivityLoaderFile::getFiberOrientationAdapter() throw (DataFileException)
 {
     if (m_fiberOrientationAdapter == NULL) {
-        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
+        bool useTestData = true;
+        if (useTestData) {
+            /*
+             * Note: this test data will leak memory
+             */
             m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
-            m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
+            m_fiberOrientationAdapter->initializeWithTestData();
         }
         else {
-            throw DataFileException("CIFTI file does not contain Fiber Orientations."
-                                    "CIFTI file is: "
-                                    + DataFileTypeEnum::toName(getDataFileType()));
+            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
+                m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+                m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
+            }
+            else {
+                throw DataFileException("CIFTI file does not contain Fiber Orientations."
+                                        "CIFTI file is: "
+                                        + DataFileTypeEnum::toName(getDataFileType()));
+            }
         }
     }
     
