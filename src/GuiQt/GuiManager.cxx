@@ -1004,7 +1004,7 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 {
     if (this->connectomeDatabaseWebView == NULL) {
         this->connectomeDatabaseWebView = new WuQWebView();
-        this->connectomeDatabaseWebView->load(QUrl("https://intradb.humanconnectome.org/"));
+        this->connectomeDatabaseWebView->load(QUrl("https://db.humanconnectome.org/"));
         this->nonModalDialogs.push_back(this->connectomeDatabaseWebView);
     }
     this->connectomeDatabaseWebView->show();
