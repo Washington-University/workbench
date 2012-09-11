@@ -224,10 +224,10 @@ namespace caret {
         enum LoaderType {
             LOADER_TYPE_INVALID,
             LOADER_TYPE_DENSE,
+            LOADER_TYPE_DENSE_LABELS,
+            LOADER_TYPE_DENSE_SCALARS,
             LOADER_TYPE_DENSE_TIME_SERIES,
-            LOADER_TYPE_FIBER_ORIENTATIONS,
-            LOADER_TYPE_LABELS,
-            LOADER_TYPE_SCALARS
+            LOADER_TYPE_FIBER_ORIENTATIONS
         };
         
         enum MapToType {

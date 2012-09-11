@@ -221,21 +221,27 @@ ConnectivityLoaderFile::setup(const AString& path,
 {
     this->clear();
     
+    bool isReadIntoMemory = true;
+    bool isReadableFromNetwork = false;
+    
     switch (connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             this->loaderType = LOADER_TYPE_DENSE;
+            isReadIntoMemory = false;
+            isReadableFromNetwork = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->loaderType = LOADER_TYPE_DENSE_TIME_SERIES;
+            isReadableFromNetwork = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             this->loaderType = LOADER_TYPE_FIBER_ORIENTATIONS;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            this->loaderType = LOADER_TYPE_LABELS;
+            this->loaderType = LOADER_TYPE_DENSE_LABELS;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            this->loaderType = LOADER_TYPE_SCALARS;
+            this->loaderType = LOADER_TYPE_DENSE_SCALARS;
             break;
         default:
             throw DataFileException("Unsupported connectivity type " 
@@ -245,6 +251,11 @@ ConnectivityLoaderFile::setup(const AString& path,
     
     try {
         if (path.startsWith("http")) {
+            if (isReadableFromNetwork == false) {
+                throw DataFileException(path
+                                        + " cannot be read from network.");
+            }
+            
             this->ciftiXnatFile = new CiftiXnat();
             if (username.isEmpty() == false) {
                 this->ciftiXnatFile->setAuthentication(path, username, password);
@@ -254,11 +265,12 @@ ConnectivityLoaderFile::setup(const AString& path,
         }
         else {
             this->ciftiDiskFile = new CiftiFile();
-            if(this->loaderType == LOADER_TYPE_DENSE_TIME_SERIES)
-            {
+            if(isReadIntoMemory) {
                 this->ciftiDiskFile->openFile(path, IN_MEMORY);
             }
-            else this->ciftiDiskFile->openFile(path, ON_DISK);
+            else {
+                this->ciftiDiskFile->openFile(path, ON_DISK);
+            }
 
             this->ciftiInterface = this->ciftiDiskFile;
         } 
@@ -444,10 +456,10 @@ ConnectivityLoaderFile::getNumberOfMaps() const
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -482,10 +494,10 @@ ConnectivityLoaderFile::getMapName(const int32_t /*mapIndex*/) const
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 name = "Dense Labels";
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 name = "Dense Scalars";
                 break;
         }
@@ -826,10 +838,10 @@ ConnectivityLoaderFile::getCiftiTypeName() const
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             return "Fiber Orientations";
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             return "Dense Labels";
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             return "Dense Scalars";
             break;
     }
@@ -968,10 +980,10 @@ ConnectivityLoaderFile::loadFrame(const int frame) throw (DataFileException)
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -1073,10 +1085,10 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             CaretAssert(0);
             break;
         }
@@ -1230,10 +1242,10 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -1332,10 +1344,10 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -1429,10 +1441,10 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -1529,10 +1541,10 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
                 case LOADER_TYPE_FIBER_ORIENTATIONS:
                     CaretAssert(0);
                     break;
-                case LOADER_TYPE_LABELS:
+                case LOADER_TYPE_DENSE_LABELS:
                     CaretAssert(0);
                     break;
-                case LOADER_TYPE_SCALARS:
+                case LOADER_TYPE_DENSE_SCALARS:
                     CaretAssert(0);
                     break;
             }
@@ -1620,10 +1632,10 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             CaretAssert(0);
             break;
     }
@@ -1711,10 +1723,10 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             CaretAssert(0);
             break;
     }
@@ -1905,10 +1917,10 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             CaretAssert(0);
             break;
     }
@@ -2096,10 +2108,10 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -2170,10 +2182,10 @@ int64_t ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz
             case LOADER_TYPE_FIBER_ORIENTATIONS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_LABELS:
+            case LOADER_TYPE_DENSE_LABELS:
                 CaretAssert(0);
                 break;
-            case LOADER_TYPE_SCALARS:
+            case LOADER_TYPE_DENSE_SCALARS:
                 CaretAssert(0);
                 break;
         }
@@ -2214,10 +2226,10 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
         case LOADER_TYPE_FIBER_ORIENTATIONS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_LABELS:
+        case LOADER_TYPE_DENSE_LABELS:
             CaretAssert(0);
             break;
-        case LOADER_TYPE_SCALARS:
+        case LOADER_TYPE_DENSE_SCALARS:
             CaretAssert(0);
             break;
     }
