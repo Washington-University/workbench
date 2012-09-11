@@ -851,8 +851,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    /*
-     * Allow loading of data disable?
+    // Allow loading of data disable?
      
     if (this->dataLoadingEnabled == false) {
         return;
