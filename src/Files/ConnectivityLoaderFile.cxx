@@ -35,6 +35,7 @@
 #include "FastStatistics.h"
 #include "Histogram.h"
 #include "ConnectivityLoaderFile.h"
+#include "FiberOrientationCiftiAdapter.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
@@ -65,7 +66,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->dataLoadingEnabled = true;
     this->yokeEnabled = false;
     this->uniqueID = SystemUtilities::createUniqueID();
-    
+    m_fiberOrientationAdapter = NULL;
     this->setFileName("");
 }
 
@@ -110,6 +111,10 @@ ConnectivityLoaderFile::clearData()
     if (this->connectivityVolumeFile != NULL) {
         delete this->connectivityVolumeFile;
         this->connectivityVolumeFile = NULL;
+    }
+    if (m_fiberOrientationAdapter != NULL) {
+        delete m_fiberOrientationAdapter;
+        m_fiberOrientationAdapter = NULL;
     }
     this->selectedFrame = 0;
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
@@ -2084,3 +2089,31 @@ AString ConnectivityLoaderFile::getMapNameForColumnIndex(const int& index) const
 ///get the map name for an index along a row
 AString ConnectivityLoaderFile::getMapNameForRowIndex(const int& index) const
 { return this->ciftiInterface->getMapNameForRowIndex(index); }
+
+/**
+ * @return The Fiber Orientation adapter for CIFTI files containing
+ * fiber orientations.
+ *
+ * @throws DataFileException
+ *   (1) If the file does not contain fiber orientations.
+ *   (2) There is an error creating the fiber orientation adapter.
+ */
+FiberOrientationCiftiAdapter*
+ConnectivityLoaderFile::getFiberOrientationAdapter() throw (DataFileException)
+{
+    if (m_fiberOrientationAdapter == NULL) {
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
+            m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+            m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
+        }
+        else {
+            throw DataFileException("CIFTI file does not contain Fiber Orientations."
+                                    "CIFTI file is: "
+                                    + DataFileTypeEnum::toName(getDataFileType()));
+        }
+    }
+    
+    return m_fiberOrientationAdapter;
+}
+
+

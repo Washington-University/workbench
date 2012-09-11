@@ -4716,6 +4716,13 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
         ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
         FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+        try {
+            ciftiAdapter = clf->getFiberOrientationAdapter();
+        }
+        catch (const DataFileException& dfe) {
+            CaretLogSevere(dfe.whatString());
+            continue;
+        }
         if (ciftiAdapter->isDisplayed(displayGroup,
                                       this->windowTabIndex)) {
             /*
@@ -4947,6 +4954,13 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
     for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
         ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
         FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+        try {
+            ciftiAdapter = clf->getFiberOrientationAdapter();
+        }
+        catch (const DataFileException& dfe) {
+            CaretLogSevere(dfe.whatString());
+            continue;
+        }
         if (ciftiAdapter->isDisplayed(displayGroup,
                                       this->windowTabIndex)) {
             /*
