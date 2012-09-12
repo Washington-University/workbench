@@ -101,7 +101,7 @@ Plane::triangleIntersectPlane(
                    const float t2[3],
                    const float t3[3],
                    float intersectionPointOut1[3],
-                   float intersectionPointOut2[3])
+                   float intersectionPointOut2[3]) const
 {
     float* intersection = intersectionPointOut1;
     int count = 0;
@@ -133,7 +133,7 @@ Plane::triangleIntersectPlane(
  *
  */
 double
-Plane::absoluteDistanceToPlane(const float p[3])
+Plane::absoluteDistanceToPlane(const float p[3]) const
 {
     double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
     if (dist < 0.0f) dist = -dist;
@@ -147,7 +147,7 @@ Plane::absoluteDistanceToPlane(const float p[3])
  *
  */
 double
-Plane::signedDistanceToPlane(const float p[3])
+Plane::signedDistanceToPlane(const float p[3]) const
 {
     double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
     return dist;
@@ -169,7 +169,7 @@ bool
 Plane::lineSegmentIntersectPlane(
                    const float lp1[3],
                    const float lp2[3],
-                   float intersectionOut[3])
+                   float intersectionOut[3]) const
 {
     /*
      * Ray formed by lp1 ==> lp2 (NOT a unit vector; do not normalize)
