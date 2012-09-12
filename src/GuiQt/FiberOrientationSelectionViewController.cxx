@@ -169,7 +169,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QObject::connect(m_minimumMagnitudeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* magnitudeMultiplierLabel = new QLabel("Magnitude Multiplier");
+    QLabel* magnitudeMultiplierLabel = new QLabel("Length Multiplier");
     m_magnitudeMultiplierSpinBox = new QDoubleSpinBox();
     m_magnitudeMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_magnitudeMultiplierSpinBox->setDecimals(2);
