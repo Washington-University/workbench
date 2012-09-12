@@ -36,6 +36,8 @@
 #include "FiberOrientationSelectionViewController.h"
 #undef __FIBER_ORIENTATION_SELECTION_VIEW_CONTROLLER_DECLARE__
 
+#include <limits>
+
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
