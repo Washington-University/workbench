@@ -29,12 +29,12 @@
 using namespace caret;
 using namespace std;
 
-void caret::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
-{  
+void CiftiXMLWriter::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
+{
+    //use default constructed writing version, which is latest supported...provide modifier to set writing version?
     xml.setAutoFormatting(true);
     xml.writeStartElement("CIFTI");
-    if(rootElement.m_version.length() >0) xml.writeAttribute("Version",rootElement.m_version);
-    else xml.writeAttribute("Version","1.0");
+    xml.writeAttribute("Version", m_writingVersion.toString());
     xml.writeAttribute("NumberOfMatrices",QString::number(rootElement.m_numberOfMatrices));
 
     for(unsigned int i = 0;i<rootElement.m_numberOfMatrices;i++)
@@ -46,7 +46,7 @@ void caret::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootEle
 
 }
 
-void caret::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
+void CiftiXMLWriter::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
 { 
     xml.writeStartElement("Matrix");
     if(matrixElement.m_userMetaData.size() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
@@ -61,7 +61,7 @@ void caret::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &
     xml.writeEndElement();//Matrix
 }
 
-void caret::writeMetaData(QXmlStreamWriter &xml, const map<AString, AString> &metaData)
+void CiftiXMLWriter::writeMetaData(QXmlStreamWriter &xml, const map<AString, AString> &metaData)
 {     
     xml.writeStartElement("MetaData");
 
@@ -74,7 +74,7 @@ void caret::writeMetaData(QXmlStreamWriter &xml, const map<AString, AString> &me
     xml.writeEndElement();
 }
 
-void caret::writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value)
+void CiftiXMLWriter::writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value)
 {     
     xml.writeStartElement("MD");
 
@@ -89,7 +89,7 @@ void caret::writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, con
     xml.writeEndElement();//MD
 }
 
-void caret::writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement)
+void CiftiXMLWriter::writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement)
 {     
     xml.writeStartElement("LabelTable");
 
@@ -101,7 +101,7 @@ void caret::writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabel
     xml.writeEndElement();
 }
 
-void caret::writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label)
+void CiftiXMLWriter::writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label)
 {     
     xml.writeStartElement("Label");
 
@@ -117,7 +117,7 @@ void caret::writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label)
     xml.writeEndElement();
 }
 
-void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap)
+void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap)
 {
     xml.writeStartElement("MatrixIndicesMap");
     //TODO
@@ -149,9 +149,13 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndice
         QString appliesToMatrixDimension, str;
         for(int i = 0;i<lastElement;i++)
         {
-            appliesToMatrixDimension.append(str.sprintf("%d,",matrixIndicesMap.m_appliesToMatrixDimension[i]));
+            int temp = matrixIndicesMap.m_appliesToMatrixDimension[i];
+            if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
+            appliesToMatrixDimension.append(str.sprintf("%d,",temp));
         }
-        appliesToMatrixDimension.append(str.sprintf("%d",matrixIndicesMap.m_appliesToMatrixDimension[lastElement]));
+        int temp = matrixIndicesMap.m_appliesToMatrixDimension[lastElement];
+        if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
+        appliesToMatrixDimension.append(str.sprintf("%d",temp));
         xml.writeAttribute("AppliesToMatrixDimension", appliesToMatrixDimension);
     }
 
@@ -177,7 +181,7 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndice
     xml.writeEndElement();
 }
 
-void caret::writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement &brainModel)
+void CiftiXMLWriter::writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement &brainModel)
 {     
     xml.writeStartElement("BrainModel");
 
@@ -231,7 +235,7 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement 
     xml.writeEndElement();
 }
 
-void caret::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& namedMap)
+void CiftiXMLWriter::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& namedMap)
 {
     xml.writeStartElement("NamedMap");
     xml.writeStartElement("MapName");
@@ -244,7 +248,7 @@ void caret::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& nam
     xml.writeEndElement();
 }
 
-void caret::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel)
+void CiftiXMLWriter::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel)
 {
     xml.writeStartElement("Parcel");
     xml.writeAttribute("Name", parcel.m_parcelName);
@@ -276,7 +280,7 @@ void caret::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel)
     xml.writeEndElement();
 }
 
-void caret::writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElement& parcelNodes)
+void CiftiXMLWriter::writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElement& parcelNodes)
 {
     int numNodes = (int)parcelNodes.m_nodes.size();
     if (numNodes > 0)//don't write empty elements even if they exist in the tree
@@ -293,7 +297,7 @@ void caret::writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElemen
     }
 }
 
-void caret::writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume)
+void CiftiXMLWriter::writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume)
 {     
     xml.writeStartElement("Volume");
 
@@ -307,7 +311,7 @@ void caret::writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume)
     xml.writeEndElement();
 }
 
-void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, const TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void CiftiXMLWriter::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, const TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {     
     xml.writeStartElement("TransformationMatrixVoxelIndicesIJKtoXYZ");
 
@@ -333,13 +337,13 @@ void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml,
 
 }
 
-void caret::getModelTypeString(int modelType, QString &modelTypeString)
+void CiftiXMLWriter::getModelTypeString(int modelType, QString &modelTypeString)
 {
     if(modelType == CIFTI_MODEL_TYPE_SURFACE) modelTypeString = "CIFTI_MODEL_TYPE_SURFACE";
     else if(modelType == CIFTI_MODEL_TYPE_VOXELS) modelTypeString = "CIFTI_MODEL_TYPE_VOXELS";
 }
 
-void caret::getDataSpaceString(int dataSpace, QString &dataSpaceString)
+void CiftiXMLWriter::getDataSpaceString(int dataSpace, QString &dataSpaceString)
 {
     if(dataSpace == NIFTI_XFORM_UNKNOWN) dataSpaceString = "NIFTI_XFORM_UNKNOWN";
     else if(dataSpace == NIFTI_XFORM_SCANNER_ANAT) dataSpaceString = "NIFTI_XFORM_SCANNER_ANAT";
@@ -348,7 +352,7 @@ void caret::getDataSpaceString(int dataSpace, QString &dataSpaceString)
     else if(dataSpace == NIFTI_XFORM_MNI_152) dataSpaceString = "NIFTI_XFORM_MNI_152";
 }
 
-void caret::getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
+void CiftiXMLWriter::getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
 {
     if(unitsXYZ == NIFTI_UNITS_MM) unitsXYZString = "NIFTI_UNITS_MM";
     else if(unitsXYZ == NIFTI_UNITS_MICRON) unitsXYZString = "NIFTI_UNITS_MICRON";

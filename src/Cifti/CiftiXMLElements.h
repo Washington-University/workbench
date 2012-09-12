@@ -35,6 +35,22 @@
 
 namespace caret {
 
+class CiftiVersion
+{
+    int16_t m_major, m_minor;
+public:
+    CiftiVersion();
+    CiftiVersion(const AString& versionString);
+    AString toString() const;
+    bool operator<(const CiftiVersion& rhs) const;
+    bool operator>(const CiftiVersion& rhs) const;
+    bool operator==(const CiftiVersion& rhs) const;
+    bool operator<=(const CiftiVersion& rhs) const;
+    bool operator>=(const CiftiVersion& rhs) const;
+    ///quirk tests
+    bool hasReversedFirstDims() const;
+};
+
 class GiftiLabelTable;
 /*! ModelType */
 enum ModelType {
@@ -183,7 +199,7 @@ public:
 class CiftiRootElement {
 public:
     CiftiRootElement() { m_numberOfMatrices = 0; }
-    AString m_version;/*!<  Version String*/
+    CiftiVersion m_version;/*!<  Version String*/
     unsigned long m_numberOfMatrices;/*!< Number of Matrices*/
     std::vector<CiftiMatrixElement> m_matrices; /*!< Matrices, currently there is only matrix, but future versions may allow for more */
 };

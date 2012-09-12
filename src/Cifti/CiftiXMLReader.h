@@ -30,19 +30,24 @@
 
 namespace caret {
 
-void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement);
-void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement);
-void parseMetaData(QXmlStreamReader &xml, std::map<AString, AString> &matrixElement);
-void parseMetaDataElement(QXmlStreamReader &xml, std::map<AString, AString> &userMetaData);
-void parseLabelTable(QXmlStreamReader &xml, std::vector <CiftiLabelElement> &labelElement);
-void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label);
-void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
-void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel);
-void parseNamedMap(QXmlStreamReader &xml, CiftiNamedMapElement &namedMap, const bool needLabels);
-void parseParcel(QXmlStreamReader &xml, CiftiParcelElement& parcel);
-void parseParcelNodes(QXmlStreamReader &xml, CiftiParcelNodesElement& parcelNodes);
-void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume);
-void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
+    class CiftiXMLReader
+    {
+        CiftiVersion m_readingVersion;
+        void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement);
+        void parseMetaData(QXmlStreamReader &xml, std::map<AString, AString> &matrixElement);
+        void parseMetaDataElement(QXmlStreamReader &xml, std::map<AString, AString> &userMetaData);
+        void parseLabelTable(QXmlStreamReader &xml, std::vector <CiftiLabelElement> &labelElement);
+        void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label);
+        void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
+        void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel);
+        void parseNamedMap(QXmlStreamReader &xml, CiftiNamedMapElement &namedMap, const bool needLabels);
+        void parseParcel(QXmlStreamReader &xml, CiftiParcelElement& parcel);
+        void parseParcelNodes(QXmlStreamReader &xml, CiftiParcelNodesElement& parcelNodes);
+        void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume);
+        void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
+    public:
+        void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement);
+    };
 
 }
 #endif //__CIFTI_XML_READER_H__

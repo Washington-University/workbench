@@ -34,7 +34,7 @@
 using namespace caret;
 using namespace std;
 
-void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
+void CiftiXMLReader::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
 {
     while (!xml.atEnd()  && !xml.hasError()) {
         xml.readNext();
@@ -44,8 +44,11 @@ void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
             QString elementName = xml.name().toString();
             if(elementName == "CIFTI") {
                 QXmlStreamAttributes attributes = xml.attributes();
-                if(attributes.hasAttribute("Version")) rootElement.m_version = attributes.value("Version").toString();
-                else xml.raiseError("Cifti XML Header missing Version String.");
+                if(attributes.hasAttribute("Version"))
+                {
+                    rootElement.m_version = CiftiVersion(attributes.value("Version").toString());
+                    m_readingVersion = rootElement.m_version;
+                } else xml.raiseError("Cifti XML Header missing Version String.");
                 if(attributes.hasAttribute("NumberOfMatrices")) rootElement.m_numberOfMatrices = attributes.value("NumberOfMatrices").toString().toULong();
                 else xml.raiseError("Cifti XML Header missing number of matrices.");
             }
@@ -70,7 +73,7 @@ void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
     }
 }
 
-void caret::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement)
+void CiftiXMLReader::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement)
 {
     QString test = xml.name().toString();
 
@@ -107,7 +110,7 @@ void caret::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrix
         xml.raiseError("Matrix end tag not found.");
 }
 
-void caret::parseMetaData(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
+void CiftiXMLReader::parseMetaData(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
 {
     while (!(xml.isEndElement()  && (xml.name().toString() == "MetaData")) && !xml.hasError()) {// && xml.name() == "MetaData") {
         xml.readNext();
@@ -126,7 +129,7 @@ void caret::parseMetaData(QXmlStreamReader &xml, map<AString, AString> &userMeta
         xml.raiseError("MetaData end tag not found.");
 }
 
-void caret::parseMetaDataElement(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
+void CiftiXMLReader::parseMetaDataElement(QXmlStreamReader &xml, map<AString, AString> &userMetaData)
 {
     QString name;
     QString value;
@@ -174,7 +177,7 @@ void caret::parseMetaDataElement(QXmlStreamReader &xml, map<AString, AString> &u
         xml.raiseError("End element for MD tag not found");
 }
 
-void caret::parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement> &labelTable)
+void CiftiXMLReader::parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement> &labelTable)
 {
     while (!(xml.isEndElement() && (xml.name().toString() == "LabelTable"))&& !xml.hasError()) {// && xml.name() == "Matrix") {
         xml.readNext();
@@ -197,7 +200,7 @@ void caret::parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement
 
 }
 
-void caret::parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
+void CiftiXMLReader::parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
 {
     if(!(xml.name().toString() == "Label")) xml.raiseError("Error parsing Label\n");
     QXmlStreamAttributes attributes = xml.attributes();
@@ -242,7 +245,7 @@ void caret::parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
     }
 }
 
-void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
+void CiftiXMLReader::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
 {
     QXmlStreamAttributes attributes = xml.attributes();
 
@@ -250,9 +253,14 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
     if(attributes.hasAttribute("AppliesToMatrixDimension"))
     {
         QStringList values = attributes.value("AppliesToMatrixDimension").toString().split(',');
-
+        bool ok = false;
         for(int i = 0;i<values.size();i++)
-            matrixIndicesMap.m_appliesToMatrixDimension.push_back(values.at(i).toInt());
+        {
+            int parsed = values.at(i).toInt(&ok);
+            if (!ok || parsed < 0) xml.raiseError("bad value in AppliesToMatrixDimension list: " + values[i]);
+            if (parsed < 2 && m_readingVersion.hasReversedFirstDims()) parsed = 1 - parsed;//in other words, 0 becomes 1 and 1 becomes 0
+            matrixIndicesMap.m_appliesToMatrixDimension.push_back(parsed);
+        }
     }
     else xml.raiseError("MatrixIndicesMap does not contain AppliesToMatrixDimension value\n");
 
@@ -365,7 +373,7 @@ void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapEl
     }
 }
 
-void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel)
+void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel)
 {
     QXmlStreamAttributes attributes = xml.attributes();
 
@@ -480,7 +488,7 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
     }
 }
 
-void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap, const bool needLabels)
+void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap, const bool needLabels)
 {
     bool haveName = false, haveLabelTable = false;
     xml.readNext();
@@ -527,7 +535,7 @@ void caret::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap,
     }
 }
 
-void caret::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parcel)
+void CiftiXMLReader::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parcel)
 {
     QXmlStreamAttributes attributes = xml.attributes();
     if (attributes.hasAttribute("Name"))
@@ -580,7 +588,7 @@ void caret::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parcel)
     }
 }
 
-void caret::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesElement& parcelNodes)
+void CiftiXMLReader::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesElement& parcelNodes)
 {
     QXmlStreamAttributes attributes = xml.attributes();
     if (attributes.hasAttribute("BrainStructure"))
@@ -615,7 +623,7 @@ void caret::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesElement& par
     }
 }
 
-void caret::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
+void CiftiXMLReader::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
 {
     QXmlStreamAttributes attributes = xml.attributes();
 
@@ -651,7 +659,7 @@ void caret::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
     }
 }
 
-void caret::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {
     QXmlStreamAttributes attributes = xml.attributes();
 

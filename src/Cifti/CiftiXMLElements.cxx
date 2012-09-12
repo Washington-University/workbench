@@ -29,6 +29,77 @@
 using namespace caret;
 using namespace std;
 
+CiftiVersion::CiftiVersion()
+{
+    m_major = 1;
+    m_minor = 0;
+}
+
+CiftiVersion::CiftiVersion(const AString& versionString)
+{
+    int result = versionString.indexOf('.');
+    bool ok = false;
+    if (result < 0)
+    {
+        m_minor = 0;
+        m_major = versionString.toShort(&ok);
+    } else {
+        if (result > 0)
+        {
+            m_major = versionString.mid(0, result).toShort(&ok);
+            if (!ok) throw CiftiFileException("improperly formatted version string: " + versionString);
+            m_minor = versionString.mid(result + 1).toShort(&ok);
+        }
+    }
+}
+
+bool CiftiVersion::hasReversedFirstDims() const
+{
+    if (m_major == 1 && m_minor == 0) return true;
+    return false;
+}
+
+bool CiftiVersion::operator<(const CiftiVersion& rhs) const
+{
+    if (m_major < rhs.m_major) return true;
+    if (m_major == rhs.m_major && m_minor < rhs.m_minor) return true;
+    return false;
+}
+
+bool CiftiVersion::operator<=(const CiftiVersion& rhs) const
+{
+    if (m_major < rhs.m_major) return true;
+    if (m_major == rhs.m_major && m_minor <= rhs.m_minor) return true;
+    return false;
+}
+
+bool CiftiVersion::operator==(const CiftiVersion& rhs) const
+{
+    if (m_major == rhs.m_major && m_minor == rhs.m_minor) return true;
+    return false;
+}
+
+bool CiftiVersion::operator>(const caret::CiftiVersion& rhs) const
+{
+    if (m_major > rhs.m_major) return true;
+    if (m_major == rhs.m_major && m_minor > rhs.m_minor) return true;
+    return false;
+}
+
+bool CiftiVersion::operator>=(const caret::CiftiVersion& rhs) const
+{
+    if (m_major > rhs.m_major) return true;
+    if (m_major == rhs.m_major && m_minor >= rhs.m_minor) return true;
+    return false;
+}
+
+AString CiftiVersion::toString() const
+{
+    AString ret = AString::number(m_major);
+    if (m_minor != 0) ret += "." + AString::number(m_minor);
+    return ret;
+}
+
 void CiftiBrainModelElement::setupLookup()
 {
     if (m_modelType == CIFTI_MODEL_TYPE_SURFACE)

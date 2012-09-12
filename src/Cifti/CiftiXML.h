@@ -51,7 +51,7 @@ namespace caret {
         std::vector<CiftiVolumeMap> m_map;
         StructureEnum::Enum m_structure;
     };
-
+    
     class CiftiXML {
     public:
         //TODO create initializers for various types of XML meta data (Dense Connectivity, Dense Time Series, etc)
@@ -67,7 +67,7 @@ namespace caret {
         * Constructor, create class using already existing Cifti xml tree
         * @param xml_root
         */
-        CiftiXML(CiftiRootElement &xml_root) { m_root = xml_root; rootChanged(); }
+        //CiftiXML(CiftiRootElement &xml_root) { m_root = xml_root; rootChanged(); }
         /**
         * Constructor
         *
@@ -113,21 +113,21 @@ namespace caret {
         * readXML, replacing the currently Cifti XML Root, if it exists
         * @param xml_stream
         */
-        void readXML(QXmlStreamReader &xml_stream) { parseCiftiXML(xml_stream,m_root); rootChanged(); }
+        void readXML(QXmlStreamReader &xml_stream) { CiftiXMLReader myReader; myReader.parseCiftiXML(xml_stream,m_root); rootChanged(); }
         /**
         * writeXML
         *
         * write the Cifti XML data to the supplied QString
         * @param text
         */
-        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); writeCiftiXML(xml,m_root);}
+        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root);}
         /**
         * writeXML
         *
         * write the Cifti XML data to the supplied byte array.
         * @param bytes
         */
-        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); writeCiftiXML(xml,m_root);}
+        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root);}
 
         /**
         * setXMLRoot
@@ -135,7 +135,7 @@ namespace caret {
         * set the Cifti XML root
         * @param xml_root
         */
-        void setXMLRoot (CiftiRootElement &xml_root) { m_root = xml_root; rootChanged(); }
+        //void setXMLRoot (CiftiRootElement &xml_root) { m_root = xml_root; rootChanged(); }
         
         /**
         * getXMLRoot
@@ -143,9 +143,9 @@ namespace caret {
         * get a copy of the Cifti XML Root
         * @param xml_root
         */
-        void getXMLRoot (CiftiRootElement &xml_root) const { xml_root = m_root; }
+        //void getXMLRoot (CiftiRootElement &xml_root) const { xml_root = m_root; }
         
-        const AString& getVersion() const;
+        AString getVersion() const { return m_root.m_version.toString(); }
         
         ///get the row index for a node, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
@@ -379,7 +379,8 @@ namespace caret {
         
     protected:
         CiftiRootElement m_root;
-        int m_rowMapIndex, m_colMapIndex;
+        //int m_rowMapIndex, m_colMapIndex;
+        std::vector<int> m_dimToMapLookup;
         
         ///updates the member variables associated with our root, should only be needed after reading from XML
         void rootChanged();
