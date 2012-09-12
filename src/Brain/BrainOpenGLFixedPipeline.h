@@ -272,6 +272,11 @@ namespace caret {
         
         void drawSquare(const float size);
         
+        void drawCone(const float baseXYZ[3],
+                      const float apexXYZ[3],
+                      const float baseRadius,
+                      const float apexRadius);
+        
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,

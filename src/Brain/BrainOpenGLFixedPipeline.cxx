@@ -4661,6 +4661,8 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     }
 
     drawFibers(&plane);
+    disableLighting();
+    
     
 //    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
 //    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
@@ -4842,7 +4844,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
     const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
-    
+    const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
     /*
      * Clipping planes
      */
@@ -4900,6 +4902,17 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     glDisable(GL_CLIP_PLANE4);
     glDisable(GL_CLIP_PLANE5);
     
+    /*
+     * Fans use lighting
+     */
+    switch (symbolType) {
+        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+            enableLighting();
+            break;
+        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+            break;
+    }
+
     /*
      * Draw the vectors from each of the connectivity files
      */
@@ -4993,32 +5006,68 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             unitVector[2] * vectorLength
                         };
                         
+                        const float halfMagnitudeVector[3] = {
+                            magnitudeVector[0] * 0.5,
+                            magnitudeVector[1] * 0.5,
+                            magnitudeVector[2] * 0.5,
+                        };
+                        
                         /*
-                         * Start of vector (offset by half vector length
-                         * since vector is bi-directional.
-                         * Convert to screen space.
+                         * Start of vector
                          */
                         float startXYZ[3] = {
-                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
-                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
-                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
+                            fiberOrientation->m_xyz[0],
+                            fiberOrientation->m_xyz[1],
+                            fiberOrientation->m_xyz[2]
                         };
                         
-                        
                         /*
-                         * End of vector and convert to screen space
+                         * When drawing lines, start of vector is offset by
+                         * have of the vector length since the vector is
+                         * bi-directional.
                          */
-                        float endXYZ[3] = {
-                            startXYZ[0] + magnitudeVector[0],
-                            startXYZ[1] + magnitudeVector[1],
-                            startXYZ[2] + magnitudeVector[2]
-                        };
+                        switch (symbolType) {
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                                break;
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                                startXYZ[0] -= halfMagnitudeVector[0];
+                                startXYZ[1] -= halfMagnitudeVector[1];
+                                startXYZ[2] -= halfMagnitudeVector[2];
+                                break;
+                        }
                         
-                        const float radius = 2.0;
-                        setLineWidth(radius);
                         
                         /*
-                         * Color of vector
+                         * End of vector
+                         */
+                        float endXYZ[3] = { 0.0, 0.0, 0.0 };
+                        float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+                        
+                        /*
+                         * When drawing lines, end point is the start
+                         * plus the vector with magnitude.
+                         * 
+                         * When drawing fans, there are two endpoints
+                         * with the fans starting in the middle.
+                         */
+                        switch (symbolType) {
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                                endXYZ[0] = startXYZ[0] + halfMagnitudeVector[0];
+                                endXYZ[1] = startXYZ[1] + halfMagnitudeVector[1];
+                                endXYZ[2] = startXYZ[2] + halfMagnitudeVector[2];
+                                endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
+                                endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
+                                endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
+                                break;
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                                endXYZ[0] = startXYZ[0] + magnitudeVector[0];
+                                endXYZ[1] = startXYZ[1] + magnitudeVector[1];
+                                endXYZ[2] = startXYZ[2] + magnitudeVector[2];
+                                break;
+                        }
+                        
+                        /*
+                         * Color of fiber
                          */
                         float rgb[3] = { 0.0, 0.0, 0.0 };
                         switch (colorType) {
@@ -5038,12 +5087,30 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                         glColor3fv(rgb);
                         
                         /*
-                         * Draw the vector
+                         * Draw the fiber
                          */
-                        glBegin(GL_LINES);
-                        glVertex3fv(startXYZ);
-                        glVertex3fv(endXYZ);
-                        glEnd();
+                        switch (symbolType) {
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                                drawCone(endXYZ,
+                                         startXYZ,
+                                         5.0,
+                                         0.0);
+                                drawCone(endTwoXYZ,
+                                         startXYZ,
+                                         5.0,
+                                         0.0);
+                                break;
+                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                            {
+                                const float radius = 2.0;
+                                setLineWidth(radius);
+                                glBegin(GL_LINES);
+                                glVertex3fv(startXYZ);
+                                glVertex3fv(endXYZ);
+                                glEnd();
+                            }
+                                break;
+                        }
                     }
                 }
             }
@@ -5059,7 +5126,113 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     if (clipPlanesEnabled[3]) glEnable(GL_CLIP_PLANE3);
     if (clipPlanesEnabled[4]) glEnable(GL_CLIP_PLANE4);
     if (clipPlanesEnabled[5]) glEnable(GL_CLIP_PLANE5);
+}
+
+/**
+ * Draw a cone.
+ *
+ * The base is the 'biggest' end forming a circle.
+ * The apex is the 'smallest' end often with a radius of
+ * zero so that it forms a point.
+ *
+ * If you had an ice cream cone, the ice cream is at the base
+ * and the apex points down.
+ *
+ * @param baseXYZ
+ *    Coordinate at center of base.
+ * @param apexXYZ
+ *    Coordinate at center of apex.
+ * @param baseRadius
+ *    Radius at the base.
+ * @param apexRadius
+ *    Radius at the apex.
+ */
+void
+BrainOpenGLFixedPipeline::drawCone(const float baseXYZ[3],
+                                   const float apexXYZ[3],
+                                   const float baseRadius,
+                                   const float apexRadius)
+{
+    float x1 = apexXYZ[0];
+    float y1 = apexXYZ[1];
+    float z1 = apexXYZ[2];
+    float vx = baseXYZ[0] - x1;
+    float vy = baseXYZ[1] - y1;
+    float vz = baseXYZ[2] - z1;
     
+    float v = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
+    double ax = 0.0f;
+    
+    
+    
+    double zero = 1.0e-3;
+    
+    if (std::abs(vz) < zero) {
+        ax = 57.2957795*std::acos( vx/v ); // rotation angle in x-y plane
+        if ( vx <= 0.0f ) ax = -ax;
+    }
+    else {
+        ax = 57.2957795*std::acos( vz/v ); // rotation angle
+        if ( vz <= 0.0f ) ax = -ax;
+    }
+    
+    glPushMatrix();
+    glTranslatef( x1, y1, z1 );
+
+    float rx = -vy*vz;
+    float ry = vx*vz;
+    
+    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
+        if (vy > 0) {
+            ax = 90;
+        }
+    }
+    
+    if (std::abs(vz) < zero)  {
+        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
+        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
+    }
+    else {
+        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
+    }
+    
+    glPushMatrix();
+    
+    GLUquadric* cylinderQuadric = gluNewQuadric();
+    gluQuadricDrawStyle(cylinderQuadric, GLU_FILL);
+    gluQuadricOrientation(cylinderQuadric, GLU_OUTSIDE);
+    gluQuadricNormals(cylinderQuadric, GLU_SMOOTH);
+    
+    const int numberOfSlices = 4;
+    gluCylinder(cylinderQuadric,
+                apexRadius,
+                baseRadius,
+                v,     // height
+                numberOfSlices,     // subdivisions around Z-axis
+                1);    // subdivisions along Z-axis
+    
+    gluDeleteQuadric(cylinderQuadric);
+    
+    glPopMatrix();
+    
+//    glPushMatrix();
+//    glTranslatef(0.0f, 0.0f, 0.0f);
+//    glScalef(radius, radius, 1.0f);
+//    drawDisk(gl, 1.0f);
+//    glPopMatrix();
+    GLUquadric* diskQuadric = gluNewQuadric();
+    gluQuadricDrawStyle(diskQuadric, GLU_FILL);
+    gluQuadricOrientation(diskQuadric, GLU_OUTSIDE);
+    gluQuadricNormals(diskQuadric, GLU_SMOOTH);
+    
+    glPushMatrix();
+    glTranslatef(0.0, 0.0, v);
+    gluDisk(diskQuadric, 0.0f, baseRadius, numberOfSlices, 1);
+    glPopMatrix();
+    
+    gluDeleteQuadric(diskQuadric);
+    
+    glPopMatrix();
 }
 
 /**
