@@ -95,7 +95,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     tabWidget->addTab(attributesWidget,
                       "Attributes");
     tabWidget->addTab(selectionWidget,
-                      "Selection");
+                      "Files");
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -142,7 +142,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
     
-    QLabel* aboveLimitLabel = new QLabel("Above Limit");
+    QLabel* aboveLimitLabel = new QLabel("Slice Above Limit");
     m_aboveLimitSpinBox = new QDoubleSpinBox();
     m_aboveLimitSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_aboveLimitSpinBox->setDecimals(2);
@@ -151,7 +151,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QObject::connect(m_aboveLimitSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* belowLimitLabel = new QLabel("Below Limit");
+    QLabel* belowLimitLabel = new QLabel("Slice Below Limit");
     m_belowLimitSpinBox = new QDoubleSpinBox();
     m_belowLimitSpinBox->setRange(-std::numeric_limits<float>::max(), 0.0);
     m_belowLimitSpinBox->setDecimals(2);
@@ -174,7 +174,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_magnitudeMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_magnitudeMultiplierSpinBox->setDecimals(2);
     m_magnitudeMultiplierSpinBox->setSingleStep(1.0);
-    m_magnitudeMultiplierSpinBox->setToolTip("Vector lengths are scaled by this value");
+    m_magnitudeMultiplierSpinBox->setToolTip("Fiber lengths are scaled by this value");
     QObject::connect(m_magnitudeMultiplierSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
@@ -182,29 +182,39 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_drawWithMagnitudeComboBox = new WuQTrueFalseComboBox("Yes",
                                                            "No",
                                                            this);
-    m_drawWithMagnitudeComboBox->getWidget()->setToolTip("When drawing vectors, the magnitude is reflected in the length of the fiber");
+    m_drawWithMagnitudeComboBox->getWidget()->setToolTip("When drawing fibers, the magnitude is reflected in the length of the fiber");
     QObject::connect(m_drawWithMagnitudeComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(processAttributesChanges()));
     
     QLabel* coloringTypeLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
-    m_coloringTypeComboBox->getWidget()->setToolTip("Selects method for coloring fibers");
+    m_coloringTypeComboBox->getWidget()->setToolTip("Selects method for assigning the red, green, and blue\n"
+                                                    "color components when drawing fibers");
     QObject::connect(m_coloringTypeComboBox, SIGNAL(itemSelected()),
                      this, SLOT(processAttributesChanges()));
     m_coloringTypeComboBox->setup<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>();
+    
+    QLabel* symbolTypeLabel = new QLabel("Symbol");
+    m_symbolTypeComboBox = new EnumComboBoxTemplate(this);
+    m_symbolTypeComboBox->getWidget()->setToolTip("Selects type of symbol for drawing fibers");
+    QObject::connect(m_symbolTypeComboBox, SIGNAL(itemSelected()),
+                     this, SLOT(processAttributesChanges()));
+    m_symbolTypeComboBox->setup<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>();
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
+    gridLayout->addWidget(coloringTypeLabel, row, 0);
+    gridLayout->addWidget(m_coloringTypeComboBox->getWidget() , row, 1);
+    row++;
+    gridLayout->addWidget(symbolTypeLabel, row, 0);
+    gridLayout->addWidget(m_symbolTypeComboBox->getWidget() , row, 1);
+    row++;
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
+    row++;
     gridLayout->addWidget(drawWithMagnitudeLabel, row, 0);
     gridLayout->addWidget(m_drawWithMagnitudeComboBox->getWidget(), row, 1, Qt::AlignLeft);
-    row++;
-    gridLayout->addWidget(aboveLimitLabel, row, 0);
-    gridLayout->addWidget(m_aboveLimitSpinBox, row, 1);
-    row++;
-    gridLayout->addWidget(belowLimitLabel, row, 0);
-    gridLayout->addWidget(m_belowLimitSpinBox, row, 1);
     row++;
     gridLayout->addWidget(minimumMagnitudeLabel, row, 0);
     gridLayout->addWidget(m_minimumMagnitudeSpinBox , row, 1);
@@ -212,8 +222,14 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(magnitudeMultiplierLabel, row, 0);
     gridLayout->addWidget(m_magnitudeMultiplierSpinBox , row, 1);
     row++;
-    gridLayout->addWidget(coloringTypeLabel, row, 0);
-    gridLayout->addWidget(m_coloringTypeComboBox->getWidget() , row, 1);
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
+    row++;
+    gridLayout->addWidget(aboveLimitLabel, row, 0);
+    gridLayout->addWidget(m_aboveLimitSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(belowLimitLabel, row, 0);
+    gridLayout->addWidget(m_belowLimitSpinBox, row, 1);
+    row++;
     
     gridWidget->setSizePolicy(QSizePolicy::Fixed,
                               QSizePolicy::Fixed);
@@ -274,6 +290,11 @@ FiberOrientationSelectionViewController::processAttributesChanges()
     dpfo->setColoringType(displayGroup,
                           browserTabIndex,
                           coloringType);
+    
+    const FiberOrientationSymbolTypeEnum::Enum symbolType = m_symbolTypeComboBox->getSelectedItem<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>();
+    dpfo->setSymbolType(displayGroup,
+                          browserTabIndex,
+                          symbolType);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -387,6 +408,8 @@ FiberOrientationSelectionViewController::updateViewController()
                                                                      browserTabIndex));
     m_coloringTypeComboBox->setSelectedItem<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>(dpfo->getColoringType(displayGroup,
                                                                                                                                              browserTabIndex));
+    m_symbolTypeComboBox->setSelectedItem<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>(dpfo->getSymbolType(displayGroup,
+                                                                                                                                            browserTabIndex));
 
     m_updateInProgress = false;
 }

@@ -229,8 +229,8 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(135.0);   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+4] = MathFunctions::toRadians(20.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(15.0);   // k2
         fiberData[offset+6] = 0.0;   // psi
         offset += 7;
         
@@ -241,8 +241,8 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians( 45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(-45.0);   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+4] = MathFunctions::toRadians(40);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(20);   // k2
         fiberData[offset+6] = 0.0;   // psi
         offset += 7;
         

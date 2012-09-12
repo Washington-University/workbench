@@ -82,6 +82,7 @@ EventModelYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FiberOrientationColoringTypeEnum.h
+FiberOrientationSymbolTypeEnum.h
 FociColoringTypeEnum.h
 FociDrawingTypeEnum.h
 IdentificationItemDataTypeEnum.h
@@ -158,6 +159,7 @@ EventModelYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FiberOrientationColoringTypeEnum.cxx
+FiberOrientationSymbolTypeEnum.cxx
 FociColoringTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 IdentificationItemDataTypeEnum.cxx

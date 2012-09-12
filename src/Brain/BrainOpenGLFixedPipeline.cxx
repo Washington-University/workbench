@@ -4660,6 +4660,177 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
         return;
     }
 
+    drawFibers(&plane);
+    
+//    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+//    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
+//    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+//        return;
+//    }
+//    const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
+//    const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
+//    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
+//    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
+//    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+//    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
+//
+//    /*
+//     * Draw the vectors from each of the connectivity files
+//     */
+//    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+//    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
+//        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
+//        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+//        try {
+//            ciftiAdapter = clf->getFiberOrientationAdapter();
+//        }
+//        catch (const DataFileException& dfe) {
+//            CaretLogSevere(dfe.whatString());
+//            continue;
+//        }
+//        if (dpfo->isDisplayed(displayGroup,
+//                                      this->windowTabIndex)) {
+//            /*
+//             * Draw each of the fiber orientations which may contain multiple fibers
+//             */
+//            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+//            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
+//                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+//                if (fiberOrientation->isValid() == false) {
+//                    continue;
+//                }
+//                
+//                /*
+//                 * Draw each of the fibers
+//                 */
+//                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+//                for (int64_t j = 0; j < numberOfFibers; j++) {
+//                    const Fiber* fiber = fiberOrientation->m_fibers[j];
+//                    
+//                    /*
+//                     * Apply display properties
+//                     */
+//                    bool drawIt = true;
+//                    const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
+//                    if (distToPlane > aboveLimit) {
+//                        drawIt = false;
+//                    }
+//                    if (distToPlane < belowLimit) {
+//                        drawIt = false;
+//                    }
+//                    if (fiber->m_meanF < minimumMagnitude) {
+//                        drawIt = false;
+//                    }
+//                    
+//                    if (drawIt) {
+//                        /*
+//                         * Length of vector
+//                         */
+//                        float vectorLength = magnitudeMultiplier;
+//                        if (isDrawWithMagnitude) {
+//                            vectorLength *= fiber->m_meanF;
+//                        }
+//                        
+//                        /*
+//                         * Convert angles to a unit-vector
+//                         */
+//                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
+//                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
+//                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
+//                        const float unitVector[3] = {
+//                            std::sin(azimuth) * std::cos(elevation),
+//                            std::cos(azimuth) * std::cos(elevation),
+//                            std::sin(elevation)
+//                        };
+////                        std::cout
+////                        << "Fiber(" << i << "," << j << "): phi="
+////                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
+////                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
+////                        << MathFunctions::toDegrees(azimuth) << ", el="
+////                        << MathFunctions::toDegrees(elevation) << ", vec=("
+////                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
+////                        << ")"
+////                        << std::endl
+////                        << std::endl;
+//                        
+//                        /*
+//                         * Vector with magnitude
+//                         */
+//                        const float magnitudeVector[3] = {
+//                            unitVector[0] * vectorLength,
+//                            unitVector[1] * vectorLength,
+//                            unitVector[2] * vectorLength
+//                        };
+//                        
+//                        /*
+//                         * Start of vector (offset by half vector length
+//                         * since vector is bi-directional.
+//                         * Convert to screen space.
+//                         */
+//                        float startXYZ[3] = {
+//                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
+//                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
+//                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
+//                        };
+//                        
+//                        
+//                        /*
+//                         * End of vector and convert to screen space
+//                         */
+//                        float endXYZ[3] = {
+//                            startXYZ[0] + magnitudeVector[0],
+//                            startXYZ[1] + magnitudeVector[1],
+//                            startXYZ[2] + magnitudeVector[2]
+//                        };
+//
+//                        const float radius = 2.0;
+//                        setLineWidth(radius);
+//                        
+//                        /*
+//                         * Color of vector
+//                         */
+//                        float rgb[3] = { 0.0, 0.0, 0.0 };
+//                        switch (colorType) {
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+//                            {
+//                                const int32_t indx = j % 3;
+//                                CaretAssert((indx >= 0) && (indx < 3));
+//                                rgb[indx] = 1.0;
+//                            }
+//                                break;
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+//                                rgb[0] = unitVector[0];
+//                                rgb[1] = unitVector[1];
+//                                rgb[2] = unitVector[2];
+//                                break;
+//                        }
+//                        glColor3fv(rgb);
+//                        
+//                        /*
+//                         * Draw the vector
+//                         */
+//                        glBegin(GL_LINES);
+//                        glVertex3fv(startXYZ);
+//                        glVertex3fv(endXYZ);
+//                        glEnd();
+//                    }
+//                }
+//            }
+//        }
+//    }    
+}
+
+/**
+ * Draw fibers for a surface or a volume.
+ *
+ * @param plane
+ *    If not NULL, it is the plane of the volume slice being drawn and
+ *    only fibers within the above and below limits from the plane will
+ *    be drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
+{
     const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
     if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
@@ -4671,169 +4842,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
     const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
-
-    /*
-     * Draw the vectors from each of the connectivity files
-     */
-    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
-    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
-        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
-        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
-        try {
-            ciftiAdapter = clf->getFiberOrientationAdapter();
-        }
-        catch (const DataFileException& dfe) {
-            CaretLogSevere(dfe.whatString());
-            continue;
-        }
-        if (dpfo->isDisplayed(displayGroup,
-                                      this->windowTabIndex)) {
-            /*
-             * Draw each of the fiber orientations which may contain multiple fibers
-             */
-            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
-            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
-                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
-                if (fiberOrientation->isValid() == false) {
-                    continue;
-                }
-                
-                /*
-                 * Draw each of the fibers
-                 */
-                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
-                for (int64_t j = 0; j < numberOfFibers; j++) {
-                    const Fiber* fiber = fiberOrientation->m_fibers[j];
-                    
-                    /*
-                     * Apply display properties
-                     */
-                    bool drawIt = true;
-                    const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
-                    if (distToPlane > aboveLimit) {
-                        drawIt = false;
-                    }
-                    if (distToPlane < belowLimit) {
-                        drawIt = false;
-                    }
-                    if (fiber->m_meanF < minimumMagnitude) {
-                        drawIt = false;
-                    }
-                    
-                    if (drawIt) {
-                        /*
-                         * Length of vector
-                         */
-                        float vectorLength = magnitudeMultiplier;
-                        if (isDrawWithMagnitude) {
-                            vectorLength *= fiber->m_meanF;
-                        }
-                        
-                        /*
-                         * Convert angles to a unit-vector
-                         */
-                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
-                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
-                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
-                        const float unitVector[3] = {
-                            std::sin(azimuth) * std::cos(elevation),
-                            std::cos(azimuth) * std::cos(elevation),
-                            std::sin(elevation)
-                        };
-//                        std::cout
-//                        << "Fiber(" << i << "," << j << "): phi="
-//                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
-//                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
-//                        << MathFunctions::toDegrees(azimuth) << ", el="
-//                        << MathFunctions::toDegrees(elevation) << ", vec=("
-//                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
-//                        << ")"
-//                        << std::endl
-//                        << std::endl;
-                        
-                        /*
-                         * Vector with magnitude
-                         */
-                        const float magnitudeVector[3] = {
-                            unitVector[0] * vectorLength,
-                            unitVector[1] * vectorLength,
-                            unitVector[2] * vectorLength
-                        };
-                        
-                        /*
-                         * Start of vector (offset by half vector length
-                         * since vector is bi-directional.
-                         * Convert to screen space.
-                         */
-                        float startXYZ[3] = {
-                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
-                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
-                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
-                        };
-                        
-                        
-                        /*
-                         * End of vector and convert to screen space
-                         */
-                        float endXYZ[3] = {
-                            startXYZ[0] + magnitudeVector[0],
-                            startXYZ[1] + magnitudeVector[1],
-                            startXYZ[2] + magnitudeVector[2]
-                        };
-
-                        const float radius = 2.0;
-                        setLineWidth(radius);
-                        
-                        /*
-                         * Color of vector
-                         */
-                        float rgb[3] = { 0.0, 0.0, 0.0 };
-                        switch (colorType) {
-                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                            {
-                                const int32_t indx = j % 3;
-                                CaretAssert((indx >= 0) && (indx < 3));
-                                rgb[indx] = 1.0;
-                            }
-                                break;
-                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                rgb[0] = unitVector[0];
-                                rgb[1] = unitVector[1];
-                                rgb[2] = unitVector[2];
-                                break;
-                        }
-                        glColor3fv(rgb);
-                        
-                        /*
-                         * Draw the vector
-                         */
-                        glBegin(GL_LINES);
-                        glVertex3fv(startXYZ);
-                        glVertex3fv(endXYZ);
-                        glEnd();
-                    }
-                }
-            }
-        }
-    }    
-}
-
-/**
- * Draw fiber orientations on surface models.
- */
-void
-BrainOpenGLFixedPipeline::drawSurfaceFibers()
-{
-    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
-    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
-    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
-        return;
-    }
-    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
-    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
-    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
-    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
-
+    
     /*
      * Clipping planes
      */
@@ -4872,6 +4881,26 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
     }
     
     /*
+     * Save status of clipping and disable clipping.
+     * For fibers, the entire fiber symbol is displayed if its
+     * origin is within the clipping planes which is tested below.
+     */
+    GLboolean clipPlanesEnabled[6] = {
+        glIsEnabled(GL_CLIP_PLANE0),
+        glIsEnabled(GL_CLIP_PLANE1),
+        glIsEnabled(GL_CLIP_PLANE2),
+        glIsEnabled(GL_CLIP_PLANE3),
+        glIsEnabled(GL_CLIP_PLANE4),
+        glIsEnabled(GL_CLIP_PLANE5)
+    };
+    glDisable(GL_CLIP_PLANE0);
+    glDisable(GL_CLIP_PLANE1);
+    glDisable(GL_CLIP_PLANE2);
+    glDisable(GL_CLIP_PLANE3);
+    glDisable(GL_CLIP_PLANE4);
+    glDisable(GL_CLIP_PLANE5);
+    
+    /*
      * Draw the vectors from each of the connectivity files
      */
     const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
@@ -4886,7 +4915,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
             continue;
         }
         if (dpfo->isDisplayed(displayGroup,
-                                      this->windowTabIndex)) {
+                              this->windowTabIndex)) {
             /*
              * Draw each of the fiber orientations which may contain multiple fibers
              */
@@ -4905,9 +4934,18 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                     const Fiber* fiber = fiberOrientation->m_fibers[j];
                     
                     /*
-                     * Apply display properties and clipping
+                     * Apply display properties
                      */
                     bool drawIt = true;
+                    if (plane != NULL) {
+                        const float distToPlane = plane->signedDistanceToPlane(fiberOrientation->m_xyz);
+                        if (distToPlane > aboveLimit) {
+                            drawIt = false;
+                        }
+                        if (distToPlane < belowLimit) {
+                            drawIt = false;
+                        }
+                    }
                     if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
                         drawIt = false;
                     }
@@ -4935,17 +4973,16 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                             std::cos(azimuth) * std::cos(elevation),
                             std::sin(elevation)
                         };
-                        
-//                        std::cout
-//                        << "Fiber(" << i << "," << j << "): phi="
-//                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
-//                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
-//                        << MathFunctions::toDegrees(azimuth) << ", el="
-//                        << MathFunctions::toDegrees(elevation) << ", vec=("
-//                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
-//                        << ")"
-//                        << std::endl
-//                        << std::endl;
+                        //                        std::cout
+                        //                        << "Fiber(" << i << "," << j << "): phi="
+                        //                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
+                        //                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
+                        //                        << MathFunctions::toDegrees(azimuth) << ", el="
+                        //                        << MathFunctions::toDegrees(elevation) << ", vec=("
+                        //                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
+                        //                        << ")"
+                        //                        << std::endl
+                        //                        << std::endl;
                         
                         /*
                          * Vector with magnitude
@@ -4959,6 +4996,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                         /*
                          * Start of vector (offset by half vector length
                          * since vector is bi-directional.
+                         * Convert to screen space.
                          */
                         float startXYZ[3] = {
                             fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
@@ -4968,13 +5006,16 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                         
                         
                         /*
-                         * End of vector
+                         * End of vector and convert to screen space
                          */
                         float endXYZ[3] = {
                             startXYZ[0] + magnitudeVector[0],
                             startXYZ[1] + magnitudeVector[1],
                             startXYZ[2] + magnitudeVector[2]
                         };
+                        
+                        const float radius = 2.0;
+                        setLineWidth(radius);
                         
                         /*
                          * Color of vector
@@ -4996,9 +5037,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
                         }
                         glColor3fv(rgb);
                         
-                        const float radius = 2.0;
-                        setLineWidth(radius);
-                        
                         /*
                          * Draw the vector
                          */
@@ -5011,6 +5049,221 @@ BrainOpenGLFixedPipeline::drawSurfaceFibers()
             }
         }
     }
+    
+    /*
+     * Restore status of clipping planes enabled
+     */
+    if (clipPlanesEnabled[0]) glEnable(GL_CLIP_PLANE0);
+    if (clipPlanesEnabled[1]) glEnable(GL_CLIP_PLANE1);
+    if (clipPlanesEnabled[2]) glEnable(GL_CLIP_PLANE2);
+    if (clipPlanesEnabled[3]) glEnable(GL_CLIP_PLANE3);
+    if (clipPlanesEnabled[4]) glEnable(GL_CLIP_PLANE4);
+    if (clipPlanesEnabled[5]) glEnable(GL_CLIP_PLANE5);
+    
+}
+
+/**
+ * Draw fiber orientations on surface models.
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceFibers()
+{
+    drawFibers(NULL);
+    
+//    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+//    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
+//    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+//        return;
+//    }
+//    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
+//    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
+//    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+//    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
+//    const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
+//
+//    /*
+//     * Clipping planes
+//     */
+//    BoundingBox clippingBoundingBox;
+//    clippingBoundingBox.resetWithMaximumExtent();
+//    
+//    if (browserTabContent->isClippingPlaneEnabled(0)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                + halfThick);
+//        clippingBoundingBox.setMinX(minValue);
+//        clippingBoundingBox.setMaxX(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(1)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                + halfThick);
+//        clippingBoundingBox.setMinY(minValue);
+//        clippingBoundingBox.setMaxY(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(2)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                + halfThick);
+//        clippingBoundingBox.setMinZ(minValue);
+//        clippingBoundingBox.setMaxZ(maxValue);
+//    }
+//    
+//    /*
+//     * Draw the vectors from each of the connectivity files
+//     */
+//    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+//    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
+//        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
+//        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+//        try {
+//            ciftiAdapter = clf->getFiberOrientationAdapter();
+//        }
+//        catch (const DataFileException& dfe) {
+//            CaretLogSevere(dfe.whatString());
+//            continue;
+//        }
+//        if (dpfo->isDisplayed(displayGroup,
+//                                      this->windowTabIndex)) {
+//            /*
+//             * Draw each of the fiber orientations which may contain multiple fibers
+//             */
+//            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+//            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
+//                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+//                if (fiberOrientation->isValid() == false) {
+//                    continue;
+//                }
+//                
+//                /*
+//                 * Draw each of the fibers
+//                 */
+//                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+//                for (int64_t j = 0; j < numberOfFibers; j++) {
+//                    const Fiber* fiber = fiberOrientation->m_fibers[j];
+//                    
+//                    /*
+//                     * Apply display properties and clipping
+//                     */
+//                    bool drawIt = true;
+//                    if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
+//                        drawIt = false;
+//                    }
+//                    if (fiber->m_meanF < minimumMagnitude) {
+//                        drawIt = false;
+//                    }
+//                    
+//                    if (drawIt) {
+//                        /*
+//                         * Length of vector
+//                         */
+//                        float vectorLength = magnitudeMultiplier;
+//                        if (isDrawWithMagnitude) {
+//                            vectorLength *= fiber->m_meanF;
+//                        }
+//                        
+//                        /*
+//                         * Convert angles to a unit-vector
+//                         */
+//                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
+//                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
+//                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
+//                        const float unitVector[3] = {
+//                            std::sin(azimuth) * std::cos(elevation),
+//                            std::cos(azimuth) * std::cos(elevation),
+//                            std::sin(elevation)
+//                        };
+//                        
+////                        std::cout
+////                        << "Fiber(" << i << "," << j << "): phi="
+////                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
+////                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
+////                        << MathFunctions::toDegrees(azimuth) << ", el="
+////                        << MathFunctions::toDegrees(elevation) << ", vec=("
+////                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
+////                        << ")"
+////                        << std::endl
+////                        << std::endl;
+//                        
+//                        /*
+//                         * Vector with magnitude
+//                         */
+//                        const float magnitudeVector[3] = {
+//                            unitVector[0] * vectorLength,
+//                            unitVector[1] * vectorLength,
+//                            unitVector[2] * vectorLength
+//                        };
+//                        
+//                        /*
+//                         * Start of vector (offset by half vector length
+//                         * since vector is bi-directional.
+//                         */
+//                        float startXYZ[3] = {
+//                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
+//                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
+//                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
+//                        };
+//                        
+//                        
+//                        /*
+//                         * End of vector
+//                         */
+//                        float endXYZ[3] = {
+//                            startXYZ[0] + magnitudeVector[0],
+//                            startXYZ[1] + magnitudeVector[1],
+//                            startXYZ[2] + magnitudeVector[2]
+//                        };
+//                        
+//                        /*
+//                         * Color of vector
+//                         */
+//                        float rgb[3] = { 0.0, 0.0, 0.0 };
+//                        switch (colorType) {
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+//                            {
+//                                const int32_t indx = j % 3;
+//                                CaretAssert((indx >= 0) && (indx < 3));
+//                                rgb[indx] = 1.0;
+//                            }
+//                                break;
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+//                                rgb[0] = unitVector[0];
+//                                rgb[1] = unitVector[1];
+//                                rgb[2] = unitVector[2];
+//                                break;
+//                        }
+//                        glColor3fv(rgb);
+//                        
+//                        const float radius = 2.0;
+//                        setLineWidth(radius);
+//                        
+//                        /*
+//                         * Draw the vector
+//                         */
+//                        switch (symbolType) {
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+//                                break;
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+//                                glBegin(GL_LINES);
+//                                glVertex3fv(startXYZ);
+//                                glVertex3fv(endXYZ);
+//                                glEnd();
+//                                break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 

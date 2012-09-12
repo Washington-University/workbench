@@ -75,6 +75,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_drawWithMagnitudeInTab[i] = true;
         m_magnitudeMultiplierInTab[i] = 10.0;
         m_fiberColoringTypeInTab[i] = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
+        m_fiberSymbolTypeInTab[i] = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -85,6 +86,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_drawWithMagnitudeInDisplayGroup[i] = true;
         m_magnitudeMultiplierInDisplayGroup[i] = 10.0;
         m_fiberColoringTypeInDisplayGroup[i] = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
+        m_fiberSymbolTypeInDisplayGroup[i] = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
     }
 
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -104,6 +106,11 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                                                                                          m_fiberColoringTypeInDisplayGroup,
                                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS,
                                                                                                          FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB);
+    
+    m_sceneAssistant->addArray<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>("m_fiberSymbolTypeInDisplayGroup",
+                                                                                                         m_fiberSymbolTypeInDisplayGroup,
+                                                                                                         DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                                                         FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES);
     
     m_sceneAssistant->addArray("m_displayStatusInDisplayGroup",
                                m_displayStatusInDisplayGroup,
@@ -131,6 +138,8 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                m_magnitudeMultiplierInDisplayGroup[0]);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_fiberColoringTypeInTab",
                                                                                                            m_fiberColoringTypeInTab);
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>("m_fiberSymbolTypeInTab",
+                                                                                                                                 m_fiberSymbolTypeInTab);
 }
 
 /**
@@ -567,6 +576,57 @@ DisplayPropertiesFiberOrientation::setColoringType(const DisplayGroupEnum::Enum 
     }
     else {
         m_fiberColoringTypeInDisplayGroup[displayGroup] = coloringType;
+    }
+}
+
+/**
+ * @return The symbol type.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+FiberOrientationSymbolTypeEnum::Enum
+DisplayPropertiesFiberOrientation::getSymbolType(const DisplayGroupEnum::Enum  displayGroup,
+                                                   const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_fiberSymbolTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_fiberSymbolTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_fiberSymbolTypeInTab[tabIndex];
+    }
+    return m_fiberSymbolTypeInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the symbol type to the given value.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param symbolType
+ *     New value for symbol type.
+ */
+void
+DisplayPropertiesFiberOrientation::setSymbolType(const DisplayGroupEnum::Enum  displayGroup,
+                                                   const int32_t tabIndex,
+                                                   const FiberOrientationSymbolTypeEnum::Enum symbolType)
+{
+    CaretAssertArrayIndex(m_fiberSymbolTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_fiberSymbolTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_fiberSymbolTypeInTab[tabIndex] = symbolType;
+    }
+    else {
+        m_fiberSymbolTypeInDisplayGroup[displayGroup] = symbolType;
     }
 }
 

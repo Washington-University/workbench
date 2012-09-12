@@ -100,6 +100,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_coloringTypeComboBox;
         
+        EnumComboBoxTemplate* m_symbolTypeComboBox;
+        
         WuQTrueFalseComboBox* m_drawWithMagnitudeComboBox;
         
         QVBoxLayout* m_selectionWidgetLayout;

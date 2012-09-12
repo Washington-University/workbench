@@ -50,6 +50,7 @@ namespace caret {
     class IdentificationItem;
     class IdentificationManager;
     class IdentificationWithColor;
+    class Plane;
     class Surface;
     class Model;
     class ModelSurface;
@@ -161,6 +162,8 @@ namespace caret {
         void drawSurfaceNormalVectors(const Surface* surface);
         
         void drawSurfaceFibers();
+        
+        void drawFibers(const Plane* plane);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeController,

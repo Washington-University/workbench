@@ -38,6 +38,7 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "FiberOrientationColoringTypeEnum.h"
+#include "FiberOrientationSymbolTypeEnum.h"
 
 namespace caret {
 
@@ -111,6 +112,13 @@ namespace caret {
                             const int32_t tabIndex,
                             const FiberOrientationColoringTypeEnum::Enum coloringType);        
         
+        FiberOrientationSymbolTypeEnum::Enum getSymbolType(const DisplayGroupEnum::Enum displayGroup,
+                                                               const int32_t tabIndex) const;
+        
+        void setSymbolType(const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
+                             const FiberOrientationSymbolTypeEnum::Enum symbolType);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -151,6 +159,10 @@ namespace caret {
         
         FiberOrientationColoringTypeEnum::Enum m_fiberColoringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
                 
+        FiberOrientationSymbolTypeEnum::Enum m_fiberSymbolTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        FiberOrientationSymbolTypeEnum::Enum m_fiberSymbolTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
     };
     
 #ifdef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
