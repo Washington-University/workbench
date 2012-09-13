@@ -277,6 +277,24 @@ namespace caret {
                       const float baseRadius,
                       const float apexRadius);
         
+        void drawEllipticalCone(const float baseXYZ[3],
+                                const float apexXYZ[3],
+                                const float baseMajorAngle,
+                                const float baseMinorAngle,
+                                const float baseRotationAngle);
+        
+        void drawEllipticalConeOLD(const float baseXYZ[3],
+                                const float apexXYZ[3],
+                                const float baseMajorAngle,
+                                const float baseMinorAngle,
+                                const float baseRotationAngle);
+        
+        void drawEllipticalConeOLDTWO(const float baseXYZ[3],
+                                   const float apexXYZ[3],
+                                   const float baseMajorAngle,
+                                   const float baseMinorAngle,
+                                   const float baseRotationAngle);
+        
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,
