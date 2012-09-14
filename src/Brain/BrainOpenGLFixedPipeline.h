@@ -282,19 +282,7 @@ namespace caret {
                                 const float baseMajorAngle,
                                 const float baseMinorAngle,
                                 const float baseRotationAngle,
-                                const bool secondFlag);
-        
-        void drawEllipticalConeOLD(const float baseXYZ[3],
-                                const float apexXYZ[3],
-                                const float baseMajorAngle,
-                                const float baseMinorAngle,
-                                const float baseRotationAngle);
-        
-        void drawEllipticalConeOLDTWO(const float baseXYZ[3],
-                                   const float apexXYZ[3],
-                                   const float baseMajorAngle,
-                                   const float baseMinorAngle,
-                                   const float baseRotationAngle);
+                                const bool backwardsFlag);
         
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
