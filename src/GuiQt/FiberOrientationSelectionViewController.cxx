@@ -169,13 +169,13 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QObject::connect(m_minimumMagnitudeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* magnitudeMultiplierLabel = new QLabel("Length Multiplier");
-    m_magnitudeMultiplierSpinBox = new QDoubleSpinBox();
-    m_magnitudeMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
-    m_magnitudeMultiplierSpinBox->setDecimals(2);
-    m_magnitudeMultiplierSpinBox->setSingleStep(1.0);
-    m_magnitudeMultiplierSpinBox->setToolTip("Fiber lengths are scaled by this value");
-    QObject::connect(m_magnitudeMultiplierSpinBox, SIGNAL(valueChanged(double)),
+    QLabel* lengthMultiplierLabel = new QLabel("Length Multiplier");
+    m_lengthMultiplierSpinBox = new QDoubleSpinBox();
+    m_lengthMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
+    m_lengthMultiplierSpinBox->setDecimals(2);
+    m_lengthMultiplierSpinBox->setSingleStep(1.0);
+    m_lengthMultiplierSpinBox->setToolTip("Fiber lengths are scaled by this value");
+    QObject::connect(m_lengthMultiplierSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     QLabel* drawWithMagnitudeLabel = new QLabel("Draw With Magnitude");
@@ -219,8 +219,8 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(minimumMagnitudeLabel, row, 0);
     gridLayout->addWidget(m_minimumMagnitudeSpinBox , row, 1);
     row++;
-    gridLayout->addWidget(magnitudeMultiplierLabel, row, 0);
-    gridLayout->addWidget(m_magnitudeMultiplierSpinBox , row, 1);
+    gridLayout->addWidget(lengthMultiplierLabel, row, 0);
+    gridLayout->addWidget(m_lengthMultiplierSpinBox , row, 1);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
@@ -278,9 +278,9 @@ FiberOrientationSelectionViewController::processAttributesChanges()
                         browserTabIndex,
                         m_minimumMagnitudeSpinBox->value());
     
-    dpfo->setMagnitudeMultiplier(displayGroup,
+    dpfo->setLengthMultiplier(displayGroup,
                         browserTabIndex,
-                        m_magnitudeMultiplierSpinBox->value());
+                        m_lengthMultiplierSpinBox->value());
     
     dpfo->setDrawWithMagnitude(displayGroup,
                                browserTabIndex,
@@ -400,7 +400,7 @@ FiberOrientationSelectionViewController::updateViewController()
                                                       browserTabIndex));
     m_belowLimitSpinBox->setValue(dpfo->getBelowLimit(displayGroup,
                                                       browserTabIndex));
-    m_magnitudeMultiplierSpinBox->setValue(dpfo->getMagnitudeMultiplier(displayGroup,
+    m_lengthMultiplierSpinBox->setValue(dpfo->getLengthMultiplier(displayGroup,
                                                       browserTabIndex));
     m_minimumMagnitudeSpinBox->setValue(dpfo->getMinimumMagnitude(displayGroup,
                                                       browserTabIndex));

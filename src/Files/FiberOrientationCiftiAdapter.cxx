@@ -160,8 +160,8 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
         fiberData[offset+3] = 0.0;   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+4] = MathFunctions::toRadians(30.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(20.0);   // k2
         fiberData[offset+6] = 0.0;   // psi
         offset += 7;
 
@@ -172,9 +172,9 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(90.0);   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
-        fiberData[offset+6] = 0.0;   // psi
+        fiberData[offset+4] = MathFunctions::toRadians(50.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(10.0);   // k2
+        fiberData[offset+6] = MathFunctions::toRadians(20.0);   // psi
         offset += 7;
 
         /*
@@ -184,9 +184,9 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = 0.0; // theta
         fiberData[offset+3] = 0.0;   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
-        fiberData[offset+6] = 0.0;   // psi
+        fiberData[offset+4] = MathFunctions::toRadians(20.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(10.0);   // k2
+        fiberData[offset+6] = MathFunctions::toRadians(70.0);   // psi
         offset += 7;
         
         FiberOrientation* fiberOrientation = new FiberOrientation(3,
@@ -202,11 +202,11 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         
         /*
          * Coordinate of fiber orientation
-         * Slices (203, 56, 124) of ParcellationPilot_AverageT1w.nii.gz
+         * Slices (203, 26, 124) of ParcellationPilot_AverageT1w.nii.gz
          * lateral and posterior of ParcellationPilot.L.midthickness.32k_fs_LR.surf.gii
          */
         fiberData[offset+0] = -60.8;
-        fiberData[offset+1] = -72.8;
+        fiberData[offset+1] = -96.8;
         fiberData[offset+2] = -2.4;
         offset += 3;
         
@@ -217,8 +217,8 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(45.0);   // phi
-        fiberData[offset+4] = 1.0;   // k1
-        fiberData[offset+5] = 1.0;   // k2
+        fiberData[offset+4] = MathFunctions::toRadians(40.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(10.0);   // k2
         fiberData[offset+6] = 0.0;   // psi
         offset += 7;
         
@@ -241,9 +241,9 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians( 45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(-45.0);   // phi
-        fiberData[offset+4] = MathFunctions::toRadians(40);   // k1
-        fiberData[offset+5] = MathFunctions::toRadians(20);   // k2
-        fiberData[offset+6] = 0.0;   // psi
+        fiberData[offset+4] = MathFunctions::toRadians(40.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(20.0);   // k2
+        fiberData[offset+6] = MathFunctions::toRadians(25.0);   // psi
         offset += 7;
         
         FiberOrientation* fiberOrientation = new FiberOrientation(3,

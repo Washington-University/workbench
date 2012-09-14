@@ -98,12 +98,12 @@ namespace caret {
                           const int32_t tabIndex,
                           const float minimumMagnitude);
         
-        float getMagnitudeMultiplier(const DisplayGroupEnum::Enum displayGroup,
+        float getLengthMultiplier(const DisplayGroupEnum::Enum displayGroup,
                                   const int32_t tabIndex) const;
         
-        void setMagnitudeMultiplier(const DisplayGroupEnum::Enum displayGroup,
+        void setLengthMultiplier(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex,
-                                 const float magnitudeMultiplier);
+                                 const float lengthMultiplier);
         
         FiberOrientationColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup,
                                                    const int32_t tabIndex) const;
@@ -151,9 +151,9 @@ namespace caret {
         
         bool m_drawWithMagnitudeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_magnitudeMultiplierInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_lengthMultiplierInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        float m_magnitudeMultiplierInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_lengthMultiplierInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         FiberOrientationColoringTypeEnum::Enum m_fiberColoringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

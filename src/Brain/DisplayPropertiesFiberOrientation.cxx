@@ -66,27 +66,35 @@ using namespace caret;
 DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brain)
 : DisplayProperties(brain)
 {
+    const float aboveLimit = 1.05;
+    const float belowLimit = -1.05;
+    const float minimumMagnitude = 0.05;
+    const bool drawWithMagnitude = true;
+    const float lengthMultiplier = 3.0;
+    const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
+    const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS;
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
         m_displayStatusInTab[i] = false;
-        m_aboveLimitInTab[i] = 1.05;
-        m_belowLimitInTab[i] = -1.05;
-        m_minimumMagnitudeInTab[i] = 0.05;
-        m_drawWithMagnitudeInTab[i] = true;
-        m_magnitudeMultiplierInTab[i] = 10.0;
-        m_fiberColoringTypeInTab[i] = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
-        m_fiberSymbolTypeInTab[i] = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
+        m_aboveLimitInTab[i] = aboveLimit;
+        m_belowLimitInTab[i] = belowLimit;
+        m_minimumMagnitudeInTab[i] = minimumMagnitude;
+        m_drawWithMagnitudeInTab[i] = drawWithMagnitude;
+        m_lengthMultiplierInTab[i] = lengthMultiplier;
+        m_fiberColoringTypeInTab[i] = coloringType;
+        m_fiberSymbolTypeInTab[i] = symbolType;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = false;
-        m_aboveLimitInDisplayGroup[i] = 1.05;
-        m_belowLimitInDisplayGroup[i] = -1.05;
-        m_minimumMagnitudeInDisplayGroup[i] = 0.05;
-        m_drawWithMagnitudeInDisplayGroup[i] = true;
-        m_magnitudeMultiplierInDisplayGroup[i] = 10.0;
-        m_fiberColoringTypeInDisplayGroup[i] = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
-        m_fiberSymbolTypeInDisplayGroup[i] = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
+        m_aboveLimitInDisplayGroup[i] = aboveLimit;
+        m_belowLimitInDisplayGroup[i] = belowLimit;
+        m_minimumMagnitudeInDisplayGroup[i] = minimumMagnitude;
+        m_drawWithMagnitudeInDisplayGroup[i] = drawWithMagnitude;
+        m_lengthMultiplierInDisplayGroup[i] = lengthMultiplier;
+        m_fiberColoringTypeInDisplayGroup[i] = coloringType;
+        m_fiberSymbolTypeInDisplayGroup[i] = symbolType;
     }
 
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -100,8 +108,8 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                               m_minimumMagnitudeInTab);
     m_sceneAssistant->addTabIndexedBooleanArray("m_drawWithMagnitudeInTab",
                                                 m_drawWithMagnitudeInTab);
-    m_sceneAssistant->addTabIndexedFloatArray("m_magnitudeMultiplierInTab",
-                                              m_magnitudeMultiplierInTab);
+    m_sceneAssistant->addTabIndexedFloatArray("m_lengthMultiplierInTab",
+                                              m_lengthMultiplierInTab);
     m_sceneAssistant->addArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
                                                                                                          m_fiberColoringTypeInDisplayGroup,
                                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -132,10 +140,10 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                m_drawWithMagnitudeInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_drawWithMagnitudeInDisplayGroup[0]);
-    m_sceneAssistant->addArray("m_magnitudeMultiplierInDisplayGroup",
-                               m_magnitudeMultiplierInDisplayGroup,
+    m_sceneAssistant->addArray("m_lengthMultiplierInDisplayGroup",
+                               m_lengthMultiplierInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               m_magnitudeMultiplierInDisplayGroup[0]);
+                               m_lengthMultiplierInDisplayGroup[0]);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_fiberColoringTypeInTab",
                                                                                                            m_fiberColoringTypeInTab);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>("m_fiberSymbolTypeInTab",
@@ -187,7 +195,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
     m_belowLimitInTab[targetTabIndex] = m_belowLimitInTab[sourceTabIndex];
     m_minimumMagnitudeInTab[targetTabIndex] = m_minimumMagnitudeInTab[sourceTabIndex];
     m_drawWithMagnitudeInTab[targetTabIndex] = m_drawWithMagnitudeInTab[sourceTabIndex];
-    m_magnitudeMultiplierInTab[targetTabIndex] = m_magnitudeMultiplierInTab[sourceTabIndex];
+    m_lengthMultiplierInTab[targetTabIndex] = m_lengthMultiplierInTab[sourceTabIndex];
     m_fiberColoringTypeInTab[targetTabIndex] = m_fiberColoringTypeInTab[sourceTabIndex];
 }
 
@@ -478,53 +486,53 @@ DisplayPropertiesFiberOrientation::setMinimumMagnitude(const DisplayGroupEnum::E
 }
 
 /**
- * @return The magnitude multiplier.
+ * @return The length multiplier.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
  */
 float
-DisplayPropertiesFiberOrientation::getMagnitudeMultiplier(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberOrientation::getLengthMultiplier(const DisplayGroupEnum::Enum  displayGroup,
                                                        const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_magnitudeMultiplierInDisplayGroup,
+    CaretAssertArrayIndex(m_lengthMultiplierInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_magnitudeMultiplierInTab,
+        CaretAssertArrayIndex(m_lengthMultiplierInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        return m_magnitudeMultiplierInTab[tabIndex];
+        return m_lengthMultiplierInTab[tabIndex];
     }
-    return m_magnitudeMultiplierInDisplayGroup[displayGroup];
+    return m_lengthMultiplierInDisplayGroup[displayGroup];
 }
 
 /**
- * Set the magnitude multiplier to the given value.
+ * Set the length multiplier to the given value.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
- * @param magnitudeMultiplier
- *     New value for magnitude multiplier
+ * @param lengthMultiplier
+ *     New value for length multiplier
  */
 void
-DisplayPropertiesFiberOrientation::setMagnitudeMultiplier(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberOrientation::setLengthMultiplier(const DisplayGroupEnum::Enum  displayGroup,
                                                        const int32_t tabIndex,
-                                                       const float magnitudeMultiplier)
+                                                       const float lengthMultiplier)
 {
-    CaretAssertArrayIndex(m_magnitudeMultiplierInDisplayGroup,
+    CaretAssertArrayIndex(m_lengthMultiplierInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_magnitudeMultiplierInTab,
+        CaretAssertArrayIndex(m_lengthMultiplierInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        m_magnitudeMultiplierInTab[tabIndex] = magnitudeMultiplier;
+        m_lengthMultiplierInTab[tabIndex] = lengthMultiplier;
     }
     else {
-        m_magnitudeMultiplierInDisplayGroup[displayGroup] = magnitudeMultiplier;
+        m_lengthMultiplierInDisplayGroup[displayGroup] = lengthMultiplier;
     }
 }
 

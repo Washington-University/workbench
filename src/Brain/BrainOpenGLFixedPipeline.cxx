@@ -4841,7 +4841,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
     const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
     const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
-    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
+    const float magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, this->windowTabIndex);
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
     const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
@@ -4903,11 +4903,14 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     glDisable(GL_CLIP_PLANE5);
     
     /*
-     * Fans use lighting
+     * Fans use lighting but NOT on a volume slice
      */
+    disableLighting();
     switch (symbolType) {
         case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
-            enableLighting();
+            if (plane == NULL) {
+                enableLighting();
+            }
             break;
         case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
             break;
@@ -5095,12 +5098,20 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                                                    startXYZ,
                                                    fiber->m_k1,
                                                    fiber->m_k2,
-                                                   fiber->m_psi);
-                                drawEllipticalCone(endTwoXYZ,
+                                                   fiber->m_psi,
+                                                   false);
+                                drawEllipticalCone(endXYZ,
                                                    startXYZ,
                                                    fiber->m_k1,
                                                    fiber->m_k2,
-                                                   fiber->m_psi);
+                                                   fiber->m_psi,
+                                                   true);
+//                                drawEllipticalCone(endTwoXYZ,
+//                                                   startXYZ,
+//                                                   fiber->m_k1,
+//                                                   fiber->m_k2,
+//                                                   fiber->m_psi,
+//                                                   false);
 //                                drawCone(endXYZ,
 //                                         startXYZ,
 //                                         5.0,
@@ -5143,7 +5154,8 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
                                              const float apexXYZ[3],
                                              const float baseMajorAngle,
                                              const float baseMinorAngle,
-                                             const float baseRotationAngle)
+                                             const float baseRotationAngle,
+                                             const bool secondFlag)
 {
     float x1 = apexXYZ[0];
     float y1 = apexXYZ[1];
@@ -5190,13 +5202,22 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     
     glPushMatrix();
     
-    /*
-     * Rotate around Z-axis using the base rotation angle
-     */
-    glRotatef(baseRotationAngle, 0.0, 0.0, 1.0);
+    if (secondFlag) {
+        glRotatef(180.0,
+                  0.0,
+                  1.0,
+                  0.0);
+        glRotatef(MathFunctions::toDegrees(-baseRotationAngle), 0.0, 0.0, 1.0);
+    }
+    else {
+        /*
+         * Rotate around Z-axis using the base rotation angle
+         */
+        glRotatef(MathFunctions::toDegrees(baseRotationAngle), 0.0, 0.0, 1.0);
+    }
     
-    float majorRadius = 10.0;
-    float minorRadius = 5.0;
+    float majorRadius = z * std::tan(baseMajorAngle); //10.0;
+    float minorRadius = z * std::tan(baseMinorAngle); //5.0;
     
     /*
      * Setup step size based upon number of points around ellipse
@@ -5310,7 +5331,7 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     
     const int32_t numberOfTriangleFanIndices = static_cast<int32_t>(triangleFanIndices.size());
 
-    static bool debug = true;
+    static bool debug = false;
     if (debug) {
         debug = false;
         
@@ -6372,9 +6393,9 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
         }
     }
 
-    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
-        drawSurfaceFibers();
-    }
+//    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
+//        drawSurfaceFibers();
+//    }
 
     /*
      * Need depth testing for drawing slices
@@ -6427,6 +6448,9 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 volumeDrawInfo[0].volumeFile);
             }
         }
+    }
+    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
+        drawSurfaceFibers();
     }
 }
 
