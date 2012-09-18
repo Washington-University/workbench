@@ -62,6 +62,13 @@ namespace caret {
         
         const FiberOrientation* getFiberOrientations(const int64_t indx) const;
         
+        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const bool displayed);
+        
+        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -73,6 +80,11 @@ namespace caret {
         
         std::vector<FiberOrientation*> m_fiberOrientations;
         
+        /** Display status in display group */
+        bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        /** Display status in tab */
+        bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
     
 #ifdef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__

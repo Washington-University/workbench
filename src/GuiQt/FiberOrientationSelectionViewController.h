@@ -88,6 +88,8 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
         
+        WuQTrueFalseComboBox* m_displayFibersComboBox;
+        
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
         QDoubleSpinBox* m_aboveLimitSpinBox;

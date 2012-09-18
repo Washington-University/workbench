@@ -70,7 +70,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
     const float belowLimit = -1.05;
     const float minimumMagnitude = 0.05;
     const bool drawWithMagnitude = true;
-    const float lengthMultiplier = 3.0;
+    const float lengthMultiplier = 10.0;
     const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
     const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS;
     

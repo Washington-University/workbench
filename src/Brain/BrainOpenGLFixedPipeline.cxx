@@ -4930,7 +4930,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
             CaretLogSevere(dfe.whatString());
             continue;
         }
-        if (dpfo->isDisplayed(displayGroup,
+        if (ciftiAdapter->isDisplayed(displayGroup,
                               this->windowTabIndex)) {
             /*
              * Draw each of the fiber orientations which may contain multiple fibers

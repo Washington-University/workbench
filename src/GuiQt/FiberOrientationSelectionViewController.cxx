@@ -142,6 +142,14 @@ FiberOrientationSelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
     
+    QLabel* displayFibersLabel = new QLabel("Display Fibers");
+    m_displayFibersComboBox = new WuQTrueFalseComboBox("Yes",
+                                                           "No",
+                                                           this);
+    m_displayFibersComboBox->getWidget()->setToolTip("Display Fibers");
+    QObject::connect(m_displayFibersComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
     QLabel* aboveLimitLabel = new QLabel("Slice Above Limit");
     m_aboveLimitSpinBox = new QDoubleSpinBox();
     m_aboveLimitSpinBox->setRange(0.0, std::numeric_limits<float>::max());
@@ -205,6 +213,9 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
+    gridLayout->addWidget(displayFibersLabel, row, 0);
+    gridLayout->addWidget(m_displayFibersComboBox->getWidget() , row, 1);
+    row++;
     gridLayout->addWidget(coloringTypeLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox->getWidget() , row, 1);
     row++;
@@ -265,6 +276,10 @@ FiberOrientationSelectionViewController::processAttributesChanges()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
+    
+    dpfo->setDisplayed(displayGroup,
+                       browserTabIndex,
+                       m_displayFibersComboBox->isTrue());
     
     dpfo->setAboveLimit(displayGroup,
                        browserTabIndex,
@@ -358,6 +373,8 @@ FiberOrientationSelectionViewController::updateViewController()
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
     m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
     
+    //dpfo->isDisplayed(displayGroup, browserTabIndex)
+    
     /*
      * Update file selection checkboxes
      */
@@ -380,7 +397,7 @@ FiberOrientationSelectionViewController::updateViewController()
             m_selectionWidgetLayout->addWidget(cb);
         }
         cb->setText(clf->getFileNameNoPath());
-        cb->setChecked(dpfo->isDisplayed(displayGroup,
+        cb->setChecked(foca->isDisplayed(displayGroup,
                                          browserTabIndex));
         cb->setVisible(true);
     }
@@ -396,6 +413,8 @@ FiberOrientationSelectionViewController::updateViewController()
     /*
      * Update the attributes
      */
+    m_displayFibersComboBox->setStatus(dpfo->isDisplayed(displayGroup,
+                                                        browserTabIndex));
     m_aboveLimitSpinBox->setValue(dpfo->getAboveLimit(displayGroup,
                                                       browserTabIndex));
     m_belowLimitSpinBox->setValue(dpfo->getBelowLimit(displayGroup,
@@ -435,11 +454,16 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     DisplayPropertiesFiberOrientation* dpfo = brain->getDisplayPropertiesFiberOrientation();
     
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
+    //dpfo->setDisplayed(displayGroup, browserTabIndex, m_fileSelectionCheckBoxes[iff]->isChecked());
+    
     const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
-        dpfo->setDisplayed(displayGroup, browserTabIndex, m_fileSelectionCheckBoxes[iff]->isChecked());
+        FiberOrientationCiftiAdapter* foca = brain->getConnectivityFiberOrientationFile(iff)->getFiberOrientationAdapter();
+        foca->setDisplayed(displayGroup,
+                           browserTabIndex,
+                           m_fileSelectionCheckBoxes[iff]->isChecked());
     }
     
     updateOtherViewControllers();

@@ -58,6 +58,12 @@ using namespace caret;
 FiberOrientationCiftiAdapter::FiberOrientationCiftiAdapter()
 : CaretObject()
 {
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_displayStatusInDisplayGroup[i] = true;
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_displayStatusInTab[i] = true;
+    }
 }
 
 /**
@@ -156,7 +162,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Along Positive X-Axis
          */
-        fiberData[offset+0] = 10.0;  // meanF
+        fiberData[offset+0] = 0.3;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
         fiberData[offset+3] = 0.0;   // phi
@@ -168,7 +174,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Along Positive Y-Axis
          */
-        fiberData[offset+0] = 20.0;  // meanF
+        fiberData[offset+0] = 0.6;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(90.0);   // phi
@@ -180,7 +186,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Along Positive Z-Axis
          */
-        fiberData[offset+0] = 30.0;  // meanF
+        fiberData[offset+0] = 1.0;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = 0.0; // theta
         fiberData[offset+3] = 0.0;   // phi
@@ -213,7 +219,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Pointing towards forward right and up
          */
-        fiberData[offset+0] = 10.0;  // meanF
+        fiberData[offset+0] = 0.3;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(45.0);   // phi
@@ -225,7 +231,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Pointing towards forward left and down
          */
-        fiberData[offset+0] = 20.0;  // meanF
+        fiberData[offset+0] = 0.6;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(135.0);   // phi
@@ -237,7 +243,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         /*
          * Pointing towards backward right and up
          */
-        fiberData[offset+0] = 30.0;  // meanF
+        fiberData[offset+0] = 1.0;  // meanF
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians( 45.0); // theta
         fiberData[offset+3] = MathFunctions::toRadians(-45.0);   // phi
@@ -282,5 +288,52 @@ const FiberOrientation*
 FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx) const
 {
     return m_fiberOrientations[indx];
+}
+
+/**
+ * @return The display status.
+ */
+bool
+FiberOrientationCiftiAdapter::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex) const
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          displayIndex);
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_displayStatusInTab[tabIndex];
+    }
+    return m_displayStatusInDisplayGroup[displayIndex];
+}
+
+/**
+ * Set the display status.
+ * @param displayed
+ *   New display status.
+ */
+void
+FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex,
+                                           const bool displayed)
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          displayIndex);
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displayStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_displayStatusInTab[tabIndex] = displayed;
+    }
+    else {
+        m_displayStatusInDisplayGroup[displayIndex] = displayed;
+    }
 }
 
