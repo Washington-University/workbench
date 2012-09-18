@@ -80,12 +80,13 @@ BrainOpenGLShape::~BrainOpenGLShape()
 bool
 BrainOpenGLShape::isBuffersSupported()
 {
+#ifdef CARET_OS_MACOSX
 #ifdef GL_VERSION_2_1
     if (BrainOpenGL::getRuntimeVersionOfOpenGL() >= 2.1) {
         return true;
     }
 #endif // GL_VERSION_2_1
-
+#endif // CARET_OS_MACOSX
     return false;
 }
 
@@ -96,6 +97,7 @@ GLuint
 BrainOpenGLShape::createBufferID()
 {
     GLuint id = -1;
+#ifdef CARET_OS_MACOSX
 #ifdef GL_VERSION_2_1
     glGenBuffers(1, &id);
     
@@ -103,6 +105,9 @@ BrainOpenGLShape::createBufferID()
 #else  // GL_VERSION_2_1
     CaretLogSevere("PROGRAM ERROR: Creating OpenGL buffer but buffers not supported.");
 #endif // GL_VERSION_2_1
+#else // CARET_OS_MACOSX
+    CaretLogSevere("PROGRAM ERROR: Creating OpenGL buffer but buffers not supported.");
+#endif // CARET_OS_MACOSX
     return id;
 }
 
@@ -132,6 +137,7 @@ void
 BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
                                           const bool isRemoveFromTrackedIDs)
 {
+#ifdef CARET_OS_MACOSX
 #ifdef GL_VERSION_2_1
     if (glIsBuffer(bufferID)) {
         glDeleteBuffers(1, &bufferID);
@@ -147,6 +153,9 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
 #else  // GL_VERSION_2_1
     CaretLogSevere("PROGRAM ERROR: Releasing OpenGL buffer but buffers not supported.");
 #endif // GL_VERSION_2_1
+#else // CARET_OS_MACOSX
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL buffer but buffers not supported.");
+#endif // CARET_OS_MACOSX
 }
 
 
