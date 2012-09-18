@@ -146,14 +146,84 @@ BrainOpenGLWidget::initializeGL()
                    + "\nAlpha size: " + AString::number(format.alphaBufferSize())
                    + "\nDepth: " + AString::fromBool(format.depth())
                    + "\nDepth size: " + AString::number(format.depthBufferSize())
+                   + "\nDirect Rendering: " + AString::fromBool(format.directRendering())
                    + "\nRed size: " + AString::number(format.redBufferSize())
                    + "\nGreen size: " + AString::number(format.greenBufferSize())
                    + "\nBlue size: " + AString::number(format.blueBufferSize())
                    + "\nDouble Buffer: " + AString::fromBool(format.doubleBuffer())
                    + "\nRGBA: " + AString::fromBool(format.rgba())
+                   + "\nSamples: " + AString::fromBool(format.sampleBuffers())
+                   + "\nSamples size: " + AString::number(format.samples())
+                   + "\nStencil: " + AString::fromBool(format.stencil())
+                   + "\nStencil size: " + AString::number(format.stencilBufferSize())
+                   + "\nSwap Interval: " + AString::number(format.swapInterval())
+                   + "\nStereo: " + AString::fromBool(format.stereo())
                    + "\nMajor Version: " + AString::number(format.majorVersion())
                    + "\nMinor Version: " + AString::number(format.minorVersion()));
+    
+    msg += "\nVersions Supported: ";
+    QGLFormat::OpenGLVersionFlags versionFlags = QGLFormat::openGLVersionFlags();
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_None)) {
+        msg += " None";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_1)) {
+        msg += " 1.1";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_2)) {
+        msg += " 1.2";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_3)) {
+        msg += " 1.3";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_4)) {
+        msg += " 1.4";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_5)) {
+        msg += " 1.5";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_2_0)) {
+        msg += " 2.0";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_2_1)) {
+        msg += " 2.1";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_0)) {
+        msg += " 3.0";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_1)) {
+        msg += " 3.1";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_2)) {
+        msg += " 3.2";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_3)) {
+        msg += " 3.3";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_4_0)) {
+        msg += " 4.0";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_CommonLite_Version_1_0)) {
+        msg += " ESCL_1.0";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Common_Version_1_0)) {
+        msg += " ES_1.0";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_CommonLite_Version_1_1)) {
+        msg += " ESCL_1.1";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Common_Version_1_1)) {
+        msg += " ES_1.1";
+    }
+    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Version_2_0)) {
+        msg += " ES_2.0";
+    }
     CaretLogConfig(msg);
+    
+    if (s_defaultGLFormatInitialized == false) {
+        CaretLogSevere("PROGRAM ERROR: The default QGLFormat has not been set.\n"
+                       "Need to call BrainOpenGLWidget::initializeDefaultGLFormat() prior to "
+                       "instantiating an instance of this class.");
+    }
 }
 
 /**
@@ -778,3 +848,35 @@ BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
     
     return image;
 }
+
+/**
+ * Initialize the OpenGL format.  This must be called
+ * prior to initializing an instance of this class so
+ * that the OpenGL is setup properly.
+ */
+void
+BrainOpenGLWidget::initializeDefaultGLFormat()
+{
+    QGLFormat glfmt;
+    glfmt.setAccum(false);
+    glfmt.setAlpha(true);
+    glfmt.setAlphaBufferSize(8);
+    glfmt.setDepth(true);
+    glfmt.setDepthBufferSize(24);
+    glfmt.setDirectRendering(true);
+    glfmt.setDoubleBuffer(true);
+    glfmt.setOverlay(false);
+    glfmt.setSampleBuffers(false);
+    glfmt.setStencil(false);
+    glfmt.setStereo(false);
+    
+    glfmt.setRgba(true);
+    glfmt.setRedBufferSize(8);
+    glfmt.setGreenBufferSize(8);
+    glfmt.setBlueBufferSize(8);
+    QGLFormat::setDefaultFormat(glfmt);
+    
+    s_defaultGLFormatInitialized = true;
+}
+
+

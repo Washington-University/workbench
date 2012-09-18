@@ -26,7 +26,7 @@
 
 #include <QApplication>
 #include <QDesktopWidget>
-#include <QGLFormat>
+#include <QLabel>
 #include <QGLPixelBuffer>
 #include <QSplashScreen>
 #include <QThread>
@@ -35,6 +35,7 @@
 #include <iostream>
 
 #include "BrainBrowserWindow.h"
+#include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CaretHttpManager.h"
@@ -48,6 +49,7 @@
 #include "SessionManager.h"
 #include "SplashScreen.h"
 #include "SystemUtilities.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 static bool caretLoggerIsValid = false;
@@ -270,21 +272,22 @@ main(int argc, char* argv[])
         /*
         * Make sure OpenGL is available.
         */
-        if (!QGLFormat::hasOpenGL()) { 
-            qWarning( "This system has no OpenGL support. Exiting." );
+        if (QGLFormat::hasOpenGL() == false) {
+            QString msg = "This computer does not support OpenGL (3D graphics system).\n"
+            "You will need to install OpenGL to run Workbench.\n"
+            "Please see your system administrator.";
+            app.processEvents();
+            WuQMessageBox::errorOk(NULL,
+                                   msg);
+            app.processEvents();
+            
             return -1;
         }
             
         /*
         * Setup OpenGL
         */
-        QGLFormat glfmt;
-        glfmt.setRedBufferSize(8);
-        glfmt.setGreenBufferSize(8);
-        glfmt.setBlueBufferSize(8);
-        glfmt.setDoubleBuffer(true);
-        glfmt.setDirectRendering(true);
-        QGLFormat::setDefaultFormat(glfmt);
+        BrainOpenGLWidget::initializeDefaultGLFormat();
         
         
         /*

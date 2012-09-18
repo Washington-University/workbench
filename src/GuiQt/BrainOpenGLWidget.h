@@ -77,6 +77,8 @@ namespace caret {
         
         Border* getBorderBeingDrawn();
         
+        static void initializeDefaultGLFormat();
+        
     protected:
         void initializeGL();
         
@@ -140,10 +142,13 @@ namespace caret {
         UserInputModeFoci* userInputFociModeProcessor;
         
         Border* borderBeingDrawn;
+        
+        static bool s_defaultGLFormatInitialized;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
     const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 2;
+    bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace
