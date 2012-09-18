@@ -93,4 +93,13 @@ BrainOpenGL::setBorderBeingDrawn(Border* borderBeingDrawn)
     this->borderBeingDrawn = borderBeingDrawn;
 }
 
+/**
+ * @return The runtime version of OpenGL (e.g. 1.0, 2.1, etc.)
+ */
+float
+BrainOpenGL::getRuntimeVersionOfOpenGL()
+{
+    return BrainOpenGL::versionOfOpenGL;
+}
+
 

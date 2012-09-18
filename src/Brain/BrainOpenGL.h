@@ -112,6 +112,8 @@ namespace caret {
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
+        static float getRuntimeVersionOfOpenGL();
+        
     private:
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);

@@ -36,6 +36,7 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLShape.h"
 #include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
@@ -161,7 +162,57 @@ BrainOpenGLWidget::initializeGL()
                    + "\nMajor Version: " + AString::number(format.majorVersion())
                    + "\nMinor Version: " + AString::number(format.minorVersion()));
     
-    msg += "\nVersions Supported: ";
+    msg += ("\nBuffers Supported: "
+            + AString::fromBool(BrainOpenGLShape::isBuffersSupported()));
+    
+    msg += "\nCompile Time Versions Supported: ";
+#ifdef GL_VERSION_1_1
+    msg += " 1.1";
+#endif
+#ifdef GL_VERSION_1_2
+    msg += " 1.2";
+#endif
+#ifdef GL_VERSION_1_3
+    msg += " 1.3";
+#endif
+#ifdef GL_VERSION_1_4
+    msg += " 1.4";
+#endif
+#ifdef GL_VERSION_1_5
+    msg += " 1.5";
+#endif
+#ifdef GL_VERSION_2_0
+    msg += " 2.0";
+#endif
+#ifdef GL_VERSION_2_1
+    msg += " 2.1";
+#endif
+#ifdef GL_VERSION_3_0
+    msg += " 3.0";
+#endif
+#ifdef GL_VERSION_3_1
+    msg += " 3.1";
+#endif
+#ifdef GL_VERSION_3_2
+    msg += " 3.2";
+#endif
+#ifdef GL_VERSION_3_3
+    msg += " 3.3";
+#endif
+#ifdef GL_VERSION_4_0
+    msg += " 4.0";
+#endif
+#ifdef GL_OES_VERSION_1_0
+    msg += " ES_1.0";
+#endif
+#ifdef GL_ES_VERSION_2_0
+    msg += " ES_2.0";
+#endif
+#ifdef GL_ES_VERSION_3_0
+    msg += " ES_3.0";
+#endif
+    
+    msg += "\nRun Time Versions Supported: ";
     QGLFormat::OpenGLVersionFlags versionFlags = QGLFormat::openGLVersionFlags();
     if (versionFlags.testFlag(QGLFormat::OpenGL_Version_None)) {
         msg += " None";
@@ -217,13 +268,36 @@ BrainOpenGLWidget::initializeGL()
     if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Version_2_0)) {
         msg += " ES_2.0";
     }
+    
+    msg += ("\nOpen GL Reported Version: "
+            + QString((char*)glGetString(GL_VERSION)));
+    
+    msg += ("\nOpen GL Vendor: "
+            + QString((char*)glGetString(GL_VENDOR)));
+    
+    msg += ("\nOpen GL Renderer: "
+            + QString((char*)glGetString(GL_RENDERER)));
+
     CaretLogConfig(msg);
+    
+    if (s_openGLVersionInformation.isEmpty()) {
+        s_openGLVersionInformation = msg;
+    }
     
     if (s_defaultGLFormatInitialized == false) {
         CaretLogSevere("PROGRAM ERROR: The default QGLFormat has not been set.\n"
                        "Need to call BrainOpenGLWidget::initializeDefaultGLFormat() prior to "
                        "instantiating an instance of this class.");
     }
+}
+
+/**
+ * @return Information about OpenGL.
+ */
+QString
+BrainOpenGLWidget::getOpenGLInformation()
+{
+    return s_openGLVersionInformation;
 }
 
 /**

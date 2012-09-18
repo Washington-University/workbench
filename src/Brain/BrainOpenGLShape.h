@@ -63,6 +63,8 @@ namespace caret {
          */
         virtual void draw() = 0;
         
+        static bool isBuffersSupported();
+        
     private:
         BrainOpenGLShape(const BrainOpenGLShape&);
 

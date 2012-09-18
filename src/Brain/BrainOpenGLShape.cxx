@@ -36,6 +36,7 @@
 #include "BrainOpenGLShape.h"
 #undef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
 
+#include "BrainOpenGL.h"
 #include "CaretLogger.h"
 
 using namespace caret;
@@ -71,16 +72,37 @@ BrainOpenGLShape::~BrainOpenGLShape()
 }
 
 /**
+ * @return 'true' is OpenGL buffers are supported.
+ * For the return value to be true, compilation must be on
+ * a system that supports OpenGL 2.1 or later and the 
+ * runtime version of OpenGL must be 2.1 or later.
+ */
+bool
+BrainOpenGLShape::isBuffersSupported()
+{
+#ifdef GL_VERSION_2_1
+    if (BrainOpenGL::getRuntimeVersionOfOpenGL() >= 2.1) {
+        return true;
+    }
+#endif // GL_VERSION_2_1
+
+    return false;
+}
+
+/**
  * @return A new buffer ID for use with OpenGL.
  */
 GLuint
 BrainOpenGLShape::createBufferID()
 {
-    GLuint id;
+    GLuint id = -1;
+#ifdef GL_VERSION_2_1
     glGenBuffers(1, &id);
     
     m_bufferIDs.insert(id);
-    
+#else  // GL_VERSION_2_1
+    CaretLogSevere("PROGRAM ERROR: Creating OpenGL buffer but buffers not supported.");
+#endif // GL_VERSION_2_1
     return id;
 }
 
@@ -110,6 +132,7 @@ void
 BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
                                           const bool isRemoveFromTrackedIDs)
 {
+#ifdef GL_VERSION_2_1
     if (glIsBuffer(bufferID)) {
         glDeleteBuffers(1, &bufferID);
         
@@ -121,6 +144,9 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
         CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL BufferID="
                        + AString::number(bufferID));
     }
+#else  // GL_VERSION_2_1
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL buffer but buffers not supported.");
+#endif // GL_VERSION_2_1
 }
 
 

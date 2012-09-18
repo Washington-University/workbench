@@ -40,6 +40,7 @@
 #include <QVBoxLayout>
 
 #include "ApplicationInformation.h"
+#include "BrainOpenGLWidget.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -64,6 +65,9 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
     
     ApplicationInformation appInfo;
     appInfo.getAllInformation(informationData);
+    
+    informationData.push_back("OpenGL Information:\n"
+                              + BrainOpenGLWidget::getOpenGLInformation());
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
