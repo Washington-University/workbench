@@ -37,8 +37,6 @@
 #include <GL/glu.h>
 #endif
 
-#include <QFont>
-
 #define __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 #include "BrainOpenGLFixedPipeline.h"
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
@@ -49,6 +47,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
@@ -132,6 +131,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->colorIdentification   = new IdentificationWithColor();
     this->sphereDisplayList = 0;
     this->sphereOpenGL = NULL;
+    m_shapeSphere = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
 }
@@ -147,6 +147,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (this->sphereOpenGL != NULL) {
         delete this->sphereOpenGL;
         this->sphereOpenGL = NULL;
+    }
+    if (m_shapeSphere != NULL) {
+        delete m_shapeSphere;
+        m_shapeSphere = NULL;
     }
     if (this->surfaceNodeColoring != NULL) {
         delete this->surfaceNodeColoring;
@@ -857,6 +861,9 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     
     if (this->sphereOpenGL == NULL) {
         this->sphereOpenGL = new SphereOpenGL(1.0);
+    }
+    if (m_shapeSphere == NULL) {
+        m_shapeSphere = new BrainOpenGLShapeSphere();
     }
     
     if (this->initializedOpenGLFlag) {

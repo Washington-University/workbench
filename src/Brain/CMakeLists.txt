@@ -51,6 +51,8 @@ BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLShape.h
+BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
 BrainStructure.h
@@ -129,6 +131,8 @@ BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLShape.cxx
+BrainOpenGLShapeSphere.cxx
 BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx

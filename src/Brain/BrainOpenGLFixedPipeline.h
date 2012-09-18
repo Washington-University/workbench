@@ -43,6 +43,7 @@ class QGLWidget;
 namespace caret {
     
     class Brain;
+    class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class FastStatistics;
@@ -357,6 +358,8 @@ namespace caret {
         uint32_t sphereDisplayList;
         
         SphereOpenGL* sphereOpenGL;
+        
+        BrainOpenGLShapeSphere* m_shapeSphere;
         
         double inverseRotationMatrix[16];
         bool inverseRotationMatrixValid;
