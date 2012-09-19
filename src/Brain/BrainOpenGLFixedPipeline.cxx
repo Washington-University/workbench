@@ -6477,7 +6477,8 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
         glCallList(this->sphereDisplayList);
     }
     else {
-        this->sphereOpenGL->drawWithQuadStrips();
+        //this->sphereOpenGL->drawWithQuadStrips();
+        m_shapeSphere->draw();
     }
     glPopMatrix();
 }

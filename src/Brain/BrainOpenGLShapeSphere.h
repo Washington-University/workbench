@@ -63,6 +63,12 @@ namespace caret {
         
         GLuint m_vertexBufferID;
 
+        std::vector<float> m_coordinates;
+        std::vector<float> m_normals;
+        std::vector<int> m_vertices;
+        
+        std::vector<int> m_quadStripVerticesStartIndex;
+        std::vector<int> m_quadStripVerticesEndIndex;
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__

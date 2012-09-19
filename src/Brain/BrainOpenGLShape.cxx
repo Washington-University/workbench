@@ -92,11 +92,13 @@ BrainOpenGLShape::isBuffersSupported()
 
 /**
  * @return A new buffer ID for use with OpenGL.
+ * A return value of zero indicates that creation of buffer ID failed.
+ * Values greater than zero are valid buffer IDs.
  */
 GLuint
 BrainOpenGLShape::createBufferID()
 {
-    GLuint id = -1;
+    GLuint id = 0;
 #ifdef CARET_OS_MACOSX
 #ifdef GL_VERSION_2_1
     glGenBuffers(1, &id);
