@@ -37,6 +37,7 @@
 #undef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
 
 #include "BrainOpenGL.h"
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 
 using namespace caret;
@@ -54,7 +55,12 @@ using namespace caret;
 BrainOpenGLShape::BrainOpenGLShape()
 : CaretObject()
 {
+    if (s_drawModeInitialized == false) {
+        s_drawMode = BrainOpenGLInfo::getBestDrawingMode();
+        s_drawModeInitialized = true;
+    }
     
+    m_shapeSetupComplete = false;
 }
 
 /**
@@ -69,25 +75,30 @@ BrainOpenGLShape::~BrainOpenGLShape()
                                 false);
     }
     m_bufferIDs.clear();
+    
+    for (std::set<GLuint>::iterator iter = m_displayLists.begin();
+         iter != m_displayLists.end();
+         iter++) {
+        releaseDisplayListInternal(*iter,
+                                   false);
+    }
+    m_displayLists.clear();
 }
 
+
+
 /**
- * @return 'true' is OpenGL buffers are supported.
- * For the return value to be true, compilation must be on
- * a system that supports OpenGL 2.1 or later and the 
- * runtime version of OpenGL must be 2.1 or later.
+ * Draw the shape.
  */
-bool
-BrainOpenGLShape::isBuffersSupported()
+void
+BrainOpenGLShape::draw()
 {
-#ifdef CARET_OS_MACOSX
-#ifdef GL_VERSION_2_1
-    if (BrainOpenGL::getRuntimeVersionOfOpenGL() >= 2.1) {
-        return true;
+    if (m_shapeSetupComplete == false) {
+        setupShape(s_drawMode);
+        m_shapeSetupComplete = true;
     }
-#endif // GL_VERSION_2_1
-#endif // CARET_OS_MACOSX
-    return false;
+    
+    drawShape(s_drawMode);
 }
 
 /**
@@ -99,17 +110,16 @@ GLuint
 BrainOpenGLShape::createBufferID()
 {
     GLuint id = 0;
-#ifdef CARET_OS_MACOSX
-#ifdef GL_VERSION_2_1
-    glGenBuffers(1, &id);
-    
-    m_bufferIDs.insert(id);
-#else  // GL_VERSION_2_1
-    CaretLogSevere("PROGRAM ERROR: Creating OpenGL buffer but buffers not supported.");
-#endif // GL_VERSION_2_1
-#else // CARET_OS_MACOSX
-    CaretLogSevere("PROGRAM ERROR: Creating OpenGL buffer but buffers not supported.");
-#endif // CARET_OS_MACOSX
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    if (BrainOpenGLInfo::isVertexBuffersSupported()) {
+        glGenBuffers(1, &id);
+        
+        m_bufferIDs.insert(id);
+    }
+#else // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    CaretLogSevere("PROGRAM ERROR: Creating OpenGL vertex buffer but vertex buffers not supported.");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+        
     return id;
 }
 
@@ -139,26 +149,90 @@ void
 BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
                                           const bool isRemoveFromTrackedIDs)
 {
-#ifdef CARET_OS_MACOSX
-#ifdef GL_VERSION_2_1
-    if (glIsBuffer(bufferID)) {
-        glDeleteBuffers(1, &bufferID);
-        
-        if (isRemoveFromTrackedIDs) {
-            m_bufferIDs.erase(bufferID);
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    if (BrainOpenGLInfo::isVertexBuffersSupported()) {
+        if (glIsBuffer(bufferID)) {
+            glDeleteBuffers(1, &bufferID);
+            
+            if (isRemoveFromTrackedIDs) {
+                m_bufferIDs.erase(bufferID);
+            }
+        }
+        else {
+            CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL BufferID="
+                           + AString::number(bufferID));
         }
     }
-    else {
-        CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL BufferID="
-                       + AString::number(bufferID));
-    }
-#else  // GL_VERSION_2_1
-    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL buffer but buffers not supported.");
-#endif // GL_VERSION_2_1
-#else // CARET_OS_MACOSX
-    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL buffer but buffers not supported.");
-#endif // CARET_OS_MACOSX
+#else  // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL vertex buffer but vertex buffers not supported.");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
 }
 
+    
+/**
+ * Release an allocated buffer ID.
+ *
+ * @param bufferID
+ *    Buffer ID that was previously returned by createBufferID().
+ * @param isRemoveFromTrackedIDs
+ *    If true, remove the ID from the bufferID that are tracked
+ *    by this object.
+ */
+void
+BrainOpenGLShape::releaseDisplayListInternal(const GLuint displayList,
+                                             const bool isRemoveFromTrackedLists)
+{
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    if (BrainOpenGLInfo::isDisplayListsSupported()) {
+        if (glIsList(displayList)) {
+            glDeleteLists(displayList, 1);
+            
+            if (isRemoveFromTrackedLists) {
+                m_displayLists.erase(displayList);
+            }
+        }
+        else {
+            CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL DisplayList="
+                           + AString::number(displayList));
+        }
+    }
+#else  // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL display list but display lists not supported.");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+}
 
+/**
+ * @return A new display list for use with OpenGL.
+ * A return value of zero indicates that creation of display list failed.
+ * Values greater than zero are valid display list.
+ */
+GLuint
+BrainOpenGLShape::createDisplayList()
+{
+    GLuint displayList = 0;
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    if (BrainOpenGLInfo::isDisplayListsSupported()) {
+        displayList = glGenLists(1);
+        
+        m_displayLists.insert(displayList);
+    }
+#else // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    CaretLogSevere("PROGRAM ERROR: Creating OpenGL display list but display lists not supported.");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    
+    return displayList;
+}
+    
+/**
+ * Release an allocated display list.
+ *
+ * @param displayList
+ *    Display list that was previously returned by createDisplayList().
+ */
+void
+BrainOpenGLShape::releaseDisplayList(const GLuint displayList)
+{
+    releaseDisplayListInternal(displayList, true);
+}
+    
 

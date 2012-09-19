@@ -36,7 +36,7 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
-#include "BrainOpenGLShape.h"
+#include "BrainOpenGLInfo.h"
 #include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
@@ -162,8 +162,14 @@ BrainOpenGLWidget::initializeGL()
                    + "\nMajor Version: " + AString::number(format.majorVersion())
                    + "\nMinor Version: " + AString::number(format.minorVersion()));
     
-    msg += ("\nBuffers Supported: "
-            + AString::fromBool(BrainOpenGLShape::isBuffersSupported()));
+    msg += ("\nBest Drawing Mode: "
+            + BrainOpenGLInfo::getBestDrawingModeName());
+    msg += ("\nDisplay Lists Supported: "
+            + AString::fromBool(BrainOpenGLInfo::isDisplayListsSupported()));
+    msg += ("\nImmediate Mode Supported: "
+            + AString::fromBool(BrainOpenGLInfo::isImmediateSupported()));
+    msg += ("\nVertex Buffers Supported: "
+            + AString::fromBool(BrainOpenGLInfo::isVertexBuffersSupported()));
     
     msg += "\nCompile Time Versions Supported: ";
 #ifdef GL_VERSION_1_1

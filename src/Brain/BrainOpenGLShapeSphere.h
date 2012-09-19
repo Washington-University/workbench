@@ -46,8 +46,6 @@ namespace caret {
         
         virtual ~BrainOpenGLShapeSphere();
         
-        void draw();
-        
     private:
         BrainOpenGLShapeSphere(const BrainOpenGLShapeSphere&);
 
@@ -57,6 +55,11 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        void drawShape(const BrainOpenGLInfo::DrawMode drawMode);
+        
+        void setupShape(const BrainOpenGLInfo::DrawMode drawMode);
+        
     private:
 
         // ADD_NEW_MEMBERS_HERE

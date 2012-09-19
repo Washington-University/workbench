@@ -56,6 +56,19 @@ BrainOpenGLShapeSphere::BrainOpenGLShapeSphere()
 : BrainOpenGLShape()
 {
     m_vertexBufferID = 0;
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLShapeSphere::~BrainOpenGLShapeSphere()
+{
+    
+}
+
+void
+BrainOpenGLShapeSphere::setupShape(const BrainOpenGLInfo::DrawMode drawMode)
+{
     
     const float radius = 1.0;
     const int numLat = 10;
@@ -110,47 +123,76 @@ BrainOpenGLShapeSphere::BrainOpenGLShapeSphere()
         m_quadStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
     }
     
-//    if (isBuffersSupported()) {
-//        m_vertexBufferID = createBufferID();
-//    }
-}
-
-/**
- * Destructor.
- */
-BrainOpenGLShapeSphere::~BrainOpenGLShapeSphere()
-{
-    
+    switch (drawMode) {
+        case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
+        {
+            CaretAssert(0);
+        }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:
+        {
+            /* nothing to do for this case */
+        }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_INVALID:
+        {
+            CaretAssert(0);
+        }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_VERTEX_BUFFERS:
+        {
+            CaretAssert(0);
+        }
+            break;
+    }
 }
 
 /**
  * Draw the sphere.
+ * @param drawMode
+ *   How to draw the shape.
  */
 void
-BrainOpenGLShapeSphere::draw()
+BrainOpenGLShapeSphere::drawShape(const BrainOpenGLInfo::DrawMode drawMode)
 {
-    if (m_vertexBufferID > 0) {
-        
-    }
-    else {
-        const int32_t numQuadStrips = m_quadStripVerticesEndIndex.size();
-        for (int32_t i = 0; i < numQuadStrips; i++) {
-            const int32_t vertexStart = m_quadStripVerticesStartIndex[i];
-            const int32_t vertexEnd = m_quadStripVerticesEndIndex[i];
-            glBegin(GL_QUAD_STRIP);
-            for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
-                CaretAssertVectorIndex(m_vertices, iVertex);
-                const int32_t vertexIndex = m_vertices[iVertex];
-                const int32_t v3 = vertexIndex * 3;
-                
-                CaretAssertVectorIndex(m_normals, v3);
-                CaretAssertVectorIndex(m_coordinates, v3);
-                
-                glNormal3fv(&m_normals[v3]);
-                glVertex3fv(&m_coordinates[v3]);
-            }
-            glEnd();
+    switch (drawMode) {
+        case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
+        {
+            CaretAssert(0);
         }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:
+        {
+            const int32_t numQuadStrips = m_quadStripVerticesEndIndex.size();
+            for (int32_t i = 0; i < numQuadStrips; i++) {
+                const int32_t vertexStart = m_quadStripVerticesStartIndex[i];
+                const int32_t vertexEnd = m_quadStripVerticesEndIndex[i];
+                glBegin(GL_QUAD_STRIP);
+                for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
+                    CaretAssertVectorIndex(m_vertices, iVertex);
+                    const int32_t vertexIndex = m_vertices[iVertex];
+                    const int32_t v3 = vertexIndex * 3;
+                    
+                    CaretAssertVectorIndex(m_normals, v3);
+                    CaretAssertVectorIndex(m_coordinates, v3);
+                    
+                    glNormal3fv(&m_normals[v3]);
+                    glVertex3fv(&m_coordinates[v3]);
+                }
+                glEnd();
+            }
+        }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_INVALID:
+        {
+            CaretAssert(0);
+        }
+            break;
+        case BrainOpenGLInfo::DRAW_MODE_VERTEX_BUFFERS:
+        {
+            CaretAssert(0);            
+        }
+            break;
     }
 }
 

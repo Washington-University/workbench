@@ -36,16 +36,7 @@
 
 #include <set>
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#include "CaretObject.h"
+#include "BrainOpenGLInfo.h"
 
 namespace caret {
 
@@ -61,9 +52,7 @@ namespace caret {
         /**
          * Draw the shape.
          */
-        virtual void draw() = 0;
-        
-        static bool isBuffersSupported();
+        void draw();
         
     private:
         BrainOpenGLShape(const BrainOpenGLShape&);
@@ -73,20 +62,52 @@ namespace caret {
         void releaseBufferIDInternal(const GLuint bufferID,
                                      const bool isRemoveFromTrackedIDs);
         
+        void releaseDisplayListInternal(const GLuint displayList,
+                                        const bool isRemoveFromTrackedLists);
+        
     protected:
+        /**
+         * Setup for drawing the shape.
+         *
+         * @param drawMode
+         *    How the shape will be drawn.
+         */
+        virtual void setupShape(const BrainOpenGLInfo::DrawMode drawMode) = 0;
+        
+        /**
+         * Draw the shape using the given drawing mode.
+         *
+         * @param drawMode
+         *    How the shape will be drawn.
+         */
+        virtual void drawShape(const BrainOpenGLInfo::DrawMode drawMode) = 0;
+        
         GLuint createBufferID();
         
         void releaseBufferID(const GLuint bufferID);
         
+        GLuint createDisplayList();
+        
+        void releaseDisplayList(const GLuint displayList);
+        
     private:
-
+        
         // ADD_NEW_MEMBERS_HERE
 
         std::set<GLuint> m_bufferIDs;
+        
+        std::set<GLuint> m_displayLists;
+        
+        bool m_shapeSetupComplete;
+        
+        static BrainOpenGLInfo::DrawMode s_drawMode;
+        
+        static bool s_drawModeInitialized;
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    BrainOpenGLInfo::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGLInfo::DRAW_MODE_INVALID;
+    bool BrainOpenGLShape::s_drawModeInitialized = false;
 #endif // __BRAIN_OPEN_G_L_SHAPE_DECLARE__
 
 } // namespace
