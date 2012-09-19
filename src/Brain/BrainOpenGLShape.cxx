@@ -114,7 +114,12 @@ BrainOpenGLShape::createBufferID()
     if (BrainOpenGLInfo::isVertexBuffersSupported()) {
         glGenBuffers(1, &id);
         
-        m_bufferIDs.insert(id);
+        if (id > 0) {
+            m_bufferIDs.insert(id);
+        }
+        else {
+            CaretLogSevere("Failed to create a new OpenGL Vertex Buffer");
+        }
     }
 #else // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     CaretLogSevere("PROGRAM ERROR: Creating OpenGL vertex buffer but vertex buffers not supported.");
@@ -214,7 +219,12 @@ BrainOpenGLShape::createDisplayList()
     if (BrainOpenGLInfo::isDisplayListsSupported()) {
         displayList = glGenLists(1);
         
-        m_displayLists.insert(displayList);
+        if (displayList > 0) {
+            m_displayLists.insert(displayList);
+        }
+        else {
+            CaretLogSevere("Failed to create a new OpenGL Display List");
+        }
     }
 #else // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     CaretLogSevere("PROGRAM ERROR: Creating OpenGL display list but display lists not supported.");

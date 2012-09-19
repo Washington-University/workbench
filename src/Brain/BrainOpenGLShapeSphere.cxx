@@ -55,6 +55,7 @@ using namespace caret;
 BrainOpenGLShapeSphere::BrainOpenGLShapeSphere()
 : BrainOpenGLShape()
 {
+    m_displayList    = 0;
     m_vertexBufferID = 0;
 }
 
@@ -126,7 +127,14 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGLInfo::DrawMode drawMode)
     switch (drawMode) {
         case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
         {
-            CaretAssert(0);
+            m_displayList = createDisplayList();
+            
+            if (m_displayList > 0) {
+                glNewList(m_displayList,
+                          GL_COMPILE);
+                drawShape(BrainOpenGLInfo::DRAW_MODE_IMMEDIATE);
+                glEndList();
+            }
         }
             break;
         case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:
@@ -158,7 +166,9 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGLInfo::DrawMode drawMode)
     switch (drawMode) {
         case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
         {
-            CaretAssert(0);
+            if (m_displayList > 0) {
+                glCallList(m_displayList);
+            }
         }
             break;
         case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:

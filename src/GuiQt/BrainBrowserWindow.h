@@ -154,6 +154,7 @@ namespace caret {
         void processShowSceneDialog();
         void processShowSurfacePropertiesDialog();
         
+        void processGraphicsTiming();
         
     private:
         // Contains status of components such as enter/exit full screen
@@ -274,6 +275,8 @@ namespace caret {
         QAction* m_helpHcpWebsiteAction;
         QAction* m_helpOnlineAction;
         QAction* m_helpSearchOnlineAction;
+        
+        QAction* m_helpGraphicsTimingAction;
         
         QAction* m_overlayToolBoxAction;
         

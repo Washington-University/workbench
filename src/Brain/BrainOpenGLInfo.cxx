@@ -45,9 +45,11 @@ using namespace caret;
     
 /**
  * \class caret::BrainOpenGLInfo 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Provides information about OpenGL given the compile and runtime systems.
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * The compile and runtime systems may have vastly different versions of OpenGL.
+ * Here, we try to figure out the best ways of rendering OpenGL given the 
+ * constraints of the compile and runtime systems.
  */
 
 /**

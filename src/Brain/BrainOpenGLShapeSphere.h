@@ -66,6 +66,8 @@ namespace caret {
         
         GLuint m_vertexBufferID;
 
+        GLuint m_displayList;
+        
         std::vector<float> m_coordinates;
         std::vector<float> m_normals;
         std::vector<int> m_vertices;

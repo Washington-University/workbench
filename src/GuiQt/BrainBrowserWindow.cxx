@@ -579,8 +579,15 @@ BrainBrowserWindow::createActions()
                                 SLOT(processShowSearchHelpOnlineWindow()));
     m_helpSearchOnlineAction->setEnabled(false);
 
+    m_helpGraphicsTimingAction =
+    WuQtUtilities::createAction("Time Graphics Update",
+                                "Show the average time for updating the windows graphics",
+                                this,
+                                this,
+                                SLOT(processGraphicsTiming()));
+    
     m_connectToAllenDatabaseAction =
-    WuQtUtilities::createAction("Allen Brain Institute Database..",
+    WuQtUtilities::createAction("Allen Brain Institute Database...",
                                 "Open a connection to the Allen Brain Institute Database",
                                 this,
                                 this,
@@ -1077,9 +1084,34 @@ BrainBrowserWindow::createMenuHelp()
     menu->addSeparator();
     menu->addAction(m_helpOnlineAction);
     menu->addAction(m_helpSearchOnlineAction);
+    menu->addSeparator();
+    menu->addAction(m_helpGraphicsTimingAction);
     
     return menu;
 }
+
+/**
+ * Time the graphics drawing.
+ */
+void
+BrainBrowserWindow::processGraphicsTiming()
+{
+    ElapsedTimer et;
+    et.start();
+    
+    const int32_t numTimes = 5;
+    for (int32_t i = 0; i < numTimes; i++) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    }
+    
+    const float time = et.getElapsedTimeSeconds() / numTimes;
+    const AString timeString = AString::number(time, 'f', 5);
+    
+    const AString msg = ("Time to draw graphics (seconds): "
+                         + timeString);
+    WuQMessageBox::informationOk(this, msg);
+}
+
 
 /**
  * Called when capture image is selected.
