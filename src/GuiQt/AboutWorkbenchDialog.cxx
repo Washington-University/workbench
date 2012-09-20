@@ -115,6 +115,8 @@ AboutWorkbenchDialog::displayOpenGLInformation()
     ded.addTextEdit("",
                     BrainOpenGLWidget::getOpenGLInformation(),
                     true);
+    ded.resize(600, 600);
+    ded.setCancelButtonText("");
     ded.exec();
 }
 
