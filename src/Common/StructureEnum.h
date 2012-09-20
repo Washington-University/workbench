@@ -48,6 +48,10 @@ public:
         INVALID,
         /** All Strucures */
         ALL,
+        /** All white matter */
+        ALL_WHITE_MATTER,
+        /** All grey matter */
+        ALL_GREY_MATTER,
         /** Left Nucleus Accumbens */
         ACCUMBENS_LEFT,
         /** Right Nucleus Accumbens */
@@ -62,12 +66,22 @@ public:
         CAUDATE_LEFT,
         /** Right Caudate */
         CAUDATE_RIGHT,
+        /** Cerebellar white matter left */
+        CEREBELLAR_WHITE_MATTER_LEFT,
+        /** Cerebellar white matter right */
+        CEREBELLAR_WHITE_MATTER_RIGHT,
         /** Cerebellum */
         CEREBELLUM,
         /** Left Cerebellum */
         CEREBELLUM_LEFT,
         /** Right Cerebellum */
         CEREBELLUM_RIGHT,
+        /** Cerebral white matter left */
+        CEREBRAL_WHITE_MATTER_LEFT,
+        /** Cerebral white matter right */
+        CEREBRAL_WHITE_MATTER_RIGHT,
+        /** Cortex not specified */
+        CORTEX,
         /** Left Cerebral Cortex */
         CORTEX_LEFT,
         /** Right Cerebral Cortex*/
@@ -86,14 +100,18 @@ public:
         PALLIDUM_RIGHT,
         /** Other structure not specified */
         OTHER,
+        /** Other grey matter */
+        OTHER_GREY_MATTER,
+        /** Other white matter */
+        OTHER_WHITE_MATTER,
         /** Left Putamen */
         PUTAMEN_LEFT,
         /** Right Putamen */
         PUTAMEN_RIGHT,
-        /** Left Subcortical White Matter */
-        SUBCORTICAL_WHITE_MATTER_LEFT,
-        /** Right Subcortical White Matter */
-        SUBCORTICAL_WHITE_MATTER_RIGHT,
+//        /** Left Subcortical White Matter */
+//        SUBCORTICAL_WHITE_MATTER_LEFT,
+//        /** Right Subcortical White Matter */
+//        SUBCORTICAL_WHITE_MATTER_RIGHT,
         /** Left Thalamus */
         THALAMUS_LEFT,
         /** Right Thalamus */

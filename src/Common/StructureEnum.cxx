@@ -73,23 +73,67 @@ StructureEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(StructureEnum(ALL, 
-                                     "ALL", 
-                                     "All"));
-    
-    enumData.push_back(StructureEnum(CORTEX_LEFT, 
-                                     "CORTEX_LEFT", 
+    enumData.push_back(StructureEnum(CORTEX_LEFT,
+                                     "CORTEX_LEFT",
                                      "CortexLeft"));
     
-    enumData.push_back(StructureEnum(CORTEX_RIGHT, 
-                                     "CORTEX_RIGHT", 
+    enumData.push_back(StructureEnum(CORTEX_RIGHT,
+                                     "CORTEX_RIGHT",
                                      "CortexRight"));
     
-    enumData.push_back(StructureEnum(CEREBELLUM, 
-                                     "CEREBELLUM", 
+    enumData.push_back(StructureEnum(CEREBELLUM,
+                                     "CEREBELLUM",
                                      "Cerebellum"));
     
-    enumData.push_back(StructureEnum(CEREBELLUM_LEFT, 
+    enumData.push_back(StructureEnum(ACCUMBENS_LEFT,
+                                     "ACCUMBENS_LEFT",
+                                     "AccumbensLeft"));
+    
+    enumData.push_back(StructureEnum(ACCUMBENS_RIGHT,
+                                     "ACCUMBENS_RIGHT",
+                                     "AccumbensRight"));
+    
+    enumData.push_back(StructureEnum(ALL,
+                                     "ALL",
+                                     "All"));
+    
+    enumData.push_back(StructureEnum(ALL_GREY_MATTER,
+                                     "ALL_GREY_MATTER",
+                                     "AllGreyMatter"));
+    
+    enumData.push_back(StructureEnum(ALL_WHITE_MATTER,
+                                     "ALL_WHITE_MATTER",
+                                     "AllWhiteMatter"));
+    
+    enumData.push_back(StructureEnum(AMYGDALA_LEFT,
+                                     "AMYGDALA_LEFT",
+                                     "AmygdalaLeft"));
+    
+    enumData.push_back(StructureEnum(AMYGDALA_RIGHT,
+                                     "AMYGDALA_RIGHT",
+                                     "AmygdalaRight"));
+    
+    enumData.push_back(StructureEnum(BRAIN_STEM,
+                                     "BRAIN_STEM",
+                                     "BrainStem"));
+    
+    enumData.push_back(StructureEnum(CAUDATE_LEFT,
+                                     "CAUDATE_LEFT",
+                                     "CaudateLeft"));
+    
+    enumData.push_back(StructureEnum(CAUDATE_RIGHT,
+                                     "CAUDATE_RIGHT",
+                                     "CaudateRight"));
+    
+    enumData.push_back(StructureEnum(CEREBELLAR_WHITE_MATTER_LEFT,
+                                     "CEREBELLAR_WHITE_MATTER_LEFT",
+                                     "CerebellarWhiteMatterLeft"));
+    
+    enumData.push_back(StructureEnum(CEREBELLAR_WHITE_MATTER_RIGHT,
+                                     "CEREBELLAR_WHITE_MATTER_RIGHT",
+                                     "CerebellarWhiteMatterRight"));
+    
+    enumData.push_back(StructureEnum(CEREBELLUM_LEFT,
                                      "CEREBELLUM_LEFT", 
                                      "CerebellumLeft"));
     
@@ -97,41 +141,17 @@ StructureEnum::initialize()
                                      "CEREBELLUM_RIGHT", 
                                      "CerebellumRight"));
     
-    enumData.push_back(StructureEnum(OTHER, 
-                                     "OTHER", 
-                                     "Other"));
+    enumData.push_back(StructureEnum(CEREBRAL_WHITE_MATTER_LEFT,
+                                     "CEREBRAL_WHITE_MATTER_LEFT",
+                                     "CerebralWhiteMatterLeft"));
     
-    enumData.push_back(StructureEnum(INVALID, 
-                                     "INVALID", 
-                                     "Invalid"));
+    enumData.push_back(StructureEnum(CEREBRAL_WHITE_MATTER_RIGHT,
+                                     "CEREBRAL_WHITE_MATTER_RIGHT",
+                                     "CerebralWhiteMatterRight"));
     
-    enumData.push_back(StructureEnum(ACCUMBENS_LEFT, 
-                                     "ACCUMBENS_LEFT", 
-                                     "AccumbensLeft"));
-    
-    enumData.push_back(StructureEnum(ACCUMBENS_RIGHT, 
-                                     "ACCUMBENS_RIGHT", 
-                                     "AccumbensRight"));
-    
-    enumData.push_back(StructureEnum(AMYGDALA_LEFT, 
-                                     "AMYGDALA_LEFT", 
-                                     "AmygdalaLeft"));
-    
-    enumData.push_back(StructureEnum(AMYGDALA_RIGHT, 
-                                     "AMYGDALA_RIGHT", 
-                                     "AmygdalaRight"));
-    
-    enumData.push_back(StructureEnum(BRAIN_STEM, 
-                                     "BRAIN_STEM", 
-                                     "BrainStem"));
-    
-    enumData.push_back(StructureEnum(CAUDATE_LEFT, 
-                                     "CAUDATE_LEFT", 
-                                     "CaudateLeft"));
-    
-    enumData.push_back(StructureEnum(CAUDATE_RIGHT, 
-                                     "CAUDATE_RIGHT", 
-                                     "CaudateRight"));
+    enumData.push_back(StructureEnum(CORTEX,
+                                     "CORTEX",
+                                     "Cortex"));
     
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_LEFT, 
                                      "DIENCEPHALON_VENTRAL_LEFT", 
@@ -149,7 +169,23 @@ StructureEnum::initialize()
                                      "HIPPOCAMPUS_RIGHT", 
                                      "HippocampusRight"));
     
-    enumData.push_back(StructureEnum(PALLIDUM_LEFT, 
+    enumData.push_back(StructureEnum(INVALID,
+                                     "INVALID",
+                                     "Invalid"));
+    
+    enumData.push_back(StructureEnum(OTHER,
+                                     "OTHER",
+                                     "Other"));
+    
+    enumData.push_back(StructureEnum(OTHER_GREY_MATTER,
+                                     "OTHER_GREY_MATTER",
+                                     "OtherGreyMatter"));
+    
+    enumData.push_back(StructureEnum(OTHER_WHITE_MATTER,
+                                     "OTHER_WHITE_MATTER",
+                                     "OtherWhiteMatter"));
+    
+    enumData.push_back(StructureEnum(PALLIDUM_LEFT,
                                      "PALLIDUM_LEFT", 
                                      "PallidumLeft"));
     
@@ -165,13 +201,13 @@ StructureEnum::initialize()
                                      "PUTAMEN_RIGHT", 
                                      "PutamenRight"));
     
-    enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_LEFT, 
-                                     "SUBCORTICAL_WHITE_MATTER_LEFT", 
-                                     "SubcorticalWhiteMatterLeft"));
-    
-    enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_RIGHT, 
-                                     "SUBCORTICAL_WHITE_MATTER_RIGHT", 
-                                     "SubcorticalWhiteMatterRight"));
+//    enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_LEFT, 
+//                                     "SUBCORTICAL_WHITE_MATTER_LEFT", 
+//                                     "SubcorticalWhiteMatterLeft"));
+//    
+//    enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_RIGHT, 
+//                                     "SUBCORTICAL_WHITE_MATTER_RIGHT", 
+//                                     "SubcorticalWhiteMatterRight"));
     
     enumData.push_back(StructureEnum(THALAMUS_LEFT, 
                                      "THALAMUS_LEFT", 
@@ -534,6 +570,10 @@ StructureEnum::getContralateralStructure(const Enum enumValue)
         case ALL:
             contralateralStructure = INVALID;
             break;
+        case ALL_GREY_MATTER:
+            break;
+        case ALL_WHITE_MATTER:
+            break;
         case AMYGDALA_LEFT:
             contralateralStructure = AMYGDALA_RIGHT;
             break;
@@ -549,6 +589,12 @@ StructureEnum::getContralateralStructure(const Enum enumValue)
         case CAUDATE_RIGHT:
             contralateralStructure = CAUDATE_LEFT;
             break;
+        case CEREBELLAR_WHITE_MATTER_LEFT:
+            contralateralStructure= CEREBELLAR_WHITE_MATTER_RIGHT;
+            break;
+        case CEREBELLAR_WHITE_MATTER_RIGHT:
+            contralateralStructure = CEREBELLAR_WHITE_MATTER_LEFT;
+            break;
         case CEREBELLUM:
             contralateralStructure = INVALID;
             break;
@@ -557,6 +603,14 @@ StructureEnum::getContralateralStructure(const Enum enumValue)
             break;
         case CEREBELLUM_RIGHT:
             contralateralStructure = CEREBELLUM_LEFT;
+            break;
+        case CEREBRAL_WHITE_MATTER_LEFT:
+            contralateralStructure = CEREBELLAR_WHITE_MATTER_RIGHT;
+            break;
+        case CEREBRAL_WHITE_MATTER_RIGHT:
+            contralateralStructure = CEREBELLAR_WHITE_MATTER_LEFT;
+            break;
+        case CORTEX:
             break;
         case CORTEX_LEFT:
             contralateralStructure = CORTEX_RIGHT;
@@ -588,18 +642,22 @@ StructureEnum::getContralateralStructure(const Enum enumValue)
         case OTHER:
             contralateralStructure = INVALID;
             break;
+        case OTHER_GREY_MATTER:
+            break;
+        case OTHER_WHITE_MATTER:
+            break;
         case PUTAMEN_LEFT:
             contralateralStructure = PUTAMEN_RIGHT;
             break;
         case PUTAMEN_RIGHT:
             contralateralStructure = PUTAMEN_LEFT;
             break;
-        case SUBCORTICAL_WHITE_MATTER_LEFT:
-            contralateralStructure = SUBCORTICAL_WHITE_MATTER_RIGHT;
-            break;
-        case SUBCORTICAL_WHITE_MATTER_RIGHT:
-            contralateralStructure = SUBCORTICAL_WHITE_MATTER_LEFT;
-            break;
+//        case SUBCORTICAL_WHITE_MATTER_LEFT:
+//            contralateralStructure = SUBCORTICAL_WHITE_MATTER_RIGHT;
+//            break;
+//        case SUBCORTICAL_WHITE_MATTER_RIGHT:
+//            contralateralStructure = SUBCORTICAL_WHITE_MATTER_LEFT;
+//            break;
         case THALAMUS_LEFT:
             contralateralStructure = THALAMUS_RIGHT;
             break;
