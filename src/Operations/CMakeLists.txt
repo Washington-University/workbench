@@ -25,6 +25,7 @@ OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
+OperationEstimateFiberBinghams.h
 OperationException.h
 OperationMetricMask.h
 OperationMetricPalette.h
@@ -42,6 +43,7 @@ OperationCiftiConvertToScalar.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
 OperationException.cxx
+OperationEstimateFiberBinghams.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
