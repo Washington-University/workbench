@@ -37,6 +37,8 @@
 
 #include "WuQDialogModal.h"
 
+class QPushButton;
+
 namespace caret {
 
     class AboutWorkbenchDialog : public WuQDialogModal {
@@ -47,10 +49,17 @@ namespace caret {
         
         virtual ~AboutWorkbenchDialog();
         
+    protected:
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
     private:
         AboutWorkbenchDialog(const AboutWorkbenchDialog&);
 
         AboutWorkbenchDialog& operator=(const AboutWorkbenchDialog&);
+        
+        void displayOpenGLInformation();
+        
+        QPushButton* m_openGLPushButton;
         
     };
     

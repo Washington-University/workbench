@@ -68,7 +68,7 @@ BrainOpenGLShapeSphere::~BrainOpenGLShapeSphere()
 }
 
 void
-BrainOpenGLShapeSphere::setupShape(const BrainOpenGLInfo::DrawMode drawMode)
+BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
     
     const float radius = 1.0;
@@ -125,29 +125,29 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGLInfo::DrawMode drawMode)
     }
     
     switch (drawMode) {
-        case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
+        case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             m_displayList = createDisplayList();
             
             if (m_displayList > 0) {
                 glNewList(m_displayList,
                           GL_COMPILE);
-                drawShape(BrainOpenGLInfo::DRAW_MODE_IMMEDIATE);
+                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
                 glEndList();
             }
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:
+        case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
             /* nothing to do for this case */
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_INVALID:
+        case BrainOpenGL::DRAW_MODE_INVALID:
         {
             CaretAssert(0);
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_VERTEX_BUFFERS:
+        case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
         {
             CaretAssert(0);
         }
@@ -161,17 +161,17 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGLInfo::DrawMode drawMode)
  *   How to draw the shape.
  */
 void
-BrainOpenGLShapeSphere::drawShape(const BrainOpenGLInfo::DrawMode drawMode)
+BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
 {
     switch (drawMode) {
-        case BrainOpenGLInfo::DRAW_MODE_DISPLAY_LISTS:
+        case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             if (m_displayList > 0) {
                 glCallList(m_displayList);
             }
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_IMMEDIATE:
+        case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
             const int32_t numQuadStrips = m_quadStripVerticesEndIndex.size();
             for (int32_t i = 0; i < numQuadStrips; i++) {
@@ -193,12 +193,12 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGLInfo::DrawMode drawMode)
             }
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_INVALID:
+        case BrainOpenGL::DRAW_MODE_INVALID:
         {
             CaretAssert(0);
         }
             break;
-        case BrainOpenGLInfo::DRAW_MODE_VERTEX_BUFFERS:
+        case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
         {
             CaretAssert(0);            
         }

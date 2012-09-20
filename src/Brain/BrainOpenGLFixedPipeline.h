@@ -369,10 +369,13 @@ namespace caret {
         double orthographicBottom;
         double orthographicTop;
         double orthographicFar; 
-        double orthographicNear; 
+        double orthographicNear;
+        
+        static bool s_staticInitialized;
     };
 
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
+    bool BrainOpenGLFixedPipeline::s_staticInitialized = false;
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace

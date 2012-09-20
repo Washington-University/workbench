@@ -28,6 +28,43 @@
 
 #include <stdint.h>
 
+#ifdef CARET_OS_WINDOWS
+#include <Windows.h>
+#endif
+#ifdef CARET_OS_MACOSX
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
+#include "CaretObject.h"
+
+#undef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+#undef BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE
+#undef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+
+//#define BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS 1
+#define BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE 1
+//#define BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS 1
+
+//#ifdef GL_VERSION_1_1
+//#define BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE 1
+//#define BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS 1
+//#endif // GL_VERSION_1_1
+//
+//#ifdef GL_VERSION_2_1
+//#define BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS 1
+//#endif // GL_VERSION_2_1
+//
+//#ifdef GL_VERSION_3_0
+//#define BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS 1
+//#endif // GL_VERSION_3_0
+//
+//#ifdef GL_VERSION_4_0
+//#define BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS 1
+//#endif // GL_VERSION_4_0
+
+
 #include "CaretObject.h"
 
 namespace caret {
@@ -46,12 +83,24 @@ namespace caret {
         BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer);
 
     public:
+        /** Mode for how the shape is drawn, set to most optimal for compilation and runtime systems */
+        enum DrawMode {
+            /** Draw using display lists */
+            DRAW_MODE_DISPLAY_LISTS,
+            /** Draw using immediate mode */
+            DRAW_MODE_IMMEDIATE,
+            /** Invalid */
+            DRAW_MODE_INVALID,
+            /** Draw using vertex buffers */
+            DRAW_MODE_VERTEX_BUFFERS
+        };
+        
         virtual ~BrainOpenGL();
         
         /**
          * Initialize the OpenGL system.
          */
-        virtual void initializeOpenGL() = 0;
+        virtual void initializeOpenGL();
         
         /**
          * Draw models in their respective viewports.
@@ -112,7 +161,42 @@ namespace caret {
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
-        static float getRuntimeVersionOfOpenGL();
+        static AString getRuntimeVersionOfOpenGL();
+        
+        static bool isRuntimeVersionOfOpenGLSupported(const AString& versionNumber);
+        
+        static QString getBestDrawingModeName();
+        
+        static AString getOpenGLInformation();
+        
+        /**
+         * @return The best drawing mode given the limitations of
+         * the compile and run-time systems.
+         */
+        static DrawMode getBestDrawingMode() {
+            return s_drawingMode;
+        }
+        
+        /**
+         * @return True if display list drawing is supported.
+         */
+        inline static bool isDisplayListsSupported() {
+            return s_supportsDisplayLists;
+        }
+        
+        /**
+         * @return True if immediate mode drawing is supported.
+         */
+        inline static bool isImmediateSupported() {
+            return s_supportsImmediateMode;
+        }
+        
+        /**
+         * @return True if vertex buffer drawing is supported.
+         */
+        inline static bool isVertexBuffersSupported() {
+            return s_supportsVertexBuffers;
+        }
         
     private:
         BrainOpenGL(const BrainOpenGL&);
@@ -125,30 +209,56 @@ namespace caret {
         
         Border* borderBeingDrawn;
         
-        /** version number of OpenGL */
-        static float versionOfOpenGL;
-
         /** minimum point size */
-        static float minPointSize;
+        static float s_minPointSize;
         
         /** maximum point size */
-        static float maxPointSize;
+        static float s_maxPointSize;
         
         /** minimum line width */
-        static float minLineWidth;
+        static float s_minLineWidth;
         
         /** maximum line width */
-        static float maxLineWidth;
+        static float s_maxLineWidth;
         
     private:
+        static void getOpenGLMajorMinorVersions(const AString& versionString,
+                                                AString& majorVersionOut,
+                                                AString& minorVersionOut);
+        
+        /** version of OpenGL */
+        static AString s_versionOfOpenGL;
+        
+        /** major version number of OpenGL */
+        static AString s_majorVersionOfOpenGL;
+        
+        /** minor version number of OpenGL */
+        static AString s_minorVersionOfOpenGL;
+        
+        static DrawMode s_drawingMode;
+        
+        static bool s_supportsDisplayLists;
+        
+        static bool s_supportsImmediateMode;
+        
+        static bool s_supportsVertexBuffers;
+        
+        static AString s_openGLInformation;
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H
-    float BrainOpenGL::versionOfOpenGL = 0.0f;
-    float BrainOpenGL::minPointSize = 1.0f;
-    float BrainOpenGL::maxPointSize = 10.0f;    
-    float BrainOpenGL::minLineWidth = 1.0f;
-    float BrainOpenGL::maxLineWidth = 10.0f;    
+    AString BrainOpenGL::s_versionOfOpenGL = "";
+    AString BrainOpenGL::s_majorVersionOfOpenGL = "";
+    AString BrainOpenGL::s_minorVersionOfOpenGL = "";
+    float BrainOpenGL::s_minPointSize = 1.0f;
+    float BrainOpenGL::s_maxPointSize = 10.0f;
+    float BrainOpenGL::s_minLineWidth = 1.0f;
+    float BrainOpenGL::s_maxLineWidth = 10.0f;
+    BrainOpenGL::DrawMode BrainOpenGL::s_drawingMode = BrainOpenGL::DRAW_MODE_INVALID;
+    bool BrainOpenGL::s_supportsDisplayLists  = false;
+    bool BrainOpenGL::s_supportsImmediateMode = false;
+    bool BrainOpenGL::s_supportsVertexBuffers = false;
+    AString BrainOpenGL::s_openGLInformation = "";
 #endif //__BRAIN_OPENGL_DEFINE_H
 
 } // namespace

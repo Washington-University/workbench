@@ -56,7 +56,7 @@ BrainOpenGLShape::BrainOpenGLShape()
 : CaretObject()
 {
     if (s_drawModeInitialized == false) {
-        s_drawMode = BrainOpenGLInfo::getBestDrawingMode();
+        s_drawMode = BrainOpenGL::getBestDrawingMode();
         s_drawModeInitialized = true;
     }
     

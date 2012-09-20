@@ -36,7 +36,6 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
-#include "BrainOpenGLInfo.h"
 #include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
@@ -141,148 +140,29 @@ BrainOpenGLWidget::initializeGL()
     
     QGLFormat format = this->format();
     
-    AString msg = ("Accum: " + AString::fromBool(format.accum())
-                   + "\nAccum size: " + AString::number(format.accumBufferSize())
-                   + "\nAlpha: " + AString::fromBool(format.alpha())
-                   + "\nAlpha size: " + AString::number(format.alphaBufferSize())
-                   + "\nDepth: " + AString::fromBool(format.depth())
-                   + "\nDepth size: " + AString::number(format.depthBufferSize())
-                   + "\nDirect Rendering: " + AString::fromBool(format.directRendering())
-                   + "\nRed size: " + AString::number(format.redBufferSize())
-                   + "\nGreen size: " + AString::number(format.greenBufferSize())
-                   + "\nBlue size: " + AString::number(format.blueBufferSize())
-                   + "\nDouble Buffer: " + AString::fromBool(format.doubleBuffer())
-                   + "\nRGBA: " + AString::fromBool(format.rgba())
-                   + "\nSamples: " + AString::fromBool(format.sampleBuffers())
-                   + "\nSamples size: " + AString::number(format.samples())
-                   + "\nStencil: " + AString::fromBool(format.stencil())
-                   + "\nStencil size: " + AString::number(format.stencilBufferSize())
-                   + "\nSwap Interval: " + AString::number(format.swapInterval())
-                   + "\nStereo: " + AString::fromBool(format.stereo())
-                   + "\nMajor Version: " + AString::number(format.majorVersion())
-                   + "\nMinor Version: " + AString::number(format.minorVersion()));
-    
-    msg += ("\nBest Drawing Mode: "
-            + BrainOpenGLInfo::getBestDrawingModeName());
-    msg += ("\nDisplay Lists Supported: "
-            + AString::fromBool(BrainOpenGLInfo::isDisplayListsSupported()));
-    msg += ("\nImmediate Mode Supported: "
-            + AString::fromBool(BrainOpenGLInfo::isImmediateSupported()));
-    msg += ("\nVertex Buffers Supported: "
-            + AString::fromBool(BrainOpenGLInfo::isVertexBuffersSupported()));
-    
-    msg += "\nCompile Time Versions Supported: ";
-#ifdef GL_VERSION_1_1
-    msg += " 1.1";
-#endif
-#ifdef GL_VERSION_1_2
-    msg += " 1.2";
-#endif
-#ifdef GL_VERSION_1_3
-    msg += " 1.3";
-#endif
-#ifdef GL_VERSION_1_4
-    msg += " 1.4";
-#endif
-#ifdef GL_VERSION_1_5
-    msg += " 1.5";
-#endif
-#ifdef GL_VERSION_2_0
-    msg += " 2.0";
-#endif
-#ifdef GL_VERSION_2_1
-    msg += " 2.1";
-#endif
-#ifdef GL_VERSION_3_0
-    msg += " 3.0";
-#endif
-#ifdef GL_VERSION_3_1
-    msg += " 3.1";
-#endif
-#ifdef GL_VERSION_3_2
-    msg += " 3.2";
-#endif
-#ifdef GL_VERSION_3_3
-    msg += " 3.3";
-#endif
-#ifdef GL_VERSION_4_0
-    msg += " 4.0";
-#endif
-#ifdef GL_OES_VERSION_1_0
-    msg += " ES_1.0";
-#endif
-#ifdef GL_ES_VERSION_2_0
-    msg += " ES_2.0";
-#endif
-#ifdef GL_ES_VERSION_3_0
-    msg += " ES_3.0";
-#endif
-    
-    msg += "\nRun Time Versions Supported: ";
-    QGLFormat::OpenGLVersionFlags versionFlags = QGLFormat::openGLVersionFlags();
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_None)) {
-        msg += " None";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_1)) {
-        msg += " 1.1";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_2)) {
-        msg += " 1.2";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_3)) {
-        msg += " 1.3";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_4)) {
-        msg += " 1.4";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_1_5)) {
-        msg += " 1.5";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_2_0)) {
-        msg += " 2.0";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_2_1)) {
-        msg += " 2.1";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_0)) {
-        msg += " 3.0";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_1)) {
-        msg += " 3.1";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_2)) {
-        msg += " 3.2";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_3_3)) {
-        msg += " 3.3";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_Version_4_0)) {
-        msg += " 4.0";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_CommonLite_Version_1_0)) {
-        msg += " ESCL_1.0";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Common_Version_1_0)) {
-        msg += " ES_1.0";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_CommonLite_Version_1_1)) {
-        msg += " ESCL_1.1";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Common_Version_1_1)) {
-        msg += " ES_1.1";
-    }
-    if (versionFlags.testFlag(QGLFormat::OpenGL_ES_Version_2_0)) {
-        msg += " ES_2.0";
-    }
-    
-    msg += ("\nOpen GL Reported Version: "
-            + QString((char*)glGetString(GL_VERSION)));
-    
-    msg += ("\nOpen GL Vendor: "
-            + QString((char*)glGetString(GL_VENDOR)));
-    
-    msg += ("\nOpen GL Renderer: "
-            + QString((char*)glGetString(GL_RENDERER)));
+    AString msg = ("OpenGL Context:"
+                   "\n   Accum: " + AString::fromBool(format.accum())
+                   + "\n   Accum size: " + AString::number(format.accumBufferSize())
+                   + "\n   Alpha: " + AString::fromBool(format.alpha())
+                   + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
+                   + "\n   Depth: " + AString::fromBool(format.depth())
+                   + "\n   Depth size: " + AString::number(format.depthBufferSize())
+                   + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
+                   + "\n   Red size: " + AString::number(format.redBufferSize())
+                   + "\n   Green size: " + AString::number(format.greenBufferSize())
+                   + "\n   Blue size: " + AString::number(format.blueBufferSize())
+                   + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
+                   + "\n   RGBA: " + AString::fromBool(format.rgba())
+                   + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
+                   + "\n   Samples size: " + AString::number(format.samples())
+                   + "\n   Stencil: " + AString::fromBool(format.stencil())
+                   + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
+                   + "\n   Swap Interval: " + AString::number(format.swapInterval())
+                   + "\n   Stereo: " + AString::fromBool(format.stereo())
+                   + "\n   Major Version: " + AString::number(format.majorVersion())
+                   + "\n   Minor Version: " + AString::number(format.minorVersion()));
+            
+    msg += ("\n\n" + BrainOpenGL::getOpenGLInformation());
 
     CaretLogConfig(msg);
     

@@ -36,7 +36,7 @@
 
 #include <set>
 
-#include "BrainOpenGLInfo.h"
+#include "BrainOpenGL.h"
 
 namespace caret {
 
@@ -72,7 +72,7 @@ namespace caret {
          * @param drawMode
          *    How the shape will be drawn.
          */
-        virtual void setupShape(const BrainOpenGLInfo::DrawMode drawMode) = 0;
+        virtual void setupShape(const BrainOpenGL::DrawMode drawMode) = 0;
         
         /**
          * Draw the shape using the given drawing mode.
@@ -80,7 +80,7 @@ namespace caret {
          * @param drawMode
          *    How the shape will be drawn.
          */
-        virtual void drawShape(const BrainOpenGLInfo::DrawMode drawMode) = 0;
+        virtual void drawShape(const BrainOpenGL::DrawMode drawMode) = 0;
         
         GLuint createBufferID();
         
@@ -100,13 +100,13 @@ namespace caret {
         
         bool m_shapeSetupComplete;
         
-        static BrainOpenGLInfo::DrawMode s_drawMode;
+        static BrainOpenGL::DrawMode s_drawMode;
         
         static bool s_drawModeInitialized;
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
-    BrainOpenGLInfo::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGLInfo::DRAW_MODE_INVALID;
+    BrainOpenGL::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGL::DRAW_MODE_INVALID;
     bool BrainOpenGLShape::s_drawModeInitialized = false;
 #endif // __BRAIN_OPEN_G_L_SHAPE_DECLARE__
 

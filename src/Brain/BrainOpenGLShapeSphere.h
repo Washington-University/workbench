@@ -56,9 +56,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
-        void drawShape(const BrainOpenGLInfo::DrawMode drawMode);
+        void drawShape(const BrainOpenGL::DrawMode drawMode);
         
-        void setupShape(const BrainOpenGLInfo::DrawMode drawMode);
+        void setupShape(const BrainOpenGL::DrawMode drawMode);
         
     private:
 

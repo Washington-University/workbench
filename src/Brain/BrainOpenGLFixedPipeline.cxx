@@ -44,6 +44,8 @@
 #include <limits>
 #include <cmath>
 
+#include <QStringList>
+
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
@@ -759,52 +761,10 @@ BrainOpenGLFixedPipeline::initializeMembersBrainOpenGL()
 void 
 BrainOpenGLFixedPipeline::initializeOpenGL()
 {
-    if (BrainOpenGLFixedPipeline::versionOfOpenGL == 0.0) {
-     
-        AString lineInfo;
+    if (s_staticInitialized == false) {
+        s_staticInitialized = true;
         
-#ifdef GL_VERSION_2_0
-        GLfloat values[2];
-        glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
-        const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
-                                               + AString::fromNumbers(values, 2, ", "));
-
-        glGetFloatv (GL_SMOOTH_LINE_WIDTH_RANGE, values);
-        const AString smoothLineWidthRange = ("GL_SMOOTH_LINE_WIDTH_RANGE value is "
-                                               + AString::fromNumbers(values, 2, ", "));
-        
-        glGetFloatv (GL_SMOOTH_LINE_WIDTH_GRANULARITY, values);
-        const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
-                                               + AString::number(values[0]));
-        
-        lineInfo = ("\n" + aliasedLineWidthRange
-                    + "\n" + smoothLineWidthRange
-                    + "\n" + smoothLineWidthGranularity);
-#else  // GL_VERSION_2_0
-        GLfloat values[2];
-        glGetFloatv (GL_LINE_WIDTH_RANGE, values);
-        const AString lineWidthRange = ("GL_LINE_WIDTH_RANGE value is "
-                                              + AString::fromNumbers(values, 2, ", "));
-        
-        glGetFloatv (GL_LINE_WIDTH_GRANULARITY, values);
-        const AString lineWidthGranularity = ("GL_LINE_WIDTH_GRANULARITY value is "
-                                                    + AString::number(values[0]));
-        lineInfo = ("\n" + lineWidthRange
-                    + "\n" + lineWidthGranularity);
-#endif // GL_VERSION_2_0
-        
-        //
-        // Note: The version string might be something like 1.2.4.  std::atof()
-        // will get just the 1.2 which is okay.
-        //
-        const char* versionStr = (char*)(glGetString(GL_VERSION));
-        BrainOpenGLFixedPipeline::versionOfOpenGL = std::atof(versionStr);
-        const char* vendorStr = (char*)(glGetString(GL_VENDOR));
-        const char* renderStr = (char*)(glGetString(GL_RENDERER));
-        CaretLogConfig("OpenGL version: " + AString(versionStr)
-                       + "\nOpenGL vendor: " + AString(vendorStr)
-                       + "\nOpenGL renderer: " + AString(renderStr)
-                       + lineInfo);
+        BrainOpenGL::initializeOpenGL();
     }
     
     glEnable(GL_DEPTH_TEST);
@@ -814,7 +774,7 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
 #ifndef GL_VERSION_1_3 
     glEnable(GL_NORMALIZE);
 #else
-    if (BrainOpenGLFixedPipeline::versionOfOpenGL >= 1.3) {
+    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
         glEnable(GL_RESCALE_NORMAL);
     }
     else {
@@ -874,13 +834,6 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     /*
      * Remaining items need to executed only once.
      */
-    float sizes[2];
-    glGetFloatv(GL_POINT_SIZE_RANGE, sizes);
-    BrainOpenGL::minPointSize = sizes[0];
-    BrainOpenGL::maxPointSize = sizes[1];
-    glGetFloatv(GL_LINE_WIDTH_RANGE, sizes);
-    BrainOpenGL::minLineWidth = sizes[0];
-    BrainOpenGL::maxLineWidth = sizes[1];
 }
 
 /**
@@ -1923,11 +1876,11 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
 void 
 BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
 {
-    if (lineWidth > maxLineWidth) {
-        glLineWidth(maxLineWidth);
+    if (lineWidth > s_maxLineWidth) {
+        glLineWidth(s_maxLineWidth);
     }
-    else if (lineWidth < minLineWidth) {
-        glLineWidth(minLineWidth);
+    else if (lineWidth < s_minLineWidth) {
+        glLineWidth(s_minLineWidth);
     }
     else {
         glLineWidth(lineWidth);
@@ -1942,11 +1895,11 @@ BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
 void
 BrainOpenGLFixedPipeline::setPointSize(const float pointSize)
 {
-    if (pointSize > maxPointSize) {
-        glPointSize(maxPointSize);
+    if (pointSize > s_maxPointSize) {
+        glPointSize(s_maxPointSize);
     }
-    else if (pointSize < minPointSize) {
-        glPointSize(minPointSize);
+    else if (pointSize < s_minPointSize) {
+        glPointSize(s_minPointSize);
     }
     else {
         glPointSize(pointSize);

@@ -41,6 +41,8 @@
 
 #include "ApplicationInformation.h"
 #include "BrainOpenGLWidget.h"
+#include "CaretAssert.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -66,8 +68,8 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
     ApplicationInformation appInfo;
     appInfo.getAllInformation(informationData);
     
-    informationData.push_back("OpenGL Information:\n"
-                              + BrainOpenGLWidget::getOpenGLInformation());
+    m_openGLPushButton = addUserPushButton("OpenGL...",
+                                           QDialogButtonBox::NoRole);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -90,4 +92,30 @@ AboutWorkbenchDialog::~AboutWorkbenchDialog()
 {
     
 }
+
+AboutWorkbenchDialog::ModalDialogUserButtonResult
+AboutWorkbenchDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_openGLPushButton) {
+        displayOpenGLInformation();
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return AboutWorkbenchDialog::RESULT_NONE;
+}
+
+void
+AboutWorkbenchDialog::displayOpenGLInformation()
+{
+    WuQDataEntryDialog ded("OpenGL Information",
+                           this,
+                           true);
+    ded.addTextEdit("",
+                    BrainOpenGLWidget::getOpenGLInformation(),
+                    true);
+    ded.exec();
+}
+
 
