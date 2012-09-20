@@ -268,23 +268,26 @@ BrainOpenGL::initializeOpenGL()
     
     lineInfo += "\n";
 #ifdef GL_VERSION_2_0
-    GLfloat values[2];
-    glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
-    const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
-                                           + AString::fromNumbers(values, 2, ", "));
-    
-    glGetFloatv (GL_SMOOTH_LINE_WIDTH_RANGE, values);
-    const AString smoothLineWidthRange = ("GL_SMOOTH_LINE_WIDTH_RANGE value is "
-                                          + AString::fromNumbers(values, 2, ", "));
-    
-    glGetFloatv (GL_SMOOTH_LINE_WIDTH_GRANULARITY, values);
-    const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
-                                                + AString::number(values[0]));
-    
-    lineInfo += ("\n" + aliasedLineWidthRange
-                + "\n" + smoothLineWidthRange
-                + "\n" + smoothLineWidthGranularity);
-#else  // GL_VERSION_2_0
+    if (isRuntimeVersionOfOpenGLSupported("2.0")) {
+        GLfloat values[2];
+        glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
+        const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
+                                               + AString::fromNumbers(values, 2, ", "));
+        
+        glGetFloatv (GL_SMOOTH_LINE_WIDTH_RANGE, values);
+        const AString smoothLineWidthRange = ("GL_SMOOTH_LINE_WIDTH_RANGE value is "
+                                              + AString::fromNumbers(values, 2, ", "));
+        
+        glGetFloatv (GL_SMOOTH_LINE_WIDTH_GRANULARITY, values);
+        const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
+                                                    + AString::number(values[0]));
+        
+        lineInfo += ("\n" + aliasedLineWidthRange
+                     + "\n" + smoothLineWidthRange
+                     + "\n" + smoothLineWidthGranularity);
+    }
+#endif // GL_VERSION_2_0
+//#else  // GL_VERSION_2_0
     GLfloat values[2];
     glGetFloatv (GL_LINE_WIDTH_RANGE, values);
     const AString lineWidthRange = ("GL_LINE_WIDTH_RANGE value is "
@@ -293,9 +296,9 @@ BrainOpenGL::initializeOpenGL()
     glGetFloatv (GL_LINE_WIDTH_GRANULARITY, values);
     const AString lineWidthGranularity = ("GL_LINE_WIDTH_GRANULARITY value is "
                                           + AString::number(values[0]));
-    lineInfo = ("\n" + lineWidthRange
+    lineInfo += ("\n" + lineWidthRange
                 + "\n" + lineWidthGranularity);
-#endif // GL_VERSION_2_0
+//#endif // GL_VERSION_2_0
     
     float sizes[2];
     glGetFloatv(GL_POINT_SIZE_RANGE, sizes);
