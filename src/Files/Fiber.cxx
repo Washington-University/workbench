@@ -88,7 +88,6 @@ Fiber::Fiber(const float* pointerToData)
     m_directionUnitVector[1] = std::sin(m_theta) * std::sin(m_phi);
     m_directionUnitVector[2] = std::cos(m_theta);
     
-    
 //    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
 //    const float elevation = M_PI_2 - m_theta;
 //    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);

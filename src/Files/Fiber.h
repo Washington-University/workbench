@@ -78,13 +78,13 @@ namespace caret {
         float m_phi;
         
         /**
-         * Major uncertainty/fanning distribution on sphere
+         * Major fanning eigenvalue
          * This value is from the fiber orientation file.
          */
         float m_k1;
         
         /** 
-         * Minor uncertainty/fanning distribution on sphere 
+         * Minor fanning eigenvalue
          * This value is from the fiber orientation file.
          */
         float m_k2;
