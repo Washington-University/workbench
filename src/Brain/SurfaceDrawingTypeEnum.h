@@ -48,6 +48,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Do not draw the surface */
+        DRAW_HIDE,
         /** Draw as links (edges) */
         DRAW_AS_LINKS,
         /** Draw as nodes */

@@ -79,29 +79,40 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
     const float degToRad = M_PI / 180.0;
     
     const float dLat = 180.0 / numLat;
-    for (int iLat = 0; iLat <= numLat; iLat++) {
+    for (int iLat = 0; iLat < numLat; iLat++) {
         const float latDeg = -90.0 + (iLat * dLat);
         const float latRad = latDeg * degToRad;
         
-        const float z1 = radius * std::sin(latRad);
+        float z1 = radius * std::sin(latRad);
         
         const float latDeg2 = -90.0 + ((iLat + 1) * dLat);
         const float latRad2 = latDeg2 * degToRad;
         
-        const float z2 = radius * std::sin(latRad2);
+        float z2 = radius * std::sin(latRad2);
         
         m_quadStripVerticesStartIndex.push_back(static_cast<int>(m_vertices.size()));
         
+//        std::cout << "Strip Start: " << std::endl;
         const float dLon = 360.0 / numLon;
         for (int iLon = 0; iLon <= numLon; iLon++) {
             const float lonDeg = iLon * dLon;
             const float lonRad = lonDeg * degToRad;
             
-            const float x1 = radius * std::cos(latRad) * std::cos(lonRad);
-            const float y1 = radius * std::cos(latRad) * std::sin(lonRad);
+            float x1 = radius * std::cos(latRad) * std::cos(lonRad);
+            float y1 = radius * std::cos(latRad) * std::sin(lonRad);
+            if (iLat == 0) {
+                x1 =  0.0;
+                y1 =  0.0;
+                z1 = -1.0;
+            }
             
-            const float x2 = radius * std::cos(latRad2) * std::cos(lonRad);
-            const float y2 = radius * std::cos(latRad2) * std::sin(lonRad);
+            float x2 = radius * std::cos(latRad2) * std::cos(lonRad);
+            float y2 = radius * std::cos(latRad2) * std::sin(lonRad);
+            if (iLat == (numLat - 1)) {
+                x2 = 0.0;
+                y2 = 0.0;
+                z2 = 1.0;
+            }
             
             m_vertices.push_back(static_cast<int>(m_coordinates.size() / 3));
             m_coordinates.push_back(x2);
@@ -120,9 +131,14 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             m_normals.push_back(x1 / length1);
             m_normals.push_back(y1 / length1);
             m_normals.push_back(z1 / length1);
+            
+//            std::cout << "   " << iLat << ", " << iLon << std::endl;
+//            std::cout << "       " << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
+//            std::cout << "       " << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
         }
         
         m_quadStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
+//        std::cout << std::endl << std::endl;
     }
     
     switch (drawMode) {

@@ -87,6 +87,10 @@ SurfaceDrawingTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(SurfaceDrawingTypeEnum(DRAW_HIDE,
+                                              "DRAW_HIDE",
+                                              "Hide"));
+    
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_LINKS,
                                     "DRAW_AS_LINKS", 
                                     "Links (Edges)"));

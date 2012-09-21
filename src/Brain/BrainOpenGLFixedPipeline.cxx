@@ -957,9 +957,12 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     
     this->enableLighting();
     
+    const SurfaceDrawingTypeEnum::Enum drawingType = dps->getSurfaceDrawingType();
     switch (this->mode)  {
         case MODE_DRAWING:
-            switch (dps->getSurfaceDrawingType()) {
+            switch (drawingType) {
+                case SurfaceDrawingTypeEnum::DRAW_HIDE:
+                    break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_LINKS:
                     /*
                      * Draw first as triangles without coloring which uses
@@ -1002,10 +1005,12 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             break;
         case MODE_IDENTIFICATION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceNodes(surface,
-                                   nodeColoringRGBA);
-            this->drawSurfaceTriangles(surface,
+            if (drawingType != SurfaceDrawingTypeEnum::DRAW_HIDE) {
+                this->drawSurfaceNodes(surface,
                                        nodeColoringRGBA);
+                this->drawSurfaceTriangles(surface,
+                                           nodeColoringRGBA);
+            }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
@@ -1013,8 +1018,10 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             break;
         case MODE_PROJECTION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceTriangles(surface,
-                                       nodeColoringRGBA);
+            if (drawingType != SurfaceDrawingTypeEnum::DRAW_HIDE) {
+                this->drawSurfaceTriangles(surface,
+                                           nodeColoringRGBA);
+            }
             glShadeModel(GL_SMOOTH);
             break;
     }
