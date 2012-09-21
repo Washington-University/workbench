@@ -188,7 +188,7 @@ BrainOpenGLShape::releaseDisplayListInternal(const GLuint displayList,
                                              const bool isRemoveFromTrackedLists)
 {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    if (BrainOpenGLInfo::isDisplayListsSupported()) {
+    if (BrainOpenGL::isDisplayListsSupported()) {
         if (glIsList(displayList)) {
             glDeleteLists(displayList, 1);
             
@@ -216,7 +216,7 @@ BrainOpenGLShape::createDisplayList()
 {
     GLuint displayList = 0;
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    if (BrainOpenGLInfo::isDisplayListsSupported()) {
+    if (BrainOpenGL::isDisplayListsSupported()) {
         displayList = glGenLists(1);
         
         if (displayList > 0) {
