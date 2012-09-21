@@ -1853,7 +1853,8 @@ void
 Brain::updateWholeBrainController()
 {
     bool isValid = false;
-    if (getNumberOfBrainStructures() > 0) {
+    if ((getNumberOfBrainStructures() > 0)
+         || (getNumberOfVolumeFiles() > 0)) {
         isValid = true;
     }
      
