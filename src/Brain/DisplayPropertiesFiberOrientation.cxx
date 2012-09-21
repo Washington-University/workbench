@@ -72,7 +72,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
     const bool drawWithMagnitude = true;
     const float lengthMultiplier = 10.0;
     const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
-    const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS;
+    const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();

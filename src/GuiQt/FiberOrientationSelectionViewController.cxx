@@ -154,7 +154,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_aboveLimitSpinBox = new QDoubleSpinBox();
     m_aboveLimitSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_aboveLimitSpinBox->setDecimals(2);
-    m_aboveLimitSpinBox->setSingleStep(1.0);
+    m_aboveLimitSpinBox->setSingleStep(0.1);
     m_aboveLimitSpinBox->setToolTip("Fibers within this distance above the volume slice will be displayed");
     QObject::connect(m_aboveLimitSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
@@ -163,7 +163,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_belowLimitSpinBox = new QDoubleSpinBox();
     m_belowLimitSpinBox->setRange(-std::numeric_limits<float>::max(), 0.0);
     m_belowLimitSpinBox->setDecimals(2);
-    m_belowLimitSpinBox->setSingleStep(1.0);
+    m_belowLimitSpinBox->setSingleStep(0.1);
     m_belowLimitSpinBox->setToolTip("Fibers within this distance below the volume slice will be displayed");
     QObject::connect(m_belowLimitSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
@@ -172,7 +172,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_minimumMagnitudeSpinBox = new QDoubleSpinBox();
     m_minimumMagnitudeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_minimumMagnitudeSpinBox->setDecimals(2);
-    m_minimumMagnitudeSpinBox->setSingleStep(1.0);
+    m_minimumMagnitudeSpinBox->setSingleStep(0.05);
     m_minimumMagnitudeSpinBox->setToolTip("Minimum magnitude for displaying fibers");
     QObject::connect(m_minimumMagnitudeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
