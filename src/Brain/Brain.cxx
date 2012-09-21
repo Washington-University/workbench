@@ -2852,7 +2852,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
         ConnectivityLoaderFile* connFile = *connScalarIterator;
         delete connFile;
-        m_connectivityDenseFiles.erase(connScalarIterator);
+        m_connectivityDenseScalarFiles.erase(connScalarIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
@@ -2860,10 +2860,10 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     std::vector<ConnectivityLoaderFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
                                                                             m_connectivityFiberOrientationFiles.end(),
                                                                             caretDataFile);
-    if (connIterator != m_connectivityFiberOrientationFiles.end()) {
+    if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
         ConnectivityLoaderFile* connFile = *connFiberOrientationIterator;
         delete connFile;
-        m_connectivityDenseFiles.erase(connFiberOrientationIterator);
+        m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
