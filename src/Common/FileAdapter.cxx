@@ -131,9 +131,11 @@ FileAdapter::openQTextStreamForWritingFile(const AString& filename,
     if (m_file->open(QFile::WriteOnly) == false) {
         errorMessageOut = ("Unable to open "
                            + filename
-                           + " for writing.");
+                           + " for writing: "
+                           + m_file->errorString());
         delete m_file;
         m_file = NULL;
+        return NULL;
     }
     
     m_textStream = new QTextStream(m_file);
