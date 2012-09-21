@@ -173,6 +173,30 @@ void OperationEstimateFiberBinghams::useParameters(OperationParameters* myParams
         myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);
     }
     myXML.resetRowsToScalars(24);
+    myXML.setMapNameForRowIndex(0, "x coord");
+    myXML.setMapNameForRowIndex(1, "y coord");
+    myXML.setMapNameForRowIndex(2, "z coord");
+    myXML.setMapNameForRowIndex(3, "mean f1");
+    myXML.setMapNameForRowIndex(4, "stdev f1");
+    myXML.setMapNameForRowIndex(5, "theta1");
+    myXML.setMapNameForRowIndex(6, "phi1");
+    myXML.setMapNameForRowIndex(7, "ka1");
+    myXML.setMapNameForRowIndex(8, "kb1");
+    myXML.setMapNameForRowIndex(9, "psi1");
+    myXML.setMapNameForRowIndex(10, "mean f2");
+    myXML.setMapNameForRowIndex(11, "stdev f2");
+    myXML.setMapNameForRowIndex(12, "theta2");
+    myXML.setMapNameForRowIndex(13, "phi2");
+    myXML.setMapNameForRowIndex(14, "ka2");
+    myXML.setMapNameForRowIndex(15, "kb2");
+    myXML.setMapNameForRowIndex(16, "psi2");
+    myXML.setMapNameForRowIndex(17, "mean f3");
+    myXML.setMapNameForRowIndex(18, "stdev f3");
+    myXML.setMapNameForRowIndex(19, "theta3");
+    myXML.setMapNameForRowIndex(20, "phi3");
+    myXML.setMapNameForRowIndex(21, "ka3");
+    myXML.setMapNameForRowIndex(22, "kb3");
+    myXML.setMapNameForRowIndex(23, "psi3");
     CiftiFile* myCifti = myParams->getOutputCifti(11);
     myCifti->setCiftiXML(myXML);
     vector<CiftiVolumeMap> volMap;
@@ -223,7 +247,7 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
         accum += temp * temp;
     }
     binghamOut[1] = sqrt(accum / (fdims[3] - 1));//sample standard deviation
-    float theta = acos(accumvec[3]);//[0, pi]
+    float theta = acos(accumvec[2]);//[0, pi]
     float phi = atan2(accumvec[1], accumvec[0]);//[-pi, pi]
     if (phi < 0.0f) phi += 2 * 3.14159265358979;//[0, 2pi]
     binghamOut[2] = theta;
