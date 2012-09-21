@@ -75,18 +75,18 @@ Fiber::Fiber(const float* pointerToData)
     m_fanningMinorAxisAngle = kToAngle(m_k2);
     
     /*
-     * m_theta is angle from XY-Plane rotated about a line
+     * m_theta is angle from Positive-Z Axis rotated about a line
      * in the XY-Plane
      *
      * m_phi is angle from positive X-Axis rotated about Z-Axis
      * looking to negative Z.
      *
-     * azimuth is angle from positive-Y axis in XY-plane.
-     * elevation is angle up/down angle from XY-plane.
+     * NOTE: 'X' is in radiological space (positive X is left)
+     * so flip the sign of the X-coordinate.
      */
-    m_directionUnitVector[0] = std::cos(m_theta) * std::cos(m_phi);
-    m_directionUnitVector[1] = std::cos(m_theta) * std::sin(m_phi);
-    m_directionUnitVector[2] = std::sin(m_theta);
+    m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
+    m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
+    m_directionUnitVector[2] =  std::cos(m_theta);
     
 //    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
 //    const float elevation = M_PI_2 - m_theta;
