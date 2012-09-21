@@ -32,9 +32,13 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #define __FIBER_DECLARE__
 #include "Fiber.h"
 #undef __FIBER_DECLARE__
+
+#include "AString.h"
 
 #include <cmath>
 
@@ -80,11 +84,16 @@ Fiber::Fiber(const float* pointerToData)
      * azimuth is angle from positive-Y axis in XY-plane.
      * elevation is angle up/down angle from XY-plane.
      */
-    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
-    const float elevation = M_PI_2 - m_theta;
-    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
-    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
-    m_directionUnitVector[2] = std::sin(elevation);
+    m_directionUnitVector[0] = std::sin(m_theta) * std::cos(m_phi);
+    m_directionUnitVector[1] = std::sin(m_theta) * std::sin(m_phi);
+    m_directionUnitVector[2] = std::cos(m_theta);
+    
+    
+//    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
+//    const float elevation = M_PI_2 - m_theta;
+//    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
+//    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
+//    m_directionUnitVector[2] = std::sin(elevation);
 }
 
 /**
