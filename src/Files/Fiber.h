@@ -48,15 +48,23 @@ namespace caret {
         
         ~Fiber();
         
-        /** spatial magnitude of distribution/distance from center */
+        /** 
+         * Spatial magnitude of distribution/distance from center 
+         * This value is from the fiber orientation file.
+         */
         float m_meanF;
         
-        /** spatial variance in magnitude of distribution/distance from center */
+        /**
+         * Spatial variance in magnitude of distribution/distance from center
+         * This value is from the fiber orientation file.
+         */
         float m_varF;
         
         /** 
          * First spatial angle of distribution.
          * Polar angle from positive Z.
+         * Units is radians.
+         * This value is from the fiber orientation file.
          */
         float m_theta;
         
@@ -64,23 +72,55 @@ namespace caret {
          * Second spatial angle of distribution.
          * Aximuthal angle in X-Y Plane, counter-clockwise
          * around positive Z-Axis starting at positive X-Axis.
+         * Units is radians.
+         * This value is from the fiber orientation file.
          */
         float m_phi;
         
-        /** major radius/eigenvalue of uncertainty/fanning distribution on sphere */
+        /**
+         * Major uncertainty/fanning distribution on sphere
+         * This value is from the fiber orientation file.
+         */
         float m_k1;
         
-        /** minor radius/eigenvalue of uncertainty/fanning distribution on sphere */
+        /** 
+         * Minor uncertainty/fanning distribution on sphere 
+         * This value is from the fiber orientation file.
+         */
         float m_k2;
         
-        /** angle of anisotropy in uncertainty/fanning distribution on sphere */
+        /** 
+         * Angle of anisotropy in uncertainty/fanning distribution on sphere 
+         * Units is radians.
+         * This value is from the fiber orientation file.
+         */
         float m_psi;
+        
+        /**
+         * Angle of fanning for the major axis.
+         * Units is radians.
+         * This value is computed and is NOT from the fiber orientation file.
+         */
+        float m_fanningMajorAxisAngle;
+        
+        /**
+         * Angle of fanning for the minor axis.
+         * Units is radians.
+         * This value is computed and is NOT from the fiber orientation file.
+         */
+        float m_fanningMinorAxisAngle;
+        
+        /**
+         * Directional unit vector of fiber
+         */
+        float m_directionUnitVector[3];
         
         /** Number of elements per fiber in a fiber orientation's file */
         static const int32_t NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
     
     private:
         float kToAngle(const float k);
+        
         
     };
 #ifdef __FIBER_DECLARE__

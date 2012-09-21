@@ -4622,164 +4622,6 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
 
     drawFibers(&plane);
     disableLighting();
-    
-    
-//    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
-//    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
-//    if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
-//        return;
-//    }
-//    const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
-//    const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
-//    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
-//    const float magnitudeMultiplier = dpfo->getMagnitudeMultiplier(displayGroup, this->windowTabIndex);
-//    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
-//    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
-//
-//    /*
-//     * Draw the vectors from each of the connectivity files
-//     */
-//    const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
-//    for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
-//        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
-//        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
-//        try {
-//            ciftiAdapter = clf->getFiberOrientationAdapter();
-//        }
-//        catch (const DataFileException& dfe) {
-//            CaretLogSevere(dfe.whatString());
-//            continue;
-//        }
-//        if (dpfo->isDisplayed(displayGroup,
-//                                      this->windowTabIndex)) {
-//            /*
-//             * Draw each of the fiber orientations which may contain multiple fibers
-//             */
-//            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
-//            for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
-//                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
-//                if (fiberOrientation->isValid() == false) {
-//                    continue;
-//                }
-//                
-//                /*
-//                 * Draw each of the fibers
-//                 */
-//                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
-//                for (int64_t j = 0; j < numberOfFibers; j++) {
-//                    const Fiber* fiber = fiberOrientation->m_fibers[j];
-//                    
-//                    /*
-//                     * Apply display properties
-//                     */
-//                    bool drawIt = true;
-//                    const float distToPlane = plane.signedDistanceToPlane(fiberOrientation->m_xyz);
-//                    if (distToPlane > aboveLimit) {
-//                        drawIt = false;
-//                    }
-//                    if (distToPlane < belowLimit) {
-//                        drawIt = false;
-//                    }
-//                    if (fiber->m_meanF < minimumMagnitude) {
-//                        drawIt = false;
-//                    }
-//                    
-//                    if (drawIt) {
-//                        /*
-//                         * Length of vector
-//                         */
-//                        float vectorLength = magnitudeMultiplier;
-//                        if (isDrawWithMagnitude) {
-//                            vectorLength *= fiber->m_meanF;
-//                        }
-//                        
-//                        /*
-//                         * Convert angles to a unit-vector
-//                         */
-//                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
-//                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
-//                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
-//                        const float unitVector[3] = {
-//                            std::sin(azimuth) * std::cos(elevation),
-//                            std::cos(azimuth) * std::cos(elevation),
-//                            std::sin(elevation)
-//                        };
-////                        std::cout
-////                        << "Fiber(" << i << "," << j << "): phi="
-////                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
-////                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
-////                        << MathFunctions::toDegrees(azimuth) << ", el="
-////                        << MathFunctions::toDegrees(elevation) << ", vec=("
-////                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
-////                        << ")"
-////                        << std::endl
-////                        << std::endl;
-//                        
-//                        /*
-//                         * Vector with magnitude
-//                         */
-//                        const float magnitudeVector[3] = {
-//                            unitVector[0] * vectorLength,
-//                            unitVector[1] * vectorLength,
-//                            unitVector[2] * vectorLength
-//                        };
-//                        
-//                        /*
-//                         * Start of vector (offset by half vector length
-//                         * since vector is bi-directional.
-//                         * Convert to screen space.
-//                         */
-//                        float startXYZ[3] = {
-//                            fiberOrientation->m_xyz[0] - (magnitudeVector[0] * 0.5),
-//                            fiberOrientation->m_xyz[1] - (magnitudeVector[1] * 0.5),
-//                            fiberOrientation->m_xyz[2] - (magnitudeVector[2] * 0.5)
-//                        };
-//                        
-//                        
-//                        /*
-//                         * End of vector and convert to screen space
-//                         */
-//                        float endXYZ[3] = {
-//                            startXYZ[0] + magnitudeVector[0],
-//                            startXYZ[1] + magnitudeVector[1],
-//                            startXYZ[2] + magnitudeVector[2]
-//                        };
-//
-//                        const float radius = 2.0;
-//                        setLineWidth(radius);
-//                        
-//                        /*
-//                         * Color of vector
-//                         */
-//                        float rgb[3] = { 0.0, 0.0, 0.0 };
-//                        switch (colorType) {
-//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-//                            {
-//                                const int32_t indx = j % 3;
-//                                CaretAssert((indx >= 0) && (indx < 3));
-//                                rgb[indx] = 1.0;
-//                            }
-//                                break;
-//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-//                                rgb[0] = unitVector[0];
-//                                rgb[1] = unitVector[1];
-//                                rgb[2] = unitVector[2];
-//                                break;
-//                        }
-//                        glColor3fv(rgb);
-//                        
-//                        /*
-//                         * Draw the vector
-//                         */
-//                        glBegin(GL_LINES);
-//                        glVertex3fv(startXYZ);
-//                        glVertex3fv(endXYZ);
-//                        glEnd();
-//                    }
-//                }
-//            }
-//        }
-//    }    
 }
 
 /**
@@ -4941,17 +4783,17 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             vectorLength *= fiber->m_meanF;
                         }
                         
-                        /*
-                         * Convert angles to a unit-vector
-                         */
-                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
-                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
-                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
-                        const float unitVector[3] = {
-                            std::sin(azimuth) * std::cos(elevation),
-                            std::cos(azimuth) * std::cos(elevation),
-                            std::sin(elevation)
-                        };
+//                        /*
+//                         * Convert angles to a unit-vector
+//                         */
+//                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
+//                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
+//                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
+//                        const float unitVector[3] = {
+//                            std::sin(azimuth) * std::cos(elevation),
+//                            std::cos(azimuth) * std::cos(elevation),
+//                            std::sin(elevation)
+//                        };
                         //                        std::cout
                         //                        << "Fiber(" << i << "," << j << "): phi="
                         //                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
@@ -4967,9 +4809,9 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                          * Vector with magnitude
                          */
                         const float magnitudeVector[3] = {
-                            unitVector[0] * vectorLength,
-                            unitVector[1] * vectorLength,
-                            unitVector[2] * vectorLength
+                            fiber->m_directionUnitVector[0] * vectorLength,
+                            fiber->m_directionUnitVector[1] * vectorLength,
+                            fiber->m_directionUnitVector[2] * vectorLength
                         };
                         
                         const float halfMagnitudeVector[3] = {
@@ -5045,9 +4887,9 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             }
                                 break;
                             case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                rgb[0] = unitVector[0];
-                                rgb[1] = unitVector[1];
-                                rgb[2] = unitVector[2];
+                                rgb[0] = fiber->m_directionUnitVector[0];
+                                rgb[1] = fiber->m_directionUnitVector[1];
+                                rgb[2] = fiber->m_directionUnitVector[2];
                                 break;
                         }
                         glColor3fv(rgb);
@@ -5059,20 +4901,20 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
-                                                   fiber->m_k1,
-                                                   fiber->m_k2,
+                                                   fiber->m_fanningMajorAxisAngle,
+                                                   fiber->m_fanningMinorAxisAngle,
                                                    fiber->m_psi,
                                                    false);
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
-                                                   fiber->m_k1,
-                                                   fiber->m_k2,
+                                                   fiber->m_fanningMajorAxisAngle,
+                                                   fiber->m_fanningMinorAxisAngle,
                                                    fiber->m_psi,
                                                    true);
 //                                drawEllipticalCone(endTwoXYZ,
 //                                                   startXYZ,
-//                                                   fiber->m_k1,
-//                                                   fiber->m_k2,
+//                                                   fiber->m_m_fanningMajorAxisAngle,
+//                                                   fiber->m_fanningMinorAxisAngle,
 //                                                   fiber->m_psi,
 //                                                   false);
 //                                drawCone(endXYZ,
@@ -5119,10 +4961,10 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
  * @param apexXYZ
  *    Location of the pointed end of the cone
  * @param baseMajorAngle
- *    Angle for the major axis of the ellipse
+ *    Angle for the major axis of the ellipse (units = Radians)
  * @param baseMinorAngle
- *    Angle for the minor axis of the ellipse
- * @param baseRotationAngle
+ *    Angle for the minor axis of the ellipse (units = Radians)
+ * @param baseRotationAngle  (units = Radians)
  *    Rotation of major axis from 'up'
  * @param backwardsFlag
  *    If true, draw the cone backwards (rotated 180 degrees).

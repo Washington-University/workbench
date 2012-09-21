@@ -52,15 +52,39 @@ using namespace caret;
  */
 Fiber::Fiber(const float* pointerToData)
 {
+    /*
+     * Retrieve values from the file
+     */
     m_meanF = pointerToData[0];
     m_varF  = pointerToData[1];
     m_theta = pointerToData[2];
     m_phi   = pointerToData[3];
-    m_k1    = kToAngle(pointerToData[4]);
-    m_k2    = kToAngle(pointerToData[5]);
+    m_k1    = pointerToData[4];
+    m_k2    = pointerToData[5];
     m_psi   = pointerToData[6];
     
+    /*
+     * Set computed values used for visualization
+     */
     
+    m_fanningMajorAxisAngle = kToAngle(m_k1);
+    m_fanningMinorAxisAngle = kToAngle(m_k2);
+    
+    /*
+     * m_theta is angle from Positive-Z rotated about X-Axis
+     * looking to negative X.
+     *
+     * m_phi is angle from positive X-Axis rotated about Z-Axis
+     * looking to negative Z.
+     *
+     * azimuth is angle from positive-Y axis in XY-plane.
+     * elevation is angle up/down angle from XY-plane.
+     */
+    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
+    const float elevation = M_PI_2 - m_theta;
+    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
+    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
+    m_directionUnitVector[2] = std::sin(elevation);
 }
 
 /**
