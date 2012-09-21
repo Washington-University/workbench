@@ -61,7 +61,6 @@ namespace caret {
     class Palette;
     class PaletteColorMapping;
     class PaletteFile;
-    class SphereOpenGL;
     class VolumeFile;
     
     /**
@@ -355,10 +354,7 @@ namespace caret {
         /** Performs node coloring */
         SurfaceNodeColoring* surfaceNodeColoring;
          
-        uint32_t sphereDisplayList;
-        
-        SphereOpenGL* sphereOpenGL;
-        
+        /** Sphere symbol */
         BrainOpenGLShapeSphere* m_shapeSphere;
         
         double inverseRotationMatrix[16];

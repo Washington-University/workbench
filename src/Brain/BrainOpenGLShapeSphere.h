@@ -42,7 +42,7 @@ namespace caret {
     class BrainOpenGLShapeSphere : public BrainOpenGLShape {
         
     public:
-        BrainOpenGLShapeSphere();
+        BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAndLongitude);
         
         virtual ~BrainOpenGLShapeSphere();
         
@@ -63,6 +63,8 @@ namespace caret {
     private:
 
         // ADD_NEW_MEMBERS_HERE
+        
+        const int32_t m_numberOfLatitudeAndLongitude;
         
         GLuint m_vertexBufferID;
 

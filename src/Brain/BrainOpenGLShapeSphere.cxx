@@ -52,8 +52,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrainOpenGLShapeSphere::BrainOpenGLShapeSphere()
-: BrainOpenGLShape()
+BrainOpenGLShapeSphere::BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAndLongitude)
+: BrainOpenGLShape(),
+  m_numberOfLatitudeAndLongitude(numberOfLatitudeAndLongitude)
 {
     m_displayList    = 0;
     m_vertexBufferID = 0;
@@ -72,8 +73,8 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
     
     const float radius = 1.0;
-    const int numLat = 10;
-    const int numLon = 10;
+    const int numLat = m_numberOfLatitudeAndLongitude;
+    const int numLon = m_numberOfLatitudeAndLongitude;
     
     const float degToRad = M_PI / 180.0;
     

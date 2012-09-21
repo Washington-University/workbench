@@ -115,7 +115,6 @@ NodeIdentificationTypeEnum.h
 Overlay.h
 OverlaySet.h
 SessionManager.h
-SphereOpenGL.h
 Surface.h
 SurfaceDrawingTypeEnum.h
 SurfaceSelectionModel.h
@@ -193,7 +192,6 @@ NodeIdentificationTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx
 SessionManager.cxx
-SphereOpenGL.cxx
 Surface.cxx
 SurfaceDrawingTypeEnum.cxx
 SurfaceSelectionModel.cxx

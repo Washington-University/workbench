@@ -103,7 +103,6 @@
 #include "PaletteScalarAndColor.h"
 #include "Plane.h"
 #include "SessionManager.h"
-#include "SphereOpenGL.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
 #include "SurfaceProjectedItem.h"
@@ -131,8 +130,6 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
 {
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
-    this->sphereDisplayList = 0;
-    this->sphereOpenGL = NULL;
     m_shapeSphere = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
@@ -143,13 +140,6 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
  */
 BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
 {
-    if (this->sphereDisplayList > 0) {
-        glDeleteLists(this->sphereDisplayList, 1);
-    }
-    if (this->sphereOpenGL != NULL) {
-        delete this->sphereOpenGL;
-        this->sphereOpenGL = NULL;
-    }
     if (m_shapeSphere != NULL) {
         delete m_shapeSphere;
         m_shapeSphere = NULL;
@@ -804,26 +794,9 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     
     float ambient[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient); 
-    
-    this->sphereDisplayList = 0;
-    //this->sphereDisplayList = glGenLists(1);
-    if (this->sphereDisplayList > 0) {
-        glNewList(this->sphereDisplayList, GL_COMPILE);
-        GLUquadric* sphereQuadric = gluNewQuadric();
-        gluQuadricDrawStyle(sphereQuadric, (GLenum)GLU_FILL);
-        gluQuadricOrientation(sphereQuadric, (GLenum)GLU_OUTSIDE);
-        gluQuadricNormals(sphereQuadric, (GLenum)GLU_SMOOTH);
-        gluSphere(sphereQuadric, 1.0, 10, 10);
-        gluDeleteQuadric(sphereQuadric);
-        glEndList();
-    }
-    
-    
-    if (this->sphereOpenGL == NULL) {
-        this->sphereOpenGL = new SphereOpenGL(1.0);
-    }
+        
     if (m_shapeSphere == NULL) {
-        m_shapeSphere = new BrainOpenGLShapeSphere();
+        m_shapeSphere = new BrainOpenGLShapeSphere(5);
     }
     
     if (this->initializedOpenGLFlag) {
@@ -6271,13 +6244,7 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
 {
     glPushMatrix();
     glScaled(radius, radius, radius);
-    if (this->sphereDisplayList > 0) {
-        glCallList(this->sphereDisplayList);
-    }
-    else {
-        //this->sphereOpenGL->drawWithQuadStrips();
-        m_shapeSphere->draw();
-    }
+    m_shapeSphere->draw();
     glPopMatrix();
 }
 
