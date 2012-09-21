@@ -226,8 +226,8 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
         accum += fsamplearray[i];
         float theta = theta_samples->getValue(ijk, i);//these have already been checked to have the same number of bricks
         float phi = phi_samples->getValue(ijk, i);
-        samples[i][0] = sin(theta) * cos(phi);//ignore the f values for directionality testing
-        samples[i][1] = sin(theta) * sin(phi);
+        samples[i][0] = -sin(theta) * cos(phi);//NOTE: theta, phi are polar coordinates for a RADIOLOGICAL volume, so flip x so that +x = right
+        samples[i][1] = sin(theta) * sin(phi);//ignore the f values for directionality testing
         samples[i][2] = cos(theta);//beware, samples may be the negative of other samples, BAS model doesn't care, and they may have restricted the samples to +z or something
         if (i != 0)
         {
@@ -248,15 +248,15 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
     }
     binghamOut[1] = sqrt(accum / (fdims[3] - 1));//sample standard deviation
     float theta = acos(accumvec[2]);//[0, pi]
-    float phi = atan2(accumvec[1], accumvec[0]);//[-pi, pi]
+    float phi = atan2(accumvec[1], -accumvec[0]);//[-pi, pi] - NOTE: radiological polar strikes again
     if (phi < 0.0f) phi += 2 * 3.14159265358979;//[0, 2pi]
     binghamOut[2] = theta;
     binghamOut[3] = phi;
     Vector3D xhat, yhat;//vectors to project to the normal plane of the average direction, assuming psi=0
-    xhat[0] = cos(theta) * cos(phi);
-    xhat[1] = cos(theta) * sin(phi);
-    xhat[2] = -sin(theta);
-    yhat[0] = -sin(phi);
+    xhat[0] = cos(theta) * cos(phi);//more radiological polar to neurological euclidean stuff
+    xhat[1] = -cos(theta) * sin(phi);
+    xhat[2] = sin(theta);
+    yhat[0] = sin(phi);
     yhat[1] = cos(phi);
     yhat[2] = 0.0f;
     vector<float> x_samples(fdims[3]), y_samples(fdims[3]);
@@ -285,14 +285,14 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
             dist = tempf;
         }
     }//NOTE: the MAJOR axis of fanning is along y when psi = 0! ka > kb means kb is in the direction of more fanning
-    float psi = atan((x_samples[end2] - x_samples[end1]) / (y_samples[end2] - y_samples[end1]));//[-pi/2, pi/2]
+    float psi = atan((x_samples[end1] - x_samples[end2]) / (y_samples[end2] - y_samples[end1]));//[-pi/2, pi/2] - NOTE: radiological psi is also backwards
     if (psi < 0) psi += 3.14159265358979;//[0, pi]
     binghamOut[6] = psi;
     double accumx = 0.0, accumy = 0.0;
     for (int i = 0; i < fdims[3]; ++i)
     {//rotate the samples through -psi on the plane to orient them to the axes
-        float newx = x_samples[i] * cos(psi) + y_samples[i] * -sin(psi);
-        float newy = x_samples[i] * sin(psi) + y_samples[i] * cos(psi);
+        float newx = x_samples[i] * cos(psi) + y_samples[i] * sin(psi);//NOTE: again, radiological psi
+        float newy = x_samples[i] * -sin(psi) + y_samples[i] * cos(psi);
         accumx += newx * newx;//assume mean of zero, because we already chose the center of the distribution
         accumy += newy * newy;
     }
