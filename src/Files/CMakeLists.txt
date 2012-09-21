@@ -88,6 +88,7 @@ CaretVolumeExtension.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
+Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationCiftiAdapter.cxx
 FociFile.cxx

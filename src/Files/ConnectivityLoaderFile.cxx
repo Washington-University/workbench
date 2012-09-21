@@ -277,6 +277,24 @@ ConnectivityLoaderFile::setup(const AString& path,
         this->setFileName(path);
         this->setDataFileType(connectivityFileType);
 
+        switch (connectivityFileType) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                createFiberOrientationAdapter();
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            default:
+                throw DataFileException("Unsupported connectivity type "
+                                        + DataFileTypeEnum::toName(connectivityFileType));
+                break;
+        }
+
         this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
         this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
         this->paletteColorMapping->setInterpolatePaletteFlag(true);
@@ -2247,38 +2265,51 @@ AString ConnectivityLoaderFile::getMapNameForRowIndex(const int& index) const
 
 /**
  * @return The Fiber Orientation adapter for CIFTI files containing
- * fiber orientations.
+ * fiber orientations.  Will return NULL if the file does not contain
+ * fiber orientations or there were errors when the fiber orientation
+ * adapter was created.
+ */
+FiberOrientationCiftiAdapter*
+ConnectivityLoaderFile::getFiberOrientationAdapter()
+{
+    return m_fiberOrientationAdapter;
+}
+
+/**
+ * Create the fiber orientation adapter.
  *
  * @throws DataFileException
  *   (1) If the file does not contain fiber orientations.
  *   (2) There is an error creating the fiber orientation adapter.
  */
-FiberOrientationCiftiAdapter*
-ConnectivityLoaderFile::getFiberOrientationAdapter() throw (DataFileException)
+void
+ConnectivityLoaderFile::createFiberOrientationAdapter() throw (DataFileException)
 {
-    if (m_fiberOrientationAdapter == NULL) {
-        bool useTestData = false;
-        if (useTestData) {
-            /*
-             * Note: this test data will leak memory
-             */
-            m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
-            m_fiberOrientationAdapter->initializeWithTestData();
-        }
-        else {
-            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
-                m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
-                m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
-            }
-            else {
-                throw DataFileException("CIFTI file does not contain Fiber Orientations."
-                                        "CIFTI file is: "
-                                        + DataFileTypeEnum::toName(getDataFileType()));
-            }
-        }
+    if (m_fiberOrientationAdapter != NULL) {
+        delete m_fiberOrientationAdapter;
+        m_fiberOrientationAdapter = NULL;
     }
     
-    return m_fiberOrientationAdapter;
+    bool useTestData = false;
+    if (useTestData) {
+        /*
+         * Note: this test data will leak memory
+         */
+        m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+        m_fiberOrientationAdapter->initializeWithTestData();
+    }
+    else {
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
+            m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+            m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
+        }
+        else {
+            throw DataFileException("CIFTI file does not contain Fiber Orientations."
+                                    "CIFTI file is: "
+                                    + DataFileTypeEnum::toName(getDataFileType()));
+        }
+    }
 }
+
 
 

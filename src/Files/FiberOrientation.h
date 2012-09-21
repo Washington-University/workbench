@@ -39,7 +39,7 @@
 
 namespace caret {
 
-    struct Fiber;
+    class Fiber;
     
     class FiberOrientation : public CaretObject {
         
@@ -53,7 +53,7 @@ namespace caret {
          * XYZ coordinates at spatial center of distribution.
          * When valid, points to memory in a CIFTI file.
          */
-        float* m_xyz;
+        float m_xyz[3];
         
         /** 
          * Number of fibers in this group.
@@ -69,6 +69,16 @@ namespace caret {
         
         bool isValid() const;
         
+        /** 
+         * Number of elements per fiber in a fiber orientation's file
+         * (excluding the Fibers).
+         *
+         * At this time, this is the XYZ.
+         * The value for this constant MUST be updated if elements are
+         * added to a fiber orientation.
+         */
+        static const int32_t NUMBER_OF_ELEMENTS_IN_FILE;
+        
     private:
         FiberOrientation(const FiberOrientation&);
 
@@ -79,7 +89,7 @@ namespace caret {
     };
     
 #ifdef __FIBER_ORIENTATION_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t FiberOrientation::NUMBER_OF_ELEMENTS_IN_FILE = 3;
 #endif // __FIBER_ORIENTATION_DECLARE__
 
 } // namespace

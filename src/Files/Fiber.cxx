@@ -32,72 +32,55 @@
  */
 /*LICENSE_END*/
 
-#define __FIBER_ORIENTATION_DECLARE__
-#include "FiberOrientation.h"
-#undef __FIBER_ORIENTATION_DECLARE__
-
+#define __FIBER_DECLARE__
 #include "Fiber.h"
+#undef __FIBER_DECLARE__
+
+#include <cmath>
 
 using namespace caret;
 
 
     
 /**
- * \class caret::FiberOrientation 
- * \brief Groups fibers at a particular spatial coordinate
+ * \class caret::Fiber 
+ * \brief Data for a single fiber
  */
 
 /**
  * Constructor.
  */
-FiberOrientation::FiberOrientation(const int32_t numberOfFibers,
-                                                       float* pointerToData)
-: CaretObject()
+Fiber::Fiber(const float* pointerToData)
 {
-    m_xyz[0] = pointerToData[0];
-    m_xyz[1] = pointerToData[1];
-    m_xyz[2] = pointerToData[2];
-    m_numberOfFibers = numberOfFibers;
-
-    /*
-     * Point to 1st element after XYZ in CIFTI file row
-     */
-    float* offset = pointerToData + FiberOrientation::NUMBER_OF_ELEMENTS_IN_FILE;
+    m_meanF = pointerToData[0];
+    m_varF  = pointerToData[1];
+    m_theta = pointerToData[2];
+    m_phi   = pointerToData[3];
+    m_k1    = kToAngle(pointerToData[4]);
+    m_k2    = kToAngle(pointerToData[5]);
+    m_psi   = pointerToData[6];
     
-    /*
-     * Point to each fiber in the CIFTI file row 
-     */
-    for (int32_t i = 0; i < m_numberOfFibers; i++) {
-        Fiber* fiber = new Fiber(offset);
-        m_fibers.push_back(fiber);
-        offset += Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
-    }
+    
 }
 
 /**
  * Destructor.
  */
-FiberOrientation::~FiberOrientation()
+Fiber::~Fiber()
 {
-    for (int32_t i = 0; i < m_numberOfFibers; i++) {
-        delete m_fibers[i];
-    }
-    m_fibers.clear();
 }
 
-/**
- * @return Is this fiber orientation group valid?
- */
-bool
-FiberOrientation::isValid() const
+float
+Fiber::kToAngle(const float k)
 {
-    if (m_xyz != NULL) {
-        if (m_numberOfFibers > 0) {
-            return true;
-        }
+    float angle = 0.0;
+    
+    if (k > 0.0) {
+        float sigma = 1.0 / std::sqrt(2.0 * k);
+        if (sigma > 1.0) sigma = 1.0;
+        angle = std::asin(sigma);
     }
     
-    return false;
+    return angle;
 }
-
 

@@ -384,22 +384,23 @@ FiberOrientationSelectionViewController::updateViewController()
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
         ConnectivityLoaderFile* clf = brain->getConnectivityFiberOrientationFile(iff);
         FiberOrientationCiftiAdapter* foca = clf->getFiberOrientationAdapter();
-        
-        QCheckBox* cb = NULL;
-        if (iff < numberOfFileCheckBoxes) {
-            cb = m_fileSelectionCheckBoxes[iff];
+        if (foca != NULL) {
+            QCheckBox* cb = NULL;
+            if (iff < numberOfFileCheckBoxes) {
+                cb = m_fileSelectionCheckBoxes[iff];
+            }
+            else {
+                cb = new QCheckBox("");
+                QObject::connect(cb, SIGNAL(clicked(bool)),
+                                 this, SLOT(processSelectionChanges()));
+                m_fileSelectionCheckBoxes.push_back(cb);
+                m_selectionWidgetLayout->addWidget(cb);
+            }
+            cb->setText(clf->getFileNameNoPath());
+            cb->setChecked(foca->isDisplayed(displayGroup,
+                                             browserTabIndex));
+            cb->setVisible(true);
         }
-        else {
-            cb = new QCheckBox("");
-            QObject::connect(cb, SIGNAL(clicked(bool)),
-                             this, SLOT(processSelectionChanges()));
-            m_fileSelectionCheckBoxes.push_back(cb);
-            m_selectionWidgetLayout->addWidget(cb);
-        }
-        cb->setText(clf->getFileNameNoPath());
-        cb->setChecked(foca->isDisplayed(displayGroup,
-                                         browserTabIndex));
-        cb->setVisible(true);
     }
     
     /*
@@ -461,9 +462,11 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
         FiberOrientationCiftiAdapter* foca = brain->getConnectivityFiberOrientationFile(iff)->getFiberOrientationAdapter();
-        foca->setDisplayed(displayGroup,
-                           browserTabIndex,
-                           m_fileSelectionCheckBoxes[iff]->isChecked());
+        if (foca != NULL) {
+            foca->setDisplayed(displayGroup,
+                               browserTabIndex,
+                               m_fileSelectionCheckBoxes[iff]->isChecked());
+        }
     }
     
     updateOtherViewControllers();

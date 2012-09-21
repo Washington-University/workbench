@@ -90,6 +90,8 @@ FiberOrientationCiftiAdapter::~FiberOrientationCiftiAdapter()
 void
 FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityLoaderFile* clf) throw (DataFileException)
 {
+    CaretAssert(clf);
+    
     CiftiInterface* interface = clf->ciftiInterface;
     const int64_t numRows = interface->getNumberOfRows();
     if (numRows <= 0) {
@@ -106,11 +108,10 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
      * Each set of fibers contains XYZ (3 elements) 
      * plus number of elements per fiber.
      */
-    const int64_t elementsPerFiber = sizeof(struct Fiber) / 4;
-    const int64_t numberOfFibers = ((numCols - 3) /
-                                    elementsPerFiber);
+    const int64_t numberOfFibers = ((numCols - FiberOrientation::NUMBER_OF_ELEMENTS_IN_FILE) /
+                                    Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE);
     const int64_t expectedNumberOfColumns =
-        (numberOfFibers * elementsPerFiber) + 3;
+        (numberOfFibers * Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE) + FiberOrientation::NUMBER_OF_ELEMENTS_IN_FILE;
     if (expectedNumberOfColumns != numCols) {
         throw DataFileException("Validation of column count failed: expected "
                                 + AString::number(expectedNumberOfColumns)
@@ -120,19 +121,15 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
     }
     
     /*
-     * Step between consecutive fibers
-     */
-    const int64_t stepSizeInFloats = (3
-                                      + (numberOfFibers * elementsPerFiber));
-    
-    /*
      * Create the fiber groups
      */
+    std::vector<float> rowData(numCols);
+    float* rowPointer = &rowData[0];
     m_fiberOrientations.reserve(numRows);
     for (int64_t i = 0; i < numRows; i++) {
-        float* fiberGroupPointer = &clf->data[stepSizeInFloats * i];
+        clf->ciftiInterface->getRow(rowPointer, i);
         FiberOrientation* fiberOrient = new FiberOrientation(numberOfFibers,
-                                                                fiberGroupPointer);
+                                                             rowPointer);
         m_fiberOrientations.push_back(fiberOrient);
     }
 }
@@ -143,7 +140,7 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
 void
 FiberOrientationCiftiAdapter::initializeWithTestData()
 {
-    const int64_t fiberDataSizeInFloats = (sizeof(struct Fiber) * 3) / 4 + 3;
+    const int64_t fiberDataSizeInFloats = (Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE * 3) + 3;
     
     {
         float* fiberData = new float[fiberDataSizeInFloats];

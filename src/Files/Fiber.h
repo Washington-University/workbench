@@ -34,8 +34,7 @@
  */
 /*LICENSE_END*/
 
-
-#include "CaretObject.h"
+#include <stdint.h>
 
 namespace caret {
 
@@ -43,7 +42,11 @@ namespace caret {
      * \struct caret::Fiber
      * \brief  Attributes of a single fiber
      */    
-    struct Fiber {
+    class Fiber {
+    public:
+        Fiber(const float* pointerToData);
+        
+        ~Fiber();
         
         /** spatial magnitude of distribution/distance from center */
         float m_meanF;
@@ -72,6 +75,16 @@ namespace caret {
         
         /** angle of anisotropy in uncertainty/fanning distribution on sphere */
         float m_psi;
+        
+        /** Number of elements per fiber in a fiber orientation's file */
+        static const int32_t NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
+    
+    private:
+        float kToAngle(const float k);
+        
     };
+#ifdef __FIBER_DECLARE__
+    const int32_t Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE = 7;
+#endif // __FIBER_DECLARE__
 } // namespace
 #endif  //__FIBER_H__

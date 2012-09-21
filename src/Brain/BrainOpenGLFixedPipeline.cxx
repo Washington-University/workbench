@@ -4885,6 +4885,9 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
         FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
         try {
             ciftiAdapter = clf->getFiberOrientationAdapter();
+            if (ciftiAdapter == NULL) {
+                continue;
+            }
         }
         catch (const DataFileException& dfe) {
             CaretLogSevere(dfe.whatString());

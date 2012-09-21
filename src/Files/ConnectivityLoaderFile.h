@@ -215,7 +215,7 @@ namespace caret {
         ///get the map name for an index along a row
         AString getMapNameForRowIndex(const int& index) const;
         
-        FiberOrientationCiftiAdapter* getFiberOrientationAdapter() throw (DataFileException);
+        FiberOrientationCiftiAdapter* getFiberOrientationAdapter();
         
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
@@ -248,6 +248,8 @@ namespace caret {
         void allocateData(const int32_t numberOfDataElements);
         
         void zeroizeData();
+        
+        void createFiberOrientationAdapter() throw (DataFileException);
         
         LoaderType loaderType;
         
