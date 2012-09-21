@@ -62,7 +62,8 @@ namespace caret {
         
         /** 
          * First spatial angle of distribution.
-         * Polar angle from positive Z.
+         * Angle from XY-Plane rotated about a line
+         * in the XY-Plane
          * Units is radians.
          * This value is from the fiber orientation file.
          */
