@@ -30,6 +30,7 @@ OperationException.h
 OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
+OperationSurfaceGeodesicROIs.h
 OperationVolumeLabelImport.h
 OperationVolumePalette.h
 OperationZipSpecFile.h
@@ -47,6 +48,7 @@ OperationEstimateFiberBinghams.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
+OperationSurfaceGeodesicROIs.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumePalette.cxx
 OperationZipSpecFile.cxx
