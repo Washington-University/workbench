@@ -32,6 +32,7 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
 #include <iostream>
 
 #define __FIBER_DECLARE__
@@ -39,8 +40,8 @@
 #undef __FIBER_DECLARE__
 
 #include "AString.h"
-
-#include <cmath>
+#include "CaretLogger.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -71,8 +72,8 @@ Fiber::Fiber(const float* pointerToData)
      * Set computed values used for visualization
      */
     
-    m_fanningMajorAxisAngle = kToAngle(m_k1);
-    m_fanningMinorAxisAngle = kToAngle(m_k2);
+    m_fanningMajorAxisAngle = fanningEigenvalueToAngle(m_k1);
+    m_fanningMinorAxisAngle = fanningEigenvalueToAngle(m_k2);
     
     /*
      * m_theta is angle from Positive-Z Axis rotated about a line
@@ -87,6 +88,13 @@ Fiber::Fiber(const float* pointerToData)
     m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
     m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
     m_directionUnitVector[2] =  std::cos(m_theta);
+
+    /*
+     * Use absolute values of directional unit vector as RGB color components.
+     */
+    m_directionUnitVectorRGB[0] = std::fabs(m_directionUnitVector[0]);
+    m_directionUnitVectorRGB[1] = std::fabs(m_directionUnitVector[1]);
+    m_directionUnitVectorRGB[2] = std::fabs(m_directionUnitVector[2]);
     
 //    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
 //    const float elevation = M_PI_2 - m_theta;
@@ -102,15 +110,27 @@ Fiber::~Fiber()
 {
 }
 
+/**
+ * Convert the fanning eigenvalue to an angle.
+ * @param eigenvalue
+ *    The eigenvalue
+ * @return
+ *    Angle derived from the eigenvalue.
+ */
 float
-Fiber::kToAngle(const float k)
+Fiber::fanningEigenvalueToAngle(const float eigenvalue)
 {
     float angle = 0.0;
     
-    if (k > 0.0) {
-        float sigma = 1.0 / std::sqrt(2.0 * k);
+    if (eigenvalue > 0.0) {
+        float sigma = 1.0 / std::sqrt(2.0 * eigenvalue);
         if (sigma > 1.0) sigma = 1.0;
         angle = std::asin(sigma);
+    }
+    else {
+        CaretLogSevere("Have a negative eigenvalue="
+                       + AString::number(eigenvalue)
+                       + " for a fiber.");
     }
     
     return angle;

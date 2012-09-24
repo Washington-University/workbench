@@ -1959,132 +1959,132 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const AString& dataFileNameIn,
                     const bool addDataFileToSpecFile) throw (DataFileException)
 {
-    AString dataFileName = dataFileNameIn;
-    
-    /*
-     * If possible, update path so that is absolute
-     */
-    dataFileName = updateFileNameForReading(dataFileName);
-    
-    /*
-     * Since file is being read, it must exist
-     */
-    if (DataFile::isFileOnNetwork(dataFileName) == false) {
-        FileInformation fileInfoFullPath(dataFileName);
-        if (fileInfoFullPath.exists() == false) {
-            throw DataFileException(dataFileName
-                                    + " does not exist!");
-        }
-    }
-    
-    CaretDataFile* caretDataFileRead = NULL;
-    
-    ElapsedTimer et;
-    et.start();
-    
-    switch (dataFileType) {
-        case DataFileTypeEnum::BORDER:
-            readBorderFile(dataFileName);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            readConnectivityDenseFile(dataFileName);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            readConnectivityDenseLabelFile(dataFileName);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            readConnectivityDenseScalarFile(dataFileName);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            readConnectivityTimeSeriesFile(dataFileName);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-            readConnectivityFiberOrientationFile(dataFileName);
-            break;
-        case DataFileTypeEnum::FOCI:
-            readFociFile(dataFileName);
-            break;
-        case DataFileTypeEnum::LABEL:
-            caretDataFileRead = readLabelFile(dataFileName, structure);
-            break;
-        case DataFileTypeEnum::METRIC:
-            caretDataFileRead = readMetricFile(dataFileName, structure);
-            break;
-        case DataFileTypeEnum::PALETTE:
-            readPaletteFile(dataFileName);
-            break;
-        case DataFileTypeEnum::RGBA:
-            caretDataFileRead = readRgbaFile(dataFileName, structure);
-            break;
-        case DataFileTypeEnum::SCENE:
-            readSceneFile(dataFileName);
-            break;
-        case DataFileTypeEnum::SPECIFICATION:
-            CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
-            throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
-            break;
-        case DataFileTypeEnum::SURFACE:
-            caretDataFileRead = readSurfaceFile(dataFileName, structure);
-            break;
-        case DataFileTypeEnum::UNKNOWN:
-            throw DataFileException("Unable to read files of type");
-            break;
-        case DataFileTypeEnum::VOLUME:
-            readVolumeFile(dataFileName);
-            break;
-    }    
-    
-    AString msg = ("Time to read " 
-                   + dataFileName 
-                   + " was " 
-                   + AString::number(et.getElapsedTimeSeconds())
-                   + " seconds.");
-    CaretLogInfo(msg);
-
-    AString addToSpecFileErrorMessage;
-    if (addDataFileToSpecFile) {
-        if (m_specFileName.isEmpty() == false) {
-            FileInformation specFileInfo(m_specFileName);
-            QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName, 
-                                                                             specFileInfo.getPathName());
-            
-            StructureEnum::Enum dataFileStructure = structure;
-            if (dataFileStructure == StructureEnum::INVALID) {
-                if (caretDataFileRead != NULL) {
-                    dataFileStructure = caretDataFileRead->getStructure();
-                }
-                else {
-                    dataFileStructure = StructureEnum::ALL;
-                }
-            }
-            try {
-                SpecFile sf;
-                sf.readFile(m_specFileName);
-                sf.addDataFile(dataFileType, 
-                                        dataFileStructure, 
-                                        relativePathDataFileName,
-                                        true);
-                sf.writeFile(m_specFileName);
-            }
-            catch (const DataFileException& e) {
-                addToSpecFileErrorMessage = ("Unable to add file \""
-                                     + dataFileName
-                                     + "\" to SpecFile \""
-                                     + m_specFileName
-                                     + "\", Error:"
-                                     + e.whatString());
-                CaretLogWarning(addToSpecFileErrorMessage);
+        AString dataFileName = dataFileNameIn;
+        
+        /*
+         * If possible, update path so that is absolute
+         */
+        dataFileName = updateFileNameForReading(dataFileName);
+        
+        /*
+         * Since file is being read, it must exist
+         */
+        if (DataFile::isFileOnNetwork(dataFileName) == false) {
+            FileInformation fileInfoFullPath(dataFileName);
+            if (fileInfoFullPath.exists() == false) {
+                throw DataFileException(dataFileName
+                                        + " does not exist!");
             }
         }
-    }
-    
-    updateVolumeSliceController();
-    updateWholeBrainController();
-    updateSurfaceMontageController();
-    
-    if (addToSpecFileErrorMessage.isEmpty() == false) {
-        throw DataFileException(addToSpecFileErrorMessage);
-    }
+        
+        CaretDataFile* caretDataFileRead = NULL;
+        
+        ElapsedTimer et;
+        et.start();
+        
+        switch (dataFileType) {
+            case DataFileTypeEnum::BORDER:
+                readBorderFile(dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                readConnectivityDenseFile(dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                readConnectivityDenseLabelFile(dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                readConnectivityDenseScalarFile(dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                readConnectivityTimeSeriesFile(dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                readConnectivityFiberOrientationFile(dataFileName);
+                break;
+            case DataFileTypeEnum::FOCI:
+                readFociFile(dataFileName);
+                break;
+            case DataFileTypeEnum::LABEL:
+                caretDataFileRead = readLabelFile(dataFileName, structure);
+                break;
+            case DataFileTypeEnum::METRIC:
+                caretDataFileRead = readMetricFile(dataFileName, structure);
+                break;
+            case DataFileTypeEnum::PALETTE:
+                readPaletteFile(dataFileName);
+                break;
+            case DataFileTypeEnum::RGBA:
+                caretDataFileRead = readRgbaFile(dataFileName, structure);
+                break;
+            case DataFileTypeEnum::SCENE:
+                readSceneFile(dataFileName);
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
+                throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
+                break;
+            case DataFileTypeEnum::SURFACE:
+                caretDataFileRead = readSurfaceFile(dataFileName, structure);
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                throw DataFileException("Unable to read files of type");
+                break;
+            case DataFileTypeEnum::VOLUME:
+                readVolumeFile(dataFileName);
+                break;
+        }
+        
+        AString msg = ("Time to read "
+                       + dataFileName
+                       + " was "
+                       + AString::number(et.getElapsedTimeSeconds())
+                       + " seconds.");
+        CaretLogInfo(msg);
+        
+        AString addToSpecFileErrorMessage;
+        if (addDataFileToSpecFile) {
+            if (m_specFileName.isEmpty() == false) {
+                FileInformation specFileInfo(m_specFileName);
+                QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName,
+                                                                                 specFileInfo.getPathName());
+                
+                StructureEnum::Enum dataFileStructure = structure;
+                if (dataFileStructure == StructureEnum::INVALID) {
+                    if (caretDataFileRead != NULL) {
+                        dataFileStructure = caretDataFileRead->getStructure();
+                    }
+                    else {
+                        dataFileStructure = StructureEnum::ALL;
+                    }
+                }
+                try {
+                    SpecFile sf;
+                    sf.readFile(m_specFileName);
+                    sf.addDataFile(dataFileType,
+                                   dataFileStructure,
+                                   relativePathDataFileName,
+                                   true);
+                    sf.writeFile(m_specFileName);
+                }
+                catch (const DataFileException& e) {
+                    addToSpecFileErrorMessage = ("Unable to add file \""
+                                                 + dataFileName
+                                                 + "\" to SpecFile \""
+                                                 + m_specFileName
+                                                 + "\", Error:"
+                                                 + e.whatString());
+                    CaretLogWarning(addToSpecFileErrorMessage);
+                }
+            }
+        }
+        
+        updateVolumeSliceController();
+        updateWholeBrainController();
+        updateSurfaceMontageController();
+        
+        if (addToSpecFileErrorMessage.isEmpty() == false) {
+            throw DataFileException(addToSpecFileErrorMessage);
+        }
 }
 
 /**

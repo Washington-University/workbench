@@ -4857,22 +4857,27 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                         /*
                          * Color of fiber
                          */
-                        float rgb[3] = { 0.0, 0.0, 0.0 };
                         switch (colorType) {
                             case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
                             {
                                 const int32_t indx = j % 3;
-                                CaretAssert((indx >= 0) && (indx < 3));
-                                rgb[indx] = 1.0;
+                                switch (indx) {
+                                    case 0:
+                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_RED);
+                                        break;
+                                    case 1:
+                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_GREEN);
+                                        break;
+                                    case 2:
+                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_BLUE);
+                                        break;
+                                }
                             }
                                 break;
                             case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                rgb[0] = fiber->m_directionUnitVector[0];
-                                rgb[1] = fiber->m_directionUnitVector[1];
-                                rgb[2] = fiber->m_directionUnitVector[2];
+                                glColor3fv(fiber->m_directionUnitVectorRGB);
                                 break;
                         }
-                        glColor3fv(rgb);
                         
                         /*
                          * Draw the fiber

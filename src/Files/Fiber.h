@@ -116,11 +116,15 @@ namespace caret {
          */
         float m_directionUnitVector[3];
         
+        /**
+         * RGB Color for directional unit vector of fiber
+         */
+        float m_directionUnitVectorRGB[3];
         /** Number of elements per fiber in a fiber orientation's file */
         static const int32_t NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
     
     private:
-        float kToAngle(const float k);
+        float fanningEigenvalueToAngle(const float k);
         
         
     };
