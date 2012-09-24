@@ -279,6 +279,7 @@ namespace caret {
         
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
+                                const float baseRadiusScaling,
                                 const float baseMajorAngle,
                                 const float baseMinorAngle,
                                 const float baseRotationAngle,

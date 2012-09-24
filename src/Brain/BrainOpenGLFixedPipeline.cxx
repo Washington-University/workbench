@@ -4887,12 +4887,14 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
-                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
-                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
+                                                   fanMultiplier,
+                                                   fiber->m_fanningMajorAxisAngle,
+                                                   fiber->m_fanningMinorAxisAngle,
                                                    fiber->m_psi,
                                                    false);
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
+                                                   fanMultiplier,
                                                    fiber->m_fanningMajorAxisAngle * fanMultiplier,
                                                    fiber->m_fanningMinorAxisAngle * fanMultiplier,
                                                    fiber->m_psi,
@@ -4946,6 +4948,8 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
  *    Location of the base (flat wide) part of the cone
  * @param apexXYZ
  *    Location of the pointed end of the cone
+ * @param baseRadiusScaling
+ *    Scale the base radius by this amount
  * @param baseMajorAngle
  *    Angle for the major axis of the ellipse (units = Radians)
  *    Valid range is [0, Pi/2]
@@ -4960,8 +4964,9 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
 void
 BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
                                              const float apexXYZ[3],
-                                             const float baseMajorAngle,
-                                             const float baseMinorAngle,
+                                             const float baseRadiusScaling,
+                                             const float baseMajorAngleIn,
+                                             const float baseMinorAngleIn,
                                              const float baseRotationAngle,
                                              const bool backwardsFlag)
 {
@@ -4975,22 +4980,18 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
     double ax = 0.0f;
     
-    float majorRadius = 1.0;
     const float maxAngle = M_PI_2 * 0.95;
-    if (baseMajorAngle < maxAngle) {
-        majorRadius = z * std::tan(baseMajorAngle);
+    float baseMajorAngle = baseMajorAngleIn;
+    if (baseMajorAngle > maxAngle) {
+        baseMajorAngle = maxAngle;
     }
-    else {
-        return;
+    float baseMinorAngle = baseMinorAngleIn;
+    if (baseMinorAngle > maxAngle) {
+        baseMinorAngle = maxAngle;
     }
     
-    float minorRadius = 1.0;
-    if (baseMinorAngle < maxAngle) {
-        minorRadius = z * std::tan(baseMinorAngle);
-    }
-    else {
-        return;
-    }
+    const float majorRadius = z * std::tan(baseMajorAngle) * baseRadiusScaling;
+    const float minorRadius = z * std::tan(baseMinorAngle) * baseRadiusScaling;
     
     double zero = 1.0e-3;
     
