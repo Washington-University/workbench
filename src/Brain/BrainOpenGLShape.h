@@ -1,5 +1,5 @@
-#ifndef __BRAIN_OPEN_G_L_SHAPE__H_
-#define __BRAIN_OPEN_G_L_SHAPE__H_
+#ifndef __BRAIN_OPEN_GL_SHAPE__H_
+#define __BRAIN_OPEN_GL_SHAPE__H_
 
 /*LICENSE_START*/
 /*
@@ -90,6 +90,10 @@ namespace caret {
         
         void releaseDisplayList(const GLuint displayList);
         
+        void contatenateTriangleStrips(const std::vector<GLuint>& vertices,
+                                       const std::vector<GLuint>& stripStartIndices,
+                                       const std::vector<GLuint>& stripEndIndices,
+                                       std::vector<GLuint>& triangleStripVerticesOut) const;
     private:
         
         // ADD_NEW_MEMBERS_HERE
@@ -105,10 +109,10 @@ namespace caret {
         static bool s_drawModeInitialized;
     };
     
-#ifdef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
+#ifdef __BRAIN_OPEN_GL_SHAPE_DECLARE__
     BrainOpenGL::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGL::DRAW_MODE_INVALID;
     bool BrainOpenGLShape::s_drawModeInitialized = false;
-#endif // __BRAIN_OPEN_G_L_SHAPE_DECLARE__
+#endif // __BRAIN_OPEN_GL_SHAPE_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_OPEN_G_L_SHAPE__H_
+#endif  //__BRAIN_OPEN_GL_SHAPE__H_

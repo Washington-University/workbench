@@ -91,8 +91,9 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
         float z2 = radius * std::sin(latRad2);
         
         m_quadStripVerticesStartIndex.push_back(static_cast<int>(m_vertices.size()));
+        m_triangleStripVerticesStartIndex.push_back(static_cast<int>(m_vertices.size()));
         
-//        std::cout << "Strip Start: " << std::endl;
+        std::cout << "Strip Start: " << std::endl;
         const float dLon = 360.0 / numLon;
         for (int iLon = 0; iLon <= numLon; iLon++) {
             const float lonDeg = iLon * dLon;
@@ -132,14 +133,29 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             m_normals.push_back(y1 / length1);
             m_normals.push_back(z1 / length1);
             
-//            std::cout << "   " << iLat << ", " << iLon << std::endl;
-//            std::cout << "       " << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
-//            std::cout << "       " << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
+            std::cout << "   " << iLat << ", " << iLon << std::endl;
+            std::cout << "       " << (m_vertices.size() - 2) << ":" << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
+            std::cout << "       " << (m_vertices.size() - 1) << ":" << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
         }
         
         m_quadStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
-//        std::cout << std::endl << std::endl;
+        m_triangleStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
+        std::cout << std::endl;
+        
     }
+    
+//    std::cout << "Triangle strip indices: ";
+//    std::vector<GLuint> triangleStripVertices;
+//    contatenateTriangleStrips(m_vertices,
+//                              m_triangleStripVerticesStartIndex,
+//                              m_triangleStripVerticesEndIndex,
+//                              triangleStripVertices);
+//    for (std::vector<GLuint>::iterator iter = triangleStripVertices.begin();
+//         iter != triangleStripVertices.end();
+//         iter++) {
+//        std::cout << ", " << *iter;
+//    }
+//    std::cout << std::endl << std::endl;
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -180,6 +196,8 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 void
 BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
 {
+    bool useTriangleStrips = true;
+    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
@@ -189,7 +207,27 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
-        {
+        if (useTriangleStrips) {
+            const int32_t numTriangleStrips = m_triangleStripVerticesEndIndex.size();
+            for (int32_t i = 0; i < numTriangleStrips; i++) {
+                const int32_t vertexStart = m_triangleStripVerticesStartIndex[i];
+                const int32_t vertexEnd = m_triangleStripVerticesEndIndex[i];
+                glBegin(GL_QUAD_STRIP);
+                for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
+                    CaretAssertVectorIndex(m_vertices, iVertex);
+                    const int32_t vertexIndex = m_vertices[iVertex];
+                    const int32_t v3 = vertexIndex * 3;
+                    
+                    CaretAssertVectorIndex(m_normals, v3);
+                    CaretAssertVectorIndex(m_coordinates, v3);
+                    
+                    glNormal3fv(&m_normals[v3]);
+                    glVertex3fv(&m_coordinates[v3]);
+                }
+                glEnd();
+            }
+        }
+        else {
             const int32_t numQuadStrips = m_quadStripVerticesEndIndex.size();
             for (int32_t i = 0; i < numQuadStrips; i++) {
                 const int32_t vertexStart = m_quadStripVerticesStartIndex[i];

@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 
 #include "BrainOpenGLShape.h"
 
@@ -70,12 +71,14 @@ namespace caret {
 
         GLuint m_displayList;
         
-        std::vector<float> m_coordinates;
-        std::vector<float> m_normals;
-        std::vector<int> m_vertices;
+        std::vector<GLfloat> m_coordinates;
+        std::vector<GLfloat> m_normals;
+        std::vector<GLuint> m_vertices;
         
-        std::vector<int> m_quadStripVerticesStartIndex;
-        std::vector<int> m_quadStripVerticesEndIndex;
+        std::vector<GLuint> m_quadStripVerticesStartIndex;
+        std::vector<GLuint> m_quadStripVerticesEndIndex;
+        std::vector<GLuint> m_triangleStripVerticesStartIndex;
+        std::vector<GLuint> m_triangleStripVerticesEndIndex;
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__

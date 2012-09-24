@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_OPEN_G_L_SHAPE_DECLARE__
+#define __BRAIN_OPEN_GL_SHAPE_DECLARE__
 #include "BrainOpenGLShape.h"
-#undef __BRAIN_OPEN_G_L_SHAPE_DECLARE__
+#undef __BRAIN_OPEN_GL_SHAPE_DECLARE__
 
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
@@ -244,5 +244,101 @@ BrainOpenGLShape::releaseDisplayList(const GLuint displayList)
 {
     releaseDisplayListInternal(displayList, true);
 }
+ 
+/**
+ * Convert a series of discontinuous triangle strips into one triangle strip.
+ * Between each of the original triangle strips, additional vertices forming
+ * degenerate (arealess) triangles are added.  This triangles are not drawn
+ * by OpenGl.
+ *
+ * @see http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/concatenating-triangle-strips-r1871
+ * @see http://en.wikipedia.org/wiki/Triangle_strip
+ *
+ * @param vertices
+ *    The indices to all of the vertices in the input triangle strips.
+ * @param stripStartIndices
+ *    A vector containing the starting index of the strip in 'vertices'.
+ * @param stripEndIndices
+ *    A vector containing the ending index of the strip in 'vertices'.
+ * @param triangleStripVerticesOut
+ *    OUTPUT - A vector containing all of the vertex indices for drawing
+ *    all of the input triangles with one triangle strip.
+ */
+void
+BrainOpenGLShape::contatenateTriangleStrips(const std::vector<GLuint>& vertices,
+                               const std::vector<GLuint>& stripStartIndices,
+                               const std::vector<GLuint>& stripEndIndices,
+                               std::vector<GLuint>& triangleStripVerticesOut) const
+{
+    triangleStripVerticesOut.clear();
     
+    CaretAssert(stripStartIndices.size() == stripEndIndices.size());
+    
+    const int32_t numberOfStrips = static_cast<int32_t>(stripStartIndices.size());
+    for (int32_t i = 0; i < numberOfStrips; i++) {
+        const int32_t numInStrip = (stripEndIndices[i] - stripStartIndices[i]);
+        if (numInStrip < 2) {
+            continue;
+        }        
+        
+        const int32_t startIndex = stripStartIndices[i];
+        CaretAssertVectorIndex(vertices, startIndex);
+        const int32_t endIndex = stripEndIndices[i];
+        CaretAssertVectorIndex(vertices, endIndex);
+        
+        if (i > 0) {
+            /*
+             * N1 is index of first vertex in the strip
+             * N2 is index of second vertex in the strip
+             */
+            const GLuint n1 = vertices[startIndex];
+            CaretAssertVectorIndex(vertices, startIndex+1);
+            const GLuint n2 = vertices[startIndex + 1];
+            
+            const GLuint prevEndIndex = stripEndIndices[i-1];
+            const int32_t numInPrevStrip = (prevEndIndex - stripStartIndices[i-1]);
+            if (numInPrevStrip >= 2) {
+                /*
+                 * P1 is index of last vertex in previous strip
+                 * P2 is index of second to last vertex in previous strip
+                 */
+                CaretAssertVectorIndex(vertices, prevEndIndex);
+                const GLuint p1 = vertices[prevEndIndex];
+                CaretAssertVectorIndex(vertices, prevEndIndex-1);
+                const GLuint p2 = vertices[prevEndIndex-1];
+                
+                /*
+                 * Add degenerate triangles so that strips can be concatenated.
+                 */
+                triangleStripVerticesOut.push_back(p2);
+                triangleStripVerticesOut.push_back(p1);
+                triangleStripVerticesOut.push_back(p1);
+                
+                triangleStripVerticesOut.push_back(p1);
+                triangleStripVerticesOut.push_back(p1);
+                triangleStripVerticesOut.push_back(n1);
+                
+                triangleStripVerticesOut.push_back(p1);
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n1);
+
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n2);
+                
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n2);
+                triangleStripVerticesOut.push_back(n1);
+                
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n1);
+                triangleStripVerticesOut.push_back(n2);
+            }
+        }
+        
+        for (int32_t i = 0; i < numInStrip; i++) {
+            triangleStripVerticesOut.push_back(vertices[i]);
+        }
+    }
+}
 
