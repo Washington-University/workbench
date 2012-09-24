@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
 #include "ConnectivityDenseViewController.h"
@@ -54,6 +55,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "QFileDialog"
 #include "QHBoxLayout"
 #include "TimeCourseDialog.h"
 #include "WuQMessageBox.h"
@@ -175,14 +177,34 @@ ConnectivityManagerViewController::graphActionTriggered()
 void
 ConnectivityManagerViewController::movieActionTriggered(bool status)
 {
-
-    /*if(!this->tcDialog)
+    if(!status&&(frame_number > 0))
     {
-        this->tcDialog = new TimeCourseDialog(this);
+        //render frames....
+
+        QString formatString("Movie Files (*.mpg)");
+
+        AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+        AString tempDir = QDir::tempPath();
+        if ( !fileName.isEmpty() )
+        {
+            unlink(fileName);
+            CaretLogInfo("Rendering movie to:" + fileName);
+            AString ffmpeg = QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
+
+            AString command = ffmpeg + AString("-threads 4 -r 2 -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg2video " + fileName);
+            CaretLogFine("running " + command);
+
+            system(command.toAscii().data());
+            CaretLogFine("Finished rendering " + fileName);
+            
+        }
+        for(int i = 0;i<frame_number;i++)
+        {
+            AString tempFile = tempDir + "/movie" + AString::number(i) + AString(".png");
+            unlink(tempFile);
+        }
+        frame_number = 0;
     }
-    tcDialog->setTimeSeriesGraphEnabled(true);
-    //tcDialog->show();
-    tcDialog->updateDialog(true);*/
 
 }
 
@@ -361,17 +383,29 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 
         if(this->movieAction->isChecked())
         {
-            this->captureFrame(tempPath + AString("movie") + AString::number(frame_number) + AString(".png"));
-			AString temp = tempPath + AString("movie") + AString::number(frame_number) + AString(".png");
+            //for(int i = frame_number;i<(frame_number+6);i++)
+            //    this->captureFrame(tempPath + AString("movie") + AString::number(i) + AString(".png"));
+            this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
+			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
 			std::cout << temp.toStdString() << std::endl;
 			std::cout << "frame number:" << frame_number << std::endl;
 			frame_number++;
         }
+#if 0
 		else if(frame_number > 0)
 		{
 			//render frames....
+            
+            /*QString formatString("Movie Files (*.mpg)");
+
+            QString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+            if ( !fileName.isEmpty() )
+            {
+                std::cout << "Rendering movie to:" << fileName.toStdString() << std::endl;
+            }*/
 			frame_number = 0;
 		}
+#endif
     }
 }
 

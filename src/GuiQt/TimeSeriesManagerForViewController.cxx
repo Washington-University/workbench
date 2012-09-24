@@ -105,6 +105,21 @@ void TimeSeriesManagerForViewController::update()
 void TimeSeriesManagerForViewController::play()
 {
     emit start_timer(m_updateInterval);
+    /*m_frameIndex = m_ctsvc->getConnectivityLoaderFile()->getSelectedFrame();
+    do
+    {
+        if(m_frameIndex<m_timePoints)
+        {   
+            m_frameIndex++;
+            emit frameSpinBoxValueChanged(m_frameIndex);
+            QCoreApplication::instance()->processEvents();
+        }
+        else {
+            m_frameIndex=0;
+            break;
+        }        
+    }
+    while(m_frameIndex>0);*/
 }
 
 void TimeSeriesManagerForViewController::stop()
