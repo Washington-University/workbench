@@ -4975,7 +4975,22 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
     double ax = 0.0f;
     
+    float majorRadius = 1.0;
+    const float maxAngle = M_PI_2 * 0.95;
+    if (baseMajorAngle < maxAngle) {
+        majorRadius = z * std::tan(baseMajorAngle);
+    }
+    else {
+        return;
+    }
     
+    float minorRadius = 1.0;
+    if (baseMinorAngle < maxAngle) {
+        minorRadius = z * std::tan(baseMinorAngle);
+    }
+    else {
+        return;
+    }
     
     double zero = 1.0e-3;
     
@@ -5024,16 +5039,6 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
         glRotatef(MathFunctions::toDegrees(baseRotationAngle), 0.0, 0.0, 1.0);
     }
 
-    float majorRadius = 1.0;
-    if (baseMajorAngle < M_PI_2) {
-        majorRadius = z * std::tan(baseMajorAngle);
-    }
-    
-    float minorRadius = 1.0;
-    if (baseMinorAngle < M_PI_2) {
-        minorRadius = z * std::tan(baseMinorAngle);
-    }
-    
     /*
      * Setup step size based upon number of points around ellipse
      */
