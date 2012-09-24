@@ -4624,6 +4624,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
     const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
     const float magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, this->windowTabIndex);
+    const float fanMultiplier = dpfo->getFanMultiplier(displayGroup, this->windowTabIndex);
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
     const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
@@ -4723,7 +4724,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
             const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
             for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
                 const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
-                if (fiberOrientation->isValid() == false) {
+                if (fiberOrientation->m_valid == false) {
                     continue;
                 }
                 
@@ -4886,14 +4887,14 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                             case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
-                                                   fiber->m_fanningMajorAxisAngle,
-                                                   fiber->m_fanningMinorAxisAngle,
+                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
+                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
                                                    fiber->m_psi,
                                                    false);
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
-                                                   fiber->m_fanningMajorAxisAngle,
-                                                   fiber->m_fanningMinorAxisAngle,
+                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
+                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
                                                    fiber->m_psi,
                                                    true);
 //                                drawEllipticalCone(endTwoXYZ,
@@ -4947,8 +4948,10 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
  *    Location of the pointed end of the cone
  * @param baseMajorAngle
  *    Angle for the major axis of the ellipse (units = Radians)
+ *    Valid range is [0, Pi/2]
  * @param baseMinorAngle
  *    Angle for the minor axis of the ellipse (units = Radians)
+ *    Valid range is [0, Pi/2]
  * @param baseRotationAngle  (units = Radians)
  *    Rotation of major axis from 'up'
  * @param backwardsFlag
@@ -5020,9 +5023,16 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
          */
         glRotatef(MathFunctions::toDegrees(baseRotationAngle), 0.0, 0.0, 1.0);
     }
+
+    float majorRadius = 1.0;
+    if (baseMajorAngle < M_PI_2) {
+        majorRadius = z * std::tan(baseMajorAngle);
+    }
     
-    float majorRadius = z * std::tan(baseMajorAngle); //10.0;
-    float minorRadius = z * std::tan(baseMinorAngle); //5.0;
+    float minorRadius = 1.0;
+    if (baseMinorAngle < M_PI_2) {
+        minorRadius = z * std::tan(baseMinorAngle);
+    }
     
     /*
      * Setup step size based upon number of points around ellipse

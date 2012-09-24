@@ -66,8 +66,16 @@ namespace caret {
          * When valid, points to memory in a CIFTI file
          */
         std::vector<Fiber*> m_fibers;
+
+        /**
+         * True if the fiber is valid, else false.
+         */
+        bool m_valid;
         
-        bool isValid() const;
+        /**
+         * Describes why fiber is invalid.
+         */
+        QString m_invalidMessage;
         
         /** 
          * Number of elements per fiber in a fiber orientation's file

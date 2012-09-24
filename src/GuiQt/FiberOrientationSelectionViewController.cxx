@@ -186,6 +186,15 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QObject::connect(m_lengthMultiplierSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
+    QLabel* fanMultiplierLabel = new QLabel("Fan Multiplier");
+    m_fanMultiplierSpinBox = new QDoubleSpinBox();
+    m_fanMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
+    m_fanMultiplierSpinBox->setDecimals(2);
+    m_fanMultiplierSpinBox->setSingleStep(0.05);
+    m_fanMultiplierSpinBox->setToolTip("Fan angles are scaled by this value");
+    QObject::connect(m_fanMultiplierSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
     QLabel* drawWithMagnitudeLabel = new QLabel("Draw With Magnitude");
     m_drawWithMagnitudeComboBox = new WuQTrueFalseComboBox("Yes",
                                                            "No",
@@ -232,6 +241,9 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(lengthMultiplierLabel, row, 0);
     gridLayout->addWidget(m_lengthMultiplierSpinBox , row, 1);
+    row++;
+    gridLayout->addWidget(fanMultiplierLabel, row, 0);
+    gridLayout->addWidget(m_fanMultiplierSpinBox , row, 1);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
@@ -296,6 +308,10 @@ FiberOrientationSelectionViewController::processAttributesChanges()
     dpfo->setLengthMultiplier(displayGroup,
                         browserTabIndex,
                         m_lengthMultiplierSpinBox->value());
+    
+    dpfo->setFanMultiplier(displayGroup,
+                           browserTabIndex,
+                           m_fanMultiplierSpinBox->value());
     
     dpfo->setDrawWithMagnitude(displayGroup,
                                browserTabIndex,
@@ -422,6 +438,8 @@ FiberOrientationSelectionViewController::updateViewController()
                                                       browserTabIndex));
     m_lengthMultiplierSpinBox->setValue(dpfo->getLengthMultiplier(displayGroup,
                                                       browserTabIndex));
+    m_fanMultiplierSpinBox->setValue(dpfo->getFanMultiplier(displayGroup,
+                                                            browserTabIndex));
     m_minimumMagnitudeSpinBox->setValue(dpfo->getMinimumMagnitude(displayGroup,
                                                       browserTabIndex));
     m_drawWithMagnitudeComboBox->setStatus(dpfo->isDrawWithMagnitude(displayGroup,

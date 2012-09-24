@@ -37,6 +37,7 @@
 #undef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "ConnectivityLoaderFile.h"
@@ -134,7 +135,16 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
         clf->ciftiInterface->getRow(rowPointer, i);
         FiberOrientation* fiberOrient = new FiberOrientation(numberOfFibers,
                                                              rowPointer);
-        m_fiberOrientations.push_back(fiberOrient);
+        if (fiberOrient->m_valid) {
+            m_fiberOrientations.push_back(fiberOrient);
+        }
+        else {
+            CaretLogSevere("Fiber invalid at row "
+                           + QString::number(i)
+                           + " is invalid: "
+                           + fiberOrient->m_invalidMessage);
+            delete fiberOrient;
+        }
     }
     
     const CiftiXML& ciftiXML = clf->ciftiInterface->getCiftiXML();

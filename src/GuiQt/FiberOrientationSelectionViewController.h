@@ -100,6 +100,8 @@ namespace caret {
         
         QDoubleSpinBox* m_lengthMultiplierSpinBox;
         
+        QDoubleSpinBox* m_fanMultiplierSpinBox;
+        
         EnumComboBoxTemplate* m_coloringTypeComboBox;
         
         EnumComboBoxTemplate* m_symbolTypeComboBox;

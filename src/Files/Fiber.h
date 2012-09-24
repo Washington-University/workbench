@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <QString>
 #include <stdint.h>
 
 namespace caret {
@@ -120,6 +121,17 @@ namespace caret {
          * RGB Color for directional unit vector of fiber
          */
         float m_directionUnitVectorRGB[3];
+        
+        /**
+         * True if the fiber is valid, else false.
+         */
+        bool m_valid;
+
+        /**
+         * Describes why fiber is invalid.
+         */
+        QString m_invalidMessage;
+        
         /** Number of elements per fiber in a fiber orientation's file */
         static const int32_t NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
     

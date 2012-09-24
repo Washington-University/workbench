@@ -71,6 +71,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
     const float minimumMagnitude = 0.05;
     const bool drawWithMagnitude = true;
     const float lengthMultiplier = 10.0;
+    const float fanMultiplier = 1.0;
     const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
     const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
     
@@ -84,6 +85,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_lengthMultiplierInTab[i] = lengthMultiplier;
         m_fiberColoringTypeInTab[i] = coloringType;
         m_fiberSymbolTypeInTab[i] = symbolType;
+        m_fanMultiplierInTab[i] = fanMultiplier;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -95,6 +97,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_lengthMultiplierInDisplayGroup[i] = lengthMultiplier;
         m_fiberColoringTypeInDisplayGroup[i] = coloringType;
         m_fiberSymbolTypeInDisplayGroup[i] = symbolType;
+        m_fanMultiplierInDisplayGroup[i] = fanMultiplier;
     }
 
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -110,6 +113,8 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                                 m_drawWithMagnitudeInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_lengthMultiplierInTab",
                                               m_lengthMultiplierInTab);
+    m_sceneAssistant->addTabIndexedFloatArray("m_fanMultiplierInTab",
+                                              m_fanMultiplierInTab);
     m_sceneAssistant->addArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
                                                                                                          m_fiberColoringTypeInDisplayGroup,
                                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -144,6 +149,10 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                m_lengthMultiplierInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_lengthMultiplierInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_fanMultiplierInDisplayGroup",
+                               m_fanMultiplierInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_fanMultiplierInDisplayGroup[0]);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_fiberColoringTypeInTab",
                                                                                                            m_fiberColoringTypeInTab);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>("m_fiberSymbolTypeInTab",
@@ -197,6 +206,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
     m_drawWithMagnitudeInTab[targetTabIndex] = m_drawWithMagnitudeInTab[sourceTabIndex];
     m_lengthMultiplierInTab[targetTabIndex] = m_lengthMultiplierInTab[sourceTabIndex];
     m_fiberColoringTypeInTab[targetTabIndex] = m_fiberColoringTypeInTab[sourceTabIndex];
+    m_fanMultiplierInTab[targetTabIndex] = m_fanMultiplierInTab[sourceTabIndex];
 }
 
 /**
@@ -698,4 +708,56 @@ DisplayPropertiesFiberOrientation::restoreFromScene(const SceneAttributes* scene
             break;
     }    
 }
+
+/**
+ * @return The fan multiplier.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+float
+DisplayPropertiesFiberOrientation::getFanMultiplier(const DisplayGroupEnum::Enum  displayGroup,
+                                                       const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_fanMultiplierInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_fanMultiplierInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_fanMultiplierInTab[tabIndex];
+    }
+    return m_fanMultiplierInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the fan multiplier to the given value.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param lengthMultiplier
+ *     New value for fan multiplier
+ */
+void
+DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum  displayGroup,
+                                                       const int32_t tabIndex,
+                                                       const float fanMultiplier)
+{
+    CaretAssertArrayIndex(m_fanMultiplierInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_fanMultiplierInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_fanMultiplierInTab[tabIndex] = fanMultiplier;
+    }
+    else {
+        m_fanMultiplierInDisplayGroup[displayGroup] = fanMultiplier;
+    }
+}
+
 

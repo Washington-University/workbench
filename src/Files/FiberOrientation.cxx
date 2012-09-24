@@ -71,7 +71,19 @@ FiberOrientation::FiberOrientation(const int32_t numberOfFibers,
         Fiber* fiber = new Fiber(offset);
         m_fibers.push_back(fiber);
         offset += Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
+        
+        if (fiber->m_valid == false) {
+            if (m_invalidMessage.isEmpty() == false) {
+                m_invalidMessage += "; ";
+            }
+            m_invalidMessage += ("Index="
+                                 + AString::number(i)
+                                 + ": "
+                                 + fiber->m_invalidMessage);
+        }
     }
+    
+    m_valid = m_invalidMessage.isEmpty();
 }
 
 /**
@@ -84,20 +96,4 @@ FiberOrientation::~FiberOrientation()
     }
     m_fibers.clear();
 }
-
-/**
- * @return Is this fiber orientation group valid?
- */
-bool
-FiberOrientation::isValid() const
-{
-    if (m_xyz != NULL) {
-        if (m_numberOfFibers > 0) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
 

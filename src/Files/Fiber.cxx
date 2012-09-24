@@ -40,6 +40,7 @@
 #undef __FIBER_DECLARE__
 
 #include "AString.h"
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 
@@ -67,40 +68,76 @@ Fiber::Fiber(const float* pointerToData)
     m_k1    = pointerToData[4];
     m_k2    = pointerToData[5];
     m_psi   = pointerToData[6];
-    
-    /*
-     * Set computed values used for visualization
-     */
-    
-    m_fanningMajorAxisAngle = fanningEigenvalueToAngle(m_k1);
-    m_fanningMinorAxisAngle = fanningEigenvalueToAngle(m_k2);
-    
-    /*
-     * m_theta is angle from Positive-Z Axis rotated about a line
-     * in the XY-Plane
-     *
-     * m_phi is angle from positive X-Axis rotated about Z-Axis
-     * looking to negative Z.
-     *
-     * NOTE: 'X' is in radiological space (positive X is left)
-     * so flip the sign of the X-coordinate.
-     */
-    m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
-    m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
-    m_directionUnitVector[2] =  std::cos(m_theta);
 
     /*
-     * Use absolute values of directional unit vector as RGB color components.
+     * Validate inputs
      */
-    m_directionUnitVectorRGB[0] = std::fabs(m_directionUnitVector[0]);
-    m_directionUnitVectorRGB[1] = std::fabs(m_directionUnitVector[1]);
-    m_directionUnitVectorRGB[2] = std::fabs(m_directionUnitVector[2]);
-    
-//    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
-//    const float elevation = M_PI_2 - m_theta;
-//    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
-//    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
-//    m_directionUnitVector[2] = std::sin(elevation);
+    if (m_meanF != m_meanF) {
+        m_invalidMessage += " meanF=NaN";
+    }
+    if (m_varF != m_varF) {
+        m_invalidMessage += " varF=NaN";
+    }
+    if (m_theta != m_theta) {
+        m_invalidMessage += " theta=NaN";
+    }
+    if (m_phi != m_phi) {
+        m_invalidMessage += " phi=NaN";
+    }
+    if (m_k1 != m_k1) {
+        m_invalidMessage += " k1=NaN";
+    }
+    else if (m_k1 < 0.0) {
+        m_invalidMessage += " k1=negative=" + QString::number(m_k1);
+        
+    }
+    if (m_k2 != m_k2) {
+        m_invalidMessage += " k2=NaN";
+    }
+    else if (m_k1 < 0.0) {
+        m_invalidMessage += " k2=negative=" + QString::number(m_k2);
+        
+    }
+    if (m_psi != m_psi) {
+        m_invalidMessage += " psi=NaN";
+    }
+    m_valid = m_invalidMessage.isEmpty();
+
+    if (m_valid) {
+        /*
+         * Set computed values used for visualization
+         */
+        
+        m_fanningMajorAxisAngle = fanningEigenvalueToAngle(m_k1);
+        m_fanningMinorAxisAngle = fanningEigenvalueToAngle(m_k2);
+        
+        /*
+         * m_theta is angle from Positive-Z Axis rotated about a line
+         * in the XY-Plane
+         *
+         * m_phi is angle from positive X-Axis rotated about Z-Axis
+         * looking to negative Z.
+         *
+         * NOTE: 'X' is in radiological space (positive X is left)
+         * so flip the sign of the X-coordinate.
+         */
+        m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
+        m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
+        m_directionUnitVector[2] =  std::cos(m_theta);
+        
+        /*
+         * Use absolute values of directional unit vector as RGB color components.
+         */
+        m_directionUnitVectorRGB[0] = std::fabs(m_directionUnitVector[0]);
+        m_directionUnitVectorRGB[1] = std::fabs(m_directionUnitVector[1]);
+        m_directionUnitVectorRGB[2] = std::fabs(m_directionUnitVector[2]);
+        
+        //    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
+        //    const float elevation = M_PI_2 - m_theta;
+        //    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
+        //    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
+        //    m_directionUnitVector[2] = std::sin(elevation);
+    }
 }
 
 /**
@@ -126,6 +163,10 @@ Fiber::fanningEigenvalueToAngle(const float eigenvalue)
         float sigma = 1.0 / std::sqrt(2.0 * eigenvalue);
         if (sigma > 1.0) sigma = 1.0;
         angle = std::asin(sigma);
+        angle = angle / 2;
+        if (angle < 0.0) {
+            angle = -angle;
+        }
     }
     else {
         CaretLogSevere("Have a negative eigenvalue="
