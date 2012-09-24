@@ -26,6 +26,7 @@
 #include "OperationException.h"
 
 #include "CiftiFile.h"
+#include "MathFunctions.h"
 #include "StructureEnum.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
@@ -286,6 +287,14 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
         }
     }//NOTE: the MAJOR axis of fanning is along y when psi = 0! ka > kb means kb is in the direction of more fanning
     float psi = atan((x_samples[end1] - x_samples[end2]) / (y_samples[end2] - y_samples[end1]));//[-pi/2, pi/2] - NOTE: radiological psi is also backwards
+    if (!MathFunctions::isNumeric(psi))
+    {
+        const float LARGE_K = 1800.0f;//stdev of 1/60, typical maximum ka in a voxel is around 200
+        binghamOut[4] = LARGE_K;
+        binghamOut[5] = LARGE_K;
+        binghamOut[6] = 0;
+        return;
+    }
     if (psi < 0) psi += 3.14159265358979;//[0, pi]
     binghamOut[6] = psi;
     double accumx = 0.0, accumy = 0.0;
