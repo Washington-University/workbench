@@ -38,10 +38,12 @@
 
 #include "CaretAssert.h"
 #include "CiftiInterface.h"
+#include "CiftiXML.h"
 #include "ConnectivityLoaderFile.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
 #include "MathFunctions.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -93,6 +95,8 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
     CaretAssert(clf);
     
     CiftiInterface* interface = clf->ciftiInterface;
+    CaretAssert(clf->ciftiInterface);
+    
     const int64_t numRows = interface->getNumberOfRows();
     if (numRows <= 0) {
         throw DataFileException(clf->getFileNameNoPath()
@@ -132,6 +136,15 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
                                                              rowPointer);
         m_fiberOrientations.push_back(fiberOrient);
     }
+    
+    const CiftiXML& ciftiXML = clf->ciftiInterface->getCiftiXML();
+    VolumeFile::OrientTypes orient[3];
+    int64_t dims[3];
+    float origin[3];
+    ciftiXML.getVolumeAttributesForPlumb(orient,
+                                         dims,
+                                         origin,
+                                         m_volumeSpacing);
 }
 
 /**
@@ -333,4 +346,18 @@ FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum displayG
         m_displayStatusInDisplayGroup[displayIndex] = displayed;
     }
 }
+
+/**
+ * Get the volume spacing.
+ * @param volumeSpacingOut
+ *    Will contain volume spacing for (I, J, K) axes upon exit.
+ */
+void
+FiberOrientationCiftiAdapter::getVolumeSpacing(float volumeSpacingOut[3]) const
+{
+    volumeSpacingOut[0] = m_volumeSpacing[0];
+    volumeSpacingOut[1] = m_volumeSpacing[1];
+    volumeSpacingOut[2] = m_volumeSpacing[2];
+}
+
 

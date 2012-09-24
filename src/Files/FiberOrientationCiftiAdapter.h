@@ -62,6 +62,8 @@ namespace caret {
         
         const FiberOrientation* getFiberOrientations(const int64_t indx) const;
         
+        void getVolumeSpacing(float volumeSpacingOut[3]) const;
+        
         void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex,
                             const bool displayed);
@@ -85,6 +87,8 @@ namespace caret {
         
         /** Display status in tab */
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_volumeSpacing[3];
     };
     
 #ifdef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
