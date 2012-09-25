@@ -283,8 +283,8 @@ BrainOpenGLShape::contatenateTriangleStrips(const std::vector<GLuint>& vertices,
         
         const int32_t startIndex = stripStartIndices[i];
         CaretAssertVectorIndex(vertices, startIndex);
-        const int32_t endIndex = stripEndIndices[i];
-        CaretAssertVectorIndex(vertices, endIndex);
+        //const int32_t endIndex = stripEndIndices[i];
+        //CaretAssertVectorIndex(vertices, endIndex);
         
         if (i > 0) {
             /*
@@ -302,10 +302,10 @@ BrainOpenGLShape::contatenateTriangleStrips(const std::vector<GLuint>& vertices,
                  * P1 is index of last vertex in previous strip
                  * P2 is index of second to last vertex in previous strip
                  */
-                CaretAssertVectorIndex(vertices, prevEndIndex);
-                const GLuint p1 = vertices[prevEndIndex];
-                CaretAssertVectorIndex(vertices, prevEndIndex-1);
-                const GLuint p2 = vertices[prevEndIndex-1];
+                CaretAssertVectorIndex(vertices, prevEndIndex - 1);
+                const GLuint p1 = vertices[prevEndIndex - 1];
+                CaretAssertVectorIndex(vertices, prevEndIndex - 2);
+                const GLuint p2 = vertices[prevEndIndex - 2];
                 
                 /*
                  * Add degenerate triangles so that strips can be concatenated.
@@ -336,9 +336,133 @@ BrainOpenGLShape::contatenateTriangleStrips(const std::vector<GLuint>& vertices,
             }
         }
         
-        for (int32_t i = 0; i < numInStrip; i++) {
-            triangleStripVerticesOut.push_back(vertices[i]);
+        const int32_t vertexStart = stripStartIndices[i];
+        const int32_t vertexEnd = stripEndIndices[i];
+        for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
+            CaretAssertVectorIndex(vertices, iVertex);
+            const int32_t vertexIndex = vertices[iVertex];
+            triangleStripVerticesOut.push_back(vertexIndex);
         }
     }
 }
+
+/**
+ * Convert a series of discontinuous triangle strips into one triangle strip.
+ * Between each of the original triangle strips, additional vertices forming
+ * degenerate (arealess) triangles are added.  This triangles are not drawn
+ * by OpenGl.
+ *
+ * @see http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/concatenating-triangle-strips-r1871
+ * @see http://en.wikipedia.org/wiki/Triangle_strip
+ *
+ * @param triangleStrips
+ *    The triangle strips.  Each contains a sequence of vertex indices.
+ * @param triangleStripOut
+ *    OUTPUT - A vector containing all of the vertex indices for drawing
+ *    all of the input triangles with one triangle strip.
+ */
+void
+BrainOpenGLShape::contatenateTriangleStrips(const std::vector<std::vector<GLuint> >& triangleStrips,
+                                            std::vector<GLuint>& triangleStripOut) const
+{
+    triangleStripOut.clear();
+    
+    const int32_t numberOfStrips = static_cast<int32_t>(triangleStrips.size());
+    for (int32_t i = 0; i < numberOfStrips; i++) {
+        const std::vector<GLuint>& strip = triangleStrips[i];
+        const int32_t numInStrip = static_cast<int32_t>(strip.size());
+        if (numInStrip < 2) {
+            continue;
+        }
+        
+        if (i > 0) {
+            /*
+             * N1 is index of first vertex in the strip
+             * N2 is index of second vertex in the strip
+             */
+            CaretAssertVectorIndex(strip, 0);
+            const GLuint n1 = strip[0];
+            CaretAssertVectorIndex(strip, 1);
+            const GLuint n2 = strip[1];
+            
+            
+            const std::vector<GLuint>& prevStrip = triangleStrips[i - 1];
+            const int32_t numInPrevStrip = static_cast<int32_t>(prevStrip.size());
+            if (numInPrevStrip >= 2) {
+                /*
+                 * P1 is index of last vertex in previous strip
+                 * P2 is index of second to last vertex in previous strip
+                 */
+                CaretAssertVectorIndex(prevStrip, numInPrevStrip - 1);
+                const GLuint p1 = prevStrip[numInPrevStrip - 1];
+                CaretAssertVectorIndex(prevStrip, numInPrevStrip - 2);
+                const GLuint p2 = prevStrip[numInPrevStrip - 2];
+                
+                /*
+                 * Add degenerate triangles so that strips can be concatenated.
+                 */
+                triangleStripOut.push_back(p2);
+                triangleStripOut.push_back(p1);
+                triangleStripOut.push_back(p1);
+                
+                triangleStripOut.push_back(p1);
+                triangleStripOut.push_back(p1);
+                triangleStripOut.push_back(n1);
+                
+                triangleStripOut.push_back(p1);
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n1);
+                
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n2);
+                
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n2);
+                triangleStripOut.push_back(n1);
+                
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n1);
+                triangleStripOut.push_back(n2);
+            }
+        }
+        
+        for (int32_t j = 0; j < numInStrip; j++) {
+            triangleStripOut.push_back(strip[j]);
+        }
+    }
+}
+
+/**
+ * Print the vertices in a triangle strip.  Each triplet is contained
+ * within a set of parenthesis.
+ *
+ * @param triangleStrip
+ *    Triangle strip that is printed.
+ */
+void
+BrainOpenGLShape::printTriangleStrip(const std::vector<GLuint>& triangleStrip) const
+{
+    int i3 = 0;
+    for (std::vector<GLuint>::const_iterator iter = triangleStrip.begin();
+         iter != triangleStrip.end();
+         iter++) {
+        if (i3 == 0) {
+            std::cout << " (";
+        }
+        else {
+            std::cout << ",";
+        }
+        std::cout << *iter;
+        if (i3 == 2) {
+            std::cout << ")";
+            i3 = 0;
+        }
+        else {
+            i3++;
+        }
+    }
+    std::cout << std::endl << std::endl;
+}
+
 

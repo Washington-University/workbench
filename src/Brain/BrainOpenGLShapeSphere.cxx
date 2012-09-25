@@ -71,6 +71,7 @@ BrainOpenGLShapeSphere::~BrainOpenGLShapeSphere()
 void
 BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
+    bool debugFlag = false;
     
     const float radius = 1.0;
     const int numLat = m_numberOfLatitudeAndLongitude;
@@ -90,10 +91,9 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
         
         float z2 = radius * std::sin(latRad2);
         
-        m_quadStripVerticesStartIndex.push_back(static_cast<int>(m_vertices.size()));
-        m_triangleStripVerticesStartIndex.push_back(static_cast<int>(m_vertices.size()));
+        std::vector<GLuint> strip;
         
-        std::cout << "Strip Start: " << std::endl;
+        if (debugFlag) std::cout << "Strip Start: " << std::endl;
         const float dLon = 360.0 / numLon;
         for (int iLon = 0; iLon <= numLon; iLon++) {
             const float lonDeg = iLon * dLon;
@@ -115,6 +115,7 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
                 z2 = 1.0;
             }
             
+            strip.push_back(static_cast<int>(m_coordinates.size() / 3));
             m_vertices.push_back(static_cast<int>(m_coordinates.size() / 3));
             m_coordinates.push_back(x2);
             m_coordinates.push_back(y2);
@@ -124,6 +125,7 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             m_normals.push_back(y2 / length2);
             m_normals.push_back(z2 / length2);
             
+            strip.push_back(static_cast<int>(m_coordinates.size() / 3));
             m_vertices.push_back(static_cast<int>(m_coordinates.size() / 3));
             m_coordinates.push_back(x1);
             m_coordinates.push_back(y1);
@@ -133,29 +135,44 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             m_normals.push_back(y1 / length1);
             m_normals.push_back(z1 / length1);
             
-            std::cout << "   " << iLat << ", " << iLon << std::endl;
-            std::cout << "       " << (m_vertices.size() - 2) << ":" << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
-            std::cout << "       " << (m_vertices.size() - 1) << ":" << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
+            if (debugFlag) {
+                std::cout << "   " << iLat << ", " << iLon << std::endl;
+                std::cout << "       " << (m_vertices.size() - 2) << ":" << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
+                std::cout << "       " << (m_vertices.size() - 1) << ":" << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
+            }
         }
         
-        m_quadStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
-        m_triangleStripVerticesEndIndex.push_back(static_cast<int>(m_vertices.size()));
-        std::cout << std::endl;
-        
+        if (strip.empty() == false) {
+            m_triangleStrips.push_back(strip);
+        }
+        if (debugFlag) std::cout << std::endl;        
     }
     
-//    std::cout << "Triangle strip indices: ";
-//    std::vector<GLuint> triangleStripVertices;
-//    contatenateTriangleStrips(m_vertices,
-//                              m_triangleStripVerticesStartIndex,
-//                              m_triangleStripVerticesEndIndex,
-//                              triangleStripVertices);
-//    for (std::vector<GLuint>::iterator iter = triangleStripVertices.begin();
-//         iter != triangleStripVertices.end();
-//         iter++) {
-//        std::cout << ", " << *iter;
+//    if (debugFlag) {
+//        const int32_t numTriangleStrips = m_triangleStrips.size();
+//        for (int32_t i = 0; i < numTriangleStrips; i++) {
+//            std::cout << "Strip " << i << ":";
+//            printTriangleStrip(m_triangleStrips[i]);
+//        }
 //    }
-//    std::cout << std::endl << std::endl;
+    
+    /*
+     * Concatente into a single strip
+     */
+    contatenateTriangleStrips(m_triangleStrips,
+                              m_singleTriangleStrip);
+    
+    if (debugFlag) {
+        std::cout << "NEW STRIPS" << std::endl;
+        const int32_t numTriangleStrips = m_triangleStrips.size();
+        for (int32_t i = 0; i < numTriangleStrips; i++) {
+            std::cout << "Strip " << i << ":";
+            printTriangleStrip(m_triangleStrips[i]);
+        }
+        
+        std::cout << "SINGLE STRIP: ";
+        printTriangleStrip(m_singleTriangleStrip);
+    }
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -182,7 +199,13 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
         {
-            CaretAssert(0);
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+//            m_vertexBufferID = createBufferID();
+//            glBindBuffer(GL_ARRAY_BUFFER,
+//                         m_vertexBufferID);
+//            m_normalBufferID = createBufferID();
+//            m_triangleStripBufferID = createBufferID();
+#endif BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
         }
             break;
     }
@@ -196,7 +219,7 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 void
 BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
 {
-    bool useTriangleStrips = true;
+    bool useOneTriangleStrip = true;
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -207,46 +230,38 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
-        if (useTriangleStrips) {
-            const int32_t numTriangleStrips = m_triangleStripVerticesEndIndex.size();
-            for (int32_t i = 0; i < numTriangleStrips; i++) {
-                const int32_t vertexStart = m_triangleStripVerticesStartIndex[i];
-                const int32_t vertexEnd = m_triangleStripVerticesEndIndex[i];
-                glBegin(GL_QUAD_STRIP);
-                for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
-                    CaretAssertVectorIndex(m_vertices, iVertex);
-                    const int32_t vertexIndex = m_vertices[iVertex];
-                    const int32_t v3 = vertexIndex * 3;
+            if (useOneTriangleStrip) {
+                const int32_t numVertices = static_cast<int32_t>(m_singleTriangleStrip.size());
+                glBegin(GL_TRIANGLE_STRIP);
+                for (int32_t j = 0; j < numVertices; j++) {
+                    const int32_t vertexIndex = m_singleTriangleStrip[j] * 3;
                     
-                    CaretAssertVectorIndex(m_normals, v3);
-                    CaretAssertVectorIndex(m_coordinates, v3);
+                    CaretAssertVectorIndex(m_normals, vertexIndex);
+                    CaretAssertVectorIndex(m_coordinates, vertexIndex);
                     
-                    glNormal3fv(&m_normals[v3]);
-                    glVertex3fv(&m_coordinates[v3]);
+                    glNormal3fv(&m_normals[vertexIndex]);
+                    glVertex3fv(&m_coordinates[vertexIndex]);
                 }
                 glEnd();
             }
-        }
-        else {
-            const int32_t numQuadStrips = m_quadStripVerticesEndIndex.size();
-            for (int32_t i = 0; i < numQuadStrips; i++) {
-                const int32_t vertexStart = m_quadStripVerticesStartIndex[i];
-                const int32_t vertexEnd = m_quadStripVerticesEndIndex[i];
-                glBegin(GL_QUAD_STRIP);
-                for (int32_t iVertex = vertexStart; iVertex < vertexEnd; iVertex++) {
-                    CaretAssertVectorIndex(m_vertices, iVertex);
-                    const int32_t vertexIndex = m_vertices[iVertex];
-                    const int32_t v3 = vertexIndex * 3;
-                    
-                    CaretAssertVectorIndex(m_normals, v3);
-                    CaretAssertVectorIndex(m_coordinates, v3);
-                    
-                    glNormal3fv(&m_normals[v3]);
-                    glVertex3fv(&m_coordinates[v3]);
+            else {
+                const int32_t numTriangleStrips = m_triangleStrips.size();
+                for (int32_t i = 0; i < numTriangleStrips; i++) {
+                    const std::vector<GLuint>& strip = m_triangleStrips[i];
+                    const int32_t numVertices = static_cast<int32_t>(strip.size());
+                    glBegin(GL_TRIANGLE_STRIP);
+                    for (int32_t j = 0; j < numVertices; j++) {
+                        const int32_t vertexIndex = strip[j] * 3;
+                        
+                        CaretAssertVectorIndex(m_normals, vertexIndex);
+                        CaretAssertVectorIndex(m_coordinates, vertexIndex);
+                        
+                        glNormal3fv(&m_normals[vertexIndex]);
+                        glVertex3fv(&m_coordinates[vertexIndex]);
+                    }
+                    glEnd();
                 }
-                glEnd();
             }
-        }
             break;
         case BrainOpenGL::DRAW_MODE_INVALID:
         {

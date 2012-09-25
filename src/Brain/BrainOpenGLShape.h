@@ -94,6 +94,12 @@ namespace caret {
                                        const std::vector<GLuint>& stripStartIndices,
                                        const std::vector<GLuint>& stripEndIndices,
                                        std::vector<GLuint>& triangleStripVerticesOut) const;
+        
+        void printTriangleStrip(const std::vector<GLuint>& triangleStrip) const;
+        
+        void contatenateTriangleStrips(const std::vector<std::vector<GLuint> >& triangleStrips,
+                                       std::vector<GLuint>& triangleStripOut) const;
+        
     private:
         
         // ADD_NEW_MEMBERS_HERE

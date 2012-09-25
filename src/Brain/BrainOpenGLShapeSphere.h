@@ -68,6 +68,8 @@ namespace caret {
         const int32_t m_numberOfLatitudeAndLongitude;
         
         GLuint m_vertexBufferID;
+        GLuint m_normalBufferID;
+        GLuint m_triangleStripBufferID;
 
         GLuint m_displayList;
         
@@ -75,10 +77,8 @@ namespace caret {
         std::vector<GLfloat> m_normals;
         std::vector<GLuint> m_vertices;
         
-        std::vector<GLuint> m_quadStripVerticesStartIndex;
-        std::vector<GLuint> m_quadStripVerticesEndIndex;
-        std::vector<GLuint> m_triangleStripVerticesStartIndex;
-        std::vector<GLuint> m_triangleStripVerticesEndIndex;
+        std::vector<std::vector<GLuint> > m_triangleStrips;
+        std::vector<GLuint> m_singleTriangleStrip;        
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__
