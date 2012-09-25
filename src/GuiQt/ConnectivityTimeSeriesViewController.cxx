@@ -542,6 +542,11 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
         //NOTE!!
         //currentValue is always the value in seconds starting from zero, NOT the spinbox value, which can have an offset.
         //To properly compare the two, add timeStepOffset.
+        if(frame >= this->connectivityLoaderFile->getNumberOfTimePoints())
+        {
+            this->frameSpinBox->setValue(this->connectivityLoaderFile->getNumberOfTimePoints() - 1);
+            return;
+        }
         if(this->connectivityLoaderFile->isDenseTimeSeries())
         {
             this->frameName->blockSignals(true);
@@ -557,11 +562,7 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
             this->frameName->blockSignals(false);
             
         }
-        if(frame >= this->connectivityLoaderFile->getNumberOfTimePoints())
-        {
-            this->frameSpinBox->setValue(this->connectivityLoaderFile->getNumberOfTimePoints() - 1);
-            return;
-        }
+        
         if (std::abs(currentValue - frame)==0)
         {
             CaretLogFine(AString("IGNORED UNCHANGED SPIN BOX VALUE"));

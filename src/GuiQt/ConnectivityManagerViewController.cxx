@@ -205,12 +205,6 @@ ConnectivityManagerViewController::movieActionTriggered(bool status)
         }
         frame_number = 0;
     }
-
-}
-
-void ConnectivityManagerViewController::captureMovie()
-{
-
 }
 
 void ConnectivityManagerViewController::captureFrame(AString filename)
@@ -383,29 +377,12 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 
         if(this->movieAction->isChecked())
         {
-            //for(int i = frame_number;i<(frame_number+6);i++)
-            //    this->captureFrame(tempPath + AString("movie") + AString::number(i) + AString(".png"));
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
 			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
 			std::cout << temp.toStdString() << std::endl;
 			std::cout << "frame number:" << frame_number << std::endl;
 			frame_number++;
         }
-#if 0
-		else if(frame_number > 0)
-		{
-			//render frames....
-            
-            /*QString formatString("Movie Files (*.mpg)");
-
-            QString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
-            if ( !fileName.isEmpty() )
-            {
-                std::cout << "Rendering movie to:" << fileName.toStdString() << std::endl;
-            }*/
-			frame_number = 0;
-		}
-#endif
     }
 }
 

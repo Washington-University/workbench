@@ -86,8 +86,6 @@ namespace caret {
 
         void captureFrame(AString filename);
 
-        void captureMovie();
-        
         Qt::Orientation orientation;
         
         int32_t browserWindowIndex;
