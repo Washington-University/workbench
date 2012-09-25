@@ -4874,8 +4874,8 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                                 drawEllipticalCone(endXYZ,
                                                    startXYZ,
                                                    fanMultiplier,
-                                                   fiber->m_fanningMajorAxisAngle,
-                                                   fiber->m_fanningMinorAxisAngle,
+                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
+                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
                                                    fiber->m_psi,
                                                    false);
                                 drawEllipticalCone(endXYZ,

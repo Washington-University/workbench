@@ -66,12 +66,12 @@ using namespace caret;
 DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brain)
 : DisplayProperties(brain)
 {
-    const float aboveLimit = 1.05;
-    const float belowLimit = -1.05;
+    const float aboveLimit = 0.63;
+    const float belowLimit = -0.63;
     const float minimumMagnitude = 0.05;
     const bool drawWithMagnitude = true;
-    const float lengthMultiplier = 10.0;
-    const float fanMultiplier = 1.0;
+    const float lengthMultiplier = 6.0;
+    const float fanMultiplier = 3.0;
     const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
     const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
     
