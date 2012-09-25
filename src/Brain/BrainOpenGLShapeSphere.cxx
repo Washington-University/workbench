@@ -115,8 +115,8 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
                 z2 = 1.0;
             }
             
-            strip.push_back(static_cast<int>(m_coordinates.size() / 3));
-            m_vertices.push_back(static_cast<int>(m_coordinates.size() / 3));
+            strip.push_back(static_cast<GLuint>(m_coordinates.size() / 3));
+            const int32_t indx1 = static_cast<int32_t>(m_coordinates.size() / 3);
             m_coordinates.push_back(x2);
             m_coordinates.push_back(y2);
             m_coordinates.push_back(z2);
@@ -125,8 +125,8 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             m_normals.push_back(y2 / length2);
             m_normals.push_back(z2 / length2);
             
-            strip.push_back(static_cast<int>(m_coordinates.size() / 3));
-            m_vertices.push_back(static_cast<int>(m_coordinates.size() / 3));
+            strip.push_back(static_cast<GLuint>(m_coordinates.size() / 3));
+            const int32_t indx2 = static_cast<int32_t>(m_coordinates.size() / 3);
             m_coordinates.push_back(x1);
             m_coordinates.push_back(y1);
             m_coordinates.push_back(z1);
@@ -137,8 +137,8 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             
             if (debugFlag) {
                 std::cout << "   " << iLat << ", " << iLon << std::endl;
-                std::cout << "       " << (m_vertices.size() - 2) << ":" << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
-                std::cout << "       " << (m_vertices.size() - 1) << ":" << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
+                std::cout << "       " << indx1 << ":" << latDeg << ", " << lonDeg << ", " << x1 << ", " << y1 << ", " << z1 << std::endl;
+                std::cout << "       " << indx2 << ":" << latDeg2 << ", " << lonDeg << ", " << x2 << ", " << y2 << ", " << z2 << std::endl;
             }
         }
         
@@ -198,15 +198,50 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
         }
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
-        {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-//            m_vertexBufferID = createBufferID();
-//            glBindBuffer(GL_ARRAY_BUFFER,
-//                         m_vertexBufferID);
-//            m_normalBufferID = createBufferID();
-//            m_triangleStripBufferID = createBufferID();
-#endif BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-        }
+            if (BrainOpenGL::isVertexBuffersSupported()) {
+                /*
+                 * Put vertices (coordinates) into its buffer.
+                 */
+                m_vertexBufferID = createBufferID();
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_vertexBufferID);
+                glBufferData(GL_ARRAY_BUFFER,
+                             m_coordinates.size() * sizeof(GLfloat),
+                             &m_coordinates[0],
+                             GL_STATIC_DRAW);
+                
+                /*
+                 * Put normals into its buffer.
+                 */
+                m_normalBufferID = createBufferID();
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_normalBufferID);
+                glBufferData(GL_ARRAY_BUFFER,
+                             m_normals.size() * sizeof(GLfloat),
+                             &m_normals[0],
+                             GL_STATIC_DRAW);
+                
+                /*
+                 * Put triangle strips into its buffer.
+                 */
+                m_triangleStripBufferID = createBufferID();
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                             m_triangleStripBufferID);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                             m_singleTriangleStrip.size() * sizeof(GLuint),
+                             &m_singleTriangleStrip[0],
+                             GL_STATIC_DRAW);
+                
+                /*
+                 * Deselect active buffer.
+                 */
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             0);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                             0);
+            }
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
 }
@@ -269,9 +304,51 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
         }
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
-        {
-            CaretAssert(0);            
-        }
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+            if (BrainOpenGL::isVertexBuffersSupported()) {
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glEnableClientState(GL_NORMAL_ARRAY);
+                
+                /*
+                 * Set the vertices for drawing.
+                 */
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_vertexBufferID);
+                glVertexPointer(3,
+                                GL_FLOAT,
+                                0,
+                                (GLvoid*)0);
+                
+                /*
+                 * Set the normal vectors for drawing.
+                 */
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_normalBufferID);
+                glNormalPointer(GL_FLOAT,
+                                0,
+                                (GLvoid*)0);
+                
+                /*
+                 * Draw the triangle strips.
+                 */
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                             m_triangleStripBufferID);
+                glDrawElements(GL_TRIANGLE_STRIP,
+                               m_singleTriangleStrip.size(),
+                               GL_UNSIGNED_INT,
+                               (GLvoid*)0);
+                /*
+                 * Deselect active buffer.
+                 */
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             0);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                             0);
+                
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_NORMAL_ARRAY);
+            }
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
 }

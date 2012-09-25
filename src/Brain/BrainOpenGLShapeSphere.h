@@ -75,7 +75,6 @@ namespace caret {
         
         std::vector<GLfloat> m_coordinates;
         std::vector<GLfloat> m_normals;
-        std::vector<GLuint> m_vertices;
         
         std::vector<std::vector<GLuint> > m_triangleStrips;
         std::vector<GLuint> m_singleTriangleStrip;        

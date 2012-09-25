@@ -349,7 +349,7 @@ BrainOpenGL::initializeOpenGL()
     
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("2.1")) {
-        s_drawMode = DRAW_MODE_VERTEX_BUFFERS;
+        s_drawingMode = DRAW_MODE_VERTEX_BUFFERS;
         s_supportsVertexBuffers = true;
     }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS

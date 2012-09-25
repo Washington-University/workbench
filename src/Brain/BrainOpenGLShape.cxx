@@ -111,7 +111,7 @@ BrainOpenGLShape::createBufferID()
 {
     GLuint id = 0;
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGLInfo::isVertexBuffersSupported()) {
+    if (BrainOpenGL::isVertexBuffersSupported()) {
         glGenBuffers(1, &id);
         
         if (id > 0) {
@@ -155,7 +155,7 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
                                           const bool isRemoveFromTrackedIDs)
 {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGLInfo::isVertexBuffersSupported()) {
+    if (BrainOpenGL::isVertexBuffersSupported()) {
         if (glIsBuffer(bufferID)) {
             glDeleteBuffers(1, &bufferID);
             
