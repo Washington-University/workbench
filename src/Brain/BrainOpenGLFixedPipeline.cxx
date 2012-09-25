@@ -4729,6 +4729,26 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                 }
                 
                 /*
+                 * Test location of fiber orientation for drawing
+                 */
+                bool drawFiberOrientation = true;
+                if (plane != NULL) {
+                    const float distToPlane = plane->signedDistanceToPlane(fiberOrientation->m_xyz);
+                    if (distToPlane > aboveLimit) {
+                        drawFiberOrientation = false;
+                    }
+                    if (distToPlane < belowLimit) {
+                        drawFiberOrientation = false;
+                    }
+                }
+                if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
+                    drawFiberOrientation = false;
+                }
+                if (drawFiberOrientation == false) {
+                    continue;
+                }
+                
+                /*
                  * Draw each of the fibers
                  */
                 const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
@@ -4739,18 +4759,6 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                      * Apply display properties
                      */
                     bool drawIt = true;
-                    if (plane != NULL) {
-                        const float distToPlane = plane->signedDistanceToPlane(fiberOrientation->m_xyz);
-                        if (distToPlane > aboveLimit) {
-                            drawIt = false;
-                        }
-                        if (distToPlane < belowLimit) {
-                            drawIt = false;
-                        }
-                    }
-                    if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
-                        drawIt = false;
-                    }
                     if (fiber->m_meanF < minimumMagnitude) {
                         drawIt = false;
                     }
@@ -4763,28 +4771,6 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
                         if (isDrawWithMagnitude) {
                             vectorLength *= fiber->m_meanF;
                         }
-                        
-//                        /*
-//                         * Convert angles to a unit-vector
-//                         */
-//                        const float radiansNinetyDegrees = MathFunctions::toRadians(90.0);
-//                        const float azimuth   = radiansNinetyDegrees - fiber->m_phi; // along Y-Axis
-//                        const float elevation = radiansNinetyDegrees - fiber->m_theta;
-//                        const float unitVector[3] = {
-//                            std::sin(azimuth) * std::cos(elevation),
-//                            std::cos(azimuth) * std::cos(elevation),
-//                            std::sin(elevation)
-//                        };
-                        //                        std::cout
-                        //                        << "Fiber(" << i << "," << j << "): phi="
-                        //                        << MathFunctions::toDegrees(fiber->m_phi) << ", theta="
-                        //                        << MathFunctions::toDegrees(fiber->m_theta) << ", az="
-                        //                        << MathFunctions::toDegrees(azimuth) << ", el="
-                        //                        << MathFunctions::toDegrees(elevation) << ", vec=("
-                        //                        << qPrintable(AString::fromNumbers(unitVector, 3, ","))
-                        //                        << ")"
-                        //                        << std::endl
-                        //                        << std::endl;
                         
                         /*
                          * Vector with magnitude
@@ -4990,8 +4976,11 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
         baseMinorAngle = maxAngle;
     }
     
-    const float majorRadius = z * std::tan(baseMajorAngle) * baseRadiusScaling;
-    const float minorRadius = z * std::tan(baseMinorAngle) * baseRadiusScaling;
+    const float maxWidth = z;
+    const float majorRadius = std::min(z * std::tan(baseMajorAngle) * baseRadiusScaling,
+                                       maxWidth);
+    const float minorRadius = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
+                                       maxWidth);
     
     double zero = 1.0e-3;
     
