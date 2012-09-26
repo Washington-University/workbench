@@ -35,13 +35,13 @@
 /*LICENSE_END*/
 
 
-#include <QObject>
-
 #include <QComboBox>
+
+#include "WuQWidget.h"
 
 namespace caret {
 
-    class WuQTrueFalseComboBox : public QObject {
+    class WuQTrueFalseComboBox : public WuQWidget {
         
         Q_OBJECT
 

@@ -51,7 +51,7 @@ using namespace caret;
 WuQTrueFalseComboBox::WuQTrueFalseComboBox(const QString& trueText,
                                            const QString& falseText,
                                            QObject* parent)
-: QObject(parent)
+: WuQWidget(parent)
 {
     this->createComboBox(trueText, 
                          falseText);
@@ -61,7 +61,7 @@ WuQTrueFalseComboBox::WuQTrueFalseComboBox(const QString& trueText,
  * Constructor.
  */
 WuQTrueFalseComboBox::WuQTrueFalseComboBox(QObject* parent)
-: QObject(parent)
+: WuQWidget(parent)
 {
     this->createComboBox("true", 
                          "false");
