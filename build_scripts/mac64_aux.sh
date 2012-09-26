@@ -65,7 +65,7 @@ git pull -u
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
-cmake ${SRC_DIR}
+cmake -DCMAKE_BUILD_TYPE=Release ${SRC_DIR}
 make -j2 
 make -j2
 
