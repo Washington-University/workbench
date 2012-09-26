@@ -30,6 +30,7 @@ OperationException.h
 OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
+OperationSurfaceClosestNode.h
 OperationSurfaceGeodesicROIs.h
 OperationVolumeLabelImport.h
 OperationVolumePalette.h
@@ -48,6 +49,7 @@ OperationEstimateFiberBinghams.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
+OperationSurfaceClosestNode.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumePalette.cxx
