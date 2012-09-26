@@ -51,6 +51,7 @@ namespace caret {
     class GroupAndNameHierarchySelectedItem;
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
+    class WuQTrueFalseComboBox;
     
     class BorderSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -92,9 +93,9 @@ namespace caret {
         
         GroupAndNameHierarchyViewController* m_borderClassNameHierarchyViewController;
         
-        QCheckBox* m_bordersDisplayCheckBox;
+        WuQTrueFalseComboBox* m_bordersDisplayComboBox;
         
-        QCheckBox* m_bordersContralateralCheckBox;
+        WuQTrueFalseComboBox* m_bordersContralateralComboBox;
         
         DisplayGroupEnumComboBox* m_bordersDisplayGroupComboBox;
 

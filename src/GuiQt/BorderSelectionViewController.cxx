@@ -60,6 +60,7 @@
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQTabWidget.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -143,12 +144,18 @@ BorderSelectionViewController::createSelectionWidget()
 QWidget* 
 BorderSelectionViewController::createAttributesWidget()
 {
-    m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
-    QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
+    QLabel* displayBordersLabel = new QLabel("Display Borders");
+    m_bordersDisplayComboBox = new WuQTrueFalseComboBox("Yes",
+                                                        "No",
+                                                        this);
+    QObject::connect(m_bordersDisplayComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(processAttributesChanges()));
     
-    m_bordersContralateralCheckBox = new QCheckBox("Contralateral");
-    QObject::connect(m_bordersContralateralCheckBox, SIGNAL(clicked(bool)),
+    QLabel* contralateralLabel = new QLabel("Contralateral");
+    m_bordersContralateralComboBox = new WuQTrueFalseComboBox("Yes",
+                                                              "No",
+                                                              this);
+    QObject::connect(m_bordersContralateralComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(processAttributesChanges()));
     
     std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
@@ -203,9 +210,11 @@ BorderSelectionViewController::createAttributesWidget()
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_bordersDisplayCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(displayBordersLabel, row, 0);
+    gridLayout->addWidget(m_bordersDisplayComboBox->getWidget(), row, 1);
     row++;
-    gridLayout->addWidget(m_bordersContralateralCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(contralateralLabel, row, 0);
+    gridLayout->addWidget(m_bordersContralateralComboBox->getWidget(), row, 1);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
@@ -250,10 +259,10 @@ BorderSelectionViewController::processAttributesChanges()
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
     dpb->setDisplayed(displayGroup,
                       browserTabIndex,
-                      m_bordersDisplayCheckBox->isChecked());
+                      m_bordersDisplayComboBox->isTrue());
     dpb->setContralateralDisplayed(displayGroup,
                                    browserTabIndex,
-                                   m_bordersContralateralCheckBox->isChecked());
+                                   m_bordersContralateralComboBox->isTrue());
 
     dpb->setDrawingType(displayGroup,
                         browserTabIndex,
@@ -353,9 +362,9 @@ BorderSelectionViewController::updateBorderViewController()
     BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
     const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
     
-    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(displayGroup,
+    m_bordersDisplayComboBox->setStatus(dpb->isDisplayed(displayGroup,
                                                           browserTabIndex));
-    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(displayGroup,
+    m_bordersContralateralComboBox->setStatus(dpb->isContralateralDisplayed(displayGroup,
                                                                              browserTabIndex));
     
     const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType(displayGroup,

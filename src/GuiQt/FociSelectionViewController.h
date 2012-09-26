@@ -37,20 +37,21 @@
 #include <stdint.h>
 #include <set>
 
-#include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 
 class QCheckBox;
+class QComboBox;
+class QDoubleSpinBox;
 
 namespace caret {
 
     class GroupAndNameHierarchySelectedItem;
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
+    class WuQTrueFalseComboBox;
     
     class FociSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -92,11 +93,11 @@ namespace caret {
         
         GroupAndNameHierarchyViewController* m_fociClassNameHierarchyViewController;
         
-        QCheckBox* m_fociDisplayCheckBox;
+        WuQTrueFalseComboBox* m_fociDisplayComboBox;
         
-        QCheckBox* m_fociContralateralCheckBox;
+        WuQTrueFalseComboBox* m_fociContralateralComboBox;
         
-        QCheckBox* m_pasteOntoSurfaceCheckBox;
+        WuQTrueFalseComboBox* m_pasteOntoSurfaceComboBox;
         
         DisplayGroupEnumComboBox* m_fociDisplayGroupComboBox;
 
