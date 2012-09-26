@@ -171,11 +171,9 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
 
         /*
          * Coordinate of fiber orientation
-         * Slices (111, 238, 130) of ParcellationPilot_AverageT1w.nii.gz
-         * Just in anterior of ParcellationPilot.R.midthickness.32k_fs_LR.surf.gii
          */
         fiberData[offset+0] = 12.8;
-        fiberData[offset+1] = 72.8;
+        fiberData[offset+1] = 125.8;
         fiberData[offset+2] = 2.4;
         offset += 3;
 
@@ -228,11 +226,9 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
         
         /*
          * Coordinate of fiber orientation
-         * Slices (203, 26, 124) of ParcellationPilot_AverageT1w.nii.gz
-         * lateral and posterior of ParcellationPilot.L.midthickness.32k_fs_LR.surf.gii
          */
         fiberData[offset+0] = -60.8;
-        fiberData[offset+1] = -96.8;
+        fiberData[offset+1] = -55.8;
         fiberData[offset+2] = -2.4;
         offset += 3;
         

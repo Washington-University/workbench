@@ -465,4 +465,33 @@ BrainOpenGLShape::printTriangleStrip(const std::vector<GLuint>& triangleStrip) c
     std::cout << std::endl << std::endl;
 }
 
+/**
+ * Print the vertices in a triangle fan
+ *
+ * @param triangleFan
+ *    Triangle fan that is printed.
+ */
+void
+BrainOpenGLShape::printTriangleFan(const std::vector<GLuint>& triangleFan) const
+{
+    const int32_t numVertices = static_cast<int32_t>(triangleFan.size());
+    for (int32_t i = 0; i < numVertices; i++) {
+        const GLuint vertexIndex = triangleFan[i];
+        if (i == 0) {
+            std::cout << "Center (";
+        }
+        else if (i > 1) {
+            std::cout << ", ";
+        }
+        std::cout << vertexIndex;
+        if (i == 0) {
+            std::cout << ") Perimeter (";
+        }        
+    }
+    if (numVertices > 1) {
+        std::cout << ")";
+    }
+    std::cout << std::endl << std::endl;
+}
+
 

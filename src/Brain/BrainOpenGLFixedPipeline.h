@@ -43,6 +43,7 @@ class QGLWidget;
 namespace caret {
     
     class Brain;
+    class BrainOpenGLShapeCone;
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -272,10 +273,10 @@ namespace caret {
         
         void drawSquare(const float size);
         
-        void drawCone(const float baseXYZ[3],
-                      const float apexXYZ[3],
-                      const float baseRadius,
-                      const float apexRadius);
+//        void drawCone(const float baseXYZ[3],
+//                      const float apexXYZ[3],
+//                      const float baseRadius,
+//                      const float apexRadius);
         
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
@@ -357,6 +358,9 @@ namespace caret {
          
         /** Sphere symbol */
         BrainOpenGLShapeSphere* m_shapeSphere;
+        
+        /** Cone symbol */
+        BrainOpenGLShapeCone* m_shapeCone;
         
         double inverseRotationMatrix[16];
         bool inverseRotationMatrixValid;

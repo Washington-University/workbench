@@ -49,6 +49,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -131,6 +132,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
     m_shapeSphere = NULL;
+    m_shapeCone   = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
 }
@@ -143,6 +145,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (m_shapeSphere != NULL) {
         delete m_shapeSphere;
         m_shapeSphere = NULL;
+    }
+    if (m_shapeCone != NULL) {
+        delete m_shapeCone;
+        m_shapeCone = NULL;
     }
     if (this->surfaceNodeColoring != NULL) {
         delete this->surfaceNodeColoring;
@@ -797,6 +803,9 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         
     if (m_shapeSphere == NULL) {
         m_shapeSphere = new BrainOpenGLShapeSphere(5);
+    }
+    if (m_shapeCone == NULL) {
+        m_shapeCone = new BrainOpenGLShapeCone(8);
     }
     
     if (this->initializedOpenGLFlag) {
@@ -5030,165 +5039,173 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     }
 
     /*
-     * Setup step size based upon number of points around ellipse
+     * Draw the cone
      */
-    const int32_t numberOfPoints = 8;
-    const float step = (2.0 * M_PI) / 8.0;
-    
-    /*
-     * Create a vector to hold the points
-     * Add one extra point for apex
-     */
-    std::vector<GLfloat> pointVector;
-   
-    /*
-     * Generate points around ellipse
-     */
-    for (int32_t i = 0; i < numberOfPoints; i++) {
-        const float t = step * i;
-        
-//        const float x = majorRadius * std::cos(t);
-//        const float y = minorRadius * std::sin(t);
-        const float x = std::cos(t);
-        const float y = std::sin(t);
-
-        pointVector.push_back(x);
-        pointVector.push_back(y);
-        pointVector.push_back(z);
-    }
-    
-    /*
-     * Add origin (apex) to points
-     */
-    const float origin[3] = { 0.0, 0.0, 0.0 };
-    const int32_t originIndex = static_cast<int32_t>(pointVector.size() / 3);
-    pointVector.push_back(origin[0]);
-    pointVector.push_back(origin[1]);
-    pointVector.push_back(origin[2]);
-    
-    /*
-     * Normal vectors associated with each vertex
-     */
-    std::vector<GLfloat> normalVector;
-    for (int32_t i = 0; i < numberOfPoints; i++) {
-        /*
-         * Initialize for summation
-         */
-        normalVector.push_back(0.0);
-        normalVector.push_back(0.0);
-        normalVector.push_back(0.0);
-    }
-    
-    /*
-     * Normal vector for apex is last and points down negative-Z
-     */
-    normalVector.push_back(0.0);
-    normalVector.push_back(0.0);
-    normalVector.push_back(-1.0);
-    
-    /*
-     * Add normal vectors of triangles into normal vector summations
-     */
-    for (int32_t i = 0; i < numberOfPoints; i++) {
-        int32_t nextIndex = i + 1;
-        if (nextIndex >= numberOfPoints) {
-            nextIndex = 0;
-        }
-        
-        /*
-         * Normal of triangle
-         */
-        const int32_t i3 = i * 3;
-        const int32_t next3 = nextIndex * 3;
-        float triangleNormal[3];
-        MathFunctions::normalVector(origin,
-                                    &pointVector[i3],
-                                    &pointVector[next3],
-                                    triangleNormal);
-        normalVector[i3]   += triangleNormal[0];
-        normalVector[i3+1] += triangleNormal[1];
-        normalVector[i3+2] += triangleNormal[2];
-        
-        normalVector[next3]   += triangleNormal[0];
-        normalVector[next3+1] += triangleNormal[1];
-        normalVector[next3+2] += triangleNormal[2];
-    }
-    
-    /*
-     * Finish creation of the normal vectors
-     */
-    for (int32_t i = 0; i < numberOfPoints; i++) {
-        const int32_t i3 = i * 3;
-        normalVector[i3]   /= 2.0; // vertices are shared by two triangles
-        normalVector[i3+1] /= 2.0;
-        normalVector[i3+2] /= 2.0;
-        MathFunctions::normalizeVector(&normalVector[i3]);
-    }
-    
-    /*
-     * Generate vector list for triangles
-     */
-    std::vector<GLint> triangleFanIndices;
-    triangleFanIndices.push_back(originIndex);
-    //for (int32_t i = 0; i < numberOfPoints; i++) {
-    for (int32_t i = (numberOfPoints - 1); i >= 0; i--) {
-        triangleFanIndices.push_back(i);
-    }
-    triangleFanIndices.push_back(numberOfPoints - 1);
-    //triangleFanIndices.push_back(0);
-    
-    
-    
-    const int32_t numberOfTriangleFanIndices = static_cast<int32_t>(triangleFanIndices.size());
-
-    static bool debug = false;
-    if (debug) {
-        debug = false;
-        
-        CaretAssert(pointVector.size() == normalVector.size());
-        const int32_t numPoints = static_cast<int32_t>(pointVector.size() / 3);
-        for (int32_t i = 0; i < numPoints; i++) {
-            const int32_t i3 = i * 3;
-            std::cout << "p[" << i << "]=(" << AString::fromNumbers(&pointVector[i3], 3, ",")
-            << ")" << std::endl;
-            std::cout << "n[" << i << "]=(" << AString::fromNumbers(&normalVector[i3], 3, ",")
-            << ")" << std::endl;
-        }
-        
-        std::cout << "Vertices: ";
-        for (int32_t i = 0; i < numberOfTriangleFanIndices; i++) {
-            const int32_t vertexIndex = triangleFanIndices[i];
-            std::cout << vertexIndex << " ";
-        }
-        std::cout << std::endl;
-        std::cout << std::endl;
-    }
-    
-    glScalef(majorRadius, minorRadius, 1.0);
-    
-    glBegin(GL_TRIANGLE_FAN);
-    for (int32_t i = 0; i < numberOfTriangleFanIndices; i++) {
-        const int32_t vertexIndex = triangleFanIndices[i];
-        const int32_t v3 = vertexIndex * 3;
-        glNormal3fv(&normalVector[v3]);
-        glVertex3fv(&pointVector[v3]);
-    }
-    glEnd();
-    
-    /*
-     * End Cap
-     */
-    glBegin(GL_POLYGON);
-    glNormal3f(0.0, 0.0, 1.0);
-    for (int32_t i = 0; i < numberOfPoints; i++) {
-        const int32_t i3 = i * 3;
-        glVertex3fv(&pointVector[i3]);
-    }
-    glEnd();
-
+    glScalef(majorRadius, minorRadius, z);
+    m_shapeCone->draw();
     glPopMatrix();
-    
     glPopMatrix();
+
+//    /*
+//     * Setup step size based upon number of points around ellipse
+//     */
+//    const int32_t numberOfPoints = 8;
+//    const float step = (2.0 * M_PI) / 8.0;
+//    
+//    /*
+//     * Create a vector to hold the points
+//     * Add one extra point for apex
+//     */
+//    std::vector<GLfloat> pointVector;
+//   
+//    /*
+//     * Generate points around ellipse
+//     */
+//    for (int32_t i = 0; i < numberOfPoints; i++) {
+//        const float t = step * i;
+//        
+////        const float x = majorRadius * std::cos(t);
+////        const float y = minorRadius * std::sin(t);
+//        const float x = std::cos(t);
+//        const float y = std::sin(t);
+//
+//        pointVector.push_back(x);
+//        pointVector.push_back(y);
+//        pointVector.push_back(z);
+//    }
+//    
+//    /*
+//     * Add origin (apex) to points
+//     */
+//    const float origin[3] = { 0.0, 0.0, 0.0 };
+//    const int32_t originIndex = static_cast<int32_t>(pointVector.size() / 3);
+//    pointVector.push_back(origin[0]);
+//    pointVector.push_back(origin[1]);
+//    pointVector.push_back(origin[2]);
+//    
+//    /*
+//     * Normal vectors associated with each vertex
+//     */
+//    std::vector<GLfloat> normalVector;
+//    for (int32_t i = 0; i < numberOfPoints; i++) {
+//        /*
+//         * Initialize for summation
+//         */
+//        normalVector.push_back(0.0);
+//        normalVector.push_back(0.0);
+//        normalVector.push_back(0.0);
+//    }
+//    
+//    /*
+//     * Normal vector for apex is last and points down negative-Z
+//     */
+//    normalVector.push_back(0.0);
+//    normalVector.push_back(0.0);
+//    normalVector.push_back(-1.0);
+//    
+//    /*
+//     * Add normal vectors of triangles into normal vector summations
+//     */
+//    for (int32_t i = 0; i < numberOfPoints; i++) {
+//        int32_t nextIndex = i + 1;
+//        if (nextIndex >= numberOfPoints) {
+//            nextIndex = 0;
+//        }
+//        
+//        /*
+//         * Normal of triangle
+//         */
+//        const int32_t i3 = i * 3;
+//        const int32_t next3 = nextIndex * 3;
+//        float triangleNormal[3];
+//        MathFunctions::normalVector(origin,
+//                                    &pointVector[i3],
+//                                    &pointVector[next3],
+//                                    triangleNormal);
+//        normalVector[i3]   += triangleNormal[0];
+//        normalVector[i3+1] += triangleNormal[1];
+//        normalVector[i3+2] += triangleNormal[2];
+//        
+//        normalVector[next3]   += triangleNormal[0];
+//        normalVector[next3+1] += triangleNormal[1];
+//        normalVector[next3+2] += triangleNormal[2];
+//    }
+//    
+//    /*
+//     * Finish creation of the normal vectors
+//     */
+//    for (int32_t i = 0; i < numberOfPoints; i++) {
+//        const int32_t i3 = i * 3;
+//        normalVector[i3]   /= 2.0; // vertices are shared by two triangles
+//        normalVector[i3+1] /= 2.0;
+//        normalVector[i3+2] /= 2.0;
+//        MathFunctions::normalizeVector(&normalVector[i3]);
+//    }
+//    
+//    /*
+//     * Generate vector list for triangles
+//     */
+//    std::vector<GLint> triangleFanIndices;
+//    triangleFanIndices.push_back(originIndex);
+//    //for (int32_t i = 0; i < numberOfPoints; i++) {
+//    for (int32_t i = (numberOfPoints - 1); i >= 0; i--) {
+//        triangleFanIndices.push_back(i);
+//    }
+//    triangleFanIndices.push_back(numberOfPoints - 1);
+//    //triangleFanIndices.push_back(0);
+//    
+//    
+//    
+//    const int32_t numberOfTriangleFanIndices = static_cast<int32_t>(triangleFanIndices.size());
+//
+//    static bool debug = false;
+//    if (debug) {
+//        debug = false;
+//        
+//        CaretAssert(pointVector.size() == normalVector.size());
+//        const int32_t numPoints = static_cast<int32_t>(pointVector.size() / 3);
+//        for (int32_t i = 0; i < numPoints; i++) {
+//            const int32_t i3 = i * 3;
+//            std::cout << "p[" << i << "]=(" << AString::fromNumbers(&pointVector[i3], 3, ",")
+//            << ")" << std::endl;
+//            std::cout << "n[" << i << "]=(" << AString::fromNumbers(&normalVector[i3], 3, ",")
+//            << ")" << std::endl;
+//        }
+//        
+//        std::cout << "Vertices: ";
+//        for (int32_t i = 0; i < numberOfTriangleFanIndices; i++) {
+//            const int32_t vertexIndex = triangleFanIndices[i];
+//            std::cout << vertexIndex << " ";
+//        }
+//        std::cout << std::endl;
+//        std::cout << std::endl;
+//    }
+//    
+//    glScalef(majorRadius, minorRadius, 1.0);
+//    
+//    glBegin(GL_TRIANGLE_FAN);
+//    for (int32_t i = 0; i < numberOfTriangleFanIndices; i++) {
+//        const int32_t vertexIndex = triangleFanIndices[i];
+//        const int32_t v3 = vertexIndex * 3;
+//        glNormal3fv(&normalVector[v3]);
+//        glVertex3fv(&pointVector[v3]);
+//    }
+//    glEnd();
+//    
+//    /*
+//     * End Cap
+//     */
+//    glBegin(GL_POLYGON);
+//    glNormal3f(0.0, 0.0, 1.0);
+//    for (int32_t i = 0; i < numberOfPoints; i++) {
+//        const int32_t i3 = i * 3;
+//        glVertex3fv(&pointVector[i3]);
+//    }
+//    glEnd();
+//
+//    glPopMatrix();
+//    
+//    glPopMatrix();
     
 }
 
@@ -5211,88 +5228,88 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
  * @param apexRadius
  *    Radius at the apex.
  */
-void
-BrainOpenGLFixedPipeline::drawCone(const float baseXYZ[3],
-                                   const float apexXYZ[3],
-                                   const float baseRadius,
-                                   const float apexRadius)
-{
-    float x1 = apexXYZ[0];
-    float y1 = apexXYZ[1];
-    float z1 = apexXYZ[2];
-    float vx = baseXYZ[0] - x1;
-    float vy = baseXYZ[1] - y1;
-    float vz = baseXYZ[2] - z1;
-    
-    float v = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
-    double ax = 0.0f;
-    
-    
-    
-    double zero = 1.0e-3;
-    
-    if (std::abs(vz) < zero) {
-        ax = 57.2957795*std::acos( vx/v ); // rotation angle in x-y plane
-        if ( vx <= 0.0f ) ax = -ax;
-    }
-    else {
-        ax = 57.2957795*std::acos( vz/v ); // rotation angle
-        if ( vz <= 0.0f ) ax = -ax;
-    }
-    
-    glPushMatrix();
-    glTranslatef( x1, y1, z1 );
-
-    float rx = -vy*vz;
-    float ry = vx*vz;
-    
-    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
-        if (vy > 0) {
-            ax = 90;
-        }
-    }
-    
-    if (std::abs(vz) < zero)  {
-        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
-        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
-    }
-    else {
-        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
-    }
-    
-    glPushMatrix();
-    
-    GLUquadric* cylinderQuadric = gluNewQuadric();
-    gluQuadricDrawStyle(cylinderQuadric, GLU_FILL);
-    gluQuadricOrientation(cylinderQuadric, GLU_OUTSIDE);
-    gluQuadricNormals(cylinderQuadric, GLU_SMOOTH);
-    
-    const int numberOfSlices = 4;
-    gluCylinder(cylinderQuadric,
-                apexRadius,
-                baseRadius,
-                v,     // height
-                numberOfSlices,     // subdivisions around Z-axis
-                1);    // subdivisions along Z-axis
-    
-    gluDeleteQuadric(cylinderQuadric);
-    
-    glPopMatrix();
-    
-    GLUquadric* diskQuadric = gluNewQuadric();
-    gluQuadricDrawStyle(diskQuadric, GLU_FILL);
-    gluQuadricOrientation(diskQuadric, GLU_OUTSIDE);
-    gluQuadricNormals(diskQuadric, GLU_SMOOTH);
-    
-    glPushMatrix();
-    glTranslatef(0.0, 0.0, v);
-    gluDisk(diskQuadric, 0.0f, baseRadius, numberOfSlices, 1);
-    glPopMatrix();
-    
-    gluDeleteQuadric(diskQuadric);
-    
-    glPopMatrix();
-}
+//void
+//BrainOpenGLFixedPipeline::drawCone(const float baseXYZ[3],
+//                                   const float apexXYZ[3],
+//                                   const float baseRadius,
+//                                   const float apexRadius)
+//{
+//    float x1 = apexXYZ[0];
+//    float y1 = apexXYZ[1];
+//    float z1 = apexXYZ[2];
+//    float vx = baseXYZ[0] - x1;
+//    float vy = baseXYZ[1] - y1;
+//    float vz = baseXYZ[2] - z1;
+//    
+//    float v = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
+//    double ax = 0.0f;
+//    
+//    
+//    
+//    double zero = 1.0e-3;
+//    
+//    if (std::abs(vz) < zero) {
+//        ax = 57.2957795*std::acos( vx/v ); // rotation angle in x-y plane
+//        if ( vx <= 0.0f ) ax = -ax;
+//    }
+//    else {
+//        ax = 57.2957795*std::acos( vz/v ); // rotation angle
+//        if ( vz <= 0.0f ) ax = -ax;
+//    }
+//    
+//    glPushMatrix();
+//    glTranslatef( x1, y1, z1 );
+//
+//    float rx = -vy*vz;
+//    float ry = vx*vz;
+//    
+//    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
+//        if (vy > 0) {
+//            ax = 90;
+//        }
+//    }
+//    
+//    if (std::abs(vz) < zero)  {
+//        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
+//        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
+//    }
+//    else {
+//        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
+//    }
+//    
+//    glPushMatrix();
+//    
+//    GLUquadric* cylinderQuadric = gluNewQuadric();
+//    gluQuadricDrawStyle(cylinderQuadric, GLU_FILL);
+//    gluQuadricOrientation(cylinderQuadric, GLU_OUTSIDE);
+//    gluQuadricNormals(cylinderQuadric, GLU_SMOOTH);
+//    
+//    const int numberOfSlices = 4;
+//    gluCylinder(cylinderQuadric,
+//                apexRadius,
+//                baseRadius,
+//                v,     // height
+//                numberOfSlices,     // subdivisions around Z-axis
+//                1);    // subdivisions along Z-axis
+//    
+//    gluDeleteQuadric(cylinderQuadric);
+//    
+//    glPopMatrix();
+//    
+//    GLUquadric* diskQuadric = gluNewQuadric();
+//    gluQuadricDrawStyle(diskQuadric, GLU_FILL);
+//    gluQuadricOrientation(diskQuadric, GLU_OUTSIDE);
+//    gluQuadricNormals(diskQuadric, GLU_SMOOTH);
+//    
+//    glPushMatrix();
+//    glTranslatef(0.0, 0.0, v);
+//    gluDisk(diskQuadric, 0.0f, baseRadius, numberOfSlices, 1);
+//    glPopMatrix();
+//    
+//    gluDeleteQuadric(diskQuadric);
+//    
+//    glPopMatrix();
+//}
 
 /**
  * Draw fiber orientations on surface models.

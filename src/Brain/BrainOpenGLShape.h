@@ -97,6 +97,8 @@ namespace caret {
         
         void printTriangleStrip(const std::vector<GLuint>& triangleStrip) const;
         
+        void printTriangleFan(const std::vector<GLuint>& triangleFan) const;
+        
         void contatenateTriangleStrips(const std::vector<std::vector<GLuint> >& triangleStrips,
                                        std::vector<GLuint>& triangleStripOut) const;
         
