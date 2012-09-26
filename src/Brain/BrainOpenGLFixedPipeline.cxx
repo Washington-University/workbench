@@ -4986,9 +4986,9 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     }
     
     const float maxWidth = z;
-    const float majorRadius = std::min(z * std::tan(baseMajorAngle) * baseRadiusScaling,
+    const float majorAxis = std::min(z * std::tan(baseMajorAngle) * baseRadiusScaling,
                                        maxWidth);
-    const float minorRadius = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
+    const float minorAxis = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
                                        maxWidth);
     
     double zero = 1.0e-3;
@@ -5041,7 +5041,9 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     /*
      * Draw the cone
      */
-    glScalef(majorRadius, minorRadius, z);
+    glScalef(majorAxis * 2.0,
+             minorAxis * 2.0,
+             z);
     m_shapeCone->draw();
     glPopMatrix();
     glPopMatrix();

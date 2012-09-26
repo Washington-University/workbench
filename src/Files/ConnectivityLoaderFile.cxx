@@ -2290,7 +2290,7 @@ ConnectivityLoaderFile::createFiberOrientationAdapter() throw (DataFileException
         m_fiberOrientationAdapter = NULL;
     }
     
-    bool useTestData = true;
+    bool useTestData = false;
     if (useTestData) {
         /*
          * Note: this test data will leak memory

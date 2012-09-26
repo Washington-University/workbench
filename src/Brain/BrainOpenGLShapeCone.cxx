@@ -79,7 +79,7 @@ BrainOpenGLShapeCone::~BrainOpenGLShapeCone()
 void
 BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
-    bool debugFlag = true;
+    bool debugFlag = false;
     
     
     /*
