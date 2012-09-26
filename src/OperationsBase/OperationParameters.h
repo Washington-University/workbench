@@ -33,11 +33,12 @@
 
 namespace caret {
 
+    class CiftiFile;
+    class FociFile;
+    class LabelFile;
+    class MetricFile;
     class SurfaceFile;
     class VolumeFile;
-    class MetricFile;
-    class LabelFile;
-    class CiftiFile;
     
     struct OptionalParameter;
     
@@ -122,6 +123,12 @@ namespace caret {
         ///get a cifti with a key
         CiftiFile* getCifti(const int32_t key);
         
+        ///add a parameter to get next item as a cifti file
+        void addFociParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a cifti with a key
+        FociFile* getFoci(const int32_t key);
+        
         ///add a preconstructed optional parameter
         void addOptionalParameter(OptionalParameter* param);
         
@@ -172,6 +179,12 @@ namespace caret {
         
         ///get a cifti with a key
         CiftiFile* getOutputCifti(const int32_t key);
+        
+        ///add a parameter to get next item as a cifti file
+        void addFociOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a cifti with a key
+        FociFile* getOutputFoci(const int32_t key);
         
         ///convenience method to create, add, and return an optional parameter
         OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
@@ -253,6 +266,7 @@ namespace caret {
     typedef PointerTemplateParameter<MetricFile, OperationParametersEnum::METRIC> MetricParameter;
     typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
     typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
+    typedef PointerTemplateParameter<FociFile, OperationParametersEnum::FOCI> FociParameter;
     typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
     typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntegerParameter;
     typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;

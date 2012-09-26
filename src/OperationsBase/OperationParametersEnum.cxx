@@ -107,6 +107,11 @@ OperationParametersEnum::initialize()
                                     "Cifti File", 
                                     "Cifti"));
     
+    enumData.push_back(OperationParametersEnum(FOCI, 
+                                    4, 
+                                    "Foci File", 
+                                    "Foci"));
+    
     enumData.push_back(OperationParametersEnum(DOUBLE, 
                                     5, 
                                     "Floating Point", 

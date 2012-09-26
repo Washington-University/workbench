@@ -27,6 +27,7 @@ OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
 OperationEstimateFiberBinghams.h
 OperationException.h
+OperationFociListCoords.h
 OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
@@ -46,6 +47,7 @@ OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
+OperationFociListCoords.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx

@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 
 #include "CiftiFile.h"
+#include "FociFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
@@ -124,6 +125,11 @@ void ParameterComponent::addCiftiParameter(const int32_t key, const AString& nam
     m_paramList.push_back(new CiftiParameter(key, name, description));
 }
 
+void ParameterComponent::addFociParameter(const int32_t key, const AString& name, const AString& description)
+{
+    m_paramList.push_back(new FociParameter(key, name, description));
+}
+
 void ParameterComponent::addDoubleParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_paramList.push_back(new DoubleParameter(key, name, description));
@@ -168,6 +174,13 @@ void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AStrin
 {
     CiftiParameter* myParam = new CiftiParameter(key, name, description);
     myParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
+    m_outputList.push_back(myParam);
+}
+
+void ParameterComponent::addFociOutputParameter(const int32_t key, const AString& name, const AString& description)
+{
+    FociParameter* myParam = new FociParameter(key, name, description);
+    myParam->m_parameter.grabNew(new FociFile());
     m_outputList.push_back(myParam);
 }
 
@@ -233,6 +246,11 @@ CiftiFile* ParameterComponent::getCifti(const int32_t key)
     return ((CiftiParameter*)getInputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
 }
 
+FociFile* ParameterComponent::getFoci(const int32_t key)
+{
+    return ((FociParameter*)getInputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
+}
+
 double ParameterComponent::getDouble(const int32_t key)
 {
     return ((DoubleParameter*)getInputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter;
@@ -271,6 +289,11 @@ VolumeFile* ParameterComponent::getVolume(const int32_t key)
 CiftiFile* ParameterComponent::getOutputCifti(const int32_t key)
 {
     return ((CiftiParameter*)getOutputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
+}
+
+FociFile* ParameterComponent::getOutputFoci(const int32_t key)
+{
+    return ((FociParameter*)getOutputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
 double* ParameterComponent::getOutputDouble(const int32_t key)
