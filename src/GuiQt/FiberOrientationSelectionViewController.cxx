@@ -220,6 +220,8 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(displayFibersLabel, row, 0);
@@ -234,7 +236,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
     gridLayout->addWidget(drawWithMagnitudeLabel, row, 0);
-    gridLayout->addWidget(m_drawWithMagnitudeComboBox->getWidget(), row, 1, Qt::AlignLeft);
+    gridLayout->addWidget(m_drawWithMagnitudeComboBox->getWidget(), row, 1);
     row++;
     gridLayout->addWidget(minimumMagnitudeLabel, row, 0);
     gridLayout->addWidget(m_minimumMagnitudeSpinBox , row, 1);
