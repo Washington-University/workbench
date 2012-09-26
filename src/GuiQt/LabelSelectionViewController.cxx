@@ -39,7 +39,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
-#include <QTabWidget>
+//#include <QTabWidget>
 #include <QToolButton>
 
 #define __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
@@ -60,6 +60,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -97,7 +98,9 @@ LabelSelectionViewController::LabelSelectionViewController(const int32_t browser
     QWidget* selectionWidget = this->createSelectionWidget();
     
     
-    QTabWidget* tabWidget = new QTabWidget();
+//    QTabWidget* tabWidget = new QTabWidget();
+    WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
+                                               this);
     tabWidget->addTab(attributesWidget, 
                       "Attributes");
     tabWidget->addTab(selectionWidget, 
@@ -106,7 +109,7 @@ LabelSelectionViewController::LabelSelectionViewController(const int32_t browser
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(groupLayout);
-    layout->addWidget(tabWidget, 0, Qt::AlignLeft);
+    layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);

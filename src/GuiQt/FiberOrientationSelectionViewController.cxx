@@ -56,6 +56,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSelectionViewController.h"
 #include "GuiManager.h"
+#include "WuQTabWidget.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
@@ -91,7 +92,9 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     QWidget* selectionWidget = this->createSelectionWidget();
     
     
-    QTabWidget* tabWidget = new QTabWidget();
+    //QTabWidget* tabWidget = new QTabWidget();
+    WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
+                                               this);
     tabWidget->addTab(attributesWidget,
                       "Attributes");
     tabWidget->addTab(selectionWidget,
@@ -101,7 +104,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
-    layout->addWidget(tabWidget, 0, Qt::AlignLeft);
+    layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this,
