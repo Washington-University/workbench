@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <string>
 
 using namespace caret;
 using namespace std;
@@ -59,11 +60,20 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
     OptionalParameter* gaussOpt = ret->createOptionalParameter(5, "-gaussian", "generate a gaussian kernel instead of a flat ROI");
     gaussOpt->addDoubleParameter(1, "sigma", "the sigma for the gaussian kernel, in mm");
     
+    OptionalParameter* overlapOpt = ret->createOptionalParameter(6, "-overlap-logic", "how to handle overlapping ROIs, default ALLOW");
+    overlapOpt->addStringParameter(1, "method", "the method of resolving overlaps");
+    
+    OptionalParameter* namesOpt = ret->createOptionalParameter(7, "-names", "name the columns from text file");
+    namesOpt->addStringParameter(1, "name-list-file", "a text file containing column names, one per line");
+    
     ret->setHelpText(
         AString("For each node in the list file, a column in the output metric is created, and an ROI around that node is drawn in that column.  ") +
         "Each metric column will have zeros outside the geodesic distance spacified by <limit>, and by default will have a value of 1.0 inside it.  " +
         "If the -gaussian option is specified, the values inside the ROI will instead form a gaussian with the specified value of sigma, normalized " +
-        "so that the sum of the nonzero values in the metric column is 1.0."
+        "so that the sum of the nonzero values in the metric column is 1.0.  The <method> argument to -overlap-logic must be one of ALLOW, CLOSEST, or EXCLUDE.  " +
+        "ALLOW is the default, and means that ROIs are treated independently and may overlap.  " +
+        "CLOSEST means that ROIs may not overlap, and that no ROI contains nodes that are closer to a different seed node.  " +
+        "EXCLUDE means that ROIs may not overlap, and that any node within range of more than one ROI does not belong to any ROI."
     );
     return ret;
 }
@@ -102,35 +112,145 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
         nodelist.push_back(nodenum);
         textFile >> nodenum;
     }
+    int overlapType = 1;//ALLOW
+    OptionalParameter* overlapOpt = myParams->getOptionalParameter(6);
+    if (overlapOpt->m_present)
+    {
+        AString overlapString = overlapOpt->getString(1);
+        if (overlapString == "ALLOW")
+        {
+            overlapType = 1;
+        } else if (overlapString == "CLOSEST") {
+            overlapType = 2;
+        } else if (overlapString == "EXCLUDE") {
+            overlapType = 3;
+        } else {
+            throw OperationException("unrecognized overlap method: " + overlapString);
+        }
+    }
+    vector<AString> namesList;
+    OptionalParameter* namesOpt = myParams->getOptionalParameter(7);
+    if (namesOpt->m_present)
+    {
+        AString namesFileName = namesOpt->getString(1);
+        fstream namesfile(namesFileName.toLocal8Bit().constData(), fstream::in);
+        if (!namesfile.good())
+        {
+            throw OperationException("error opening names file for reading");
+        }
+        int i = 0;
+        string inputline;
+        getline(namesfile, inputline);
+        while (namesfile && i < (int)nodelist.size())
+        {
+            namesList.push_back(inputline.c_str());
+            getline(namesfile, inputline);
+            ++i;
+        }
+    }
     myMetricOut->setNumberOfNodesAndColumns(numNodes, (int)nodelist.size());
     myMetricOut->setStructure(mySurf->getStructure());
     float invneg2sigmasqr = -0.5f / (sigma * sigma);
     for (int i = 0; i < (int)nodelist.size(); ++i)
     {
         myMetricOut->initializeColumn(i);
-        myMetricOut->setColumnName(i, AString::number(nodelist[i]));
-        CaretPointer<GeodesicHelper> myhelp = mySurf->getGeodesicHelper();
-        vector<int32_t> roinodes;
-        vector<float> dists;
-        myhelp->getNodesToGeoDist(nodelist[i], limit, roinodes, dists);
-        if (sigma > 0.0f)
+        if (i < (int)namesList.size())
         {
-            double accum = 0.0;
-            for (int j = 0; j < (int)dists.size(); ++j)
-            {
-                dists[j] = exp(dists[j] * dists[j] * invneg2sigmasqr);
-                accum += dists[j];
-            }
-            for (int j = 0; j < (int)dists.size(); ++j)
-            {
-                dists[j] /= accum;
-                myMetricOut->setValue(roinodes[j], i, dists[j]);
-            }
+            myMetricOut->setColumnName(i, namesList[i]);
         } else {
-            for (int j = 0; j < (int)roinodes.size(); ++j)
-            {
-                myMetricOut->setValue(roinodes[j], i, 1.0f);
-            }
+            const float* myCoord = mySurf->getCoordinate(i);
+            myMetricOut->setColumnName(i, "Node " + AString::number(nodelist[i]) +
+                                            " (" + AString::number(myCoord[0], 'f', 1) +
+                                            ", " + AString::number(myCoord[1], 'f', 1) +
+                                            ", " + AString::number(myCoord[2], 'f', 1) + ")");
         }
+    }
+    switch (overlapType)
+    {
+        case 1://ALLOW
+            for (int i = 0; i < (int)nodelist.size(); ++i)
+            {
+                CaretPointer<GeodesicHelper> myhelp = mySurf->getGeodesicHelper();
+                vector<int32_t> roinodes;
+                vector<float> dists;
+                myhelp->getNodesToGeoDist(nodelist[i], limit, roinodes, dists);
+                if (sigma > 0.0f)
+                {
+                    double accum = 0.0;
+                    for (int j = 0; j < (int)dists.size(); ++j)
+                    {
+                        dists[j] = exp(dists[j] * dists[j] * invneg2sigmasqr);//reuse the vector for weights
+                        accum += dists[j];
+                    }
+                    for (int j = 0; j < (int)dists.size(); ++j)
+                    {
+                        dists[j] /= accum;
+                        myMetricOut->setValue(roinodes[j], i, dists[j]);
+                    }
+                } else {
+                    for (int j = 0; j < (int)roinodes.size(); ++j)
+                    {
+                        myMetricOut->setValue(roinodes[j], i, 1.0f);
+                    }
+                }
+            }
+            break;
+        case 2:
+        case 3:
+        {
+            vector<int> useCounts(numNodes, 0);
+            vector<int> closestSeed(numNodes, -1);
+            vector<float> bestDists(numNodes, -1.0f);
+            for (int i = 0; i < (int)nodelist.size(); ++i)
+            {
+                CaretPointer<GeodesicHelper> myhelp = mySurf->getGeodesicHelper();
+                vector<int32_t> roinodes;
+                vector<float> dists;
+                myhelp->getNodesToGeoDist(nodelist[i], limit, roinodes, dists);
+                for (int j = 0; j < (int)roinodes.size(); ++j)
+                {
+                    ++useCounts[roinodes[j]];
+                    if (bestDists[roinodes[j]] < 0.0f || dists[j] < bestDists[roinodes[j]])
+                    {
+                        bestDists[roinodes[j]] = dists[j];
+                        closestSeed[roinodes[j]] = i;//nodelist array index, not node number
+                    }
+                }
+            }
+            if (sigma > 0.0f)
+            {
+                vector<double> accums(nodelist.size(), 0.0);
+                vector<vector<int> > roinodelists(nodelist.size());
+                vector<vector<float> > weightlists(nodelist.size());
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    if (closestSeed[i] != -1 && (overlapType == 2 || useCounts[i] == 1))
+                    {
+                        roinodelists[closestSeed[i]].push_back(i);
+                        float weight = exp(bestDists[i] * bestDists[i] * invneg2sigmasqr);
+                        weightlists[closestSeed[i]].push_back(weight);
+                        accums[closestSeed[i]] += weight;
+                    }
+                }
+                for (int i = 0; i < (int)nodelist.size(); ++i)
+                {
+                    for (int j = 0; j < (int)roinodelists[i].size(); ++j)
+                    {
+                        myMetricOut->setValue(roinodelists[i][j], i, weightlists[i][j] / accums[i]);
+                    }
+                }
+            } else {
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    if (closestSeed[i] != -1 && (overlapType == 2 || useCounts[i] == 1))
+                    {
+                        myMetricOut->setValue(i, closestSeed[i], 1.0f);
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            throw OperationException("something very bad happenned, notify the developers");
     }
 }
