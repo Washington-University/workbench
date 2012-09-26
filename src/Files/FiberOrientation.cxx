@@ -52,7 +52,6 @@ using namespace caret;
  */
 FiberOrientation::FiberOrientation(const int32_t numberOfFibers,
                                                        float* pointerToData)
-: CaretObject()
 {
     m_xyz[0] = pointerToData[0];
     m_xyz[1] = pointerToData[1];

@@ -41,7 +41,7 @@ namespace caret {
 
     class Fiber;
     
-    class FiberOrientation : public CaretObject {
+    class FiberOrientation /* : public CaretObject */ {
         
     public:
         FiberOrientation(const int32_t numberOfFibers,
