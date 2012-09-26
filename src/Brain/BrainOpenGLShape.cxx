@@ -302,9 +302,9 @@ BrainOpenGLShape::contatenateTriangleStrips(const std::vector<GLuint>& vertices,
                  * P1 is index of last vertex in previous strip
                  * P2 is index of second to last vertex in previous strip
                  */
-                CaretAssertVectorIndex(vertices, prevEndIndex - 1);
+                CaretAssertVectorIndex(vertices, ((int32_t)prevEndIndex) - 1);
                 const GLuint p1 = vertices[prevEndIndex - 1];
-                CaretAssertVectorIndex(vertices, prevEndIndex - 2);
+                CaretAssertVectorIndex(vertices, ((int32_t)prevEndIndex) - 2);
                 const GLuint p2 = vertices[prevEndIndex - 2];
                 
                 /*
