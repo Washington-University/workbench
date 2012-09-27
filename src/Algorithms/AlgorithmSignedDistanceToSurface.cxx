@@ -95,6 +95,7 @@ AlgorithmSignedDistanceToSurface::AlgorithmSignedDistanceToSurface(ProgressObjec
     LevelProgress myProgress(myProgObj);
     int numNodes = testSurf->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+    myMetricOut->setStructure(testSurf->getStructure());
 #pragma omp CARET_PAR
     {
         CaretPointer<SignedDistanceHelper> myHelp = levelSetSurf->getSignedDistanceHelper();

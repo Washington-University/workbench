@@ -25,9 +25,10 @@
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmException.h"
 #include "GeodesicHelper.h"
+#include "MetricFile.h"
+#include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
-#include "MetricFile.h"
 
 using namespace caret;
 using namespace std;
@@ -117,11 +118,13 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     vector<float> myAreas;
     CaretArray<int> markArray(numNodes);
     mySurf->computeNodeAreas(myAreas);
+    myMetricOut->setStructure(mySurf->getStructure());
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
         for (int thisCol = 0; thisCol < myMetric->getNumberOfColumns(); ++thisCol)
         {
+            *(myMetricOut->getMapPaletteColorMapping(thisCol)) = *(myMetric->getMapPaletteColorMapping(thisCol));
             const float* myInputData = myMetric->getValuePointerForColumn(thisCol);
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol) + " dilated");
             if (badNodeRoi == NULL)
@@ -215,6 +218,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
         const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum) + " dilated");
         if (badNodeRoi == NULL)
