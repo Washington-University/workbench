@@ -191,7 +191,7 @@ ConnectivityManagerViewController::movieActionTriggered(bool status)
             CaretLogInfo("Rendering movie to:" + fileName);
             AString ffmpeg = QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
 
-            AString command = ffmpeg + AString("-threads 4 -r 2 -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg2video " + fileName);
+            AString command = ffmpeg + AString("-threads 4 -r 2 -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
             CaretLogFine("running " + command);
 
             system(command.toAscii().data());
