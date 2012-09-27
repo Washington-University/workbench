@@ -75,6 +75,9 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     OptionalParameter* timestepOpt = ret->createOptionalParameter(6, "-timestep", "set the timestep");
     timestepOpt->addDoubleParameter(1, "interval", "the timestep, in seconds (default 1.0)");
     
+    OptionalParameter* timestartOpt = ret->createOptionalParameter(7, "-timestart", "set the start time");
+    timestartOpt->addDoubleParameter(1, "start", "the time at the first frame, in seconds (default 0.0)");
+    
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
         "At least one component must be specified.  The label volume should have some of the label names from this list, all other label names will be ignored:\n";
     vector<StructureEnum::Enum> myStructureEnums;
@@ -134,13 +137,19 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
     {
         timestep = (float)timestepOpt->getDouble(1);
     }
-    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, timestep);
+    float timestart = 0.0f;
+    OptionalParameter* timestartOpt = myParams->getOptionalParameter(7);
+    if (timestartOpt->m_present)
+    {
+        timestart = (float)timestartOpt->getDouble(1);
+    }
+    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, timestep, timestart);
 }
 
 AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol,
                                                                          const VolumeFile* myVolLabel, const MetricFile* leftData, const MetricFile* leftRoi,
                                                                          const MetricFile* rightData, const MetricFile* rightRoi, const MetricFile* cerebData,
-                                                                         const MetricFile* cerebRoi, const float& timestep) : AbstractAlgorithm(myProgObj)
+                                                                         const MetricFile* cerebRoi, const float& timestep, const float& timestart) : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
@@ -281,7 +290,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     {
         throw AlgorithmException("no models specified");
     }
-    myXML.resetRowsToTimepoints(timestep, numMaps);
+    myXML.resetRowsToTimepoints(timestep, numMaps, timestart);
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
     vector<CiftiSurfaceMap> surfMap;

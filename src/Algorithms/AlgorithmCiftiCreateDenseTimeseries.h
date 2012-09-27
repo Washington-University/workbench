@@ -39,7 +39,7 @@ namespace caret {
         AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL,
                                                                          const VolumeFile* myVolLabel = NULL, const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
                                                                          const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL, const MetricFile* cerebData = NULL,
-                                                                         const MetricFile* cerebRoi = NULL, const float& timestep = 1.0f);
+                                                                         const MetricFile* cerebRoi = NULL, const float& timestep = 1.0f, const float& timestart = 0.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

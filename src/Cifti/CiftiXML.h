@@ -54,7 +54,9 @@ namespace caret {
     
     class CiftiXML {
     public:
-        //TODO create initializers for various types of XML meta data (Dense Connectivity, Dense Time Series, etc)
+        const static int ALONG_ROW = 0;
+        const static int ALONG_COLUMN = 1;
+        const static int ALONG_STACK = 2;//better name for this?
         /**
         * Default Constructor
         *
@@ -213,6 +215,12 @@ namespace caret {
         ///get the timestep for columns, returns false if not timeseries
         bool getColumnTimestep(float& seconds) const;
         
+        ///get the timestart for rows, returns false if not set or not timeseries
+        bool getRowTimestart(float& seconds) const;
+        
+        ///get the timestart for columns, returns false if not set or not timeseries
+        bool getColumnTimestart(float& seconds) const;
+        
         ///get the number of timepoints for rows, returns false if not timeseries, sets -1 if unknown number of timepoints
         bool getRowNumberOfTimepoints(int& numTimepoints) const;
         
@@ -242,6 +250,12 @@ namespace caret {
         
         ///set the timestep for columns, returns false if not timeseries
         bool setColumnTimestep(const float& seconds);
+        
+        ///set the timestart for rows, returns false if not set or not timeseries
+        bool setRowTimestart(const float& seconds);
+        
+        ///set the timestart for columns, returns false if not set or not timeseries
+        bool setColumnTimestart(const float& seconds);
         
         ///set the number of timepoints for rows, returns false if not timeseries
         bool setRowNumberOfTimepoints(const int& numTimepoints);
@@ -286,10 +300,10 @@ namespace caret {
         bool addParcelToColumns(const CiftiParcelElement& parcel);
         
         ///set rows to be of type timepoints
-        void resetRowsToTimepoints(const float& timestep, const int& numTimepoints);
+        void resetRowsToTimepoints(const float& timestep, const int& numTimepoints, const float& timestart = 0.0f);
         
         ///set columns to be of type timepoints
-        void resetColumnsToTimepoints(const float& timestep, const int& numTimepoints);
+        void resetColumnsToTimepoints(const float& timestep, const int& numTimepoints, const float& timestart = 0.0f);
         
         ///set rows to be of type scalars
         void resetRowsToScalars(const int& numMaps);
@@ -399,7 +413,9 @@ namespace caret {
         
         ///boilerplate for map information
         bool getTimestep(float& seconds, const int& myMapIndex) const;
+        bool getTimestart(float& seconds, const int& myMapIndex) const;
         bool setTimestep(const float& seconds, const int& myMapIndex);
+        bool setTimestart(const float& seconds, const int& myMapIndex);
         AString getMapName(const int& index, const int& myMapIndex) const;
         bool setMapName(const int& index, const AString& name, const int& myMapIndex);
         const GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;

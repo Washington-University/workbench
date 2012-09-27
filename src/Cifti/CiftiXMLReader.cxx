@@ -285,6 +285,13 @@ void CiftiXMLReader::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixInd
         if (!ok) xml.raiseError("TimeStep value is not numeric");
     }
     //else xml.raiseError("MatrixIndicesMap does not contain timeStep Value.");
+    
+    if (attributes.hasAttribute("TimeStart"))
+    {
+        matrixIndicesMap.m_timeStart = attributes.value("TimeStart").toString().toFloat(&ok);
+        matrixIndicesMap.m_hasTimeStart = true;
+        if (!ok) xml.raiseError("TimeStart value is not numeric");
+    }
 
     if(attributes.hasAttribute("TimeStepUnits"))
     {

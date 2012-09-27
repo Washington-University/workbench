@@ -490,6 +490,45 @@ bool CiftiXML::getRowTimestep(float& seconds) const
     return getTimestep(seconds, m_dimToMapLookup[0]);
 }
 
+bool CiftiXML::getTimestart(float& seconds, const int& myMapIndex) const
+{
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS || myMap->m_hasTimeStart == false)
+    {
+        return false;
+    }
+    switch (myMap->m_timeStepUnits)
+    {
+        case NIFTI_UNITS_SEC:
+            seconds = myMap->m_timeStart;
+            break;
+        case NIFTI_UNITS_MSEC:
+            seconds = myMap->m_timeStart * 0.001f;
+            break;
+        case NIFTI_UNITS_USEC:
+            seconds = myMap->m_timeStart * 0.000001f;
+            break;
+        default:
+            return false;
+    };
+    return true;
+}
+
+bool CiftiXML::getColumnTimestart(float& seconds) const
+{
+    return getTimestart(seconds, m_dimToMapLookup[1]);
+}
+
+bool CiftiXML::getRowTimestart(float& seconds) const
+{
+    return getTimestart(seconds, m_dimToMapLookup[0]);
+}
+
 bool CiftiXML::getColumnNumberOfTimepoints(int& numTimepoints) const
 {
     if (m_dimToMapLookup[1] == -1 || m_root.m_matrices.size() == 0)
@@ -676,6 +715,9 @@ bool CiftiXML::setTimestep(const float& seconds, const int& myMapIndex)
     {
         return false;
     }
+    float temp;
+    getTimestart(temp, myMapIndex);//convert to seconds
+    myMap->m_timeStart = temp;
     myMap->m_timeStepUnits = NIFTI_UNITS_SEC;
     myMap->m_timeStep = seconds;
     return true;
@@ -689,6 +731,37 @@ bool CiftiXML::setColumnTimestep(const float& seconds)
 bool CiftiXML::setRowTimestep(const float& seconds)
 {
     return setTimestep(seconds, m_dimToMapLookup[0]);
+}
+
+bool CiftiXML::setTimestart(const float& seconds, const int& myMapIndex)
+{
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    float temp;
+    getTimestep(temp, myMapIndex);//convert timestep to seconds
+    myMap->m_timeStep = temp;
+    myMap->m_timeStepUnits = NIFTI_UNITS_SEC;
+    myMap->m_timeStart = seconds;
+    myMap->m_hasTimeStart = true;
+    return true;
+}
+
+bool CiftiXML::setColumnTimestart(const float& seconds)
+{
+    return setTimestart(seconds, m_dimToMapLookup[1]);
+}
+
+bool CiftiXML::setRowTimestart(const float& seconds)
+{
+    return setTimestart(seconds, m_dimToMapLookup[0]);
 }
 
 bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
@@ -1342,7 +1415,7 @@ void CiftiXML::resetRowsToBrainModels()
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] = myMap;
 }
 
-void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepoints)
+void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepoints, const float& timestart)
 {
     if (m_dimToMapLookup[1] == -1)
     {
@@ -1355,11 +1428,13 @@ void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepo
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_TIME_POINTS;
     myMap.m_timeStepUnits = NIFTI_UNITS_SEC;
     myMap.m_timeStep = timestep;
+    myMap.m_timeStart = timestart;
+    myMap.m_hasTimeStart = true;
     myMap.m_numTimeSteps = timepoints;
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] = myMap;
 }
 
-void CiftiXML::resetRowsToTimepoints(const float& timestep, const int& timepoints)
+void CiftiXML::resetRowsToTimepoints(const float& timestep, const int& timepoints, const float& timestart)
 {
     if (m_dimToMapLookup[0] == -1)
     {
@@ -1372,6 +1447,8 @@ void CiftiXML::resetRowsToTimepoints(const float& timestep, const int& timepoint
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_TIME_POINTS;
     myMap.m_timeStepUnits = NIFTI_UNITS_SEC;
     myMap.m_timeStep = timestep;
+    myMap.m_timeStart = timestart;
+    myMap.m_hasTimeStart = true;
     myMap.m_numTimeSteps = timepoints;
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] = myMap;
 }

@@ -141,6 +141,7 @@ void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMat
     if(timeStepUnits.length()>0) {
         QString str;
         xml.writeAttribute("TimeStep",str.sprintf("%.10f",matrixIndicesMap.m_timeStep));
+        if (matrixIndicesMap.m_hasTimeStart) xml.writeAttribute("TimeStart",str.sprintf("%.10f",matrixIndicesMap.m_timeStart));
         xml.writeAttribute("TimeStepUnits",timeStepUnits);
     }
     if(matrixIndicesMap.m_appliesToMatrixDimension.size())

@@ -133,6 +133,8 @@ public:
     CiftiMatrixIndicesMapElement()
     {
         m_timeStep = -1.0;
+        m_timeStart = -1.0;
+        m_hasTimeStart = false;
         m_timeStepUnits = -1;
         m_numTimeSteps = -1;
         m_indicesMapToDataType = CIFTI_INDEX_TYPE_INVALID;
@@ -141,6 +143,8 @@ public:
     std::vector<int> m_appliesToMatrixDimension; /*!< Lists the dimension(s) of the matrix to which this MatrixIndicesMap applies. */
     IndicesMapToDataType m_indicesMapToDataType; /*!< Type of data to which the MatrixIndicesMap applies.  */
     double m_timeStep; /*!< Indicates amount of time between each timepoint. */
+    double m_timeStart;
+    bool m_hasTimeStart;
     int m_timeStepUnits;/*!< Indicates units of TimeStep. */
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
