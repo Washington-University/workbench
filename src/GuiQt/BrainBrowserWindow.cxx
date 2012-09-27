@@ -1465,28 +1465,26 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         const AString name = filenames[i];
         bool isValidType = false;
         DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-        if (isValidType) {
-            switch (fileType) {
-                case DataFileTypeEnum::SPECIFICATION:
-                    if (specFileName.isEmpty() == false) {
-                        QMessageBox::critical(this, 
-                                              "ERROR", 
-                                              "More than one spec file cannot be loaded");
-                        return;
-
-                    }
-                    specFileName = name;
-                    break;
-                case DataFileTypeEnum::SURFACE:
-                    surfaceFileNames.push_back(name);
-                    break;
-                case DataFileTypeEnum::VOLUME:
-                    volumeFileNames.push_back(name);
-                    break;
-                default:
-                    otherFileNames.push_back(name);
-                    break;
-            }
+        switch (fileType) {
+            case DataFileTypeEnum::SPECIFICATION:
+                if (specFileName.isEmpty() == false) {
+                    QMessageBox::critical(this,
+                                          "ERROR",
+                                          "More than one spec file cannot be loaded");
+                    return;
+                    
+                }
+                specFileName = name;
+                break;
+            case DataFileTypeEnum::SURFACE:
+                surfaceFileNames.push_back(name);
+                break;
+            case DataFileTypeEnum::VOLUME:
+                volumeFileNames.push_back(name);
+                break;
+            default:
+                otherFileNames.push_back(name);
+                break;
         }
     }
     
@@ -1733,7 +1731,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
             if (errorMessages.isEmpty() == false) {
                 errorMessages += "\n";
             }
-            errorMessages += ("Extension for " + name + " does not match a Caret file type");
+            errorMessages += ("Extension for " + name + " does not match a suppported file type");
         }
     }
     
