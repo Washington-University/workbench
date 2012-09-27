@@ -64,7 +64,7 @@
 #include "OperationMetricMask.h"
 #include "OperationMetricPalette.h"
 #include "OperationSetStructure.h"
-#include "OperationSurfaceClosestNode.h"
+#include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumePalette.h"
@@ -158,7 +158,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestNode()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));

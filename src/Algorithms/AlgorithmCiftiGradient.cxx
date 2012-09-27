@@ -185,12 +185,12 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
-                throw AlgorithmException(surfType + " surface has the wrong number of nodes");
+                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }
         } else {
             if (mySurf->getNumberOfNodes() != myCifti->getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
-                throw AlgorithmException(surfType + " surface has the wrong number of nodes");
+                throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }
         }
     }

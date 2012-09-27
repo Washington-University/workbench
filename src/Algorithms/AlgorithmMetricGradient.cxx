@@ -69,11 +69,11 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column to compute the gradient of");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    ret->createOptionalParameter(10, "-average-normals", "average the normals of each node with its neighbors before using them to compute the gradient");
+    ret->createOptionalParameter(10, "-average-normals", "average the normals of each vertex with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
-        AString("At each node, the immediate neighbors are unfolded onto a plane tangent to the surface at the node (specifically, perpendicular to the normal).  ") +
-        "The gradient is computed using a regression between the unfolded positions of the nodes and their values.  " +
+        AString("At each vertex, the immediate neighbors are unfolded onto a plane tangent to the surface at the vertex (specifically, perpendicular to the normal).  ") +
+        "The gradient is computed using a regression between the unfolded positions of the vertices and their values.  " +
         "The gradient is then given by the slopes of the regression, and reconstructed as a 3D gradient vector.  " +
         "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.  " +
         "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.  " +
@@ -139,11 +139,11 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     int32_t numNodes = mySurf->getNumberOfNodes();
     if (myMetricIn->getNumberOfNodes() != numNodes)
     {//TODO: write these as static functions into an AlgorithmHelper class?
-        throw AlgorithmException("metric does not match surface in number of nodes");
+        throw AlgorithmException("metric does not match surface in number of vertices");
     }
     if (myRoi != NULL && myRoi->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("roi metric does not match surface in number of nodes");
+        throw AlgorithmException("roi metric does not match surface in number of vertices");
     }
     int32_t numColumns = myMetricIn->getNumberOfColumns();
     if (myColumn < -1 || myColumn >= numColumns)
@@ -280,7 +280,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         if (!haveWarned && myRoi == NULL)
                         {//don't issue this warning with an ROI, because it is somewhat expected
                             haveWarned = true;
-                            CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least node " + AString::number(i));
+                            CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least vertex " + AString::number(i));
                         }
                         float xgrad = 0.0f, ygrad = 0.0f;
                         for (int32_t j = 0; j < numNeigh; ++j)
@@ -313,7 +313,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         if (!haveFailed && myRoi == NULL)
                         {//don't warn with an roi, they can be strange
                             haveFailed = true;
-                            CaretLogWarning("Failed to compute gradient for at least node " + AString::number(i) + " with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
+                            CaretLogWarning("Failed to compute gradient for at least vertex " + AString::number(i) +
+                            " with standard and fallback methods, outputting ZERO, check your surface for disconnected vertices or other strangeness");
                         }
                         somevec[0] = 0.0f;
                         somevec[1] = 0.0f;
@@ -479,7 +480,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     if (!haveFailed)
                     {
                         haveFailed = true;
-                        CaretLogWarning("Failed to compute gradient for a node with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
+                        CaretLogWarning("Failed to compute gradient for a vertex with standard and fallback methods, outputting ZERO, check your surface for disconnected vertices or other strangeness");
                     }
                     somevec[0] = 0.0f;
                     somevec[1] = 0.0f;

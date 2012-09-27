@@ -54,8 +54,8 @@ OperationParameters* AlgorithmSignedDistanceToSurface::getParameters()
     windingMethodOpt->addStringParameter(1, "method", "name of the method (default EVEN_ODD)");
     
     ret->setHelpText(
-        AString("Compute the signed distance function of a surface at every node on another surface.  ") +
-        "NOTE: this relation is NOT symmetric, the line from a node to the closest point on the 'to' surface " +
+        AString("Compute the signed distance function of a surface at every vertex on another surface.  ") +
+        "NOTE: this relation is NOT symmetric, the line from a vertex to the closest point on the 'to' surface " +
         "(the one that defines the signed distance function) will only align with the normal of the 'to' surface.  Valid specifiers for winding methods are as follows:\n\n" + 
         "EVEN_ODD (default)\nNEGATIVE\nNONZERO\nNORMALS\n\nThe NORMALS method uses the normals of triangles and edges, or the closest triangle hit by a ray from the point.  " +
         "This method may be slightly faster, but is only reliable for a closed surface that does not cross through itself.  All other methods count entry (positive) and " +

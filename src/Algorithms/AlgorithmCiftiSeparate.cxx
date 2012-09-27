@@ -54,7 +54,7 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     OptionalParameter* metricOpt = ret->createOptionalParameter(3, "-metric", "separate a surface model into a metric file");
     metricOpt->addStringParameter(1, "structure", "the structure to output");
     metricOpt->addMetricOutputParameter(2, "metric-out", "the output metric");
-    OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which nodes have data, in case the structure isn't the full surface");
+    OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data, in case the structure isn't the full surface");
     metricRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
     
     OptionalParameter* volumeOpt = ret->createOptionalParameter(4, "-volume", "separate a volume model into a volume file");

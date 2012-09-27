@@ -43,7 +43,7 @@ AString OperationSurfaceGeodesicROIs::getCommandSwitch()
 
 AString OperationSurfaceGeodesicROIs::getShortDescription()
 {
-    return "DRAW GEODESIC LIMITED ROIS AT NODES";
+    return "DRAW GEODESIC LIMITED ROIS AT VERTICES";
 }
 
 OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
@@ -51,9 +51,9 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to draw on");
     
-    ret->addDoubleParameter(2, "limit", "geodesic distance limit from node, in mm");
+    ret->addDoubleParameter(2, "limit", "geodesic distance limit from vertex, in mm");
     
-    ret->addStringParameter(3, "node-list-file", "a text file containing the nodes to draw ROIs around");
+    ret->addStringParameter(3, "vertex-list-file", "a text file containing the vertices to draw ROIs around");
     
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
@@ -67,13 +67,13 @@ OperationParameters* OperationSurfaceGeodesicROIs::getParameters()
     namesOpt->addStringParameter(1, "name-list-file", "a text file containing column names, one per line");
     
     ret->setHelpText(
-        AString("For each node in the list file, a column in the output metric is created, and an ROI around that node is drawn in that column.  ") +
+        AString("For each vertex in the list file, a column in the output metric is created, and an ROI around that vertex is drawn in that column.  ") +
         "Each metric column will have zeros outside the geodesic distance spacified by <limit>, and by default will have a value of 1.0 inside it.  " +
         "If the -gaussian option is specified, the values inside the ROI will instead form a gaussian with the specified value of sigma, normalized " +
         "so that the sum of the nonzero values in the metric column is 1.0.  The <method> argument to -overlap-logic must be one of ALLOW, CLOSEST, or EXCLUDE.  " +
         "ALLOW is the default, and means that ROIs are treated independently and may overlap.  " +
-        "CLOSEST means that ROIs may not overlap, and that no ROI contains nodes that are closer to a different seed node.  " +
-        "EXCLUDE means that ROIs may not overlap, and that any node within range of more than one ROI does not belong to any ROI."
+        "CLOSEST means that ROIs may not overlap, and that no ROI contains vertices that are closer to a different seed vertex.  " +
+        "EXCLUDE means that ROIs may not overlap, and that any vertex within range of more than one ROI does not belong to any ROI."
     );
     return ret;
 }
@@ -107,7 +107,7 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
     {
         if (nodenum < 0 || nodenum >= numNodes)
         {
-            throw OperationException("invalid node number: " + AString::number(nodenum));
+            throw OperationException("invalid vertex number: " + AString::number(nodenum));
         }
         nodelist.push_back(nodenum);
         textFile >> nodenum;
@@ -159,7 +159,7 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
             myMetricOut->setColumnName(i, namesList[i]);
         } else {
             const float* myCoord = mySurf->getCoordinate(i);
-            myMetricOut->setColumnName(i, "Node " + AString::number(nodelist[i]) +
+            myMetricOut->setColumnName(i, "Vertex " + AString::number(nodelist[i]) +
                                             " (" + AString::number(myCoord[0], 'f', 1) +
                                             ", " + AString::number(myCoord[1], 'f', 1) +
                                             ", " + AString::number(myCoord[2], 'f', 1) + ")");
@@ -251,6 +251,6 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
             break;
         }
         default:
-            throw OperationException("something very bad happenned, notify the developers");
+            throw OperationException("something very bad happened, notify the developers");
     }
 }

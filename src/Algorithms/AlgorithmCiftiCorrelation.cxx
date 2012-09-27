@@ -292,7 +292,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         {
             if (myRoi->getNumberOfNodes() != origXML.getColumnSurfaceNumberOfNodes(surfList[i]))
             {
-                throw AlgorithmException("surface roi has the wrong number of nodes for structure " + StructureEnum::toName(surfList[i]));
+                throw AlgorithmException("surface roi has the wrong number of vertices for structure " + StructureEnum::toName(surfList[i]));
             }
             vector<CiftiSurfaceMap> myMap;
             myCifti->getSurfaceMapForColumns(myMap, surfList[i]);

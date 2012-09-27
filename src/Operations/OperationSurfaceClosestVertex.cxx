@@ -22,7 +22,7 @@
  *
  */
 
-#include "OperationSurfaceClosestNode.h"
+#include "OperationSurfaceClosestVertex.h"
 #include "OperationException.h"
 
 #include "SurfaceFile.h"
@@ -32,29 +32,29 @@
 using namespace caret;
 using namespace std;
 
-AString OperationSurfaceClosestNode::getCommandSwitch()
+AString OperationSurfaceClosestVertex::getCommandSwitch()
 {
-    return "-surface-closest-node";
+    return "-surface-closest-vertex";
 }
 
-AString OperationSurfaceClosestNode::getShortDescription()
+AString OperationSurfaceClosestVertex::getShortDescription()
 {
-    return "FIND CLOSEST SURFACE NODE TO COORDINATES";
+    return "FIND CLOSEST SURFACE VERTEX TO COORDINATES";
 }
 
-OperationParameters* OperationSurfaceClosestNode::getParameters()
+OperationParameters* OperationSurfaceClosestVertex::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to use");
     ret->addStringParameter(2, "coord-list-file", "text file with coordinates");
-    ret->addStringParameter(3, "node-list-out", "output - the output text file with node numbers");//HACK: we don't currently have an "output text file" parameter type, fake the formatting
+    ret->addStringParameter(3, "vertex-list-out", "output - the output text file with vertex numbers");//HACK: we don't currently have an "output text file" parameter type, fake the formatting
     ret->setHelpText(
-        AString("For each coordinate XYZ triple, find the closest surface node in the surface, and output its node number into a text file.")
+        AString("For each coordinate XYZ triple, find the closest vertex in the surface, and output its vertex number into a text file.")
     );
     return ret;
 }
 
-void OperationSurfaceClosestNode::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void OperationSurfaceClosestVertex::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     SurfaceFile* mySurf = myParams->getSurface(1);

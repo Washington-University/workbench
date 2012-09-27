@@ -59,17 +59,17 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     
     OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for left surface");
     leftMetricOpt->addMetricParameter(1, "metric", "the metric file");
-    OptionalParameter* leftRoiOpt = leftMetricOpt->createOptionalParameter(2, "-roi-left", "roi of nodes to use from left surface");
+    OptionalParameter* leftRoiOpt = leftMetricOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for left surface");
     rightMetricOpt->addMetricParameter(1, "metric", "the metric file");
-    OptionalParameter* rightRoiOpt = rightMetricOpt->createOptionalParameter(2, "-roi-right", "roi of nodes to use from right surface");
+    OptionalParameter* rightRoiOpt = rightMetricOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     OptionalParameter* cerebMetricOpt = ret->createOptionalParameter(5, "-cerebellum-metric", "metric for the cerebellum");
     cerebMetricOpt->addMetricParameter(1, "metric", "the metric file");
-    OptionalParameter* cerebRoiOpt = cerebMetricOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of nodes to use from right surface");
+    OptionalParameter* cerebRoiOpt = cerebMetricOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     OptionalParameter* timestepOpt = ret->createOptionalParameter(6, "-timestep", "set the timestep");
@@ -165,7 +165,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         } else {
             if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
             {
-                throw AlgorithmException("left surface ROI and data have different node counts");
+                throw AlgorithmException("left surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
         }
@@ -187,7 +187,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         } else {
             if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
             {
-                throw AlgorithmException("right surface ROI and data have different node counts");
+                throw AlgorithmException("right surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
         }
@@ -209,7 +209,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         } else {
             if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
             {
-                throw AlgorithmException("cerebellum surface ROI and data have different node counts");
+                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
         }

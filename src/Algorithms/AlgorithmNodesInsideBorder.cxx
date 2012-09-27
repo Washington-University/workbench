@@ -184,7 +184,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
     int32_t numberOfPointsInBorder = static_cast<int32_t>(nodesAlongBorder.size());
     if (nodesAlongBorder.size() < 4) {
         throw AlgorithmException("Border is too small.  "
-                                 "When moved to nearest nodes, border consists of four or fewer nodes.");
+                                 "When moved to nearest vertices, border consists of four or fewer vertices.");
     }
     if (nodesAlongBorder[0] == nodesAlongBorder[numberOfPointsInBorder - 1]) {
         nodesAlongBorder.resize(numberOfPointsInBorder - 1);
@@ -278,7 +278,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
         if (CaretLogger::getLogger()->isFiner()) {
             AString text;
             text.reserve(10000);
-            text += ("Nodes in path (count="
+            text += ("Vertices in path (count="
                      + AString::number(numberOfNodesInConnectedPath)
                      + "):");
             for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
@@ -299,7 +299,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
         if (CaretLogger::getLogger()->isFiner()) {
             AString text;
             text.reserve(20000);
-            text = ("Nodes INSIDE border (count="
+            text = ("Vertices INSIDE border (count="
                     + AString::number(numberOfNodesInside)
                     + "):");
             for (int32_t i = 0; i < numberOfNodesInside; i++) {
@@ -310,7 +310,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
     }
     else {
         throw AlgorithmException("Connected path along border is too small "
-                                 "as it consists of four or fewer nodes.");
+                                 "as it consists of four or fewer vertices.");
     }
 }
 
@@ -387,7 +387,7 @@ AlgorithmNodesInsideBorder::findNodesInConnectedNodesPath(const SurfaceFile* sur
     }
     
     if (startNode < 0) {
-        throw AlgorithmException("Failed to find node that is not inside of the connected path.");
+        throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
     }
     
     /*
@@ -564,7 +564,7 @@ AlgorithmNodesInsideBorder::validateConnectedNodesPath(const SurfaceFile* surfac
             }
             
             if (foundIt == false) {
-                throw AlgorithmException("Validation of node path along border failed.  Node "
+                throw AlgorithmException("Validation of vertex path along border failed.  Vertex "
                                          + AString::number(node)
                                          + " should be connected to "
                                          + AString::number(nextNode)

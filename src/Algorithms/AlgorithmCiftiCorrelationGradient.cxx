@@ -74,8 +74,8 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher z transformed");
     
-    OptionalParameter* surfaceExcludeOpt = ret->createOptionalParameter(9, "-surface-exclude", "exclude nodes near each seed node from computation");
-    surfaceExcludeOpt->addDoubleParameter(1, "distance", "geodesic distance from seed node for the exclusion zone, in mm");
+    OptionalParameter* surfaceExcludeOpt = ret->createOptionalParameter(9, "-surface-exclude", "exclude vertices near each seed vertex from computation");
+    surfaceExcludeOpt->addDoubleParameter(1, "distance", "geodesic distance from seed vertex for the exclusion zone, in mm");
     
     OptionalParameter* volumeExcludeOpt = ret->createOptionalParameter(10, "-volume-exclude", "exclude voxels near each seed voxel from computation");
     volumeExcludeOpt->addDoubleParameter(1, "distance", "distance from seed voxel for the exclusion zone, in mm");
@@ -83,12 +83,12 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default unlimited)");
     
-    //ret->createOptionalParameter(9, "-local-method", "use the local gradient at each node instead of averaging all gradients");
+    //ret->createOptionalParameter(9, "-local-method", "use the local gradient at each vertex instead of averaging all gradients");
     
     ret->setHelpText(
         AString("For each structure, compute the correlation of the rows in the structure, and take the gradients of ") +
         "the resulting rows, then average them.  If -local-method is specified, take only the gradient value at the " +
-        "node/voxel being correlated with when generating output, and don't compute data that doesn't have an effect on the output."
+        "vertex/voxel being correlated with when generating output, and don't compute data that doesn't have an effect on the output."
     );
     return ret;
 }
@@ -201,7 +201,7 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
         }
         if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
-            throw AlgorithmException(surfType + " surface has the wrong number of nodes");
+            throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)

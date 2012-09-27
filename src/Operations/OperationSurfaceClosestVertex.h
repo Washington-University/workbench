@@ -1,5 +1,5 @@
-#ifndef __OPERATION_SURFACE_CLOSEST_NODE_H__
-#define __OPERATION_SURFACE_CLOSEST_NODE_H__
+#ifndef __OPERATION_SURFACE_CLOSEST_VERTEX_H__
+#define __OPERATION_SURFACE_CLOSEST_VERTEX_H__
 
 /*LICENSE_START*/
 /*
@@ -29,7 +29,7 @@
 
 namespace caret {
     
-    class OperationSurfaceClosestNode : public AbstractOperation
+    class OperationSurfaceClosestVertex : public AbstractOperation
     {
     public:
         static OperationParameters* getParameters();
@@ -38,8 +38,8 @@ namespace caret {
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<OperationSurfaceClosestNode> AutoOperationSurfaceClosestNode;
+    typedef TemplateAutoOperation<OperationSurfaceClosestVertex> AutoOperationSurfaceClosestVertex;
 
 }
 
-#endif //__OPERATION_SURFACE_CLOSEST_NODE_H__
+#endif //__OPERATION_SURFACE_CLOSEST_VERTEX_H__

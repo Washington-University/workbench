@@ -55,13 +55,13 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
     
     ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
     
-    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "nodes to use from left hempsphere");
+    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "vertices to use from left hempsphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
-    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "nodes to use from right hempsphere");
+    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "vertices to use from right hempsphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
-    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cereb-roi", "nodes to use from cerebellum");
+    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cereb-roi", "vertices to use from cerebellum");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
     OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
@@ -227,7 +227,7 @@ void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const int& index, con
         CaretLogWarning("cifti file #" + AString::number(index + 1) + " missing structure " + StructureEnum::toName(myStruct));
         return;
     }
-    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti #" + AString::number(index + 1) + " number of nodes does not match roi");
+    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti #" + AString::number(index + 1) + " number of vertices does not match roi");
 }
 
 void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<double>& accum, int64_t& accumCount, const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
@@ -237,7 +237,7 @@ void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<double>& accu
     {
         return;
     }
-    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti number of nodes does not match roi");
+    if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti number of vertices does not match roi");
     int rowSize = myXml.getNumberOfColumns();
     vector<float> rowScratch(rowSize);
     CaretAssert(rowScratch.size() == accum.size());

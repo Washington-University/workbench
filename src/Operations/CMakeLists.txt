@@ -31,7 +31,7 @@ OperationFociListCoords.h
 OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
-OperationSurfaceClosestNode.h
+OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
 OperationVolumeLabelImport.h
 OperationVolumePalette.h
@@ -51,7 +51,7 @@ OperationFociListCoords.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
-OperationSurfaceClosestNode.cxx
+OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumePalette.cxx

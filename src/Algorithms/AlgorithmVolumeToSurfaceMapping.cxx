@@ -71,9 +71,9 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the node lies inside, while trilinear does a 3D ") + 
-        "linear interpolation based on the voxels immediately on each side of the node's position." +
-        "\n\nThe ribbon mapping method constructs a polyhedron from the node's neighbors on each " +
+        AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the vertex lies inside, while trilinear does a 3D ") + 
+        "linear interpolation based on the voxels immediately on each side of the vertex's position." +
+        "\n\nThe ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
         "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for sampling.  " +
         "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
         "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
@@ -287,7 +287,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 }
                 if (mySurface->getNumberOfNodes() != outerSurf->getNumberOfNodes() || mySurface->getNumberOfNodes() != innerSurf->getNumberOfNodes())
                 {//TODO: also compare topologies?
-                    throw AlgorithmException("all surfaces must be in node correspondence");
+                    throw AlgorithmException("all surfaces must be in vertex correspondence");
                 }
                 if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
                 {
@@ -451,7 +451,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                     }
                 }
             }
-            /*if (node == 100634)//debug - get the "kernel" for any single node
+            /*if (node == 100634)//debug - get the kernel for any single node
             {
                 vector<int64_t> myDims;
                 myVolume->getDimensions(myDims);

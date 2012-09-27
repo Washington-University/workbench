@@ -99,7 +99,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     int numNodes = myLabel->getNumberOfNodes();
     if (mySurf->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("surface has wrong number of nodes for this label");
+        throw AlgorithmException("surface has wrong number of vertices for this label");
     }
     CaretArray<int32_t> colScratch(numNodes);
     vector<float> myAreas;

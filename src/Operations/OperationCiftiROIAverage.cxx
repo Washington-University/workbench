@@ -49,13 +49,13 @@ OperationParameters* OperationCiftiROIAverage::getParameters()
     ret->addCiftiParameter(1, "cifti-in", "the cifti file to average in");
     ret->addStringParameter(2, "text-out", "output text file of the average values");
     
-    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "nodes to use from left hempsphere");
+    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "vertices to use from left hempsphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
-    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "nodes to use from right hempsphere");
+    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "vertices to use from right hempsphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
-    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cereb-roi", "nodes to use from cerebellum");
+    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cereb-roi", "vertices to use from cerebellum");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
     OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
@@ -122,7 +122,7 @@ void OperationCiftiROIAverage::processSurfaceComponent(const CiftiFile* myCifti,
     int numNodes = myRoi->getNumberOfNodes();
     if (myCifti->getColumnSurfaceNumberOfNodes(myStruct) != numNodes)
     {
-        throw OperationException("roi number of nodes doesn't match for structure " + StructureEnum::toName(myStruct));
+        throw OperationException("roi number of vertices doesn't match for structure " + StructureEnum::toName(myStruct));
     }
     vector<float> scratch(numCols);
     vector<CiftiSurfaceMap> myMap;

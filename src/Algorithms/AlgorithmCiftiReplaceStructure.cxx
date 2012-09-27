@@ -130,7 +130,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         int64_t numNodes = ciftiInOut->getColumnSurfaceNumberOfNodes(myStruct);
         if (metricIn->getNumberOfNodes() != numNodes)
         {
-            throw AlgorithmException("input metric has the wrong number of nodes");
+            throw AlgorithmException("input metric has the wrong number of vertices");
         }
         if (metricIn->getNumberOfColumns() != rowSize)
         {
@@ -154,7 +154,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         int64_t numNodes = ciftiInOut->getRowSurfaceNumberOfNodes(myStruct);
         if (metricIn->getNumberOfNodes() != numNodes)
         {
-            throw AlgorithmException("input metric has the wrong number of nodes");
+            throw AlgorithmException("input metric has the wrong number of vertices");
         }
         if (metricIn->getNumberOfColumns() != colSize)
         {

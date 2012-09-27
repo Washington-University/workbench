@@ -61,17 +61,17 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     
     OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for left surface");
     leftLabelOpt->addLabelParameter(1, "label", "the label file");
-    OptionalParameter* leftRoiOpt = leftLabelOpt->createOptionalParameter(2, "-roi-left", "roi of nodes to use from left surface");
+    OptionalParameter* leftRoiOpt = leftLabelOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     OptionalParameter* rightLabelOpt = ret->createOptionalParameter(4, "-right-label", "label for left surface");
     rightLabelOpt->addLabelParameter(1, "label", "the label file");
-    OptionalParameter* rightRoiOpt = rightLabelOpt->createOptionalParameter(2, "-roi-right", "roi of nodes to use from right surface");
+    OptionalParameter* rightRoiOpt = rightLabelOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     OptionalParameter* cerebLabelOpt = ret->createOptionalParameter(5, "-cerebellum-label", "label for the cerebellum");
     cerebLabelOpt->addLabelParameter(1, "label", "the label file");
-    OptionalParameter* cerebRoiOpt = cerebLabelOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of nodes to use from right surface");
+    OptionalParameter* cerebRoiOpt = cerebLabelOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
@@ -150,7 +150,7 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         } else {
             if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
             {
-                throw AlgorithmException("left surface ROI and data have different node counts");
+                throw AlgorithmException("left surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
         }
@@ -172,7 +172,7 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         } else {
             if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
             {
-                throw AlgorithmException("right surface ROI and data have different node counts");
+                throw AlgorithmException("right surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
         }
@@ -194,7 +194,7 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         } else {
             if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
             {
-                throw AlgorithmException("cerebellum surface ROI and data have different node counts");
+                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
             }
             myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
         }
