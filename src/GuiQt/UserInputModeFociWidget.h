@@ -74,8 +74,6 @@ namespace caret {
         
         void modeComboBoxSelection(int);
         
-        void taskProjectFociTriggered();
-        
     private:
         UserInputModeFociWidget(const UserInputModeFociWidget&);
 

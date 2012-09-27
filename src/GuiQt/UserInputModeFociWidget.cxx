@@ -53,7 +53,6 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
-#include "FociProjectionDialog.h"
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GuiManager.h"
@@ -106,7 +105,7 @@ UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoc
     m_operationStackedWidget = new QStackedWidget();
     m_operationStackedWidget->addWidget(m_createOperationWidget);
     m_operationStackedWidget->addWidget(m_editOperationWidget);
-    m_operationStackedWidget->addWidget(m_taskOperationWidget);
+    //m_operationStackedWidget->addWidget(m_taskOperationWidget);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
@@ -193,7 +192,7 @@ UserInputModeFociWidget::createModeWidget()
     m_modeComboBox = new QComboBox();
     m_modeComboBox->addItem("Create", (int)UserInputModeFoci::MODE_CREATE);
     m_modeComboBox->addItem("Edit", (int)UserInputModeFoci::MODE_EDIT);
-    m_modeComboBox->addItem("Tasks", (int)UserInputModeFoci::MODE_OPERATIONS);
+//    m_modeComboBox->addItem("Tasks", (int)UserInputModeFoci::MODE_OPERATIONS);
     QObject::connect(m_modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
     
@@ -432,34 +431,13 @@ UserInputModeFociWidget::createEditOperationWidget()
 QWidget*
 UserInputModeFociWidget::createTaskOperationWidget()
 {
-    QAction* projectAction = WuQtUtilities::createAction("Project",
-                                                         "Project the Foci",
-                                                         this,
-                                                         this,
-                                                         SLOT(taskProjectFociTriggered()));
-    
-    QToolButton* projectToolButton = new QToolButton();
-    projectToolButton->setDefaultAction(projectAction);
-    
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 0);
-    layout->addWidget(projectToolButton);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
-
-/**
- * Called to project foci.
- */
-void
-UserInputModeFociWidget::taskProjectFociTriggered()
-{
-    FociProjectionDialog fpd(this);
-    fpd.exec();
-}
-
 
 /**
  * Called when an edit operation button is selected.

@@ -141,6 +141,7 @@ namespace caret {
         void processOverlayVerticalToolBoxVisibilityChanged(bool);
         
         void processFileMenuAboutToShow();
+        void processDataMenuAboutToShow();
         void processViewMenuAboutToShow();
         
         void processSurfaceMenuInformation();
@@ -155,6 +156,8 @@ namespace caret {
         void processShowSurfacePropertiesDialog();
         
         void processGraphicsTiming();
+        
+        void processProjectFoci();
         
     private:
         // Contains status of components such as enter/exit full screen
@@ -281,6 +284,8 @@ namespace caret {
         QAction* m_overlayToolBoxAction;
         
         QAction* m_featuresToolBoxAction;
+        
+        QAction* m_fociProjectAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

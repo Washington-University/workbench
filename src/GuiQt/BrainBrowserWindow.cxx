@@ -64,6 +64,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
+#include "FociProjectionDialog.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
@@ -468,7 +469,14 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
-    m_viewScreenNormalAction = WuQtUtilities::createAction("Normal", 
+    m_fociProjectAction =
+    WuQtUtilities::createAction("Project Foci...",
+                                "Project Foci to Surfaces",
+                                this,
+                                this,
+                                SLOT(processProjectFoci()));
+    
+    m_viewScreenNormalAction = WuQtUtilities::createAction("Normal",
                                                                "Normal Viewing", 
                                                                Qt::Key_Escape, 
                                                                this);
@@ -929,10 +937,23 @@ BrainBrowserWindow::createMenuConnect()
 QMenu* 
 BrainBrowserWindow::createMenuData()
 {
-//    QMenu* menu = new QMenu("Data", this);
-//    return menu;
+    QMenu* menu = new QMenu("Data", this);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(processDataMenuAboutToShow()));
     
-    return NULL;
+    menu->addAction(m_fociProjectAction);
+    
+    return menu;
+}
+
+/**
+ * Called when Data Menu is about to show.
+ */
+void
+BrainBrowserWindow::processDataMenuAboutToShow()
+{
+    bool haveFociFiles = (GuiManager::get()->getBrain()->getNumberOfFociFiles() > 0);
+    m_fociProjectAction->setEnabled(haveFociFiles);
 }
 
 /**
@@ -1112,6 +1133,15 @@ BrainBrowserWindow::processGraphicsTiming()
     WuQMessageBox::informationOk(this, msg);
 }
 
+/**
+ * Project foci.
+ */
+void
+BrainBrowserWindow::processProjectFoci()
+{    
+    FociProjectionDialog fpd(this);
+    fpd.exec();
+}
 
 /**
  * Called when capture image is selected.
