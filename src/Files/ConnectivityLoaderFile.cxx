@@ -478,7 +478,7 @@ ConnectivityLoaderFile::getNumberOfMaps() const
                 CaretAssert(0);
                 break;
             case LOADER_TYPE_DENSE_SCALARS:
-                CaretAssert(0);
+                numMaps = this->ciftiInterface->getNumberOfColumns();
                 break;
         }
     }
@@ -2248,7 +2248,7 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
             CaretAssert(0);
             break;
         case LOADER_TYPE_DENSE_SCALARS:
-            CaretAssert(0);
+            numNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
             break;
     }
     

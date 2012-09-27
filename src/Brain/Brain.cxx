@@ -2647,6 +2647,18 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
                            m_connectivityDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityDenseLabelFiles.begin(),
+                           m_connectivityDenseLabelFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityDenseScalarFiles.begin(),
+                           m_connectivityDenseScalarFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityFiberOrientationFiles.begin(),
+                           m_connectivityFiberOrientationFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityTimeSeriesFiles.begin(),
                            m_connectivityTimeSeriesFiles.end());
     
