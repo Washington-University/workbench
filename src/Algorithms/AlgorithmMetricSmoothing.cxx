@@ -70,12 +70,12 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
         "to compute the smoothed values.\n\n" + 
-        "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the node.  " +
-        "This is useful for zeros that indicate lack of information, preventing them from pulling down the intensity of nearby nodes, while " +
+        "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the vertex.  " +
+        "This is useful for zeros that indicate lack of information, preventing them from pulling down the intensity of nearby vertices, while " +
         "giving the zero an extrapolated value.\n\n" +
         "Valid values for <method> are:\n\nGEO_GAUSS_AREA - uses a geodesic gaussian kernel, and normalizes based " +
-        "on node area in order to work more reliably on irregular surfaces\n\nGEO_GAUSS - matches geodesic gaussian smoothing from caret5, but does " +
-        "not take node areas into account"
+        "on vertex area in order to work more reliably on irregular surfaces\n\nGEO_GAUSS - matches geodesic gaussian smoothing from caret5, but does " +
+        "not take vertex areas into account"
     );
     return ret;
 }
@@ -128,11 +128,11 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
     int32_t numNodes = mySurf->getNumberOfNodes();
     if (numNodes != myMetric->getNumberOfNodes())
     {
-        throw AlgorithmException("metric does not match surface in number of nodes");
+        throw AlgorithmException("metric does not match surface in number of vertices");
     }
     if (myRoi != NULL && myRoi->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("roi metric does not match surface in number of nodes");
+        throw AlgorithmException("roi metric does not match surface in number of vertices");
     }
     int32_t numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
@@ -267,7 +267,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
                 myScratch[i] = 0.0f;//zero other stuff
             }
         }//should go incredibly fast, don't worry about progress for one column
-        myMetricOut->setValuesForColumn(columnNum, myScratch);
+        myMetricOut->setValuesForColumn(0, myScratch);
         delete[] myScratch;
     }
 }
