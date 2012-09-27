@@ -500,7 +500,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             myVectorsOut->setValuesForColumn(1, myVecScratch + numNodes);
             myVectorsOut->setValuesForColumn(2, myVecScratch + (numNodes * 2));
         }
-        myMetricOut->setValuesForColumn(myColumn, myScratch);
+        myMetricOut->setValuesForColumn(0, myScratch);
         delete[] myScratch;
         if (myVecScratch != NULL)
         {
