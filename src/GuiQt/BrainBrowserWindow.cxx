@@ -626,7 +626,10 @@ BrainBrowserWindow::createMenus()
         menubar->addMenu(dataMenu);
     }
     menubar->addMenu(createMenuSurface());
-    menubar->addMenu(createMenuVolume());
+    QMenu* volumeMenu = createMenuVolume();
+    if (volumeMenu != NULL) {
+        menubar->addMenu(volumeMenu);
+    }
     menubar->addMenu(createMenuConnect());
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());    
@@ -1056,9 +1059,9 @@ BrainBrowserWindow::processSurfaceMenuInformation()
 QMenu* 
 BrainBrowserWindow::createMenuVolume()
 {
-    QMenu* menu = new QMenu("Volume", this);
-    
-    return menu;
+//    QMenu* menu = new QMenu("Volume", this);
+//    return menu;
+    return NULL;
 }
 
 /**
