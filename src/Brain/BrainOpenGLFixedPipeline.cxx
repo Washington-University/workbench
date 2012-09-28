@@ -802,7 +802,8 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient); 
         
     if (m_shapeSphere == NULL) {
-        m_shapeSphere = new BrainOpenGLShapeSphere(5);
+        m_shapeSphere = new BrainOpenGLShapeSphere(5,
+                                                   1.0);
     }
     if (m_shapeCone == NULL) {
         m_shapeCone = new BrainOpenGLShapeCone(8);
@@ -909,7 +910,7 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     this->setViewportAndOrthographicProjection(viewport,
                                                rotationMatrixIndex);
     
-    this->applyViewingTransformations(surfaceController, 
+    this->applyViewingTransformations(surfaceController,
                                       this->windowTabIndex,
                                       center,
                                       rotationMatrixIndex);

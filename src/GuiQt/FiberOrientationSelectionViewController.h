@@ -48,6 +48,7 @@ class QVBoxLayout;
 
 namespace caret {
     class DisplayGroupEnumComboBox;
+    class FiberSamplesOpenGLWidget;
     class WuQTrueFalseComboBox;
 
     class FiberOrientationSelectionViewController : public QWidget, public EventListenerInterface {
@@ -84,6 +85,8 @@ namespace caret {
         
         QWidget* createAttributesWidget();
         
+        QWidget* createSamplesWidget();
+        
         const int32_t m_browserWindowIndex;
         
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
@@ -109,6 +112,8 @@ namespace caret {
         WuQTrueFalseComboBox* m_drawWithMagnitudeComboBox;
         
         QVBoxLayout* m_selectionWidgetLayout;
+        
+        FiberSamplesOpenGLWidget* m_samplesOpenGLWidget;
         
         bool m_updateInProgress;
         

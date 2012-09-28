@@ -47,6 +47,7 @@ ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
+FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
@@ -146,6 +147,7 @@ EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
+FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
@@ -247,6 +249,7 @@ EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
+FiberSamplesOpenGLWidget.cxx
 FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx

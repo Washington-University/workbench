@@ -38,7 +38,9 @@
 #include "BrainOpenGLShapeSphere.h"
 #undef __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__
 
+#include "AString.h"
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -52,9 +54,11 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrainOpenGLShapeSphere::BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAndLongitude)
+BrainOpenGLShapeSphere::BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAndLongitude,
+                                               const float radius)
 : BrainOpenGLShape(),
-  m_numberOfLatitudeAndLongitude(numberOfLatitudeAndLongitude)
+  m_numberOfLatitudeAndLongitude(numberOfLatitudeAndLongitude),
+  m_radius(radius)
 {
     m_displayList    = 0;
     m_vertexBufferID = 0;
@@ -73,7 +77,6 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
     bool debugFlag = false;
     
-    const float radius = 1.0;
     const int numLat = m_numberOfLatitudeAndLongitude;
     const int numLon = m_numberOfLatitudeAndLongitude;
     
@@ -84,12 +87,12 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
         const float latDeg = -90.0 + (iLat * dLat);
         const float latRad = latDeg * degToRad;
         
-        float z1 = radius * std::sin(latRad);
+        float z1 = m_radius * std::sin(latRad);
         
         const float latDeg2 = -90.0 + ((iLat + 1) * dLat);
         const float latRad2 = latDeg2 * degToRad;
         
-        float z2 = radius * std::sin(latRad2);
+        float z2 = m_radius * std::sin(latRad2);
         
         std::vector<GLuint> strip;
         
@@ -99,20 +102,20 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             const float lonDeg = iLon * dLon;
             const float lonRad = lonDeg * degToRad;
             
-            float x1 = radius * std::cos(latRad) * std::cos(lonRad);
-            float y1 = radius * std::cos(latRad) * std::sin(lonRad);
+            float x1 = m_radius * std::cos(latRad) * std::cos(lonRad);
+            float y1 = m_radius * std::cos(latRad) * std::sin(lonRad);
             if (iLat == 0) {
                 x1 =  0.0;
                 y1 =  0.0;
-                z1 = -1.0;
+                z1 = -m_radius;
             }
             
-            float x2 = radius * std::cos(latRad2) * std::cos(lonRad);
-            float y2 = radius * std::cos(latRad2) * std::sin(lonRad);
+            float x2 = m_radius * std::cos(latRad2) * std::cos(lonRad);
+            float y2 = m_radius * std::cos(latRad2) * std::sin(lonRad);
             if (iLat == (numLat - 1)) {
                 x2 = 0.0;
                 y2 = 0.0;
-                z2 = 1.0;
+                z2 = m_radius;
             }
             
             strip.push_back(static_cast<GLuint>(m_coordinates.size() / 3));
@@ -144,6 +147,15 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
         
         if (strip.empty() == false) {
             m_triangleStrips.push_back(strip);
+
+            if (debugFlag) {
+                const float* c1 = &m_coordinates[strip[0]* 3];
+                const float* c2 = &m_coordinates[strip[1]* 3];
+                const float* c3 = &m_coordinates[strip[2]* 3];
+                float normal[3];
+                MathFunctions::normalVector(c1, c2, c3, normal);
+                std::cout << "Normal Vector" << qPrintable(AString::fromNumbers(normal, 3, ",")) << std::endl;
+            }
         }
         if (debugFlag) std::cout << std::endl;        
     }

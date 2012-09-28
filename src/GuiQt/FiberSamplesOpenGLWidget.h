@@ -1,5 +1,5 @@
-#ifndef __BRAIN_OPEN_G_L_SHAPE_SPHERE__H_
-#define __BRAIN_OPEN_G_L_SHAPE_SPHERE__H_
+#ifndef __FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
+#define __FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
 
 /*LICENSE_START*/
 /*
@@ -34,57 +34,73 @@
  */
 /*LICENSE_END*/
 
-#include <stdint.h>
+#include <QGLWidget>
 
-#include "BrainOpenGLShape.h"
+#include "Matrix4x4.h"
 
 namespace caret {
 
-    class BrainOpenGLShapeSphere : public BrainOpenGLShape {
+    class BrainOpenGLShapeSphere;
+    
+    class FiberSamplesOpenGLWidget : public QGLWidget {
+        Q_OBJECT
         
     public:
-        BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAndLongitude,
-                               const float radius);
+        FiberSamplesOpenGLWidget(QWidget* parent = 0);
         
-        virtual ~BrainOpenGLShapeSphere();
+        virtual ~FiberSamplesOpenGLWidget();
         
-    private:
-        BrainOpenGLShapeSphere(const BrainOpenGLShapeSphere&);
-
-        BrainOpenGLShapeSphere& operator=(const BrainOpenGLShapeSphere&);
-        
-    public:
-
         // ADD_NEW_METHODS_HERE
-
+        
     protected:
-        void drawShape(const BrainOpenGL::DrawMode drawMode);
+        void initializeGL();
         
-        void setupShape(const BrainOpenGL::DrawMode drawMode);
+        void resizeGL(int width,
+                      int height);
         
-    private:
+        void paintGL();
+        
+        void mouseMoveEvent(QMouseEvent* e);
+        
+        void mousePressEvent(QMouseEvent* e);
+        
+        void mouseReleaseEvent(QMouseEvent* e);
 
+    private:
+        FiberSamplesOpenGLWidget(const FiberSamplesOpenGLWidget&);
+
+        FiberSamplesOpenGLWidget& operator=(const FiberSamplesOpenGLWidget&);
+        
+        void createSphere();
+        
+        void setupLighting();
+        
+        void setOrthographicProjection(const int width,
+                                       const int height);
+        
         // ADD_NEW_MEMBERS_HERE
         
-        const int32_t m_numberOfLatitudeAndLongitude;
-        const float   m_radius;
+        BrainOpenGLShapeSphere* m_sphere;
         
-        GLuint m_vertexBufferID;
-        GLuint m_normalBufferID;
-        GLuint m_triangleStripBufferID;
+        GLint m_widgetWidth;
+        
+        GLint m_widgetHeight;
+        
+        int m_mousePressX;
+        
+        int m_mousePressY;
+        
+        int m_lastMouseX;
+        
+        int m_lastMouseY;
+        
+        Matrix4x4 m_rotationMatrix;
 
-        GLuint m_displayList;
-        
-        std::vector<GLfloat> m_coordinates;
-        std::vector<GLfloat> m_normals;
-        
-        std::vector<std::vector<GLuint> > m_triangleStrips;
-        std::vector<GLuint> m_singleTriangleStrip;        
     };
     
-#ifdef __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__
+#ifdef __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_OPEN_G_L_SHAPE_SPHERE_DECLARE__
+#endif // __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_OPEN_G_L_SHAPE_SPHERE__H_
+#endif  //__FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
