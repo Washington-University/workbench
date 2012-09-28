@@ -4685,8 +4685,8 @@ QWidget*
 BrainBrowserWindowToolBar::createClippingWidget()
 {
     QLabel* axisLabel = new QLabel("Axis");
-    QLabel* thicknessLabel = new QLabel("Thick");
-    QLabel* coordLabel = new QLabel("Coord");
+    QLabel* thicknessLabel = new QLabel("Thickness");
+    QLabel* coordLabel = new QLabel(" Coords");
     
     this->clippingXCheckBox = new QCheckBox("X: ");
     this->clippingYCheckBox = new QCheckBox("Y: ");
@@ -4782,21 +4782,21 @@ BrainBrowserWindowToolBar::createClippingWidget()
     QGridLayout* gridLayout = new QGridLayout(widget);
     WuQtUtilities::setLayoutMargins(gridLayout, 0, 0);
     int row = 0;
-    gridLayout->addWidget(axisLabel, row, 0, Qt::AlignCenter);
-    gridLayout->addWidget(thicknessLabel, row, 1, Qt::AlignCenter);
-    gridLayout->addWidget(coordLabel, row, 2, Qt::AlignCenter);
+    gridLayout->addWidget(axisLabel, row, 0, Qt::AlignHCenter);
+    gridLayout->addWidget(coordLabel, row, 1, Qt::AlignLeft);
+    gridLayout->addWidget(thicknessLabel, row, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(this->clippingXCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingXThicknessSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingXCoordSpinBox, row, 2);
+    gridLayout->addWidget(this->clippingXCoordSpinBox, row, 1);
+    gridLayout->addWidget(this->clippingXThicknessSpinBox, row, 2);
     row++;
     gridLayout->addWidget(this->clippingYCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingYThicknessSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingYCoordSpinBox, row, 2);
+    gridLayout->addWidget(this->clippingYCoordSpinBox, row, 1);
+    gridLayout->addWidget(this->clippingYThicknessSpinBox, row, 2);
     row++;
     gridLayout->addWidget(this->clippingZCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingZThicknessSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingZCoordSpinBox, row, 2);
+    gridLayout->addWidget(this->clippingZCoordSpinBox, row, 1);
+    gridLayout->addWidget(this->clippingZThicknessSpinBox, row, 2);
     row++;
     
     widget->setSizePolicy(QSizePolicy::Fixed,
