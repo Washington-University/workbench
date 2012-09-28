@@ -91,7 +91,7 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
         
-        WuQTrueFalseComboBox* m_displayFibersComboBox;
+        QCheckBox* m_displayFibersCheckBox;
         
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
@@ -109,7 +109,7 @@ namespace caret {
         
         EnumComboBoxTemplate* m_symbolTypeComboBox;
         
-        WuQTrueFalseComboBox* m_drawWithMagnitudeComboBox;
+        QCheckBox* m_drawWithMagnitudeCheckBox;
         
         QVBoxLayout* m_selectionWidgetLayout;
         
