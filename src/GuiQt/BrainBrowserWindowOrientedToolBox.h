@@ -6,6 +6,7 @@
 
 #include <QDockWidget>
 
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 class QTabWidget;
@@ -19,7 +20,7 @@ namespace caret {
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
-    class BrainBrowserWindowOrientedToolBox :  public QDockWidget, public SceneableInterface {
+    class BrainBrowserWindowOrientedToolBox :  public QDockWidget, public EventListenerInterface, public SceneableInterface {
         Q_OBJECT
         
     public:
@@ -36,6 +37,8 @@ namespace caret {
         
         ~BrainBrowserWindowOrientedToolBox();
 
+        void receiveEvent(Event* event);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -73,7 +76,25 @@ namespace caret {
         QString m_toolBoxTitle;
         
         int32_t m_browserWindowIndex;
-    };    
+
+                
+        int32_t m_overlayTabIndex;
+        
+        int32_t m_borderTabIndex;
+        
+        int32_t m_connectivityTabIndex;
+        
+        int32_t m_timeSeriesTabIndex;
+        
+        int32_t m_fiberOrientationTabIndex;
+        
+        int32_t m_fociTabIndex;
+        
+        int32_t m_labelTabIndex;
+        
+        int32_t m_volumeSurfaceOutlineTabIndex;
+        
+    };
 }
 
 #endif // __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_H__

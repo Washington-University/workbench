@@ -9,11 +9,15 @@
 #include <QTabWidget>
 
 #include "BorderSelectionViewController.h"
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
+#include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
@@ -80,59 +84,68 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 
     m_tabWidget = new QTabWidget();
     
+    m_borderTabIndex = -1;
+    m_connectivityTabIndex = -1;
+    m_fiberOrientationTabIndex = -1;
+    m_fociTabIndex = -1;
+    m_labelTabIndex = -1;
+    m_overlayTabIndex = -1;
+    m_timeSeriesTabIndex = -1;
+    m_volumeSurfaceOutlineTabIndex = -1;
+    
     if (isOverlayToolBox) {
         m_overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-        addToTabWidget(m_overlaySetViewController,
+        m_overlayTabIndex = addToTabWidget(m_overlaySetViewController,
                        "Layers");
     }
     if (isOverlayToolBox) {
         m_connectivityViewController = new ConnectivityManagerViewController(orientation,
                                                                                  browserWindowIndex,
                                                                                  DataFileTypeEnum::CONNECTIVITY_DENSE);
-        addToTabWidget(m_connectivityViewController, 
+        m_connectivityTabIndex = addToTabWidget(m_connectivityViewController,
                              "Connectivity");
     }
     if (isOverlayToolBox) {
         m_timeSeriesViewController = new ConnectivityManagerViewController(orientation,
                                                                                browserWindowIndex,
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-        addToTabWidget(m_timeSeriesViewController, 
+        m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
                              "Data Series");
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
-        addToTabWidget(m_borderSelectionViewController, 
+        m_borderTabIndex = addToTabWidget(m_borderSelectionViewController,
                              "Borders");
     }
     
     if (isFeaturesToolBox) {
         m_fiberOrientationViewController = new FiberOrientationSelectionViewController(browserWindowIndex,
                                                                                        this);
-        addToTabWidget(m_fiberOrientationViewController,
+        m_fiberOrientationTabIndex = addToTabWidget(m_fiberOrientationViewController,
                        "Fibers");
     }
     
     if (isFeaturesToolBox) {
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                                 this);
-        addToTabWidget(m_fociSelectionViewController, 
+        m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
                              "Foci");
     }
     
     if (isFeaturesToolBox) {
         m_labelSelectionViewController = new LabelSelectionViewController(browserWindowIndex,
                                                                           this);
-        addToTabWidget(m_labelSelectionViewController,
+        m_labelTabIndex = addToTabWidget(m_labelSelectionViewController,
                        "Labels");
     }
     
     if (isOverlayToolBox) {
         m_volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
                                                                                                 m_browserWindowIndex);
-        addToTabWidget(m_volumeSurfaceOutlineSetViewController, 
+        m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }
     
@@ -164,6 +177,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 
     QObject::connect(this, SIGNAL(topLevelChanged(bool)),
                      this, SLOT(floatingStatusChanged(bool)));
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -171,6 +186,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
  */
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -357,5 +373,110 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
 //    }
 }
 
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+        uiEvent->setEventProcessed();
+
+        Brain* brain = GuiManager::get()->getBrain();
+        
+        /*
+         * Determine types of data this is loaded
+         */
+        bool haveBorders = false;
+        bool haveDense   = false;
+        bool haveDataSeries = false;
+        bool haveFibers  = false;
+        bool haveFoci    = false;
+        bool haveLabels  = false;
+        bool haveOverlays = false;
+        bool haveSurfaces = false;
+        bool haveVolumes  = false;
+        
+        std::vector<CaretDataFile*> allDataFiles;
+        brain->getAllDataFiles(allDataFiles);
+        for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+             iter != allDataFiles.end();
+             iter++) {
+            const CaretDataFile* caretDataFile = *iter;
+            const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
+            switch (dataFileType) {
+                case DataFileTypeEnum::BORDER:
+                    haveBorders = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                    haveDense = true;
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                    haveOverlays = true;
+                    haveDataSeries = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    haveFibers = true;
+                    break;
+                case DataFileTypeEnum::FOCI:
+                    haveFoci = true;
+                    break;
+                case DataFileTypeEnum::LABEL:
+                    haveLabels = true;
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::METRIC:
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
+                case DataFileTypeEnum::RGBA:
+                    haveOverlays = true;
+                    break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    haveSurfaces = true;
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    haveOverlays = true;
+                    haveVolumes = true;
+                    break;
+            }
+        }
+        
+        /*
+         * Enable/disable Tabs based upon data that is loaded
+         */
+        m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
+        m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
+        m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
+        m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
+        m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
+        m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
+        m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
+        m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
+    }
+    else {
+    }
+}
 
 
