@@ -93,15 +93,15 @@ BorderDrawingTypeEnum::initialize()
     
     enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POINTS_SPHERES, 
                                     "DRAW_AS_POINTS_SPHERES", 
-                                    "Spherical Points"));
+                                    "Spheres"));
     
     enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POINTS_SQUARES, 
                                              "DRAW_AS_POINTS_SQUARES", 
-                                             "Square Points"));
+                                             "Squares"));
     
     enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POINTS_AND_LINES, 
                                     "DRAW_AS_POINTS_AND_LINES", 
-                                    "Points and Lines"));
+                                    "Spheres and Lines"));
     
 }
 
