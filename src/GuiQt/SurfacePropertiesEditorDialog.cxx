@@ -85,7 +85,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     QObject::connect(m_linkSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceDisplayPropertyChanged()));
     
-    QLabel* nodeSizeLabel = new QLabel("Node Size: ");
+    QLabel* nodeSizeLabel = new QLabel("Vertex Size: ");
     m_nodeSizeSpinBox = new QDoubleSpinBox();
     m_nodeSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_nodeSizeSpinBox->setSingleStep(1.0);

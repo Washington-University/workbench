@@ -190,7 +190,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                                 true);
         if (idManager->getSurfaceNodeIdentification()->isValid()
             && idManager->getVoxelIdentification()->isValid()) {
-            std::cout << "GET BOTH NODE AND VOXEL" << std::endl;
+            //std::cout << "GET BOTH VERTEX AND VOXEL" << std::endl;
         }
         
         switch (m_mode){
@@ -207,7 +207,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                             const int32_t nodeIndex = idNode->getNodeNumber();
                             
                             const AString focusName = (StructureEnum::toGuiName(structure)
-                                                       + " Node "
+                                                       + " Vertex "
                                                        + AString::number(nodeIndex));
                             const float* xyz = surface->getCoordinate(nodeIndex);
                             

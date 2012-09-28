@@ -1476,10 +1476,10 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
                 nodeID->setNodeNumber(nodeIndex);
                 nodeID->setScreenDepth(depth);
                 this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
-                CaretLogFine("Selected Node: " + nodeID->toString());   
+                CaretLogFine("Selected Vertex: " + nodeID->toString());   
             }
             else {
-                CaretLogFine("Rejecting Selected Node: " + nodeID->toString());   
+                CaretLogFine("Rejecting Selected Vertex: " + nodeID->toString());
             }
         }
     }
@@ -1664,7 +1664,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 symbolID->setNodeNumber(nodeIndex);
                 symbolID->setScreenDepth(depth);
                 this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
-                CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
+                CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(nodeIndex));   
             }
         }
     }

@@ -164,7 +164,7 @@ IdentificationItemSurfaceTriangle::toString() const
     AString text = IdentificationItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Triangle: " + AString::number(this->triangleNumber) + "\n";
-    text += "Nearest Node: " + AString::number(this->nearestNodeNumber) + "\n";
+    text += "Nearest Vertex: " + AString::number(this->nearestNodeNumber) + "\n";
     if (this->isValid() && (surface != NULL)) {
         if (this->nearestNodeNumber >= 0) {
             text += "Coordinate: " + AString::fromNumbers(surface->getCoordinate(this->nearestNodeNumber), 3, ", ") + "\n";

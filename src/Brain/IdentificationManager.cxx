@@ -213,7 +213,7 @@ IdentificationManager::filterSelections(const bool applySelectionBackgroundFilte
         if (m_surfaceNodeIdentification->getNodeNumber() < 0) {
             const int32_t nearestNode = triangleID->getNearestNodeNumber();
             if (nearestNode >= 0) {
-                CaretLogFine("Switched node to triangle nearest node ."
+                CaretLogFine("Switched vertex to triangle nearest vertex ."
                              + AString::number(nearestNode));
                 nodeID->setNodeNumber(nearestNode);
                 nodeID->setScreenDepth(triangleID->getScreenDepth());

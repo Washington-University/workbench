@@ -144,7 +144,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     if (surfaceID->isValid()) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
         const Surface* surface = surfaceID->getSurface();
-        const QString text = ("Identify Node "
+        const QString text = ("Identify Vertex "
                               + QString::number(nodeIndex)
                               + " ("
                               + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
@@ -368,7 +368,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
         && (focusID->isValid() == false)) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
         const Surface* surface = surfaceID->getSurface();
-        const QString text = ("Create Focus at Node "
+        const QString text = ("Create Focus at Vertex "
                               + QString::number(nodeIndex)
                               + " ("
                               + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
@@ -384,7 +384,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
              && (focusID->isValid() == false)) {
         const int32_t nodeIndex = idSymbol->getNodeNumber();
         const Surface* surface = idSymbol->getSurface();
-        const QString text = ("Create Focus at Identified Node "
+        const QString text = ("Create Focus at Identified Vertex "
                               + QString::number(nodeIndex)
                               + " ("
                               + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
@@ -478,12 +478,12 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     if (this->actions().count() > 0) {
         this->addSeparator();
     }
-    this->addAction("Remove All Node Identification Symbols",
+    this->addAction("Remove All Vertex Identification Symbols",
                     this,
                     SLOT(removeAllNodeIdentificationSymbolsSelected()));
     
     if (idSymbol->isValid()) {
-        const AString text = ("Remove Identification of Node "
+        const AString text = ("Remove Identification of Vertices "
                               + AString::number(idSymbol->getNodeNumber()));
         
         this->addAction(WuQtUtilities::createAction(text,
@@ -543,7 +543,7 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
                                               nodeIndices);
     if (nodeIndices.empty()) {
         WuQMessageBox::errorOk(this,
-                               "No nodes match label " + pc->labelName);
+                               "No vertices match label " + pc->labelName);
         return;
     }
     
@@ -601,7 +601,7 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         
         if (nodeIndices.empty()) {
             WuQMessageBox::errorOk(this,
-                                   "No nodes found inside border " + border->getName());
+                                   "No vertices found inside border " + border->getName());
             return;
         }
         
@@ -647,7 +647,7 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
                                               nodeIndices);
     if (nodeIndices.empty()) {
         WuQMessageBox::errorOk(this,
-                               "No nodes match label " + pc->labelName);
+                               "No vertices match label " + pc->labelName);
         return;
     }
     
@@ -716,7 +716,7 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
         
         if (nodeIndices.empty()) {
             WuQMessageBox::errorOk(this,
-                                   "No nodes found inside border " + border->getName());
+                                   "No vertices found inside border " + border->getName());
             return;
         }
         
@@ -787,7 +787,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
     const float* xyz = surface->getCoordinate(nodeIndex);
     
     const AString focusName = (StructureEnum::toGuiName(surface->getStructure())
-                               + " Node "
+                               + " Vertex "
                                + AString::number(nodeIndex));
     
     const AString comment = ("Created from "
@@ -816,7 +816,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
     const float* xyz = surface->getCoordinate(nodeIndex);
     
     const AString focusName = (StructureEnum::toGuiName(surface->getStructure())
-                               + " Node "
+                               + " Vertex "
                                + AString::number(nodeIndex));
     
     const AString comment = ("Created from "
@@ -1010,8 +1010,8 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ConnectivityLo
     
     const QString msg = ("There are "
                          + QString::number(numNodes)
-                         + " nodes in the selected region.  Loading data for "
-                         + "this quantity of nodes may take a very long time.");
+                         + " vertices in the selected region.  Loading data for "
+                         + "this quantity of vertices may take a very long time.");
     const bool result = WuQMessageBox::warningYesNo(this,
                                                     "Do you want to continue?",
                                                     msg);

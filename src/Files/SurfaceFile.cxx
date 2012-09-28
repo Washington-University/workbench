@@ -591,7 +591,7 @@ const float*
 SurfaceFile::getNodeColor(int32_t nodeIndex) const
 {
     CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()),
-                       "Invalid index for node coloring.");
+                       "Invalid index for vertex coloring.");
     
     return &this->nodeColoring[nodeIndex * 4];
 }
@@ -907,7 +907,7 @@ SurfaceFile::getInformation() const
             + SurfaceTypeEnum::toGuiName(this->getSurfaceType())
             + "\n");
     const int32_t numberOfNodes = this->getNumberOfNodes();
-    txt += ("Number of Nodes: "
+    txt += ("Number of Vertices: "
             + AString::number(numberOfNodes)
             + "\n");
     txt += ("Number of Triangles: "

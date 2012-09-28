@@ -199,7 +199,7 @@ IdentificationItemSurfaceNode::toString() const
 {
     AString text = IdentificationItem::toString();
     text += ("Surface: " + ((m_surface != NULL) ? m_surface->getFileNameNoPath() : "INVALID") + "\n");
-    text += "Node: " + AString::number(m_nodeNumber) + "\n";
+    text += "Vertex: " + AString::number(m_nodeNumber) + "\n";
     if (isValid() && (m_surface != NULL)) {
         text += "Coordinate: " + AString::fromNumbers(m_surface->getCoordinate(m_nodeNumber), 3, ", ") + "\n";
     }

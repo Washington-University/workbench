@@ -97,11 +97,11 @@ IdentificationItemDataTypeEnum::initialize()
     
     enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_NODE, 
                                     "SURFACE_NODE", 
-                                    "Surface Node"));
+                                    "Surface Vertex"));
     
     enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_NODE_IDENTIFICATION_SYMBOL,
                                                       "SURFACE_NODE_IDENTIFICATION_SYMBOL",
-                                                      "Surface Node Identification Symbol"));
+                                                      "Surface Vertex Identification Symbol"));
     
     enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_TRIANGLE,
                                     "SURFACE_TRIANGLE", 

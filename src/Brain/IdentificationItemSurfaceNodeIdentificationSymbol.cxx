@@ -136,6 +136,6 @@ IdentificationItemSurfaceNodeIdentificationSymbol::toString() const
 {
     AString text = IdentificationItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
-    text += "Node: " + AString::number(this->nodeNumber) + "\n";
+    text += "Vertex: " + AString::number(this->nodeNumber) + "\n";
     return text;
 }

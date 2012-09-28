@@ -258,7 +258,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         if (idSurfaceNode->isContralateral()) {
             surfaceID += "CONTRALATERAL ";
         }
-        surfaceID += ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
+        surfaceID += ("VERTEX " + StructureEnum::toGuiName(surface->getStructure()));
         idText.addLine(false, surfaceID, nodeNumber, false);
         
         const float* xyz = surface->getCoordinate(nodeNumber);

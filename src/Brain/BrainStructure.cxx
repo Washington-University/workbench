@@ -163,11 +163,11 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
             AString message = (labelFile->getFileNameNoPath()
                                + " contains "
                                + AString::number(labelFile->getNumberOfNodes())
-                               + " nodes but the "
+                               + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
                                + " contains "
                                + AString::number(numNodes)
-                               + " nodes.");
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -211,11 +211,11 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
             AString message = (metricFile->getFileNameNoPath()
                                + " contains "
                                + AString::number(metricFile->getNumberOfNodes())
-                               + " nodes but the "
+                               + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
                                + " contains "
                                + AString::number(numNodes)
-                               + " nodes.");
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -259,11 +259,11 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
             AString message = (rgbaFile->getFileNameNoPath()
                                + " contains "
                                + AString::number(rgbaFile->getNumberOfNodes())
-                               + " nodes but the "
+                               + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
                                + " contains "
                                + AString::number(numNodes)
-                               + " nodes.");
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -309,11 +309,11 @@ BrainStructure::addSurface(Surface* surface,
             AString message = (surface->getFileNameNoPath()
                                + "  contains "
                                + AString::number(surface->getNumberOfNodes())
-                               + " nodes but the "
+                               + " vertices but the "
                                + StructureEnum::toGuiName(getStructure())
                                + " contains "
                                + AString::number(numNodes)
-                               + " nodes.");
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);

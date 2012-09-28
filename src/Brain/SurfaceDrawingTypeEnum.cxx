@@ -97,7 +97,7 @@ SurfaceDrawingTypeEnum::initialize()
     
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_NODES,
                                               "DRAW_AS_NODES",
-                                              "Nodes"));
+                                              "Vertices"));
     
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_TRIANGLES,
                                     "DRAW_AS_TRIANGLES", 
