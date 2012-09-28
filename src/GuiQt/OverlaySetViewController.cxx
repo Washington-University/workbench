@@ -96,12 +96,14 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         
         QLabel* onLabel       = new QLabel("On");
         QLabel* settingsLabel = new QLabel("Settings");
+        QLabel* opacityLabel  = new QLabel("Opacity");
         QLabel* fileLabel     = new QLabel("File");
         QLabel* mapLabel      = new QLabel("Map");
 
         const int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
-        gridLayout->addWidget(settingsLabel, row, 1, 1, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(settingsLabel, row, 1, 1, 3, Qt::AlignHCenter);
+        gridLayout->addWidget(opacityLabel, row, 4, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
         gridLayout->addWidget(mapLabel, row, 6, Qt::AlignHCenter);
     }
