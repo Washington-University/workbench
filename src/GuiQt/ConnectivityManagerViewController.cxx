@@ -379,8 +379,8 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
         {
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
 			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
-			std::cout << temp.toStdString() << std::endl;
-			std::cout << "frame number:" << frame_number << std::endl;
+			CaretLogFine(temp);
+            CaretLogFine("frame number:" + frame_number);
 			frame_number++;
         }
     }
