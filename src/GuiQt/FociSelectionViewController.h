@@ -51,7 +51,6 @@ namespace caret {
     class GroupAndNameHierarchySelectedItem;
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
-    class WuQTrueFalseComboBox;
     
     class FociSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -93,11 +92,11 @@ namespace caret {
         
         GroupAndNameHierarchyViewController* m_fociClassNameHierarchyViewController;
         
-        WuQTrueFalseComboBox* m_fociDisplayComboBox;
+        QCheckBox* m_fociDisplayCheckBox;
         
-        WuQTrueFalseComboBox* m_fociContralateralComboBox;
+        QCheckBox* m_fociContralateralCheckBox;
         
-        WuQTrueFalseComboBox* m_pasteOntoSurfaceComboBox;
+        QCheckBox* m_pasteOntoSurfaceCheckBox;
         
         DisplayGroupEnumComboBox* m_fociDisplayGroupComboBox;
 
