@@ -66,6 +66,8 @@ FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QWidget* parent)
  */
 FiberSamplesOpenGLWidget::~FiberSamplesOpenGLWidget()
 {
+    makeCurrent();
+    
     if (m_sphere != NULL) {
         delete m_sphere;
     }
@@ -294,8 +296,10 @@ FiberSamplesOpenGLWidget::paintGL()
 void
 FiberSamplesOpenGLWidget::createSphere()
 {
-    m_sphere = new BrainOpenGLShapeSphere(25,
+    if (m_sphere == NULL) {
+        m_sphere = new BrainOpenGLShapeSphere(25,
                                           100);
+    }
 }
 
 /**

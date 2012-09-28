@@ -100,6 +100,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
+    makeCurrent();
+    
     this->clearDrawingViewportContents();
     
     if (this->textRenderer != NULL) {

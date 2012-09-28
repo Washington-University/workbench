@@ -68,19 +68,29 @@ BrainOpenGLShape::BrainOpenGLShape()
  */
 BrainOpenGLShape::~BrainOpenGLShape()
 {
-    for (std::set<GLuint>::iterator iter = m_bufferIDs.begin();
-         iter != m_bufferIDs.end();
+    /*
+     * Since 'releaseBufferIDInternal()' will alter 'm_bufferIDs'
+     * make a copy of the set.  Otherwise, the iterator will get
+     * corrupted and a crash will occur.
+     */
+    std::set<GLuint> bufferIDCopy = m_bufferIDs;
+    for (std::set<GLuint>::iterator iter = bufferIDCopy.begin();
+         iter != bufferIDCopy.end();
          iter++) {
-        releaseBufferIDInternal(*iter,
-                                false);
+        releaseBufferIDInternal(*iter);
     }
     m_bufferIDs.clear();
     
-    for (std::set<GLuint>::iterator iter = m_displayLists.begin();
-         iter != m_displayLists.end();
+    /*
+     * Since 'releaseDisplayListInternal()' will alter 'm_displayLists'
+     * make a copy of the set.  Otherwise, the iterator will get
+     * corrupted and a crash will occur.
+     */
+    std::set<GLuint> displayListsCopy = m_displayLists;
+    for (std::set<GLuint>::iterator iter = displayListsCopy.begin();
+         iter != displayListsCopy.end();
          iter++) {
-        releaseDisplayListInternal(*iter,
-                                   false);
+        releaseDisplayListInternal(*iter);
     }
     m_displayLists.clear();
 }
@@ -137,8 +147,7 @@ BrainOpenGLShape::createBufferID()
 void
 BrainOpenGLShape::releaseBufferID(const GLuint bufferID)
 {
-    releaseBufferIDInternal(bufferID,
-                            true);
+    releaseBufferIDInternal(bufferID);
 }
 
 /**
@@ -146,22 +155,16 @@ BrainOpenGLShape::releaseBufferID(const GLuint bufferID)
  *
  * @param bufferID
  *    Buffer ID that was previously returned by createBufferID().
- * @param isRemoveFromTrackedIDs
- *    If true, remove the ID from the bufferID that are tracked
- *    by this object.
  */
 void
-BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
-                                          const bool isRemoveFromTrackedIDs)
+BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID)
 {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     if (BrainOpenGL::isVertexBuffersSupported()) {
         if (glIsBuffer(bufferID)) {
             glDeleteBuffers(1, &bufferID);
             
-            if (isRemoveFromTrackedIDs) {
-                m_bufferIDs.erase(bufferID);
-            }
+            m_bufferIDs.erase(bufferID);
         }
         else {
             CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL BufferID="
@@ -184,17 +187,14 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID,
  *    by this object.
  */
 void
-BrainOpenGLShape::releaseDisplayListInternal(const GLuint displayList,
-                                             const bool isRemoveFromTrackedLists)
+BrainOpenGLShape::releaseDisplayListInternal(const GLuint displayList)
 {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     if (BrainOpenGL::isDisplayListsSupported()) {
         if (glIsList(displayList)) {
             glDeleteLists(displayList, 1);
             
-            if (isRemoveFromTrackedLists) {
-                m_displayLists.erase(displayList);
-            }
+            m_displayLists.erase(displayList);
         }
         else {
             CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL DisplayList="
@@ -242,7 +242,7 @@ BrainOpenGLShape::createDisplayList()
 void
 BrainOpenGLShape::releaseDisplayList(const GLuint displayList)
 {
-    releaseDisplayListInternal(displayList, true);
+    releaseDisplayListInternal(displayList);
 }
  
 /**

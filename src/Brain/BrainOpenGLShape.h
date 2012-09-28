@@ -59,11 +59,9 @@ namespace caret {
 
         BrainOpenGLShape& operator=(const BrainOpenGLShape&);
         
-        void releaseBufferIDInternal(const GLuint bufferID,
-                                     const bool isRemoveFromTrackedIDs);
+        void releaseBufferIDInternal(const GLuint bufferID);
         
-        void releaseDisplayListInternal(const GLuint displayList,
-                                        const bool isRemoveFromTrackedLists);
+        void releaseDisplayListInternal(const GLuint displayList);
         
     protected:
         /**
