@@ -248,7 +248,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->orientationWidget = this->createOrientationWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
-    this->toolsWidget = this->createToolsWidget();
+    this->modeWidget = this->createModeWidget();
     this->windowWidget = this->createWindowWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
@@ -279,7 +279,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->volumeMontageWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->toolsWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->clippingWidget, 0, Qt::AlignLeft);
     
@@ -391,7 +391,7 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->orientationWidgetGroup->clear();
     this->wholeBrainSurfaceOptionsWidgetGroup->clear();
     this->volumeIndicesWidgetGroup->clear();
-    this->toolsWidgetGroup->clear();
+    this->modeWidgetGroup->clear();
     this->windowWidgetGroup->clear();
     this->singleSurfaceSelectionWidgetGroup->clear();
     this->surfaceMontageSelectionWidgetGroup->clear();
@@ -1040,7 +1040,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
-    this->toolsWidget->setVisible(false);
+    this->modeWidget->setVisible(false);
     this->windowWidget->setVisible(false);
     this->clippingWidget->setVisible(false);
     
@@ -1051,7 +1051,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
-    this->toolsWidget->setVisible(showToolsWidget);
+    this->modeWidget->setVisible(showToolsWidget);
     this->clippingWidget->setVisible(showClippingWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
@@ -1063,7 +1063,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateSurfaceMontageOptionsWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
-        this->updateToolsWidget(browserTabContent);
+        this->updateModeWidget(browserTabContent);
         this->updateWindowWidget(browserTabContent);
         this->updateClippingWidget(browserTabContent);
     }
@@ -2061,37 +2061,37 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
 }
 
 /**
- * Create the tools widget.
+ * Create the mode widget.
  *
- * @return The tools widget.
+ * @return The mode widget.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createToolsWidget()
+BrainBrowserWindowToolBar::createModeWidget()
 {
     /*
      * Borders 
      */ 
-    this->toolsInputModeBordersAction = WuQtUtilities::createAction("B",
+    this->modeInputModeBordersAction = WuQtUtilities::createAction("Border",
                                                                     "Perform border operations with mouse",
                                                                     this);
     QToolButton* inputModeBordersToolButton = new QToolButton();
-    this->toolsInputModeBordersAction->setCheckable(true);
-    inputModeBordersToolButton->setDefaultAction(this->toolsInputModeBordersAction);
+    this->modeInputModeBordersAction->setCheckable(true);
+    inputModeBordersToolButton->setDefaultAction(this->modeInputModeBordersAction);
     
     /*
      * Foci
      */
-    this->toolsInputModeFociAction = WuQtUtilities::createAction("F",
+    this->modeInputModeFociAction = WuQtUtilities::createAction("Foci",
                                                                  "Perform foci operations with mouse",
                                                                  this);
     QToolButton* inputModeFociToolButton = new QToolButton();
-    this->toolsInputModeFociAction->setCheckable(true);
-    inputModeFociToolButton->setDefaultAction(this->toolsInputModeFociAction);
+    this->modeInputModeFociAction->setCheckable(true);
+    inputModeFociToolButton->setDefaultAction(this->modeInputModeFociAction);
     
     /*
      * View Mode
      */
-    this->toolsInputModeViewAction = WuQtUtilities::createAction("V",
+    this->modeInputModeViewAction = WuQtUtilities::createAction("View",
                                                                  "Perform viewing operations with mouse\n"
                                                                  "\n"
                                                                  "Identify: Click Left Mouse\n"
@@ -2103,38 +2103,41 @@ BrainBrowserWindowToolBar::createToolsWidget()
                                                                  "Zoom:     Move mouse with left mouse button down and keyboard control key down",
 #endif // CARET_OS_MACOSX
                                                                  this);
-    this->toolsInputModeViewAction->setCheckable(true);
+    this->modeInputModeViewAction->setCheckable(true);
     QToolButton* inputModeViewToolButton = new QToolButton();
-    inputModeViewToolButton->setDefaultAction(this->toolsInputModeViewAction);
+    inputModeViewToolButton->setDefaultAction(this->modeInputModeViewAction);
     
+    WuQtUtilities::matchWidgetWidths(inputModeBordersToolButton,
+                                     inputModeFociToolButton,
+                                     inputModeViewToolButton);
     /*
      * Layout for input modes
      */
     QWidget* inputModeWidget = new QWidget();
-    QGridLayout* inputModeLayout = new QGridLayout(inputModeWidget);
-    WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 0);
-    inputModeLayout->addWidget(inputModeBordersToolButton, 0, 0);
-    inputModeLayout->addWidget(inputModeFociToolButton, 0, 1);
-    inputModeLayout->addWidget(inputModeViewToolButton, 0, 2);
+    QVBoxLayout* inputModeLayout = new QVBoxLayout(inputModeWidget);
+    WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 2);
+    inputModeLayout->addWidget(inputModeBordersToolButton, 0, Qt::AlignHCenter);
+    inputModeLayout->addWidget(inputModeFociToolButton, 0, Qt::AlignHCenter);
+    inputModeLayout->addWidget(inputModeViewToolButton, 0, Qt::AlignHCenter);
     
-    this->toolsInputModeActionGroup = new QActionGroup(this);
-    this->toolsInputModeActionGroup->addAction(this->toolsInputModeBordersAction);
-    this->toolsInputModeActionGroup->addAction(this->toolsInputModeFociAction);
-    this->toolsInputModeActionGroup->addAction(this->toolsInputModeViewAction);
-    QObject::connect(this->toolsInputModeActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(toolsInputModeActionTriggered(QAction*)));
-    this->toolsInputModeActionGroup->setExclusive(true);
+    this->modeInputModeActionGroup = new QActionGroup(this);
+    this->modeInputModeActionGroup->addAction(this->modeInputModeBordersAction);
+    this->modeInputModeActionGroup->addAction(this->modeInputModeFociAction);
+    this->modeInputModeActionGroup->addAction(this->modeInputModeViewAction);
+    QObject::connect(this->modeInputModeActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(modeInputModeActionTriggered(QAction*)));
+    this->modeInputModeActionGroup->setExclusive(true);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addStretch();
     layout->addWidget(inputModeWidget, 0, Qt::AlignHCenter);
+    layout->addStretch();
     
-    this->toolsWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->toolsWidgetGroup->add(this->toolsInputModeActionGroup);
+    this->modeWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->modeWidgetGroup->add(this->modeInputModeActionGroup);
     
-    QWidget* w = this->createToolWidget("Tools", 
+    QWidget* w = this->createToolWidget("Mode", 
                                         widget, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_NONE,
@@ -2148,7 +2151,7 @@ BrainBrowserWindowToolBar::createToolsWidget()
  *    Action of tool button that was clicked.
  */
 void 
-BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
+BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
 {
     BrowserTabContent* tabContent = this->getTabContentFromSelectedTab();
     if (tabContent == NULL) {
@@ -2157,7 +2160,7 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
 
     UserInputReceiverInterface::UserInputMode inputMode = UserInputReceiverInterface::INVALID;
     
-    if (action == this->toolsInputModeBordersAction) {
+    if (action == this->modeInputModeBordersAction) {
         inputMode = UserInputReceiverInterface::BORDERS;
         
         /*
@@ -2175,10 +2178,10 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
             this->updateGraphicsWindow();
         }
     }
-    else if (action == this->toolsInputModeFociAction) {
+    else if (action == this->modeInputModeFociAction) {
         inputMode = UserInputReceiverInterface::FOCI;
     }
-    else if (action == this->toolsInputModeViewAction) {
+    else if (action == this->modeInputModeViewAction) {
         inputMode = UserInputReceiverInterface::VIEW;
     }
     else {
@@ -2187,8 +2190,8 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
     
     EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
                                                                        inputMode).getPointer());    
-    this->updateToolsWidget(tabContent);
-    this->updateDisplayedToolsUserInputWidget();
+    this->updateModeWidget(tabContent);
+    this->updateDisplayedModeUserInputWidget();
 }
 
 /**
@@ -2198,15 +2201,15 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabContent*/)
 {
-    if (this->toolsWidget->isHidden()) {
+    if (this->modeWidget->isHidden()) {
         return;
     }
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->toolsWidgetGroup->blockAllSignals(true);
+    this->modeWidgetGroup->blockAllSignals(true);
     
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());
@@ -2216,25 +2219,25 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
             // may get here when program is exiting and widgets are being destroyed
             break;
         case UserInputReceiverInterface::BORDERS:
-            this->toolsInputModeBordersAction->setChecked(true);
+            this->modeInputModeBordersAction->setChecked(true);
             break;
         case UserInputReceiverInterface::FOCI:
-            this->toolsInputModeFociAction->setChecked(true);
+            this->modeInputModeFociAction->setChecked(true);
             break;
         case UserInputReceiverInterface::VIEW:
-            this->toolsInputModeViewAction->setChecked(true);
+            this->modeInputModeViewAction->setChecked(true);
             break;
     }
     
-    this->toolsWidgetGroup->blockAllSignals(false);
+    this->modeWidgetGroup->blockAllSignals(false);
 
-    this->updateDisplayedToolsUserInputWidget();
+    this->updateDisplayedModeUserInputWidget();
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 void
-BrainBrowserWindowToolBar::updateDisplayedToolsUserInputWidget()
+BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());

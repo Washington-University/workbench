@@ -126,7 +126,7 @@ namespace caret {
         QWidget* createOrientationWidget();
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
-        QWidget* createToolsWidget();
+        QWidget* createModeWidget();
         QWidget* createWindowWidget();
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
@@ -138,7 +138,7 @@ namespace caret {
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
         void updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeIndicesWidget(BrowserTabContent* browserTabContent);
-        void updateToolsWidget(BrowserTabContent* browserTabContent);
+        void updateModeWidget(BrowserTabContent* browserTabContent);
         void updateWindowWidget(BrowserTabContent* browserTabContent);
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
@@ -156,7 +156,7 @@ namespace caret {
         QWidget* orientationWidget;
         QWidget* wholeBrainSurfaceOptionsWidget;
         QWidget* volumeIndicesWidget;
-        QWidget* toolsWidget;
+        QWidget* modeWidget;
         QWidget* windowWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* surfaceMontageSelectionWidget;
@@ -169,7 +169,7 @@ namespace caret {
         WuQWidgetObjectGroup* orientationWidgetGroup;
         WuQWidgetObjectGroup* wholeBrainSurfaceOptionsWidgetGroup;
         WuQWidgetObjectGroup* volumeIndicesWidgetGroup;
-        WuQWidgetObjectGroup* toolsWidgetGroup;
+        WuQWidgetObjectGroup* modeWidgetGroup;
         WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
         WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
@@ -405,14 +405,14 @@ namespace caret {
         void montageSpacingSpinBoxValueChanged(int i);
         
     private slots:
-        void toolsInputModeActionTriggered(QAction*);
+        void modeInputModeActionTriggered(QAction*);
         
     private:
-        void updateDisplayedToolsUserInputWidget();
-        QActionGroup* toolsInputModeActionGroup;
-        QAction* toolsInputModeBordersAction;
-        QAction* toolsInputModeFociAction;
-        QAction* toolsInputModeViewAction;
+        void updateDisplayedModeUserInputWidget();
+        QActionGroup* modeInputModeActionGroup;
+        QAction* modeInputModeBordersAction;
+        QAction* modeInputModeFociAction;
+        QAction* modeInputModeViewAction;
         
     private:
         QAction* toolBarToolButtonAction;
