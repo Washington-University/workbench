@@ -1734,8 +1734,7 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            //useRowsFlag = true;
-            useColumnsFlag = true;
+            useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
@@ -1952,8 +1951,7 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            //useRowsFlag = true;
-            useColumnsFlag = true;
+            useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
