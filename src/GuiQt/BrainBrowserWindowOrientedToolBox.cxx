@@ -465,15 +465,18 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         
         /*
          * Enable/disable Tabs based upon data that is loaded
+         * NOTE: Order is important so that overlay tab is 
+         * automatically selected.
          */
-        m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
+        m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
         m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
         m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
+        m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
+        
+        m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
         m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
         m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
-        m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
-        m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
     }
     else {
     }
