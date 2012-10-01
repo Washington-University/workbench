@@ -485,9 +485,23 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->opacityDoubleSpinBox->blockSignals(false);
 //    this->widgetsGroup->blockAllSignals(false);
 //    this->widgetsGroup->setEnabled(this->overlay != NULL);
-    if (selectedFile != NULL) {
-        this->settingsAction->setEnabled(selectedFile->isMappedWithPalette());
+
+    const bool haveFile = (selectedFile != NULL);
+    bool dataIsMappedWithPalette = false;
+    if (haveFile) {
+        dataIsMappedWithPalette = selectedFile->isMappedWithPalette();
     }
+    
+    /*
+     * Make sure items are enabled at the appropriate time
+     */
+    this->fileComboBox->setEnabled(haveFile);
+    this->mapComboBox->setEnabled(haveFile);
+    this->enabledCheckBox->setEnabled(haveFile);
+    this->constructionAction->setEnabled(haveFile);
+    this->opacityDoubleSpinBox->setEnabled(haveFile);
+    this->colorBarAction->setEnabled(dataIsMappedWithPalette);
+    this->settingsAction->setEnabled(dataIsMappedWithPalette);
 }
 
 /**
