@@ -4859,6 +4859,8 @@ BrainBrowserWindowToolBar::clippingWidgetControlChanged()
         btc->setClippingPlaneThickness(0, this->clippingXThicknessSpinBox->value());
         btc->setClippingPlaneThickness(1, this->clippingYThicknessSpinBox->value());
         btc->setClippingPlaneThickness(2, this->clippingZThicknessSpinBox->value());
+        
+        updateGraphicsWindow();
     }
 }
 
