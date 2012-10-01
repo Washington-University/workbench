@@ -23,6 +23,7 @@
  */ 
 
 #include <algorithm>
+#include <cmath>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -1733,7 +1734,8 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            useRowsFlag = true;
+            //useRowsFlag = true;
+            useColumnsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
@@ -1868,17 +1870,40 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             const float dy = y1 - y0;
             const float dz = z1 - z0;
             
-            if ((x0 != origin[0])
-                || (y0 != origin[1])
-                || (z0 != origin[2])) {
+            const float diffOrigin[3] = {
+                std::fabs(x0 - origin[0]),
+                std::fabs(y0 - origin[1]),
+                std::fabs(z0 - origin[2])
+            };
+            
+            const float diffSpacing[3] = {
+                std::fabs(dx - spacing[0]),
+                std::fabs(dy - spacing[1]),
+                std::fabs(dz - spacing[2]),
+            };
+            
+            const float maxDiff = 0.0001;
+            if ((diffOrigin[0] > maxDiff)
+                || (diffOrigin[1] > maxDiff)
+                || (diffOrigin[2] > maxDiff)) {
                 createVolumeFlag = true;
             }
-            else if ((dx != spacing[0])
-                     || (dy != spacing[1])
-                     || (dz != spacing[2])) {
+            else if ((diffSpacing[0] > maxDiff)
+                     || (diffSpacing[1] > maxDiff)
+                     || (diffSpacing[2] > maxDiff)) {
                 createVolumeFlag = true;
             }
-        }        
+//            if ((x0 != origin[0])
+//                || (y0 != origin[1])
+//                || (z0 != origin[2])) {
+//                createVolumeFlag = true;
+//            }
+//            else if ((dx != spacing[0])
+//                     || (dy != spacing[1])
+//                     || (dz != spacing[2])) {
+//                createVolumeFlag = true;
+//            }
+        }
     }
     
     if (createVolumeFlag) {
@@ -1927,7 +1952,8 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            useRowsFlag = true;
+            //useRowsFlag = true;
+            useColumnsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
