@@ -36,7 +36,7 @@
 #include "FastStatistics.h"
 #include "Histogram.h"
 #include "ConnectivityLoaderFile.h"
-#include "FiberOrientationCiftiAdapter.h"
+#include "CiftiFiberOrientationAdapter.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
@@ -2296,7 +2296,7 @@ AString ConnectivityLoaderFile::getMapNameForRowIndex(const int& index) const
  * fiber orientations or there were errors when the fiber orientation
  * adapter was created.
  */
-FiberOrientationCiftiAdapter*
+CiftiFiberOrientationAdapter*
 ConnectivityLoaderFile::getFiberOrientationAdapter()
 {
     return m_fiberOrientationAdapter;
@@ -2322,12 +2322,12 @@ ConnectivityLoaderFile::createFiberOrientationAdapter() throw (DataFileException
         /*
          * Note: this test data will leak memory
          */
-        m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+        m_fiberOrientationAdapter = new CiftiFiberOrientationAdapter();
         m_fiberOrientationAdapter->initializeWithTestData();
     }
     else {
         if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY) {
-            m_fiberOrientationAdapter = new FiberOrientationCiftiAdapter();
+            m_fiberOrientationAdapter = new CiftiFiberOrientationAdapter();
             m_fiberOrientationAdapter->initializeWithConnectivityLoaderFile(this);
         }
         else {

@@ -52,7 +52,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
-#include "FiberOrientationCiftiAdapter.h"
+#include "CiftiFiberOrientationAdapter.h"
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSelectionViewController.h"
 #include "FiberSamplesOpenGLWidget.h"
@@ -399,7 +399,7 @@ FiberOrientationSelectionViewController::updateViewController()
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
         ConnectivityLoaderFile* clf = brain->getConnectivityFiberOrientationFile(iff);
-        FiberOrientationCiftiAdapter* foca = clf->getFiberOrientationAdapter();
+        CiftiFiberOrientationAdapter* foca = clf->getFiberOrientationAdapter();
         if (foca != NULL) {
             QCheckBox* cb = NULL;
             if (iff < numberOfFileCheckBoxes) {
@@ -479,7 +479,7 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
-        FiberOrientationCiftiAdapter* foca = brain->getConnectivityFiberOrientationFile(iff)->getFiberOrientationAdapter();
+        CiftiFiberOrientationAdapter* foca = brain->getConnectivityFiberOrientationFile(iff)->getFiberOrientationAdapter();
         if (foca != NULL) {
             foca->setDisplayed(displayGroup,
                                browserTabIndex,

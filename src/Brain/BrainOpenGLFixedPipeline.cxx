@@ -76,7 +76,7 @@
 #include "FastStatistics.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
-#include "FiberOrientationCiftiAdapter.h"
+#include "CiftiFiberOrientationAdapter.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
@@ -4715,7 +4715,7 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
         ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
-        FiberOrientationCiftiAdapter* ciftiAdapter = NULL;
+        CiftiFiberOrientationAdapter* ciftiAdapter = NULL;
         try {
             ciftiAdapter = clf->getFiberOrientationAdapter();
             if (ciftiAdapter == NULL) {

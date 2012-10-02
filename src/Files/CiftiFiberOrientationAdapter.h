@@ -1,5 +1,5 @@
-#ifndef __FIBER_ORIENTATION_CIFTI_ADAPTER_H__
-#define __FIBER_ORIENTATION_CIFTI_ADAPTER_H__
+#ifndef __CIFTI_FIBER_ORIENTATION_ADAPTER_H__
+#define __CIFTI_FIBER_ORIENTATION_ADAPTER_H__
 
 /*LICENSE_START*/
 /*
@@ -45,16 +45,16 @@ namespace caret {
     class FiberOrientation;
     class ConnectivityLoaderFile;
     
-    class FiberOrientationCiftiAdapter : public CaretObject {
+    class CiftiFiberOrientationAdapter : public CaretObject {
         
     public:
-        FiberOrientationCiftiAdapter();
+        CiftiFiberOrientationAdapter();
         
         void initializeWithConnectivityLoaderFile(ConnectivityLoaderFile* clf) throw (DataFileException);
         
         void initializeWithTestData();
         
-        virtual ~FiberOrientationCiftiAdapter();
+        virtual ~CiftiFiberOrientationAdapter();
         
         int64_t getNumberOfFiberOrientations() const;
         
@@ -74,9 +74,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
-        FiberOrientationCiftiAdapter(const FiberOrientationCiftiAdapter&);
+        CiftiFiberOrientationAdapter(const CiftiFiberOrientationAdapter&);
 
-        FiberOrientationCiftiAdapter& operator=(const FiberOrientationCiftiAdapter&);
+        CiftiFiberOrientationAdapter& operator=(const CiftiFiberOrientationAdapter&);
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -91,9 +91,9 @@ namespace caret {
         float m_volumeSpacing[3];
     };
     
-#ifdef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
+#ifdef __CIFTI_FIBER_ORIENTATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
+#endif // __CIFTI_FIBER_ORIENTATION_DECLARE__
 
 } // namespace
-#endif  //__FIBER_ORIENTATION_CIFTI_ADAPTER_H__
+#endif  //__CIFTI_FIBER_ORIENTATION_ADAPTER_H__

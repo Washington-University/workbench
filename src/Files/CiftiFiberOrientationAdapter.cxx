@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
-#include "FiberOrientationCiftiAdapter.h"
-#undef __FIBER_ORIENTATION_CIFTI_ADAPTER_DECLARE__
+#define __CIFTI_FIBER_ORIENTATION_DECLARE__
+#include "CiftiFiberOrientationAdapter.h"
+#undef __CIFTI_FIBER_ORIENTATION_DECLARE__
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -51,14 +51,14 @@ using namespace caret;
 
     
 /**
- * \class caret::FiberOrientationCiftiAdapter 
+ * \class caret::CiftiFiberOrientationAdapter 
  * \brief Wraps around a CIFTI file to simplify access to fiber orientations
  */
 
 /**
  * Constructor.
  */
-FiberOrientationCiftiAdapter::FiberOrientationCiftiAdapter()
+CiftiFiberOrientationAdapter::CiftiFiberOrientationAdapter()
 : CaretObject()
 {
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -72,7 +72,7 @@ FiberOrientationCiftiAdapter::FiberOrientationCiftiAdapter()
 /**
  * Destructor.
  */
-FiberOrientationCiftiAdapter::~FiberOrientationCiftiAdapter()
+CiftiFiberOrientationAdapter::~CiftiFiberOrientationAdapter()
 {
     for (std::vector<FiberOrientation*>::iterator iter = m_fiberOrientations.begin();
          iter != m_fiberOrientations.end();
@@ -91,7 +91,7 @@ FiberOrientationCiftiAdapter::~FiberOrientationCiftiAdapter()
  *     DataFileException if there is an error.
  */
 void
-FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityLoaderFile* clf) throw (DataFileException)
+CiftiFiberOrientationAdapter::initializeWithConnectivityLoaderFile(ConnectivityLoaderFile* clf) throw (DataFileException)
 {
     CaretAssert(clf);
     
@@ -161,7 +161,7 @@ FiberOrientationCiftiAdapter::initializeWithConnectivityLoaderFile(ConnectivityL
  * Initialize with test data.
  */
 void
-FiberOrientationCiftiAdapter::initializeWithTestData()
+CiftiFiberOrientationAdapter::initializeWithTestData()
 {
     const int64_t fiberDataSizeInFloats = (Fiber::NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE * 3) + 3;
     
@@ -279,7 +279,7 @@ FiberOrientationCiftiAdapter::initializeWithTestData()
  * @return The number of orientation fiber groups.
  */
 int64_t
-FiberOrientationCiftiAdapter::getNumberOfFiberOrientations() const
+CiftiFiberOrientationAdapter::getNumberOfFiberOrientations() const
 {
     return m_fiberOrientations.size();
 }
@@ -290,7 +290,7 @@ FiberOrientationCiftiAdapter::getNumberOfFiberOrientations() const
  *     Index of the desired fiber orientation group.
  */
 FiberOrientation*
-FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx)
+CiftiFiberOrientationAdapter::getFiberOrientations(const int64_t indx)
 {
     return m_fiberOrientations[indx];
 }
@@ -301,7 +301,7 @@ FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx)
  *     Index of the desired fiber orientation group.
  */
 const FiberOrientation*
-FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx) const
+CiftiFiberOrientationAdapter::getFiberOrientations(const int64_t indx) const
 {
     return m_fiberOrientations[indx];
 }
@@ -310,7 +310,7 @@ FiberOrientationCiftiAdapter::getFiberOrientations(const int64_t indx) const
  * @return The display status.
  */
 bool
-FiberOrientationCiftiAdapter::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
+CiftiFiberOrientationAdapter::isDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
@@ -333,7 +333,7 @@ FiberOrientationCiftiAdapter::isDisplayed(const DisplayGroupEnum::Enum displayGr
  *   New display status.
  */
 void
-FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
+CiftiFiberOrientationAdapter::setDisplayed(const DisplayGroupEnum::Enum displayGroup,
                                            const int32_t tabIndex,
                                            const bool displayed)
 {
@@ -359,7 +359,7 @@ FiberOrientationCiftiAdapter::setDisplayed(const DisplayGroupEnum::Enum displayG
  *    Will contain volume spacing for (I, J, K) axes upon exit.
  */
 void
-FiberOrientationCiftiAdapter::getVolumeSpacing(float volumeSpacingOut[3]) const
+CiftiFiberOrientationAdapter::getVolumeSpacing(float volumeSpacingOut[3]) const
 {
     volumeSpacingOut[0] = m_volumeSpacing[0];
     volumeSpacingOut[1] = m_volumeSpacing[1];
