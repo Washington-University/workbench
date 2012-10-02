@@ -1055,7 +1055,8 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                // JWH-Oct2 if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
                     if (this->ciftiInterface->getRowFromNode(this->data,
                                                              nodeIndex,
                                                              structure,
@@ -1161,7 +1162,8 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                 this->allocateData(num);
                 this->zeroizeData();
                 
-                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                // JWH-Oct2if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
                     
                     std::vector<double> averageVector(num, 0.0);
                     double* averageData = &averageVector[0];
@@ -1414,7 +1416,8 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->hasRowVolumeData()) {
+                 // JWH-Oct2  if (this->ciftiInterface->hasRowVolumeData()) {
+                if (this->ciftiInterface->hasColumnVolumeData()) { // JWH-Oct2
                     if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz, rowIndex)) {
                         CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
