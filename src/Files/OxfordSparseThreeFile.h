@@ -41,6 +41,7 @@ namespace caret {
         OxfordSparseThreeFile();
         OxfordSparseThreeFile(const OxfordSparseThreeFile& rhs);
     public:
+        const int64_t* getDimensions() { return m_dims; }
         OxfordSparseThreeFile(const AString& dimFileName, const AString& indexFileName, const AString& valueFileName);
         void getRow(int64_t* rowOut, const int64_t& index);
         void getFibersRow(FiberFractions* rowOut, const int64_t& index);

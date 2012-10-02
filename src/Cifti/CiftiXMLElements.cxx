@@ -35,6 +35,12 @@ CiftiVersion::CiftiVersion()
     m_minor = 0;
 }
 
+CiftiVersion::CiftiVersion(const int16_t& major, const int16_t& minor)
+{
+    m_major = major;
+    m_minor = minor;
+}
+
 CiftiVersion::CiftiVersion(const AString& versionString)
 {
     int result = versionString.indexOf('.');
@@ -77,6 +83,11 @@ bool CiftiVersion::operator==(const CiftiVersion& rhs) const
 {
     if (m_major == rhs.m_major && m_minor == rhs.m_minor) return true;
     return false;
+}
+
+bool CiftiVersion::operator!=(const CiftiVersion& rhs) const
+{
+    return !(*this == rhs);
 }
 
 bool CiftiVersion::operator>(const caret::CiftiVersion& rhs) const

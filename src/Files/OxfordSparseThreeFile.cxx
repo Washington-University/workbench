@@ -114,7 +114,7 @@ void OxfordSparseThreeFile::getFibersRow(FiberFractions* rowOut, const int64_t& 
         {
             rowOut[i].zero();
         } else {
-             decodeFibers(m_scratchRow[i], rowOut[i]);
+            decodeFibers(m_scratchRow[i], rowOut[i]);
         }
     }
 }
@@ -124,7 +124,7 @@ void OxfordSparseThreeFile::decodeFibers(const uint64_t& coded, FiberFractions& 
     decoded.fiberFractions.resize(3);
     decoded.totalCount = coded>>32;
     uint32_t temp = coded & ((1LL<<32) - 1);
-    decoded.distance = (temp % 1001) / 1000.0f;//TODO: max distance!
+    decoded.distance = (temp % 1001);
     temp = temp / 1001;
     decoded.fiberFractions[1] = (temp % 1001) / 1000.0f;
     temp = temp / 1001;

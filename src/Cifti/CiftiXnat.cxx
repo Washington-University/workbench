@@ -90,9 +90,9 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         m_xml.setColumnNumberOfTimepoints(m_numberOfRows);//see above
         fixedDims = true;
     }
-    if (fixedDims && m_xml.getVersion() != "1")
+    if (fixedDims && m_xml.getVersion() != CiftiVersion(1, 0))
     {
-        CaretLogWarning("fixed missing time points dimension in version \"" + m_xml.getVersion() + "\" cifti xml");
+        CaretLogWarning("fixed missing time points dimension in version \"" + m_xml.getVersion().toString() + "\" cifti xml");
     }
 }
 

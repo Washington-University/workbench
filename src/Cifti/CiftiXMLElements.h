@@ -40,11 +40,13 @@ class CiftiVersion
     int16_t m_major, m_minor;
 public:
     CiftiVersion();
+    CiftiVersion(const int16_t& major, const int16_t& minor);
     CiftiVersion(const AString& versionString);
     AString toString() const;
     bool operator<(const CiftiVersion& rhs) const;
     bool operator>(const CiftiVersion& rhs) const;
     bool operator==(const CiftiVersion& rhs) const;
+    bool operator!=(const CiftiVersion& rhs) const;
     bool operator<=(const CiftiVersion& rhs) const;
     bool operator>=(const CiftiVersion& rhs) const;
     ///quirk tests

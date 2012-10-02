@@ -53,11 +53,13 @@ namespace caret {
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
     public:
+        const int64_t* getDimensions() { return m_dims; }
+
         CaretSparseFile();
         
         virtual void readFile(const AString& filename) throw (DataFileException);
         
-        virtual void writeFile(const AString&) throw (DataFileException) { throw DataFileException("writeFile not implemented for CaretSparseTrajectoryFile"); }
+        virtual void writeFile(const AString&) throw (DataFileException) { throw DataFileException("writeFile not implemented for CaretSparseFile"); }
         
         CaretSparseFile(const AString& fileName);
         
