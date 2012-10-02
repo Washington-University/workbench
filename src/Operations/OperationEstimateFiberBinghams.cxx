@@ -286,7 +286,7 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
             dist = tempf;
         }
     }//NOTE: the MAJOR axis of fanning is along y when psi = 0! ka > kb means kb is in the direction of more fanning
-    float psi = atan((x_samples[end1] - x_samples[end2]) / (y_samples[end2] - y_samples[end1]));//[-pi/2, pi/2] - NOTE: radiological psi is also backwards
+    float psi = atan((x_samples[end2] - x_samples[end1]) / (y_samples[end2] - y_samples[end1]));//[-pi/2, pi/2] - TODO: check radiological psi orientation
     if (!MathFunctions::isNumeric(psi))
     {
         const float LARGE_K = 1800.0f;//stdev of 1/60, typical maximum ka in a voxel is around 200
@@ -300,8 +300,8 @@ void OperationEstimateFiberBinghams::estimateBingham(float* binghamOut, const in
     double accumx = 0.0, accumy = 0.0;
     for (int i = 0; i < fdims[3]; ++i)
     {//rotate the samples through -psi on the plane to orient them to the axes
-        float newx = x_samples[i] * cos(psi) + y_samples[i] * sin(psi);//NOTE: again, radiological psi
-        float newy = x_samples[i] * -sin(psi) + y_samples[i] * cos(psi);
+        float newx = x_samples[i] * cos(psi) + y_samples[i] * -sin(psi);//NOTE: again, radiological psi?
+        float newy = x_samples[i] * sin(psi) + y_samples[i] * cos(psi);
         accumx += newx * newx;//assume mean of zero, because we already chose the center of the distribution
         accumy += newy * newy;
     }
