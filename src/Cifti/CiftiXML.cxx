@@ -715,7 +715,7 @@ bool CiftiXML::setTimestep(const float& seconds, const int& myMapIndex)
     {
         return false;
     }
-    float temp;
+    float temp = 1.0f;
     getTimestart(temp, myMapIndex);//convert to seconds
     myMap->m_timeStart = temp;
     myMap->m_timeStepUnits = NIFTI_UNITS_SEC;
@@ -745,7 +745,7 @@ bool CiftiXML::setTimestart(const float& seconds, const int& myMapIndex)
     {
         return false;
     }
-    float temp;
+    float temp = 1.0f;
     getTimestep(temp, myMapIndex);//convert timestep to seconds
     myMap->m_timeStep = temp;
     myMap->m_timeStepUnits = NIFTI_UNITS_SEC;
@@ -1139,6 +1139,7 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
         if (allNodes)
         {
             tempModel.m_nodeIndices.clear();
+            tempModel.m_indexCount = numberOfNodes;
         } else {
             tempModel.m_indexCount = (unsigned long long)tempModel.m_nodeIndices.size();
         }
