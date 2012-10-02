@@ -150,7 +150,7 @@ void CaretSparseFile::decodeFibers(const uint64_t& coded, FiberFractions& decode
     decoded.totalCount = coded>>32;
     uint32_t temp = coded & ((1LL<<32) - 1);
     const static uint32_t MASK = ((1<<10) - 1);
-    decoded.distance = (temp & MASK) * 0.25f;//TODO: max distance!
+    decoded.distance = (temp & MASK);
     decoded.fiberFractions[1] = ((temp>>10) & MASK) / 1000.0f;
     decoded.fiberFractions[0] = ((temp>>20) & MASK) / 1000.0f;
     decoded.fiberFractions[2] = 1.0f - decoded.fiberFractions[0] - decoded.fiberFractions[1];
@@ -263,7 +263,7 @@ CaretSparseFileWriter::~CaretSparseFileWriter()
 void CaretSparseFileWriter::encodeFibers(const FiberFractions& orig, uint64_t& coded)
 {
     coded = (((uint64_t)orig.totalCount)<<32) | (myclamp(orig.fiberFractions[0] * 1000.0f + 0.5f)<<20) |
-            (myclamp(orig.fiberFractions[1] * 1000.0f + 0.5f)<<10) | (myclamp(orig.distance * 4.0f));//TODO: max distance!
+            (myclamp(orig.fiberFractions[1] * 1000.0f + 0.5f)<<10) | (myclamp(orig.distance));
 }
 
 uint32_t CaretSparseFileWriter::myclamp(const int& x)

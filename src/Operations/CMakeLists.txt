@@ -25,6 +25,7 @@ OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
+OperationConvertMatrix4ToWorkbenchSparse.h
 OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
@@ -45,6 +46,7 @@ OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
+OperationConvertMatrix4ToWorkbenchSparse.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx

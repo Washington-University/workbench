@@ -59,6 +59,7 @@
 #include "OperationCiftiConvertToScalar.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
+#include "OperationConvertMatrix4ToWorkbenchSparse.h"
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFociListCoords.h"
 #include "OperationMetricMask.h"
@@ -153,6 +154,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToWorkbenchSparse()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
