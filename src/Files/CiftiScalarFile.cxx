@@ -32,15 +32,23 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __CIFTI_SCALAR_FILE_DECLARE__
 #include "CiftiScalarFile.h"
 #undef __CIFTI_SCALAR_FILE_DECLARE__
 
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CiftiFile.h"
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
-#include "ConnectivityLoaderFile.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "FastStatistics.h"
+#include "GiftiXmlElements.h"
+#include "Histogram.h"
+#include "NodeAndVoxelColoring.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -58,7 +66,10 @@ using namespace caret;
 CiftiScalarFile::CiftiScalarFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
 {
-    m_ciftiFile = NULL;
+    m_ciftiDiskFile  = NULL;
+    m_ciftiInterface = NULL;
+    m_metadata       = new GiftiMetaData();
+    
     clearPrivate();
     
     EventManager::get()->addEventListener(this,
@@ -72,7 +83,13 @@ CiftiScalarFile::~CiftiScalarFile()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    delete m_ciftiFile;
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        delete m_mapData[i];
+    }
+    m_mapData.clear();
+    
+    delete m_metadata;
 }
 
 /**
@@ -93,11 +110,14 @@ CiftiScalarFile::clear()
 void
 CiftiScalarFile::clearPrivate()
 {
-    if (m_ciftiFile != NULL) {
-        delete m_ciftiFile;
+    if (m_ciftiDiskFile != NULL) {
+        delete m_ciftiDiskFile;
+        m_ciftiDiskFile = NULL;
     }
+    m_ciftiInterface = NULL;
     
-    m_ciftiFile = new ConnectivityLoaderFile();
+    m_metadata->clear();
+    
     m_isSurfaceMappable = false;
     m_isVolumeMappable  = false;
     m_uniqueID = SystemUtilities::createUniqueID();
@@ -113,7 +133,7 @@ CiftiScalarFile::clearPrivate()
 bool
 CiftiScalarFile::isEmpty() const
 {
-    return m_ciftiFile->isEmpty();
+    return m_mapData.empty();
 }
 
 /**
@@ -143,7 +163,7 @@ CiftiScalarFile::setStructure(const StructureEnum::Enum /*structure */)
 GiftiMetaData*
 CiftiScalarFile::getFileMetaData()
 {
-    return m_ciftiFile->getFileMetaData();
+    return m_metadata;
 }
 
 
@@ -153,7 +173,7 @@ CiftiScalarFile::getFileMetaData()
 const GiftiMetaData*
 CiftiScalarFile::getFileMetaData() const
 {
-    return m_ciftiFile->getFileMetaData();
+    return m_metadata;
 }
 
 
@@ -184,7 +204,7 @@ CiftiScalarFile::isVolumeMappable() const
 int32_t
 CiftiScalarFile::getNumberOfMaps() const
 {
-    return 1;
+    return m_mapData.size();
 }
 
 
@@ -197,9 +217,17 @@ CiftiScalarFile::getNumberOfMaps() const
  *    Name of the map.
  */
 AString
-CiftiScalarFile::getMapName(const int32_t /* mapIndex */) const
+CiftiScalarFile::getMapName(const int32_t mapIndex) const
 {
-    return "scalars";
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    
+    AString name = m_mapData[mapIndex]->m_metadata->get(GiftiXmlElements::TAG_METADATA_NAME);
+    if (name.isEmpty()) {
+        name = "scalars";
+    }
+    
+    return name;
 }
 
 
@@ -212,10 +240,14 @@ CiftiScalarFile::getMapName(const int32_t /* mapIndex */) const
  *    New name for the map.
  */
 void
-CiftiScalarFile::setMapName(const int32_t /*mapIndex*/,
-                        const AString& /*mapName*/)
+CiftiScalarFile::setMapName(const int32_t mapIndex,
+                        const AString& mapName)
 {
-    /* nothing */
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    
+    m_mapData[mapIndex]->m_metadata->set(GiftiXmlElements::TAG_METADATA_NAME,
+                                         mapName);
 }
 
 
@@ -228,9 +260,11 @@ CiftiScalarFile::setMapName(const int32_t /*mapIndex*/,
  *    Metadata for the map (const value).
  */
 const GiftiMetaData*
-CiftiScalarFile::getMapMetaData(const int32_t /* mapIndex */) const
+CiftiScalarFile::getMapMetaData(const int32_t mapIndex) const
 {
-    return getFileMetaData();
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    return m_mapData[mapIndex]->m_metadata;
 }
 
 
@@ -243,9 +277,11 @@ CiftiScalarFile::getMapMetaData(const int32_t /* mapIndex */) const
  *    Metadata for the map.
  */
 GiftiMetaData*
-CiftiScalarFile::getMapMetaData(const int32_t /*mapIndex */)
+CiftiScalarFile::getMapMetaData(const int32_t mapIndex)
 {
-    return getFileMetaData();
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    return m_mapData[mapIndex]->m_metadata;
 }
 
 
@@ -258,9 +294,12 @@ CiftiScalarFile::getMapMetaData(const int32_t /*mapIndex */)
  *    String containing UUID for the map.
  */
 AString
-CiftiScalarFile::getMapUniqueID(const int32_t /* mapIndex */) const
+CiftiScalarFile::getMapUniqueID(const int32_t mapIndex) const
 {
-    return m_uniqueID;
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    const AString uuid = m_mapData[mapIndex]->m_metadata->getUniqueID();
+    return uuid;
 }
 
 
@@ -288,7 +327,11 @@ CiftiScalarFile::isMappedWithPalette() const
 const DescriptiveStatistics*
 CiftiScalarFile::getMapStatistics(const int32_t mapIndex)
 {
-    return m_ciftiFile->getMapStatistics(mapIndex);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    m_mapData[mapIndex]->m_descriptiveStatistics->update(m_mapData[mapIndex]->m_data,
+                                                         m_numberOfDataElements);
+    return m_mapData[mapIndex]->m_descriptiveStatistics;
 }
 
 
@@ -305,7 +348,11 @@ CiftiScalarFile::getMapStatistics(const int32_t mapIndex)
 const FastStatistics*
 CiftiScalarFile::getMapFastStatistics(const int32_t mapIndex)
 {
-    return m_ciftiFile->getMapFastStatistics(mapIndex);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    m_mapData[mapIndex]->m_fastStatistics->update(m_mapData[mapIndex]->m_data,
+                                                  m_numberOfDataElements);
+    return m_mapData[mapIndex]->m_fastStatistics;
 }
 
 
@@ -321,7 +368,11 @@ CiftiScalarFile::getMapFastStatistics(const int32_t mapIndex)
 const Histogram*
 CiftiScalarFile::getMapHistogram(const int32_t mapIndex)
 {
-    return m_ciftiFile->getMapHistogram(mapIndex);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    m_mapData[mapIndex]->m_histogram->update(m_mapData[mapIndex]->m_data,
+                                             m_numberOfDataElements);
+    return m_mapData[mapIndex]->m_histogram;
 }
 
 
@@ -343,8 +394,7 @@ CiftiScalarFile::getMapHistogram(const int32_t mapIndex)
  * @param includeZeroValues
  *    If true zero values (very near zero) are included.
  * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
+ *    Descriptive statistics for data.
  */
 const DescriptiveStatistics*
 CiftiScalarFile::getMapStatistics(const int32_t mapIndex,
@@ -354,15 +404,39 @@ CiftiScalarFile::getMapStatistics(const int32_t mapIndex,
                                                       const float mostNegativeValueInclusive,
                                                       const bool includeZeroValues)
 {
-    return m_ciftiFile->getMapStatistics(mapIndex,
-                                         mostPositiveValueInclusive,
-                                         leastPositiveValueInclusive,
-                                         leastNegativeValueInclusive,
-                                         mostNegativeValueInclusive,
-                                         includeZeroValues);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    m_mapData[mapIndex]->m_descriptiveStatistics->update(m_mapData[mapIndex]->m_data,
+                                                         m_numberOfDataElements,
+                                                         mostPositiveValueInclusive,
+                                                         leastPositiveValueInclusive,
+                                                         leastNegativeValueInclusive,
+                                                         mostNegativeValueInclusive,
+                                                         includeZeroValues);
+    return m_mapData[mapIndex]->m_descriptiveStatistics;
 }
 
 
+/**
+ * Get histogram describing the distribution of data
+ * mapped with a color palette at the given index for
+ * data within the given ranges.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Histogram for data.
+ */
 const Histogram*
 CiftiScalarFile::getMapHistogram(const int32_t mapIndex,
                                          const float mostPositiveValueInclusive,
@@ -371,12 +445,16 @@ CiftiScalarFile::getMapHistogram(const int32_t mapIndex,
                                          const float mostNegativeValueInclusive,
                                          const bool includeZeroValues)
 {
-    return m_ciftiFile->getMapHistogram(mapIndex,
-                                         mostPositiveValueInclusive,
-                                         leastPositiveValueInclusive,
-                                         leastNegativeValueInclusive,
-                                         mostNegativeValueInclusive,
-                                         includeZeroValues);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    m_mapData[mapIndex]->m_histogram->update(m_mapData[mapIndex]->m_data,
+                                             m_numberOfDataElements,
+                                             mostPositiveValueInclusive,
+                                             leastPositiveValueInclusive,
+                                             leastNegativeValueInclusive,
+                                             mostNegativeValueInclusive,
+                                             includeZeroValues);
+    return m_mapData[mapIndex]->m_histogram;
 }
 
 
@@ -392,7 +470,9 @@ CiftiScalarFile::getMapHistogram(const int32_t mapIndex,
 PaletteColorMapping*
 CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
-    return m_ciftiFile->getMapPaletteColorMapping(mapIndex);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    return m_mapData[mapIndex]->m_paletteColorMapping;
 }
 
 
@@ -408,7 +488,9 @@ CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex)
 const PaletteColorMapping*
 CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
-    return m_ciftiFile->getMapPaletteColorMapping(mapIndex);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    return m_mapData[mapIndex]->m_paletteColorMapping;
 }
 
 
@@ -432,8 +514,10 @@ CiftiScalarFile::isMappedWithLabelTable() const
  *    Returns NULL since this file does not support label tables.
  */
 GiftiLabelTable*
-CiftiScalarFile::getMapLabelTable(const int32_t /* mapIndex */)
+CiftiScalarFile::getMapLabelTable(const int32_t mapIndex)
 {
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
     return NULL;
 }
 
@@ -447,8 +531,10 @@ CiftiScalarFile::getMapLabelTable(const int32_t /* mapIndex */)
  *    Returns NULL since this file does not support label tables.
  */
 const GiftiLabelTable*
-CiftiScalarFile::getMapLabelTable(const int32_t /* mapIndex */) const
+CiftiScalarFile::getMapLabelTable(const int32_t mapIndex) const
 {
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
     return NULL;
 }
 
@@ -475,18 +561,59 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
                                                float* nodeRGBA,
                                                const int32_t numberOfNodes)
 {
-    if (m_isColoringValid == false) {
-        m_ciftiFile->updateRGBAColoring(palette, mapIndex);
-        m_isColoringValid = true;
-    }
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    MapData* md = m_mapData[mapIndex];
+    std::vector<CiftiSurfaceMap> nodeMap;
     
-    return m_ciftiFile->getSurfaceNodeColoring(structure,
-                                               nodeRGBA,
-                                               numberOfNodes);
+    m_ciftiInterface->getSurfaceMapForColumns(nodeMap,
+                                                  structure);
+    
+    if (nodeMap.empty() == false) {
+        if (m_isColoringValid == false) {
+            const FastStatistics* statistics = getMapFastStatistics(mapIndex);
+            const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(mapIndex);
+            
+            const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+            NodeAndVoxelColoring::colorScalarsWithPalette(md->m_fastStatistics,
+                                                          md->m_paletteColorMapping,
+                                                          palette,
+                                                          md->m_data,
+                                                          md->m_data,
+                                                          m_numberOfDataElements,
+                                                          md->m_dataRGBA);
+            
+            CaretLogFine("Connectivity Data Average/Min/Max: "
+                         + QString::number(statistics->getMean())
+                         + " "
+                         + QString::number(statistics->getMostNegativeValue())
+                         + " "
+                         + QString::number(statistics->getMostPositiveValue()));
+            m_isColoringValid = true;
+        }
+        
+        std::fill(nodeRGBA, (nodeRGBA + (numberOfNodes * 4)), 0.0);
+        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
+        for (int i = 0; i < numNodeMaps; i++) {
+            const int64_t node4 = nodeMap[i].m_surfaceNode * 4;
+            const int64_t cifti4 = nodeMap[i].m_ciftiIndex * 4;
+            CaretAssertArrayIndex(nodeRGBA, (numberOfNodes * 4), node4);
+            CaretAssertArrayIndex(this->dataRGBA, (m_numberOfDataElements * 4), cifti4);
+            nodeRGBA[node4]   = md->m_dataRGBA[cifti4];
+            nodeRGBA[node4+1] = md->m_dataRGBA[cifti4+1];
+            nodeRGBA[node4+2] = md->m_dataRGBA[cifti4+2];
+            nodeRGBA[node4+3] = md->m_dataRGBA[cifti4+3];
+        }
+        return true;
+    }
+
+    return false;
 }
 
 /**
  * Get connectivity value for a voxel at the given coordinate.
+ * @param mapIndex
+ *     Index of map for which data is requested.
  * @param xyz
  *     Coordinate of voxel.
  * @param ijkOut
@@ -497,13 +624,44 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
  *    true if a value was available for the voxel, else false.
  */
 bool
-CiftiScalarFile::getVolumeVoxelValue(const float xyz[3],
+CiftiScalarFile::getVolumeVoxelValue(const int32_t mapIndex,
+                                     const float xyz[3],
                                             int64_t ijkOut[3],
                                             float &valueOut) const
 {
-    return m_ciftiFile->getVolumeVoxelValue(xyz,
-                                            ijkOut,
-                                            valueOut);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    
+    MapData* md = m_mapData[mapIndex];
+    VolumeFile* volumeFile = md->getVolumeFile();
+    if (volumeFile != NULL) {
+        int64_t vfIJK[3];
+        volumeFile->enclosingVoxel(xyz,
+                                   vfIJK);
+        if (volumeFile->indexValid(vfIJK)) {
+            std::vector<CiftiVolumeMap> volumeMap;
+            
+            m_ciftiInterface->getVolumeMapForColumns(volumeMap);
+            
+            const int64_t numMaps = static_cast<int64_t>(volumeMap.size());
+            for (int64_t i = 0; i < numMaps; i++) {
+                if (volumeMap[i].m_ijk[0] == vfIJK[0]
+                    && volumeMap[i].m_ijk[1] == vfIJK[1]
+                    && volumeMap[i].m_ijk[2] == vfIJK[2]) {
+                    CaretAssertArrayIndex(md->m_data,
+                                          m_numberOfDataElements,
+                                          volumeMap[i].m_ciftiIndex);
+                    valueOut = md->m_data[volumeMap[i].m_ciftiIndex];
+                    ijkOut[0] = vfIJK[0];
+                    ijkOut[1] = vfIJK[1];
+                    ijkOut[2] = vfIJK[2];
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
 }
 
 /**
@@ -521,14 +679,37 @@ CiftiScalarFile::getVolumeVoxelValue(const float xyz[3],
  */
 bool
 CiftiScalarFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
-                                            const int nodeIndex,
+                                     const int32_t mapIndex,
+                                            const int32_t nodeIndex,
                                             const int32_t numberOfNodes,
                                             float& valueOut) const
 {
-    return m_ciftiFile->getSurfaceNodeValue(structure,
-                                            nodeIndex,
-                                            numberOfNodes,
-                                            valueOut);
+    CaretAssertVectorIndex(m_mapData,
+                           mapIndex);
+    
+    std::vector<CiftiSurfaceMap> nodeMap;
+    const int numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+    if (numberOfNodes != numCiftiNodes) {
+        return false;
+    }
+    m_ciftiInterface->getSurfaceMapForColumns(nodeMap,
+                                              structure);
+    
+    if (nodeMap.empty() == false) {
+        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
+        for (int i = 0; i < numNodeMaps; i++) {
+            if (nodeMap[i].m_surfaceNode == nodeIndex) {
+                MapData* md = m_mapData[mapIndex];
+                CaretAssertArrayIndex(md->m_data,
+                                      m_numberOfDataElements,
+                                      nodeMap[i].m_ciftiIndex);
+                valueOut = md->m_data[nodeMap[i].m_ciftiIndex];
+                return true;
+            }
+        }
+    }
+    
+    return false;
 }
 
 /**
@@ -542,47 +723,59 @@ CiftiScalarFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
 void
 CiftiScalarFile::readFile(const AString& filename) throw (DataFileException)
 {
-    setFileName("");
+    clear();
     
-    m_isSurfaceMappable = false;
-    m_isVolumeMappable  = false;
-    if (DataFile::isFileOnNetwork(filename)) {
-        m_ciftiFile->setupNetworkFile(filename,
-                                      DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
-                                      CaretDataFile::getFileReadingUsername(),
-                                      CaretDataFile::getFileReadingPassword());
+    try {
+        setFileName("");
+        
+        m_isSurfaceMappable = false;
+        m_isVolumeMappable  = false;
+        
+        m_ciftiDiskFile = new CiftiFile();
+        m_ciftiDiskFile->openFile(filename,
+                                  IN_MEMORY);
+        m_ciftiInterface = m_ciftiDiskFile;
+        
+        m_numberOfDataElements = m_ciftiInterface->getNumberOfRows();
+        if (m_numberOfDataElements < 1) {
+            throw CiftiFileException("Invalid number of rows: "
+                                     + AString::number(m_numberOfDataElements));
+        }
+        const int32_t numMaps = m_ciftiInterface->getNumberOfColumns();
+        if (numMaps < 1) {
+            throw CiftiFileException("Invalid number of columns: "
+                                     + AString::number(numMaps));
+        }
+        
+        for (int32_t i = 0; i < numMaps; i++) {
+            MapData* md = new MapData(m_numberOfDataElements);
+            m_ciftiInterface->getColumn(md->m_data,
+                                        i);
+            md->createVolumeFile(m_ciftiInterface,
+                                 m_numberOfDataElements);
+            m_mapData.push_back(md);
+        }
+        
+        const CiftiXML& xml = m_ciftiInterface->getCiftiXML();
+        
+        std::vector<StructureEnum::Enum> surfaceStructures;
+        std::vector<StructureEnum::Enum> volumeStructures;
+        xml.getStructureListsForColumns(surfaceStructures,
+                                        volumeStructures);
+        
+        m_isSurfaceMappable = (surfaceStructures.empty() == false);
+        m_isVolumeMappable  = (volumeStructures.empty() == false);
+        
+        m_isColoringValid = false;
+        
+        setFileName(filename);
     }
-    else {
-        m_ciftiFile->setupLocalFile(filename,
-                            DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
+    catch (const CiftiFileException& e) {
+        clear();
+        
+        throw DataFileException(e);
     }
     
-    const CiftiXML& xml = m_ciftiFile->ciftiInterface->getCiftiXML();
-    
-    if (xml.getNumberOfColumns() != 1) {
-        m_ciftiFile->clear();
-        throw DataFileException(filename
-                                + " contains "
-                                + AString::number(xml.getNumberOfColumns())
-                                + " but only one column supported at this time.");
-    }
-    if (xml.getNumberOfRows() <= 0) {
-        m_ciftiFile->clear();
-        throw DataFileException(filename
-                                + " contains no columns of data.");
-    }
-    
-    std::vector<StructureEnum::Enum> surfaceStructures;
-    std::vector<StructureEnum::Enum> volumeStructures;
-    xml.getStructureListsForColumns(surfaceStructures,
-                                    volumeStructures);
-    
-    m_isSurfaceMappable = (surfaceStructures.empty() == false);
-    m_isVolumeMappable  = (volumeStructures.empty() == false);
-
-    m_isColoringValid = false;
-    
-    setFileName(filename);
 }
 
 /**
@@ -622,3 +815,136 @@ CiftiScalarFile::receiveEvent(Event* event)
         colorEvent->setEventProcessed();
     }
 }
+
+//=========================================================================
+/*
+ * Map Data.
+ */
+
+/**
+ * Constructor.
+ */
+CiftiScalarFile::MapData::MapData(const int32_t numberOfElements)
+: CaretObject()
+{
+    CaretAssert(numberOfElements > 0);
+    
+    m_data                = new float[numberOfElements];
+    m_dataRGBA            = new float[numberOfElements* 4];
+    m_descriptiveStatistics = new DescriptiveStatistics();
+    m_fastStatistics      = new FastStatistics();
+    m_histogram           = new Histogram();
+    m_metadata            = new GiftiMetaData();
+    m_paletteColorMapping = new PaletteColorMapping();
+    m_volumeFile          = NULL;
+    
+    m_isColoringValid = false;
+}
+
+/**
+ * Destructor.
+ */
+CiftiScalarFile::MapData::~MapData()
+{
+    delete[] m_data;
+    delete[] m_dataRGBA;
+    delete   m_descriptiveStatistics;
+    delete   m_fastStatistics;
+    delete   m_histogram;
+    delete   m_metadata;
+    delete   m_paletteColorMapping;
+    if (m_volumeFile != NULL) {
+        delete m_volumeFile;
+    }
+}
+
+/**
+ * @return Volume file containing connectivity values.
+ */
+VolumeFile*
+CiftiScalarFile::MapData::getVolumeFile()
+{
+    return m_volumeFile;
+}
+
+/**
+ * Create a volume containig the connectivity values.
+ * @param ciftiInterface
+ *    The CIFTI Interface.
+ */
+void
+CiftiScalarFile::MapData::createVolumeFile(CiftiInterface* ciftiInterface,
+                                           const int32_t numberOfDataElements)
+{
+    m_volumeFile = NULL;
+    
+    VolumeFile::OrientTypes orientation[3];
+    int64_t dimensions[3];
+    float origin[3];
+    float spacing[3];
+    if (ciftiInterface->getVolumeAttributesForPlumb(orientation,
+                                                          dimensions,
+                                                          origin,
+                                                          spacing) == false) {
+        return;
+    }
+    
+    if (dimensions[0] <= 0) {
+        return;
+    }
+    vector<int64_t> dimensionsNew;
+    dimensionsNew.push_back(dimensions[0]);
+    dimensionsNew.push_back(dimensions[1]);
+    dimensionsNew.push_back(dimensions[2]);
+    
+    std::vector<float> row1;
+    row1.push_back(spacing[0]);
+    row1.push_back(0.0);
+    row1.push_back(0.0);
+    row1.push_back(origin[0]);
+    
+    std::vector<float> row2;
+    row2.push_back(0.0);
+    row2.push_back(spacing[1]);
+    row2.push_back(0.0);
+    row2.push_back(origin[1]);
+    
+    std::vector<float> row3;
+    row3.push_back(0.0);
+    row3.push_back(0.0);
+    row3.push_back(spacing[2]);
+    row3.push_back(origin[2]);
+    
+    vector<vector<float> > indexToSpace;
+    indexToSpace.push_back(row1);
+    indexToSpace.push_back(row2);
+    indexToSpace.push_back(row3);
+    
+    int64_t numComponents = 1;
+    
+    m_volumeFile = new VolumeFile(dimensionsNew,
+                                  indexToSpace,
+                                  numComponents);
+    
+    std::vector<CiftiVolumeMap> volumeMaps;
+    ciftiInterface->getVolumeMapForColumns(volumeMaps);
+    
+    
+    if (volumeMaps.empty() == false) {
+        m_volumeFile->setValueAllVoxels(0.0);
+        
+        for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+             iter != volumeMaps.end();
+             iter++) {
+            const CiftiVolumeMap& vm = *iter;
+            
+            CaretAssertArrayIndex(m_data,
+                                  numberOfDataElements,
+                                  vm.m_ciftiIndex);
+            m_volumeFile->setValue(m_data[vm.m_ciftiIndex],
+                                   vm.m_ijk);
+        }
+    }    
+}
+
+

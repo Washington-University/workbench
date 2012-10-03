@@ -40,13 +40,8 @@
 
 namespace caret {
 
-    class CiftiFile;
-    class CiftiInterface;
-    class DescriptiveStatistics;
-    class FastStatistics;
-    class Histogram;
+    class ConnectivityLoaderFile;
     class Palette;
-    class VolumeFile;
     
     class CiftiScalarFile : public CaretMappableDataFile, public EventListenerInterface {
         
@@ -128,14 +123,12 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
-        bool getVolumeVoxelValue(const int32_t mapIndex,
-                                 const float xyz[3],
+        bool getVolumeVoxelValue(const float xyz[3],
                                  int64_t ijkOut[3],
                                  float &valueOut) const;
         
         bool getSurfaceNodeValue(const StructureEnum::Enum structure,
-                                 const int32_t mapIndex,
-                                 const int32_t nodeIndex,
+                                 const int nodeIndex,
                                  const int32_t numberOfNodes,
                                  float& valueOut) const;
         
@@ -150,51 +143,10 @@ namespace caret {
 
     private:
 
-        /**
-         * Data for each map.
-         */
-        class MapData : public CaretObject {
-        public:
-            MapData(const int32_t numberOfElements);
-            
-            ~MapData();
-            
-            VolumeFile* getVolumeFile();
-            
-            void createVolumeFile(CiftiInterface* ciftiInterface,
-                                  const int32_t numberOfDataElements);
-            
-            DescriptiveStatistics* m_descriptiveStatistics;
-            
-            FastStatistics* m_fastStatistics;
-            
-            Histogram* m_histogram;
-            
-            PaletteColorMapping* m_paletteColorMapping;
-            
-            mutable GiftiMetaData* m_metadata;
-            
-            float* m_data;
-            
-            float* m_dataRGBA;
-            
-            float m_isColoringValid;
-            
-        private:
-            VolumeFile* m_volumeFile;
-            
-        };
-        
         void clearPrivate();
         
-        CiftiFile* m_ciftiDiskFile;
+        ConnectivityLoaderFile* m_ciftiFile;
         
-        CiftiInterface* m_ciftiInterface;
-        
-        GiftiMetaData* m_metadata;
-        
-        int32_t m_numberOfDataElements;
-
         bool m_isSurfaceMappable;
         
         bool m_isVolumeMappable;
@@ -202,8 +154,6 @@ namespace caret {
         AString m_uniqueID;
         
         bool m_isColoringValid;
-        
-        std::vector<MapData*> m_mapData;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -214,5 +164,4 @@ namespace caret {
 #endif // __CIFTI_SCALAR_FILE_DECLARE__
 
 } // namespace
-
 #endif  //__CIFTI_SCALAR_FILE__H_

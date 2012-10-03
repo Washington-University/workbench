@@ -241,7 +241,8 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
             for (int32_t j = 0; j < numMaps; j++) {
                 float value = 0;
                 int64_t scalarIJK[3];
-                if (csf->getVolumeVoxelValue(xyz,
+                if (csf->getVolumeVoxelValue(j,
+                                             xyz,
                                              scalarIJK,
                                              value)) {
                     AString boldText = ("CONN SCALARS "
@@ -331,6 +332,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
             for (int32_t j = 0; j < numMaps; j++) {
                 float value = 0;
                 if (csf->getSurfaceNodeValue(surface->getStructure(),
+                                             j,
                                              nodeNumber,
                                              surface->getNumberOfNodes(),
                                              value)) {
