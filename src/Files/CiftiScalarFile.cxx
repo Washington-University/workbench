@@ -486,6 +486,52 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
 }
 
 /**
+ * Get connectivity value for a voxel at the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param ijkOut
+ *     Voxel indices of value.
+ * @param valueOut
+ *     Output containing the node's value, value only if true returned.
+ * @return
+ *    true if a value was available for the voxel, else false.
+ */
+bool
+CiftiScalarFile::getVolumeVoxelValue(const float xyz[3],
+                                            int64_t ijkOut[3],
+                                            float &valueOut) const
+{
+    return m_ciftiFile->getVolumeVoxelValue(xyz,
+                                            ijkOut,
+                                            valueOut);
+}
+
+/**
+ * Get connectivity value for a surface's node.
+ * @param structure
+ *     Surface's structure.
+ * @param nodeIndex
+ *     Index of the node
+ * @param numberOfNodes
+ *     Number of nodes in the surface.
+ * @param valueOut
+ *     Output containing the node's value, value only if true returned.
+ * @return
+ *    true if a value was available for the node, else false.
+ */
+bool
+CiftiScalarFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
+                                            const int nodeIndex,
+                                            const int32_t numberOfNodes,
+                                            float& valueOut) const
+{
+    return m_ciftiFile->getSurfaceNodeValue(structure,
+                                            nodeIndex,
+                                            numberOfNodes,
+                                            valueOut);
+}
+
+/**
  * Read the data file.
  *
  * @param filename

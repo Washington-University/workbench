@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
@@ -232,6 +233,32 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                 }
             }
         }
+
+        const int32_t numCiftiScalarFiles = brain->getNumberOfConnectivityDenseScalarFiles();
+        for (int32_t i = 0; i < numCiftiScalarFiles; i++) {
+            const CiftiScalarFile* csf = brain->getConnectivityDenseScalarFile(i);
+            const int numMaps = csf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                float value = 0;
+                int64_t scalarIJK[3];
+                if (csf->getVolumeVoxelValue(xyz,
+                                             scalarIJK,
+                                             value)) {
+                    AString boldText = ("CONN SCALARS "
+                                        + csf->getFileNameNoPath());
+                    boldText += (" IJK ("
+                                 + AString::number(scalarIJK[0])
+                                 + ", "
+                                 + AString::number(scalarIJK[1])
+                                 + ", "
+                                 + AString::number(scalarIJK[2])
+                                 + ")  ");
+                    AString text = AString::number(value);
+                    idText.addLine(true, boldText, text);
+                }
+            }
+        }
+        
     }
     
     return idText.toString();
@@ -293,6 +320,24 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     idText.addLine(true, boldText, text);
                 }
             }
+        }
+        
+        const int32_t numCiftiScalarFiles = brain->getNumberOfConnectivityDenseScalarFiles();
+        for (int32_t i = 0; i < numCiftiScalarFiles; i++) {
+            const CiftiScalarFile* csf = brain->getConnectivityDenseScalarFile(i);
+            AString boldText = "CONN SCALARS " + csf->getFileNameNoPath() + ":";
+            AString text;
+            const int numMaps = csf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                float value = 0;
+                if (csf->getSurfaceNodeValue(surface->getStructure(),
+                                             nodeNumber,
+                                             surface->getNumberOfNodes(),
+                                             value)) {
+                    text += (" " + AString::number(value));
+                }
+            }
+            idText.addLine(true, boldText, text);
         }
         
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();

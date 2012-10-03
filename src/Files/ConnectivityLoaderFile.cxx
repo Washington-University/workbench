@@ -296,7 +296,6 @@ ConnectivityLoaderFile::setup(const AString& path,
                 this->ciftiInterface->getColumn(this->data, 0);
                 this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
             }
-
                 break;
             default:
                 throw DataFileException("Unsupported connectivity type "
@@ -1606,7 +1605,7 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
                     CaretAssert(0);
                     break;
                 case LOADER_TYPE_DENSE_SCALARS:
-                    CaretAssert(0);
+                    useColumnsFlag = true;
                     break;
             }
             
@@ -1697,7 +1696,7 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
             CaretAssert(0);
             break;
         case LOADER_TYPE_DENSE_SCALARS:
-            CaretAssert(0);
+            useColumnsFlag = true;
             break;
     }
     
