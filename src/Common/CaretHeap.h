@@ -285,7 +285,7 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretHeapBase<T, K, C>::reserve(int64_t expectedSize)
     {
-        CaretAssert(expectedSize > 0);
+        if (expectedSize <= 0) return;
         m_heap.reserve(expectedSize);
         m_datastore.reserve(expectedSize);
         m_unusedStore.reserve(expectedSize);//expect them to eventually pop() everything
@@ -387,7 +387,7 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretSimpleHeapBase<T, K, C>::reserve(int64_t expectedSize)
     {
-        CaretAssert(expectedSize > 0);
+        if (expectedSize <= 0) return;
         m_heap.reserve(expectedSize);
     }
     

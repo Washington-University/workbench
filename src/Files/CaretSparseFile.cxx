@@ -98,7 +98,7 @@ CaretSparseFile::~CaretSparseFile()
     if (m_file != NULL) fclose(m_file);
 }
 
-void CaretSparseFile::getRow(int64_t* rowOut, const int64_t& index)
+void CaretSparseFile::getRow(const int64_t& index, int64_t* rowOut)
 {
     CaretAssert(index >= 0 && index < m_dims[1]);
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
@@ -114,7 +114,7 @@ void CaretSparseFile::getRow(int64_t* rowOut, const int64_t& index)
     for (int64_t i = 0; i < numToRead; i += 2)
     {
         int64_t index = m_scratchArray[i];
-        if (index < 0 || index >= m_dims[0]) throw DataFileException("impossible index value found in file");
+        if (index < curIndex || index >= m_dims[0]) throw DataFileException("impossible index value found in file");
         while (curIndex < index)
         {
             rowOut[curIndex] = 0;
@@ -129,10 +129,34 @@ void CaretSparseFile::getRow(int64_t* rowOut, const int64_t& index)
     }
 }
 
-void CaretSparseFile::getFibersRow(FiberFractions* rowOut, const int64_t& index)
+void CaretSparseFile::getRowSparse(const int64_t& index, vector<int64_t>& indicesOut, vector<int64_t>& valuesOut)
+{
+    CaretAssert(index >= 0 && index < m_dims[1]);
+    int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
+    int64_t numToRead = (end - start) * 2, numNonzero = end - start;
+    m_scratchArray.resize(numToRead);
+    if (fseek(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
+    if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_file) != (size_t)numToRead) throw DataFileException("error reading from file");
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
+    }
+    indicesOut.resize(numNonzero);
+    valuesOut.resize(numNonzero);
+    int64_t lastIndex = -1;
+    for (int64_t i = 0; i < numNonzero; ++i)
+    {
+        indicesOut[i] = m_scratchArray[i * 2];
+        valuesOut[i] = m_scratchArray[i * 2 + 1];
+        if (indicesOut[i] <= lastIndex || indicesOut[i] >= m_dims[0]) throw DataFileException("impossible index value found in file");
+        lastIndex = indicesOut[i];
+    }
+}
+
+void CaretSparseFile::getFibersRow(const int64_t& index, FiberFractions* rowOut)
 {
     if (m_scratchRow.size() != (size_t)m_dims[0]) m_scratchRow.resize(m_dims[0]);
-    getRow((int64_t*)m_scratchRow.data(), index);
+    getRow(index, (int64_t*)m_scratchRow.data());
     for (int64_t i = 0; i < m_dims[0]; ++i)
     {
         if (m_scratchRow[i] == 0)
@@ -141,6 +165,17 @@ void CaretSparseFile::getFibersRow(FiberFractions* rowOut, const int64_t& index)
         } else {
              decodeFibers(m_scratchRow[i], rowOut[i]);
         }
+    }
+}
+
+void CaretSparseFile::getFibersRowSparse(const int64_t& index, vector<int64_t>& indicesOut, vector<FiberFractions>& valuesOut)
+{
+    getRowSparse(index, indicesOut, m_scratchSparseRow);
+    size_t numNonzero = m_scratchSparseRow.size();
+    valuesOut.resize(numNonzero);
+    for (size_t i = 0; i < numNonzero; ++i)
+    {
+        decodeFibers(((uint64_t*)m_scratchSparseRow.data())[i], valuesOut[i]);
     }
 }
 
@@ -187,7 +222,7 @@ CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const int6
     m_valuesOffset = 8 + 2 * sizeof(int64_t) + m_dims[1] * sizeof(int64_t);
 }
 
-void CaretSparseFileWriter::writeRow(const int64_t* row, const int64_t& index)
+void CaretSparseFileWriter::writeRow(const int64_t& index, const int64_t* row)
 {
     CaretAssert(index < m_dims[1]);
     CaretAssert(index >= m_nextRowIndex);
@@ -217,7 +252,37 @@ void CaretSparseFileWriter::writeRow(const int64_t* row, const int64_t& index)
     if (m_nextRowIndex == m_dims[1]) finish();
 }
 
-void CaretSparseFileWriter::writeFibersRow(const FiberFractions* row, const int64_t& index)
+void CaretSparseFileWriter::writeRowSparse(const int64_t& index, const vector<int64_t>& indices, const vector<int64_t>& values)
+{
+    CaretAssert(index < m_dims[1]);
+    CaretAssert(index >= m_nextRowIndex);
+    CaretAssert(indices.size() == values.size());
+    while (m_nextRowIndex < index)
+    {
+        m_lengthArray[m_nextRowIndex] = 0;
+        ++m_nextRowIndex;
+    }
+    m_scratchArray.clear();
+    size_t numNonzero = indices.size();//assume no zeros
+    m_lengthArray[index] = numNonzero;
+    int64_t lastIndex = -1;
+    for (size_t i = 0; i < numNonzero; ++i)
+    {
+        if (indices[i] <= lastIndex || indices[i] >= m_dims[0]) throw DataFileException("indices must be sorted when writing sparse rows");
+        lastIndex = indices[i];
+        m_scratchArray.push_back(indices[i]);
+        m_scratchArray.push_back(values[i]);
+    }
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swapBytes(m_scratchArray.data(), m_scratchArray.size());
+    }
+    if (fwrite(m_scratchArray.data(), sizeof(int64_t), m_scratchArray.size(), m_file) != m_scratchArray.size()) throw DataFileException("error writing to file");
+    m_nextRowIndex = index + 1;
+    if (m_nextRowIndex == m_dims[1]) finish();
+}
+
+void CaretSparseFileWriter::writeFibersRow(const int64_t& index, const FiberFractions* row)
 {
     if (m_scratchRow.size() != (size_t)m_dims[0]) m_scratchRow.resize(m_dims[0]);
     for (int64_t i = 0; i < m_dims[0]; ++i)
@@ -229,7 +294,18 @@ void CaretSparseFileWriter::writeFibersRow(const FiberFractions* row, const int6
             encodeFibers(row[i], m_scratchRow[i]);
         }
     }
-    writeRow((int64_t*)m_scratchRow.data(), index);
+    writeRow(index, (int64_t*)m_scratchRow.data());
+}
+
+void CaretSparseFileWriter::writeFibersRowSparse(const int64_t& index, const vector<int64_t>& indices, const vector<FiberFractions>& values)
+{
+    size_t numNonzero = values.size();//assume no zeros
+    m_scratchSparseRow.resize(numNonzero);
+    for (size_t i = 0; i < numNonzero; ++i)
+    {
+        encodeFibers(values[i], ((uint64_t*)m_scratchSparseRow.data())[i]);
+    }
+    writeRowSparse(index, indices, m_scratchSparseRow);
 }
 
 void CaretSparseFileWriter::finish()

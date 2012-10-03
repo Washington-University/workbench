@@ -49,7 +49,7 @@ namespace caret {
         FILE* m_file;
         int64_t m_dims[2], m_valuesOffset;
         std::vector<uint64_t> m_indexArray, m_scratchRow;
-        std::vector<int64_t> m_scratchArray;
+        std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
         CaretSparseFile(const CaretSparseFile& rhs);
         CiftiXML m_xml;
     public:
@@ -66,10 +66,14 @@ namespace caret {
         ///get a reference to the XML data
         const CiftiXML& getCiftiXML() const { return m_xml; }
         
-        void getRow(int64_t* rowOut, const int64_t& index);
+        void getRow(const int64_t& index, int64_t* rowOut);
         
-        void getFibersRow(FiberFractions* rowOut, const int64_t& index);
+        void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<int64_t>& valuesOut);
+
+        void getFibersRow(const int64_t& index, FiberFractions* rowOut);
         
+        void getFibersRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<FiberFractions>& valuesOut);
+
         ~CaretSparseFile();
     };
     
@@ -81,7 +85,7 @@ namespace caret {
         int64_t m_dims[2], m_valuesOffset, m_nextRowIndex;
         bool m_finished;
         std::vector<uint64_t> m_lengthArray, m_scratchRow;
-        std::vector<int64_t> m_scratchArray;
+        std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
         CaretSparseFileWriter(const CaretSparseFileWriter& rhs);
         CiftiXML m_xml;
     public:
@@ -90,10 +94,16 @@ namespace caret {
         ~CaretSparseFileWriter();
         
         ///you must write the rows in order, though you can skip empty rows
-        void writeRow(const int64_t* row, const int64_t& index);
+        void writeRow(const int64_t& index, const int64_t* row);
         
         ///you must write the rows in order, though you can skip empty rows
-        void writeFibersRow(const FiberFractions* row, const int64_t& index);
+        void writeRowSparse(const int64_t& index, const std::vector<int64_t>& indices, const std::vector<int64_t>& values);
+        
+        ///you must write the rows in order, though you can skip empty rows
+        void writeFibersRow(const int64_t& index, const FiberFractions* row);
+        
+        ///you must write the rows in order, though you can skip empty rows
+        void writeFibersRowSparse(const int64_t& index, const std::vector<int64_t>& indices, const std::vector<FiberFractions>& values);
         
         ///call this if no rows remain to be written
         void finish();

@@ -73,7 +73,7 @@ OxfordSparseThreeFile::~OxfordSparseThreeFile()
     if (m_valueFile != NULL) fclose(m_valueFile);
 }
 
-void OxfordSparseThreeFile::getRow(int64_t* rowOut, const int64_t& index)
+void OxfordSparseThreeFile::getRow(const int64_t& index, int64_t* rowOut)
 {
     CaretAssert(index >= 0 && index < m_dims[1]);
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
@@ -89,12 +89,13 @@ void OxfordSparseThreeFile::getRow(int64_t* rowOut, const int64_t& index)
     for (int64_t i = 0; i < numToRead; i += 2)
     {
         int64_t index = m_scratchArray[i];
-        if (index < 0 || index >= m_dims[0]) throw DataFileException("impossible index value found in value file");
+        if (index < curIndex || index >= m_dims[0]) throw DataFileException("impossible index value found in value file");
         while (curIndex < index)
         {
             rowOut[curIndex] = 0;
             ++curIndex;
         }
+        ++curIndex;
         rowOut[index] = m_scratchArray[i + 1];
     }
     while (curIndex < m_dims[0])
@@ -104,10 +105,34 @@ void OxfordSparseThreeFile::getRow(int64_t* rowOut, const int64_t& index)
     }
 }
 
-void OxfordSparseThreeFile::getFibersRow(FiberFractions* rowOut, const int64_t& index)
+void OxfordSparseThreeFile::getRowSparse(const int64_t& index, vector<int64_t>& indicesOut, vector<int64_t>& valuesOut)
+{
+    CaretAssert(index >= 0 && index < m_dims[1]);
+    int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
+    int64_t numToRead = (end - start) * 2, numNonzero = end - start;
+    m_scratchArray.resize(numToRead);
+    if (fseek(m_valueFile, start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in value file");
+    if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_valueFile) != (size_t)numToRead) throw DataFileException("error reading from value file");
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swapBytes(m_scratchArray.data(), numToRead);
+    }
+    indicesOut.resize(numNonzero);
+    valuesOut.resize(numNonzero);
+    int64_t lastIndex = -1;
+    for (int64_t i = 0; i < numNonzero; ++i)
+    {
+        indicesOut[i] = m_scratchArray[i * 2];
+        valuesOut[i] = m_scratchArray[i * 2 + 1];
+        if (indicesOut[i] <= lastIndex || indicesOut[i] >= m_dims[0]) throw DataFileException("impossible index value found in file");
+        lastIndex = indicesOut[i];
+    }
+}
+
+void OxfordSparseThreeFile::getFibersRow(const int64_t& index, FiberFractions* rowOut)
 {
     if (m_scratchRow.size() != (size_t)m_dims[0]) m_scratchRow.resize(m_dims[0]);
-    getRow((int64_t*)m_scratchRow.data(), index);
+    getRow(index, (int64_t*)m_scratchRow.data());
     for (int64_t i = 0; i < m_dims[0]; ++i)
     {
         if (m_scratchRow[i] == 0)
@@ -116,6 +141,17 @@ void OxfordSparseThreeFile::getFibersRow(FiberFractions* rowOut, const int64_t& 
         } else {
             decodeFibers(m_scratchRow[i], rowOut[i]);
         }
+    }
+}
+
+void OxfordSparseThreeFile::getFibersRowSparse(const int64_t& index, vector<int64_t>& indicesOut, vector<FiberFractions>& valuesOut)
+{
+    getRowSparse(index, indicesOut, m_scratchSparseRow);
+    size_t numNonzero = m_scratchSparseRow.size();
+    valuesOut.resize(numNonzero);
+    for (size_t i = 0; i < numNonzero; ++i)
+    {
+        decodeFibers(((uint64_t*)m_scratchSparseRow.data())[i], valuesOut[i]);
     }
 }
 

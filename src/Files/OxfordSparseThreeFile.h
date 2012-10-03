@@ -37,14 +37,16 @@ namespace caret {
         FILE* m_valueFile;//we read the other two into memory, so we only need one handle
         int64_t m_dims[2];
         std::vector<uint64_t> m_indexArray, m_scratchRow;
-        std::vector<int64_t> m_scratchArray;
+        std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
         OxfordSparseThreeFile();
         OxfordSparseThreeFile(const OxfordSparseThreeFile& rhs);
     public:
         const int64_t* getDimensions() { return m_dims; }
         OxfordSparseThreeFile(const AString& dimFileName, const AString& indexFileName, const AString& valueFileName);
-        void getRow(int64_t* rowOut, const int64_t& index);
-        void getFibersRow(FiberFractions* rowOut, const int64_t& index);
+        void getRow(const int64_t& index, int64_t* rowOut);
+        void getRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<int64_t>& valuesOut);
+        void getFibersRow(const int64_t& index, FiberFractions* rowOut);
+        void getFibersRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<FiberFractions>& valuesOut);
         ~OxfordSparseThreeFile();
     };
     

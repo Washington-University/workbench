@@ -25,6 +25,7 @@
 #include "OperationConvertMatrix4ToWorkbenchSparse.h"
 #include "OperationException.h"
 
+#include "CaretHeap.h"
 #include "CaretSparseFile.h"
 #include "OxfordSparseThreeFile.h"
 #include "MetricFile.h"
@@ -162,12 +163,17 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
             ++curCount;
         }
     }
+    vector<int64_t> rowReorder(sparseDims[0], -1);
+    for (int64_t i = 0; i < outDims[0]; ++i)
+    {
+        rowReorder[rowReorderReverse[i]] = i;
+    }
     CaretAssert(curCount == outDims[0]);
-    CaretSparseFileWriter mywriter(outFileName, outDims, myXML);
-    vector<FiberFractions> inRow(sparseDims[0]), outRow(outDims[0]);
+    CaretSparseFileWriter mywriter(outFileName, outDims, myXML);//NOTE: CaretSparseFile has a different encoding of fibers, ALWAYS use getFibersRow, etc
+    /*vector<FiberFractions> inRow(sparseDims[0]), outRow(outDims[0]);//this method scans the full matrix, oblivious to sparseness, so is slow
     for (int64_t i = 0; i < sparseDims[1]; ++i)
     {
-        inFile.getFibersRow(inRow.data(), i);
+        inFile.getFibersRow(i, inRow.data());
         for (int64_t j = 0; j < outDims[0]; ++j)
         {
             if (inRow[rowReorderReverse[j]].totalCount > 0)
@@ -177,7 +183,35 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
                 outRow[j].zero();
             }
         }
-        mywriter.writeFibersRow(outRow.data(), i);
+        mywriter.writeFibersRow(i, outRow.data());
+    }//*/
+    vector<int64_t> indicesIn, indicesOut;//this method knows about sparseness, does sorting of indexes in order to avoid scanning full rows
+    vector<FiberFractions> fibersIn, fibersOut;//can be slower if matrix isn't very sparse, but that is a problem for other reasons anyway
+    CaretMinHeap<FiberFractions, int64_t> myHeap;//use our heap to do heapsort, rather than coding a struct for stl sort
+    for (int64_t i = 0; i < sparseDims[1]; ++i)
+    {
+        inFile.getFibersRowSparse(i, indicesIn, fibersIn);
+        size_t numNonzero = indicesIn.size();
+        myHeap.reserve(numNonzero);
+        for (size_t j = 0; j < numNonzero; ++j)
+        {
+            int64_t newIndex = rowReorder[indicesIn[j]];//reorder
+            if (newIndex != -1)
+            {
+                myHeap.push(fibersIn[j], newIndex);//heapify
+            }
+        }
+        indicesOut.resize(myHeap.size());
+        fibersOut.resize(myHeap.size());
+        int64_t curIndex = 0;
+        while (!myHeap.isEmpty())
+        {
+            int64_t newIndex;
+            fibersOut[curIndex] = myHeap.pop(&newIndex);
+            indicesOut[curIndex] = newIndex;
+            ++curIndex;
+        }
+        mywriter.writeFibersRowSparse(i, indicesOut, fibersOut);
     }
     mywriter.finish();
 }
