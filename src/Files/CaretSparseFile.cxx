@@ -120,6 +120,7 @@ void CaretSparseFile::getRow(const int64_t& index, int64_t* rowOut)
             rowOut[curIndex] = 0;
             ++curIndex;
         }
+        ++curIndex;
         rowOut[index] = m_scratchArray[i + 1];
     }
     while (curIndex < m_dims[0])
