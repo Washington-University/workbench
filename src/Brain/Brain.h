@@ -435,10 +435,6 @@ namespace caret {
         /** true when a spec file is being read */
         bool m_isSpecFileBeingRead;
         
-        AString m_fileReadingUsername;
-        
-        AString m_fileReadingPassword;
-        
         SceneClassAssistant* m_sceneAssistant;
         
         /** Identification manager */

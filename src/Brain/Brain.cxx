@@ -124,8 +124,6 @@ Brain::Brain()
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
     m_isSpecFileBeingRead = false;
-    m_fileReadingUsername = "";
-    m_fileReadingPassword = "";
     
     m_sceneAssistant = new SceneClassAssistant();
     
@@ -857,8 +855,8 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_DENSE,
-                                  m_fileReadingUsername,
-                                  m_fileReadingPassword);
+                                  CaretDataFile::getFileReadingUsername(),
+                                  CaretDataFile::getFileReadingPassword());
         }
         else {
             clf->setupLocalFile(filename, 
@@ -892,8 +890,8 @@ Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileEx
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
-                                  m_fileReadingUsername,
-                                  m_fileReadingPassword);
+                                  CaretDataFile::getFileReadingUsername(),
+                                  CaretDataFile::getFileReadingPassword());
         }
         else {
             clf->setupLocalFile(filename,
@@ -963,8 +961,8 @@ Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (Data
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
-                                  m_fileReadingUsername,
-                                  m_fileReadingPassword);
+                                  CaretDataFile::getFileReadingUsername(),
+                                  CaretDataFile::getFileReadingPassword());
         }
         else {
             clf->setupLocalFile(filename,
@@ -998,8 +996,8 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
         if (DataFile::isFileOnNetwork(filename)) {
             clf->setupNetworkFile(filename,
                                   DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
-                                  m_fileReadingUsername,
-                                  m_fileReadingPassword);
+                                  CaretDataFile::getFileReadingUsername(),
+                                  CaretDataFile::getFileReadingPassword());
         }
         else {
             clf->setupLocalFile(filename, 
@@ -1921,8 +1919,8 @@ Brain::updateSurfaceMontageController()
 void 
 Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 {
-    m_fileReadingUsername = readDataFileEvent->getUsername();
-    m_fileReadingPassword = readDataFileEvent->getPassword();
+    CaretDataFile::setFileReadingUsernameAndPassword(readDataFileEvent->getUsername(),
+                                                     readDataFileEvent->getPassword());
     
     const AString filename = readDataFileEvent->getDataFileName();
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
@@ -1939,8 +1937,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
     }    
     
-    m_fileReadingUsername = "";
-    m_fileReadingPassword = "";
+    CaretDataFile::setFileReadingUsernameAndPassword("",
+                                                     "");
 }
 
 /**
@@ -2109,9 +2107,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     m_isSpecFileBeingRead = true;
     
-    m_fileReadingUsername = readSpecFileDataFilesEvent->getUsername();
-    m_fileReadingPassword = readSpecFileDataFilesEvent->getPassword();
-    
+    CaretDataFile::setFileReadingUsernameAndPassword(readSpecFileDataFilesEvent->getUsername(),
+                                                     readSpecFileDataFilesEvent->getPassword());
+
     FileInformation fileInfo(sf->getFileName());
     setCurrentDirectory(fileInfo.getPathName());
     
@@ -2211,8 +2209,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                  + " seconds.");
     
     m_isSpecFileBeingRead = false;
-    m_fileReadingUsername = "";
-    m_fileReadingPassword = "";
+    
+    CaretDataFile::setFileReadingUsernameAndPassword("",
+                                                     "");
 }
 
 /**

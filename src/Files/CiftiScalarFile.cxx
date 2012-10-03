@@ -548,11 +548,9 @@ CiftiScalarFile::readFile(const AString& filename) throw (DataFileException)
     m_isVolumeMappable  = false;
     if (DataFile::isFileOnNetwork(filename)) {
         m_ciftiFile->setupNetworkFile(filename,
-                              DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
-                                      "",
-                                      "");
-//                              m_fileReadingUsername,
-//                              m_fileReadingPassword);
+                                      DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+                                      CaretDataFile::getFileReadingUsername(),
+                                      CaretDataFile::getFileReadingPassword());
     }
     else {
         m_ciftiFile->setupLocalFile(filename,
