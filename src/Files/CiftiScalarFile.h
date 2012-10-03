@@ -36,18 +36,21 @@
 
 
 #include "CaretMappableDataFile.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
 
     class ConnectivityLoaderFile;
     class Palette;
     
-    class CiftiScalarFile : public CaretMappableDataFile {
+    class CiftiScalarFile : public CaretMappableDataFile, public EventListenerInterface {
         
     public:
         CiftiScalarFile();
         
         virtual ~CiftiScalarFile();
+        
+        void receiveEvent(Event* event);
         
         /**
          * Is the file empty (contains no data)?
@@ -56,6 +59,8 @@ namespace caret {
          *    true if the file is empty, else false.
          */
         virtual bool isEmpty() const;
+        
+        virtual void clear();
         
         /**
          * Read the data file.
@@ -290,6 +295,8 @@ namespace caret {
 
     private:
 
+        void clearPrivate();
+        
         ConnectivityLoaderFile* m_ciftiFile;
         
         bool m_isSurfaceMappable;
@@ -297,6 +304,8 @@ namespace caret {
         bool m_isVolumeMappable;
         
         AString m_uniqueID;
+        
+        bool m_isColoringValid;
         
         // ADD_NEW_MEMBERS_HERE
 

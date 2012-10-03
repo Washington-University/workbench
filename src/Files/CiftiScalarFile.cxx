@@ -39,6 +39,8 @@
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "ConnectivityLoaderFile.h"
+#include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -56,10 +58,11 @@ using namespace caret;
 CiftiScalarFile::CiftiScalarFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
 {
-    m_ciftiFile = new ConnectivityLoaderFile();
-    m_isSurfaceMappable = false;
-    m_isVolumeMappable  = false;
-    m_uniqueID = SystemUtilities::createUniqueID();
+    m_ciftiFile = NULL;
+    clearPrivate();
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -67,7 +70,38 @@ CiftiScalarFile::CiftiScalarFile()
  */
 CiftiScalarFile::~CiftiScalarFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     delete m_ciftiFile;
+}
+
+/**
+ * Clear the file.
+ */
+void
+CiftiScalarFile::clear()
+{
+    CaretMappableDataFile::clear();
+    clearPrivate();
+    
+}
+
+/**
+ * Clear the data (note that clear() is virtual so cannot
+ * be called from constructor/destructor).
+ */
+void
+CiftiScalarFile::clearPrivate()
+{
+    if (m_ciftiFile != NULL) {
+        delete m_ciftiFile;
+    }
+    
+    m_ciftiFile = new ConnectivityLoaderFile();
+    m_isSurfaceMappable = false;
+    m_isVolumeMappable  = false;
+    m_uniqueID = SystemUtilities::createUniqueID();
+    m_isColoringValid = false;
 }
 
 /**
@@ -441,7 +475,10 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
                                                float* nodeRGBA,
                                                const int32_t numberOfNodes)
 {
-    m_ciftiFile->updateRGBAColoring(palette, mapIndex);
+    if (m_isColoringValid == false) {
+        m_ciftiFile->updateRGBAColoring(palette, mapIndex);
+        m_isColoringValid = true;
+    }
     
     return m_ciftiFile->getSurfaceNodeColoring(structure,
                                                nodeRGBA,
@@ -459,6 +496,8 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
 void
 CiftiScalarFile::readFile(const AString& filename) throw (DataFileException)
 {
+    setFileName("");
+    
     m_isSurfaceMappable = false;
     m_isVolumeMappable  = false;
     if (DataFile::isFileOnNetwork(filename)) {
@@ -496,6 +535,10 @@ CiftiScalarFile::readFile(const AString& filename) throw (DataFileException)
     
     m_isSurfaceMappable = (surfaceStructures.empty() == false);
     m_isVolumeMappable  = (volumeStructures.empty() == false);
+
+    m_isColoringValid = false;
+    
+    setFileName(filename);
 }
 
 /**
@@ -513,6 +556,25 @@ CiftiScalarFile::writeFile(const AString& filename) throw (DataFileException)
                             + filename
                             + " not supported for file type "
                             + DataFileTypeEnum::toGuiName(getDataFileType()));
+    this->setFileName(filename);
 }
 
-
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   The event.
+ */
+void
+CiftiScalarFile::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* colorEvent =
+             dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(colorEvent);
+        
+        m_isColoringValid = false;
+        
+        colorEvent->setEventProcessed();
+    }
+}
