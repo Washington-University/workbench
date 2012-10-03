@@ -291,30 +291,41 @@ ConnectivityLoaderManager::colorConnectivityData()
         ConnectivityLoaderFile* clf = *iter;
         
         if (clf->isEmpty() == false) {
-            const float* data = clf->getData();
-            float* dataRGBA = clf->getDataRGBA();
-            const int32_t dataSize = clf->getNumberOfDataElements();
-            const FastStatistics* statistics = clf->getMapFastStatistics(0);
             const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
             
             const AString paletteName = paletteColorMapping->getSelectedPaletteName();
             Palette* palette = m_brain->getPaletteFile()->getPaletteByName(paletteName);
             if (palette != NULL) {
-                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
-                                                              paletteColorMapping, 
-                                                              palette, 
-                                                              data, 
-                                                              data, 
-                                                              dataSize, 
-                                                              dataRGBA);
-                
-                CaretLogFine("Connectivity Data Average/Min/Max: "
-                             + QString::number(statistics->getMean())
-                             + " "
-                             + QString::number(statistics->getMostNegativeValue())
-                             + " "
-                             + QString::number(statistics->getMostPositiveValue()));
-            }            
+                clf->updateRGBAColoring(palette, 0);
+            }
+//           
+//            
+//            
+//            
+//            const float* data = clf->getData();
+//            float* dataRGBA = clf->getDataRGBA();
+//            const int32_t dataSize = clf->getNumberOfDataElements();
+//            const FastStatistics* statistics = clf->getMapFastStatistics(0);
+//            const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
+//            
+//            const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+//            Palette* palette = m_brain->getPaletteFile()->getPaletteByName(paletteName);
+//            if (palette != NULL) {
+//                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+//                                                              paletteColorMapping, 
+//                                                              palette, 
+//                                                              data, 
+//                                                              data, 
+//                                                              dataSize, 
+//                                                              dataRGBA);
+//                
+//                CaretLogFine("Connectivity Data Average/Min/Max: "
+//                             + QString::number(statistics->getMean())
+//                             + " "
+//                             + QString::number(statistics->getMostNegativeValue())
+//                             + " "
+//                             + QString::number(statistics->getMostPositiveValue()));
+//            }            
         }
     }
 }

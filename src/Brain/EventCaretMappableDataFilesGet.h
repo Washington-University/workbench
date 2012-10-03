@@ -30,6 +30,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class CiftiScalarFile;
     class ConnectivityLoaderFile;
     class LabelFile;
     class MetricFile;
@@ -60,6 +61,8 @@ namespace caret {
         /** @return Returns the connectivity loader files. */
         std::vector<ConnectivityLoaderFile*> getConnectivityLoaderFiles() const { return this->connectivityLoaderFiles; }
         
+        std::vector<CiftiScalarFile*> getCiftiScalarFiles() const { return this->ciftiScalarFiles; }
+        
         /** @return Returns the label files. */
         std::vector<LabelFile*> getLabelFiles() const { return this->labelFiles; }
         
@@ -81,6 +84,8 @@ namespace caret {
         
         const Surface* surface;
         
+        std::vector<CiftiScalarFile*> ciftiScalarFiles;
+            
         std::vector<ConnectivityLoaderFile*> connectivityLoaderFiles;
         
         std::vector<LabelFile*> labelFiles;

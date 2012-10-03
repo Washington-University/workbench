@@ -111,7 +111,6 @@ ModelVolume.h
 ModelVolumeInterface.h
 ModelWholeBrain.h
 ModelYokingGroup.h
-NodeAndVoxelColoring.h
 NodeIdentificationTypeEnum.h
 Overlay.h
 OverlaySet.h
@@ -189,7 +188,6 @@ ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
 ModelYokingGroup.cxx
-NodeAndVoxelColoring.cxx
 NodeIdentificationTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx

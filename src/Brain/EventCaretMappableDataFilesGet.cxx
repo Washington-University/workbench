@@ -26,6 +26,8 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+
+#include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "LabelFile.h"
@@ -76,11 +78,18 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
         return;
     }
     
+    CiftiScalarFile* csf = dynamic_cast<CiftiScalarFile*>(mapDataFile);
+    if (csf != NULL) {
+        this->ciftiScalarFiles.push_back(csf);
+        return;
+    }
+    
     ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(mapDataFile);
     if (clf != NULL) {
         this->connectivityLoaderFiles.push_back(clf);
         return;
     }
+    
     LabelFile* lf = dynamic_cast<LabelFile*>(mapDataFile);
     if (lf != NULL) {
         this->labelFiles.push_back(lf);
@@ -120,9 +129,12 @@ EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>&
     allFilesOut.clear();
     
     allFilesOut.insert(allFilesOut.end(), 
-                       this->connectivityLoaderFiles.begin(), 
+                       this->ciftiScalarFiles.begin(), 
+                       this->ciftiScalarFiles.end());
+    allFilesOut.insert(allFilesOut.end(),
+                       this->connectivityLoaderFiles.begin(),
                        this->connectivityLoaderFiles.end());
-    allFilesOut.insert(allFilesOut.end(), 
+    allFilesOut.insert(allFilesOut.end(),
                        this->labelFiles.begin(), 
                        this->labelFiles.end());
     allFilesOut.insert(allFilesOut.end(), 

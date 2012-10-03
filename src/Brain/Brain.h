@@ -43,6 +43,7 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiScalarFile;
     class ConnectivityLoaderFile;
     class ConnectivityLoaderManager;
     class DisplayProperties;
@@ -200,11 +201,11 @@ namespace caret {
         
         int32_t getNumberOfConnectivityDenseScalarFiles() const;
         
-        ConnectivityLoaderFile* getConnectivityDenseScalarFile(int32_t indx);
+        CiftiScalarFile* getConnectivityDenseScalarFile(int32_t indx);
         
-        const ConnectivityLoaderFile* getConnectivityDenseScalarFile(int32_t indx) const;
+        const CiftiScalarFile* getConnectivityDenseScalarFile(int32_t indx) const;
         
-        void getConnectivityDenseScalarFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseScalarFilesOut) const;
+        void getConnectivityDenseScalarFiles(std::vector<CiftiScalarFile*>& connectivityDenseScalarFilesOut) const;
         
         int32_t getNumberOfConnectivityFiberOrientationFiles() const;
         
@@ -366,7 +367,7 @@ namespace caret {
         
         std::vector<ConnectivityLoaderFile*> m_connectivityDenseLabelFiles;
         
-        std::vector<ConnectivityLoaderFile*> m_connectivityDenseScalarFiles;
+        std::vector<CiftiScalarFile*> m_connectivityDenseScalarFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityFiberOrientationFiles;
         

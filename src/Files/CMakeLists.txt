@@ -28,6 +28,7 @@ CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 CiftiFiberOrientationAdapter.h
+CiftiScalarFile.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
@@ -48,6 +49,7 @@ ImageFile.h
 LabelFile.h
 MetricFile.h
 MetricSmoothingObject.h
+NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
 RgbaFile.h
@@ -86,6 +88,7 @@ CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 CiftiFiberOrientationAdapter.cxx
+CiftiScalarFile.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
@@ -105,6 +108,7 @@ ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
+NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 RgbaFile.cxx

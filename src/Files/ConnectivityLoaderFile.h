@@ -39,6 +39,8 @@ namespace caret {
     class CiftiXnat;
     class CiftiInterface;
     class CiftiFiberOrientationAdapter;
+    class CiftiScalarFile;
+    class Palette;
     class SurfaceFile;
     class VolumeFile;
     
@@ -174,6 +176,9 @@ namespace caret {
         
         float* getDataRGBA();
         
+        void updateRGBAColoring(const Palette* palette,
+                                const int32_t mapIndex);
+        
         bool getVolumeVoxelValue(const float xyz[3],
                                  int64_t ijkOut[3],
                                  float &valueOut) const;
@@ -275,6 +280,7 @@ namespace caret {
         
         float* data;
         float* dataRGBA;
+        
         int32_t numberOfDataElements;
         
         VolumeFile* connectivityVolumeFile;
@@ -298,6 +304,7 @@ namespace caret {
         CiftiFiberOrientationAdapter* m_fiberOrientationAdapter;
         
         friend class CiftiFiberOrientationAdapter;
+        friend class CiftiScalarFile;
     };
     
 } // namespace

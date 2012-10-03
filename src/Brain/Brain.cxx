@@ -34,6 +34,7 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
@@ -340,10 +341,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseLabelFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
+    for (std::vector<CiftiScalarFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
          clfi != m_connectivityDenseScalarFiles.end();
          clfi++) {
-        ConnectivityLoaderFile* clf = *clfi;
+        CiftiScalarFile* clf = *clfi;
         delete clf;
     }
     m_connectivityDenseScalarFiles.clear();
@@ -920,21 +921,22 @@ Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileEx
 void
 Brain::readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException)
 {
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    CiftiScalarFile* clf = new CiftiScalarFile();
     
     try {
-        if (DataFile::isFileOnNetwork(filename)) {
-            clf->setupNetworkFile(filename,
-                                  DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
-                                  m_fileReadingUsername,
-                                  m_fileReadingPassword);
-        }
-        else {
-            clf->setupLocalFile(filename,
-                                DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
-        }
+        clf->readFile(filename);
+//        if (DataFile::isFileOnNetwork(filename)) {
+//            clf->setupNetworkFile(filename,
+//                                  DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+//                                  m_fileReadingUsername,
+//                                  m_fileReadingPassword);
+//        }
+//        else {
+//            clf->setupLocalFile(filename,
+//                                DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
+//        }
         
-        validateConnectivityFile(clf);
+        //validateConnectivityFile(clf);
     }
     catch (const DataFileException& dfe) {
         delete clf;
@@ -1102,9 +1104,9 @@ Brain::getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        m_connectivityDenseLabelFiles.begin(),
                                        m_connectivityDenseLabelFiles.end());
-    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       m_connectivityDenseScalarFiles.begin(),
-                                       m_connectivityDenseScalarFiles.end());
+//    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
+//                                       m_connectivityDenseScalarFiles.begin(),
+//                                       m_connectivityDenseScalarFiles.end());
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        m_connectivityTimeSeriesFiles.begin(),
                                        m_connectivityTimeSeriesFiles.end());
@@ -1217,7 +1219,7 @@ Brain::getNumberOfConnectivityDenseScalarFiles() const
  *    Index of file.
  * @return Conectivity dense scalar file at index.
  */
-ConnectivityLoaderFile*
+CiftiScalarFile*
 Brain::getConnectivityDenseScalarFile(int32_t indx)
 {
     CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
@@ -1230,7 +1232,7 @@ Brain::getConnectivityDenseScalarFile(int32_t indx)
  *    Index of file.
  * @return Conectivity dense scalar file at index.
  */
-const ConnectivityLoaderFile*
+const CiftiScalarFile*
 Brain::getConnectivityDenseScalarFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
@@ -1243,7 +1245,7 @@ Brain::getConnectivityDenseScalarFile(int32_t indx) const
  *   Contains all connectivity dense files on exit.
  */
 void
-Brain::getConnectivityDenseScalarFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseScalarFilesOut) const
+Brain::getConnectivityDenseScalarFiles(std::vector<CiftiScalarFile*>& connectivityDenseScalarFilesOut) const
 {
     connectivityDenseScalarFilesOut = m_connectivityDenseScalarFiles;
 }
@@ -2462,7 +2464,7 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<ConnectivityLoaderFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
+        for (std::vector<CiftiScalarFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
              icf != m_connectivityDenseScalarFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
@@ -2858,11 +2860,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
     
-    std::vector<ConnectivityLoaderFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
+    std::vector<CiftiScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
                                                                             m_connectivityDenseScalarFiles.end(),
                                                                             caretDataFile);
     if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
-        ConnectivityLoaderFile* connFile = *connScalarIterator;
+        CiftiScalarFile* connFile = *connScalarIterator;
         delete connFile;
         m_connectivityDenseScalarFiles.erase(connScalarIterator);
         wasRemoved = true;

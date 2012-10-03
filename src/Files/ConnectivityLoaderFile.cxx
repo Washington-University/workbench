@@ -29,14 +29,15 @@
 #include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "CiftiXnat.h"
+#include "CiftiFiberOrientationAdapter.h"
+#include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
-#include "ConnectivityLoaderFile.h"
-#include "CiftiFiberOrientationAdapter.h"
+#include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
@@ -289,6 +290,13 @@ ConnectivityLoaderFile::setup(const AString& path,
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                this->allocateData(num);
+                this->ciftiInterface->getColumn(this->data, 0);
+                this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+            }
+
                 break;
             default:
                 throw DataFileException("Unsupported connectivity type "
@@ -1508,6 +1516,37 @@ ConnectivityLoaderFile::getDataRGBA()
 }
 
 /**
+ * Assign the RGBA coloring.
+ * @param palette
+ *    Palette used to color data.
+ * @param mapIndex
+ *    Index of map being updated.
+ */
+void 
+ConnectivityLoaderFile::updateRGBAColoring(const Palette* palette,
+                                           const int32_t mapIndex)
+{
+        const FastStatistics* statistics = getMapFastStatistics(mapIndex);
+        const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(mapIndex);
+        
+        const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                          paletteColorMapping,
+                                                          palette,
+                                                          data,
+                                                          data,
+                                                          this->numberOfDataElements,
+                                                          dataRGBA);
+            
+            CaretLogFine("Connectivity Data Average/Min/Max: "
+                         + QString::number(statistics->getMean())
+                         + " "
+                         + QString::number(statistics->getMostNegativeValue())
+                         + " "
+                         + QString::number(statistics->getMostPositiveValue()));
+}
+
+/**
  * Get connectivity value for a voxel at the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
@@ -1749,7 +1788,7 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
             CaretAssert(0);
             break;
         case LOADER_TYPE_DENSE_SCALARS:
-            CaretAssert(0);
+            useColumnsFlag = true;
             break;
     }
     
