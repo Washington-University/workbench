@@ -25,6 +25,7 @@
 #include "GiftiLabel.h"
 #include "GiftiMetaData.h"
 #include "Palette.h"
+#include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 
@@ -1071,5 +1072,218 @@ const GiftiMetaData*
 PaletteFile::getFileMetaData() const
 {
     return this->metadata;
+}
+
+/**
+ * Set the palette mapping based upon the given file type,
+ * file name, data name, and data.
+ *
+ * @param paletteColorMapping
+ *    Palette color mapping that is setup.
+ * @param dataFileType
+ *    Type of data file.
+ * @param fileName
+ *    Name of file.
+ * @param dataName
+ *    Name of data.
+ * @param data
+ *    The data.
+ * @param numberOfDataElements
+ *    Number of elements in data.
+ */
+void
+PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapping,
+                                           const DataFileTypeEnum::Enum& dataFileType,
+                                           const AString& fileNameIn,
+                                           const AString& dataNameIn,
+                                           const float* data,
+                                           const int32_t numberOfDataElements)
+{
+    bool isShapeCurvatureData = false;
+    bool isShapeDepthData = false;
+    bool isShapeData = false;
+    bool isVolumeAnatomyData = false;
+    
+    const AString fileName = fileNameIn.toLower();
+    const AString dataName = dataNameIn.toLower();
+    
+    bool invalid = false;
+    bool checkShapeFile = false;
+    bool checkVolume = false;
+    switch (dataFileType) {
+        case DataFileTypeEnum::BORDER:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            checkShapeFile = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::FOCI:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::LABEL:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::METRIC:
+            checkShapeFile = true;
+            break;
+        case DataFileTypeEnum::PALETTE:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::RGBA:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::SCENE:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::SURFACE:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            invalid = true;
+            break;
+        case DataFileTypeEnum::VOLUME:
+            checkVolume = true;
+            break;
+    }
+    
+    if (invalid) {
+        return;
+    }
+    
+    if (checkShapeFile) {
+        if (dataName.contains("curv")) {
+            isShapeData = true;
+            isShapeCurvatureData = true;
+        }
+        else if (dataName.contains("depth")) {
+            isShapeData = true;
+            isShapeDepthData = true;
+        }
+        else if (dataName.contains("shape")) {
+            isShapeData = true;
+        }
+        else if (fileName.contains("curv")) {
+            isShapeData = true;
+            isShapeCurvatureData = true;
+        }
+        else if (fileName.contains("depth")) {
+            isShapeData = true;
+            isShapeDepthData = true;
+        }
+        else if (fileName.contains("shape")) {
+            isShapeData = true;
+        }
+    }
+    
+    float minValue = std::numeric_limits<float>::max();
+    float maxValue = -minValue;
+    
+    for (int32_t i = 0; i < numberOfDataElements; i++) {
+        const float d = data[i];
+        if (d > maxValue) {
+            maxValue = d;
+        }
+        if (d < minValue) {
+            minValue = d;
+        }
+    }
+    bool havePositiveData = (maxValue > 0);
+    bool haveNegativeData = (minValue < 0);
+    
+    if (checkVolume) {
+        if ((minValue >= 0)
+            && (maxValue <= 255.0)) {
+            isVolumeAnatomyData = true;
+        }
+    }
+    
+    if (isVolumeAnatomyData) {
+        paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+        paletteColorMapping->setSelectedPaletteName("Gray_Interp_Positive");
+        paletteColorMapping->setInterpolatePaletteFlag(true);
+        paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+        paletteColorMapping->setAutoScalePercentageNegativeMaximum(98.0);
+        paletteColorMapping->setAutoScalePercentageNegativeMinimum(2.0);
+        paletteColorMapping->setAutoScalePercentagePositiveMinimum(2.0);
+        paletteColorMapping->setAutoScalePercentagePositiveMaximum(98.0);
+    }
+    else if (isShapeData) {
+        paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+        paletteColorMapping->setSelectedPaletteName("Gray_Interp");
+        paletteColorMapping->setInterpolatePaletteFlag(true);
+        if (isShapeDepthData) {
+            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_USER_SCALE);
+            paletteColorMapping->setUserScaleNegativeMaximum(-30.0);
+            paletteColorMapping->setUserScaleNegativeMinimum(0.0);
+            paletteColorMapping->setUserScalePositiveMinimum(0.0);
+            paletteColorMapping->setUserScalePositiveMaximum(10.0);
+        }
+        else if (isShapeCurvatureData) {
+//            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_USER_SCALE);
+//            paletteColorMapping->setUserScaleNegativeMaximum(-1.5);
+//            paletteColorMapping->setUserScaleNegativeMinimum(0.0);
+//            paletteColorMapping->setUserScalePositiveMinimum(0.0);
+//            paletteColorMapping->setUserScalePositiveMaximum(1.5);
+            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            paletteColorMapping->setAutoScalePercentageNegativeMaximum(98.0);
+            paletteColorMapping->setAutoScalePercentageNegativeMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMaximum(98.0);
+        }
+        else {
+            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            paletteColorMapping->setAutoScalePercentageNegativeMaximum(98.0);
+            paletteColorMapping->setAutoScalePercentageNegativeMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMaximum(98.0);
+        }
+        paletteColorMapping->setDisplayNegativeDataFlag(true);
+        paletteColorMapping->setDisplayPositiveDataFlag(true);
+        paletteColorMapping->setDisplayZeroDataFlag(true);
+    }
+    else {
+        if (haveNegativeData) {
+            paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+            paletteColorMapping->setSelectedPaletteName("videen-style");
+            paletteColorMapping->setSelectedPaletteName("ROY-BIG-BL");
+            paletteColorMapping->setInterpolatePaletteFlag(true);
+            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            paletteColorMapping->setAutoScalePercentageNegativeMaximum(98.0);
+            paletteColorMapping->setAutoScalePercentageNegativeMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMaximum(98.0);
+            paletteColorMapping->setDisplayNegativeDataFlag(true);
+            paletteColorMapping->setDisplayPositiveDataFlag(true);
+            paletteColorMapping->setDisplayZeroDataFlag(false);
+        }
+        else {
+            paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+            paletteColorMapping->setSelectedPaletteName("videen-style");
+            paletteColorMapping->setSelectedPaletteName("ROY-BIG-BL");
+            paletteColorMapping->setInterpolatePaletteFlag(true);
+            paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            paletteColorMapping->setAutoScalePercentageNegativeMaximum(98.0);
+            paletteColorMapping->setAutoScalePercentageNegativeMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMinimum(2.0);
+            paletteColorMapping->setAutoScalePercentagePositiveMaximum(98.0);
+            paletteColorMapping->setDisplayNegativeDataFlag(true);
+            paletteColorMapping->setDisplayPositiveDataFlag(true);
+            paletteColorMapping->setDisplayZeroDataFlag(false);
+        }
+    }
+    paletteColorMapping->clearModified();
 }
 

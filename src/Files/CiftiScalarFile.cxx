@@ -46,9 +46,11 @@
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "FastStatistics.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
+#include "PaletteFile.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -222,7 +224,7 @@ CiftiScalarFile::getMapName(const int32_t mapIndex) const
     CaretAssertVectorIndex(m_mapData,
                            mapIndex);
     
-    AString name = m_mapData[mapIndex]->m_metadata->get(GiftiXmlElements::TAG_METADATA_NAME);
+    AString name = m_mapData[mapIndex]->m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_NAME);
     if (name.isEmpty()) {
         name = "scalars";
     }
@@ -246,7 +248,7 @@ CiftiScalarFile::setMapName(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapData,
                            mapIndex);
     
-    m_mapData[mapIndex]->m_metadata->set(GiftiXmlElements::TAG_METADATA_NAME,
+    m_mapData[mapIndex]->m_metadata->set(GiftiMetaDataXmlElements::METADATA_NAME_NAME,
                                          mapName);
 }
 
@@ -751,8 +753,12 @@ CiftiScalarFile::readFile(const AString& filename) throw (DataFileException)
             MapData* md = new MapData(m_numberOfDataElements);
             m_ciftiInterface->getColumn(md->m_data,
                                         i);
+            md->initializeMetaData(filename,
+                                   m_numberOfDataElements);
+            
             md->createVolumeFile(m_ciftiInterface,
                                  m_numberOfDataElements);
+            
             m_mapData.push_back(md);
         }
         
@@ -947,4 +953,46 @@ CiftiScalarFile::MapData::createVolumeFile(CiftiInterface* ciftiInterface,
     }    
 }
 
+/**
+ * Initialize map metadata.
+ * @param fileName
+ *    Name of file containing map.
+ * @param numberOfDataElements
+ *    Number of elements in the data.
+ */
+void
+CiftiScalarFile::MapData::initializeMetaData(const AString& fileName,
+                                            const int32_t numberOfDataElements)
+{
+    bool havePalette = false;
+    
+    AString mapName = m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_NAME);
+    if (mapName.isEmpty()) {
+        mapName = "scalars";
+        m_metadata->set(GiftiMetaDataXmlElements::METADATA_NAME_NAME,
+                        mapName);
+    }
+    
+    const AString paletteString = m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING);
+    if (paletteString.isEmpty() == false) {
+        try {
+            m_paletteColorMapping->decodeFromStringXML(paletteString);
+            m_paletteColorMapping->clearModified();
+            havePalette = true;
+        }
+        catch (const XmlException& e) {
+            m_paletteColorMapping = new PaletteColorMapping();
+            CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
+        }
+    }
+    
+    if (havePalette == false) {
+        PaletteFile::setDefaultPaletteColorMapping(m_paletteColorMapping,
+                                                   DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+                                                   fileName,
+                                                   mapName,
+                                                   m_data,
+                                                   numberOfDataElements);
+    }
+}
 

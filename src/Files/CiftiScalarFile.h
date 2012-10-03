@@ -164,6 +164,9 @@ namespace caret {
             void createVolumeFile(CiftiInterface* ciftiInterface,
                                   const int32_t numberOfDataElements);
             
+            void initializeMetaData(const AString& fileName,
+                                   const int32_t numberOfDataElements);
+            
             DescriptiveStatistics* m_descriptiveStatistics;
             
             FastStatistics* m_fastStatistics;

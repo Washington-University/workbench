@@ -41,6 +41,7 @@ namespace caret {
     class GiftiLabelTable;
     class GiftiMetaData;
     class Palette;
+    class PaletteColorMapping;
     
     /**
      * File for storing color palettes.
@@ -116,6 +117,12 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
+        static void setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapping,
+                                                  const DataFileTypeEnum::Enum& dataFileType,
+                                                  const AString& fileName,
+                                                  const AString& dataName,
+                                                  const float* data,
+                                                  const int32_t numberOfDataElements);
     private:
         void assignColorsToPalette(Palette& p);
         
