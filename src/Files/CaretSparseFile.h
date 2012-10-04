@@ -1,5 +1,5 @@
-#ifndef __CARET_SPARSE_TRAJECTORY_FILE_H__
-#define __CARET_SPARSE_TRAJECTORY_FILE_H__
+#ifndef __CARET_SPARSE_FILE_H__
+#define __CARET_SPARSE_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -111,4 +111,4 @@ namespace caret {
     
 }
 
-#endif //__CARET_SPARSE_TRAJECTORY_FILE_H__
+#endif //__CARET_SPARSE_FILE_H__
