@@ -166,5 +166,9 @@ void OxfordSparseThreeFile::decodeFibers(const uint64_t& coded, FiberFractions& 
     temp = temp / 1001;
     decoded.fiberFractions[0] = temp / 1000.0f;
     decoded.fiberFractions[2] = 1.0f - decoded.fiberFractions[0] - decoded.fiberFractions[1];
-    if (decoded.fiberFractions[2] < -0.001f || temp > 1000) throw DataFileException("error decoding value '" + AString::number(coded) + "' from oxford 3-file");
+    if (decoded.fiberFractions[2] < -0.002f || temp > 1000)
+    {
+        throw DataFileException("error decoding value '" + AString::number(coded) + "' from oxford 3-file");
+    }
+    if (decoded.fiberFractions[2] < 0.0f) decoded.fiberFractions[2] = 0.0f;
 }
