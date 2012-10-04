@@ -231,8 +231,8 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 0);
-        gridLayout->setColumnStretch(5, 100);
+        gridLayout->setColumnStretch(4, 30);
+        gridLayout->setColumnStretch(5, 70);
         
         QLabel* onLabel = new QLabel("Yoke");
         QLabel* graphLabel = new QLabel("Graph");
@@ -254,8 +254,8 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 0);
-        gridLayout->setColumnStretch(5, 100);
+        gridLayout->setColumnStretch(4, 30);
+        gridLayout->setColumnStretch(5, 70);
     }
     return gridLayout;
 }
