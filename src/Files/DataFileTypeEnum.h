@@ -51,6 +51,8 @@ public:
         CONNECTIVITY_DENSE_TIME_SERIES,
         /** Connectivity - Fiber Orientations TEMPORARY */
         CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+        /** Connectivity - Fiber Trajectory TEMPORARY */
+        CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
         /** Foci */
         FOCI,
         /** Labels */

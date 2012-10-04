@@ -19,6 +19,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
+#include "FiberTrajectorySelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
 #include "LabelSelectionViewController.h"
@@ -126,6 +127,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                        this);
         m_fiberOrientationTabIndex = addToTabWidget(m_fiberOrientationViewController,
                        "Fibers");
+    }
+    
+    if (isFeaturesToolBox) {
+        m_fiberTrajectorySelectionViewController = new FiberTrajectorySelectionViewController(browserWindowIndex,
+                                                                                              this);
+        m_fiberTrajectoryTabIndex = addToTabWidget(m_fiberTrajectorySelectionViewController,
+                                                   "Trajectory");
     }
     
     if (isFeaturesToolBox) {
@@ -394,15 +402,16 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         /*
          * Determine types of data this is loaded
          */
-        bool haveBorders = false;
-        bool haveDense   = false;
+        bool haveBorders    = false;
+        bool haveDense      = false;
         bool haveDataSeries = false;
-        bool haveFibers  = false;
-        bool haveFoci    = false;
-        bool haveLabels  = false;
-        bool haveOverlays = false;
-        bool haveSurfaces = false;
-        bool haveVolumes  = false;
+        bool haveFibers     = false;
+        bool haveFoci       = false;
+        bool haveLabels     = false;
+        bool haveOverlays   = false;
+        bool haveSurfaces   = false;
+        bool haveTraj       = false;
+        bool haveVolumes    = false;
         
         std::vector<CaretDataFile*> allDataFiles;
         brain->getAllDataFiles(allDataFiles);
@@ -431,6 +440,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     haveFibers = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    haveTraj = true;
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
@@ -475,6 +487,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         
         m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
+        m_tabWidget->setTabEnabled(m_fiberTrajectoryTabIndex, haveTraj);
         m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
         m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
     }

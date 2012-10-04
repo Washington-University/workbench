@@ -170,6 +170,14 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "fiberTEMP.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
+                                        "CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY",
+                                        "Connectivity - Fiber Trajectory TEMPORARY",
+                                        "FIBER TRAJECTORY TEMPORARY",
+                                        false,
+                                        false,
+                                        "trajTEMP.wbsparse"));
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",

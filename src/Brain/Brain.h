@@ -43,12 +43,14 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiFiberTrajectoryFile;
     class CiftiScalarFile;
     class ConnectivityLoaderFile;
     class ConnectivityLoaderManager;
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
+    class DisplayPropertiesFiberTrajectory;
     class DisplayPropertiesFoci;
     class DisplayPropertiesInformation;
     class DisplayPropertiesLabels;
@@ -215,6 +217,14 @@ namespace caret {
         
         void getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const;
         
+        int32_t getNumberOfConnectivityFiberTrajectoryFiles() const;
+        
+        CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx);
+        
+        const CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx) const;
+        
+        void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
+        
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
         ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx);
@@ -248,6 +258,10 @@ namespace caret {
         DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation();
         
         const DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation() const;
+        
+        DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory();
+        
+        const DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory() const;
         
         DisplayPropertiesFoci* getDisplayPropertiesFoci();
         
@@ -333,6 +347,8 @@ namespace caret {
         
         void readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException);
         
+        void readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataFileException);
+        
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
         void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
@@ -370,6 +386,8 @@ namespace caret {
         std::vector<CiftiScalarFile*> m_connectivityDenseScalarFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityFiberOrientationFiles;
+        
+        std::vector<CiftiFiberTrajectoryFile*> m_connectivityFiberTrajectoryFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
         
@@ -420,6 +438,12 @@ namespace caret {
          */
         DisplayPropertiesFiberOrientation* m_displayPropertiesFiberOrientation;
         
+        /**
+         * Display properties for fiber orientation - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFiberTrajectory* m_displayPropertiesFiberTrajectory;
+
         /**
          * Display properties for foci - DO NOT delete since this
          * is also in the displayProperties std::vector.

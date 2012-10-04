@@ -37,13 +37,13 @@ namespace caret {
     
     struct FiberFractions
     {
-        uint32_t totalCount;
-        std::vector<float> fiberFractions;
-        float distance;
+        uint32_t totalCount;  // total number of streamline that go through the voxel
+        std::vector<float> fiberFractions;  // fraction of totalCount for each fiber  (3 orientation for now, could be zero)
+        float distance;   // average distance from seed across all streamlines
         void zero();
     };
     
-    class CaretSparseFile : public DataFile
+    class CaretSparseFile /* : public DataFile */
     {
         static void decodeFibers(const uint64_t& coded, FiberFractions& decoded);//takes a uint because right shift on signed is implementation dependent
         FILE* m_file;

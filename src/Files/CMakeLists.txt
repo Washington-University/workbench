@@ -28,6 +28,7 @@ CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 CiftiFiberOrientationAdapter.h
+CiftiFiberTrajectoryFile.h
 CiftiScalarFile.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
@@ -88,6 +89,7 @@ CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 CiftiFiberOrientationAdapter.cxx
+CiftiFiberTrajectoryFile.cxx
 CiftiScalarFile.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx

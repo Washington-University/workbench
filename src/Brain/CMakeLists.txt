@@ -63,6 +63,7 @@ ConnectivityLoaderManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
+DisplayPropertiesFiberTrajectory.h
 DisplayPropertiesFoci.h
 DisplayPropertiesInformation.h
 DisplayPropertiesLabels.h
@@ -141,6 +142,7 @@ ConnectivityLoaderManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
+DisplayPropertiesFiberTrajectory.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesInformation.cxx
 DisplayPropertiesLabels.cxx

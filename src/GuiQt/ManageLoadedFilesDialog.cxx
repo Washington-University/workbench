@@ -446,6 +446,9 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             isFileSavable = false;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            isFileSavable = false;
+            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::LABEL:

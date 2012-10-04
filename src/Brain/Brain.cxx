@@ -34,11 +34,13 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
+#include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesLabels.h"
@@ -101,6 +103,9 @@ Brain::Brain()
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
+    m_displayPropertiesFiberTrajectory = new DisplayPropertiesFiberTrajectory(this);
+    m_displayProperties.push_back(m_displayPropertiesFiberTrajectory);
+    
     m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
@@ -134,6 +139,10 @@ Brain::Brain()
     m_sceneAssistant->add("displayPropertiesFiberOrientation",
                           "DisplayPropertiesFiberOrientation",
                           m_displayPropertiesFiberOrientation);
+    
+    m_sceneAssistant->add("displayPropertiesFiberTrajectory",
+                          "DisplayPropertiesFiberTrajectory",
+                          m_displayPropertiesFiberTrajectory);
     
     m_sceneAssistant->add("displayPropertiesFoci", 
                           "DisplayPropertiesFoci", 
@@ -354,6 +363,14 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete clf;
     }
     m_connectivityFiberOrientationFiles.clear();
+    
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator clfi = m_connectivityFiberTrajectoryFiles.begin();
+         clfi != m_connectivityFiberTrajectoryFiles.end();
+         clfi++) {
+        CiftiFiberTrajectoryFile* clf = *clfi;
+        delete clf;
+    }
+    m_connectivityFiberTrajectoryFiles.clear();
     
     for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = m_connectivityTimeSeriesFiles.begin();
          cltsfi != m_connectivityTimeSeriesFiles.end();
@@ -980,6 +997,30 @@ Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (Data
 }
 
 /**
+ * Read a connectivity fiber trajectory file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void
+Brain::readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataFileException)
+{
+    CiftiFiberTrajectoryFile* cftf = new CiftiFiberTrajectoryFile();
+    
+    try {
+        cftf->readFile(filename);
+    }
+    catch (const DataFileException& dfe) {
+        delete cftf;
+        throw dfe;
+    }
+    
+    m_connectivityFiberTrajectoryFiles.push_back(cftf);
+}
+
+/**
  * Read a connectivity time series file.
  *
  * @param filename
@@ -1292,6 +1333,52 @@ void
 Brain::getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const
 {
     connectivityFiberOrientationFilesOut = m_connectivityFiberOrientationFiles;
+}
+
+/**
+ * @return Number of connectivity fiber trajectory files.
+ */
+int32_t
+Brain::getNumberOfConnectivityFiberTrajectoryFiles() const
+{
+    return m_connectivityFiberTrajectoryFiles.size();
+}
+
+/**
+ * Get the connectivity fiber trajectory file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber trajectory file at index.
+ */
+CiftiFiberTrajectoryFile*
+Brain::getConnectivityFiberTrajectoryFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityFiberTrajectoryFiles, indx);
+    return m_connectivityFiberTrajectoryFiles[indx];
+}
+
+/**
+ * Get the connectivity fiber trajectory file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber trajectory file at index.
+ */
+const CiftiFiberTrajectoryFile*
+Brain::getConnectivityFiberTrajectoryFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityFiberTrajectoryFiles, indx);
+    return m_connectivityFiberTrajectoryFiles[indx];
+}
+
+/**
+ * Get ALL connectivity fiber trajectory files.
+ * @param connectivityFiberOrientationFilesOut
+ *   Contains all connectivity fiber trajectory files on exit.
+ */
+void
+Brain::getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& connectivityFiberTrajectoryFilesOut) const
+{
+    connectivityFiberTrajectoryFilesOut = m_connectivityFiberTrajectoryFiles;
 }
 
 /**
@@ -2001,6 +2088,9 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 readConnectivityFiberOrientationFile(dataFileName);
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                readConnectivityFiberTrajectoryFile(dataFileName);
+                break;
             case DataFileTypeEnum::FOCI:
                 readFociFile(dataFileName);
                 break;
@@ -2660,6 +2750,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
                            m_connectivityFiberOrientationFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityFiberTrajectoryFiles.begin(),
+                           m_connectivityFiberTrajectoryFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityTimeSeriesFiles.begin(),
                            m_connectivityTimeSeriesFiles.end());
     
@@ -2975,6 +3069,24 @@ const DisplayPropertiesFiberOrientation*
 Brain::getDisplayPropertiesFiberOrientation() const
 {
     return m_displayPropertiesFiberOrientation;
+}
+
+/**
+ * @return The fiber trajectory display properties.
+ */
+DisplayPropertiesFiberTrajectory*
+Brain::getDisplayPropertiesFiberTrajectory()
+{
+    return m_displayPropertiesFiberTrajectory;
+}
+
+/**
+ * @return The fiber trajectory display properties.
+ */
+const DisplayPropertiesFiberTrajectory*
+Brain::getDisplayPropertiesFiberTrajectory() const
+{
+    return m_displayPropertiesFiberTrajectory;
 }
 
 /**

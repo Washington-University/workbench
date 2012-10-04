@@ -1129,6 +1129,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             invalid = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            invalid = true;
+            break;
         case DataFileTypeEnum::FOCI:
             invalid = true;
             break;
