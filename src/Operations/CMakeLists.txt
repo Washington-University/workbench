@@ -23,6 +23,7 @@ OperationBackendAverageROICorrelation.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
+OperationCiftiPalette.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
 OperationConvertMatrix4ToWorkbenchSparse.h
@@ -44,6 +45,7 @@ OperationBackendAverageROICorrelation.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
+OperationCiftiPalette.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
 OperationConvertMatrix4ToWorkbenchSparse.cxx
