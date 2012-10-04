@@ -29,6 +29,8 @@
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 
+#include <limits>
+
 using namespace caret;
 
 /**

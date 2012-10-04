@@ -192,7 +192,7 @@ void CaretSparseFile::decodeFibers(const uint64_t& coded, FiberFractions& decode
     decoded.fiberFractions[2] = 1.0f - decoded.fiberFractions[0] - decoded.fiberFractions[1];
     if (decoded.fiberFractions[2] < -0.002f || (temp & (3<<30)))
     {
-        throw DataFileException("error decoding value '" + AString::number(coded) + "' from caret sparse trajectory file");
+        throw DataFileException("error decoding value '" + AString::number(coded) + "' from workbench sparse trajectory file");
     }
     if (decoded.fiberFractions[2] < 0.0f) decoded.fiberFractions[2] = 0.0f;
 }
