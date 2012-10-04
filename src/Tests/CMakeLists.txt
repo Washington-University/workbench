@@ -82,12 +82,12 @@ Algorithms
 OperationsBase
 GuiQt
 Brain
-Palette
 Files
 Cifti
 Gifti
 Nifti
 FilesBase
+Palette
 Scenes
 Xml
 Common
