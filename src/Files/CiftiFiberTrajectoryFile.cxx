@@ -36,7 +36,13 @@
 #include "CiftiFiberTrajectoryFile.h"
 #undef __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
 
+#include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretSparseFile.h"
+#include "CiftiFiberOrientationAdapter.h"
+#include "CiftiInterface.h"
+#include "ConnectivityLoaderFile.h"
+#include "FiberOrientationTrajectory.h"
 #include "GiftiMetaData.h"
 
 using namespace caret;
@@ -96,6 +102,8 @@ void
 CiftiFiberTrajectoryFile::clearPrivate()
 {
     m_metadata->clear();
+    
+    clearLoadedFiberOrientations();
     
     if (m_sparseFile != NULL) {
         delete m_sparseFile;
@@ -270,5 +278,109 @@ void
 CiftiFiberTrajectoryFile::writeFile(const AString& filename) throw (DataFileException)
 {
     throw DataFileException("Writing of Cifti Trajectory Files not supported.");
+}
+
+/**
+ * Clear the loaded fiber orientations.
+ */
+void
+CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
+{
+    const int64_t numFibers = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
+    for (int64_t i = 0; i < numFibers; i++) {
+        delete m_fiberOrientationTrajectories[i];
+    }
+    m_fiberOrientationTrajectories.clear();
+    
+    m_fiberFractions.clear();
+}
+
+
+/**
+ * Load date for the given surface node.
+ * @param fiberAdapter
+ *    Adapter containing fiber orientations.
+ * @param structure
+ *    Structure in which surface node is located.
+ * @param nodeIndex
+ *    Index of the surface node.
+ */
+void
+CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOrientFile,
+                                                 const StructureEnum::Enum structure,
+                                                 const int32_t nodeIndex) throw (DataFileException)
+{
+    clearLoadedFiberOrientations();
+    
+    if (m_sparseFile == NULL) {
+        throw DataFileException("No data has been loaded.");
+    }
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML& orientXML = fiberOrientFile->ciftiInterface->getCiftiXML();
+//    if (trajXML.matchesForRows(orientXML) == false) {
+//        QString msg = (getFileNameNoPath()
+//                       + " rows="
+//                       + QString::number(trajXML.getNumberOfRows())
+//                       + " cols="
+//                       + QString::number(trajXML.getNumberOfColumns())
+//                       + "   "
+//                       + fiberOrientFile->getFileNameNoPath()
+//                       + " rows="
+//                       + QString::number(orientXML.getNumberOfRows())
+//                       + " cols="
+//                       + QString::number(orientXML.getNumberOfColumns()));
+//        throw DataFileException("Rows do not match: "
+//                                + msg);
+//    }
+    
+    if (trajXML.hasColumnSurfaceData(structure) == false) {
+        return;
+    }
+    const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
+                                                        structure);
+    if (rowIndex < 0) {
+        return;
+    }
+    
+    std::vector<int64_t> fiberIndices;
+    m_sparseFile->getFibersRowSparse(rowIndex,
+                                     fiberIndices,
+                                     m_fiberFractions);
+    CaretAssert(fiberIndices.size() == m_fiberFractions.size());
+    
+    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
+    std::cout << "Loaded " << numFibers << " fibers." << std::endl;
+    
+    if (numFibers > 0) {
+        m_fiberOrientationTrajectories.reserve(numFibers);
+        
+        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
+            CiftiFiberOrientationAdapter* fiberOrientAdapter = fiberOrientFile->getFiberOrientationAdapter();
+            const int64_t numFiberOrientations = fiberOrientAdapter->getNumberOfFiberOrientations();
+            const int64_t fiberIndex = fiberIndices[iFiber];
+            if (fiberIndex < numFiberOrientations) {
+                const FiberFractions* fiberFraction = &m_fiberFractions[iFiber];
+                const FiberOrientation* fiberOrientation = fiberOrientAdapter->getFiberOrientations(fiberIndex);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberFraction,
+                                                                                 fiberOrientation,
+                                                                                 rowIndex);
+                m_fiberOrientationTrajectories.push_back(fot);
+            }
+            else{
+                CaretLogSevere("Inavlid index="
+                               + QString::number(fiberIndex)
+                               + " into fiber orientations");
+            }
+        }
+    }
+}
+
+/**
+ * @return a REFERENCE to the fiber fractions that were loaded.
+ */
+const std::vector<FiberOrientationTrajectory*>&
+CiftiFiberTrajectoryFile::getLoadedFiberOrientationTrajectories() const
+{
+    return m_fiberOrientationTrajectories;
 }
 

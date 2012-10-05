@@ -36,12 +36,13 @@
 
 #include "BrainConstants.h"
 #include "CaretDataFile.h"
+#include "CaretSparseFile.h"
 #include "DisplayGroupEnum.h"
 
 namespace caret {
 
-    class CaretSparseFile;
-    
+    class ConnectivityLoaderFile;
+    class FiberOrientationTrajectory;
     class GiftiMetaData;
     
     class CiftiFiberTrajectoryFile : public CaretDataFile {
@@ -79,6 +80,12 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                                    const DisplayGroupEnum::Enum displayGroup);
         
+        void loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOrientFile,
+                                    const StructureEnum::Enum structure,
+                                    const int32_t nodeIndex) throw (DataFileException);
+        
+        const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
+        
     private:
         CiftiFiberTrajectoryFile(const CiftiFiberTrajectoryFile&);
 
@@ -92,10 +99,16 @@ namespace caret {
 
         void clearPrivate();
         
+        void clearLoadedFiberOrientations();
+        
         CaretSparseFile* m_sparseFile;
         
         GiftiMetaData* m_metadata;
         
+        std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
+
+        std::vector<FiberFractions> m_fiberFractions;
+                        
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];

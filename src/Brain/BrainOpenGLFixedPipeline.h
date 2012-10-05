@@ -166,6 +166,10 @@ namespace caret {
         
         void drawFibers(const Plane* plane);
         
+        void drawSurfaceFiberTrajectories();
+        
+        void drawFiberTrajectories(const Plane* plane);
+        
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeController,
                                   const int32_t viewport[4]);

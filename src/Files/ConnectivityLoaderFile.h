@@ -304,6 +304,7 @@ namespace caret {
         CiftiFiberOrientationAdapter* m_fiberOrientationAdapter;
         
         friend class CiftiFiberOrientationAdapter;
+        friend class CiftiFiberTrajectoryFile;
         friend class CiftiScalarFile;
     };
     

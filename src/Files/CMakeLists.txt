@@ -36,6 +36,7 @@ DisplayGroupEnum.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
+FiberOrientationTrajectory.h
 FociFile.h
 FociFileSaxReader.h
 Focus.h
@@ -96,6 +97,7 @@ DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx
+FiberOrientationTrajectory.cxx
 FociFile.cxx
 FociFileSaxReader.cxx
 Focus.cxx

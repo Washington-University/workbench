@@ -32,6 +32,7 @@ using namespace caret;
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
@@ -135,6 +136,24 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
     
     if (rowColumnInformationOut != NULL) {
         *rowColumnInformationOut = rowColText;
+    }
+    
+    /*
+     * Load fiber trajectory data
+     */
+    const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
+        if (iFile < numFiberFiles) {
+            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
+            ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(iFile);
+            CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
+            if (fiberAdapter != NULL) {
+                trajFile->loadDataForSurfaceNode(connFiberFile,
+                                                 surfaceFile->getStructure(),
+                                                 nodeIndex);
+            }
+        }
     }
     
     if (haveData) {

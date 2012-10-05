@@ -66,6 +66,7 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
+#include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesSurface.h"
@@ -76,7 +77,9 @@
 #include "FastStatistics.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
+#include "FiberOrientationTrajectory.h"
 #include "CiftiFiberOrientationAdapter.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
@@ -4938,6 +4941,118 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     if (clipPlanesEnabled[5]) glEnable(GL_CLIP_PLANE5);
 }
 
+void
+BrainOpenGLFixedPipeline::drawSurfaceFiberTrajectories()
+{
+    drawFiberTrajectories(NULL);
+}
+
+void
+BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
+{
+    const DisplayPropertiesFiberTrajectory* dpft = m_brain->getDisplayPropertiesFiberTrajectory();
+    const DisplayGroupEnum::Enum displayGroup = dpft->getDisplayGroupForTab(this->windowTabIndex);
+    if (dpft->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+        return;
+    }
+    
+    const float minPropOpacity = dpft->getMinimumProportionOpacity(displayGroup,
+                                                                      this->windowTabIndex);
+    const float maxPropOpacity = dpft->getMaximumProportionOpacity(displayGroup,
+                                                                      this->windowTabIndex);
+    const float thresholdProportion = dpft->getThresholdProportion(displayGroup,
+                                                                   this->windowTabIndex);
+    const float thresholdStreamline = dpft->getThresholdStreamline(displayGroup,
+                                                                   this->windowTabIndex);
+    /*
+     * Clipping planes
+     */
+    BoundingBox clippingBoundingBox;
+    clippingBoundingBox.resetWithMaximumExtent();
+    
+    if (browserTabContent->isClippingPlaneEnabled(0)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+                                + halfThick);
+        clippingBoundingBox.setMinX(minValue);
+        clippingBoundingBox.setMaxX(maxValue);
+    }
+    if (browserTabContent->isClippingPlaneEnabled(1)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+                                + halfThick);
+        clippingBoundingBox.setMinY(minValue);
+        clippingBoundingBox.setMaxY(maxValue);
+    }
+    if (browserTabContent->isClippingPlaneEnabled(2)) {
+        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+                                 * 0.5);
+        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                - halfThick);
+        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+                                + halfThick);
+        clippingBoundingBox.setMinZ(minValue);
+        clippingBoundingBox.setMaxZ(maxValue);
+    }
+    
+    /*
+     * Save status of clipping and disable clipping.
+     * For fibers, the entire fiber symbol is displayed if its
+     * origin is within the clipping planes which is tested below.
+     */
+    GLboolean clipPlanesEnabled[6] = {
+        glIsEnabled(GL_CLIP_PLANE0),
+        glIsEnabled(GL_CLIP_PLANE1),
+        glIsEnabled(GL_CLIP_PLANE2),
+        glIsEnabled(GL_CLIP_PLANE3),
+        glIsEnabled(GL_CLIP_PLANE4),
+        glIsEnabled(GL_CLIP_PLANE5)
+    };
+    glDisable(GL_CLIP_PLANE0);
+    glDisable(GL_CLIP_PLANE1);
+    glDisable(GL_CLIP_PLANE2);
+    glDisable(GL_CLIP_PLANE3);
+    glDisable(GL_CLIP_PLANE4);
+    glDisable(GL_CLIP_PLANE5);
+    
+    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
+        const CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
+        
+        const std::vector<FiberOrientationTrajectory*>& trajectories = trajFile->getLoadedFiberOrientationTrajectories();
+        const int64_t numTraj = static_cast<int64_t>(trajectories.size());
+        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
+            const FiberOrientationTrajectory* fiberTraj = trajectories[iTraj];
+            const FiberOrientation* orientation = fiberTraj->m_fiberOrientation;
+
+            glColor3f(1.0, 0.0, 0.0);
+            glPushMatrix();
+            glTranslatef(orientation->m_xyz[0],
+                         orientation->m_xyz[1],
+                         orientation->m_xyz[2]);
+            drawSphere(1.0);
+            glPopMatrix();
+        }
+    }
+    
+    /*
+     * Restore status of clipping planes enabled
+     */
+    if (clipPlanesEnabled[0]) glEnable(GL_CLIP_PLANE0);
+    if (clipPlanesEnabled[1]) glEnable(GL_CLIP_PLANE1);
+    if (clipPlanesEnabled[2]) glEnable(GL_CLIP_PLANE2);
+    if (clipPlanesEnabled[3]) glEnable(GL_CLIP_PLANE3);
+    if (clipPlanesEnabled[4]) glEnable(GL_CLIP_PLANE4);
+    if (clipPlanesEnabled[5]) glEnable(GL_CLIP_PLANE5);
+}
+
+
 /**
  * Draw a cone with an elliptical shape.
  * @param baseXYZ
@@ -5939,6 +6054,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     }
     if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
         drawSurfaceFibers();
+        drawSurfaceFiberTrajectories();
     }
 }
 
