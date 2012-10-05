@@ -100,7 +100,9 @@ void NiftiFile::openFile(const AString &fileName)
         /*
          * Mac does not seem to have off64_t
          */
-#if ZLIB_VERNUM > 0x1232
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#elif ZLIB_VERNUM > 0x1232
         zFile = gzopen64(m_fileName.toAscii().data(), "rb");
 #else  // ZLIB_VERNUM > 0x1232
         zFile = gzopen(m_fileName.toAscii().data(), "rb");
@@ -322,7 +324,9 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder)
     gzFile zFile;
     if(isCompressed())
     {
-#if ZLIB_VERNUM > 0x1232
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "wb");
+#elif ZLIB_VERNUM > 0x1232
         zFile = gzopen64(m_fileName.toAscii().data(), "wb");
 #else  // ZLIB_VERNUM > 0x1232
         zFile = gzopen(m_fileName.toAscii().data(), "wb");
@@ -467,9 +471,11 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename)
         /*
          * Mac does not seem to have off64_t
          */
-#if ZLIB_VERNUM > 0x1232
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#elif ZLIB_VERNUM > 0x1232
         zFile = gzopen64(m_fileName.toAscii().data(), "rb");
-#else  // ZLIB_VERNUM > 0x1232
+#else  // ZLIB_VERNUM > 0x12320
         zFile = gzopen(m_fileName.toAscii().data(), "rb");
 #endif // ZLIB_VERNUM > 0x1232
         matrix.readVolume(zFile,vol);

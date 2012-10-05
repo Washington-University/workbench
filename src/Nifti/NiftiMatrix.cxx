@@ -325,7 +325,9 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset
         }*/
         if(frameOffset==0)
         {
-#if ZLIB_VERNUM > 0x1232
+#ifdef CARET_OS_MACOSX
+            int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
+#elif ZLIB_VERNUM > 0x1232
         int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
 #else // ZLIB_VERNUM > 0x1232
         int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
@@ -414,7 +416,9 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset
         }*/
         if(frameOffset==0)
         {
-#if ZLIB_VERNUM > 0x1232
+#ifdef CARET_OS_MACOSX
+            int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
+#elif ZLIB_VERNUM > 0x1232
             int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
 #else // ZLIB_VERNUM > 0x1232
             int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
