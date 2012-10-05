@@ -32,6 +32,9 @@
 #include "BrainOpenGL.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretVolumeExtension.h"
+#include "DisplayGroupEnum.h"
+#include "FiberOrientationColoringTypeEnum.h"
+#include "FiberOrientationSymbolTypeEnum.h"
 #include "Model.h"
 #include "IdentificationItemDataTypeEnum.h"
 #include "StructureEnum.h"
@@ -42,6 +45,7 @@ class QGLWidget;
 
 namespace caret {
     
+    class BoundingBox;
     class Brain;
     class BrainOpenGLShapeCone;
     class BrainOpenGLShapeSphere;
@@ -120,6 +124,26 @@ namespace caret {
             float opacity;
         };
         
+        struct FiberOrientationDisplayInfo {
+            float aboveLimit;
+            float belowLimit;
+            BoundingBox* boundingBox;
+            FiberOrientationColoringTypeEnum::Enum colorType;
+            float fanMultiplier;
+            bool isDrawWithMagnitude;
+            float minimumMagnitude;
+            float magnitudeMultiplier;
+            Plane* plane;
+            FiberOrientationSymbolTypeEnum::Enum symbolType;
+        };
+        
+        void setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
+                                            BoundingBox* boundingBox,
+                                            Plane* plane,
+                                            FiberOrientationDisplayInfo& dispInfo);
+        
         void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
                             const float* scalarValues,
                             const float* thresholdValues,
@@ -168,7 +192,7 @@ namespace caret {
         
         void drawFiberOrientations(const Plane* plane);
         
-        void drawOneFiberOrientation(const DisplayPropertiesFiberOrientation* dpfo,
+        void drawOneFiberOrientation(const FiberOrientationDisplayInfo* fodi,
                                      const FiberOrientation* fiberOrientation);
         
         void drawSurfaceFiberTrajectories();

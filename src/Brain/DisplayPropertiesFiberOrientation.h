@@ -174,6 +174,7 @@ namespace caret {
         
         FiberOrientationSymbolTypeEnum::Enum m_fiberSymbolTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        friend class BrainOpenGLFixedPipeline;
     };
     
 #ifdef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__

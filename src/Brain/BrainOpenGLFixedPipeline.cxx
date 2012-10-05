@@ -4617,6 +4617,26 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     disableLighting();
 }
 
+void
+BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
+                                                         const DisplayGroupEnum::Enum displayGroup,
+                                                         const int32_t tabIndex,
+                                                         BoundingBox* boundingBox,
+                                                         Plane* plane,
+                                    FiberOrientationDisplayInfo& dispInfo)
+{
+    dispInfo.aboveLimit = dpfo->getAboveLimit(displayGroup, tabIndex);
+    dispInfo.belowLimit = dpfo->getBelowLimit(displayGroup, tabIndex);
+    dispInfo.boundingBox = boundingBox;
+    dispInfo.colorType = dpfo->getColoringType(displayGroup, tabIndex);
+    dispInfo.fanMultiplier = dpfo->getFanMultiplier(displayGroup, tabIndex);
+    dispInfo.isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, tabIndex);
+    dispInfo.minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, tabIndex);
+    dispInfo.magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, tabIndex);
+    dispInfo.plane = plane;
+    dispInfo.symbolType = dpfo->getSymbolType(displayGroup, tabIndex);
+}
+
 /**
  * Draw fibers for a surface or a volume.
  *
@@ -4641,6 +4661,7 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
     const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
     const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
+    
     /*
      * Clipping planes
      */
@@ -4712,6 +4733,13 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
             break;
     }
 
+    FiberOrientationDisplayInfo fiberOrientDispInfo;
+    setFiberOrientationDisplayInfo(dpfo,
+                                   displayGroup,
+                                   this->windowTabIndex,
+                                   &clippingBoundingBox,
+                                   const_cast<Plane*>(plane),
+                                   fiberOrientDispInfo);
     /*
      * Draw the vectors from each of the connectivity files
      */
@@ -4741,191 +4769,194 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
                     continue;
                 }
                 
-                /*
-                 * Test location of fiber orientation for drawing
-                 */
-                bool drawFiberOrientation = true;
-                if (plane != NULL) {
-                    const float distToPlane = plane->signedDistanceToPlane(fiberOrientation->m_xyz);
-                    if (distToPlane > aboveLimit) {
-                        drawFiberOrientation = false;
-                    }
-                    if (distToPlane < belowLimit) {
-                        drawFiberOrientation = false;
-                    }
-                }
-                if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
-                    drawFiberOrientation = false;
-                }
-                if (drawFiberOrientation == false) {
-                    continue;
-                }
+                drawOneFiberOrientation(&fiberOrientDispInfo,
+                                        fiberOrientation);
                 
-                /*
-                 * Draw each of the fibers
-                 */
-                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
-                for (int64_t j = 0; j < numberOfFibers; j++) {
-                    const Fiber* fiber = fiberOrientation->m_fibers[j];
-                    
-                    /*
-                     * Apply display properties
-                     */
-                    bool drawIt = true;
-                    if (fiber->m_meanF < minimumMagnitude) {
-                        drawIt = false;
-                    }
-                    
-                    if (drawIt) {
-                        /*
-                         * Length of vector
-                         */
-                        float vectorLength = magnitudeMultiplier;
-                        if (isDrawWithMagnitude) {
-                            vectorLength *= fiber->m_meanF;
-                        }
-                        
-                        /*
-                         * Vector with magnitude
-                         */
-                        const float magnitudeVector[3] = {
-                            fiber->m_directionUnitVector[0] * vectorLength,
-                            fiber->m_directionUnitVector[1] * vectorLength,
-                            fiber->m_directionUnitVector[2] * vectorLength
-                        };
-                        
-                        const float halfMagnitudeVector[3] = {
-                            magnitudeVector[0] * 0.5,
-                            magnitudeVector[1] * 0.5,
-                            magnitudeVector[2] * 0.5,
-                        };
-                        
-                        /*
-                         * Start of vector
-                         */
-                        float startXYZ[3] = {
-                            fiberOrientation->m_xyz[0],
-                            fiberOrientation->m_xyz[1],
-                            fiberOrientation->m_xyz[2]
-                        };
-                        
-                        /*
-                         * When drawing lines, start of vector is offset by
-                         * have of the vector length since the vector is
-                         * bi-directional.
-                         */
-                        switch (symbolType) {
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
-                                break;
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
-                                startXYZ[0] -= halfMagnitudeVector[0];
-                                startXYZ[1] -= halfMagnitudeVector[1];
-                                startXYZ[2] -= halfMagnitudeVector[2];
-                                break;
-                        }
-                        
-                        
-                        /*
-                         * End of vector
-                         */
-                        float endXYZ[3] = { 0.0, 0.0, 0.0 };
-                        float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };
-                        
-                        /*
-                         * When drawing lines, end point is the start
-                         * plus the vector with magnitude.
-                         * 
-                         * When drawing fans, there are two endpoints
-                         * with the fans starting in the middle.
-                         */
-                        switch (symbolType) {
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
-                                endXYZ[0] = startXYZ[0] + halfMagnitudeVector[0];
-                                endXYZ[1] = startXYZ[1] + halfMagnitudeVector[1];
-                                endXYZ[2] = startXYZ[2] + halfMagnitudeVector[2];
-                                endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
-                                endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
-                                endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
-                                break;
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
-                                endXYZ[0] = startXYZ[0] + magnitudeVector[0];
-                                endXYZ[1] = startXYZ[1] + magnitudeVector[1];
-                                endXYZ[2] = startXYZ[2] + magnitudeVector[2];
-                                break;
-                        }
-                        
-                        /*
-                         * Color of fiber
-                         */
-                        switch (colorType) {
-                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                            {
-                                const int32_t indx = j % 3;
-                                switch (indx) {
-                                    case 0:
-                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_RED);
-                                        break;
-                                    case 1:
-                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_GREEN);
-                                        break;
-                                    case 2:
-                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_BLUE);
-                                        break;
-                                }
-                            }
-                                break;
-                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                                glColor3fv(fiber->m_directionUnitVectorRGB);
-                                break;
-                        }
-                        
-                        /*
-                         * Draw the fiber
-                         */
-                        switch (symbolType) {
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
-                                drawEllipticalCone(endXYZ,
-                                                   startXYZ,
-                                                   fanMultiplier,
-                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
-                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
-                                                   fiber->m_psi,
-                                                   false);
-                                drawEllipticalCone(endXYZ,
-                                                   startXYZ,
-                                                   fanMultiplier,
-                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
-                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
-                                                   fiber->m_psi,
-                                                   true);
-//                                drawEllipticalCone(endTwoXYZ,
+//                /*
+//                 * Test location of fiber orientation for drawing
+//                 */
+//                bool drawFiberOrientation = true;
+//                if (plane != NULL) {
+//                    const float distToPlane = plane->signedDistanceToPlane(fiberOrientation->m_xyz);
+//                    if (distToPlane > aboveLimit) {
+//                        drawFiberOrientation = false;
+//                    }
+//                    if (distToPlane < belowLimit) {
+//                        drawFiberOrientation = false;
+//                    }
+//                }
+//                if (clippingBoundingBox.isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
+//                    drawFiberOrientation = false;
+//                }
+//                if (drawFiberOrientation == false) {
+//                    continue;
+//                }
+//                
+//                /*
+//                 * Draw each of the fibers
+//                 */
+//                const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+//                for (int64_t j = 0; j < numberOfFibers; j++) {
+//                    const Fiber* fiber = fiberOrientation->m_fibers[j];
+//                    
+//                    /*
+//                     * Apply display properties
+//                     */
+//                    bool drawIt = true;
+//                    if (fiber->m_meanF < minimumMagnitude) {
+//                        drawIt = false;
+//                    }
+//                    
+//                    if (drawIt) {
+//                        /*
+//                         * Length of vector
+//                         */
+//                        float vectorLength = magnitudeMultiplier;
+//                        if (isDrawWithMagnitude) {
+//                            vectorLength *= fiber->m_meanF;
+//                        }
+//                        
+//                        /*
+//                         * Vector with magnitude
+//                         */
+//                        const float magnitudeVector[3] = {
+//                            fiber->m_directionUnitVector[0] * vectorLength,
+//                            fiber->m_directionUnitVector[1] * vectorLength,
+//                            fiber->m_directionUnitVector[2] * vectorLength
+//                        };
+//                        
+//                        const float halfMagnitudeVector[3] = {
+//                            magnitudeVector[0] * 0.5,
+//                            magnitudeVector[1] * 0.5,
+//                            magnitudeVector[2] * 0.5,
+//                        };
+//                        
+//                        /*
+//                         * Start of vector
+//                         */
+//                        float startXYZ[3] = {
+//                            fiberOrientation->m_xyz[0],
+//                            fiberOrientation->m_xyz[1],
+//                            fiberOrientation->m_xyz[2]
+//                        };
+//                        
+//                        /*
+//                         * When drawing lines, start of vector is offset by
+//                         * have of the vector length since the vector is
+//                         * bi-directional.
+//                         */
+//                        switch (symbolType) {
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+//                                break;
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+//                                startXYZ[0] -= halfMagnitudeVector[0];
+//                                startXYZ[1] -= halfMagnitudeVector[1];
+//                                startXYZ[2] -= halfMagnitudeVector[2];
+//                                break;
+//                        }
+//                        
+//                        
+//                        /*
+//                         * End of vector
+//                         */
+//                        float endXYZ[3] = { 0.0, 0.0, 0.0 };
+//                        float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+//                        
+//                        /*
+//                         * When drawing lines, end point is the start
+//                         * plus the vector with magnitude.
+//                         * 
+//                         * When drawing fans, there are two endpoints
+//                         * with the fans starting in the middle.
+//                         */
+//                        switch (symbolType) {
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+//                                endXYZ[0] = startXYZ[0] + halfMagnitudeVector[0];
+//                                endXYZ[1] = startXYZ[1] + halfMagnitudeVector[1];
+//                                endXYZ[2] = startXYZ[2] + halfMagnitudeVector[2];
+//                                endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
+//                                endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
+//                                endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
+//                                break;
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+//                                endXYZ[0] = startXYZ[0] + magnitudeVector[0];
+//                                endXYZ[1] = startXYZ[1] + magnitudeVector[1];
+//                                endXYZ[2] = startXYZ[2] + magnitudeVector[2];
+//                                break;
+//                        }
+//                        
+//                        /*
+//                         * Color of fiber
+//                         */
+//                        switch (colorType) {
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+//                            {
+//                                const int32_t indx = j % 3;
+//                                switch (indx) {
+//                                    case 0:
+//                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_RED);
+//                                        break;
+//                                    case 1:
+//                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_GREEN);
+//                                        break;
+//                                    case 2:
+//                                        glColor3fv(BrainOpenGLFixedPipeline::COLOR_BLUE);
+//                                        break;
+//                                }
+//                            }
+//                                break;
+//                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+//                                glColor3fv(fiber->m_directionUnitVectorRGB);
+//                                break;
+//                        }
+//                        
+//                        /*
+//                         * Draw the fiber
+//                         */
+//                        switch (symbolType) {
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+//                                drawEllipticalCone(endXYZ,
 //                                                   startXYZ,
-//                                                   fiber->m_m_fanningMajorAxisAngle,
-//                                                   fiber->m_fanningMinorAxisAngle,
+//                                                   fanMultiplier,
+//                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
+//                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
 //                                                   fiber->m_psi,
 //                                                   false);
-//                                drawCone(endXYZ,
-//                                         startXYZ,
-//                                         5.0,
-//                                         0.0);
-//                                drawCone(endTwoXYZ,
-//                                         startXYZ,
-//                                         5.0,
-//                                         0.0);
-                                break;
-                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
-                            {
-                                const float radius = 2.0;
-                                setLineWidth(radius);
-                                glBegin(GL_LINES);
-                                glVertex3fv(startXYZ);
-                                glVertex3fv(endXYZ);
-                                glEnd();
-                            }
-                                break;
-                        }
-                    }
-                }
+//                                drawEllipticalCone(endXYZ,
+//                                                   startXYZ,
+//                                                   fanMultiplier,
+//                                                   fiber->m_fanningMajorAxisAngle * fanMultiplier,
+//                                                   fiber->m_fanningMinorAxisAngle * fanMultiplier,
+//                                                   fiber->m_psi,
+//                                                   true);
+////                                drawEllipticalCone(endTwoXYZ,
+////                                                   startXYZ,
+////                                                   fiber->m_m_fanningMajorAxisAngle,
+////                                                   fiber->m_fanningMinorAxisAngle,
+////                                                   fiber->m_psi,
+////                                                   false);
+////                                drawCone(endXYZ,
+////                                         startXYZ,
+////                                         5.0,
+////                                         0.0);
+////                                drawCone(endTwoXYZ,
+////                                         startXYZ,
+////                                         5.0,
+////                                         0.0);
+//                                break;
+//                            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+//                            {
+//                                const float radius = 2.0;
+//                                setLineWidth(radius);
+//                                glBegin(GL_LINES);
+//                                glVertex3fv(startXYZ);
+//                                glVertex3fv(endXYZ);
+//                                glEnd();
+//                            }
+//                                break;
+//                        }
+//                    }
+//                }
             }
         }
     }
@@ -4943,12 +4974,186 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
 
 /**
  * Draw one fiber orientation.
+ * @param foci
+ *    Parameters controlling the drawing of fiber orientations.
+ * @param fiberOrientation
+ *    The fiber orientation that will be drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawOneFiberOrientation(const DisplayPropertiesFiberOrientation* dpfo,
+BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayInfo* fodi,
                                                   const FiberOrientation* fiberOrientation)
 {
+    /*
+     * Test location of fiber orientation for drawing
+     */
+    bool drawFiberOrientation = true;
+    if (fodi->plane != NULL) {
+        const float distToPlane = fodi->plane->signedDistanceToPlane(fiberOrientation->m_xyz);
+        if (distToPlane > fodi->aboveLimit) {
+            drawFiberOrientation = false;
+        }
+        if (distToPlane < fodi->belowLimit) {
+            drawFiberOrientation = false;
+        }
+    }
+    if (fodi->boundingBox->isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
+        drawFiberOrientation = false;
+    }
+    if (drawFiberOrientation == false) {
+        return;
+    }
     
+    /*
+     * Draw each of the fibers
+     */
+    const int64_t numberOfFibers = fiberOrientation->m_numberOfFibers;
+    for (int64_t j = 0; j < numberOfFibers; j++) {
+        const Fiber* fiber = fiberOrientation->m_fibers[j];
+        
+        /*
+         * Apply display properties
+         */
+        bool drawIt = true;
+        if (fiber->m_meanF < fodi->minimumMagnitude) {
+            drawIt = false;
+        }
+        
+        if (drawIt) {
+            /*
+             * Length of vector
+             */
+            float vectorLength = fodi->magnitudeMultiplier;
+            if (fodi->isDrawWithMagnitude) {
+                vectorLength *= fiber->m_meanF;
+            }
+            
+            /*
+             * Vector with magnitude
+             */
+            const float magnitudeVector[3] = {
+                fiber->m_directionUnitVector[0] * vectorLength,
+                fiber->m_directionUnitVector[1] * vectorLength,
+                fiber->m_directionUnitVector[2] * vectorLength
+            };
+            
+            const float halfMagnitudeVector[3] = {
+                magnitudeVector[0] * 0.5,
+                magnitudeVector[1] * 0.5,
+                magnitudeVector[2] * 0.5,
+            };
+            
+            /*
+             * Start of vector
+             */
+            float startXYZ[3] = {
+                fiberOrientation->m_xyz[0],
+                fiberOrientation->m_xyz[1],
+                fiberOrientation->m_xyz[2]
+            };
+            
+            /*
+             * When drawing lines, start of vector is offset by
+             * have of the vector length since the vector is
+             * bi-directional.
+             */
+            switch (fodi->symbolType) {
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                    break;
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                    startXYZ[0] -= halfMagnitudeVector[0];
+                    startXYZ[1] -= halfMagnitudeVector[1];
+                    startXYZ[2] -= halfMagnitudeVector[2];
+                    break;
+            }
+            
+            
+            /*
+             * End of vector
+             */
+            float endXYZ[3] = { 0.0, 0.0, 0.0 };
+            float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+            
+            /*
+             * When drawing lines, end point is the start
+             * plus the vector with magnitude.
+             *
+             * When drawing fans, there are two endpoints
+             * with the fans starting in the middle.
+             */
+            switch (fodi->symbolType) {
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                    endXYZ[0] = startXYZ[0] + halfMagnitudeVector[0];
+                    endXYZ[1] = startXYZ[1] + halfMagnitudeVector[1];
+                    endXYZ[2] = startXYZ[2] + halfMagnitudeVector[2];
+                    endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
+                    endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
+                    endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
+                    break;
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                    endXYZ[0] = startXYZ[0] + magnitudeVector[0];
+                    endXYZ[1] = startXYZ[1] + magnitudeVector[1];
+                    endXYZ[2] = startXYZ[2] + magnitudeVector[2];
+                    break;
+            }
+            
+            /*
+             * Color of fiber
+             */
+            switch (fodi->colorType) {
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                {
+                    const int32_t indx = j % 3;
+                    switch (indx) {
+                        case 0:
+                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_RED);
+                            break;
+                        case 1:
+                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_GREEN);
+                            break;
+                        case 2:
+                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_BLUE);
+                            break;
+                    }
+                }
+                    break;
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                    glColor3fv(fiber->m_directionUnitVectorRGB);
+                    break;
+            }
+            
+            /*
+             * Draw the fiber
+             */
+            switch (fodi->symbolType) {
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                    drawEllipticalCone(endXYZ,
+                                       startXYZ,
+                                       fodi->fanMultiplier,
+                                       fiber->m_fanningMajorAxisAngle * fodi->fanMultiplier,
+                                       fiber->m_fanningMinorAxisAngle * fodi->fanMultiplier,
+                                       fiber->m_psi,
+                                       false);
+                    drawEllipticalCone(endXYZ,
+                                       startXYZ,
+                                       fodi->fanMultiplier,
+                                       fiber->m_fanningMajorAxisAngle * fodi->fanMultiplier,
+                                       fiber->m_fanningMinorAxisAngle * fodi->fanMultiplier,
+                                       fiber->m_psi,
+                                       true);
+                    break;
+                case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                {
+                    const float radius = 2.0;
+                    setLineWidth(radius);
+                    glBegin(GL_LINES);
+                    glVertex3fv(startXYZ);
+                    glVertex3fv(endXYZ);
+                    glEnd();
+                }
+                    break;
+            }
+        }
+    }
 }
 
 /**
