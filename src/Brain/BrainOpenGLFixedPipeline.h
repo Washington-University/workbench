@@ -48,7 +48,9 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class FastStatistics;
+    class DisplayPropertiesFiberOrientation;
     class DescriptiveStatistics;
+    class FiberOrientation;
     class IdentificationItem;
     class IdentificationManager;
     class IdentificationWithColor;
@@ -162,9 +164,12 @@ namespace caret {
         
         void drawSurfaceNormalVectors(const Surface* surface);
         
-        void drawSurfaceFibers();
+        void drawSurfaceFiberOrientations();
         
-        void drawFibers(const Plane* plane);
+        void drawFiberOrientations(const Plane* plane);
+        
+        void drawOneFiberOrientation(const DisplayPropertiesFiberOrientation* dpfo,
+                                     const FiberOrientation* fiberOrientation);
         
         void drawSurfaceFiberTrajectories();
         

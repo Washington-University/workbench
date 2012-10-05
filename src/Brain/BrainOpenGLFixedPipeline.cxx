@@ -926,7 +926,7 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
                       nodeColoringRGBA);
     
     if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
-        this->drawSurfaceFibers();
+        this->drawSurfaceFiberOrientations();
     }
 }
 
@@ -4613,7 +4613,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
         return;
     }
 
-    drawFibers(&plane);
+    drawFiberOrientations(&plane);
     disableLighting();
 }
 
@@ -4626,7 +4626,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
  *    be drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
+BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
 {
     const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
@@ -4941,12 +4941,30 @@ BrainOpenGLFixedPipeline::drawFibers(const Plane* plane)
     if (clipPlanesEnabled[5]) glEnable(GL_CLIP_PLANE5);
 }
 
+/**
+ * Draw one fiber orientation.
+ */
+void
+BrainOpenGLFixedPipeline::drawOneFiberOrientation(const DisplayPropertiesFiberOrientation* dpfo,
+                                                  const FiberOrientation* fiberOrientation)
+{
+    
+}
+
+/**
+ * Draw fiber trajectories on a surface.
+ */
 void
 BrainOpenGLFixedPipeline::drawSurfaceFiberTrajectories()
 {
     drawFiberTrajectories(NULL);
 }
 
+/**
+ * Draw the fiber trajectories.
+ * @param plane
+ *    If a volume it is non-NULL and contains the plane of the slice.
+ */
 void
 BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
 {
@@ -5030,14 +5048,27 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
             const FiberOrientationTrajectory* fiberTraj = trajectories[iTraj];
             const FiberOrientation* orientation = fiberTraj->m_fiberOrientation;
+            const FiberFractions* fiberFractions = fiberTraj->m_fiberFractions;
+            
+            bool drawIt = true;
+            if (fiberFractions->fiberFractions.size() != 3) {
+                drawIt = false;
+            }
+            else if (fiberFractions->totalCount < thresholdStreamline) {
+                drawIt = false;
+            }
 
-            glColor3f(1.0, 0.0, 0.0);
-            glPushMatrix();
-            glTranslatef(orientation->m_xyz[0],
-                         orientation->m_xyz[1],
-                         orientation->m_xyz[2]);
-            drawSphere(1.0);
-            glPopMatrix();
+            float alpha = 1.0;
+            
+            if (drawIt) {
+                glColor3f(1.0, 0.0, 0.0);
+                glPushMatrix();
+                glTranslatef(orientation->m_xyz[0],
+                             orientation->m_xyz[1],
+                             orientation->m_xyz[2]);
+                drawSphere(1.0);
+                glPopMatrix();
+            }
         }
     }
     
@@ -5433,9 +5464,9 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
  * Draw fiber orientations on surface models.
  */
 void
-BrainOpenGLFixedPipeline::drawSurfaceFibers()
+BrainOpenGLFixedPipeline::drawSurfaceFiberOrientations()
 {
-    drawFibers(NULL);
+    drawFiberOrientations(NULL);
     
 //    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
 //    const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
@@ -6053,7 +6084,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
         }
     }
     if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
-        drawSurfaceFibers();
+        drawSurfaceFiberOrientations();
         drawSurfaceFiberTrajectories();
     }
 }
