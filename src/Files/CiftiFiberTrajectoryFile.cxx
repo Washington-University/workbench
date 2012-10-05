@@ -317,21 +317,23 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOr
     }
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
     const CiftiXML& orientXML = fiberOrientFile->ciftiInterface->getCiftiXML();
-//    if (trajXML.matchesForRows(orientXML) == false) {
-//        QString msg = (getFileNameNoPath()
-//                       + " rows="
-//                       + QString::number(trajXML.getNumberOfRows())
-//                       + " cols="
-//                       + QString::number(trajXML.getNumberOfColumns())
-//                       + "   "
-//                       + fiberOrientFile->getFileNameNoPath()
-//                       + " rows="
-//                       + QString::number(orientXML.getNumberOfRows())
-//                       + " cols="
-//                       + QString::number(orientXML.getNumberOfColumns()));
-//        throw DataFileException("Rows do not match: "
-//                                + msg);
-//    }
+    if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
+                               orientXML,
+                               CiftiXML::ALONG_COLUMN) == false) {
+        QString msg = (getFileNameNoPath()
+                       + " rows="
+                       + QString::number(trajXML.getNumberOfRows())
+                       + " cols="
+                       + QString::number(trajXML.getNumberOfColumns())
+                       + "   "
+                       + fiberOrientFile->getFileNameNoPath()
+                       + " rows="
+                       + QString::number(orientXML.getNumberOfRows())
+                       + " cols="
+                       + QString::number(orientXML.getNumberOfColumns()));
+        throw DataFileException("Row to Columns do not match: "
+                                + msg);
+    }
     
     if (trajXML.hasColumnSurfaceData(structure) == false) {
         return;

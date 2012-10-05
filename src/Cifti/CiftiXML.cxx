@@ -32,6 +32,10 @@
 using namespace caret;
 using namespace std;
 
+const int CiftiXML::ALONG_ROW = 0;
+const int CiftiXML::ALONG_COLUMN = 1;
+const int CiftiXML::ALONG_STACK = 2;
+
 CiftiXML::CiftiXML()
 {
     m_dimToMapLookup.resize(2, -1);//assume matrix is 2D, for backwards compatibility with Row/Column functions
@@ -1751,7 +1755,7 @@ bool CiftiXML::matchesForRows(const caret::CiftiXML& rhs) const
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_dimToMapLookup[0]]);
 }
 
-bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection)
+bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection) const
 {
     CaretAssertVectorIndex(m_dimToMapLookup, direction);
     CaretAssertVectorIndex(other.m_dimToMapLookup, otherDirection);

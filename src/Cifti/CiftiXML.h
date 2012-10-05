@@ -54,9 +54,9 @@ namespace caret {
     
     class CiftiXML {
     public:
-        const static int ALONG_ROW = 0;
-        const static int ALONG_COLUMN = 1;
-        const static int ALONG_STACK = 2;//better name for this?
+        const static int ALONG_ROW;
+        const static int ALONG_COLUMN;
+        const static int ALONG_STACK;//better name for this?
         /**
         * Default Constructor
         *
@@ -381,7 +381,7 @@ namespace caret {
         bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
         
         ///comparison
-        bool mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection);
+        bool mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection) const;
         bool matchesForRows(const CiftiXML& rhs) const;
         bool matchesForColumns(const CiftiXML& rhs) const;
         bool matchesVolumeSpace(const CiftiXML& rhs) const;
