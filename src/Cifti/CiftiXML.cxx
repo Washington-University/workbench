@@ -1751,6 +1751,19 @@ bool CiftiXML::matchesForRows(const caret::CiftiXML& rhs) const
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_dimToMapLookup[0]]);
 }
 
+bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection)
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    CaretAssertVectorIndex(other.m_dimToMapLookup, otherDirection);
+    if (m_root.m_matrices.size() == 0 || m_dimToMapLookup[direction] == -1)
+    {
+        return (other.m_root.m_matrices.size() == 0 || other.m_dimToMapLookup[otherDirection] == -1);
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
+    CaretAssertVectorIndex(other.m_root.m_matrices[0].m_matrixIndicesMap, other.m_dimToMapLookup[otherDirection]);
+    return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] == other.m_root.m_matrices[0].m_matrixIndicesMap[other.m_dimToMapLookup[otherDirection]]);
+}
+
 bool CiftiXML::operator==(const caret::CiftiXML& rhs) const
 {
     if (this == &rhs) return true;//compare pointers to skip checking object against itself

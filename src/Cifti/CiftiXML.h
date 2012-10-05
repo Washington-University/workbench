@@ -381,6 +381,7 @@ namespace caret {
         bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
         
         ///comparison
+        bool mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection);
         bool matchesForRows(const CiftiXML& rhs) const;
         bool matchesForColumns(const CiftiXML& rhs) const;
         bool matchesVolumeSpace(const CiftiXML& rhs) const;
