@@ -4635,6 +4635,9 @@ BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayProperties
     dispInfo.magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, tabIndex);
     dispInfo.plane = plane;
     dispInfo.symbolType = dpfo->getSymbolType(displayGroup, tabIndex);
+    dispInfo.fiberOpacities[0] = 1.0;
+    dispInfo.fiberOpacities[1] = 1.0;
+    dispInfo.fiberOpacities[2] = 1.0;
 }
 
 /**
@@ -5099,25 +5102,41 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
             /*
              * Color of fiber
              */
+            float alpha = 1.0;
+            if (j < 3) {
+                alpha = fodi->fiberOpacities[j];
+            }
             switch (fodi->colorType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
                 {
                     const int32_t indx = j % 3;
                     switch (indx) {
                         case 0:
-                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_RED);
+                            glColor4f(BrainOpenGLFixedPipeline::COLOR_RED[0],
+                                      BrainOpenGLFixedPipeline::COLOR_RED[1],
+                                      BrainOpenGLFixedPipeline::COLOR_RED[2],
+                                      alpha);
                             break;
                         case 1:
-                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_GREEN);
+                            glColor4f(BrainOpenGLFixedPipeline::COLOR_GREEN[0],
+                                      BrainOpenGLFixedPipeline::COLOR_GREEN[1],
+                                      BrainOpenGLFixedPipeline::COLOR_GREEN[2],
+                                      alpha);
                             break;
                         case 2:
-                            glColor3fv(BrainOpenGLFixedPipeline::COLOR_BLUE);
+                            glColor4f(BrainOpenGLFixedPipeline::COLOR_BLUE[0],
+                                      BrainOpenGLFixedPipeline::COLOR_BLUE[1],
+                                      BrainOpenGLFixedPipeline::COLOR_BLUE[2],
+                                      alpha);
                             break;
                     }
                 }
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                    glColor3fv(fiber->m_directionUnitVectorRGB);
+                    glColor4f(fiber->m_directionUnitVectorRGB[0],
+                              fiber->m_directionUnitVectorRGB[1],
+                              fiber->m_directionUnitVectorRGB[2],
+                              alpha);
                     break;
             }
             
@@ -5248,6 +5267,18 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     glDisable(GL_CLIP_PLANE4);
     glDisable(GL_CLIP_PLANE5);
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+    FiberOrientationDisplayInfo fiberOrientDispInfo;
+    setFiberOrientationDisplayInfo(dpfo,
+                                   displayGroup,
+                                   this->windowTabIndex,
+                                   &clippingBoundingBox,
+                                   const_cast<Plane*>(plane),
+                                   fiberOrientDispInfo);
+    
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
         const CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
@@ -5302,15 +5333,24 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                 continue;
             }
             
-            glColor3f(1.0, 0.0, 0.0);
-            glPushMatrix();
-            glTranslatef(orientation->m_xyz[0],
-                         orientation->m_xyz[1],
-                         orientation->m_xyz[2]);
-            drawSphere(1.0);
-            glPopMatrix();
+            fiberOrientDispInfo.fiberOpacities[0] = fiberOpacities[0];
+            fiberOrientDispInfo.fiberOpacities[1] = fiberOpacities[1];
+            fiberOrientDispInfo.fiberOpacities[2] = fiberOpacities[2];
+            
+            drawOneFiberOrientation(&fiberOrientDispInfo,
+                                    orientation);
+            
+//            glColor3f(1.0, 0.0, 0.0);
+//            glPushMatrix();
+//            glTranslatef(orientation->m_xyz[0],
+//                         orientation->m_xyz[1],
+//                         orientation->m_xyz[2]);
+//            drawSphere(1.0);
+//            glPopMatrix();
         }
     }
+    
+    glDisable(GL_BLEND);
     
     /*
      * Restore status of clipping planes enabled
