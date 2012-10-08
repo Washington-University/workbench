@@ -4653,13 +4653,13 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
     if (dpfo->isDisplayed(displayGroup, this->windowTabIndex) == false) {
         return;
     }
-    const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
-    const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
-    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
-    const float magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, this->windowTabIndex);
-    const float fanMultiplier = dpfo->getFanMultiplier(displayGroup, this->windowTabIndex);
-    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
-    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
+//    const float aboveLimit = dpfo->getAboveLimit(displayGroup, this->windowTabIndex);
+//    const float belowLimit = dpfo->getBelowLimit(displayGroup, this->windowTabIndex);
+//    const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, this->windowTabIndex);
+//    const float magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, this->windowTabIndex);
+//    const float fanMultiplier = dpfo->getFanMultiplier(displayGroup, this->windowTabIndex);
+//    const bool isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, this->windowTabIndex);
+//    const FiberOrientationColoringTypeEnum::Enum colorType = dpfo->getColoringType(displayGroup, this->windowTabIndex);
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
     
     /*
@@ -5183,6 +5183,10 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                                                                       this->windowTabIndex);
     const float maxPropOpacity = dpft->getMaximumProportionOpacity(displayGroup,
                                                                       this->windowTabIndex);
+    const float deltaPropOpacity = maxPropOpacity - minPropOpacity;
+    if (deltaPropOpacity <= 0.0) {
+        return;
+    }
     const float thresholdProportion = dpft->getThresholdProportion(displayGroup,
                                                                    this->windowTabIndex);
     const float thresholdStreamline = dpft->getThresholdStreamline(displayGroup,
@@ -5255,25 +5259,56 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
             const FiberOrientation* orientation = fiberTraj->m_fiberOrientation;
             const FiberFractions* fiberFractions = fiberTraj->m_fiberFractions;
             
-            bool drawIt = true;
             if (fiberFractions->fiberFractions.size() != 3) {
-                drawIt = false;
+                CaretLogWarning("Fiber Trajectory index="
+                                + AString::number(iTraj)
+                                + " has "
+                                + AString::number(fiberFractions->fiberFractions.size())
+                                + " fibers != 3 from file "
+                                + trajFile->getFileNameNoPath());
+                
+                continue;
             }
             else if (fiberFractions->totalCount < thresholdStreamline) {
-                drawIt = false;
+                continue;
             }
 
-            float alpha = 1.0;
-            
-            if (drawIt) {
-                glColor3f(1.0, 0.0, 0.0);
-                glPushMatrix();
-                glTranslatef(orientation->m_xyz[0],
-                             orientation->m_xyz[1],
-                             orientation->m_xyz[2]);
-                drawSphere(1.0);
-                glPopMatrix();
+            bool drawOrientations[3] = {
+                fiberFractions->fiberFractions[0] > thresholdProportion,
+                fiberFractions->fiberFractions[1] > thresholdProportion,
+                fiberFractions->fiberFractions[2] > thresholdProportion
+            };
+ 
+            /*
+             * Set opacities for each fiber using mapping of minimum and
+             * maximum opacities
+             */
+            float fiberOpacities[3] = {
+                (fiberFractions->fiberFractions[0] - minPropOpacity) /deltaPropOpacity,
+                (fiberFractions->fiberFractions[1] - minPropOpacity) /deltaPropOpacity,
+                (fiberFractions->fiberFractions[2] - minPropOpacity) /deltaPropOpacity
+            };
+            int32_t drawCount = 3;
+            for (int32_t i = 0; i < 3; i++) {
+                if (fiberOpacities[0] > 1.0) {
+                    fiberOpacities[0] = 1.0;
+                }
+                else if (fiberOpacities[0] <= 0.0) {
+                    drawOrientations[0] = false;
+                    drawCount--;
+                }
             }
+            if (drawCount <= 0) {
+                continue;
+            }
+            
+            glColor3f(1.0, 0.0, 0.0);
+            glPushMatrix();
+            glTranslatef(orientation->m_xyz[0],
+                         orientation->m_xyz[1],
+                         orientation->m_xyz[2]);
+            drawSphere(1.0);
+            glPopMatrix();
         }
     }
     
