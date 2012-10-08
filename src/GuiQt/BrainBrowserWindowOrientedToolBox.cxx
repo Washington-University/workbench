@@ -88,6 +88,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_borderTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
+    m_fiberTrajectoryTabIndex = -1;
     m_fociTabIndex = -1;
     m_labelTabIndex = -1;
     m_overlayTabIndex = -1;
@@ -480,16 +481,32 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
-        m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
-        m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
-        m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
+        //if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
+        if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
+        if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
+        if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
         
-        m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
-        m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
-        m_tabWidget->setTabEnabled(m_fiberTrajectoryTabIndex, haveTraj);
-        m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
-        m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
+        if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
+        if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
+        if (m_fiberTrajectoryTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberTrajectoryTabIndex, haveTraj);
+        if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
+        if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
+        
+        //ensure overlays is always enabled if it exists, and do it after everything else just in case some uninitialized tab index clobbers it above
+        if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, true);
+        
+        int curTab = m_tabWidget->currentIndex();
+        if (!m_tabWidget->isTabEnabled(curTab))
+        {
+            for (int i = 0; i < m_tabWidget->count(); ++i)
+            {
+                if (m_tabWidget->isTabEnabled(i))
+                {
+                    m_tabWidget->setTabEnabled(i, true);
+                    break;
+                }
+            }
+        }
     }
     else {
     }
