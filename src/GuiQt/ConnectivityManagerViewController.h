@@ -47,6 +47,8 @@ class QAction;
 class QGridLayout;
 class QToolButton;
 class QHBoxLayout;
+class QLabel;
+class QSpinBox;
 class TimeCourseDialog;
 
 namespace caret {
@@ -103,6 +105,10 @@ namespace caret {
         QToolButton *graphToolButton;
 
         QAction* graphAction;
+
+        QLabel *frameRepeatLabel;
+
+        QSpinBox *frameRepeatSpinBox;
 
         QToolButton *movieToolButton;
 

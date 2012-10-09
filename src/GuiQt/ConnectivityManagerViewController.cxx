@@ -57,6 +57,8 @@
 #include "ImageFile.h"
 #include "QFileDialog"
 #include "QHBoxLayout"
+#include "QLabel"
+#include "QSpinBox"
 #include "TimeCourseDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -90,6 +92,11 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->graphAction = NULL;
     this->movieToolButton = NULL;
     this->movieAction = NULL;
+
+    this->frameRepeatLabel = new QLabel("Repeat Frames: ");
+    this->frameRepeatSpinBox = new QSpinBox();
+    this->frameRepeatSpinBox->setMaximum(59);
+    this->frameRepeatSpinBox->setMinimum(0);
 
 	this->movieAction = WuQtUtilities::createAction("Movie...",
 		"Record Time Course Movie...",
@@ -142,7 +149,10 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     if(this->timeSeriesButtonLayout)
     {
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
-        if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,100,Qt::AlignLeft);
+        if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
+        if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
+        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,100, Qt::AlignLeft);
+        
         layout->addLayout(this->timeSeriesButtonLayout);
     }
     
@@ -191,7 +201,9 @@ ConnectivityManagerViewController::movieActionTriggered(bool status)
             CaretLogInfo("Rendering movie to:" + fileName);
             AString ffmpeg = QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
 
-            AString command = ffmpeg + AString("-threads 4 -r 2 -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
+            double frame_rate = 30.0/double(1 + this->frameRepeatSpinBox->value());
+            
+            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
             CaretLogFine("running " + command);
 
             system(command.toAscii().data());
