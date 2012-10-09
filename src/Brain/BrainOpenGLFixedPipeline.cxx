@@ -4614,6 +4614,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     }
 
     drawFiberOrientations(&plane);
+    drawFiberTrajectories(&plane);
     disableLighting();
 }
 
