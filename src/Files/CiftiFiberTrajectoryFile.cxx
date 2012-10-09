@@ -351,7 +351,6 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOr
     CaretAssert(fiberIndices.size() == m_fiberFractions.size());
     
     const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
-    std::cout << "Loaded " << numFibers << " fibers." << std::endl;
     
     if (numFibers > 0) {
         m_fiberOrientationTrajectories.reserve(numFibers);
