@@ -217,7 +217,7 @@ void CiftiMatrix::getRow(float *rowOut, const int64_t &rowIndex) const throw (Ci
     else if(m_caching == ON_DISK)
     {
         if (!m_readFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
-        if (m_readFile->read((char *)rowOut,m_dimensions[1]*sizeof(float)) != m_dimensions[1]*sizeof(float)) throw CiftiFileException("error reading row, file may be truncated");
+        if (m_readFile->read((char *)rowOut,m_dimensions[1]*sizeof(float)) != (qint64)(m_dimensions[1]*sizeof(float))) throw CiftiFileException("error reading row, file may be truncated");
         if(m_needsSwapping) ByteSwapping::swapBytes(rowOut,m_dimensions[1]);
     }
 }
@@ -234,7 +234,7 @@ void CiftiMatrix::setRow(float *rowIn, const int64_t &rowIndex) throw (CiftiFile
         if(!matrixChanged) updateCache();
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
         if (!m_cacheFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
-        if (m_cacheFile->write((char *)rowIn,m_dimensions[1]*sizeof(float)) != m_dimensions[1]*sizeof(float)) throw CiftiFileException("error writing to file, file may be truncated");
+        if (m_cacheFile->write((char *)rowIn,m_dimensions[1]*sizeof(float)) != (qint64)(m_dimensions[1]*sizeof(float))) throw CiftiFileException("error writing to file, file may be truncated");
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
     }
 }
@@ -322,7 +322,7 @@ void CiftiMatrix::getMatrix(float *matrixOut) throw (CiftiFileException)
     {//TODO, see if QT has fixed reading large files
         if (!m_readFile->seek(m_matrixOffset)) throw CiftiFileException("error seeking in file, file may be truncated");
         //otherwise use stdio for this read...
-        if (m_readFile->read((char *)matrixOut,matrixLength*sizeof(float)) != matrixLength*sizeof(float)) throw CiftiFileException("error reading from file, file may be truncated (or larger than QFile::read can handle)");
+        if (m_readFile->read((char *)matrixOut,matrixLength*sizeof(float)) != (qint64)(matrixLength*sizeof(float))) throw CiftiFileException("error reading from file, file may be truncated (or larger than QFile::read can handle)");
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixOut,matrixLength);
     }
 }
@@ -341,7 +341,7 @@ void CiftiMatrix::setMatrix(float *matrixIn) throw (CiftiFileException)
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);//TODO, see if QT has fixed reading large files
         if (!m_cacheFile->seek(m_matrixOffset)) throw CiftiFileException("error seeking in file, file may be truncated");
         //otherwise use stdio for this read...
-        if (m_cacheFile->write((char *)matrixIn,matrixLength*sizeof(float)) != matrixLength*sizeof(float)) throw CiftiFileException("error writing to file, file may be truncated (or larger than QFile::write can handle)");
+        if (m_cacheFile->write((char *)matrixIn,matrixLength*sizeof(float)) != (qint64)(matrixLength*sizeof(float))) throw CiftiFileException("error writing to file, file may be truncated (or larger than QFile::write can handle)");
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);
     }
 }
