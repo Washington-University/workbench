@@ -143,6 +143,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             myXML.setColumnNumberOfTimepoints(numRows);
         }
+        if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
         float* inputArray = dataArrayRef->getDataPointerFloat();
