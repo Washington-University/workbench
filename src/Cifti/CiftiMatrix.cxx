@@ -216,8 +216,8 @@ void CiftiMatrix::getRow(float *rowOut, const int64_t &rowIndex) const throw (Ci
     }
     else if(m_caching == ON_DISK)
     {
-        m_readFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
-        m_readFile->read((char *)rowOut,m_dimensions[1]*sizeof(float));
+        if (!m_readFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
+        if (m_readFile->read((char *)rowOut,m_dimensions[1]*sizeof(float)) != m_dimensions[1]*sizeof(float)) throw CiftiFileException("error reading row, file may be truncated");
         if(m_needsSwapping) ByteSwapping::swapBytes(rowOut,m_dimensions[1]);
     }
 }
@@ -233,8 +233,8 @@ void CiftiMatrix::setRow(float *rowIn, const int64_t &rowIndex) throw (CiftiFile
     {
         if(!matrixChanged) updateCache();
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
-        m_cacheFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
-        m_cacheFile->write((char *)rowIn,m_dimensions[1]*sizeof(float));
+        if (!m_cacheFile->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
+        if (m_cacheFile->write((char *)rowIn,m_dimensions[1]*sizeof(float)) != m_dimensions[1]*sizeof(float)) throw CiftiFileException("error writing to file, file may be truncated");
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
     }
 }
@@ -281,8 +281,8 @@ void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) const 
         //let's hope that people aren't stupid enough to think this is fast...        
         for(int64_t i=0;i<columnSize;i++)
         {
-            m_readFile->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
-            m_readFile->read((char *)&columnOut[i],sizeof(float));
+            if (!m_readFile->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
+            if (m_readFile->read((char *)&columnOut[i],sizeof(float)) != sizeof(float)) throw CiftiFileException("error reading from file, file may be truncated");
         }
         if(m_needsSwapping) ByteSwapping::swapBytes(columnOut,columnSize);
     }
@@ -303,8 +303,8 @@ void CiftiMatrix::setColumn(float *columnIn, const int64_t &columnIndex) throw (
         if(m_needsSwapping) ByteSwapping::swapBytes(columnIn,columnSize);
         for(int64_t i=0;i<columnSize;i++)
         {
-            m_cacheFile->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
-            m_cacheFile->write((char *)&columnIn[i],sizeof(float));
+            if (!m_cacheFile->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float))) throw CiftiFileException("error seeking in file, file may be truncated");
+            if (m_cacheFile->write((char *)&columnIn[i],sizeof(float)) != sizeof(float)) throw CiftiFileException("error writing to file, file may be truncated");
         }
         if(m_needsSwapping) ByteSwapping::swapBytes(columnIn,columnSize);
     }
@@ -319,10 +319,10 @@ void CiftiMatrix::getMatrix(float *matrixOut) throw (CiftiFileException)
         memcpy((char *)matrixOut,(char *)m_matrix,matrixLength*sizeof(float));
     }
     else if(m_caching == ON_DISK)
-    {
-        m_readFile->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+    {//TODO, see if QT has fixed reading large files
+        if (!m_readFile->seek(m_matrixOffset)) throw CiftiFileException("error seeking in file, file may be truncated");
         //otherwise use stdio for this read...
-        m_readFile->read((char *)matrixOut,matrixLength*sizeof(float));
+        if (m_readFile->read((char *)matrixOut,matrixLength*sizeof(float)) != matrixLength*sizeof(float)) throw CiftiFileException("error reading from file, file may be truncated (or larger than QFile::read can handle)");
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixOut,matrixLength);
     }
 }
@@ -338,10 +338,10 @@ void CiftiMatrix::setMatrix(float *matrixIn) throw (CiftiFileException)
     else if(m_caching == ON_DISK)
     {
         if(!matrixChanged) updateCache();
-        if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);
-        m_cacheFile->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+        if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);//TODO, see if QT has fixed reading large files
+        if (!m_cacheFile->seek(m_matrixOffset)) throw CiftiFileException("error seeking in file, file may be truncated");
         //otherwise use stdio for this read...
-        m_cacheFile->write((char *)matrixIn,matrixLength*sizeof(float));
+        if (m_cacheFile->write((char *)matrixIn,matrixLength*sizeof(float)) != matrixLength*sizeof(float)) throw CiftiFileException("error writing to file, file may be truncated (or larger than QFile::write can handle)");
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);
     }
 }
