@@ -369,7 +369,7 @@ FiberSamplesOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             if ((absDX > 0)
                 || (absDY > 0)) {
                 m_rotationMatrix.rotateX(-dy);
-                m_rotationMatrix.rotateY(-dx);
+                m_rotationMatrix.rotateY(dx);
             }
             
             m_lastMouseX = mouseX;
