@@ -37,6 +37,7 @@
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
+#include "FiberTrajectoryDisplayModeEnum.h"
 
 namespace caret {
 
@@ -68,20 +69,19 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                              const DisplayGroupEnum::Enum displayGroup);
         
+        FiberTrajectoryDisplayModeEnum::Enum getDisplayMode(const DisplayGroupEnum::Enum displayGroup,
+                                                            const int32_t tabIndex) const;
         
-        float getThresholdProportion(const DisplayGroupEnum::Enum displayGroup,
-                            const int32_t tabIndex) const;
+        void setDisplayMode(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const FiberTrajectoryDisplayModeEnum::Enum displayMode);
         
-        void setThresholdProportion(const DisplayGroupEnum::Enum displayGroup,
-                           const int32_t tabIndex,
-                           const float thresholdProportion);
-        
-        float getThresholdStreamline(const DisplayGroupEnum::Enum displayGroup,
+        int32_t getProportionStreamline(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex) const;
         
-        void setThresholdStreamline(const DisplayGroupEnum::Enum displayGroup,
+        void setProportionStreamline(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex,
-                                    const float thresholdStreamline);
+                                    const int32_t thresholdStreamline);
         
         float getMaximumProportionOpacity(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const;
@@ -110,17 +110,17 @@ namespace caret {
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        FiberTrajectoryDisplayModeEnum::Enum m_displayModeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        FiberTrajectoryDisplayModeEnum::Enum m_displayModeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        float m_thresholdProportionInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        int32_t m_proportionStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        float m_thresholdProportionInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        float m_thresholdStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        float m_thresholdStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        int32_t m_proportionStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         float m_maximimProportionOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
@@ -130,7 +130,21 @@ namespace caret {
         
         float m_minimumProportionOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
-    };
+        
+        
+//        int32_t m_thresholdCountInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+//        
+//        int32_t m_thresholdCountInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+//        
+//        int32_t m_maximimCountOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+//        
+//        int32_t m_maximumCountOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+//        
+//        int32_t m_minimumCountOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+//        
+//        int32_t m_minimumCountOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+};
     
 #ifdef __DISPLAY_PROPERTIES_FIBER_TRAJECTORY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

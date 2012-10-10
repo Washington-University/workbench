@@ -66,25 +66,25 @@ using namespace caret;
 DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
 : DisplayProperties(brain)
 {
-    const float thresholdProportion = 0.30;
-    const float thresholdStreamline = 5.0;
+    const int32_t thresholdStreamline = 5;
     const float maximumProportionOpacity = 0.80;
     const float minimumProportionOpacity = 0.20;
+    const FiberTrajectoryDisplayModeEnum::Enum displayMode = FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
         m_displayStatusInTab[i] = false;
         
-        m_thresholdProportionInTab[i] = thresholdProportion;
-        m_thresholdStreamlineInTab[i] = thresholdStreamline;
+        m_displayModeInTab[i] = displayMode;
+        m_proportionStreamlineInTab[i] = thresholdStreamline;
         m_maximumProportionOpacityInTab[i] = maximumProportionOpacity;
         m_minimumProportionOpacityInTab[i] = minimumProportionOpacity;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = false;
-        m_thresholdProportionInDisplayGroup[i] = thresholdProportion;
-        m_thresholdStreamlineInDisplayGroup[i] = thresholdStreamline;
+        m_displayModeInDisplayGroup[i] = displayMode;
+        m_proportionStreamlineInDisplayGroup[i] = thresholdStreamline;
         m_maximimProportionOpacityInDisplayGroup[i] = maximumProportionOpacity;
         m_minimumProportionOpacityInDisplayGroup[i] = minimumProportionOpacity;
     }
@@ -92,11 +92,9 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
                                               m_displayStatusInTab);
     
-    
-    m_sceneAssistant->addTabIndexedFloatArray("m_thresholdProportionInTab",
-                                              m_thresholdProportionInTab);
-    m_sceneAssistant->addTabIndexedFloatArray("m_thresholdStreamlineInTab",
-                                              m_thresholdStreamlineInTab);
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberTrajectoryDisplayModeEnum, FiberTrajectoryDisplayModeEnum::Enum>("m_displayModeInTab", m_displayModeInTab);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_proportionStreamlineInTab",
+                                              m_proportionStreamlineInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_maximumProportionOpacityInTab",
                                               m_maximumProportionOpacityInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_minimumProportionOpacityInTab",
@@ -107,15 +105,14 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
                                m_displayStatusInDisplayGroup[0]);
     
-    
-    m_sceneAssistant->addArray("m_thresholdProportionInDisplayGroup",
-                               m_thresholdProportionInDisplayGroup,
+    m_sceneAssistant->addArray<FiberTrajectoryDisplayModeEnum, FiberTrajectoryDisplayModeEnum::Enum>("m_displayModeInDisplayGroup",
+                                 m_displayModeInDisplayGroup,
+                                 DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                 m_displayModeInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_proportionStreamlineInDisplayGroup",
+                               m_proportionStreamlineInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               m_thresholdProportionInDisplayGroup[0]);
-    m_sceneAssistant->addArray("m_thresholdStreamlineInDisplayGroup",
-                               m_thresholdStreamlineInDisplayGroup,
-                               DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               m_thresholdStreamlineInDisplayGroup[0]);
+                               m_proportionStreamlineInDisplayGroup[0]);
     m_sceneAssistant->addArray("m_maximimProportionOpacityInDisplayGroup",
                                m_maximimProportionOpacityInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -167,8 +164,8 @@ DisplayPropertiesFiberTrajectory::copyDisplayProperties(const int32_t sourceTabI
     this->setDisplayGroupForTab(targetTabIndex, displayGroup);
     
     m_displayStatusInTab[targetTabIndex] = m_displayStatusInTab[sourceTabIndex];
-    m_thresholdProportionInTab[targetTabIndex] = m_thresholdProportionInTab[sourceTabIndex];
-    m_thresholdStreamlineInTab[targetTabIndex] = m_thresholdStreamlineInTab[sourceTabIndex];
+    m_displayModeInTab[targetTabIndex] = m_displayModeInTab[sourceTabIndex];
+    m_proportionStreamlineInTab[targetTabIndex] = m_proportionStreamlineInTab[sourceTabIndex];
     m_maximumProportionOpacityInTab[targetTabIndex] = m_maximumProportionOpacityInTab[sourceTabIndex];
     m_minimumProportionOpacityInTab[targetTabIndex] = m_minimumProportionOpacityInTab[sourceTabIndex];
 }
@@ -256,53 +253,53 @@ DisplayPropertiesFiberTrajectory::setDisplayGroupForTab(const int32_t browserTab
 }
 
 /**
- * @return The Above limit.
+ * @return The display mode.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
  */
-float 
-DisplayPropertiesFiberTrajectory::getThresholdProportion(const DisplayGroupEnum::Enum  displayGroup,
+FiberTrajectoryDisplayModeEnum::Enum
+DisplayPropertiesFiberTrajectory::getDisplayMode(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_thresholdProportionInDisplayGroup,
+    CaretAssertArrayIndex(m_displayModeInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_thresholdProportionInTab,
+        CaretAssertArrayIndex(m_displayModeInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);    
-        return m_thresholdProportionInTab[tabIndex];
+                              tabIndex);
+        return m_displayModeInTab[tabIndex];
     }
-    return m_thresholdProportionInDisplayGroup[displayGroup];
+    return m_displayModeInDisplayGroup[displayGroup];    
 }
 
 /**
- * Set the above limit to the given value.
+ * Set the display mode to the given value.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
- * @param aboveLimit
- *     New value for above limit.
+ * @param displayMode
+ *     New value for display mode.
  */
-void 
-DisplayPropertiesFiberTrajectory::setThresholdProportion(const DisplayGroupEnum::Enum  displayGroup,
-                                       const int32_t tabIndex,
-                                       const float thresholdProportion)
+void
+DisplayPropertiesFiberTrajectory::setDisplayMode(const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex,
+                                                 const FiberTrajectoryDisplayModeEnum::Enum displayMode)
 {
-    CaretAssertArrayIndex(m_thresholdProportionInDisplayGroup,
+    CaretAssertArrayIndex(m_displayModeInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_thresholdProportionInTab,
+        CaretAssertArrayIndex(m_displayModeInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);        
-        m_thresholdProportionInTab[tabIndex] = thresholdProportion;
+                              tabIndex);
+        m_displayModeInTab[tabIndex] = displayMode;
     }
     else {
-        m_thresholdProportionInDisplayGroup[displayGroup] = thresholdProportion;
+        m_displayModeInDisplayGroup[displayGroup] = displayMode;
     }
 }
 
@@ -313,20 +310,20 @@ DisplayPropertiesFiberTrajectory::setThresholdProportion(const DisplayGroupEnum:
  * @param tabIndex
  *    Index of browser tab.
  */
-float
-DisplayPropertiesFiberTrajectory::getThresholdStreamline(const DisplayGroupEnum::Enum  displayGroup,
+int32_t
+DisplayPropertiesFiberTrajectory::getProportionStreamline(const DisplayGroupEnum::Enum  displayGroup,
                                                  const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_thresholdStreamlineInDisplayGroup,
+    CaretAssertArrayIndex(m_proportionStreamlineInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_thresholdStreamlineInTab,
+        CaretAssertArrayIndex(m_proportionStreamlineInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        return m_thresholdStreamlineInTab[tabIndex];
+        return m_proportionStreamlineInTab[tabIndex];
     }
-    return m_thresholdStreamlineInDisplayGroup[displayGroup];
+    return m_proportionStreamlineInDisplayGroup[displayGroup];
 }
 
 /**
@@ -339,21 +336,21 @@ DisplayPropertiesFiberTrajectory::getThresholdStreamline(const DisplayGroupEnum:
  *     New value for below limit.
  */
 void
-DisplayPropertiesFiberTrajectory::setThresholdStreamline(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberTrajectory::setProportionStreamline(const DisplayGroupEnum::Enum  displayGroup,
                                                  const int32_t tabIndex,
-                                                 const float belowLimit)
+                                                 const int32_t proportionStreamline)
 {
-    CaretAssertArrayIndex(m_thresholdStreamlineInDisplayGroup,
+    CaretAssertArrayIndex(m_proportionStreamlineInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           static_cast<int32_t>(displayGroup));
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_thresholdStreamlineInTab,
+        CaretAssertArrayIndex(m_proportionStreamlineInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        m_thresholdStreamlineInTab[tabIndex] = belowLimit;
+        m_proportionStreamlineInTab[tabIndex] = proportionStreamline;
     }
     else {
-        m_thresholdStreamlineInDisplayGroup[displayGroup] = belowLimit;
+        m_proportionStreamlineInDisplayGroup[displayGroup] = proportionStreamline;
     }
 }
 

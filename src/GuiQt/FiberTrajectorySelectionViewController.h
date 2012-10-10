@@ -44,6 +44,7 @@
 
 class QCheckBox;
 class QDoubleSpinBox;
+class QSpinBox;
 class QVBoxLayout;
 
 namespace caret {
@@ -92,9 +93,7 @@ namespace caret {
         
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
-        QDoubleSpinBox* m_thresholdProportionSpinBox;
-        
-        QDoubleSpinBox* m_thresholdStreamlineSpinBox;
+        QSpinBox* m_proportionStreamlineSpinBox;
         
         QDoubleSpinBox* m_minimumProportionSpinBox;
         

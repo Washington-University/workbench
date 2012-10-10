@@ -42,6 +42,7 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Brain.h"
@@ -152,33 +153,20 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_displayFibersCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* thresholdProportionLabel = new QLabel("Threshold Proportion");
-    m_thresholdProportionSpinBox = new QDoubleSpinBox();
-    m_thresholdProportionSpinBox->setRange(0.0, 1.0);
-    m_thresholdProportionSpinBox->setDecimals(2);
-    m_thresholdProportionSpinBox->setSingleStep(0.1);
-    m_thresholdProportionSpinBox->setToolTip("A streamline along an axis (X,Y,Z) is displayed only\n"
-                                             "if the proportion (range 0.0 to 1.0) of streamlines in the\n"
-                                             "axis are greater than or equal to this value.  The \n"
-                                             "proportions of all of the axes sum to one.");
-    QObject::connect(m_thresholdProportionSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(processAttributesChanges()));
-    
-    QLabel* thresholdStreamlineLabel = new QLabel("Threshold Streamline");
-    m_thresholdStreamlineSpinBox = new QDoubleSpinBox();
-    m_thresholdStreamlineSpinBox->setRange(0.0, std::numeric_limits<float>::max());
-    m_thresholdStreamlineSpinBox->setDecimals(2);
-    m_thresholdStreamlineSpinBox->setSingleStep(1.0);
-    m_thresholdStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
+    QLabel* proportionStreamlineLabel = new QLabel("Threshold Streamline");
+    m_proportionStreamlineSpinBox = new QSpinBox();
+    m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_proportionStreamlineSpinBox->setSingleStep(5);
+    m_proportionStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
                                              "streamlines is greater than or equal to this value.");
-    QObject::connect(m_thresholdStreamlineSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_proportionStreamlineSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
     QLabel* minimumProportionLabel = new QLabel("Minimum Proportion");
     m_minimumProportionSpinBox = new QDoubleSpinBox();
     m_minimumProportionSpinBox->setRange(0.0, 1.0);
     m_minimumProportionSpinBox->setDecimals(2);
-    m_minimumProportionSpinBox->setSingleStep(0.1);
+    m_minimumProportionSpinBox->setSingleStep(0.05);
     m_minimumProportionSpinBox->setToolTip("If the proporation for an axis is less than or equal\n"
                                            "to this value, the opacity will be zero (clear)");
     QObject::connect(m_minimumProportionSpinBox, SIGNAL(valueChanged(double)),
@@ -188,7 +176,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     m_maximumProportionSpinBox = new QDoubleSpinBox();
     m_maximumProportionSpinBox->setRange(0.0, 1.0);
     m_maximumProportionSpinBox->setDecimals(2);
-    m_maximumProportionSpinBox->setSingleStep(0.1);
+    m_maximumProportionSpinBox->setSingleStep(0.05);
     m_maximumProportionSpinBox->setToolTip("If the proportion for an axis is greater than or equal\n"
                                            "to this value, the opacity will be one (opaque)");
     QObject::connect(m_maximumProportionSpinBox, SIGNAL(valueChanged(double)),
@@ -208,11 +196,8 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     gridLayout->addWidget(minimumProportionLabel, row, 0);
     gridLayout->addWidget(m_minimumProportionSpinBox , row, 1);
     row++;
-    gridLayout->addWidget(thresholdProportionLabel, row, 0);
-    gridLayout->addWidget(m_thresholdProportionSpinBox, row, 1);
-    row++;
-    gridLayout->addWidget(thresholdStreamlineLabel, row, 0);
-    gridLayout->addWidget(m_thresholdStreamlineSpinBox, row, 1);
+    gridLayout->addWidget(proportionStreamlineLabel, row, 0);
+    gridLayout->addWidget(m_proportionStreamlineSpinBox, row, 1);
     row++;
     
     gridWidget->setSizePolicy(QSizePolicy::Fixed,
@@ -254,13 +239,9 @@ FiberTrajectorySelectionViewController::processAttributesChanges()
                        browserTabIndex,
                        m_displayFibersCheckBox->isChecked());
     
-    dpfo->setThresholdProportion(displayGroup,
-                       browserTabIndex,
-                       m_thresholdProportionSpinBox->value());
-    
-    dpfo->setThresholdStreamline(displayGroup,
+    dpfo->setProportionStreamline(displayGroup,
                         browserTabIndex,
-                        m_thresholdStreamlineSpinBox->value());
+                        m_proportionStreamlineSpinBox->value());
     
     dpfo->setMinimumProportionOpacity(displayGroup,
                         browserTabIndex,
@@ -371,9 +352,7 @@ FiberTrajectorySelectionViewController::updateViewController()
      */
     m_displayFibersCheckBox->setChecked(dpfo->isDisplayed(displayGroup,
                                                         browserTabIndex));
-    m_thresholdProportionSpinBox->setValue(dpfo->getThresholdProportion(displayGroup,
-                                                      browserTabIndex));
-    m_thresholdStreamlineSpinBox->setValue(dpfo->getThresholdStreamline(displayGroup,
+    m_proportionStreamlineSpinBox->setValue(dpfo->getProportionStreamline(displayGroup,
                                                       browserTabIndex));
     m_maximumProportionSpinBox->setValue(dpfo->getMaximumProportionOpacity(displayGroup,
                                                       browserTabIndex));

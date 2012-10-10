@@ -5023,6 +5023,14 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
         }
         
         if (drawIt) {
+            float alpha = 1.0;
+            if (j < 3) {
+                alpha = fodi->fiberOpacities[j];
+                if (alpha <= 0.0) {
+                    continue;
+                }
+            }
+            
             /*
              * Length of vector
              */
@@ -5103,10 +5111,6 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
             /*
              * Color of fiber
              */
-            float alpha = 1.0;
-            if (j < 3) {
-                alpha = fodi->fiberOpacities[j];
-            }
             switch (fodi->colorType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
                 {
@@ -5207,9 +5211,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     if (deltaPropOpacity <= 0.0) {
         return;
     }
-    const float thresholdProportion = dpft->getThresholdProportion(displayGroup,
-                                                                   this->windowTabIndex);
-    const float thresholdStreamline = dpft->getThresholdStreamline(displayGroup,
+    const uint32_t thresholdStreamline = dpft->getProportionStreamline(displayGroup,
                                                                    this->windowTabIndex);
     /*
      * Clipping planes
@@ -5305,12 +5307,6 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                 continue;
             }
 
-            bool drawOrientations[3] = {
-                fiberFractions->fiberFractions[0] > thresholdProportion,
-                fiberFractions->fiberFractions[1] > thresholdProportion,
-                fiberFractions->fiberFractions[2] > thresholdProportion
-            };
- 
             /*
              * Set opacities for each fiber using mapping of minimum and
              * maximum opacities
@@ -5326,7 +5322,6 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                     fiberOpacities[0] = 1.0;
                 }
                 else if (fiberOpacities[0] <= 0.0) {
-                    drawOrientations[0] = false;
                     drawCount--;
                 }
             }
