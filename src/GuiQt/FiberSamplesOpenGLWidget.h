@@ -38,17 +38,24 @@
 
 #include "Matrix4x4.h"
 
+#include "EventListenerInterface.h"
+
+class QCheckBox;
+
 namespace caret {
 
     class BrainOpenGLShapeSphere;
     
-    class FiberSamplesOpenGLWidget : public QGLWidget {
+    class FiberSamplesOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
         
     public:
-        FiberSamplesOpenGLWidget(QWidget* parent = 0);
+        FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
+                                 QWidget* parent = 0);
         
         virtual ~FiberSamplesOpenGLWidget();
+        
+        void receiveEvent(Event* event);
         
         // ADD_NEW_METHODS_HERE
         
@@ -96,6 +103,7 @@ namespace caret {
         
         Matrix4x4 m_rotationMatrix;
 
+        QCheckBox* m_enabledCheckBox;
     };
     
 #ifdef __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__

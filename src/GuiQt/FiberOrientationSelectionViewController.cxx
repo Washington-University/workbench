@@ -327,6 +327,10 @@ FiberOrientationSelectionViewController::processAttributesChanges()
                           browserTabIndex,
                           symbolType);
     
+    dpfo->setSphereOrientationsDisplayed(displayGroup,
+                                         browserTabIndex,
+                                         m_displaySphereOrientationsCheckBox->isChecked());
+    
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
     updateOtherViewControllers();
@@ -448,7 +452,8 @@ FiberOrientationSelectionViewController::updateViewController()
                                                                                                                                              browserTabIndex));
     m_symbolTypeComboBox->setSelectedItem<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>(dpfo->getSymbolType(displayGroup,
                                                                                                                                             browserTabIndex));
-
+    m_displaySphereOrientationsCheckBox->setChecked(dpfo->isSphereOrientationsDisplayed(displayGroup,
+                                                                                        browserTabIndex));
     m_updateInProgress = false;
 }
 
@@ -491,23 +496,31 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * @return Create and return the spherical samples widget.
+ */
 QWidget*
 FiberOrientationSelectionViewController::createSamplesWidget()
 {
-    m_samplesOpenGLWidget = new FiberSamplesOpenGLWidget();
+    m_displaySphereOrientationsCheckBox = new QCheckBox("Show Orientations");
+    QObject::connect(m_displaySphereOrientationsCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
+    
+    m_samplesOpenGLWidget = new FiberSamplesOpenGLWidget(m_displaySphereOrientationsCheckBox);
     m_samplesOpenGLWidget->setMinimumSize(200, 200);
 //    m_samplesOpenGLWidget->resize(200, 200);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    layout->addWidget(m_displaySphereOrientationsCheckBox);
     layout->addWidget(m_samplesOpenGLWidget,
                       100); // stretch factor
     layout->addStretch();
     
     return widget;
 }
-
 
 /**
  * Update other fiber orientation view controllers.

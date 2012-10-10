@@ -39,6 +39,7 @@
 #include "DisplayProperties.h"
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
+#include "VolumeFile.h"
 
 namespace caret {
 
@@ -126,6 +127,18 @@ namespace caret {
                              const int32_t tabIndex,
                              const FiberOrientationSymbolTypeEnum::Enum symbolType);
         
+        bool isSphereOrientationsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t tabIndex) const;
+        
+        void setSphereOrientationsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t tabIndex,
+                                  const bool displaySphereOrientations);
+        
+        bool getSphericalOrientationVolumes(VolumeFile* magntiudeVolumesOut[3],
+                                            VolumeFile* phiAngleVolumesOut[3],
+                                            VolumeFile* thetaAngleVolumesOut[3],
+                                            AString& errorMessageOut);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -173,6 +186,25 @@ namespace caret {
         FiberOrientationSymbolTypeEnum::Enum m_fiberSymbolTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         FiberOrientationSymbolTypeEnum::Enum m_fiberSymbolTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
+        bool m_displaySphereOrientationsInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        bool m_displaySphereOrientationsInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Tried to load sample volumes since last reset (they may or may not be valid) */
+        bool m_sampleVolumesLoadAttemptValid;
+        
+        /** Sample volumes were loaded and are valid */
+        bool m_sampleVolumesValid;
+        
+        /* sample magnitude volumes */
+        VolumeFile* m_sampleMagnitudeVolumes[3];
+        
+        /* sample theta angle volumes */
+        VolumeFile* m_sampleThetaVolumes[3];
+        
+        /* sample phi angle volumes */
+        VolumeFile* m_samplePhiVolumes[3];
         
         friend class BrainOpenGLFixedPipeline;
     };

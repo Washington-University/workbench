@@ -115,6 +115,8 @@ namespace caret {
         
         FiberSamplesOpenGLWidget* m_samplesOpenGLWidget;
         
+        QCheckBox* m_displaySphereOrientationsCheckBox;
+        
         bool m_updateInProgress;
         
         // ADD_NEW_MEMBERS_HERE

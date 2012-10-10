@@ -52,9 +52,11 @@ using namespace caret;
 /**
  * Constructor.
  */
-FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QWidget* parent)
+FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
+                                                   QWidget* parent)
 : QGLWidget(parent)
 {
+    m_enabledCheckBox = enabledCheckBox;
     m_sphere = NULL;
     
     setSizePolicy(QSizePolicy::Expanding,
@@ -380,6 +382,34 @@ FiberSamplesOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     me->accept();
     
     updateGL();
+}
+
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+FiberSamplesOpenGLWidget::receiveEvent(Event* event)
+{
+//    bool doUpdate = false;
+//    
+//    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+//        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+//        CaretAssert(uiEvent);
+//        
+//        if (uiEvent->isUpdateForWindow(m_browserWindowIndex)) {
+//            if (uiEvent->isToolBoxUpdate()) {
+//                doUpdate = true;
+//                uiEvent->setEventProcessed();
+//            }
+//        }
+//    }
+//    
+//    if (doUpdate) {
+//        updateViewController();
+//    }
 }
 
 

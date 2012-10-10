@@ -40,6 +40,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -74,6 +75,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
     const float fanMultiplier = 3.0;
     const FiberOrientationColoringTypeEnum::Enum coloringType = FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB;
     const FiberOrientationSymbolTypeEnum::Enum symbolType = FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES;
+    const bool displaySphereOrientions = false;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
@@ -86,6 +88,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_fiberColoringTypeInTab[i] = coloringType;
         m_fiberSymbolTypeInTab[i] = symbolType;
         m_fanMultiplierInTab[i] = fanMultiplier;
+        m_displaySphereOrientationsInTab[i] = displaySphereOrientions;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -98,6 +101,7 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_fiberColoringTypeInDisplayGroup[i] = coloringType;
         m_fiberSymbolTypeInDisplayGroup[i] = symbolType;
         m_fanMultiplierInDisplayGroup[i] = fanMultiplier;
+        m_displaySphereOrientationsInDisplayGroup[i] = displaySphereOrientions;
     }
 
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -115,6 +119,8 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                               m_lengthMultiplierInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_fanMultiplierInTab",
                                               m_fanMultiplierInTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_displaySphereOrientationsInTab",
+                                                m_displaySphereOrientationsInTab);
     m_sceneAssistant->addArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
                                                                                                          m_fiberColoringTypeInDisplayGroup,
                                                                                                          DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -153,10 +159,22 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
                                m_fanMultiplierInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_fanMultiplierInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_displaySphereOrientationsInTab",
+                               m_displaySphereOrientationsInTab,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_displaySphereOrientationsInTab[0]);
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>("m_fiberColoringTypeInTab",
                                                                                                            m_fiberColoringTypeInTab);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>("m_fiberSymbolTypeInTab",
                                                                                                                                  m_fiberSymbolTypeInTab);
+    m_sampleVolumesLoadAttemptValid = false;
+    m_sampleVolumesValid = false;
+    for (int32_t i = 0; i < 3; i++) {
+        m_sampleMagnitudeVolumes[i] = NULL;
+        m_sampleThetaVolumes[i] = NULL;
+        m_samplePhiVolumes[i] = NULL;
+    }
 }
 
 /**
@@ -174,6 +192,22 @@ DisplayPropertiesFiberOrientation::~DisplayPropertiesFiberOrientation()
 void 
 DisplayPropertiesFiberOrientation::reset()
 {
+    m_sampleVolumesLoadAttemptValid = false;
+    m_sampleVolumesValid = false;
+    for (int32_t i = 0; i < 3; i++) {
+        if (m_sampleMagnitudeVolumes[i] != NULL) {
+            delete m_sampleMagnitudeVolumes[i];
+            m_sampleMagnitudeVolumes[i] = NULL;
+        }
+        if (m_sampleThetaVolumes[i] != NULL) {
+            delete m_sampleThetaVolumes[i];
+            m_sampleThetaVolumes[i] = NULL;
+        }
+        if (m_samplePhiVolumes[i] != NULL) {
+            delete m_samplePhiVolumes[i];
+            m_samplePhiVolumes[i] = NULL;
+        }
+    }
 }
 
 /**
@@ -186,7 +220,7 @@ DisplayPropertiesFiberOrientation::update()
 }
 
 /**
- * Copy the border display properties from one tab to another.
+ * Copy the fiber orientation display properties from one tab to another.
  * @param sourceTabIndex
  *    Index of tab from which properties are copied.
  * @param targetTabIndex
@@ -210,7 +244,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
 }
 
 /**
- * @return  Display status of borders.
+ * @return  Display status of fiber orientations.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -233,7 +267,7 @@ DisplayPropertiesFiberOrientation::isDisplayed(const DisplayGroupEnum::Enum  dis
 }
 
 /**
- * Set the display status for borders for the given display group.
+ * Set the display status for fiber orientations for the given display group.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -257,6 +291,57 @@ DisplayPropertiesFiberOrientation::setDisplayed(const DisplayGroupEnum::Enum  di
     }
     else {
         m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
+    }
+}
+
+/**
+ * @return  Display status of sphere orientations.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+bool
+DisplayPropertiesFiberOrientation::isSphereOrientationsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                   const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_displaySphereOrientationsInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displaySphereOrientationsInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_displaySphereOrientationsInTab[tabIndex];
+    }
+    return m_displaySphereOrientationsInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the display status for sphere orientations for the given display group.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param displayStatus
+ *    New status.
+ */
+void
+DisplayPropertiesFiberOrientation::setSphereOrientationsDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex,
+                                    const bool displaySphereOrientations)
+{
+    CaretAssertArrayIndex(m_displaySphereOrientationsInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_displaySphereOrientationsInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_displaySphereOrientationsInTab[tabIndex] = displaySphereOrientations;
+    }
+    else {
+        m_displaySphereOrientationsInDisplayGroup[displayGroup] = displaySphereOrientations;
     }
 }
 
@@ -759,5 +844,79 @@ DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum
         m_fanMultiplierInDisplayGroup[displayGroup] = fanMultiplier;
     }
 }
+
+/**
+ * Get the volumes containing the spherical orienations.
+ *
+ * @param magnitudeVolumesOut
+ *    The volumes containing the magnitudes.
+ * @param phiAngleVolumesOut
+ *    The volumes containing the phi angles.
+ * @param thetaAngleVolumesOut
+ *    The volumes containing the theta angles.
+ *
+ */
+bool
+DisplayPropertiesFiberOrientation::getSphericalOrientationVolumes(VolumeFile* magntiudeVolumesOut[3],
+                                                                  VolumeFile* phiAngleVolumesOut[3],
+                                                                  VolumeFile* thetaAngleVolumesOut[3],
+                                                                  AString& errorMessageOut)
+{
+    errorMessageOut = "";
+    
+    if (m_sampleVolumesValid == false) {
+        if (m_sampleVolumesLoadAttemptValid == false) {
+            const AString filePrefix = "merged_";
+            const AString fileSuffix = "samples.nii.gz";
+            
+            try {
+                for (int32_t i = 0; i < 3; i++) {
+                    m_sampleMagnitudeVolumes[i] = new VolumeFile();
+                    m_samplePhiVolumes[i]       = new VolumeFile();
+                    m_sampleThetaVolumes[i]     = new VolumeFile();
+                    
+                    const AString fileNumber = AString::number(i + 1);
+                    
+                    const AString magFileName = (filePrefix
+                                             + "f"
+                                             + fileNumber
+                                             + fileSuffix);
+                    m_sampleMagnitudeVolumes[i]->readFile(magFileName);
+                    
+                    const AString phiFileName = (filePrefix
+                                                 + "ph"
+                                                 + fileNumber
+                                                 + fileSuffix);
+                    m_samplePhiVolumes[i]->readFile(phiFileName);
+                    
+                    const AString thetaFileName = (filePrefix
+                                                 + "th"
+                                                 + fileNumber
+                                                 + fileSuffix);
+                    m_sampleThetaVolumes[i]->readFile(thetaFileName);
+                    
+                    m_sampleVolumesValid = true;
+                }
+            }
+            catch (const DataFileException& dfe) {
+                errorMessageOut = dfe.whatString();
+            }
+            
+            m_sampleVolumesLoadAttemptValid = true;
+        }
+    }
+    
+    for (int32_t i = 0; i < 3; i++) {
+        magntiudeVolumesOut[i] = m_sampleMagnitudeVolumes[i];
+        phiAngleVolumesOut[i]  = m_samplePhiVolumes[i];
+        thetaAngleVolumesOut[i] = m_sampleThetaVolumes[i];
+    }
+    if (m_sampleVolumesValid) {
+        return true;
+    }
+    
+    return false;
+}
+
 
 
