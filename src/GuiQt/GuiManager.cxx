@@ -1099,7 +1099,8 @@ bool
 GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                     const int32_t imageSizeX,
                                                     const int32_t imageSizeY,
-                                                    ImageFile& imageFileOut)
+                                                    ImageFile& imageFileOut,
+                                                    bool updateWindow    )
 {
     bool valid = false;
     
@@ -1117,7 +1118,7 @@ GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowI
     /*
      * Image capture sometimes messes up window so redraw it.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+    if(updateWindow) EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
 
     return valid;
 }

@@ -127,7 +127,8 @@ namespace caret {
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
                                                      const int32_t imageSizeY,
-                                                     ImageFile& imageFileOut);
+                                                     ImageFile& imageFileOut,
+                                                     bool updateWindow = true);
         void processUpdateTimeCourseDialogs();
         TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);

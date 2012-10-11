@@ -267,7 +267,8 @@ void ConnectivityManagerViewController::captureFrame(AString filename)
     bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
         imageX,
         imageY,
-        imageFile);
+        imageFile,
+        false);
 
     if (valid == false) {
         WuQMessageBox::errorOk(this, 
