@@ -39,6 +39,7 @@ CaretFunctionName.h
 CaretHeap.h
 CaretHttpManager.h
 CaretLogger.h
+CaretMathExpression.h
 CaretMutex.h
 CaretObject.h
 CaretObjectTracksModification.h
@@ -73,6 +74,7 @@ LogHandlerStandardError.h
 LogLevelEnum.h
 LogManager.h
 LogRecord.h
+MathFunctionEnum.h
 MathFunctions.h
 MatrixFunctions.h
 NameIndexSort.h
@@ -103,6 +105,7 @@ CaretCommandLine.cxx
 CaretException.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx
+CaretMathExpression.cxx
 CaretMutex.cxx
 CaretObject.cxx
 CaretObjectTracksModification.cxx
@@ -133,6 +136,7 @@ LogHandlerStandardError.cxx
 LogLevelEnum.cxx
 LogManager.cxx
 LogRecord.cxx
+MathFunctionEnum.cxx
 MathFunctions.cxx
 NameIndexSort.cxx
 NetworkException.cxx
