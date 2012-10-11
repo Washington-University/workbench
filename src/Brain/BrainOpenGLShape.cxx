@@ -95,7 +95,18 @@ BrainOpenGLShape::~BrainOpenGLShape()
     m_displayLists.clear();
 }
 
-
+/**
+ * Force drawing mode to immediate mode since display lists
+ * do not work during image capture.
+ * @param override
+ *    If true, immediate mode is always used until reset by
+ *    calling this with false.
+ */
+void
+BrainOpenGLShape::setImmediateModeOverride(const bool override)
+{
+    s_immediateModeOverride = override;
+}
 
 /**
  * Draw the shape.
@@ -108,7 +119,12 @@ BrainOpenGLShape::draw()
         m_shapeSetupComplete = true;
     }
     
-    drawShape(s_drawMode);
+    if (s_immediateModeOverride) {
+        drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
+    }
+    else {
+        drawShape(s_drawMode);
+    }
 }
 
 /**

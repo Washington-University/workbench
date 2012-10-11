@@ -36,6 +36,7 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLShape.h"
 #include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
@@ -801,10 +802,17 @@ BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
 {
     const int oldSizeX = this->windowWidth[this->windowIndex];
     const int oldSizeY = this->windowHeight[this->windowIndex];
-
+    
+    /*
+     * Force immediate mode since problems with display lists
+     * in image capture.
+     */
+    BrainOpenGLShape::setImmediateModeOverride(true);
+    
     QPixmap pixmap = this->renderPixmap(imageSizeX,
                                         imageSizeY);
     QImage image = pixmap.toImage();
+    BrainOpenGLShape::setImmediateModeOverride(false);
     
     this->resizeGL(oldSizeX, oldSizeY);
     

@@ -54,6 +54,8 @@ namespace caret {
          */
         void draw();
         
+        static void setImmediateModeOverride(const bool override);
+        
     private:
         BrainOpenGLShape(const BrainOpenGLShape&);
 
@@ -113,11 +115,14 @@ namespace caret {
         static BrainOpenGL::DrawMode s_drawMode;
         
         static bool s_drawModeInitialized;
+        
+        static bool s_immediateModeOverride;
     };
     
 #ifdef __BRAIN_OPEN_GL_SHAPE_DECLARE__
     BrainOpenGL::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGL::DRAW_MODE_INVALID;
     bool BrainOpenGLShape::s_drawModeInitialized = false;
+    bool BrainOpenGLShape::s_immediateModeOverride = false;
 #endif // __BRAIN_OPEN_GL_SHAPE_DECLARE__
 
 } // namespace
