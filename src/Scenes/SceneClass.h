@@ -196,6 +196,9 @@ namespace caret {
         void getEnumerateTypeArrayForTabIndices(const AString& name,
                                                 ET value[]) const {
             const SceneObjectMapIntegerKey* sceneMap = getMapIntegerKey(name);
+            if (sceneMap == NULL) {
+                return;
+            }
             const std::vector<int32_t> mapKeys = sceneMap->getKeys();
             const int numKeys = static_cast<int32_t>(mapKeys.size());
             for (int32_t i = 0; i < numKeys; i++) {
