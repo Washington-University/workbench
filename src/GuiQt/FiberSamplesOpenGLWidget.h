@@ -38,15 +38,13 @@
 
 #include "Matrix4x4.h"
 
-#include "EventListenerInterface.h"
-
 class QCheckBox;
 
 namespace caret {
 
     class BrainOpenGLShapeSphere;
     
-    class FiberSamplesOpenGLWidget : public QGLWidget, public EventListenerInterface {
+    class FiberSamplesOpenGLWidget : public QGLWidget {
         Q_OBJECT
         
     public:
@@ -54,8 +52,6 @@ namespace caret {
                                  QWidget* parent = 0);
         
         virtual ~FiberSamplesOpenGLWidget();
-        
-        void receiveEvent(Event* event);
         
         // ADD_NEW_METHODS_HERE
         
@@ -78,16 +74,20 @@ namespace caret {
 
         FiberSamplesOpenGLWidget& operator=(const FiberSamplesOpenGLWidget&);
         
-        void createSphere();
+        void createSpheres();
         
         void setupLighting();
         
         void setOrthographicProjection(const int width,
                                        const int height);
         
+        void drawOrientations();
+        
         // ADD_NEW_MEMBERS_HERE
         
-        BrainOpenGLShapeSphere* m_sphere;
+        BrainOpenGLShapeSphere* m_sphereBig;
+        
+        BrainOpenGLShapeSphere* m_sphereSmall;
         
         GLint m_widgetWidth;
         
@@ -104,10 +104,14 @@ namespace caret {
         Matrix4x4 m_rotationMatrix;
 
         QCheckBox* m_enabledCheckBox;
+        
+        static const float s_sphereBigRadius;
+        static const float s_sphereSmallRadius;
     };
     
 #ifdef __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const float FiberSamplesOpenGLWidget::s_sphereBigRadius = 100.0;
+    const float FiberSamplesOpenGLWidget::s_sphereSmallRadius = 1.0;
 #endif // __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
 
 } // namespace

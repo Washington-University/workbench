@@ -32,11 +32,15 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
 #include "DisplayPropertiesFiberOrientation.h"
 #undef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "EventIdentificationHighlightLocation.h"
+#include "EventManager.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -175,14 +179,20 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_sampleThetaVolumes[i] = NULL;
         m_samplePhiVolumes[i] = NULL;
     }
+    
+    m_lastIdentificationValid = false;
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
 
 /**
  * Destructor.
  */
 DisplayPropertiesFiberOrientation::~DisplayPropertiesFiberOrientation()
-{
-    
+{    
+    EventManager::get()->removeAllEventsFromListener(this);
+    resetPrivate();
 }
 
 /**
@@ -191,6 +201,16 @@ DisplayPropertiesFiberOrientation::~DisplayPropertiesFiberOrientation()
  */
 void 
 DisplayPropertiesFiberOrientation::reset()
+{
+    resetPrivate();
+}
+
+/**
+ * Reset all settings to their defaults
+ * and remove any data.
+ */
+void
+DisplayPropertiesFiberOrientation::resetPrivate()
 {
     m_sampleVolumesLoadAttemptValid = false;
     m_sampleVolumesValid = false;
@@ -208,7 +228,10 @@ DisplayPropertiesFiberOrientation::reset()
             m_samplePhiVolumes[i] = NULL;
         }
     }
+    m_lastIdentificationValid = false;
 }
+
+
 
 /**
  * Update due to changes in data.
@@ -218,6 +241,33 @@ DisplayPropertiesFiberOrientation::update()
 {
     
 }
+
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+DisplayPropertiesFiberOrientation::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idEvent = dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idEvent);
+        
+        const float* xyz = idEvent->getXYZ();
+        if (xyz != NULL) {
+            m_lastIdentificationValid = true;
+            m_lastIdentificationXYZ[0] = xyz[0];
+            m_lastIdentificationXYZ[1] = xyz[1];
+            m_lastIdentificationXYZ[2] = xyz[2];
+//            std::cout << "XYZ is: " << qPrintable(AString::fromNumbers(xyz, 3, ",")) << std::endl;
+        }
+    }
+}
+
+
+
 
 /**
  * Copy the fiber orientation display properties from one tab to another.
@@ -846,6 +896,93 @@ DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum
 }
 
 /**
+ * Get the fiber orientation vectors for display on a sphere.
+ * @param xVectors
+ *    Vectors for X-orientation.
+ * @param yVectors
+ *    Vectors for Y-orientation.
+ * @param zVectors
+ *    Vectors for Z-orientation.
+ * @param errorMessageOut
+ *    Will contain any error messages.
+ * @return
+ *    True if data is valid, else false and errorMessageOut will be set.
+ */
+bool
+DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<OrientationVector>& xVectors,
+                                    std::vector<OrientationVector>& yVectors,
+                                    std::vector<OrientationVector>& zVectors,
+                                    AString& errorMessageOut)
+{
+    errorMessageOut = "";
+    
+    if (m_lastIdentificationValid) {
+        if (loadSphericalOrientationVolumes(errorMessageOut) == false) {
+            return false;
+        }
+
+        int64_t ijk[3];
+        m_sampleThetaVolumes[0]->enclosingVoxel(m_lastIdentificationXYZ,
+                                                    ijk);
+        if (m_sampleThetaVolumes[0]->indexValid(ijk)) {
+            std::vector<int64_t> dims;
+            m_sampleThetaVolumes[0]->getDimensions(dims);
+            
+            const int64_t numberOfOrientations = dims[3];
+            xVectors.resize(numberOfOrientations);
+            yVectors.resize(numberOfOrientations);
+            zVectors.resize(numberOfOrientations);
+            
+            for (int32_t iAxis = 0; iAxis < 3; iAxis++) {
+                for (int64_t iOrient = 0; iOrient < numberOfOrientations; iOrient++) {
+                    const float theta = m_sampleThetaVolumes[iAxis]->getValue(ijk[0],
+                                                                              ijk[1],
+                                                                              ijk[2],
+                                                                              iOrient,
+                                                                              0);
+                    const float phi = m_samplePhiVolumes[iAxis]->getValue(ijk[0],
+                                                                              ijk[1],
+                                                                              ijk[2],
+                                                                              iOrient,
+                                                                              0);
+                    
+                    switch (iAxis) {
+                        case 0:
+                        {
+                            OrientationVector& ov = xVectors[iOrient];
+                            ov.vector[0] = -std::sin(theta) * std::cos(phi);
+                            ov.vector[1] =  std::sin(theta) * std::sin(phi);
+                            ov.vector[2] =  std::cos(theta);
+                        }
+                            break;
+                        case 1:
+                        {
+                            OrientationVector& ov = yVectors[iOrient];
+                            ov.vector[0] = -std::sin(theta) * std::cos(phi);
+                            ov.vector[1] =  std::sin(theta) * std::sin(phi);
+                            ov.vector[2] =  std::cos(theta);
+                        }
+                            break;
+                        case 2:
+                        {
+                            OrientationVector& ov = zVectors[iOrient];
+                            ov.vector[0] = -std::sin(theta) * std::cos(phi);
+                            ov.vector[1] =  std::sin(theta) * std::sin(phi);
+                            ov.vector[2] =  std::cos(theta);
+                        }
+                            break;
+                    }
+                }
+            }
+            
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Get the volumes containing the spherical orienations.
  *
  * @param magnitudeVolumesOut
@@ -857,10 +994,7 @@ DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum
  *
  */
 bool
-DisplayPropertiesFiberOrientation::getSphericalOrientationVolumes(VolumeFile* magntiudeVolumesOut[3],
-                                                                  VolumeFile* phiAngleVolumesOut[3],
-                                                                  VolumeFile* thetaAngleVolumesOut[3],
-                                                                  AString& errorMessageOut)
+DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& errorMessageOut)
 {
     errorMessageOut = "";
     
@@ -869,47 +1003,82 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVolumes(VolumeFile* ma
             const AString filePrefix = "merged_";
             const AString fileSuffix = "samples.nii.gz";
             
-            try {
-                for (int32_t i = 0; i < 3; i++) {
-                    m_sampleMagnitudeVolumes[i] = new VolumeFile();
-                    m_samplePhiVolumes[i]       = new VolumeFile();
-                    m_sampleThetaVolumes[i]     = new VolumeFile();
-                    
-                    const AString fileNumber = AString::number(i + 1);
-                    
-                    const AString magFileName = (filePrefix
-                                             + "f"
-                                             + fileNumber
-                                             + fileSuffix);
-                    m_sampleMagnitudeVolumes[i]->readFile(magFileName);
-                    
+            std::vector<VolumeFile*> allVolumes;
+            
+            for (int32_t i = 0; i < 3; i++) {
+                m_sampleMagnitudeVolumes[i] = new VolumeFile();
+                m_samplePhiVolumes[i]       = new VolumeFile();
+                m_sampleThetaVolumes[i]     = new VolumeFile();
+                
+                const AString fileNumber = AString::number(i + 1);
+                
+//                try {
+//                    const AString magFileName = (filePrefix
+//                                                 + "f"
+//                                                 + fileNumber
+//                                                 + fileSuffix);
+//                    m_sampleMagnitudeVolumes[i]->readFile(magFileName);
+//                    allVolumes.push_back(m_sampleMagnitudeVolumes[i]);
+//                }
+//                catch (const DataFileException& dfe) {
+//                    if (errorMessageOut.isEmpty() == false) {
+//                        errorMessageOut += "\n";
+//                    }
+//                    errorMessageOut += dfe.whatString();
+//                }
+                
+                try {
                     const AString phiFileName = (filePrefix
                                                  + "ph"
                                                  + fileNumber
                                                  + fileSuffix);
                     m_samplePhiVolumes[i]->readFile(phiFileName);
-                    
+                    allVolumes.push_back(m_samplePhiVolumes[i]);
+                }
+                catch (const DataFileException& dfe) {
+                    if (errorMessageOut.isEmpty() == false) {
+                        errorMessageOut += "\n";
+                    }
+                    errorMessageOut += dfe.whatString();
+                }
+                
+                try {
                     const AString thetaFileName = (filePrefix
-                                                 + "th"
-                                                 + fileNumber
-                                                 + fileSuffix);
+                                                   + "th"
+                                                   + fileNumber
+                                                   + fileSuffix);
                     m_sampleThetaVolumes[i]->readFile(thetaFileName);
-                    
-                    m_sampleVolumesValid = true;
+                    allVolumes.push_back(m_sampleThetaVolumes[i]);
+                }
+                catch (const DataFileException& dfe) {
+                    if (errorMessageOut.isEmpty() == false) {
+                        errorMessageOut += "\n";
+                    }
+                    errorMessageOut += dfe.whatString();
                 }
             }
-            catch (const DataFileException& dfe) {
-                errorMessageOut = dfe.whatString();
+            
+            if (errorMessageOut.isEmpty()) {
+                std::vector<int64_t> dims;
+                for (std::vector<VolumeFile*>::iterator iter = allVolumes.begin();
+                     iter != allVolumes.end();
+                     iter++) {
+                    VolumeFile* vf = *iter;
+                    std::vector<int64_t> volDims;
+                    vf->getDimensions(volDims);
+                    
+                    if (dims.empty()) {
+                        dims = volDims;
+                    }
+                    else if (dims != volDims) {
+                        errorMessageOut += "ERROR: Sample volumes have mis-matched dimensions";
+                    }
+                }
+                m_sampleVolumesValid = true;
             }
             
             m_sampleVolumesLoadAttemptValid = true;
         }
-    }
-    
-    for (int32_t i = 0; i < 3; i++) {
-        magntiudeVolumesOut[i] = m_sampleMagnitudeVolumes[i];
-        phiAngleVolumesOut[i]  = m_samplePhiVolumes[i];
-        thetaAngleVolumesOut[i] = m_sampleThetaVolumes[i];
     }
     if (m_sampleVolumesValid) {
         return true;

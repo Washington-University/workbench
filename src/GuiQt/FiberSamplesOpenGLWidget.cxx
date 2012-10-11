@@ -32,6 +32,7 @@
  */
 /*LICENSE_END*/
 
+#include <QCheckBox>
 #include <QMouseEvent>
 #include <QSizePolicy>
 
@@ -41,8 +42,12 @@
 
 using namespace caret;
 
+#include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainOpenGLShapeSphere.h"
+#include "DisplayPropertiesFiberOrientation.h"
+#include "GuiManager.h"
+#include "WuQMessageBox.h"
 
 /**
  * \class caret::FiberSamplesOpenGLWidget 
@@ -57,7 +62,8 @@ FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
 : QGLWidget(parent)
 {
     m_enabledCheckBox = enabledCheckBox;
-    m_sphere = NULL;
+    m_sphereBig = NULL;
+    m_sphereSmall = NULL;
     
     setSizePolicy(QSizePolicy::Expanding,
                   QSizePolicy::Expanding);
@@ -70,8 +76,11 @@ FiberSamplesOpenGLWidget::~FiberSamplesOpenGLWidget()
 {
     makeCurrent();
     
-    if (m_sphere != NULL) {
-        delete m_sphere;
+    if (m_sphereBig != NULL) {
+        delete m_sphereBig;
+    }
+    if (m_sphereSmall != NULL) {
+        delete m_sphereSmall;
     }
 }
 
@@ -96,7 +105,7 @@ FiberSamplesOpenGLWidget::initializeGL()
     
     glShadeModel(GL_SMOOTH);
         
-    createSphere();
+    createSpheres();
 }
 
 /**
@@ -286,21 +295,131 @@ FiberSamplesOpenGLWidget::paintGL()
               0.7,
               0.7);
 
-    m_sphere->draw();
+    m_sphereBig->draw();
+    
+    glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+    
+    if (m_enabledCheckBox->isChecked()) {
+        drawOrientations();
+    }
     
     glPopMatrix();
     
 }
 
 /**
+ * Draw the fibers on the sphere
+ */
+void
+FiberSamplesOpenGLWidget::drawOrientations()
+{
+    const float startLength = s_sphereBigRadius - 1;
+    const float endLength   = s_sphereBigRadius + 2;
+    
+    DisplayPropertiesFiberOrientation* dpfo = GuiManager::get()->getBrain()->getDisplayPropertiesFiberOrientation();
+    
+    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> xVectors;
+    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> yVectors;
+    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> zVectors;
+    AString errorMessage;
+    if (dpfo->getSphericalOrientationVectors(xVectors,
+                                             yVectors,
+                                             zVectors,
+                                             errorMessage)) {
+
+//        /*
+//         * First orientations
+//         */
+//        glColor3f(1.0, 0.0, 0.0);
+//        const int32_t numVectorsX = static_cast<int32_t>(xVectors.size());
+//        glLineWidth(1.0);
+//        glBegin(GL_LINES);
+//        for (int32_t i = 0; i < numVectorsX; i++) {
+//            const float* v = xVectors[i].vector;
+//            glVertex3f(v[0] * startLength,
+//                       v[1] * startLength,
+//                       v[2] * startLength);
+//            glVertex3f(v[0] * endLength,
+//                       v[1] * endLength,
+//                       v[2] * endLength);
+//        }
+//        glEnd();
+
+        /*
+         * First orientations
+         */
+        glColor3f(1.0, 0.0, 0.0);
+        const int32_t numVectorsX = static_cast<int32_t>(xVectors.size());
+        for (int32_t i = 0; i < numVectorsX; i++) {
+            float xyz[3] = {
+                xVectors[i].vector[0] * s_sphereBigRadius,
+                xVectors[i].vector[1] * s_sphereBigRadius,
+                xVectors[i].vector[2] * s_sphereBigRadius
+            };
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            m_sphereSmall->draw();
+            glPopMatrix();
+        }
+
+        /*
+         * Second orientations
+         */
+        glColor3f(0.0, 1.0, 0.0);
+        const int32_t numVectorsY = static_cast<int32_t>(yVectors.size());
+        for (int32_t i = 0; i < numVectorsY; i++) {
+            float xyz[3] = {
+                yVectors[i].vector[0] * s_sphereBigRadius,
+                yVectors[i].vector[1] * s_sphereBigRadius,
+                yVectors[i].vector[2] * s_sphereBigRadius
+            };
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            m_sphereSmall->draw();
+            glPopMatrix();
+        }
+        
+        /*
+         * First orientations
+         */
+        glColor3f(0.0, 0.0, 1.0);
+        const int32_t numVectorsZ = static_cast<int32_t>(zVectors.size());
+        for (int32_t i = 0; i < numVectorsZ; i++) {
+            float xyz[3] = {
+                zVectors[i].vector[0] * s_sphereBigRadius,
+                zVectors[i].vector[1] * s_sphereBigRadius,
+                zVectors[i].vector[2] * s_sphereBigRadius
+            };
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            m_sphereSmall->draw();
+            glPopMatrix();
+        }
+        
+//        m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
+//        m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
+//        m_directionUnitVector[2] =  std::cos(m_theta);
+    }
+    else {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+}
+
+/**
  * Create the sphere on which fibers are viewed.
  */
 void
-FiberSamplesOpenGLWidget::createSphere()
+FiberSamplesOpenGLWidget::createSpheres()
 {
-    if (m_sphere == NULL) {
-        m_sphere = new BrainOpenGLShapeSphere(25,
-                                          100);
+    if (m_sphereBig == NULL) {
+        m_sphereBig = new BrainOpenGLShapeSphere(25,
+                                          s_sphereBigRadius);
+    }
+    if (m_sphereSmall == NULL) {
+        m_sphereSmall = new BrainOpenGLShapeSphere(5,
+                                              s_sphereSmallRadius);
     }
 }
 
@@ -313,7 +432,7 @@ void
 FiberSamplesOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
     const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+//    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
@@ -356,7 +475,7 @@ void
 FiberSamplesOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
     const Qt::MouseButton button = me->button();
-    Qt::KeyboardModifiers keyModifiers = me->modifiers();
+//    Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
     if (button == Qt::NoButton) {
         if (me->buttons() == Qt::LeftButton) {
@@ -383,34 +502,4 @@ FiberSamplesOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     
     updateGL();
 }
-
-/**
- * Receive events from the event manager.
- *
- * @param event
- *   Event sent by event manager.
- */
-void
-FiberSamplesOpenGLWidget::receiveEvent(Event* event)
-{
-//    bool doUpdate = false;
-//    
-//    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-//        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
-//        CaretAssert(uiEvent);
-//        
-//        if (uiEvent->isUpdateForWindow(m_browserWindowIndex)) {
-//            if (uiEvent->isToolBoxUpdate()) {
-//                doUpdate = true;
-//                uiEvent->setEventProcessed();
-//            }
-//        }
-//    }
-//    
-//    if (doUpdate) {
-//        updateViewController();
-//    }
-}
-
-
 

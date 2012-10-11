@@ -37,21 +37,24 @@
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
+#include "EventListenerInterface.h"
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
-#include "VolumeFile.h"
 
 namespace caret {
 
     class Brain;
+    class VolumeFile;
     
-    class DisplayPropertiesFiberOrientation : public DisplayProperties {
+    class DisplayPropertiesFiberOrientation : public DisplayProperties, public EventListenerInterface {
         
     public:
         DisplayPropertiesFiberOrientation(Brain* brain);
         
         virtual ~DisplayPropertiesFiberOrientation();
 
+        void receiveEvent(Event* event);
+        
         virtual void reset();
         
         virtual void update();
@@ -134,9 +137,13 @@ namespace caret {
                                   const int32_t tabIndex,
                                   const bool displaySphereOrientations);
         
-        bool getSphericalOrientationVolumes(VolumeFile* magntiudeVolumesOut[3],
-                                            VolumeFile* phiAngleVolumesOut[3],
-                                            VolumeFile* thetaAngleVolumesOut[3],
+        struct OrientationVector {
+            float vector[3];
+        };
+        
+        bool getSphericalOrientationVectors(std::vector<OrientationVector>& xVectors,
+                                            std::vector<OrientationVector>& yVectors,
+                                            std::vector<OrientationVector>& zVectors,
                                             AString& errorMessageOut);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -145,9 +152,13 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
     private:
+        bool loadSphericalOrientationVolumes(AString& errorMessageOut);
+        
         DisplayPropertiesFiberOrientation(const DisplayPropertiesFiberOrientation&);
 
         DisplayPropertiesFiberOrientation& operator=(const DisplayPropertiesFiberOrientation&);
+        
+        void resetPrivate();
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -205,6 +216,10 @@ namespace caret {
         
         /* sample phi angle volumes */
         VolumeFile* m_samplePhiVolumes[3];
+        
+        float m_lastIdentificationXYZ[3];
+        
+        bool m_lastIdentificationValid;
         
         friend class BrainOpenGLFixedPipeline;
     };
