@@ -184,7 +184,6 @@ MathFunctionEnum::getAllEnums(std::vector<MathFunctionEnum::Enum>& allEnums)
     for (std::vector<MathFunctionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        MathFunctionEnum::Enum value =iter->enumValue;
         allEnums.push_back(iter->enumValue);
     }
 }
