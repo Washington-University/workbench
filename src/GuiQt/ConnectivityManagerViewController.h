@@ -44,6 +44,8 @@
 #include "EventListenerInterface.h"
 
 class QAction;
+class QCheckBox;
+class QDoubleSpinBox;
 class QGridLayout;
 class QToolButton;
 class QHBoxLayout;
@@ -109,6 +111,26 @@ namespace caret {
         QLabel *frameRepeatLabel;
 
         QSpinBox *frameRepeatSpinBox;
+
+        QLabel *frameRotateLabel;
+
+        QLabel *frameRotateXLabel;
+
+        QDoubleSpinBox *frameRotateXSpinBox;
+
+        QLabel *frameRotateYLabel;
+
+        QDoubleSpinBox *frameRotateYSpinBox;
+
+        QLabel *frameRotateZLabel;
+
+        QDoubleSpinBox *frameRotateZSpinBox;
+
+        QCheckBox *frameRotateCountCheckBox;
+
+        QLabel *frameRotateCountLabel;
+
+        QSpinBox *frameRotateCountSpinBox;
 
         QToolButton *movieToolButton;
 

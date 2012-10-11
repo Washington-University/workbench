@@ -55,10 +55,12 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "QCheckBox"
 #include "QFileDialog"
 #include "QHBoxLayout"
 #include "QLabel"
 #include "QSpinBox"
+#include "QDoubleSpinBox"
 #include "TimeCourseDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -97,6 +99,28 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->frameRepeatSpinBox = new QSpinBox();
     this->frameRepeatSpinBox->setMaximum(59);
     this->frameRepeatSpinBox->setMinimum(0);
+
+    this->frameRotateLabel = new QLabel("Rotate: ");
+    this->frameRotateXLabel = new QLabel("X:");
+    this->frameRotateXSpinBox = new QDoubleSpinBox();
+    this->frameRotateXSpinBox->setMaximum(360.0);
+    this->frameRotateXSpinBox->setMinimum(0.0);
+
+    this->frameRotateYLabel = new QLabel("Y:");
+    this->frameRotateYSpinBox = new QDoubleSpinBox();
+    this->frameRotateYSpinBox->setMaximum(360.0);
+    this->frameRotateYSpinBox->setMinimum(0.0);
+
+    this->frameRotateZLabel = new QLabel("Z:");
+    this->frameRotateZSpinBox = new QDoubleSpinBox();
+    this->frameRotateZSpinBox->setMaximum(360.0);
+    this->frameRotateZSpinBox->setMinimum(0.0);
+
+    this->frameRotateCountCheckBox = new QCheckBox();
+    this->frameRotateCountCheckBox->setText("Rotate Frame Count:");
+    this->frameRotateCountLabel = new QLabel();
+    this->frameRotateCountSpinBox = new QSpinBox();
+
 
 	this->movieAction = WuQtUtilities::createAction("Movie...",
 		"Record Time Course Movie...",
@@ -151,8 +175,20 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
         if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
         if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
-        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,100, Qt::AlignLeft);
-        
+        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,0, Qt::AlignLeft);
+
+        if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
+        if(this->frameRotateXLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateXLabel,0, Qt::AlignLeft);
+        if(this->frameRotateXSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateXSpinBox, 0, Qt::AlignLeft);
+        if(this->frameRotateYLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateYLabel,0, Qt::AlignLeft);
+        if(this->frameRotateYSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateYSpinBox, 0, Qt::AlignLeft);
+        if(this->frameRotateZLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateZLabel,0, Qt::AlignLeft);
+        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 0, Qt::AlignLeft);
+
+        if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
+        if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
+        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 100, Qt::AlignLeft);
+
         layout->addLayout(this->timeSeriesButtonLayout);
     }
     
@@ -161,6 +197,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 }
 
 /**
@@ -396,6 +433,21 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 			frame_number++;
         }
     }
+    else if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
+
+        AString tempPath = QDir::tempPath();
+
+        if(this->movieAction->isChecked())
+        {
+            this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
+            AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
+            CaretLogFine(temp);
+            CaretLogFine("frame number:" + frame_number);
+            frame_number++;
+        }
+    }
+
+
 }
 
 
