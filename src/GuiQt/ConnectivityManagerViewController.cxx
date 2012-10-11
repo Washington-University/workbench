@@ -177,7 +177,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
         if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,0, Qt::AlignLeft);
 
-        if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
+        /*if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
         if(this->frameRotateXLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateXLabel,0, Qt::AlignLeft);
         if(this->frameRotateXSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateXSpinBox, 0, Qt::AlignLeft);
         if(this->frameRotateYLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateYLabel,0, Qt::AlignLeft);
@@ -187,7 +187,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 
         if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
         if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
-        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 100, Qt::AlignLeft);
+        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 100, Qt::AlignLeft);*/
 
         layout->addLayout(this->timeSeriesButtonLayout);
     }
@@ -264,11 +264,14 @@ void ConnectivityManagerViewController::captureFrame(AString filename)
     int32_t imageY = 0;
     
     ImageFile imageFile;
+    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
     bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
         imageX,
         imageY,
         imageFile,
         false);
+    QApplication::restoreOverrideCursor();
+
 
     if (valid == false) {
         WuQMessageBox::errorOk(this, 
@@ -452,3 +455,157 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 }
 
 
+#if 0
+void 
+ConnectivityViewController::processRotateTransformation(BrainOpenGLViewportContent* viewportContent,                                                  
+                                                  const double x,
+                                                  const double y,
+                                                  const double z)
+{
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    Model* modelController = browserTabContent->getModelControllerForTransformation();
+    if (modelController != NULL) {
+        const int32_t tabIndex = browserTabContent->getTabNumber();
+        float dx = mouseEvent->getDx();
+        float dy = mouseEvent->getDy();
+        
+        /*
+         * Is this a mouse wheel event?
+         */
+        const bool isWheelEvent = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
+            
+        //
+        // Mouse moved with just left button down
+        //
+        if ((isWheelEvent == false) 
+            && (mouseEvent->isAnyKeyDown() == false)) {
+            /*
+             * There are several rotation matrix.  The 'NORMAL' matrix is used
+             * in most cases and others are used in special viewing modes
+             * such as surface montage and right/left lateral medial yoking
+             */ 
+            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+                rotationMatrix->rotateX(-dy);
+                rotationMatrix->rotateY(-dx);
+                
+                /*
+                 * Matrix for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+                rotationMatrixRightLatMedYoked->rotateX(dy);
+                rotationMatrixRightLatMedYoked->rotateY(dx);
+            }
+            else {
+                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+                if (montageModel != NULL) {
+                    /*
+                     * Need to adjust mouse for location in viewport
+                     */
+                    int viewport[4];
+                    viewportContent->getViewport(viewport);
+//                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
+//                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
+                    const int32_t halfWidth  = viewport[2] / 2;
+                    const int32_t halfHeight = viewport[3] / 2;
+                    
+                    /*
+                     * Use location of where mouse is originally pressed
+                     * to determine the surface montage surface being
+                     * manipulated.  Otherwise, if mouse is moved out of
+                     * region where originally pressed, the rotations
+                     * would change.
+                     */
+                    const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+                    const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+                    
+                    /*
+                     * Determine hemisphere of surface and if it is lateral or 
+                     * medial view.
+                     * Row2 => Top => Lateral View
+                     * Row1 => Bottom => Medial View
+                     * Columns 1 and 3 => Left Hemisphere
+                     * Columns 2 and 4 => Right Hemisphere
+                     */
+                    bool isRight  = false;
+                    bool isMedial = false;
+                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
+                        const int32_t quarterWidth = halfWidth / 2;
+                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
+                        if (viewportMousePressedX > halfWidth) {
+                            isRight = true;
+                        }
+                        
+                        if ((viewportMousePressedX >= quarterWidth)
+                            && (viewportMousePressedX < halfWidth)) {
+                            isMedial = true;
+                        }
+                        else if (viewportMousePressedX >= threeQuarterWidth) {
+                            isMedial = true;
+                        }
+                    }
+                    else {
+                        if (viewportMousePressedX > halfWidth) {
+                            isRight = true;
+                        }
+                        if (viewportMousePressedY < halfHeight) {
+                            isMedial = true;
+                        }
+                    }
+                    
+                    if (isRight) {
+                        dx = -dx;
+                    }
+                    
+                    if (isMedial) {
+                        dy = -dy;
+                    }
+                    
+
+                }
+                
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+                rotationMatrix->rotateX(-dy);
+                rotationMatrix->rotateY(dx);
+                
+                /*
+                 * Matrix for a left surface opposite view in surface montage
+                 */
+                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+                rotationMatrixSurfMontLeftOpp->rotateY(dx);
+                
+                /*
+                 * Matrix for a right surface view in surface montage
+                 */
+                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+                rotationMatrixSurfMontRight->rotateX(dy); //-dy);
+                rotationMatrixSurfMontRight->rotateY(-dx);
+                
+                /*
+                 * Matrix for a right surface opposite view in surface montage
+                 */
+                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+                rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
+                rotationMatrixSurfMontRightOpp->rotateY(-dx);
+                
+                /*
+                 * Matrix for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                           Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+                rotationMatrixRightLatMedYoked->rotateX(dy);
+                rotationMatrixRightLatMedYoked->rotateY(-dx);
+            }
+            //}
+        }
+    }
+}
+
+#endif
