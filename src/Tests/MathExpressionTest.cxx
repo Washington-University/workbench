@@ -54,7 +54,7 @@ void MathExpressionTest::execute()
         vars[1] = x;
     }
     double testresult = myExpr.evaluate(vars);
-    double correctresult = sin(-yip * 5.0) + pow(x, 3.0) * (3.0 + 2.0);
+    double correctresult = sin(-yip * 5.0) + pow((double)x, 3.0) * (3.0 + 2.0);
     if (!(abs(testresult - correctresult) <= correctresult * TOLER))//trap NaNs
     {
         setFailed("output value incorrect, expected " + AString::number(correctresult) + ", got " + AString::number(testresult));
