@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #include <QCheckBox>
 #include <QMouseEvent>
 #include <QSizePolicy>
@@ -44,8 +46,11 @@ using namespace caret;
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
+#include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLShapeSphere.h"
 #include "DisplayPropertiesFiberOrientation.h"
+#include "Fiber.h"
+#include "FiberOrientation.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
 
@@ -62,6 +67,7 @@ FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
 : QGLWidget(parent)
 {
     m_enabledCheckBox = enabledCheckBox;
+    m_ring = NULL;
     m_sphereBig = NULL;
     m_sphereSmall = NULL;
     
@@ -76,6 +82,9 @@ FiberSamplesOpenGLWidget::~FiberSamplesOpenGLWidget()
 {
     makeCurrent();
     
+    if (m_ring != NULL) {
+        delete m_ring;
+    }
     if (m_sphereBig != NULL) {
         delete m_sphereBig;
     }
@@ -105,7 +114,7 @@ FiberSamplesOpenGLWidget::initializeGL()
     
     glShadeModel(GL_SMOOTH);
         
-    createSpheres();
+    createShapes();
 }
 
 /**
@@ -246,8 +255,8 @@ FiberSamplesOpenGLWidget::paintGL()
     glMultMatrixd(rotationMatrixElements);
 
     
-    const GLfloat lineStart = -200.0;
-    const GLfloat lineEnd   =  200.0;
+    const GLfloat lineStart = -s_sphereBigRadius * 5.0;
+    const GLfloat lineEnd   =  s_sphereBigRadius * 5.0;
     
     glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);
@@ -322,10 +331,12 @@ FiberSamplesOpenGLWidget::drawOrientations()
     std::vector<DisplayPropertiesFiberOrientation::OrientationVector> xVectors;
     std::vector<DisplayPropertiesFiberOrientation::OrientationVector> yVectors;
     std::vector<DisplayPropertiesFiberOrientation::OrientationVector> zVectors;
+    FiberOrientation* fiberOrientation;
     AString errorMessage;
     if (dpfo->getSphericalOrientationVectors(xVectors,
                                              yVectors,
                                              zVectors,
+                                             fiberOrientation,
                                              errorMessage)) {
 
 //        /*
@@ -381,7 +392,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
         }
         
         /*
-         * First orientations
+         * Third orientations
          */
         glColor3f(0.0, 0.0, 1.0);
         const int32_t numVectorsZ = static_cast<int32_t>(zVectors.size());
@@ -397,21 +408,96 @@ FiberSamplesOpenGLWidget::drawOrientations()
             glPopMatrix();
         }
         
-//        m_directionUnitVector[0] = -std::sin(m_theta) * std::cos(m_phi);
-//        m_directionUnitVector[1] =  std::sin(m_theta) * std::sin(m_phi);
-//        m_directionUnitVector[2] =  std::cos(m_theta);
+        /*
+         * Orientation Ellipse
+         */
+        const float radiansToDegrees = 180.0 / M_PI;
+        if (fiberOrientation != NULL) {
+            const int32_t numFibers = fiberOrientation->m_numberOfFibers;
+            for (int32_t j = 0; j < numFibers; j++) {
+                const Fiber* fiber = fiberOrientation->m_fibers[j];
+                if (fiber->m_valid) {
+                    const int32_t colorIndex = j % 3;
+                    switch (colorIndex) {
+                        case 0:
+                            glColor3f(1.0, 0.0, 0.0);
+                            break;
+                        case 1:
+                            glColor3f(0.0, 1.0, 0.0);
+                            break;
+                        case 2:
+                            glColor3f(0.0, 0.0, 1.0);
+                            break;
+                    }
+                    {
+                        
+                        const float maxAngle = M_PI_2 * 0.95;
+                        float baseMajorAngle = fiber->m_fanningMajorAxisAngle;
+                        if (baseMajorAngle > maxAngle) {
+                            baseMajorAngle = maxAngle;
+                        }
+                        float baseMinorAngle = fiber->m_fanningMinorAxisAngle;
+                        if (baseMinorAngle > maxAngle) {
+                            baseMinorAngle = maxAngle;
+                        }
+                        
+                        const float z = s_sphereBigRadius * 1.05;
+                        const float baseRadiusScaling = 1.0;
+                        const float maxWidth = z;
+                        const float majorAxis = std::min(z * std::tan(baseMajorAngle) * baseRadiusScaling,
+                                                         maxWidth);
+                        const float minorAxis = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
+                                                         maxWidth);
+                        Matrix4x4 matrix;
+                        matrix.setMatrixToOpenGLRotationFromVector(fiber->m_directionUnitVector);
+                        
+                        double m[16];
+                        matrix.getMatrixForOpenGL(m);
+                        
+                        glPushMatrix();
+                        glMultMatrixd(m);
+                        glTranslatef(0.0,
+                                     0.0,
+                                     z);
+                        glRotatef((fiber->m_psi * radiansToDegrees),
+                                  0.0,
+                                  0.0,
+                                  1.0);
+                        glScalef(majorAxis * 2.0,
+                                 minorAxis * 2.0,
+                                 1.0);
+                        m_ring->draw();
+                        
+                        glPopMatrix();
+                    }
+                    
+                    /*
+                     * Sphere at end of directional vector
+                     */
+//                    glPushMatrix();
+//                    glTranslatef(fiber->m_directionUnitVector[0] * s_sphereBigRadius * 1.01,
+//                                 fiber->m_directionUnitVector[1] * s_sphereBigRadius * 1.01,
+//                                 fiber->m_directionUnitVector[2] * s_sphereBigRadius * 1.01);
+//                    glScalef(3.0, 3.0, 3.0);
+//                    m_sphereSmall->draw();
+//                    glPopMatrix();
+                }
+            }
+        }
     }
     else {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
+        if (errorMessage.isEmpty() == false) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
     }
 }
 
 /**
- * Create the sphere on which fibers are viewed.
+ * Create the shapes on which fibers are viewed.
  */
 void
-FiberSamplesOpenGLWidget::createSpheres()
+FiberSamplesOpenGLWidget::createShapes()
 {
     if (m_sphereBig == NULL) {
         m_sphereBig = new BrainOpenGLShapeSphere(25,
@@ -420,6 +506,12 @@ FiberSamplesOpenGLWidget::createSpheres()
     if (m_sphereSmall == NULL) {
         m_sphereSmall = new BrainOpenGLShapeSphere(5,
                                               s_sphereSmallRadius);
+    }
+    
+    if (m_ring == NULL) {
+        m_ring = new BrainOpenGLShapeRing(10,
+                                     0.85,
+                                     1.0);
     }
 }
 

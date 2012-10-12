@@ -44,6 +44,7 @@
 namespace caret {
 
     class Brain;
+    class FiberOrientation;
     class VolumeFile;
     
     class DisplayPropertiesFiberOrientation : public DisplayProperties, public EventListenerInterface {
@@ -144,6 +145,7 @@ namespace caret {
         bool getSphericalOrientationVectors(std::vector<OrientationVector>& xVectors,
                                             std::vector<OrientationVector>& yVectors,
                                             std::vector<OrientationVector>& zVectors,
+                                            FiberOrientation* &fiberOrientationOut,
                                             AString& errorMessageOut);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

@@ -505,6 +505,57 @@ Matrix4x4::setMatrixFromOpenGL(const double m[16])
 }
 
 /**
+ * Convert the given vector to an OpenGL rotation matrix.
+ * "This" matrix is set to the identity matrix before createing
+ * the rotation matrix.  Use Matrix4x4::getMatrixForOpenGL() 
+ * to get the matrix after calling this method and then pass
+ * array to glMultMatrixd().
+ *
+ * @param vector
+ *    The vector.  Does not need to be a unit vector.
+ */
+void
+Matrix4x4::setMatrixToOpenGLRotationFromVector(const float vector[3])
+{
+    float vx = vector[0];
+    float vy = vector[1];
+    float vz = vector[2];
+    
+    float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
+    double ax = 0.0f;
+    
+    double zero = 1.0e-3;
+    
+    if (std::abs(vz) < zero) {
+        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
+        if ( vx <= 0.0f ) ax = -ax;
+    }
+    else {
+        ax = 57.2957795*std::acos( vz/z ); // rotation angle
+        if ( vz <= 0.0f ) ax = -ax;
+    }
+    
+    float rx = -vy*vz;
+    float ry = vx*vz;
+    
+    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
+        if (vy > 0) {
+            ax = 90;
+        }
+    }
+
+    identity();
+    if (std::abs(vz) < zero)  {
+        rotateY(90.0);  // Rotate & align with x axis
+        rotateX(-ax);   // Rotate to point 2 in x-y plane
+    }
+    else {
+        rotate(ax, rx, ry, 0.0); // Rotate about rotation vector
+    }
+}
+
+
+/**
  * Transpose the matrix.
  *
  */

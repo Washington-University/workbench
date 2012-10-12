@@ -296,6 +296,43 @@ CiftiFiberOrientationAdapter::getFiberOrientations(const int64_t indx)
 }
 
 /**
+ * Get Fiber orientation nearest coordinate and within the maximum
+ * distance. 
+ *
+ * @param xyz
+ *     The coordinate.
+ * @param maximumDistance
+ *     The maximum distance.  If negative, any distance is allowed.
+ *
+ * @return Fiber found or NULL if not found.
+ */
+FiberOrientation*
+CiftiFiberOrientationAdapter::getFiberOrientationNearestCoordinate(const float xyz[3],
+                                                                   const float maximumDistance) const
+{
+    FiberOrientation* nearestFiberOrientation = NULL;
+    float nearestDistance = std::numeric_limits<float>::max();
+    
+    const int64_t numFiberOrientations = getNumberOfFiberOrientations();
+    for (int64_t i = 0; i < numFiberOrientations; i++) {
+        const float distance = MathFunctions::distanceSquared3D(xyz,
+                                                                m_fiberOrientations[i]->m_xyz);
+        if (distance < nearestDistance) {
+            if (maximumDistance > 0.0) {
+                if (distance > maximumDistance) {
+                    continue;
+                }
+            }
+            nearestDistance = distance;
+            nearestFiberOrientation = m_fiberOrientations[i];
+        }
+    }
+    
+    return nearestFiberOrientation;
+}
+
+
+/**
  * Get the orientation fiber group at the given index.
  * @param indx
  *     Index of the desired fiber orientation group.

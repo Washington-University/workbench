@@ -38,9 +38,12 @@
 #include "DisplayPropertiesFiberOrientation.h"
 #undef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
 
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
+#include "CiftiFiberOrientationAdapter.h"
+#include "ConnectivityLoaderFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -903,24 +906,40 @@ DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum
  *    Vectors for Y-orientation.
  * @param zVectors
  *    Vectors for Z-orientation.
+ * @param fiberOrientation
+ *    The nearby fiber orientation
  * @param errorMessageOut
  *    Will contain any error messages.
+ *    This error message will only be set in some cases when there is an
+ *    error.
  * @return
- *    True if data is valid, else false and errorMessageOut will be set.
+ *    True if data is valid, else false.  
  */
 bool
 DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<OrientationVector>& xVectors,
-                                    std::vector<OrientationVector>& yVectors,
-                                    std::vector<OrientationVector>& zVectors,
-                                    AString& errorMessageOut)
+                                                                  std::vector<OrientationVector>& yVectors,
+                                                                  std::vector<OrientationVector>& zVectors,
+                                                                  FiberOrientation* &fiberOrientationOut,
+                                                                  AString& errorMessageOut)
 {
     errorMessageOut = "";
+    fiberOrientationOut = NULL;
     
     if (m_lastIdentificationValid) {
         if (loadSphericalOrientationVolumes(errorMessageOut) == false) {
             return false;
         }
 
+        if (m_brain->getNumberOfConnectivityFiberOrientationFiles() > 0) {
+            ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(0);
+            CiftiFiberOrientationAdapter* cfoa = clf->getFiberOrientationAdapter();
+            FiberOrientation* nearestFiberOrientation =
+                cfoa->getFiberOrientationNearestCoordinate(m_lastIdentificationXYZ, 3.0);
+            if (nearestFiberOrientation != NULL) {
+                fiberOrientationOut = nearestFiberOrientation;
+            }
+        }
+        
         int64_t ijk[3];
         m_sampleThetaVolumes[0]->enclosingVoxel(m_lastIdentificationXYZ,
                                                     ijk);

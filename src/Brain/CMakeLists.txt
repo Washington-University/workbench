@@ -53,6 +53,7 @@ BrainOpenGL.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLShape.h
 BrainOpenGLShapeCone.h
+BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
@@ -134,6 +135,7 @@ BrainOpenGL.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLShape.cxx
 BrainOpenGLShapeCone.cxx
+BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLViewportContent.cxx
 BrainStructure.cxx

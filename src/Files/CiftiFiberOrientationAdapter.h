@@ -62,6 +62,9 @@ namespace caret {
         
         const FiberOrientation* getFiberOrientations(const int64_t indx) const;
         
+        FiberOrientation* getFiberOrientationNearestCoordinate(const float xyz[3],
+                                                                     const float maximumDistance) const;
+        
         void getVolumeSpacing(float volumeSpacingOut[3]) const;
         
         void setDisplayed(const DisplayGroupEnum::Enum displayGroup,

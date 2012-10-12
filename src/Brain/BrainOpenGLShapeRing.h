@@ -1,5 +1,5 @@
-#ifndef __FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
-#define __FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
+#ifndef __BRAIN_OPEN_GL_SHAPE_RING_H_
+#define __BRAIN_OPEN_GL_SHAPE_RING_H_
 
 /*LICENSE_START*/
 /*
@@ -34,88 +34,60 @@
  */
 /*LICENSE_END*/
 
-#include <QGLWidget>
+#include <stdint.h>
 
-#include "Matrix4x4.h"
-
-class QCheckBox;
+#include "BrainOpenGLShape.h"
 
 namespace caret {
 
-    class BrainOpenGLShapeRing;
-    class BrainOpenGLShapeSphere;
-    
-    class FiberSamplesOpenGLWidget : public QGLWidget {
-        Q_OBJECT
+    class BrainOpenGLShapeRing : public BrainOpenGLShape {
         
     public:
-        FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
-                                 QWidget* parent = 0);
+        BrainOpenGLShapeRing(const int32_t numberOfSides,
+                             const float innerRadius,
+                             const float outerRadius);
         
-        virtual ~FiberSamplesOpenGLWidget();
+        virtual ~BrainOpenGLShapeRing();
         
-        // ADD_NEW_METHODS_HERE
-        
-    protected:
-        void initializeGL();
-        
-        void resizeGL(int width,
-                      int height);
-        
-        void paintGL();
-        
-        void mouseMoveEvent(QMouseEvent* e);
-        
-        void mousePressEvent(QMouseEvent* e);
-        
-        void mouseReleaseEvent(QMouseEvent* e);
-
     private:
-        FiberSamplesOpenGLWidget(const FiberSamplesOpenGLWidget&);
+        BrainOpenGLShapeRing(const BrainOpenGLShapeRing&);
 
-        FiberSamplesOpenGLWidget& operator=(const FiberSamplesOpenGLWidget&);
+        BrainOpenGLShapeRing& operator=(const BrainOpenGLShapeRing&);
         
-        void createShapes();
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    protected:
+        void drawShape(const BrainOpenGL::DrawMode drawMode);
         
-        void setupLighting();
+        void setupShape(const BrainOpenGL::DrawMode drawMode);
         
-        void setOrthographicProjection(const int width,
-                                       const int height);
-        
-        void drawOrientations();
-        
+    private:
+
         // ADD_NEW_MEMBERS_HERE
         
-        BrainOpenGLShapeSphere* m_sphereBig;
+        const int32_t m_numberOfSides;
+        const float m_innerRadius;
+        const float m_outerRadius;
         
-        BrainOpenGLShapeSphere* m_sphereSmall;
+        GLuint m_coordinatesBufferID;
+        GLuint m_normalBufferID;
+        GLuint m_triangleStripBufferID;
         
-        BrainOpenGLShapeRing* m_ring;
         
-        GLint m_widgetWidth;
+        GLuint m_displayList;
         
-        GLint m_widgetHeight;
+        std::vector<GLfloat> m_coordinates;
         
-        int m_mousePressX;
+        std::vector<GLfloat> m_normals;
         
-        int m_mousePressY;
-        
-        int m_lastMouseX;
-        
-        int m_lastMouseY;
-        
-        Matrix4x4 m_rotationMatrix;
-
-        QCheckBox* m_enabledCheckBox;
-        
-        static const float s_sphereBigRadius;
-        static const float s_sphereSmallRadius;
+        std::vector<GLuint> m_triangleStrip;        
     };
     
-#ifdef __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
-    const float FiberSamplesOpenGLWidget::s_sphereBigRadius = 100.0;
-    const float FiberSamplesOpenGLWidget::s_sphereSmallRadius = 1.0;
-#endif // __FIBER_SAMPLES_OPEN_G_L_WIDGET_DECLARE__
+#ifdef __BRAIN_OPEN_GL_SHAPE_RING_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __BRAIN_OPEN_GL_SHAPE_RING_DECLARE__
 
 } // namespace
-#endif  //__FIBER_SAMPLES_OPEN_G_L_WIDGET__H_
+#endif  //__BRAIN_OPEN_GL_SHAPE_RING_H_
