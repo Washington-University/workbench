@@ -64,6 +64,7 @@
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFociListCoords.h"
 #include "OperationMetricMask.h"
+#include "OperationMetricMath.h"
 #include "OperationMetricPalette.h"
 #include "OperationSetStructure.h"
 #include "OperationSurfaceClosestVertex.h"
@@ -160,6 +161,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));

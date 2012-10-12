@@ -87,11 +87,11 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, returns the base 10 logatithm of x"));
     enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, returns the square root of x"));
     enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, returns the absolute value of x"));
-    enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, returns the largest integer less than or equal to x"));
-    enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, returns the smallest integer greater than or equal to x"));
+    enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, returns the largest integer not greater than x"));
+    enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, returns the smallest integer not less than x"));
     enumData.push_back(MathFunctionEnum(MIN, "min", "2 arguments, min(x, y) returns y if (x > y), x otherwise"));
     enumData.push_back(MathFunctionEnum(MAX, "max", "2 arguments, max(x, y) returns y if (x < y), x otherwise"));
-    enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) is equivalent to max(min(x, low), high)"));
+    enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) = max(min(x, low), high)"));
 }
 
 /**

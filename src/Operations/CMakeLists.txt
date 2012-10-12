@@ -31,6 +31,7 @@ OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
 OperationMetricMask.h
+OperationMetricMath.h
 OperationMetricPalette.h
 OperationSetStructure.h
 OperationSurfaceClosestVertex.h
@@ -53,6 +54,7 @@ OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx
 OperationMetricMask.cxx
+OperationMetricMath.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
 OperationSurfaceClosestVertex.cxx

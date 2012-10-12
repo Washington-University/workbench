@@ -36,7 +36,7 @@ MathExpressionTest::MathExpressionTest(const AString& identifier) : TestInterfac
 
 void MathExpressionTest::execute()
 {
-    CaretMathExpression myExpr("sin(-yip*5)+x^3*(3+2)");
+    CaretMathExpression myExpr(" sin ( - yip * 5 ) + x ^ 3 * ( 3 + 2 ) ");
     vector<float> vars(2);
     const float TOLER = 0.000001f;
     const vector<AString>& varNames = myExpr.getVarNames();

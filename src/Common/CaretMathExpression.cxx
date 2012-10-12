@@ -52,6 +52,21 @@ CaretMathExpression::MathNode::MathNode()
     m_negate = false;
 }
 
+AString CaretMathExpression::getExpressionHelpInfo()
+{
+    AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation.  ") +
+        "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
+        "The operators are +, -, *, /, ^, and unary -.  These behave as in c, except for ^ which is exponentiation (ie, pow(x, y)).  " +
+        "Parentheses are (), do not use [] or {}.  The following functions are supported:\n\n";
+    vector<MathFunctionEnum::Enum> myFuncs;
+    MathFunctionEnum::getAllEnums(myFuncs);
+    for (int i = 0; i < (int)myFuncs.size(); ++i)
+    {
+        ret += MathFunctionEnum::toName(myFuncs[i]) + " - " + MathFunctionEnum::toExplanation(myFuncs[i]) + "\n";
+    }
+    return ret;
+}
+
 double CaretMathExpression::MathNode::eval(const vector<float>& values) const
 {
     double ret = 0.0;
@@ -325,12 +340,14 @@ void CaretMathExpression::parse(CaretMathExpression::MathNode& node, const AStri
 
 bool CaretMathExpression::tryUnaryMinus(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
-    if (input[start] != '-') return false;
+    int mystart = start;
+    while (input[mystart].isSpace()) ++mystart;//trim whitespace
+    if (input[mystart] != '-') return false;
     node.m_negate = !node.m_negate;//flip the sign and recurse without generating a new node, automatically collapse double or more negations in parenthesis, but don't allow "--x"
-    if (tryPow(node, input, start + 1, end)) return true;
-    if (tryParen(node, input, start + 1, end)) return true;
-    if (tryFunc(node, input, start + 1, end)) return true;
-    if (tryVar(node, input, start + 1, end)) return true;
+    if (tryPow(node, input, mystart + 1, end)) return true;
+    if (tryParen(node, input, mystart + 1, end)) return true;
+    if (tryFunc(node, input, mystart + 1, end)) return true;
+    if (tryVar(node, input, mystart + 1, end)) return true;
     return false;
 }
 
@@ -348,6 +365,7 @@ bool CaretMathExpression::tryAddSub(CaretMathExpression::MathNode& node, const A
     {
         if (parenDepth == 0)
         {
+            if (input[i].isSpace()) continue;//ignore whitespace
             switch (input[i].toAscii())
             {
                 case '-':
@@ -523,9 +541,12 @@ bool CaretMathExpression::tryPow(CaretMathExpression::MathNode& node, const AStr
 
 bool CaretMathExpression::tryParen(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
-    if (input[start] != '(') return false;//all operators have already been parsed out
-    if (input[end - 1] != ')') return false;//makes this simpler to do
-    parse(node, input, start + 1, end - 1);
+    int mystart = start, myend = end - 1;
+    while (input[mystart].isSpace()) ++mystart;//trim whitespace
+    while (input[myend].isSpace()) --myend;
+    if (input[mystart] != '(') return false;//all operators have already been parsed out
+    if (input[myend] != ')') return false;//makes this simpler to do
+    parse(node, input, mystart + 1, myend);
     return true;
 }
 
@@ -534,7 +555,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
     node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
     int firstParen = input.indexOf("(", start);
     if (firstParen <= start) return false;//catch -1 and first character (
-    AString funcName = input.mid(start, firstParen - start);
+    AString funcName = input.mid(start, firstParen - start).trimmed();
     bool ok = false;
     MathFunctionEnum::Enum myFunc = MathFunctionEnum::fromName(funcName, &ok);
     if (!ok) return false;
@@ -594,7 +615,8 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
                     nextEnd = i;
                     if ((int)(node.m_arguments.size() + 1) != numArgs) throw CaretException("function '" + funcName + "' takes " + AString::number(numArgs) + " arguments, error parsing '" +
                                                                                         input.mid(start, end - start) + "'");
-                    if (i != end - 1) throw CaretException("trailing characters on function expression '" + input.mid(start, end - start) + "'");//NOTE: could loop through and check for non-spaces
+                    for (int j = i + 1; j < end; ++j) if (!input[j].isSpace()) throw CaretException("trailing characters on function expression '" +
+                                                                                            input.mid(start, end - start) + "'");
                     node.m_arguments.push_back(MathNode());
                     parse(node.m_arguments.back(), input, nextStart, nextEnd);//will throw if there is a problem
                     node.m_type = MathNode::FUNC;
@@ -626,7 +648,7 @@ bool CaretMathExpression::tryConst(CaretMathExpression::MathNode& node, const AS
 {
     node.m_arguments.clear();
     bool ok = false;
-    node.m_constVal = input.mid(start, end - start).toDouble(&ok);
+    node.m_constVal = input.mid(start, end - start).trimmed().toDouble(&ok);
     if (!ok) return false;
     node.m_type = MathNode::CONST;
     return true;
@@ -635,9 +657,11 @@ bool CaretMathExpression::tryConst(CaretMathExpression::MathNode& node, const AS
 bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
     node.m_arguments.clear();
-    for (int i = start; i < end; ++i)
+    AString varName = input.mid(start, end - start).trimmed();
+    int numChars = varName.size();
+    for (int i = 0; i < numChars; ++i)
     {
-        char inchar = input[i].toAscii();
+        char inchar = varName[i].toAscii();
         switch (inchar)
         {
             case '+':
@@ -655,10 +679,9 @@ bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AStr
         if ((inchar < 'a' || inchar > 'z') && (inchar < 'A' || inchar > 'Z') && (inchar < '0' || inchar > '9') &&
             inchar != '_')
         {
-            throw CaretException(AString("the character '") + inchar + "' is not allowed in variable names");
+            throw CaretException(AString("the character '") + inchar + "' is not allowed in variable names");//instead of returning false, since we know tryVar is last
         }
     }
-    AString varName = input.mid(start, end - start);
     int i;
     for (i = 0; i < (int)m_varNames.size(); ++i)
     {

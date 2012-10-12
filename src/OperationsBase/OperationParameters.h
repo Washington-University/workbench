@@ -41,12 +41,14 @@ namespace caret {
     class VolumeFile;
     
     struct OptionalParameter;
+    struct RepeatableOption;
     
     struct AbstractParameter
     {
         int32_t m_key;//identifies this parameter uniquely for this algorithm
         AString m_shortName, m_description;
         virtual OperationParametersEnum::Enum getType() = 0;
+        virtual AbstractParameter* cloneAbstractParameter() = 0;
         AbstractParameter(int32_t key, const AString& shortName, const AString& description) :
         m_key(key),
         m_shortName(shortName),
@@ -61,12 +63,16 @@ namespace caret {
         std::vector<AbstractParameter*> m_paramList;//mandatory arguments
         std::vector<AbstractParameter*> m_outputList;//should this be a different type? input and output parameters are very similar, just pointers to files
         std::vector<OptionalParameter*> m_optionList;//optional arguments
+        std::vector<RepeatableOption*> m_repeatableOptions;//repeatable options
         
         ///constructor
         ParameterComponent();
         
         ///destructor
         virtual ~ParameterComponent();
+        
+        ///copy constructor so RepeatableOption can copy its template to a new instance
+        ParameterComponent(const ParameterComponent& rhs);
         
         //convenience methods for algorithms to use to easily specify parameters
         ///add a parameter to get next item as a string
@@ -189,6 +195,9 @@ namespace caret {
         ///convenience method to create, add, and return an optional parameter
         OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
+        ///convenience method to create, add, and return an optional parameter
+        ParameterComponent* createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description);
+        
         ///return pointer to an input parameter
         AbstractParameter* getInputParameter(const int32_t key, const OperationParametersEnum::Enum type);
         
@@ -198,6 +207,8 @@ namespace caret {
         ///return pointer to an option
         OptionalParameter* getOptionalParameter(const int32_t key);
         
+        ///return instances of a repeatable option
+        const std::vector<ParameterComponent*>* getRepeatableParameterInstances(const int32_t key);
     };
     
     struct OptionalParameter : public ParameterComponent
@@ -205,6 +216,14 @@ namespace caret {
         int32_t m_key;//uniquely identifies this option
         AString m_optionSwitch, m_description;
         bool m_present;//to be filled by parser
+        OptionalParameter(const OptionalParameter& rhs) :
+        ParameterComponent(rhs),
+        m_key(rhs.m_key),
+        m_optionSwitch(rhs.m_optionSwitch),
+        m_description(rhs.m_description)
+        {
+            m_present = false;
+        }
         OptionalParameter(int32_t key, const AString& optionSwitch, const AString& description) :
         m_key(key),
         m_optionSwitch(optionSwitch),
@@ -212,6 +231,28 @@ namespace caret {
         {
             m_present = false;
         }
+    };
+    
+    struct RepeatableOption
+    {
+        int32_t m_key;//uniquely identifies this option
+        AString m_optionSwitch, m_description;
+        ParameterComponent m_template;
+        std::vector<ParameterComponent*> m_instances;//to be filled by parser
+        RepeatableOption(const RepeatableOption& rhs) :
+        m_key(rhs.m_key),
+        m_optionSwitch(rhs.m_optionSwitch),
+        m_description(rhs.m_description),
+        m_template(rhs.m_template)
+        {
+        }
+        RepeatableOption(int32_t key, const AString& optionSwitch, const AString& description) :
+        m_key(key),
+        m_optionSwitch(optionSwitch),
+        m_description(description)
+        {
+        }
+        ~RepeatableOption();
     };
     
     struct OperationParameters : public ParameterComponent
@@ -234,6 +275,11 @@ namespace caret {
     struct PointerTemplateParameter : public AbstractParameter
     {
         virtual OperationParametersEnum::Enum getType() { return TYPE; }
+        virtual AbstractParameter* cloneAbstractParameter()
+        {
+            AbstractParameter* ret = new PointerTemplateParameter<T, TYPE>(m_key, m_shortName, m_description);
+            return ret;
+        }
         CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
         PointerTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {//CaretPointer self-initializes to NULL, so don't need to do anything
@@ -245,6 +291,12 @@ namespace caret {
     {
         virtual OperationParametersEnum::Enum getType() { return TYPE; }
         T m_parameter;
+        virtual AbstractParameter* cloneAbstractParameter()
+        {
+            PrimitiveTemplateParameter<T, TYPE>* ret = new PrimitiveTemplateParameter<T, TYPE>(m_key, m_shortName, m_description);
+            ret->m_parameter = 0;
+            return ret;
+        }
         PrimitiveTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_parameter = 0;
@@ -254,6 +306,11 @@ namespace caret {
     struct StringParameter : public AbstractParameter
     {
         virtual OperationParametersEnum::Enum getType() { return OperationParametersEnum::STRING; }
+        virtual AbstractParameter* cloneAbstractParameter()
+        {
+            AbstractParameter* ret = new StringParameter(m_key, m_shortName, m_description);
+            return ret;
+        }
         AString m_parameter;
         StringParameter(int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {//AString self-initializes to "", so don't need to do anything

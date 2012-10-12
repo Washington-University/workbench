@@ -70,6 +70,7 @@ class CaretMathExpression
     std::vector<AString> m_varNames;
     CaretMathExpression();
 public:
+    static AString getExpressionHelpInfo();
     CaretMathExpression(const AString& expression);
     double evaluate(const std::vector<float>& variableValues) const;
     const std::vector<AString>& getVarNames() const { return m_varNames; }

@@ -63,7 +63,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         //code to show what arguments map to what parameters should go here
         provenanceForOnDiskOutputs(myOutAssoc);//on-disk writing poses challenges for persistent metadata, this is where the special handling goes
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
-        //TODO: deallocate input files - give abstract parameter a virtual deallocate method?
+        //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
         writeOutput(myOutAssoc);
     } catch (ProgramParametersException& e) {
         throw e;
@@ -368,6 +368,23 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
             return true;
         }
     }
+    for (uint32_t i = 0; i < myComponent->m_repeatableOptions.size(); ++i)
+    {
+        if (mySwitch == myComponent->m_repeatableOptions[i]->m_optionSwitch)
+        {
+            if (debug)
+            {
+                cout << "Now parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_optionSwitch << endl;
+            }
+            myComponent->m_repeatableOptions[i]->m_instances.push_back(new ParameterComponent(myComponent->m_repeatableOptions[i]->m_template));
+            parseComponent(myComponent->m_repeatableOptions[i]->m_instances.back(), parameters, outAssociation, debug);
+            if (debug)
+            {
+                cout << "Finished parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_optionSwitch << endl;
+            }
+            return true;
+        }
+    }
     return false;
 }
 
@@ -536,6 +553,11 @@ void CommandParser::addHelpOptions(AString& info, ParameterComponent* myComponen
         info += formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "]", curIndent, true);
         addHelpComponent(info, myComponent->m_optionList[i], curIndent + m_indentIncrement);//indent arguments to options
     }
+    for (int i = 0; i < (int)myComponent->m_repeatableOptions.size(); ++i)
+    {
+        info += formatString("[" + myComponent->m_repeatableOptions[i]->m_optionSwitch + "] (repeatable)", curIndent, true);
+        addHelpComponent(info, &(myComponent->m_repeatableOptions[i]->m_template), curIndent + m_indentIncrement);//indent arguments to options
+    }
 }
 
 void CommandParser::addHelpProse(AString& info, OperationParameters* myAlgParams, int curIndent)
@@ -636,6 +658,11 @@ void CommandParser::addOptionDescriptions(AString& info, ParameterComponent* myC
     {
         info += "\n" + formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "] - " + myComponent->m_optionList[i]->m_description, curIndent, true);
         addComponentDescriptions(info, myComponent->m_optionList[i], curIndent + m_indentIncrement);//indent arguments to options
+    }
+    for (int i = 0; i < (int)myComponent->m_repeatableOptions.size(); ++i)
+    {
+        info += "\n" + formatString("[" + myComponent->m_repeatableOptions[i]->m_optionSwitch + "] - repeatable - " + myComponent->m_repeatableOptions[i]->m_description, curIndent, true);
+        addComponentDescriptions(info, &(myComponent->m_repeatableOptions[i]->m_template), curIndent + m_indentIncrement);//indent arguments to options
     }
 }
 
