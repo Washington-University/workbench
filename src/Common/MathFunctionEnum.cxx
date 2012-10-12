@@ -46,10 +46,11 @@ using namespace caret;
  *    User-friendly name for use in user-interface.
  */
 MathFunctionEnum::MathFunctionEnum(const Enum enumValue,
-                           const AString& name)
+                           const AString& name, const AString& explanation)
 {
     this->enumValue = enumValue;
     this->name = name;
+    this->explanation = explanation;
 }
 
 /**
@@ -71,23 +72,26 @@ MathFunctionEnum::initialize()
     initializedFlag = true;
 
     //enumData.push_back(MathFunctionEnum(INVALID, "INVALID"));//should this be in the data? I don't think it should, it is a placeholder for "no matching enum value"
-    enumData.push_back(MathFunctionEnum(SIN, "sin"));
-    enumData.push_back(MathFunctionEnum(COS, "cos"));
-    enumData.push_back(MathFunctionEnum(TAN, "tan"));
-    enumData.push_back(MathFunctionEnum(ASIN, "asin"));
-    enumData.push_back(MathFunctionEnum(ACOS, "acos"));
-    enumData.push_back(MathFunctionEnum(ATAN, "atan"));
-    enumData.push_back(MathFunctionEnum(SINH, "sinh"));
-    enumData.push_back(MathFunctionEnum(COSH, "cosh"));
-    enumData.push_back(MathFunctionEnum(TANH, "tanh"));
-    enumData.push_back(MathFunctionEnum(LN, "ln"));
-    enumData.push_back(MathFunctionEnum(EXP, "exp"));
-    enumData.push_back(MathFunctionEnum(LOG, "log"));
-    enumData.push_back(MathFunctionEnum(SQRT, "sqrt"));
-    enumData.push_back(MathFunctionEnum(ABS, "abs"));
-    enumData.push_back(MathFunctionEnum(FLOOR, "floor"));
-    enumData.push_back(MathFunctionEnum(CEIL, "ceil"));
-    enumData.push_back(MathFunctionEnum(CLAMP, "clamp"));
+    enumData.push_back(MathFunctionEnum(SIN, "sin", "1 argument, returns the sine of x (x units are radians)"));
+    enumData.push_back(MathFunctionEnum(COS, "cos", "1 argument, returns the cosine of x (x units are radians)"));
+    enumData.push_back(MathFunctionEnum(TAN, "tan", "1 argument, returns the tangent of x (x units are radians)"));
+    enumData.push_back(MathFunctionEnum(ASIN, "asin", "1 argument, returns the inverse of sine of x, in radians"));
+    enumData.push_back(MathFunctionEnum(ACOS, "acos", "1 argument, returns the inverse of cosine of x, in radians"));
+    enumData.push_back(MathFunctionEnum(ATAN, "atan", "1 argument, returns the inverse of tangent of x, in radians"));
+    enumData.push_back(MathFunctionEnum(ATAN2, "atan2", "2 arguments, tan(y, x) returns the inverse of tangent of (y/x), in radians, determining quadrant by the sign of both arguments"));
+    enumData.push_back(MathFunctionEnum(SINH, "sinh", "1 argument, returns the hyperbolic sine of x"));
+    enumData.push_back(MathFunctionEnum(COSH, "cosh", "1 argument, returns the hyperbolic cosine of x"));
+    enumData.push_back(MathFunctionEnum(TANH, "tanh", "1 argument, returns the hyperboloc tangent of x"));
+    enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, returns the natural logarithm of x"));
+    enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, returns the constant e raised to the power x"));
+    enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, returns the base 10 logatithm of x"));
+    enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, returns the square root of x"));
+    enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, returns the absolute value of x"));
+    enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, returns the largest integer less than or equal to x"));
+    enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, returns the smallest integer greater than or equal to x"));
+    enumData.push_back(MathFunctionEnum(MIN, "min", "2 arguments, min(x, y) returns y if (x > y), x otherwise"));
+    enumData.push_back(MathFunctionEnum(MAX, "max", "2 arguments, max(x, y) returns y if (x < y), x otherwise"));
+    enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) is equivalent to max(min(x, low), high)"));
 }
 
 /**
@@ -125,7 +129,24 @@ MathFunctionEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
     const MathFunctionEnum* enumInstance = findData(enumValue);
+    if (enumInstance == NULL) return "";
     return enumInstance->name;
+}
+
+/**
+ * Get a string explaining the enumerated type.
+ * @param enumValue 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+MathFunctionEnum::toExplanation(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const MathFunctionEnum* enumInstance = findData(enumValue);
+    if (enumInstance == NULL) return "";
+    return enumInstance->explanation;
 }
 
 /**

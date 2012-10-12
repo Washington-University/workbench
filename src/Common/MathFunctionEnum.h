@@ -51,6 +51,7 @@ public:
             ASIN,
             ACOS,
             ATAN,
+            ATAN2,
             SINH,
             COSH,
             TANH,
@@ -61,6 +62,8 @@ public:
             ABS,
             FLOOR,
             CEIL,
+            MIN,
+            MAX,
             CLAMP
     };
 
@@ -68,13 +71,16 @@ public:
 
     static AString toName(Enum enumValue);
     
+    static AString toExplanation(Enum enumValue);
+    
     static Enum fromName(const AString& name, bool* isValidOut);
     
     static void getAllEnums(std::vector<Enum>& allEnums);
 
 private:
     MathFunctionEnum(const Enum enumValue, 
-                 const AString& name);
+                 const AString& name,
+                 const AString& explanation);
 
     static const MathFunctionEnum* findData(const Enum enumValue);
 
@@ -92,6 +98,9 @@ private:
 
     /** The name, a text string that is identical to the enumerated value */
     AString name;
+    
+    /** An explanation of the function */
+    AString explanation;
 };
 
 #ifdef __MATH_FUNCTION_ENUM_DECLARE__

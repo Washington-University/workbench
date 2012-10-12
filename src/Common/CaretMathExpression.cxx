@@ -166,22 +166,39 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     CaretAssert(m_arguments.size() == 1);
                     ret = ceil(m_arguments[0].eval(values));
                     break;
+                case MathFunctionEnum::ATAN2:
+                    CaretAssert(m_arguments.size() == 2);
+                    ret = atan2(m_arguments[0].eval(values), m_arguments[1].eval(values));
+                    break;
+                case MathFunctionEnum::MIN:
+                {
+                    CaretAssert(m_arguments.size() == 2);
+                    ret = m_arguments[0].eval(values);
+                    double other = m_arguments[1].eval(values);
+                    if (ret > other) ret = other;
+                    break;
+                }
+                case MathFunctionEnum::MAX:
+                {
+                    CaretAssert(m_arguments.size() == 2);
+                    ret = m_arguments[0].eval(values);
+                    double other = m_arguments[1].eval(values);
+                    if (ret < other) ret = other;
+                    break;
+                }
                 case MathFunctionEnum::CLAMP:
                 {
                     CaretAssert(m_arguments.size() == 3);
-                    double arg1 = m_arguments[0].eval(values);
-                    double arg2 = m_arguments[1].eval(values);
-                    if (arg1 < arg2)
+                    ret = m_arguments[0].eval(values);
+                    double low = m_arguments[1].eval(values);
+                    double high = m_arguments[2].eval(values);
+                    if (ret < low)
                     {
-                        ret = arg2;
-                    } else {
-                        double arg3 = m_arguments[2].eval(values);
-                        if (arg1 > arg3)
-                        {
-                            ret = arg3;
-                        } else {
-                            ret = arg1;
-                        }
+                        ret = high;
+                    }
+                    if (ret > high)
+                    {
+                        ret = high;
                     }
                     break;
                 }
@@ -542,6 +559,10 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
         case MathFunctionEnum::CEIL:
             numArgs = 1;
             break;
+        case MathFunctionEnum::ATAN2:
+        case MathFunctionEnum::MIN:
+        case MathFunctionEnum::MAX:
+            numArgs = 2;
         case MathFunctionEnum::CLAMP:
             numArgs = 3;
             break;
