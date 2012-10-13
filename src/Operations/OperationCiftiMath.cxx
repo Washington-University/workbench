@@ -52,6 +52,9 @@ OperationParameters* OperationCiftiMath::getParameters()
     varOpt->addStringParameter(1, "name", "the name of the variable, as used in the expression");
     varOpt->addCiftiParameter(2, "cifti", "the cifti file to use as this variable");
     
+    OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
+    fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
+    
     AString myText = AString("This command evaluates the expression given at each brainordinate independently.  ") +
                         "There must be at least one input cifti file (to get the output layout from), and all cifti files must have " +
                         "the same layout, number of timesteps, etc.  " +
@@ -69,6 +72,14 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     const vector<AString>& myVarNames = myExpr.getVarNames();
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
+    OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);
+    bool nanfix = false;
+    float nanfixval = 0;
+    if (fixNanOpt->m_present)
+    {
+        nanfix = true;
+        nanfixval = (float)fixNanOpt->getDouble(1);
+    }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
     vector<CiftiFile*> varCiftiFiles(numVars, NULL);
@@ -113,6 +124,10 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
                 values[v] = inputRows[v][j];
             }
             scratchRow[j] = (float)myExpr.evaluate(values);
+            if (nanfix && scratchRow[j] != scratchRow[j])
+            {
+                scratchRow[j] = nanfixval;
+            }
         }
         myCiftiOut->setRow(scratchRow.data(), i);
     }

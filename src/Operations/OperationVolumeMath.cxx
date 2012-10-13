@@ -54,6 +54,9 @@ OperationParameters* OperationVolumeMath::getParameters()
     OptionalParameter* subvolSelect = varOpt->createOptionalParameter(3, "-subvolume", "select a single subvolume");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
+    OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
+    fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
+    
     AString myText = AString("This command evaluates the expression given at each voxel independently.  ") +
                         "There must be at least one input volume (to get the volume space from), and all volumes must have " +
                         "the same volume space.  " +
@@ -73,6 +76,14 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     const vector<AString>& myVarNames = myExpr.getVarNames();
     VolumeFile* myVolOut = myParams->getOutputVolume(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
+    OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);
+    bool nanfix = false;
+    float nanfixval = 0;
+    if (fixNanOpt->m_present)
+    {
+        nanfix = true;
+        nanfixval = (float)fixNanOpt->getDouble(1);
+    }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
     vector<VolumeFile*> varVolumes(numVars, NULL);
@@ -146,7 +157,12 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
                         {
                             values[v] = varVolumes[v]->getValue(i, j, k, s);
                         }
-                        myVolOut->setValue((float)myExpr.evaluate(values), i, j, k, s);
+                        float tempf = (float)myExpr.evaluate(values);
+                        if (nanfix && tempf != tempf)
+                        {
+                            tempf = nanfixval;
+                        }
+                        myVolOut->setValue(tempf, i, j, k, s);
                     }
                 }
             }
@@ -164,7 +180,12 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
                     {
                         values[v] = varVolumes[v]->getValue(i, j, k, varSubvolumes[v]);
                     }
-                    myVolOut->setValue((float)myExpr.evaluate(values), i, j, k);
+                    float tempf = (float)myExpr.evaluate(values);
+                    if (nanfix && tempf != tempf)
+                    {
+                        tempf = nanfixval;
+                    }
+                    myVolOut->setValue(tempf, i, j, k);
                 }
             }
         }

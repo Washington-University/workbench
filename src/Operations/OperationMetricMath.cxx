@@ -54,6 +54,9 @@ OperationParameters* OperationMetricMath::getParameters()
     OptionalParameter* columnSelect = varOpt->createOptionalParameter(3, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
+    OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
+    fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
+    
     AString myText = AString("This command evaluates the expression given at each surface vertex independently.  ") +
                         "There must be at least one input metric (to get the structure and number of vertices from), and all metrics must have " +
                         "the same number of vertices.  " +
@@ -73,6 +76,14 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     const vector<AString>& myVarNames = myExpr.getVarNames();
     MetricFile* myMetricOut = myParams->getOutputMetric(2);
     const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
+    OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);
+    bool nanfix = false;
+    float nanfixval = 0;
+    if (fixNanOpt->m_present)
+    {
+        nanfix = true;
+        nanfixval = (float)fixNanOpt->getDouble(1);
+    }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
     vector<MetricFile*> varMetrics(numVars, NULL);
@@ -149,6 +160,10 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
                     values[v] = columnPointers[v][i];
                 }
                 rowScratch[i] = (float)myExpr.evaluate(values);
+                if (nanfix && rowScratch[i] != rowScratch[i])
+                {
+                    rowScratch[i] = nanfixval;
+                }
             }
             myMetricOut->setValuesForColumn(j, rowScratch.data());
         }
@@ -166,6 +181,10 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
                 values[v] = columnPointers[v][i];
             }
             rowScratch[i] = (float)myExpr.evaluate(values);
+            if (nanfix && rowScratch[i] != rowScratch[i])
+            {
+                rowScratch[i] = nanfixval;
+            }
         }
         myMetricOut->setValuesForColumn(0, rowScratch.data());
     }
