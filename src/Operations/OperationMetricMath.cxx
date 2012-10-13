@@ -78,17 +78,12 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     vector<MetricFile*> varMetrics(numVars, NULL);
     vector<int> metricColumns(numVars, -1);
     bool allColumnsMode = true;
-    StructureEnum::Enum myStructure = StructureEnum::INVALID;
-    int numNodes = -1;
     if (numInputs == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
+    int numNodes = myVarOpts[0]->getMetric(2)->getNumberOfNodes();
+    StructureEnum::Enum myStructure = myVarOpts[0]->getMetric(2)->getStructure();
     for (int i = 0; i < numInputs; ++i)
     {
         AString varName = myVarOpts[i]->getString(1);
-        if (i == 0)
-        {
-            myStructure = myVarOpts[i]->getMetric(2)->getStructure();
-            numNodes = myVarOpts[i]->getMetric(2)->getNumberOfNodes();
-        }
         for (int j = 0; j < numVars; ++j)
         {
             if (varName == myVarNames[j])
@@ -108,6 +103,7 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
         }
     }
     int numColumns = 1;
+    if (numVars > 0 && varMetrics[0] != NULL) numNodes = varMetrics[0]->getNumberOfNodes();//in case the first -var is unused, and has a different number of nodes
     for (int i = 0; i < numVars; ++i)
     {
         if (varMetrics[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");

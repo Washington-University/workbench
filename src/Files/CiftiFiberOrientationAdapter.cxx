@@ -46,6 +46,8 @@
 #include "MathFunctions.h"
 #include "VolumeFile.h"
 
+#include <limits>
+
 using namespace caret;
 
 

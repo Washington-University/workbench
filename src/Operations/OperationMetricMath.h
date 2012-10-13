@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-OperationMetricMath     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_METRIC_MATH    : uppercase of operation name, with underscore between words, used in #ifdef guards
--metric-math   : switch for the command line to use, often hyphenated version of operation name, lowercase, minus "operation"
-EVALUATE EXPRESSION ON METRIC FILES : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the operation takes no parameters, uncomment the line below for takesParameters(), otherwise delete it
-
-next, make OperationMetricMath.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationMetricMath/g' | sed 's/-[c]ommand-switch/-metric-math/g' | sed 's/[S]HORT DESCRIPTION/EVALUATE EXPRESSION ON METRIC FILES/g' > OperationMetricMath.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationMetricMath/g' | sed 's/-[c]ommand-switch/-metric-math/g' | sed 's/[S]HORT DESCRIPTION/EVALUATE EXPRESSION ON METRIC FILES/g' > Operations/OperationMetricMath.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationMetricMath/g' | sed 's/-[c]ommand-switch/-metric-math/g' | sed 's/[S]HORT DESCRIPTION/EVALUATE EXPRESSION ON METRIC FILES/g' > src/Operations/OperationMetricMath.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationMetricMath.h
-OperationMetricMath.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationMetricMath.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
