@@ -78,7 +78,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(ASIN, "asin", "1 argument, the inverse of sine of the argument, in radians"));
     enumData.push_back(MathFunctionEnum(ACOS, "acos", "1 argument, the inverse of cosine of the argument, in radians"));
     enumData.push_back(MathFunctionEnum(ATAN, "atan", "1 argument, the inverse of tangent of the argument, in radians"));
-    enumData.push_back(MathFunctionEnum(ATAN2, "atan2", "2 arguments, tan(y, x) returns the inverse of tangent of (y/x), in radians, determining quadrant by the sign of both arguments"));
+    enumData.push_back(MathFunctionEnum(ATAN2, "atan2", "2 arguments, atan2(y, x) returns the inverse of tangent of (y/x), in radians, determining quadrant by the sign of both arguments"));
     enumData.push_back(MathFunctionEnum(SINH, "sinh", "1 argument, the hyperbolic sine of the argument"));
     enumData.push_back(MathFunctionEnum(COSH, "cosh", "1 argument, the hyperbolic cosine of the argument"));
     enumData.push_back(MathFunctionEnum(TANH, "tanh", "1 argument, the hyperboloc tangent of the argument"));
