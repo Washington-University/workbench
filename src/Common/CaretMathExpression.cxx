@@ -56,7 +56,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
 {
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
-        "The operators are +, -, *, /, ^.  These behave as in c, except for ^ which is exponentiation (ie, pow(x, y)).  " +
+        "The operators are +, -, *, /, ^.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)).  " +
         "Parentheses are (), do not use [] or {}.  The following functions are supported:\n\n";
     vector<MathFunctionEnum::Enum> myFuncs;
     MathFunctionEnum::getAllEnums(myFuncs);
