@@ -37,6 +37,7 @@ OperationSetStructure.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
 OperationVolumeLabelImport.h
+OperationVolumeMath.h
 OperationVolumePalette.h
 OperationZipSpecFile.h
 
@@ -60,6 +61,7 @@ OperationSetStructure.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationVolumeLabelImport.cxx
+OperationVolumeMath.cxx
 OperationVolumePalette.cxx
 OperationZipSpecFile.cxx
 )
