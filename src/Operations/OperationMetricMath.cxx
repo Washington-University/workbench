@@ -21,8 +21,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include <cstdlib>
-
 #include "CaretMathExpression.h"
 #include "MetricFile.h"
 #include "OperationMetricMath.h"
@@ -87,7 +85,7 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
-    vector<MetricFile*> varMetrics(numVars, NULL);
+    vector<MetricFile*> varMetrics(numVars, (MetricFile*)NULL);
     vector<int> metricColumns(numVars, -1);
     bool allColumnsMode = true;
     if (numInputs == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
