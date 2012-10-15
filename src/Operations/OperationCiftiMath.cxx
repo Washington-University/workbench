@@ -82,7 +82,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
-    vector<CiftiFile*> varCiftiFiles(numVars, NULL);
+    vector<CiftiFile*> varCiftiFiles(numVars, (CiftiFile*)NULL);
     if (numInputs == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
     CiftiFile* first = myVarOpts[0]->getCifti(2);
     for (int i = 0; i < numInputs; ++i)

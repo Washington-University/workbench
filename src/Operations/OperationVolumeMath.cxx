@@ -86,7 +86,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     }
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
-    vector<VolumeFile*> varVolumes(numVars, NULL);
+    vector<VolumeFile*> varVolumes(numVars, (VolumeFile*)NULL);
     vector<int> varSubvolumes(numVars, -1);
     bool allSubvolsMode = true;
     if (numInputs == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
