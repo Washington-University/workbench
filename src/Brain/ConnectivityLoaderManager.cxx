@@ -143,16 +143,19 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
      */
     const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
-        if (iFile < numFiberFiles) {
-            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
-            ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(iFile);
-            CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
-            if (fiberAdapter != NULL) {
-                trajFile->loadDataForSurfaceNode(connFiberFile,
-                                                 surfaceFile->getStructure(),
-                                                 nodeIndex);
-            }
+    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+        int32_t fiberFileIndex = iTrajFileIndex;
+        if (fiberFileIndex > numFiberFiles) {
+            fiberFileIndex = 0;
+        }
+        
+        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+        ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
+        CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
+        if (fiberAdapter != NULL) {
+            trajFile->loadDataForSurfaceNode(connFiberFile,
+                                             surfaceFile->getStructure(),
+                                             nodeIndex);
         }
     }
     

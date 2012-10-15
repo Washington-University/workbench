@@ -304,7 +304,7 @@ FiberSamplesOpenGLWidget::paintGL()
               0.7,
               0.7);
 
-    m_sphereBig->draw();
+    //m_sphereBig->draw();
     
     glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);
@@ -316,6 +316,61 @@ FiberSamplesOpenGLWidget::paintGL()
     glPopMatrix();
     
 }
+/**
+ * Convert the given vector to an OpenGL rotation matrix.
+ * "This" matrix is set to the identity matrix before createing
+ * the rotation matrix.  Use Matrix4x4::getMatrixForOpenGL()
+ * to get the matrix after calling this method and then pass
+ * array to glMultMatrixd().
+ *
+ * @param vector
+ *    The vector.  Does not need to be a unit vector.
+ */
+void
+getMatrixToOpenGLRotationFromVector(const float vector[3],
+                                    double mOut[16])
+{
+    float vx = vector[0];
+    float vy = vector[1];
+    float vz = vector[2];
+    
+    float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
+    double ax = 0.0f;
+    
+    double zero = 1.0e-3;
+    
+    if (std::abs(vz) < zero) {
+        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
+        if ( vx <= 0.0f ) ax = -ax;
+    }
+    else {
+        ax = 57.2957795*std::acos( vz/z ); // rotation angle
+        if ( vz <= 0.0f ) ax = -ax;
+    }
+    
+    float rx = -vy*vz;
+    float ry = vx*vz;
+    
+    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
+        if (vy > 0) {
+            ax = 90;
+        }
+    }
+    
+    glPushMatrix();
+    
+    glLoadIdentity();
+    if (std::abs(vz) < zero)  {
+        glRotatef(90.0, 0.0, 1.0, 0.0);
+        glRotatef(-ax, 1.0, 0.0, 0.0);
+    }
+    else {
+        glRotatef(ax, rx, ry, 0.0);
+    }
+    glGetDoublev(GL_MODELVIEW_MATRIX, mOut);
+    
+    glPopMatrix();
+}
 
 /**
  * Draw the fibers on the sphere
@@ -323,6 +378,8 @@ FiberSamplesOpenGLWidget::paintGL()
 void
 FiberSamplesOpenGLWidget::drawOrientations()
 {
+    glDisable(GL_CULL_FACE);
+    
     const float startLength = s_sphereBigRadius - 1;
     const float endLength   = s_sphereBigRadius + 2;
     
@@ -357,55 +414,73 @@ FiberSamplesOpenGLWidget::drawOrientations()
 //        }
 //        glEnd();
 
-        /*
-         * First orientations
-         */
-        glColor3f(1.0, 0.0, 0.0);
-        const int32_t numVectorsX = static_cast<int32_t>(xVectors.size());
-        for (int32_t i = 0; i < numVectorsX; i++) {
-            float xyz[3] = {
-                xVectors[i].vector[0] * s_sphereBigRadius,
-                xVectors[i].vector[1] * s_sphereBigRadius,
-                xVectors[i].vector[2] * s_sphereBigRadius
-            };
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
-            glPopMatrix();
-        }
-
-        /*
-         * Second orientations
-         */
-        glColor3f(0.0, 1.0, 0.0);
-        const int32_t numVectorsY = static_cast<int32_t>(yVectors.size());
-        for (int32_t i = 0; i < numVectorsY; i++) {
-            float xyz[3] = {
-                yVectors[i].vector[0] * s_sphereBigRadius,
-                yVectors[i].vector[1] * s_sphereBigRadius,
-                yVectors[i].vector[2] * s_sphereBigRadius
-            };
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
-            glPopMatrix();
-        }
-        
-        /*
-         * Third orientations
-         */
-        glColor3f(0.0, 0.0, 1.0);
-        const int32_t numVectorsZ = static_cast<int32_t>(zVectors.size());
-        for (int32_t i = 0; i < numVectorsZ; i++) {
-            float xyz[3] = {
-                zVectors[i].vector[0] * s_sphereBigRadius,
-                zVectors[i].vector[1] * s_sphereBigRadius,
-                zVectors[i].vector[2] * s_sphereBigRadius
-            };
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
-            glPopMatrix();
+        bool drawSamples = false;
+        if (drawSamples) {
+            /*
+             * First orientations
+             */
+            glColor3f(1.0, 0.0, 0.0);
+            const int32_t numVectorsX = static_cast<int32_t>(xVectors.size());
+            for (int32_t i = 0; i < numVectorsX; i++) {
+                float xyz[3] = {
+                    xVectors[i].vector[0] * s_sphereBigRadius,
+                    xVectors[i].vector[1] * s_sphereBigRadius,
+                    xVectors[i].vector[2] * s_sphereBigRadius
+                };
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+                
+                glPushMatrix();
+                glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+            }
+            
+            /*
+             * Second orientations
+             */
+            glColor3f(0.0, 1.0, 0.0);
+            const int32_t numVectorsY = static_cast<int32_t>(yVectors.size());
+            for (int32_t i = 0; i < numVectorsY; i++) {
+                float xyz[3] = {
+                    yVectors[i].vector[0] * s_sphereBigRadius,
+                    yVectors[i].vector[1] * s_sphereBigRadius,
+                    yVectors[i].vector[2] * s_sphereBigRadius
+                };
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+                
+                glPushMatrix();
+                glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+            }
+            
+            /*
+             * Third orientations
+             */
+            glColor3f(0.0, 0.0, 1.0);
+            const int32_t numVectorsZ = static_cast<int32_t>(zVectors.size());
+            for (int32_t i = 0; i < numVectorsZ; i++) {
+                float xyz[3] = {
+                    zVectors[i].vector[0] * s_sphereBigRadius,
+                    zVectors[i].vector[1] * s_sphereBigRadius,
+                    zVectors[i].vector[2] * s_sphereBigRadius
+                };
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+                
+                glPushMatrix();
+                glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
+                m_sphereSmall->draw();
+                glPopMatrix();
+            }
         }
         
         /*
@@ -448,27 +523,101 @@ FiberSamplesOpenGLWidget::drawOrientations()
                                                          maxWidth);
                         const float minorAxis = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
                                                          maxWidth);
-                        Matrix4x4 matrix;
-                        matrix.setMatrixToOpenGLRotationFromVector(fiber->m_directionUnitVector);
                         
-                        double m[16];
-                        matrix.getMatrixForOpenGL(m);
                         
-                        glPushMatrix();
-                        glMultMatrixd(m);
-                        glTranslatef(0.0,
-                                     0.0,
-                                     z);
-                        glRotatef((fiber->m_psi * radiansToDegrees),
-                                  0.0,
-                                  0.0,
-                                  1.0);
-                        glScalef(majorAxis * 2.0,
-                                 minorAxis * 2.0,
-                                 1.0);
-                        m_ring->draw();
-                        
-                        glPopMatrix();
+                        /*
+                         * Orientations are uni-directional so draw on both
+                         * sides of the sphere.
+                         */
+                        for (int32_t iTwoTimes = 0; iTwoTimes < 2; iTwoTimes++) {
+                            const bool secondTimeFlag = (iTwoTimes == 1);
+                            
+                            Matrix4x4 matrix;
+                            matrix.setMatrixToOpenGLRotationFromVector(fiber->m_directionUnitVector);
+                            if (secondTimeFlag) {
+                                matrix.identity();
+                                const float vector[3] = {
+                                    -fiber->m_directionUnitVector[0],
+                                    -fiber->m_directionUnitVector[1],
+                                    -fiber->m_directionUnitVector[2]
+                                };
+                                matrix.setMatrixToOpenGLRotationFromVector(vector);
+                            }
+                            
+                            double m[16];
+                            matrix.getMatrixForOpenGL(m);
+                            
+                            float transVector[3] = {
+                                fiber->m_directionUnitVector[0] * s_sphereBigRadius * 1.05,
+                                fiber->m_directionUnitVector[1] * s_sphereBigRadius * 1.05,
+                                fiber->m_directionUnitVector[2] * s_sphereBigRadius * 1.05
+                            };
+                            if (secondTimeFlag) {
+                                transVector[0] *= -1.0;
+                                transVector[1] *= -1.0;
+                                transVector[2] *= -1.0;
+                            }
+                            
+                            getMatrixToOpenGLRotationFromVector(transVector, m);
+                            
+                            glPushMatrix();
+                            glTranslatef(transVector[0],
+                                         transVector[1],
+                                         transVector[2]);
+                            glMultMatrixd(m);
+//                            glTranslatef(0.0,
+//                                         0.0,
+//                                         z);
+                            
+                            float psi = fiber->m_psi * radiansToDegrees;
+                            if (secondTimeFlag) {
+                                //glRotatef(-90.0, 0.0, 0.0, 1.0);
+                                glRotatef(180.0, 0.0, 1.0, 0.0);
+                                psi = -psi;
+                            }
+                            
+                            glRotatef(psi,
+                                      0.0,
+                                      0.0,
+                                      1.0);
+                            /* TEST */
+                            glBegin(GL_LINES);
+                            if (secondTimeFlag) {
+                                glColor3f(1.0, 1.0, 0.0);
+                            }
+                            else {
+                                glColor3f(1.0, 1.0, 1.0);
+                            }
+                            glVertex3f(-10.0, 0.0, 0.0);
+                            glVertex3f( 10.0, 0.0, 0.0);
+                            glColor3f(0.0, 1.0, 1.0);
+                            glVertex3f( 0.0, -10.0, 0.0);
+                            glVertex3f( 0.0,  10.0, 0.0);
+                            glEnd();
+                            
+                            switch (colorIndex) {
+                                case 0:
+                                    glColor3f(1.0, 0.0, 0.0);
+                                    break;
+                                case 1:
+                                    glColor3f(0.0, 1.0, 0.0);
+                                    break;
+                                case 2:
+                                    glColor3f(0.0, 0.0, 1.0);
+                                    break;
+                            }
+                            std::cout << j << ": psi=" << psi << std::endl;
+                            /* TEST */
+                            
+                            
+                            
+                            glScalef(majorAxis * 2.0,
+                                     minorAxis * 2.0,
+                                     1.0);                            
+                            m_ring->draw();
+                            
+                            glPopMatrix();
+                        }
                     }
                     
                     /*
@@ -491,6 +640,8 @@ FiberSamplesOpenGLWidget::drawOrientations()
                                    errorMessage);
         }
     }
+    
+    glEnable(GL_CULL_FACE);
 }
 
 /**
