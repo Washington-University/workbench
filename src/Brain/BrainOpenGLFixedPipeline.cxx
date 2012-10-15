@@ -5203,9 +5203,9 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         return;
     }
     
-    const float minPropOpacity = dpft->getMinimumProportionOpacity(displayGroup,
+    const float minPropOpacity = dpft->getProportionMinimumOpacity(displayGroup,
                                                                       this->windowTabIndex);
-    const float maxPropOpacity = dpft->getMaximumProportionOpacity(displayGroup,
+    const float maxPropOpacity = dpft->getProportionMaximumOpacity(displayGroup,
                                                                       this->windowTabIndex);
     const float deltaPropOpacity = maxPropOpacity - minPropOpacity;
     if (deltaPropOpacity <= 0.0) {

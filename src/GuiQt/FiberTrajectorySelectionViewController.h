@@ -95,9 +95,9 @@ namespace caret {
         
         QSpinBox* m_proportionStreamlineSpinBox;
         
-        QDoubleSpinBox* m_minimumProportionSpinBox;
+        QDoubleSpinBox* m_proportionMinimumSpinBox;
         
-        QDoubleSpinBox* m_maximumProportionSpinBox;
+        QDoubleSpinBox* m_proportionMaximumSpinBox;
         
         QVBoxLayout* m_selectionWidgetLayout;
         

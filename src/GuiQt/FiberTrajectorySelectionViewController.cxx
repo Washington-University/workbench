@@ -163,23 +163,23 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* minimumProportionLabel = new QLabel("Minimum Proportion");
-    m_minimumProportionSpinBox = new QDoubleSpinBox();
-    m_minimumProportionSpinBox->setRange(0.0, 1.0);
-    m_minimumProportionSpinBox->setDecimals(2);
-    m_minimumProportionSpinBox->setSingleStep(0.05);
-    m_minimumProportionSpinBox->setToolTip("If the proporation for an axis is less than or equal\n"
+    m_proportionMinimumSpinBox = new QDoubleSpinBox();
+    m_proportionMinimumSpinBox->setRange(0.0, 1.0);
+    m_proportionMinimumSpinBox->setDecimals(2);
+    m_proportionMinimumSpinBox->setSingleStep(0.05);
+    m_proportionMinimumSpinBox->setToolTip("If the proporation for an axis is less than or equal\n"
                                            "to this value, the opacity will be zero (clear)");
-    QObject::connect(m_minimumProportionSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_proportionMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     QLabel* maximumProportionLabel = new QLabel("Maximum Proportion");
-    m_maximumProportionSpinBox = new QDoubleSpinBox();
-    m_maximumProportionSpinBox->setRange(0.0, 1.0);
-    m_maximumProportionSpinBox->setDecimals(2);
-    m_maximumProportionSpinBox->setSingleStep(0.05);
-    m_maximumProportionSpinBox->setToolTip("If the proportion for an axis is greater than or equal\n"
+    m_proportionMaximumSpinBox = new QDoubleSpinBox();
+    m_proportionMaximumSpinBox->setRange(0.0, 1.0);
+    m_proportionMaximumSpinBox->setDecimals(2);
+    m_proportionMaximumSpinBox->setSingleStep(0.05);
+    m_proportionMaximumSpinBox->setToolTip("If the proportion for an axis is greater than or equal\n"
                                            "to this value, the opacity will be one (opaque)");
-    QObject::connect(m_maximumProportionSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_proportionMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     QWidget* gridWidget = new QWidget();
@@ -191,10 +191,10 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     gridLayout->addWidget(m_displayFibersCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(maximumProportionLabel, row, 0);
-    gridLayout->addWidget(m_maximumProportionSpinBox , row, 1);
+    gridLayout->addWidget(m_proportionMaximumSpinBox , row, 1);
     row++;
     gridLayout->addWidget(minimumProportionLabel, row, 0);
-    gridLayout->addWidget(m_minimumProportionSpinBox , row, 1);
+    gridLayout->addWidget(m_proportionMinimumSpinBox , row, 1);
     row++;
     gridLayout->addWidget(proportionStreamlineLabel, row, 0);
     gridLayout->addWidget(m_proportionStreamlineSpinBox, row, 1);
@@ -243,13 +243,13 @@ FiberTrajectorySelectionViewController::processAttributesChanges()
                         browserTabIndex,
                         m_proportionStreamlineSpinBox->value());
     
-    dpfo->setMinimumProportionOpacity(displayGroup,
+    dpfo->setProportionMinimumOpacity(displayGroup,
                         browserTabIndex,
-                        m_minimumProportionSpinBox->value());
+                        m_proportionMinimumSpinBox->value());
     
-    dpfo->setMaximumProportionOpacity(displayGroup,
+    dpfo->setProportionMaximumOpacity(displayGroup,
                         browserTabIndex,
-                        m_maximumProportionSpinBox->value());
+                        m_proportionMaximumSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -354,9 +354,9 @@ FiberTrajectorySelectionViewController::updateViewController()
                                                         browserTabIndex));
     m_proportionStreamlineSpinBox->setValue(dpfo->getProportionStreamline(displayGroup,
                                                       browserTabIndex));
-    m_maximumProportionSpinBox->setValue(dpfo->getMaximumProportionOpacity(displayGroup,
+    m_proportionMaximumSpinBox->setValue(dpfo->getProportionMaximumOpacity(displayGroup,
                                                       browserTabIndex));
-    m_minimumProportionSpinBox->setValue(dpfo->getMinimumProportionOpacity(displayGroup,
+    m_proportionMinimumSpinBox->setValue(dpfo->getProportionMinimumOpacity(displayGroup,
                                                             browserTabIndex));
 
     m_updateInProgress = false;

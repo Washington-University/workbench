@@ -150,7 +150,7 @@ DisplayPropertiesFiberTrajectory::update()
 }
 
 /**
- * Copy the border display properties from one tab to another.
+ * Copy the trajectory display properties from one tab to another.
  * @param sourceTabIndex
  *    Index of tab from which properties are copied.
  * @param targetTabIndex
@@ -171,7 +171,7 @@ DisplayPropertiesFiberTrajectory::copyDisplayProperties(const int32_t sourceTabI
 }
 
 /**
- * @return  Display status of borders.
+ * @return  Display status of trajectory.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -194,7 +194,7 @@ DisplayPropertiesFiberTrajectory::isDisplayed(const DisplayGroupEnum::Enum  disp
 }
 
 /**
- * Set the display status for borders for the given display group.
+ * Set the display status for trajectory for the given display group.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -304,7 +304,7 @@ DisplayPropertiesFiberTrajectory::setDisplayMode(const DisplayGroupEnum::Enum di
 }
 
 /**
- * @return The below limit.
+ * @return The proportion streamline count
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -327,7 +327,7 @@ DisplayPropertiesFiberTrajectory::getProportionStreamline(const DisplayGroupEnum
 }
 
 /**
- * Set the below limit to the given value.
+ * Set the proportion streamline count.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -355,14 +355,14 @@ DisplayPropertiesFiberTrajectory::setProportionStreamline(const DisplayGroupEnum
 }
 
 /**
- * @return The minimum magnitude.
+ * @return The proporation maximum opacity.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
  */
 float
-DisplayPropertiesFiberTrajectory::getMaximumProportionOpacity(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberTrajectory::getProportionMaximumOpacity(const DisplayGroupEnum::Enum  displayGroup,
                                                 const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_maximimProportionOpacityInDisplayGroup,
@@ -378,7 +378,7 @@ DisplayPropertiesFiberTrajectory::getMaximumProportionOpacity(const DisplayGroup
 }
 
 /**
- * Set the minimum magnitude to the given value.
+ * Set the proporation maximum opacity.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -387,7 +387,7 @@ DisplayPropertiesFiberTrajectory::getMaximumProportionOpacity(const DisplayGroup
  *     New value for minimum magnitude.
  */
 void
-DisplayPropertiesFiberTrajectory::setMaximumProportionOpacity(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberTrajectory::setProportionMaximumOpacity(const DisplayGroupEnum::Enum  displayGroup,
                                                 const int32_t tabIndex,
                                                 const float minimumMagnitude)
 {
@@ -406,14 +406,14 @@ DisplayPropertiesFiberTrajectory::setMaximumProportionOpacity(const DisplayGroup
 }
 
 /**
- * @return The length multiplier.
+ * @return The proporation minimum opacity.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
  *    Index of browser tab.
  */
 float
-DisplayPropertiesFiberTrajectory::getMinimumProportionOpacity(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberTrajectory::getProportionMinimumOpacity(const DisplayGroupEnum::Enum  displayGroup,
                                                        const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_minimumProportionOpacityInDisplayGroup,
@@ -429,7 +429,7 @@ DisplayPropertiesFiberTrajectory::getMinimumProportionOpacity(const DisplayGroup
 }
 
 /**
- * Set the length multiplier to the given value.
+ * Set the proporation minimum opacity.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -438,7 +438,7 @@ DisplayPropertiesFiberTrajectory::getMinimumProportionOpacity(const DisplayGroup
  *     New value for length multiplier
  */
 void
-DisplayPropertiesFiberTrajectory::setMinimumProportionOpacity(const DisplayGroupEnum::Enum  displayGroup,
+DisplayPropertiesFiberTrajectory::setProportionMinimumOpacity(const DisplayGroupEnum::Enum  displayGroup,
                                                        const int32_t tabIndex,
                                                        const float lengthMultiplier)
 {

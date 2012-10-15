@@ -83,17 +83,17 @@ namespace caret {
                                     const int32_t tabIndex,
                                     const int32_t thresholdStreamline);
         
-        float getMaximumProportionOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getProportionMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const;
         
-        void setMaximumProportionOpacity(const DisplayGroupEnum::Enum displayGroup,
+        void setProportionMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex,
                            const float maximumProportionOpacity);
         
-        float getMinimumProportionOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getProportionMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const;
         
-        void setMinimumProportionOpacity(const DisplayGroupEnum::Enum displayGroup,
+        void setProportionMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                          const int32_t tabIndex,
                                          const float minimumProportionOpacity);
         
