@@ -40,10 +40,11 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventIdentificationHighlightLocation.h"
-#include "EventManager.h"
 #include "CiftiFiberOrientationAdapter.h"
 #include "ConnectivityLoaderFile.h"
+#include "EventIdentificationHighlightLocation.h"
+#include "EventManager.h"
+#include "FileInformation.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -1016,6 +1017,9 @@ bool
 DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& errorMessageOut)
 {
     errorMessageOut = "";
+
+    FileInformation specFileInfo(m_brain->getSpecFileName());
+    const AString directoryName = specFileInfo.getPathName();
     
     if (m_sampleVolumesValid == false) {
         if (m_sampleVolumesLoadAttemptValid == false) {
@@ -1036,7 +1040,10 @@ DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& erro
 //                                                 + "f"
 //                                                 + fileNumber
 //                                                 + fileSuffix);
-//                    m_sampleMagnitudeVolumes[i]->readFile(magFileName);
+//                    FileInformation magFileInfo(directoryName,
+//                                            magFileName);
+//                    const AString magFilePath = magFileInfo.getFilePath();
+//                    m_sampleMagnitudeVolumes[i]->readFile(magFilePath);
 //                    allVolumes.push_back(m_sampleMagnitudeVolumes[i]);
 //                }
 //                catch (const DataFileException& dfe) {
@@ -1051,7 +1058,10 @@ DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& erro
                                                  + "ph"
                                                  + fileNumber
                                                  + fileSuffix);
-                    m_samplePhiVolumes[i]->readFile(phiFileName);
+                    FileInformation phiFileInfo(directoryName,
+                                                phiFileName);
+                    const AString phiFilePath = phiFileInfo.getFilePath();
+                    m_samplePhiVolumes[i]->readFile(phiFilePath);
                     allVolumes.push_back(m_samplePhiVolumes[i]);
                 }
                 catch (const DataFileException& dfe) {
@@ -1066,7 +1076,10 @@ DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& erro
                                                    + "th"
                                                    + fileNumber
                                                    + fileSuffix);
-                    m_sampleThetaVolumes[i]->readFile(thetaFileName);
+                    FileInformation thetaFileInfo(directoryName,
+                                                thetaFileName);
+                    const AString thetaFilePath = thetaFileInfo.getFilePath();
+                    m_sampleThetaVolumes[i]->readFile(thetaFilePath);
                     allVolumes.push_back(m_sampleThetaVolumes[i]);
                 }
                 catch (const DataFileException& dfe) {
