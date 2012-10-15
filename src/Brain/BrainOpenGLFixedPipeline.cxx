@@ -3137,7 +3137,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                  sliceVoxelValues,
                                  numVoxelsInSlice,
                                  sliceVoxelsRGBA,
-                                 true);
+                                 false);
 //            NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
 //                                                          volInfo.paletteColorMapping,
 //                                                          volInfo.palette,
@@ -3677,7 +3677,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                                              &voxel,
                                              1,
                                              rgba,
-                                             true);
+                                             false);
 //                        NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
 //                                                                      volInfo.paletteColorMapping,
 //                                                                      volInfo.palette,
