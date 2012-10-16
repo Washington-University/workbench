@@ -178,7 +178,6 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     for (int32_t i = 0; i < numDisplayModes; i++) {
         modeGroupLayout->addWidget(m_displayModeRadioButtons[i]);
     }
-    //modeGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     m_proportionStreamlineSpinBox = new QSpinBox();
     m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
@@ -301,9 +300,6 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     dataMappingLayout->addWidget(m_proportionMaximumSpinBox, row, COLUMN_MAXIMUM, Qt::AlignHCenter);
     row++;
     
-//    dataMappingGroupBox->setSizePolicy(QSizePolicy::Fixed,
-//                              QSizePolicy::Fixed);
-
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(m_displayTrajectoriesCheckBox);

@@ -316,61 +316,6 @@ FiberSamplesOpenGLWidget::paintGL()
     glPopMatrix();
     
 }
-/**
- * Convert the given vector to an OpenGL rotation matrix.
- * "This" matrix is set to the identity matrix before createing
- * the rotation matrix.  Use Matrix4x4::getMatrixForOpenGL()
- * to get the matrix after calling this method and then pass
- * array to glMultMatrixd().
- *
- * @param vector
- *    The vector.  Does not need to be a unit vector.
- */
-void
-getMatrixToOpenGLRotationFromVector(const float vector[3],
-                                    double mOut[16])
-{
-    float vx = vector[0];
-    float vy = vector[1];
-    float vz = vector[2];
-    
-    float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
-    double ax = 0.0f;
-    
-    double zero = 1.0e-3;
-    
-    if (std::abs(vz) < zero) {
-        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
-        if ( vx <= 0.0f ) ax = -ax;
-    }
-    else {
-        ax = 57.2957795*std::acos( vz/z ); // rotation angle
-        if ( vz <= 0.0f ) ax = -ax;
-    }
-    
-    float rx = -vy*vz;
-    float ry = vx*vz;
-    
-    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
-        if (vy > 0) {
-            ax = 90;
-        }
-    }
-    
-    glPushMatrix();
-    
-    glLoadIdentity();
-    if (std::abs(vz) < zero)  {
-        glRotatef(90.0, 0.0, 1.0, 0.0);
-        glRotatef(-ax, 1.0, 0.0, 0.0);
-    }
-    else {
-        glRotatef(ax, rx, ry, 0.0);
-    }
-    glGetDoublev(GL_MODELVIEW_MATRIX, mOut);
-    
-    glPopMatrix();
-}
 
 /**
  * Draw the fibers on the sphere
@@ -511,9 +456,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
                         fiber->m_directionUnitVector[1] * s_sphereBigRadius,
                         fiber->m_directionUnitVector[2] * s_sphereBigRadius
                     };
-                    
-                    getMatrixToOpenGLRotationFromVector(transVector, m);
-                    
+                                        
                     glPushMatrix();
                     glTranslatef(transVector[0],
                                  transVector[1],
