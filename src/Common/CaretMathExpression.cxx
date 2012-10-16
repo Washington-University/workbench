@@ -57,7 +57,11 @@ AString CaretMathExpression::getExpressionHelpInfo()
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
         "The operators are +, -, *, /, ^.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)).  " +
-        "Parentheses are (), do not use [] or {}.  The following functions are supported:\n\n";
+        "Whitespace between elements is ignored, 'sin(2*x)' is equivalent to ' sin ( 2 * x ) ', but 's in(2*x)' is an error.  " +
+        "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable, use '2 * x'.  " +
+        "Parentheses are (), do not use [] or {}.  " +
+        "Functions require parentheses, the expression 'sin x' is an error.  " +
+        "The following functions are supported:\n\n";
     vector<MathFunctionEnum::Enum> myFuncs;
     MathFunctionEnum::getAllEnums(myFuncs);
     for (int i = 0; i < (int)myFuncs.size(); ++i)
@@ -556,9 +560,10 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
     int firstParen = input.indexOf("(", start);
     if (firstParen <= start) return false;//catch -1 and first character (
     AString funcName = input.mid(start, firstParen - start).trimmed();
+    if (funcName.length() == 0) return false;//if there are only spaces before the paren, return false to generate the more generic error
     bool ok = false;
     MathFunctionEnum::Enum myFunc = MathFunctionEnum::fromName(funcName, &ok);
-    if (!ok) return false;
+    if (!ok) throw CaretException("unknown function: '" + funcName + "'");//since we know there are nonspace characters, throw instead of returning false, to give a specific error message
     int numArgs = 0;
     switch(myFunc)
     {
