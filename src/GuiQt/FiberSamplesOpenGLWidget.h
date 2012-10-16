@@ -49,7 +49,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
+        FiberSamplesOpenGLWidget(const int32_t browserWindowIndex,
+                                 QCheckBox* enabledCheckBox,
                                  QWidget* parent = 0);
         
         virtual ~FiberSamplesOpenGLWidget();
@@ -85,6 +86,8 @@ namespace caret {
         void drawOrientations();
         
         // ADD_NEW_MEMBERS_HERE
+        
+        int32_t m_browserWindowIndex;
         
         BrainOpenGLShapeSphere* m_sphereBig;
         

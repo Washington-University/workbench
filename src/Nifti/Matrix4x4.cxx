@@ -511,8 +511,10 @@ Matrix4x4::setMatrixFromOpenGL(const double m[16])
  * to get the matrix after calling this method and then pass
  * array to glMultMatrixd().
  *
+ *  http://lifeofaprogrammergeek.blogspot.com/2008/07/rendering-cylinder-between-two-points.html
+ *
  * @param vector
- *    The vector.  Does not need to be a unit vector.
+ *    The vector.  MUST be a unit vector.
  */
 void
 Matrix4x4::setMatrixToOpenGLRotationFromVector(const float vector[3])

@@ -62,10 +62,12 @@ using namespace caret;
 /**
  * Constructor.
  */
-FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(QCheckBox* enabledCheckBox,
+FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(const int32_t browserWindowIndex,
+                                                   QCheckBox* enabledCheckBox,
                                                    QWidget* parent)
 : QGLWidget(parent)
 {
+    m_browserWindowIndex = browserWindowIndex;
     m_enabledCheckBox = enabledCheckBox;
     m_ring = NULL;
     m_sphereBig = NULL;
@@ -317,6 +319,15 @@ FiberSamplesOpenGLWidget::paintGL()
     
 }
 
+static void setOpenGLColor(const float vector[3])
+{
+    float rgb[3] = {
+        (vector[0] >= 0.0) ? vector[0] : -vector[0],
+        (vector[1] >= 0.0) ? vector[1] : -vector[1],
+        (vector[2] >= 0.0) ? vector[2] : -vector[2]
+    };
+    glColor3fv(rgb);
+}
 /**
  * Draw the fibers on the sphere
  */
@@ -337,6 +348,10 @@ FiberSamplesOpenGLWidget::drawOrientations()
                                              zVectors,
                                              fiberOrientation,
                                              errorMessage)) {
+        
+        const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->m_browserWindowIndex);
+        const FiberOrientationColoringTypeEnum::Enum coloringType = dpfo->getColoringType(displayGroup,
+                                                                                          m_browserWindowIndex);
 
         /*
          * First orientations
@@ -349,6 +364,16 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 xVectors[i].vector[1] * s_sphereBigRadius,
                 xVectors[i].vector[2] * s_sphereBigRadius
             };
+            
+            switch (coloringType) {
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                    break;
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                {
+                    
+                }
+                    break;
+            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             m_sphereSmall->draw();
@@ -404,6 +429,17 @@ FiberSamplesOpenGLWidget::drawOrientations()
             glPopMatrix();
         }
         
+        double viewingMatrixArray[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX,
+                     viewingMatrixArray);
+        Matrix4x4 viewingMatrix;
+        viewingMatrix.setMatrixFromOpenGL(viewingMatrixArray);
+        Matrix4x4 inverseViewingMatrix(viewingMatrix);
+        inverseViewingMatrix.invert();
+        inverseViewingMatrix.setTranslation(0.0, 0.0, 0.0);
+        double inverseViewingMatrixArray[16];
+        inverseViewingMatrix.getMatrixForOpenGL(inverseViewingMatrixArray);
+        
         /*
          * Orientation Ellipse
          */
@@ -445,46 +481,41 @@ FiberSamplesOpenGLWidget::drawOrientations()
                                                      maxWidth);
                     
                     
-                    Matrix4x4 matrix;
-                    matrix.setMatrixToOpenGLRotationFromVector(fiber->m_directionUnitVector);
-                    
-                    double m[16];
-                    matrix.getMatrixForOpenGL(m);
-                    
-                    float transVector[3] = {
-                        fiber->m_directionUnitVector[0] * s_sphereBigRadius,
-                        fiber->m_directionUnitVector[1] * s_sphereBigRadius,
-                        fiber->m_directionUnitVector[2] * s_sphereBigRadius
-                    };
-                                        
+                    switch (colorIndex) {
+                        case 0:
+                            glColor3f(1.0, 0.0, 0.0);
+                            break;
+                        case 1:
+                            glColor3f(0.0, 1.0, 0.0);
+                            break;
+                        case 2:
+                            glColor3f(0.0, 0.0, 1.0);
+                            break;
+                    }
                     glPushMatrix();
-                    glTranslatef(transVector[0],
-                                 transVector[1],
-                                 transVector[2]);
-                    glMultMatrixd(m);
-                    
-                    const float psi = fiber->m_psi * radiansToDegrees;
-                    
-                    glRotatef(psi,
-                              0.0,
-                              0.0,
-                              1.0);
-                    
+                    glRotatef(-fiber->m_phi * radiansToDegrees, 0.0, 0.0, 1.0);
+                    glRotatef(-fiber->m_theta * radiansToDegrees, 0.0, 1.0, 0.0);
+                    glRotatef(-fiber->m_psi * radiansToDegrees, 0.0, 0.0, 1.0);
+
                     glPushMatrix();
-                    glTranslatef(0.0, 0.0, -z * 2.0);
-                    glScalef(majorAxis * 2.0,
-                             minorAxis * 2.0,
+                    glTranslatef(0.0, 0.0, s_sphereBigRadius);
+                    glScalef(majorAxis * 4.0,
+                             minorAxis * 4.0,
                              1.0);
                     m_ring->draw();
                     glPopMatrix();
                     
-                    
-                    glScalef(majorAxis * 2.0,
-                             minorAxis * 2.0,
+                    glPushMatrix();
+                    glTranslatef(0.0, 0.0, -s_sphereBigRadius);
+                    glScalef(majorAxis * 4.0,
+                             minorAxis * 4.0,
                              1.0);
                     m_ring->draw();
+                    glPopMatrix();
                     
                     glPopMatrix();
+                    
+                    
                     
                 }
             }
@@ -499,6 +530,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
     
     glEnable(GL_CULL_FACE);
 }
+
 
 /**
  * Create the shapes on which fibers are viewed.
@@ -517,7 +549,7 @@ FiberSamplesOpenGLWidget::createShapes()
     
     if (m_ring == NULL) {
         m_ring = new BrainOpenGLShapeRing(10,
-                                     0.85,
+                                     0.75,
                                      1.0);
     }
 }

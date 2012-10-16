@@ -507,7 +507,8 @@ FiberOrientationSelectionViewController::createSamplesWidget()
                      this, SLOT(processAttributesChanges()));
     
     
-    m_samplesOpenGLWidget = new FiberSamplesOpenGLWidget(m_displaySphereOrientationsCheckBox);
+    m_samplesOpenGLWidget = new FiberSamplesOpenGLWidget(this->m_browserWindowIndex,
+                                                         m_displaySphereOrientationsCheckBox);
     m_samplesOpenGLWidget->setMinimumSize(200, 200);
 //    m_samplesOpenGLWidget->resize(200, 200);
     
