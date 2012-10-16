@@ -55,7 +55,7 @@ OperationParameters* OperationCiftiMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the expression given at each brainordinate independently.  ") +
+    AString myText = AString("This command evaluates the given expression at each brainordinate independently.  ") +
                         "There must be at least one input cifti file (to get the output layout from), and all cifti files must have " +
                         "the same layout, number of timesteps, etc.  " +
                         "The format of the expressions is as follows:\n\n";

@@ -57,7 +57,7 @@ OperationParameters* OperationVolumeMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the expression given at each voxel independently.  ") +
+    AString myText = AString("This command evaluates the given expression at each voxel independently.  ") +
                         "There must be at least one input volume (to get the volume space from), and all volumes must have " +
                         "the same volume space.  " +
                         "If the -subvolume option is given to any -var option, all -var options must specify single single subvolume volume files, or have the -subvolume option specified.  " +

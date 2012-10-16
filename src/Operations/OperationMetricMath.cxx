@@ -56,7 +56,7 @@ OperationParameters* OperationMetricMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the expression given at each surface vertex independently.  ") +
+    AString myText = AString("This command evaluates the given expression at each surface vertex independently.  ") +
                         "There must be at least one input metric (to get the structure and number of vertices from), and all metrics must have " +
                         "the same number of vertices.  " +
                         "If the -column option is given to any -var option, all -var options must specify single column metric files, or have the -column option specified.  " +

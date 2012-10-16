@@ -401,6 +401,7 @@ bool CaretMathExpression::tryAddSub(CaretMathExpression::MathNode& node, const A
                     nextStart = i + 1;
                     break;
                 case '('://NOTE: we do not test for ')' in order to generate (hopefully) more specific error messages about unbalanced parens
+                    afterOp = false;
                     ++parenDepth;
                     break;
                 default:
@@ -545,12 +546,48 @@ bool CaretMathExpression::tryPow(CaretMathExpression::MathNode& node, const AStr
 
 bool CaretMathExpression::tryParen(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
-    int mystart = start, myend = end - 1;
+    int mystart = start;
     while (input[mystart].isSpace()) ++mystart;//trim whitespace
-    while (input[myend].isSpace()) --myend;
     if (input[mystart] != '(') return false;//all operators have already been parsed out
-    if (input[myend] != ')') return false;//makes this simpler to do
-    parse(node, input, mystart + 1, myend);
+    int myend = mystart + 1;
+    bool found = false;
+    int parendepth = 0;
+    while (!found && myend < end)
+    {
+        if (parendepth == 0)
+        {
+            switch (input[myend].toAscii())
+            {
+                case '(':
+                    ++parendepth;
+                    break;
+                case ')':
+                    found = true;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            switch (input[myend].toAscii())
+            {
+                case '(':
+                    ++parendepth;
+                    break;
+                case ')':
+                    --parendepth;
+                    break;
+                default:
+                    break;
+            }
+        }
+        ++myend;
+    }
+    if (!found) throw CaretException("missing close parenthesis in expression '" + input.mid(start, end - start) + "'");//so anything else here is an error
+    for (int i = myend; i < end; ++i)
+    {
+        if (!input[i].isSpace()) throw CaretException("trailing characters in expression '" + input.mid(start, end - start));
+    }
+    parse(node, input, mystart + 1, myend - 1);
     return true;
 }
 
@@ -558,7 +595,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
 {
     node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
     int firstParen = input.indexOf("(", start);
-    if (firstParen <= start) return false;//catch -1 and first character (
+    if (firstParen <= start || firstParen >= end) return false;//catch -1 and first character (, and going past the current substring
     AString funcName = input.mid(start, firstParen - start).trimmed();
     if (funcName.length() == 0) return false;//if there are only spaces before the paren, return false to generate the more generic error
     bool ok = false;
@@ -645,7 +682,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
             }
         }
     }
-    throw CaretException("unknown error parsing function expression '" + input.mid(start, end - start) + "'");
+    throw CaretException("missing close parenthesis in function expression '" + input.mid(start, end - start) + "'");
     return false;
 }
 
@@ -684,7 +721,7 @@ bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AStr
         if ((inchar < 'a' || inchar > 'z') && (inchar < 'A' || inchar > 'Z') && (inchar < '0' || inchar > '9') &&
             inchar != '_')
         {
-            throw CaretException(AString("the character '") + inchar + "' is not allowed in variable names");//instead of returning false, since we know tryVar is last
+            throw CaretException(AString("the character '") + inchar + "' is not allowed in variable name '" + input.mid(start, end - start) + "'");//instead of returning false, since we know tryVar is last
         }
     }
     int i;
