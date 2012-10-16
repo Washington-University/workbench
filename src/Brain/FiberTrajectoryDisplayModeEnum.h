@@ -52,6 +52,8 @@ public:
         FIBER_TRAJECTORY_DISPLAY_ABSOLUTE,
         /** Distance weighted display mode */
         FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED,
+        /** Distance weighted Log display mode */
+        FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG,
         /** Proportion display mode*/
         FIBER_TRAJECTORY_DISPLAY_PROPORTION
     };

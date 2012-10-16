@@ -70,6 +70,8 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
     const float maximumProportionOpacity = 0.80;
     const float minimumProportionOpacity = 0.20;
     const FiberTrajectoryDisplayModeEnum::Enum displayMode = FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION;
+    const int32_t countMaximum = 50;
+    const int32_t countMinimum =  5;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
@@ -79,6 +81,14 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
         m_proportionStreamlineInTab[i] = thresholdStreamline;
         m_maximumProportionOpacityInTab[i] = maximumProportionOpacity;
         m_minimumProportionOpacityInTab[i] = minimumProportionOpacity;
+        
+        m_distanceStreamlineInTab[i] = thresholdStreamline;
+        m_distanceMaximumOpacityInTab[i] = countMaximum;
+        m_distanceMinimumOpacityInTab[i] = countMinimum;
+
+        m_distanceStreamlineInTab[i] = thresholdStreamline;
+        m_distanceMaximumOpacityInTab[i] = countMaximum;
+        m_distanceMinimumOpacityInTab[i] = countMinimum;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -87,6 +97,14 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
         m_proportionStreamlineInDisplayGroup[i] = thresholdStreamline;
         m_maximimProportionOpacityInDisplayGroup[i] = maximumProportionOpacity;
         m_minimumProportionOpacityInDisplayGroup[i] = minimumProportionOpacity;
+        
+        m_countStreamlineInDisplayGroup[i] = thresholdStreamline;
+        m_countMaximumOpacityInDisplayGroup[i] = countMaximum;
+        m_countMinimumOpacityInDisplayGroup[i] = countMinimum;
+
+        m_distanceStreamlineInDisplayGroup[i] = thresholdStreamline;
+        m_distanceMaximumOpacityInDisplayGroup[i] = countMaximum;
+        m_distanceMinimumOpacityInDisplayGroup[i] = countMinimum;
     }
 
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -99,6 +117,20 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
                                               m_maximumProportionOpacityInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_minimumProportionOpacityInTab",
                                                 m_minimumProportionOpacityInTab);
+    
+    m_sceneAssistant->addTabIndexedIntegerArray("m_countStreamlineInTab",
+                                                m_countStreamlineInTab);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_countMaximumOpacityInTab",
+                                                m_countMaximumOpacityInTab);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_countMinimumOpacityInTab",
+                                                m_countMinimumOpacityInTab);
+    
+    m_sceneAssistant->addTabIndexedIntegerArray("m_distanceStreamlineInTab",
+                                                m_distanceStreamlineInTab);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_distanceMaximumOpacityInTab",
+                                                m_distanceMaximumOpacityInTab);
+    m_sceneAssistant->addTabIndexedIntegerArray("m_distanceMinimumOpacityInTab",
+                                                m_distanceMinimumOpacityInTab);
     
     m_sceneAssistant->addArray("m_displayStatusInDisplayGroup",
                                m_displayStatusInDisplayGroup,
@@ -121,6 +153,32 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
                                m_minimumProportionOpacityInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                m_minimumProportionOpacityInDisplayGroup[0]);
+    
+    m_sceneAssistant->addArray("m_countMaximumOpacityInDisplayGroup",
+                               m_countMaximumOpacityInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_countMaximumOpacityInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_countMinimumOpacityInDisplayGroup",
+                               m_countMinimumOpacityInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_countMinimumOpacityInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_countStreamlineInDisplayGroup",
+                               m_countStreamlineInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_countStreamlineInDisplayGroup[0]);
+    
+    m_sceneAssistant->addArray("m_distanceMaximumOpacityInDisplayGroup",
+                               m_distanceMaximumOpacityInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_distanceMaximumOpacityInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_distanceMinimumOpacityInDisplayGroup",
+                               m_distanceMinimumOpacityInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_distanceMinimumOpacityInDisplayGroup[0]);
+    m_sceneAssistant->addArray("m_distanceStreamlineInDisplayGroup",
+                               m_distanceStreamlineInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_distanceStreamlineInDisplayGroup[0]);
 }
 
 /**
@@ -455,6 +513,315 @@ DisplayPropertiesFiberTrajectory::setProportionMinimumOpacity(const DisplayGroup
         m_minimumProportionOpacityInDisplayGroup[displayGroup] = lengthMultiplier;
     }
 }
+
+/**
+ * @return The count streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getCountStreamline(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_countStreamlineInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countStreamlineInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_countStreamlineInTab[tabIndex];
+    }
+    return m_countStreamlineInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the count streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param countStreamline
+ *     New value for count streamline threshold
+ */
+void
+DisplayPropertiesFiberTrajectory::setCountStreamline(const DisplayGroupEnum::Enum displayGroup,
+                        const int32_t tabIndex,
+                        const int32_t countStreamline)
+{
+    CaretAssertArrayIndex(m_countStreamlineInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countStreamlineInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_countStreamlineInTab[tabIndex] = countStreamline;
+    }
+    else {
+        m_countStreamlineInDisplayGroup[displayGroup] = countStreamline;
+    }
+}
+
+/**
+ * @return The count value mapped to maximum opacity.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getCountMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_countMaximumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countMaximumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_countMaximumOpacityInTab[tabIndex];
+    }
+    return m_countMaximumOpacityInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the count streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param countMaximumOpacity
+ *     New value for count mapped to maximum opacity
+ */
+void
+DisplayPropertiesFiberTrajectory::setCountMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const int32_t countMaximumOpacity)
+{
+    CaretAssertArrayIndex(m_countMaximumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countMaximumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_countMaximumOpacityInTab[tabIndex] = countMaximumOpacity;
+    }
+    else {
+        m_countMaximumOpacityInDisplayGroup[displayGroup] = countMaximumOpacity;
+    }
+}
+
+/**
+ * @return The count value mapped to minimum opacity.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getCountMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_countMinimumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countMinimumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_countMinimumOpacityInTab[tabIndex];
+    }
+    return m_countMinimumOpacityInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the count streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param countMinimumOpacity
+ *     New value for count mapped to minimum opacity
+ */
+void
+DisplayPropertiesFiberTrajectory::setCountMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const int32_t countMinimumOpacity)
+{
+    CaretAssertArrayIndex(m_countMinimumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_countMinimumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_countMinimumOpacityInTab[tabIndex] = countMinimumOpacity;
+    }
+    else {
+        m_countMinimumOpacityInDisplayGroup[displayGroup] = countMinimumOpacity;
+    }
+}
+
+
+
+/**
+ * @return The distance streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getDistanceStreamline(const DisplayGroupEnum::Enum displayGroup,
+                                                        const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_distanceStreamlineInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceStreamlineInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_distanceStreamlineInTab[tabIndex];
+    }
+    return m_distanceStreamlineInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the distance streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param distanceStreamline
+ *     New value for distance streamline threshold
+ */
+void
+DisplayPropertiesFiberTrajectory::setDistanceStreamline(const DisplayGroupEnum::Enum displayGroup,
+                                                        const int32_t tabIndex,
+                                                        const int32_t distanceStreamline)
+{
+    CaretAssertArrayIndex(m_distanceStreamlineInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceStreamlineInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_distanceStreamlineInTab[tabIndex] = distanceStreamline;
+    }
+    else {
+        m_distanceStreamlineInDisplayGroup[displayGroup] = distanceStreamline;
+    }
+}
+
+/**
+ * @return The distance value mapped to maximum opacity.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getDistanceMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                                            const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_distanceMaximumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceMaximumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_distanceMaximumOpacityInTab[tabIndex];
+    }
+    return m_distanceMaximumOpacityInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the distance streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param distanceMaximumOpacity
+ *     New value for distance mapped to maximum opacity
+ */
+void
+DisplayPropertiesFiberTrajectory::setDistanceMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                                            const int32_t tabIndex,
+                                                            const int32_t distanceMaximumOpacity)
+{
+    CaretAssertArrayIndex(m_distanceMaximumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceMaximumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_distanceMaximumOpacityInTab[tabIndex] = distanceMaximumOpacity;
+    }
+    else {
+        m_distanceMaximumOpacityInDisplayGroup[displayGroup] = distanceMaximumOpacity;
+    }
+}
+
+/**
+ * @return The distance value mapped to minimum opacity.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+int32_t
+DisplayPropertiesFiberTrajectory::getDistanceMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                                            const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_distanceMinimumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceMinimumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_distanceMinimumOpacityInTab[tabIndex];
+    }
+    return m_distanceMinimumOpacityInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the distance streamline threshold.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param distanceMinimumOpacity
+ *     New value for distance mapped to minimum opacity
+ */
+void
+DisplayPropertiesFiberTrajectory::setDistanceMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+                                                            const int32_t tabIndex,
+                                                            const int32_t distanceMinimumOpacity)
+{
+    CaretAssertArrayIndex(m_distanceMinimumOpacityInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_distanceMinimumOpacityInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_distanceMinimumOpacityInTab[tabIndex] = distanceMinimumOpacity;
+    }
+    else {
+        m_distanceMinimumOpacityInDisplayGroup[displayGroup] = distanceMinimumOpacity;
+    }
+}
+
 
 
 /**

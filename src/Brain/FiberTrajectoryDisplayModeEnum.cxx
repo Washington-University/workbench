@@ -93,6 +93,10 @@ FiberTrajectoryDisplayModeEnum::initialize()
                                     "FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED", 
                                     "Distance Weighted"));
     
+    enumData.push_back(FiberTrajectoryDisplayModeEnum(FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG,
+                                                      "FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG",
+                                                      "Distance Weighted (Log)"));
+    
     enumData.push_back(FiberTrajectoryDisplayModeEnum(FIBER_TRAJECTORY_DISPLAY_PROPORTION,
                                     "FIBER_TRAJECTORY_DISPLAY_PROPORTION", 
                                     "Proportion"));

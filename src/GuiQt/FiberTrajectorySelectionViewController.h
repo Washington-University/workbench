@@ -39,11 +39,13 @@
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
-#include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
+#include "FiberTrajectoryDisplayModeEnum.h"
 
+class QButtonGroup;
 class QCheckBox;
 class QDoubleSpinBox;
+class QRadioButton;
 class QSpinBox;
 class QVBoxLayout;
 
@@ -89,7 +91,11 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
         
-        QCheckBox* m_displayFibersCheckBox;
+        QCheckBox* m_displayTrajectoriesCheckBox;
+        
+        std::vector<QRadioButton*> m_displayModeRadioButtons;
+        std::vector<FiberTrajectoryDisplayModeEnum::Enum> m_displayModeRadioButtonData;
+        QButtonGroup* m_displayModeButtonGroup;
         
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
@@ -98,6 +104,18 @@ namespace caret {
         QDoubleSpinBox* m_proportionMinimumSpinBox;
         
         QDoubleSpinBox* m_proportionMaximumSpinBox;
+        
+        QSpinBox* m_countStreamlineSpinBox;
+        
+        QSpinBox* m_countMinimumSpinBox;
+        
+        QSpinBox* m_countMaximumSpinBox;
+        
+        QSpinBox* m_distanceStreamlineSpinBox;
+        
+        QSpinBox* m_distanceMinimumSpinBox;
+        
+        QSpinBox* m_distanceMaximumSpinBox;
         
         QVBoxLayout* m_selectionWidgetLayout;
         

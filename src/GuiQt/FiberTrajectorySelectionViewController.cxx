@@ -38,22 +38,26 @@
 
 #include <limits>
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QRadioButton>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Brain.h"
 #include "BrowserTabContent.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFiberTrajectory.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
-#include "CiftiFiberTrajectoryFile.h"
 #include "FiberTrajectorySelectionViewController.h"
 #include "GuiManager.h"
 #include "WuQTabWidget.h"
@@ -147,66 +151,165 @@ QWidget*
 FiberTrajectorySelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
+    const int spinBoxWidth = 65;
     
-    m_displayFibersCheckBox = new QCheckBox("Display Trajectories");
-    m_displayFibersCheckBox->setToolTip("Display Trajectories");
-    QObject::connect(m_displayFibersCheckBox, SIGNAL(clicked(bool)),
+    m_displayTrajectoriesCheckBox = new QCheckBox("Display Trajectories");
+    m_displayTrajectoriesCheckBox->setToolTip("Display Trajectories");
+    QObject::connect(m_displayTrajectoriesCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* proportionStreamlineLabel = new QLabel("Threshold Streamline");
+    m_displayModeButtonGroup = new QButtonGroup(this);
+    QObject::connect(m_displayModeButtonGroup, SIGNAL(buttonClicked(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    std::vector<FiberTrajectoryDisplayModeEnum::Enum> displayModes;
+    FiberTrajectoryDisplayModeEnum::getAllEnums(displayModes);
+    const int32_t numDisplayModes = static_cast<int32_t>(displayModes.size());
+    for (int32_t i = 0; i < numDisplayModes; i++) {
+        const FiberTrajectoryDisplayModeEnum::Enum mode = displayModes[i];
+        QRadioButton* radioButton = new QRadioButton(FiberTrajectoryDisplayModeEnum::toGuiName(mode));
+        m_displayModeButtonGroup->addButton(radioButton, i);
+        m_displayModeRadioButtons.push_back(radioButton);
+        m_displayModeRadioButtonData.push_back(mode);
+    }
+    
+    QGroupBox* modeGroupBox = new QGroupBox("Display Mode");
+    QVBoxLayout* modeGroupLayout = new QVBoxLayout(modeGroupBox);
+    for (int32_t i = 0; i < numDisplayModes; i++) {
+        modeGroupLayout->addWidget(m_displayModeRadioButtons[i]);
+    }
+    //modeGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
     m_proportionStreamlineSpinBox = new QSpinBox();
     m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_proportionStreamlineSpinBox->setSingleStep(5);
+    m_proportionStreamlineSpinBox->setFixedWidth(spinBoxWidth);
     m_proportionStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
-                                             "streamlines is greater than or equal to this value.");
+                                             "streamlines is greater than or equal to this value");
     QObject::connect(m_proportionStreamlineSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* minimumProportionLabel = new QLabel("Minimum Proportion");
     m_proportionMinimumSpinBox = new QDoubleSpinBox();
     m_proportionMinimumSpinBox->setRange(0.0, 1.0);
     m_proportionMinimumSpinBox->setDecimals(2);
     m_proportionMinimumSpinBox->setSingleStep(0.05);
-    m_proportionMinimumSpinBox->setToolTip("If the proporation for an axis is less than or equal\n"
+    m_proportionMinimumSpinBox->setFixedWidth(spinBoxWidth);
+    m_proportionMinimumSpinBox->setToolTip("If the proportion for an axis is less than or equal\n"
                                            "to this value, the opacity will be zero (clear)");
     QObject::connect(m_proportionMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* maximumProportionLabel = new QLabel("Maximum Proportion");
     m_proportionMaximumSpinBox = new QDoubleSpinBox();
     m_proportionMaximumSpinBox->setRange(0.0, 1.0);
     m_proportionMaximumSpinBox->setDecimals(2);
     m_proportionMaximumSpinBox->setSingleStep(0.05);
+    m_proportionMaximumSpinBox->setFixedWidth(spinBoxWidth);
     m_proportionMaximumSpinBox->setToolTip("If the proportion for an axis is greater than or equal\n"
                                            "to this value, the opacity will be one (opaque)");
     QObject::connect(m_proportionMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QWidget* gridWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 100);
-    WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
-    int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_displayFibersCheckBox, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
-    gridLayout->addWidget(maximumProportionLabel, row, 0);
-    gridLayout->addWidget(m_proportionMaximumSpinBox , row, 1);
-    row++;
-    gridLayout->addWidget(minimumProportionLabel, row, 0);
-    gridLayout->addWidget(m_proportionMinimumSpinBox , row, 1);
-    row++;
-    gridLayout->addWidget(proportionStreamlineLabel, row, 0);
-    gridLayout->addWidget(m_proportionStreamlineSpinBox, row, 1);
+    
+    m_countStreamlineSpinBox = new QSpinBox();
+    m_countStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countStreamlineSpinBox->setSingleStep(5);
+    m_countStreamlineSpinBox->setFixedWidth(spinBoxWidth);
+    m_countStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
+                                              "streamlines is greater than or equal to this value");
+    QObject::connect(m_countStreamlineSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_countMinimumSpinBox = new QSpinBox();
+    m_countMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countMinimumSpinBox->setSingleStep(5);
+    m_countMinimumSpinBox->setFixedWidth(spinBoxWidth);
+    m_countMinimumSpinBox->setToolTip("If the number of fibers for an axis is less than or equal\n"
+                                           "to this value, the opacity will be zero (clear)");
+    QObject::connect(m_countMinimumSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_countMaximumSpinBox = new QSpinBox();
+    m_countMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countMaximumSpinBox->setSingleStep(5);
+    m_countMaximumSpinBox->setFixedWidth(spinBoxWidth);
+    m_countMaximumSpinBox->setToolTip("If the number of fibers for an axis is greater than or equal\n"
+                                           "to this value, the opacity will be one (opaque)");
+    QObject::connect(m_countMaximumSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    
+    
+    m_distanceStreamlineSpinBox = new QSpinBox();
+    m_distanceStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceStreamlineSpinBox->setSingleStep(5);
+    m_distanceStreamlineSpinBox->setFixedWidth(spinBoxWidth);
+    m_distanceStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
+                                         "streamlines is greater than or equal to this value");
+    QObject::connect(m_distanceStreamlineSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_distanceMinimumSpinBox = new QSpinBox();
+    m_distanceMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceMinimumSpinBox->setSingleStep(5);
+    m_distanceMinimumSpinBox->setFixedWidth(spinBoxWidth);
+    m_distanceMinimumSpinBox->setToolTip("If count times distance for an axis is less than or equal\n"
+                                      "to this value, the opacity will be zero (clear)");
+    QObject::connect(m_distanceMinimumSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_distanceMaximumSpinBox = new QSpinBox();
+    m_distanceMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceMaximumSpinBox->setSingleStep(5);
+    m_distanceMaximumSpinBox->setFixedWidth(spinBoxWidth);
+    m_distanceMaximumSpinBox->setToolTip("If the count times distance for an axis is greater than or equal\n"
+                                      "to this value, the opacity will be one (opaque)");
+    QObject::connect(m_distanceMaximumSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    QGroupBox* dataMappingGroupBox = new QGroupBox("Data Mapping");
+    QGridLayout* dataMappingLayout = new QGridLayout(dataMappingGroupBox);
+    WuQtUtilities::setLayoutMargins(dataMappingLayout, 4, 2);
+    int row = dataMappingLayout->rowCount();
+    
+    int columnCounter = 0;
+    const int COLUMN_LABELS    = columnCounter++;
+    const int COLUMN_THRESHOLD = columnCounter++;
+    const int COLUMN_MINIMUM   = columnCounter++;
+    const int COLUMN_MAXIMUM   = columnCounter++;
+    
+    dataMappingLayout->addWidget(new QLabel("<html>Display<br>Mode<html>"), row, COLUMN_LABELS, Qt::AlignLeft);
+    dataMappingLayout->addWidget(new QLabel("<html>Streamline<br>Threshold<html>"), row, COLUMN_THRESHOLD, Qt::AlignLeft);
+    dataMappingLayout->addWidget(new QLabel("<html>Map to<br>Clear<html>"), row, COLUMN_MINIMUM, Qt::AlignLeft);
+    dataMappingLayout->addWidget(new QLabel("<html>Map to<br>Opaque<html>"), row, COLUMN_MAXIMUM, Qt::AlignLeft);
     row++;
     
-    gridWidget->setSizePolicy(QSizePolicy::Fixed,
-                              QSizePolicy::Fixed);
+    dataMappingLayout->addWidget(new QLabel("Absolute"), row, COLUMN_LABELS);
+    dataMappingLayout->addWidget(m_countStreamlineSpinBox, row, COLUMN_THRESHOLD, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_countMinimumSpinBox, row, COLUMN_MINIMUM, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_countMaximumSpinBox, row, COLUMN_MAXIMUM, Qt::AlignHCenter);
+    row++;
+
+    dataMappingLayout->addWidget(new QLabel("Distance"), row, COLUMN_LABELS);
+    dataMappingLayout->addWidget(m_distanceStreamlineSpinBox, row, COLUMN_THRESHOLD, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_distanceMinimumSpinBox, row, COLUMN_MINIMUM, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_distanceMaximumSpinBox, row, COLUMN_MAXIMUM, Qt::AlignHCenter);
+    row++;
+
+    dataMappingLayout->addWidget(new QLabel("Proportion"), row, COLUMN_LABELS);
+    dataMappingLayout->addWidget(m_proportionStreamlineSpinBox, row, COLUMN_THRESHOLD, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_proportionMinimumSpinBox, row, COLUMN_MINIMUM, Qt::AlignHCenter);
+    dataMappingLayout->addWidget(m_proportionMaximumSpinBox, row, COLUMN_MAXIMUM, Qt::AlignHCenter);
+    row++;
+    
+//    dataMappingGroupBox->setSizePolicy(QSizePolicy::Fixed,
+//                              QSizePolicy::Fixed);
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
-    layout->addWidget(gridWidget);
+    layout->addWidget(m_displayTrajectoriesCheckBox);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addWidget(modeGroupBox);
+    layout->addWidget(dataMappingGroupBox);
     layout->addStretch();
     
     m_updateInProgress = false;
@@ -237,11 +340,17 @@ FiberTrajectorySelectionViewController::processAttributesChanges()
     
     dpfo->setDisplayed(displayGroup,
                        browserTabIndex,
-                       m_displayFibersCheckBox->isChecked());
+                       m_displayTrajectoriesCheckBox->isChecked());
+
+    const int32_t selectedModeRadioButtonIndex = m_displayModeButtonGroup->checkedId();
+    const FiberTrajectoryDisplayModeEnum::Enum displayMode = m_displayModeRadioButtonData[selectedModeRadioButtonIndex];
+    dpfo->setDisplayMode(displayGroup,
+                         browserTabIndex,
+                         displayMode);
     
     dpfo->setProportionStreamline(displayGroup,
                         browserTabIndex,
-                        m_proportionStreamlineSpinBox->value());
+                                  m_proportionStreamlineSpinBox->value());;
     
     dpfo->setProportionMinimumOpacity(displayGroup,
                         browserTabIndex,
@@ -250,6 +359,26 @@ FiberTrajectorySelectionViewController::processAttributesChanges()
     dpfo->setProportionMaximumOpacity(displayGroup,
                         browserTabIndex,
                         m_proportionMaximumSpinBox->value());
+    
+    dpfo->setCountStreamline(displayGroup,
+                             browserTabIndex,
+                             m_countStreamlineSpinBox->value());
+    dpfo->setCountMaximumOpacity(displayGroup,
+                                 browserTabIndex,
+                                 m_countMaximumSpinBox->value());
+    dpfo->setCountMinimumOpacity(displayGroup,
+                                 browserTabIndex,
+                                 m_countMinimumSpinBox->value());
+    
+    dpfo->setDistanceStreamline(displayGroup,
+                                browserTabIndex,
+                                m_distanceStreamlineSpinBox->value());
+    dpfo->setDistanceMaximumOpacity(displayGroup,
+                                    browserTabIndex,
+                                    m_distanceMaximumSpinBox->value());
+    dpfo->setDistanceMinimumOpacity(displayGroup,
+                                    browserTabIndex,
+                                    m_distanceMinimumSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -313,7 +442,14 @@ FiberTrajectorySelectionViewController::updateViewController()
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
     m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
     
-    //dpfo->isDisplayed(displayGroup, browserTabIndex)
+    const FiberTrajectoryDisplayModeEnum::Enum selectedDisplayMode = dpfo->getDisplayMode(displayGroup, browserTabIndex);
+    const int32_t numDisplayModeRadioButtons = m_displayModeButtonGroup->buttons().size();
+    for (int32_t i = 0; i < numDisplayModeRadioButtons; i++) {
+        if (m_displayModeRadioButtonData[i] == selectedDisplayMode) {
+            m_displayModeRadioButtons[i]->setChecked(true);
+            break;
+        }
+    }
     
     /*
      * Update file selection checkboxes
@@ -350,7 +486,7 @@ FiberTrajectorySelectionViewController::updateViewController()
     /*
      * Update the attributes
      */
-    m_displayFibersCheckBox->setChecked(dpfo->isDisplayed(displayGroup,
+    m_displayTrajectoriesCheckBox->setChecked(dpfo->isDisplayed(displayGroup,
                                                         browserTabIndex));
     m_proportionStreamlineSpinBox->setValue(dpfo->getProportionStreamline(displayGroup,
                                                       browserTabIndex));
@@ -358,7 +494,20 @@ FiberTrajectorySelectionViewController::updateViewController()
                                                       browserTabIndex));
     m_proportionMinimumSpinBox->setValue(dpfo->getProportionMinimumOpacity(displayGroup,
                                                             browserTabIndex));
-
+    
+    m_countStreamlineSpinBox->setValue(dpfo->getCountStreamline(displayGroup,
+                                                                browserTabIndex));
+    m_countMaximumSpinBox->setValue(dpfo->getCountMaximumOpacity(displayGroup,
+                                                                 browserTabIndex));
+    m_countMinimumSpinBox->setValue(dpfo->getCountMinimumOpacity(displayGroup,
+                                                                 browserTabIndex));
+    
+    m_distanceStreamlineSpinBox->setValue(dpfo->getDistanceStreamline(displayGroup,
+                                                                      browserTabIndex));
+    m_distanceMaximumSpinBox->setValue(dpfo->getDistanceMaximumOpacity(displayGroup,
+                                                                       browserTabIndex));
+    m_distanceMinimumSpinBox->setValue(dpfo->getDistanceMinimumOpacity(displayGroup,
+                                                                       browserTabIndex));
     m_updateInProgress = false;
 }
 

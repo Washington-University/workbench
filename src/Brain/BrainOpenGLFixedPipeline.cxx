@@ -5203,16 +5203,52 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         return;
     }
     
-    const float minPropOpacity = dpft->getProportionMinimumOpacity(displayGroup,
+    const float proportionMinimumOpacity = dpft->getProportionMinimumOpacity(displayGroup,
                                                                       this->windowTabIndex);
-    const float maxPropOpacity = dpft->getProportionMaximumOpacity(displayGroup,
+    const float proportionMaximumOpacity = dpft->getProportionMaximumOpacity(displayGroup,
                                                                       this->windowTabIndex);
-    const float deltaPropOpacity = maxPropOpacity - minPropOpacity;
-    if (deltaPropOpacity <= 0.0) {
-        return;
-    }
-    const uint32_t thresholdStreamline = dpft->getProportionStreamline(displayGroup,
+    const float proportionRangeOpacity = proportionMaximumOpacity - proportionMinimumOpacity;
+    
+    const float countMinimumOpacity = dpft->getCountMinimumOpacity(displayGroup,
+                                                                             this->windowTabIndex);
+    const float countMaximumOpacity = dpft->getCountMaximumOpacity(displayGroup,
+                                                                             this->windowTabIndex);
+    const float countRangeOpacity = countMaximumOpacity - countMinimumOpacity;
+    
+    const float distanceMinimumOpacity = dpft->getDistanceMinimumOpacity(displayGroup,
                                                                    this->windowTabIndex);
+    const float distanceMaximumOpacity = dpft->getDistanceMaximumOpacity(displayGroup,
+                                                                   this->windowTabIndex);
+    const float distanceRangeOpacity = distanceMaximumOpacity - distanceMinimumOpacity;
+    
+    const FiberTrajectoryDisplayModeEnum::Enum displayMode = dpft->getDisplayMode(displayGroup,
+                                                                                  this->windowTabIndex);
+    uint32_t streamlineThreshold = std::numeric_limits<uint32_t>::max();
+    switch (displayMode) {
+        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
+            streamlineThreshold = dpft->getCountStreamline(displayGroup,
+                                                           this->windowTabIndex);
+            if (countRangeOpacity <= 0.0) {
+                return;
+            }
+            break;
+        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
+        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
+            streamlineThreshold = dpft->getDistanceStreamline(displayGroup,
+                                                           this->windowTabIndex);
+            if (distanceRangeOpacity <= 0.0) {
+                return;
+            }
+            break;
+        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
+            streamlineThreshold = dpft->getProportionStreamline(displayGroup,
+                                                           this->windowTabIndex);
+            if (proportionRangeOpacity <= 0.0) {
+                return;
+            }
+            break;
+    }
+    
     /*
      * Clipping planes
      */
@@ -5303,19 +5339,58 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                 
                 continue;
             }
-            else if (fiberFractions->totalCount < thresholdStreamline) {
+            else if (fiberFractions->totalCount < streamlineThreshold) {
                 continue;
             }
 
+            float fiberOpacities[3] = { 0.0, 0.0, 0.0 };
+            const float fiberCounts[3] = {
+                fiberFractions->fiberFractions[0] * fiberFractions->totalCount,
+                fiberFractions->fiberFractions[1] * fiberFractions->totalCount,
+                fiberFractions->fiberFractions[2] * fiberFractions->totalCount
+            };
+            
             /*
              * Set opacities for each fiber using mapping of minimum and
              * maximum opacities
              */
-            float fiberOpacities[3] = {
-                (fiberFractions->fiberFractions[0] - minPropOpacity) /deltaPropOpacity,
-                (fiberFractions->fiberFractions[1] - minPropOpacity) /deltaPropOpacity,
-                (fiberFractions->fiberFractions[2] - minPropOpacity) /deltaPropOpacity
-            };
+            switch (displayMode) {
+                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
+                    fiberOpacities[0] = (fiberCounts[0]
+                                         - countMinimumOpacity) / countRangeOpacity;
+                    fiberOpacities[1] = (fiberCounts[1]
+                                         - countMinimumOpacity) / countRangeOpacity;
+                    fiberOpacities[2] = (fiberCounts[2]
+                                         - countMinimumOpacity) / countRangeOpacity;
+                    break;
+                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
+                    fiberOpacities[0] = ((fiberCounts[0] * fiberFractions->distance)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                    fiberOpacities[1] = ((fiberCounts[1] * fiberFractions->distance)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                    fiberOpacities[2] = ((fiberCounts[2] * fiberFractions->distance)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                    break;
+                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
+                {
+                    const float distanceLog = std::log(fiberFractions->distance);
+                    fiberOpacities[0] = ((fiberCounts[0] * distanceLog)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                    fiberOpacities[1] = ((fiberCounts[1] * distanceLog)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                    fiberOpacities[2] = ((fiberCounts[2] * distanceLog)
+                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                }
+                    break;
+                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
+                    fiberOpacities[0] = (fiberFractions->fiberFractions[0]
+                                         - proportionMinimumOpacity) /proportionRangeOpacity;
+                    fiberOpacities[1] = (fiberFractions->fiberFractions[1]
+                                         - proportionMinimumOpacity) /proportionRangeOpacity;
+                    fiberOpacities[2] = (fiberFractions->fiberFractions[2]
+                                         - proportionMinimumOpacity) /proportionRangeOpacity;
+                    break;
+            }
             int32_t drawCount = 3;
             for (int32_t i = 0; i < 3; i++) {
                 if (fiberOpacities[0] > 1.0) {
