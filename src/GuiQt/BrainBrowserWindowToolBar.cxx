@@ -1086,6 +1086,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             case BrainBrowserWindowScreenModeEnum::NORMAL:
                 showToolBar = true;
                 showToolBarWidget = true;
+                showToolBarWidget = this->toolBarToolButtonAction->isChecked(); // JWH FIX Toolbar turned after ID event
                 break;
             case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
                 /*
