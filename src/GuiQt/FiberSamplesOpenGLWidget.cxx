@@ -352,13 +352,17 @@ FiberSamplesOpenGLWidget::drawOrientations()
         const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->m_browserWindowIndex);
         const FiberOrientationColoringTypeEnum::Enum coloringType = dpfo->getColoringType(displayGroup,
                                                                                           m_browserWindowIndex);
+        const float minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup,
+                                                                 m_browserWindowIndex);
 
         /*
          * First orientations
          */
-        glColor3f(1.0, 0.0, 0.0);
         const int32_t numVectorsX = static_cast<int32_t>(xVectors.size());
         for (int32_t i = 0; i < numVectorsX; i++) {
+            if (xVectors[i].magnitude < minimumMagnitude) {
+                continue;
+            }
             float xyz[3] = {
                 xVectors[i].vector[0] * s_sphereBigRadius,
                 xVectors[i].vector[1] * s_sphereBigRadius,
@@ -367,11 +371,11 @@ FiberSamplesOpenGLWidget::drawOrientations()
             
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                    glColor3f(1.0, 0.0, 0.0);
+
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                {
-                    
-                }
+                    glColor3fv(xVectors[i].rgb);
                     break;
             }
             glPushMatrix();
@@ -388,14 +392,25 @@ FiberSamplesOpenGLWidget::drawOrientations()
         /*
          * Second orientations
          */
-        glColor3f(0.0, 1.0, 0.0);
         const int32_t numVectorsY = static_cast<int32_t>(yVectors.size());
         for (int32_t i = 0; i < numVectorsY; i++) {
+            if (yVectors[i].magnitude < minimumMagnitude) {
+                continue;
+            }
             float xyz[3] = {
                 yVectors[i].vector[0] * s_sphereBigRadius,
                 yVectors[i].vector[1] * s_sphereBigRadius,
                 yVectors[i].vector[2] * s_sphereBigRadius
             };
+            switch (coloringType) {
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                    glColor3f(0.0, 1.0, 0.0);
+                    
+                    break;
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                    glColor3fv(yVectors[i].rgb);
+                    break;
+            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             m_sphereSmall->draw();
@@ -410,14 +425,25 @@ FiberSamplesOpenGLWidget::drawOrientations()
         /*
          * Third orientations
          */
-        glColor3f(0.0, 0.0, 1.0);
         const int32_t numVectorsZ = static_cast<int32_t>(zVectors.size());
         for (int32_t i = 0; i < numVectorsZ; i++) {
+            if (zVectors[i].magnitude < minimumMagnitude) {
+                continue;
+            }
             float xyz[3] = {
                 zVectors[i].vector[0] * s_sphereBigRadius,
                 zVectors[i].vector[1] * s_sphereBigRadius,
                 zVectors[i].vector[2] * s_sphereBigRadius
             };
+            switch (coloringType) {
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                    glColor3f(0.0, 0.0, 1.0);
+                    
+                    break;
+                case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                    glColor3fv(zVectors[i].rgb);
+                    break;
+            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             m_sphereSmall->draw();
@@ -449,16 +475,33 @@ FiberSamplesOpenGLWidget::drawOrientations()
             for (int32_t j = 0; j < numFibers; j++) {
                 const Fiber* fiber = fiberOrientation->m_fibers[j];
                 if (fiber->m_valid) {
-                    const int32_t colorIndex = j % 3;
-                    switch (colorIndex) {
-                        case 0:
-                            glColor3f(1.0, 0.0, 0.0);
+                    
+                    /*
+                     * Only draw if magnitude exceeds minimum magnitude
+                     */
+                    if (fiber->m_meanF < minimumMagnitude) {
+                        continue;
+                    }
+
+                    switch (coloringType) {
+                        case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                        {
+                            const int32_t colorIndex = j % 3;
+                            switch (colorIndex) {
+                                case 0:
+                                    glColor3f(1.0, 0.0, 0.0);
+                                    break;
+                                case 1:
+                                    glColor3f(0.0, 1.0, 0.0);
+                                    break;
+                                case 2:
+                                    glColor3f(0.0, 0.0, 1.0);
+                                    break;
+                            }
+                        }
                             break;
-                        case 1:
-                            glColor3f(0.0, 1.0, 0.0);
-                            break;
-                        case 2:
-                            glColor3f(0.0, 0.0, 1.0);
+                        case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                            glColor3fv(fiber->m_directionUnitVectorRGB);
                             break;
                     }
                     
@@ -480,18 +523,6 @@ FiberSamplesOpenGLWidget::drawOrientations()
                     const float minorAxis = std::min(z * std::tan(baseMinorAngle) * baseRadiusScaling,
                                                      maxWidth);
                     
-                    
-                    switch (colorIndex) {
-                        case 0:
-                            glColor3f(1.0, 0.0, 0.0);
-                            break;
-                        case 1:
-                            glColor3f(0.0, 1.0, 0.0);
-                            break;
-                        case 2:
-                            glColor3f(0.0, 0.0, 1.0);
-                            break;
-                    }
                     glPushMatrix();
                     glRotatef(-fiber->m_phi * radiansToDegrees, 0.0, 0.0, 1.0);
                     glRotatef(-fiber->m_theta * radiansToDegrees, 0.0, 1.0, 0.0);

@@ -966,6 +966,12 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<Or
                                                                               iOrient,
                                                                               0);
                     
+                    const float magnitude = m_sampleMagnitudeVolumes[iAxis]->getValue(ijk[0],
+                                                                                      ijk[1],
+                                                                                      ijk[2],
+                                                                                      iOrient,
+                                                                                      0);
+                    
                     switch (iAxis) {
                         case 0:
                         {
@@ -973,6 +979,8 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<Or
                             ov.vector[0] = -std::sin(theta) * std::cos(phi);
                             ov.vector[1] =  std::sin(theta) * std::sin(phi);
                             ov.vector[2] =  std::cos(theta);
+                            ov.magnitude = magnitude;
+                            ov.setColor();
                         }
                             break;
                         case 1:
@@ -981,6 +989,8 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<Or
                             ov.vector[0] = -std::sin(theta) * std::cos(phi);
                             ov.vector[1] =  std::sin(theta) * std::sin(phi);
                             ov.vector[2] =  std::cos(theta);
+                            ov.magnitude = magnitude;
+                            ov.setColor();
                         }
                             break;
                         case 2:
@@ -989,6 +999,8 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<Or
                             ov.vector[0] = -std::sin(theta) * std::cos(phi);
                             ov.vector[1] =  std::sin(theta) * std::sin(phi);
                             ov.vector[2] =  std::cos(theta);
+                            ov.magnitude = magnitude;
+                            ov.setColor();
                         }
                             break;
                     }
@@ -1035,23 +1047,23 @@ DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& erro
                 
                 const AString fileNumber = AString::number(i + 1);
                 
-//                try {
-//                    const AString magFileName = (filePrefix
-//                                                 + "f"
-//                                                 + fileNumber
-//                                                 + fileSuffix);
-//                    FileInformation magFileInfo(directoryName,
-//                                            magFileName);
-//                    const AString magFilePath = magFileInfo.getFilePath();
-//                    m_sampleMagnitudeVolumes[i]->readFile(magFilePath);
-//                    allVolumes.push_back(m_sampleMagnitudeVolumes[i]);
-//                }
-//                catch (const DataFileException& dfe) {
-//                    if (errorMessageOut.isEmpty() == false) {
-//                        errorMessageOut += "\n";
-//                    }
-//                    errorMessageOut += dfe.whatString();
-//                }
+                try {
+                    const AString magFileName = (filePrefix
+                                                 + "f"
+                                                 + fileNumber
+                                                 + fileSuffix);
+                    FileInformation magFileInfo(directoryName,
+                                            magFileName);
+                    const AString magFilePath = magFileInfo.getFilePath();
+                    m_sampleMagnitudeVolumes[i]->readFile(magFilePath);
+                    allVolumes.push_back(m_sampleMagnitudeVolumes[i]);
+                }
+                catch (const DataFileException& dfe) {
+                    if (errorMessageOut.isEmpty() == false) {
+                        errorMessageOut += "\n";
+                    }
+                    errorMessageOut += dfe.whatString();
+                }
                 
                 try {
                     const AString phiFileName = (filePrefix

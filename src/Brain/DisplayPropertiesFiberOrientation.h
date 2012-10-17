@@ -140,6 +140,14 @@ namespace caret {
         
         struct OrientationVector {
             float vector[3];
+            float magnitude;
+            float rgb[3];
+            
+            void setColor() {
+                rgb[0] = (vector[0] >= 0.0) ? vector[0] : -vector[0];
+                rgb[1] = (vector[1] >= 0.0) ? vector[1] : -vector[1];
+                rgb[2] = (vector[2] >= 0.0) ? vector[2] : -vector[2];
+            }
         };
         
         bool getSphericalOrientationVectors(std::vector<OrientationVector>& xVectors,
