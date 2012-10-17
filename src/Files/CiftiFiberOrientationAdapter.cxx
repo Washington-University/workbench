@@ -186,8 +186,8 @@ CiftiFiberOrientationAdapter::initializeWithTestData()
         fiberData[offset+1] = 2.0;   // varF
         fiberData[offset+2] = MathFunctions::toRadians(90.0); // theta
         fiberData[offset+3] = 0.0;   // phi
-        fiberData[offset+4] = MathFunctions::toRadians(30.0);   // k1
-        fiberData[offset+5] = MathFunctions::toRadians(20.0);   // k2
+        fiberData[offset+4] = MathFunctions::toRadians(50.0);   // k1
+        fiberData[offset+5] = MathFunctions::toRadians(10.0);   // k2
         fiberData[offset+6] = 0.0;   // psi
         offset += 7;
 

@@ -131,13 +131,50 @@ Fiber::Fiber(const float* pointerToData)
         m_directionUnitVectorRGB[0] = std::fabs(m_directionUnitVector[0]);
         m_directionUnitVectorRGB[1] = std::fabs(m_directionUnitVector[1]);
         m_directionUnitVectorRGB[2] = std::fabs(m_directionUnitVector[2]);
-        
-        //    const float azimuth   = M_PI_2 - m_phi; // along Y-Axis
-        //    const float elevation = M_PI_2 - m_theta;
-        //    m_directionUnitVector[0] = std::sin(azimuth) * std::cos(elevation);
-        //    m_directionUnitVector[1] = std::cos(azimuth) * std::cos(elevation);
-        //    m_directionUnitVector[2] = std::sin(elevation);
+
+//        const float nearZero = 0.0001;
+//        float oppositePhi = 0.0;
+//        if (std::fabs(m_directionUnitVector[0]) > nearZero) {
+//            oppositePhi = M_PI - std::atan2(-m_directionUnitVector[1],
+//                                              -m_directionUnitVector[0]);
+//        }
+//        else {
+//            oppositePhi = M_PI_2;
+//        }
+//        
+//        float oppositeTheta = std::acos(-m_directionUnitVector[2]);
+//        
+//        const float radiansToDegrees = 180.0 / M_PI;
+//            std::cout << "Vector: " << qPrintable(AString::fromNumbers(m_directionUnitVector, 3, ",")) << std::endl;
+//            std::cout << "Theta/OppTheta/Phi/OppPhi: "
+//            << (m_theta * radiansToDegrees) << " "
+//            << (oppositeTheta * radiansToDegrees) << " "
+//            << (m_phi * radiansToDegrees) << " "
+//            << (oppositePhi * radiansToDegrees) << std::endl << std::endl;
     }
+}
+
+void
+vectorToAngles(const float vector[3],
+                    float& azimuthOut,
+                    float& elevationOut) {
+    const float nearZero = 0.001;
+    azimuthOut = 0.0;
+    if (std::fabs(vector[0]) > nearZero) {
+        azimuthOut = std::atan2(vector[1],
+                                 vector[0]);
+    }
+    else if (vector[1] > nearZero) {
+        azimuthOut = M_PI_2;
+    }
+    else if (vector[1] < -nearZero) {
+        azimuthOut = -M_PI_2;
+    }
+    
+    if (azimuthOut > M_PI_2) azimuthOut -= M_PI_2;
+    else if (azimuthOut < -M_PI_2) azimuthOut += M_PI_2;
+    
+    elevationOut = std::acos(vector[2]);
 }
 
 /**
