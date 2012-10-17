@@ -38,6 +38,7 @@
 
 #include "Matrix4x4.h"
 
+class QLabel;
 class QCheckBox;
 
 namespace caret {
@@ -51,6 +52,8 @@ namespace caret {
     public:
         FiberSamplesOpenGLWidget(const int32_t browserWindowIndex,
                                  QCheckBox* enabledCheckBox,
+                                 QLabel* fiberMeanLabels[3],
+                                 QLabel* fiberVarianceLabels[3],
                                  QWidget* parent = 0);
         
         virtual ~FiberSamplesOpenGLWidget();
@@ -110,6 +113,9 @@ namespace caret {
         Matrix4x4 m_rotationMatrix;
 
         QCheckBox* m_enabledCheckBox;
+        
+        QLabel* m_fiberMeanLabels[3];
+        QLabel* m_fiberVarianceLabels[3];
         
         static const float s_sphereBigRadius;
         static const float s_sphereSmallRadius;

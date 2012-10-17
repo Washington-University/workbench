@@ -35,6 +35,7 @@
 #include <cmath>
 
 #include <QCheckBox>
+#include <QLabel>
 #include <QMouseEvent>
 #include <QSizePolicy>
 
@@ -64,11 +65,17 @@ using namespace caret;
  */
 FiberSamplesOpenGLWidget::FiberSamplesOpenGLWidget(const int32_t browserWindowIndex,
                                                    QCheckBox* enabledCheckBox,
+                                                   QLabel* fiberMeanLabels[3],
+                                                   QLabel* fiberVarianceLabels[3],
                                                    QWidget* parent)
 : QGLWidget(parent)
 {
     m_browserWindowIndex = browserWindowIndex;
     m_enabledCheckBox = enabledCheckBox;
+    for (int32_t i = 0; i < 3; i++) {
+        m_fiberMeanLabels[i] = fiberMeanLabels[i];
+        m_fiberVarianceLabels[i] = fiberVarianceLabels[i];
+    }
     m_ring = NULL;
     m_sphereBig = NULL;
     m_sphereSmall = NULL;
@@ -466,6 +473,10 @@ FiberSamplesOpenGLWidget::drawOrientations()
             for (int32_t j = 0; j < numFibers; j++) {
                 const Fiber* fiber = fiberOrientation->m_fibers[j];
                 if (fiber->m_valid) {
+                    if (j < 3) {
+                        m_fiberMeanLabels[j]->setText(AString::number(fiber->m_meanF));
+                        m_fiberVarianceLabels[j]->setText(AString::number(fiber->m_varF));
+                    }
                     
                     /*
                      * Only draw if magnitude exceeds minimum magnitude

@@ -506,11 +506,32 @@ FiberOrientationSelectionViewController::createSamplesWidget()
     QObject::connect(m_displaySphereOrientationsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
+    QGridLayout* fiberLabelsGridLayout = new QGridLayout();
+    fiberLabelsGridLayout->setColumnStretch(0, 0);
+    fiberLabelsGridLayout->setColumnStretch(1, 50);
+    fiberLabelsGridLayout->setColumnStretch(2, 50);
+    int row = 0;
+    fiberLabelsGridLayout->addWidget(new QLabel("Fiber  "), row, 0);
+    fiberLabelsGridLayout->addWidget(new QLabel("Mean "), row, 1);
+    fiberLabelsGridLayout->addWidget(new QLabel("Variance"), row, 2);
+    row++;
+    
+    QLabel* fiberMeanLabels[3];
+    QLabel* fiberVarianceLabels[3];
+    for (int32_t i = 0; i < 3; i++) {
+        fiberMeanLabels[i]     = new QLabel("");
+        fiberVarianceLabels[i] = new QLabel("");
+        fiberLabelsGridLayout->addWidget(new QLabel(QString::number(i+1)), row, 0);
+        fiberLabelsGridLayout->addWidget(fiberMeanLabels[i], row, 1);
+        fiberLabelsGridLayout->addWidget(fiberVarianceLabels[i], row, 2);
+        row++;
+    }
     
     m_samplesOpenGLWidget = new FiberSamplesOpenGLWidget(this->m_browserWindowIndex,
-                                                         m_displaySphereOrientationsCheckBox);
+                                                         m_displaySphereOrientationsCheckBox,
+                                                         fiberMeanLabels,
+                                                         fiberVarianceLabels);
     m_samplesOpenGLWidget->setMinimumSize(200, 200);
-//    m_samplesOpenGLWidget->resize(200, 200);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -518,7 +539,8 @@ FiberOrientationSelectionViewController::createSamplesWidget()
     layout->addWidget(m_displaySphereOrientationsCheckBox);
     layout->addWidget(m_samplesOpenGLWidget,
                       100); // stretch factor
-    layout->addStretch();
+    layout->addLayout(fiberLabelsGridLayout);
+//    layout->addStretch();
     
     return widget;
 }
