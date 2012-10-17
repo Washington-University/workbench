@@ -59,11 +59,14 @@ AString CaretMathExpression::getExpressionHelpInfo()
 {
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
-        "The operators are +, -, *, /, ^, >, <.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.  " +
+        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.\n\n" +
+        "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
+        "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, ie '((0 < x) < 5)', which will always return 1, as both possible " +
+        "results of a comparison are less than 5, use '(x > 0) * (x < 5)' to get the desired behavior.  A warning is generated if an expression of this type is detected.\n\n" +
         "Whitespace between elements is ignored, 'sin(2*x)' is equivalent to ' sin ( 2 * x ) ', but 's in(2*x)' is an error.  " +
         "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable, use '2 * x'.  " +
         "Parentheses are (), do not use [] or {}.  " +
-        "Functions require parentheses, the expression 'sin x' is an error.  " +
+        "Functions require parentheses, the expression 'sin x' is an error.\n\n" +
         "The following functions are supported:\n\n";
     vector<MathFunctionEnum::Enum> myFuncs;
     MathFunctionEnum::getAllEnums(myFuncs);
@@ -82,14 +85,26 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
         case GREATERLESS:
         {
             int end = (int)m_arguments.size();//yes, you can chain < and >, but it will produce a parsing warning, as it evaluates left to right
-            ret = 0.0;
-            for (int i = 0; i < end; ++i)
+            CaretAssert(end > 0);
+            ret = m_arguments[0].eval(values);
+            for (int i = 1; i < end; ++i)
             {
-                if (m_invert[i])
+                double temp = m_arguments[i].eval(values);
+                if (m_inclusive[i])
                 {
-                    ret = ret < m_arguments[i].eval(values);
+                    if (m_invert[i])
+                    {
+                        ret = (ret <= temp ? 1.0 : 0.0);//don't trust booleans to cast to 0 and 1, just because
+                    } else {
+                        ret = (ret >= temp ? 1.0 : 0.0);
+                    }
                 } else {
-                    ret = ret > m_arguments[i].eval(values);
+                    if (m_invert[i])
+                    {
+                        ret = (ret < temp ? 1.0 : 0.0);
+                    } else {
+                        ret = (ret > temp ? 1.0 : 0.0);
+                    }
                 }
             }
             break;
@@ -279,11 +294,21 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             ret = m_arguments[0].toString(varNames);
             for (int i = 1; i < end; ++i)
             {
-                if (m_invert[i])
+                if (m_inclusive[i])
                 {
-                    ret += "<" + m_arguments[i].toString(varNames);
+                    if (m_invert[i])
+                    {
+                        ret += "<=" + m_arguments[i].toString(varNames);
+                    } else {
+                        ret += ">=" + m_arguments[i].toString(varNames);
+                    }
                 } else {
-                    ret += ">" + m_arguments[i].toString(varNames);
+                    if (m_invert[i])
+                    {
+                        ret += "<" + m_arguments[i].toString(varNames);
+                    } else {
+                        ret += ">" + m_arguments[i].toString(varNames);
+                    }
                 }
             }
             break;
@@ -398,9 +423,11 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
 {
     node.m_arguments.clear();//reset the node, in case it was previously partially attempted by something else
     node.m_invert.clear();
+    node.m_inclusive.clear();
     int parenDepth = 0;
     bool ret = false;
-    bool invertElement = false;
+    bool invertElement = false;//these initial values don't actually matter, they aren't used
+    bool inclusive = false;
     int nextStart = start;
     int nextEnd = start;
     for (int i = start; i < end; ++i)
@@ -414,6 +441,16 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
+                    node.m_inclusive.push_back(inclusive);
+                    ++i;//now, search for an = sign
+                    while (i < end && input[i].isSpace()) ++i;
+                    if (i < end && input[i] == '=')
+                    {
+                        inclusive = true;
+                    } else {
+                        inclusive = false;
+                        --i;
+                    }
                     invertElement = true;//negation applies to the element AFTER the divide sign, this is the element BEFORE it
                     if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
                     {
@@ -426,6 +463,16 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
+                    node.m_inclusive.push_back(inclusive);
+                    ++i;//now, search for an = sign
+                    while (i < end && input[i].isSpace()) ++i;
+                    if (i < end && input[i] == '=')
+                    {
+                        inclusive = true;
+                    } else {
+                        inclusive = false;
+                        --i;
+                    }
                     invertElement = false;//negation applies to the element AFTER the multiply sign, this is the element BEFORE it
                     if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
                     {

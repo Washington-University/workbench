@@ -52,7 +52,8 @@ class CaretMathExpression
         double m_constVal;
         int m_varIndex;
         bool m_negate;
-        std::vector<bool> m_invert;//whether it is subtract rather than add, or divide instead of multiply
+        std::vector<bool> m_invert;//whether it is subtract rather than add, or divide instead of multiply, or less instead of greater
+        std::vector<bool> m_inclusive;//whether greater/less includes equals
         std::vector<MathNode> m_arguments;
         MathNode();
         double eval(const std::vector<float>& values) const;
