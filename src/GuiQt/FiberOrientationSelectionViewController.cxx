@@ -454,6 +454,12 @@ FiberOrientationSelectionViewController::updateViewController()
                                                                                                                                             browserTabIndex));
     m_displaySphereOrientationsCheckBox->setChecked(dpfo->isSphereOrientationsDisplayed(displayGroup,
                                                                                         browserTabIndex));
+
+    /*
+     * Update the samples
+     */
+    m_samplesOpenGLWidget->update();
+    
     m_updateInProgress = false;
 }
 
