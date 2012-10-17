@@ -319,15 +319,6 @@ FiberSamplesOpenGLWidget::paintGL()
     
 }
 
-static void setOpenGLColor(const float vector[3])
-{
-    float rgb[3] = {
-        (vector[0] >= 0.0) ? vector[0] : -vector[0],
-        (vector[1] >= 0.0) ? vector[1] : -vector[1],
-        (vector[2] >= 0.0) ? vector[2] : -vector[2]
-    };
-    glColor3fv(rgb);
-}
 /**
  * Draw the fibers on the sphere
  */
