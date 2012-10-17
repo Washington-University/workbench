@@ -39,6 +39,7 @@ class CaretMathExpression
         enum ExprType
         {
             INVALID,
+            GREATERLESS,
             ADDSUB,
             MULTDIV,
             POW,
@@ -57,7 +58,8 @@ class CaretMathExpression
         double eval(const std::vector<float>& values) const;
         AString toString(const std::vector<AString>& varNames) const;
     };
-    void parse(MathNode& node, const AString& input, const int& start, const int& end);//will throw, there is no syntax ambiguity that would need to be resolved by a failed call to this
+    bool parse(MathNode& node, const AString& input, const int& start, const int& end);//will throw, there is no syntax ambiguity that would need to be resolved by a failed call to this
+    bool tryGreaterLess(MathNode& node, const AString& input, const int& start, const int& end);
     bool tryAddSub(MathNode& node, const AString& input, const int& start, const int& end);
     bool tryMultDiv(MathNode& node, const AString& input, const int& start, const int& end);
     bool tryUnaryMinus(MathNode& node, const AString& input, const int& start, const int& end);
