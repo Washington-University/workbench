@@ -402,7 +402,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
             };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    glColor3f(0.0, 1.0, 0.0);
+                    glColor3f(0.0, 0.0, 1.0);  // BLUE (RBG!)
                     
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
@@ -435,7 +435,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
             };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    glColor3f(0.0, 0.0, 1.0);
+                    glColor3f(0.0, 1.0, 0.0);  // GREEN (RBG!)
                     
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:

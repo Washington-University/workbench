@@ -89,7 +89,7 @@ FiberOrientationColoringTypeEnum::initialize()
 
     enumData.push_back(FiberOrientationColoringTypeEnum(FIBER_COLORING_FIBER_INDEX_AS_RGB,
                                     "FIBER_COLORING_FIBER_INDEX_AS_RGB", 
-                                    "Fiber 1,2,3 as RGB"));
+                                    "Fiber 1,2,3 as RBG"));
     
     enumData.push_back(FiberOrientationColoringTypeEnum(FIBER_COLORING_XYZ_AS_RGB,
                                                         "FIBER_COLORING_XYZ_AS_RGB",
