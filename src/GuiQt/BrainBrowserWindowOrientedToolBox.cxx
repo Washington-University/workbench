@@ -12,10 +12,12 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
+#include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
@@ -477,6 +479,37 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         }
         
         /*
+         * Enable surface volume outline only if have both surfaces and volumes
+         * loaded and model being viewed is allows drawing of volume surface
+         * outline.
+         */
+        bool enableVolumeSurfaceOutline = false;
+        EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
+        EventManager::get()->sendEvent(browserContentEvent.getPointer());
+        const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
+        if (numItemsInWindow == 1) {
+            BrowserTabContent* windowContent = browserContentEvent.getTabContentToDraw(0);
+            switch (windowContent->getSelectedModelType()) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    enableVolumeSurfaceOutline = (haveSurfaces
+                                                  & haveVolumes);
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    enableVolumeSurfaceOutline = (haveSurfaces
+                                                  & haveVolumes);
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_YOKING:
+                    break;
+            }
+        }
+        
+        /*
          * Enable/disable Tabs based upon data that is loaded
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
@@ -484,7 +517,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         //if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
         if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
-        if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, haveSurfaces && haveVolumes);
+        if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
