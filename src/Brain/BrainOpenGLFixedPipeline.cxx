@@ -5441,7 +5441,15 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     Surface* leftSecondSurface = surfaceMontageModel->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface();
     Surface* rightSecondSurface = surfaceMontageModel->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface();
 
-    int vpSizeX = viewport[2] / 2;
+    const bool haveLeft  = (leftSurface != NULL);
+    const bool haveRight = (rightSurface != NULL);
+    const bool haveBoth  = (haveLeft && haveRight);
+    const bool haveAny   = (haveLeft || haveRight);
+    
+    int vpSizeX = viewport[2];
+    if (haveBoth) {
+        vpSizeX /= 2;
+    }
     int vpSizeY = viewport[3] / 2;
     const bool isDualDisplay = surfaceMontageModel->isDualConfigurationEnabled(tabIndex);
     if (isDualDisplay) {
@@ -5452,20 +5460,57 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         rightSecondSurface = NULL;
     }
     
+    int vpLeftSizeX = 0;
+    if (haveLeft) {
+        vpLeftSizeX = vpSizeX;
+    }
+    int vpRightSizeX = 0;
+    if (haveRight) {
+        vpRightSizeX = vpSizeX;
+    }
+    
+    int sizeXCol1 = 0;
+    int sizeXCol2 = 0;
+    int sizeXCol3 = 0;
+    int sizeXCol4 = 0;
+    if (haveLeft) {
+        sizeXCol1 = vpLeftSizeX;
+        if (isDualDisplay) {
+            sizeXCol2 = vpLeftSizeX;
+        }
+    }
+    if (haveRight) {
+        if (isDualDisplay) {
+            sizeXCol3 = vpRightSizeX;
+            sizeXCol4 = vpRightSizeX;
+        }
+        else {
+            sizeXCol2 = vpRightSizeX;
+        }
+    }
+    
     /*
      * Viewports for surfaces
      * Row 1 is bottom
      * Column 1 is left
      */
-    const int vpRow1Col1[4] = { viewport[0], viewport[1], vpSizeX, vpSizeY };
-    const int vpRow1Col2[4] = { viewport[0] + vpSizeX, viewport[1], vpSizeX, vpSizeY };
-    const int vpRow1Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1], vpSizeX, vpSizeY };
-    const int vpRow1Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1], vpSizeX, vpSizeY };
-    const int vpRow2Col1[4] = { viewport[0], viewport[1] + vpSizeY, vpSizeX, vpSizeY };
-    const int vpRow2Col2[4] = { viewport[0] + vpSizeX, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
-    const int vpRow2Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
-    const int vpRow2Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+    const int vpRow1Col1[4] = { viewport[0],               viewport[1],           sizeXCol1, vpSizeY };
+    const int vpRow1Col2[4] = { vpRow1Col1[0] + sizeXCol1, viewport[1],           sizeXCol2, vpSizeY };
+    const int vpRow1Col3[4] = { vpRow1Col2[0] + sizeXCol2, viewport[1],           sizeXCol3, vpSizeY };
+    const int vpRow1Col4[4] = { vpRow1Col3[0] + sizeXCol3, viewport[1],           sizeXCol4, vpSizeY };
+    const int vpRow2Col1[4] = { viewport[0],               viewport[1] + vpSizeY, sizeXCol1, vpSizeY };
+    const int vpRow2Col2[4] = { vpRow2Col1[0] + sizeXCol1, viewport[1] + vpSizeY, sizeXCol2, vpSizeY };
+    const int vpRow2Col3[4] = { vpRow2Col2[0] + sizeXCol2, viewport[1] + vpSizeY, sizeXCol3, vpSizeY };
+    const int vpRow2Col4[4] = { vpRow2Col3[0] + sizeXCol3, viewport[1] + vpSizeY, sizeXCol4, vpSizeY };
     
+//    const int vpRow1Col1[4] = { viewport[0], viewport[1], vpSizeX, vpSizeY };
+//    const int vpRow1Col2[4] = { viewport[0] + vpSizeX, viewport[1], vpSizeX, vpSizeY };
+//    const int vpRow1Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1], vpSizeX, vpSizeY };
+//    const int vpRow1Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1], vpSizeX, vpSizeY };
+//    const int vpRow2Col1[4] = { viewport[0], viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+//    const int vpRow2Col2[4] = { viewport[0] + vpSizeX, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+//    const int vpRow2Col3[4] = { viewport[0] + vpSizeX * 2, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
+//    const int vpRow2Col4[4] = { viewport[0] + vpSizeX * 3, viewport[1] + vpSizeY, vpSizeX, vpSizeY };
     
     /*
      * Is DUAL CONFIGURATION Enabled?
@@ -5540,13 +5585,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
                                                                                          rightSurface, 
                                                                                          this->windowTabIndex);
-            int vp[4] = {
-                viewport[0],
-                viewport[1],
-                vpSizeX,
-                vpSizeY
-            };
-            
             /*
              * Right Surface
              */
@@ -5566,7 +5604,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             /*
              * Right Surface lateral/medial view
              */
-            vp[0] += vpSizeX;
             this->setViewportAndOrthographicProjection(vpRow2Col4,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
             
@@ -5582,7 +5619,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                  * Left surface view
                  */
                 rightSecondSurface->getBoundingBox()->getCenter(center);
-                vp[0] += vpSizeX;
                 this->setViewportAndOrthographicProjection(vpRow1Col3,
                                                            Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
                 
@@ -5597,8 +5633,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                 /*
                  * Left Surface lateral/medial view
                  */
-                vp[0] += vpSizeX;
-                
                 this->setViewportAndOrthographicProjection(vpRow1Col4,
                                                            Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
                 
@@ -5654,13 +5688,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
                                                                                          rightSurface, 
                                                                                          this->windowTabIndex);
-            int vp[4] = {
-                viewport[0],
-                viewport[1],
-                vpSizeX,
-                vpSizeY
-            };
-            
             /*
              * Right Surface
              */
@@ -5680,7 +5707,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             /*
              * Right Surface lateral/medial view
              */
-            vp[0] += vpSizeX;
             this->setViewportAndOrthographicProjection(vpRow1Col2,
                                                        Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
             
