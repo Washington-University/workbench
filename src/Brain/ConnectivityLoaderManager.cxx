@@ -146,7 +146,7 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
         const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
         for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
             int32_t fiberFileIndex = iTrajFileIndex;
-            if (fiberFileIndex > numFiberFiles) {
+            if (fiberFileIndex >= numFiberFiles) {
                 fiberFileIndex = 0;
             }
             
