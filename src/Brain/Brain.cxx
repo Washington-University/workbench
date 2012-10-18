@@ -479,7 +479,8 @@ Brain::copyDisplayProperties(const int32_t sourceTabIndex,
  */
 Surface* 
 Brain::readSurfaceFile(const AString& filename,
-                       const StructureEnum::Enum structureIn) throw (DataFileException)
+                       const StructureEnum::Enum structureIn,
+                       const bool markDataFileAsModified) throw (DataFileException)
 {
     Surface* surface = new Surface();
     try {
@@ -490,9 +491,14 @@ Brain::readSurfaceFile(const AString& filename,
         throw dfe;
     }
     
+    bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
-        surface->setStructure(structureIn);
+        if (surface->getStructure() != structureIn) {
+            surface->setStructure(structureIn);
+            fileIsModified = markDataFileAsModified;
+        }
     }
+    
     const StructureEnum::Enum structure = surface->getStructure();
     if (structure == StructureEnum::INVALID) {
         delete surface;
@@ -522,7 +528,10 @@ Brain::readSurfaceFile(const AString& filename,
     }
     
     surface->clearModified();
-
+    if (fileIsModified) {
+        surface->setModified();
+    }
+    
     return surface;
 }
 
@@ -539,7 +548,8 @@ Brain::readSurfaceFile(const AString& filename,
  */
 LabelFile* 
 Brain::readLabelFile(const AString& filename,
-                     const StructureEnum::Enum structureIn) throw (DataFileException)
+                     const StructureEnum::Enum structureIn,
+                     const bool markDataFileAsModified) throw (DataFileException)
 {
     LabelFile* labelFile = new LabelFile();
     try {
@@ -550,8 +560,12 @@ Brain::readLabelFile(const AString& filename,
         throw dfe;
     }
     
+    bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
-        labelFile->setStructure(structureIn);
+        if (labelFile->getStructure() != structureIn) {
+            labelFile->setStructure(structureIn);
+            fileIsModified = markDataFileAsModified;
+        }
     }
     
     const StructureEnum::Enum structure = labelFile->getStructure();
@@ -587,6 +601,9 @@ Brain::readLabelFile(const AString& filename,
     }
     
     labelFile->clearModified();
+    if (fileIsModified) {
+        labelFile->setModified();
+    }
     
     return labelFile;
 }
@@ -604,7 +621,8 @@ Brain::readLabelFile(const AString& filename,
  */
 MetricFile* 
 Brain::readMetricFile(const AString& filename,
-                      const StructureEnum::Enum structureIn) throw (DataFileException)
+                      const StructureEnum::Enum structureIn,
+                      const bool markDataFileAsModified) throw (DataFileException)
 {
     MetricFile* metricFile = new MetricFile();
     try {
@@ -615,8 +633,12 @@ Brain::readMetricFile(const AString& filename,
         throw dfe;
     }
     
+    bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
-        metricFile->setStructure(structureIn);
+        if (metricFile->getStructure() != structureIn) {
+            metricFile->setStructure(structureIn);
+            fileIsModified = markDataFileAsModified;
+        }
     }
     
     const StructureEnum::Enum structure = metricFile->getStructure();
@@ -652,6 +674,9 @@ Brain::readMetricFile(const AString& filename,
     }
     
     metricFile->clearModified();
+    if (fileIsModified) {
+        metricFile->setModified();
+    }
     
     return metricFile;
 }
@@ -669,7 +694,8 @@ Brain::readMetricFile(const AString& filename,
  */
 RgbaFile* 
 Brain::readRgbaFile(const AString& filename,
-                    const StructureEnum::Enum structureIn) throw (DataFileException)
+                    const StructureEnum::Enum structureIn,
+                    const bool markDataFileAsModified) throw (DataFileException)
 {
     RgbaFile* rgbaFile = new RgbaFile();
     try {
@@ -680,8 +706,12 @@ Brain::readRgbaFile(const AString& filename,
         throw dfe;
     }
     
+    bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
-        rgbaFile->setStructure(structureIn);
+        if (rgbaFile->getStructure() != structureIn) {
+            rgbaFile->setStructure(structureIn);
+            fileIsModified = markDataFileAsModified;
+        }
     }
     
     const StructureEnum::Enum structure = rgbaFile->getStructure();
@@ -717,6 +747,9 @@ Brain::readRgbaFile(const AString& filename,
     }
     
     rgbaFile->clearModified();
+    if (fileIsModified) {
+        rgbaFile->setModified();
+    }
     
     return rgbaFile;
 }
@@ -2012,11 +2045,13 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     const AString filename = readDataFileEvent->getDataFileName();
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
     const StructureEnum::Enum structure = readDataFileEvent->getStructure();
+    const bool setFileModifiedStatus = readDataFileEvent->isFileToBeMarkedModified();
     
     try {
         readDataFile(dataFileType,
                            structure,
                            filename,
+                     setFileModifiedStatus,
                            readDataFileEvent->isAddDataFileToSpecFile());
     }
     catch (const DataFileException& e) {
@@ -2037,6 +2072,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  *    Struture of file (used if not invalid)
  * @param dataFileNameIn
  *    Name of data file to read.
+ * @param markDataFileAsModified
+ *    If file has invalid structure and settings structure, mark file modified
  * @throws DataFileException
  *    If there is an error reading the file.
  */
@@ -2044,6 +2081,7 @@ void
 Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const StructureEnum::Enum structure,
                     const AString& dataFileNameIn,
+                    const bool markDataFileAsModified,
                     const bool addDataFileToSpecFile) throw (DataFileException)
 {
         AString dataFileName = dataFileNameIn;
@@ -2095,16 +2133,16 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 readFociFile(dataFileName);
                 break;
             case DataFileTypeEnum::LABEL:
-                caretDataFileRead = readLabelFile(dataFileName, structure);
+                caretDataFileRead = readLabelFile(dataFileName, structure, markDataFileAsModified);
                 break;
             case DataFileTypeEnum::METRIC:
-                caretDataFileRead = readMetricFile(dataFileName, structure);
+                caretDataFileRead = readMetricFile(dataFileName, structure, markDataFileAsModified);
                 break;
             case DataFileTypeEnum::PALETTE:
                 readPaletteFile(dataFileName);
                 break;
             case DataFileTypeEnum::RGBA:
-                caretDataFileRead = readRgbaFile(dataFileName, structure);
+                caretDataFileRead = readRgbaFile(dataFileName, structure, markDataFileAsModified);
                 break;
             case DataFileTypeEnum::SCENE:
                 readSceneFile(dataFileName);
@@ -2114,7 +2152,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
                 break;
             case DataFileTypeEnum::SURFACE:
-                caretDataFileRead = readSurfaceFile(dataFileName, structure);
+                caretDataFileRead = readSurfaceFile(dataFileName, structure, markDataFileAsModified);
                 break;
             case DataFileTypeEnum::UNKNOWN:
                 throw DataFileException("Unable to read files of type");
@@ -2217,7 +2255,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                     readDataFile(dataFileType, 
                                        structure, 
                                        filename,
-                                       false);
+                                       false,
+                                 false);
                 }
                 catch (const DataFileException& e) {
                     if (errorMessage.isEmpty() == false) {
@@ -2399,10 +2438,11 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                     }
                 }
                 try {
-                    readDataFile(dataFileType, 
+                    readDataFile(dataFileType,
                                        structure, 
                                        filename,
-                                       false);
+                                       false,
+                                 false);
                 }
                 catch (const DataFileException& e) {
                     sceneAttributes->addToErrorMessage(e.whatString());

@@ -73,6 +73,8 @@ namespace caret {
         
         bool isAddDataFileToSpecFile() const;
         
+        bool isFileToBeMarkedModified() const;
+        
     private:
         EventDataFileRead(const EventDataFileRead&);
         
@@ -93,6 +95,8 @@ namespace caret {
         bool errorInvalidStructure;
         
         bool addDataFileToSpecFile;
+        
+        bool markFileAsModified;
         
     };
 

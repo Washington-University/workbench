@@ -49,6 +49,8 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->dataFileName  = dataFileName;
     this->addDataFileToSpecFile = addDataFileToSpecFile;
     
+    this->markFileAsModified = false;
+    
     this->username = "";
     this->password = "";
     
@@ -82,6 +84,11 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->dataFileName  = dataFileName;
     this->errorInvalidStructure = false;
     this->addDataFileToSpecFile = addDataFileToSpecFile;
+    
+    /*
+     * Setting structure!
+     */
+    this->markFileAsModified = true;
     
     this->username = "";
     this->password = "";
@@ -204,5 +211,15 @@ EventDataFileRead::isAddDataFileToSpecFile() const
 {
     return this->addDataFileToSpecFile;
 }
+
+/**
+ * @return After file is read, mark it as modified.
+ */
+bool
+EventDataFileRead::isFileToBeMarkedModified() const
+{
+    return this->markFileAsModified;
+}
+
 
 

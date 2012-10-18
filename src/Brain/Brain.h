@@ -321,19 +321,24 @@ namespace caret {
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
                           const AString& dataFileName,
+                          const bool markDataFileAsModified,
                           const bool addDataFileToSpecFile) throw (DataFileException);
         
         LabelFile* readLabelFile(const AString& filename,
-                           const StructureEnum::Enum structure) throw (DataFileException);
+                                 const StructureEnum::Enum structure,
+                                 const bool markDataFileAsModified) throw (DataFileException);
         
         MetricFile* readMetricFile(const AString& filename,
-                            const StructureEnum::Enum structure) throw (DataFileException);
+                                   const StructureEnum::Enum structure,
+                                   const bool markDataFileAsModified) throw (DataFileException);
         
         RgbaFile* readRgbaFile(const AString& filename,
-                          const StructureEnum::Enum structure) throw (DataFileException);
+                               const StructureEnum::Enum structure,
+                               const bool markDataFileAsModified) throw (DataFileException);
         
         Surface* readSurfaceFile(const AString& filename,
-                             const StructureEnum::Enum structure) throw (DataFileException);
+                                 const StructureEnum::Enum structure,
+                                 const bool markDataFileAsModified) throw (DataFileException);
         
         void readVolumeFile(const AString& filename) throw (DataFileException);
                             
