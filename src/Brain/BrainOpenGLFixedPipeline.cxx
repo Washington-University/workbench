@@ -4969,9 +4969,18 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
                      * Draw the cones
                      */
                     const float radiansToDegrees = 180.0 / M_PI;
-                    const float majorAxis = fiber->m_fanningMajorAxisAngle * fodi->fanMultiplier;
-                    const float minorAxis = fiber->m_fanningMinorAxisAngle * fodi->fanMultiplier;
-                    
+//                    const float majorAxis = fiber->m_fanningMajorAxisAngle * fodi->fanMultiplier;
+//                    const float minorAxis = fiber->m_fanningMinorAxisAngle * fodi->fanMultiplier;
+//                    const float maxWidth = z;
+                    const float majorAxis = std::min((vectorLength
+                                                      * std::tan(fiber->m_fanningMajorAxisAngle)
+                                                      * fodi->fanMultiplier),
+                                                     vectorLength);
+                    const float minorAxis = std::min((vectorLength
+                                                      * std::tan(fiber->m_fanningMinorAxisAngle)
+                                                      * fodi->fanMultiplier),
+                                                     vectorLength);
+                   
                     /*
                      * First cone
                      */

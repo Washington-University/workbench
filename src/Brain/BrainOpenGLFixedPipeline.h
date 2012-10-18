@@ -411,8 +411,8 @@ namespace caret {
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
     bool BrainOpenGLFixedPipeline::s_staticInitialized = false;
     float BrainOpenGLFixedPipeline::COLOR_RED[3]   = { 1.0, 0.0, 0.0 };
-    float BrainOpenGLFixedPipeline::COLOR_BLUE[3]  = { 0.0, 1.0, 0.0 };
-    float BrainOpenGLFixedPipeline::COLOR_GREEN[3] = { 0.0, 0.0, 1.0 };
+    float BrainOpenGLFixedPipeline::COLOR_GREEN[3]  = { 0.0, 1.0, 0.0 };
+    float BrainOpenGLFixedPipeline::COLOR_BLUE[3] = { 0.0, 0.0, 1.0 };
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace
