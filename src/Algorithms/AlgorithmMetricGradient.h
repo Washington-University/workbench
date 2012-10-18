@@ -44,7 +44,8 @@ namespace caret {
                                 const float myPresmooth = -1.0f,
                                 const MetricFile* myRoi = NULL,
                                 const bool myAvgNormals = false,
-                                const int32_t myColumn = -1);
+                                const int32_t myColumn = -1,
+                                bool matchRoiColumns = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

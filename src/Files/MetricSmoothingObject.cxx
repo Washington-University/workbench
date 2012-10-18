@@ -69,9 +69,46 @@ void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& 
         {
             throw CaretException("roi does not match surface number of nodes");
         }
-        smoothColumnInternal(scratch.data(), metricIn, whichColumn, columnOut, 0, roi, fixZeros);
+        smoothColumnInternal(scratch.data(), metricIn, whichColumn, columnOut, 0, roi, 0, fixZeros);
     } else {
         smoothColumnInternal(scratch.data(), metricIn, whichColumn, columnOut, 0, fixZeros);
+    }
+}
+
+void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros)
+{
+    CaretAssert(metricIn != NULL);
+    CaretAssert(metricOut != NULL);
+    if (metricIn->getNumberOfNodes() != (int32_t)m_weightLists.size())
+    {
+        throw CaretException("metric does not match surface number of nodes");
+    }
+    if (metricOut->getNumberOfNodes() != (int32_t)m_weightLists.size())
+    {
+        throw CaretException("output metric does not match surface number of nodes");
+    }
+    if (roi != NULL && (roi->getNumberOfNodes() != (int32_t)m_weightLists.size()))
+    {
+        throw CaretException("roi does not match surface number of nodes");
+    }
+    if (whichColumn < -1 || whichColumn >= metricIn->getNumberOfColumns())
+    {
+        throw CaretException("invalid input column number");
+    }
+    if (whichOutColumn < -1 || whichOutColumn >= metricOut->getNumberOfColumns())
+    {
+        throw CaretException("invalid output column number");
+    }
+    if (roi != NULL && (whichRoiColumn < -1 || whichRoiColumn >= roi->getNumberOfColumns()))
+    {
+        throw CaretException("invalid input column number");
+    }
+    vector<float> scratch(metricIn->getNumberOfNodes());
+    if (roi != NULL)
+    {
+        smoothColumnInternal(scratch.data(), metricIn, whichColumn, metricOut, whichOutColumn, roi, whichRoiColumn, fixZeros);
+    } else {
+        smoothColumnInternal(scratch.data(), metricIn, whichColumn, metricOut, whichOutColumn, fixZeros);
     }
 }
 
@@ -97,7 +134,7 @@ void MetricSmoothingObject::smoothMetric(const MetricFile* metricIn, MetricFile*
         }
         for (int32_t i = 0; i < numCols; ++i)
         {
-            smoothColumnInternal(scratch.data(), metricIn, i, metricOut, i, roi, fixZeros);
+            smoothColumnInternal(scratch.data(), metricIn, i, metricOut, i, roi, 0, fixZeros);
         }
     } else {
         for (int32_t i = 0; i < numCols; ++i)
@@ -168,7 +205,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
     metricOut->setValuesForColumn(whichOutColumn, scratch);
 }
 
-void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const bool& fixZeros)
+void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros)
 {
     CaretAssert(metricIn != NULL);//asserts only, and only basic checks, these functions are private
     CaretAssert(metricOut != NULL);
@@ -176,8 +213,9 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
     CaretAssert(roi != NULL);
     CaretAssert(whichColumn >= 0 && whichColumn < metricIn->getNumberOfColumns());
     CaretAssert(whichOutColumn >= 0 && whichOutColumn < metricOut->getNumberOfColumns());
+    CaretAssert(whichRoiColumn >= 0 && whichRoiColumn < roi->getNumberOfColumns());
     const float* myColumn = metricIn->getValuePointerForColumn(whichColumn);
-    const float* roiColumn = roi->getValuePointerForColumn(0);
+    const float* roiColumn = roi->getValuePointerForColumn(whichRoiColumn);
     int32_t numNodes = metricIn->getNumberOfNodes();
     if (fixZeros)//special case early to keep branching down
     {

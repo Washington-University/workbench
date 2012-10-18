@@ -53,6 +53,7 @@ namespace caret {
         };
         MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi = NULL, Method myMethod = GEO_GAUSS_AREA);
         void smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi = NULL, const bool& fixZeros = false);
+        void smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi = NULL, const int& whichRoiColumn = 0, const bool& fixZeros = false);
         void smoothMetric(const MetricFile* metricIn, MetricFile* metricOut, const MetricFile* roi = NULL, const bool& fixZeros = false);
     private:
         struct WeightList
@@ -63,7 +64,7 @@ namespace caret {
         };
         std::vector<WeightList> m_weightLists;
         void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros);
-        void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const bool& fixZeros);
+        void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros);
         void precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod);
         void precomputeWeightsGeoGauss(const SurfaceFile* mySurf, float myKernel);
         void precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);

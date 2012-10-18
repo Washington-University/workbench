@@ -58,25 +58,31 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     ret->addMetricOutputParameter(3, "metric-out", "the magnitude of the gradient");
     
     OptionalParameter* presmooth = ret->createOptionalParameter(4, "-presmooth", "smooth the metric before computing the gradient");
-    presmooth->addDoubleParameter(5, "presmoothing", "the sigma for the gaussian smoothing kernel, in mm");
+    presmooth->addDoubleParameter(1, "presmoothing", "the sigma for the gaussian smoothing kernel, in mm");
     
-    OptionalParameter* roiOption = ret->createOptionalParameter(6, "-roi", "select a region of interest to take the gradient of");
-    roiOption->addMetricParameter(7, "roi-metric", "the area to take the gradient within, as a metric");
+    OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to take the gradient of");
+    roiOption->addMetricParameter(1, "roi-metric", "the area to take the gradient within, as a metric");
+    roiOption->createOptionalParameter(2, "-match-columns", "for each input column, use the corresponding column from the roi");
     
-    OptionalParameter* vecOut = ret->createOptionalParameter(11, "-vectors", "output vectors");
-    vecOut->addMetricOutputParameter(12, "vector-metric-out", "the vectors as a metric file");
+    OptionalParameter* vecOut = ret->createOptionalParameter(6, "-vectors", "output vectors");
+    vecOut->addMetricOutputParameter(1, "vector-metric-out", "the vectors as a metric file");
     
-    OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column to compute the gradient of");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to compute the gradient of");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    ret->createOptionalParameter(10, "-average-normals", "average the normals of each vertex with its neighbors before using them to compute the gradient");
+    ret->createOptionalParameter(8, "-average-normals", "average the normals of each vertex with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
         AString("At each vertex, the immediate neighbors are unfolded onto a plane tangent to the surface at the vertex (specifically, perpendicular to the normal).  ") +
         "The gradient is computed using a regression between the unfolded positions of the vertices and their values.  " +
         "The gradient is then given by the slopes of the regression, and reconstructed as a 3D gradient vector.  " +
         "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.  " +
-        "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.  " +
+        "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.\n\n" +
+        "By default, the first column of the roi metric is used for all input columns.  " +
+        "When -match-columns is specified to the -roi option, the input and roi metrics must have the same number of columns, " +
+        "and for each input column's index, the same column index is used in the roi metric.  " +
+        "If the -match-columns option to -roi is used while the -column option is also used, the number of columns of the roi metric must match the input metric, " +
+        "and it will use the roi column with the index of the selected input column.\n\n" +
         "The vector output metric is organized such that the X, Y, and Z components from a single input column are consecutive columns."
     );
     return ret;
@@ -91,16 +97,24 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* presmooth = myParams->getOptionalParameter(4);
     if (presmooth->m_present)
     {
-        myPresmooth = (float)presmooth->getDouble(5);
+        myPresmooth = (float)presmooth->getDouble(1);
     }
     MetricFile* myRoi = NULL;
-    OptionalParameter* roiOption = myParams->getOptionalParameter(6);
+    bool matchRoiColumns = false;
+    OptionalParameter* roiOption = myParams->getOptionalParameter(5);
     if (roiOption->m_present)
     {
-        myRoi = roiOption->getMetric(7);
+        myRoi = roiOption->getMetric(1);
+        matchRoiColumns = roiOption->getOptionalParameter(2)->m_present;
+    }
+    MetricFile* myVectorsOut = NULL;
+    OptionalParameter* vecOut = myParams->getOptionalParameter(6);
+    if (vecOut->m_present)
+    {
+        myVectorsOut = vecOut->getOutputMetric(1);
     }
     int32_t myColumn = -1;
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(8);
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
     if (columnSelect->m_present)
     {
         myColumn = (int)myMetricIn->getMapIndexFromNameOrNumber(columnSelect->getString(1));
@@ -109,15 +123,9 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
             throw AlgorithmException("invalid column specified");
         }
     }
-    OptionalParameter* avgNormals = myParams->getOptionalParameter(10);
+    OptionalParameter* avgNormals = myParams->getOptionalParameter(8);
     bool myAvgNormals = avgNormals->m_present;
-    MetricFile* myVectorsOut = NULL;
-    OptionalParameter* vecOut = myParams->getOptionalParameter(11);
-    if (vecOut->m_present)
-    {
-        myVectorsOut = vecOut->getOutputMetric(12);
-    }
-    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myRoi, myAvgNormals, myColumn);//executes the algorithm
+    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myRoi, myAvgNormals, myColumn, matchRoiColumns);//executes the algorithm
 }
 
 AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
@@ -128,7 +136,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                                  const float myPresmooth,
                                                  const MetricFile* myRoi,
                                                  const bool myAvgNormals,
-                                                 const int32_t myColumn) : AbstractAlgorithm(myProgObj)
+                                                 const int32_t myColumn,
+                                                 const bool matchRoiColumns) : AbstractAlgorithm(myProgObj)
 {
     ProgressObject* smoothProgress = NULL;
     if (myProgObj != NULL && myPresmooth > 0.0f)
@@ -150,12 +159,16 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     {
         throw AlgorithmException("invalid column number");
     }
+    if (myRoi != NULL && matchRoiColumns && numColumns != myRoi->getNumberOfColumns())
+    {
+        throw AlgorithmException("match roi columns specified, but roi metric has the wrong number of columns");
+    }
     const MetricFile* toProcess = myMetricIn;
     MetricFile processTemp;
     int32_t useColumn = myColumn;
     if (myPresmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, myColumn);
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, false, myColumn, MetricSmoothingObject::GEO_GAUSS_AREA, matchRoiColumns);
         toProcess = &processTemp;
         if (myColumn != -1)
         {
@@ -177,14 +190,19 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             myVectorsOut->setStructure(mySurf->getStructure());
             myVecScratch = new float[numNodes * 3];
         }
-        const float* myRoiColumn = NULL;
-        if (myRoi != NULL)
-        {
-            myRoiColumn = myRoi->getValuePointerForColumn(0);
-        }
         float* myScratch = new float[numNodes];
         for (int32_t col = 0; col < numColumns; ++col)
         {
+            const float* myRoiColumn = NULL;
+            if (myRoi != NULL)
+            {
+                if (matchRoiColumns)
+                {
+                    myRoiColumn = myRoi->getValuePointerForColumn(col);
+                } else {
+                    myRoiColumn = myRoi->getValuePointerForColumn(0);
+                }
+            }
             const float* myMetricColumn = toProcess->getValuePointerForColumn(col);
             myMetricOut->setColumnName(col, toProcess->getColumnName(col) + ", gradient");
             if (myVectorsOut != NULL)
@@ -201,7 +219,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
 #pragma omp CARET_FOR schedule(dynamic)
                 for (int32_t i = 0; i < numNodes; ++i)
                 {
-                    if (myRoi != NULL && myRoiColumn[i] <= 0.0f)
+                    if (myRoiColumn != NULL && myRoiColumn[i] <= 0.0f)
                     {
                         myScratch[i] = 0.0f;
                         if (myVecScratch != NULL)
@@ -239,7 +257,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         {
                             int32_t whichNode = myNeighbors[j];
                             int32_t whichNode3 = whichNode * 3;
-                            if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                            if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                             {
                                 ++neighCount;
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
@@ -287,7 +305,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         {
                             int32_t whichNode = myNeighbors[j];
                             int32_t whichNode3 = whichNode * 3;
-                            if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                            if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                             {
                                 float tempf = myMetricColumn[whichNode] - nodeValue;
                                 const float* neighCoord = myCoords + whichNode3;
@@ -310,7 +328,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     }
                     if (neighCount <= 0 || sanity != sanity)
                     {
-                        if (!haveFailed && myRoi == NULL)
+                        if (!haveFailed && myRoiColumn == NULL)
                         {//don't warn with an roi, they can be strange
                             haveFailed = true;
                             CaretLogWarning("Failed to compute gradient for at least vertex " + AString::number(i) +
@@ -344,6 +362,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             delete[] myVecScratch;
         }
     } else {
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(mySurf->getStructure());
         float* myVecScratch = NULL;
         if (myVectorsOut != NULL)
         {
@@ -354,25 +374,28 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             myVectorsOut->setColumnName(2, toProcess->getColumnName(useColumn) + ", gradient vector Z");
             myVecScratch = new float[numNodes * 3];
         }
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-        myMetricOut->setStructure(mySurf->getStructure());
-        myMetricOut->setColumnName(0, toProcess->getColumnName(useColumn) + ", gradient");
-        const float* myRoiColumn;
+        float* myScratch = new float[numNodes];
+        const float* myRoiColumn = NULL;
         if (myRoi != NULL)
         {
-            myRoiColumn = myRoi->getValuePointerForColumn(0);
+            if (matchRoiColumns)
+            {
+                myRoiColumn = myRoi->getValuePointerForColumn(myColumn);//use the ORIGINAL column number, not the one that has been modified due to a presmoothing step that generated a new single column metric
+            } else {
+                myRoiColumn = myRoi->getValuePointerForColumn(0);
+            }
         }
-        float* myScratch = new float[numNodes];
+        const float* myMetricColumn = toProcess->getValuePointerForColumn(useColumn);
+        myMetricOut->setColumnName(0, toProcess->getColumnName(useColumn) + ", gradient");
 #pragma omp CARET_PAR
         {
             float somevec[3], xhat[3], yhat[3];
             float sanity = 0.0f;
-            const float* myMetricColumn = toProcess->getValuePointerForColumn(useColumn);
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
 #pragma omp CARET_FOR schedule(dynamic)
             for (int32_t i = 0; i < numNodes; ++i)
             {
-                if (myRoi != NULL && myRoiColumn[i] <= 0.0f)
+                if (myRoiColumn != NULL && myRoiColumn[i] <= 0.0f)
                 {
                     myScratch[i] = 0.0f;
                     if (myVecScratch != NULL)
@@ -402,6 +425,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                 MathFunctions::normalizeVector(xhat);
                 MathFunctions::crossProduct(myNormal, xhat, yhat);
                 MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
+                int neighCount = 0;//count within-roi neighbors, not simply surface neighbors
                 if (numNeigh >= 2)
                 {
                     FloatMatrix myRegress = FloatMatrix::zeros(3, 4);
@@ -409,8 +433,9 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                     {
                         int32_t whichNode = myNeighbors[j];
                         int32_t whichNode3 = whichNode * 3;
-                        if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                        if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                         {
+                            ++neighCount;
                             float tempf = myMetricColumn[whichNode] - nodeValue;
                             const float* neighCoord = myCoords + whichNode3;
                             MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
@@ -431,32 +456,33 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             myRegress[2][3] += tempf;
                         }
                     }
-                    myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
-                    myRegress[2][0] = myRegress[0][2];
-                    myRegress[2][1] = myRegress[1][2];
-                    myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
-                    FloatMatrix myRref = myRegress.reducedRowEchelon();
-                    somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
-                    somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
-                    somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
-                    sanity = somevec[0] + somevec[1] + somevec[2];
+                    if (neighCount >= 2)
+                    {
+                        myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
+                        myRegress[2][0] = myRegress[0][2];
+                        myRegress[2][1] = myRegress[1][2];
+                        myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
+                        FloatMatrix myRref = myRegress.reducedRowEchelon();
+                        somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
+                        somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
+                        somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
+                        sanity = somevec[0] + somevec[1] + somevec[2];
+                    }
                 }
-                if (numNeigh > 0 && (numNeigh < 2 || sanity != sanity))
+                if (neighCount > 0 && (neighCount < 2 || sanity != sanity))
                 {
                     if (!haveWarned && myRoi == NULL)
                     {//don't issue this warning with an ROI, because it is somewhat expected
                         haveWarned = true;
-                        CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
+                        CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least vertex " + AString::number(i));
                     }
                     float xgrad = 0.0f, ygrad = 0.0f;
-                    int32_t totalNeigh = 0;
                     for (int32_t j = 0; j < numNeigh; ++j)
                     {
                         int32_t whichNode = myNeighbors[j];
                         int32_t whichNode3 = whichNode * 3;
-                        if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                        if (myRoiColumn == NULL || myRoiColumn[whichNode] > 0.0f)
                         {
-                            ++totalNeigh;
                             float tempf = myMetricColumn[whichNode] - nodeValue;
                             const float* neighCoord = myCoords + whichNode3;
                             MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
@@ -469,18 +495,20 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                             ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
                         }
                     }
-                    xgrad /= totalNeigh;//average
-                    ygrad /= totalNeigh;
+                    xgrad /= neighCount;//average
+                    ygrad /= neighCount;
                     somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
                     somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
                     somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
+                    sanity = somevec[0] + somevec[1] + somevec[2];
                 }
-                if (numNeigh <= 0 || sanity != sanity)
+                if (neighCount <= 0 || sanity != sanity)
                 {
-                    if (!haveFailed)
-                    {
+                    if (!haveFailed && myRoiColumn == NULL)
+                    {//don't warn with an roi, they can be strange
                         haveFailed = true;
-                        CaretLogWarning("Failed to compute gradient for a vertex with standard and fallback methods, outputting ZERO, check your surface for disconnected vertices or other strangeness");
+                        CaretLogWarning("Failed to compute gradient for at least vertex " + AString::number(i) +
+                            " with standard and fallback methods, outputting ZERO, check your surface for disconnected vertices or other strangeness");
                     }
                     somevec[0] = 0.0f;
                     somevec[1] = 0.0f;
