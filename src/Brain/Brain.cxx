@@ -34,6 +34,7 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CiftiFiberOrientationAdapter.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
@@ -1026,6 +1027,23 @@ Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (Data
         throw dfe;
     }
     
+    /*
+     * If first fiber orientation file, default the above and below limits
+     * to +/- one-half voxel size.
+     */
+    if (m_connectivityFiberOrientationFiles.empty()) {
+        CiftiFiberOrientationAdapter* orientationAdapter = clf->getFiberOrientationAdapter();
+        if (orientationAdapter != NULL) {
+            float voxelSizes[3];
+            orientationAdapter->getVolumeSpacing(voxelSizes);
+            if (voxelSizes[2] > 0.0) {
+                const float aboveLimit =  voxelSizes[2] * 0.5;
+                const float belowLimit = -voxelSizes[2] * 0.5;
+                m_displayPropertiesFiberOrientation->setAboveAndBelowLimitsForAll(aboveLimit,
+                                                                                  belowLimit);
+            }
+        }
+    }
     m_connectivityFiberOrientationFiles.push_back(clf);
 }
 

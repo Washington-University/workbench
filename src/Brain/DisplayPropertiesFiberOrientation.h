@@ -89,6 +89,9 @@ namespace caret {
                           const int32_t tabIndex,
                           const float aboveLimit);
         
+        void setAboveAndBelowLimitsForAll(const float aboveLimit,
+                                          const float belowLimit);
+        
         float getBelowLimit(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const;
         

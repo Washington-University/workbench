@@ -584,6 +584,28 @@ DisplayPropertiesFiberOrientation::setBelowLimit(const DisplayGroupEnum::Enum  d
 }
 
 /**
+ * Set the above and below limits for all display groups and tabs.
+ * @param
+ *    Value for all above limits.
+ * @param 
+ *    Value for all below limits.
+ */
+void
+DisplayPropertiesFiberOrientation::setAboveAndBelowLimitsForAll(const float aboveLimit,
+                                                                const float belowLimit)
+{    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_aboveLimitInTab[i] = aboveLimit;
+        m_belowLimitInTab[i] = belowLimit;
+    }
+    
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_aboveLimitInDisplayGroup[i] = aboveLimit;
+        m_belowLimitInDisplayGroup[i] = belowLimit;
+    }
+}
+
+/**
  * @return The minimum magnitude.
  * @param displayGroup
  *    The display group.
