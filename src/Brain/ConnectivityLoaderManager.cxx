@@ -142,20 +142,22 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
      * Load fiber trajectory data
      */
     const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
-    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-        int32_t fiberFileIndex = iTrajFileIndex;
-        if (fiberFileIndex > numFiberFiles) {
-            fiberFileIndex = 0;
-        }
-        
-        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-        ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
-        CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
-        if (fiberAdapter != NULL) {
-            trajFile->loadDataForSurfaceNode(connFiberFile,
-                                             surfaceFile->getStructure(),
-                                             nodeIndex);
+    if (numFiberFiles > 0) {
+        const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+        for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+            int32_t fiberFileIndex = iTrajFileIndex;
+            if (fiberFileIndex > numFiberFiles) {
+                fiberFileIndex = 0;
+            }
+            
+            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+            ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
+            CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
+            if (fiberAdapter != NULL) {
+                trajFile->loadDataForSurfaceNode(connFiberFile,
+                                                 surfaceFile->getStructure(),
+                                                 nodeIndex);
+            }
         }
     }
     
