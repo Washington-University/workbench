@@ -494,10 +494,10 @@ FiberSamplesOpenGLWidget::drawOrientations()
                                     glColor3f(1.0, 0.0, 0.0);
                                     break;
                                 case 1:
-                                    glColor3f(0.0, 1.0, 0.0);
+                                    glColor3f(0.0, 0.0, 1.0);
                                     break;
                                 case 2:
-                                    glColor3f(0.0, 0.0, 1.0);
+                                    glColor3f(0.0, 1.0, 0.0);
                                     break;
                             }
                         }
