@@ -3007,10 +3007,39 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     std::vector<ConnectivityLoaderFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
                                                                             m_connectivityFiberOrientationFiles.end(),
                                                                             caretDataFile);
+    bool remvovedFiberOrientationFile = false;
     if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
         ConnectivityLoaderFile* connFile = *connFiberOrientationIterator;
         delete connFile;
         m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
+        
+        remvovedFiberOrientationFile = true;
+    }
+    
+    /*
+     * If any fiber orientation files are removed, need to unload
+     * any fiber trajectories that were loaded since the trajectories
+     * point to fiber orientations in the fiber orientation file
+     * that was deleted.
+     */
+    if (remvovedFiberOrientationFile) {
+        for (std::vector<CiftiFiberTrajectoryFile*>::iterator clfi = m_connectivityFiberTrajectoryFiles.begin();
+             clfi != m_connectivityFiberTrajectoryFiles.end();
+             clfi++) {
+            CiftiFiberTrajectoryFile* clf = *clfi;
+            clf->clearLoadedFiberOrientations();
+        }
+    }
+    
+    std::vector<CiftiFiberTrajectoryFile*>::iterator connFiberTrajectoryIterator = std::find(m_connectivityFiberTrajectoryFiles.begin(),
+                                                                                            m_connectivityFiberTrajectoryFiles.end(),
+                                                                                            caretDataFile);
+    if (connFiberTrajectoryIterator != m_connectivityFiberTrajectoryFiles.end()) {
+        CiftiFiberTrajectoryFile* trajFile = *connFiberTrajectoryIterator;
+        delete trajFile;
+        m_connectivityFiberTrajectoryFiles.erase(connFiberTrajectoryIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
@@ -3070,6 +3099,12 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         updateVolumeSliceController();
         updateWholeBrainController();
         updateSurfaceMontageController();
+    }
+    else {
+        CaretLogSevere("Software bug: failed to remove file type="
+                       + DataFileTypeEnum::toName(caretDataFile->getDataFileType())
+                       + " name="
+                       + caretDataFile->getFileName());
     }
 
     return wasRemoved;

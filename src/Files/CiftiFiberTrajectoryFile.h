@@ -86,6 +86,8 @@ namespace caret {
         
         const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
         
+        void clearLoadedFiberOrientations();
+        
     private:
         CiftiFiberTrajectoryFile(const CiftiFiberTrajectoryFile&);
 
@@ -98,8 +100,6 @@ namespace caret {
     private:
 
         void clearPrivate();
-        
-        void clearLoadedFiberOrientations();
         
         CaretSparseFile* m_sparseFile;
         
