@@ -489,23 +489,25 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
         if (numItemsInWindow == 1) {
             BrowserTabContent* windowContent = browserContentEvent.getTabContentToDraw(0);
-            switch (windowContent->getSelectedModelType()) {
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    enableVolumeSurfaceOutline = (haveSurfaces
-                                                  & haveVolumes);
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                    enableVolumeSurfaceOutline = (haveSurfaces
-                                                  & haveVolumes);
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_YOKING:
-                    break;
+            if (windowContent != NULL) {
+                switch (windowContent->getSelectedModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        enableVolumeSurfaceOutline = (haveSurfaces
+                                                      & haveVolumes);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        enableVolumeSurfaceOutline = (haveSurfaces
+                                                      & haveVolumes);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_YOKING:
+                        break;
+                }
             }
         }
         
