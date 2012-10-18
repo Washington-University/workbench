@@ -402,11 +402,55 @@ void VolumeFile::validateMembers()
     }
 }
 
-void VolumeFile::setModified()
+/**
+ * Set this file as modified.
+ */
+void
+VolumeFile::setModified()
 {
     DataFile::setModified();//do we need to do both of these?
     VolumeBase::setModified();
     m_brickStatisticsValid = false;
+}
+
+/**
+ * Clear the modified status of this file.
+ */
+void
+VolumeFile::clearModified()
+{
+    CaretMappableDataFile::clearModified();
+    VolumeBase::clearModified();
+    
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+        pcm->clearModified();
+    }
+}
+
+/**
+ * Return the modified status of this file.
+ */
+bool
+VolumeFile::isModified() const
+{
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        const PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+        if (pcm->isModified()) {
+            return true;
+        }
+    }
+    
+    if (CaretMappableDataFile::isModified()) {
+        return true;
+    }
+    if (VolumeBase::isModified()) {
+        return true;
+    }
+    
+    return false;
 }
 
 

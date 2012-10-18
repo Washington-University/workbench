@@ -104,9 +104,9 @@ namespace caret {
         
         virtual void setModified();
         
-        virtual void clearModified() { CaretMappableDataFile::clearModified(); VolumeBase::clearModified(); }
+        virtual void clearModified();
         
-        virtual bool isModified() const { return (CaretMappableDataFile::isModified() || VolumeBase::isModified()); }
+        virtual bool isModified() const;
         
         BoundingBox getSpaceBoundingBox() const;
         
