@@ -2488,15 +2488,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Restore toolbar
-     */
-    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
-    if (toolbarClass != NULL) {
-        m_toolbar->restoreFromScene(sceneAttributes, 
-                                    toolbarClass);
-    }
-    
-    /*
      * Screen mode
      * Note: m_screenMode must be set to a different value than 
      * the value passed to processViewScreenActionGroupSelection().
@@ -2522,7 +2513,16 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
-    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    /*
+     * Restore toolbar
+     */
+    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
+    if (toolbarClass != NULL) {
+        m_toolbar->restoreFromScene(sceneAttributes,
+                                    toolbarClass);
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
     

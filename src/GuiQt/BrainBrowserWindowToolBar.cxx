@@ -533,12 +533,16 @@ BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
         m_toolbarWidget->setVisible(showIt);
     }
     
+    this->toolBarToolButtonAction->blockSignals(true);
     if (showIt) {
         this->toolBarToolButtonAction->setToolTip("Hide Toolbar");
+        this->toolBarToolButtonAction->setChecked(true);
     }
     else {
         this->toolBarToolButtonAction->setToolTip("Show Toolbar");
+        this->toolBarToolButtonAction->setChecked(false);
     }
+    this->toolBarToolButtonAction->blockSignals(false);
 }
 
 
