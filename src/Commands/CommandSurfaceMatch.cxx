@@ -79,17 +79,22 @@ void
 CommandSurfaceMatch::executeOperation(ProgramParameters& parameters) throw (CommandException,
                                                                ProgramParametersException)
 {
-    const AString matchFileName  = parameters.nextString("Match Surface File Name");
-    const AString inputFileName  = parameters.nextString("Input Surface File Name");
-    const AString outputFileName = parameters.nextString("Output Surface File Name");
-    
-    SurfaceFile matchSurfaceFile;
-    matchSurfaceFile.readFile(matchFileName);
-    
-    SurfaceFile surfaceFile;
-    surfaceFile.readFile(inputFileName);
-    
-    surfaceFile.matchSurfaceBoundingBox(&matchSurfaceFile);
-    
-    surfaceFile.writeFile(outputFileName);
+    try {
+        const AString matchFileName  = parameters.nextString("Match Surface File Name");
+        const AString inputFileName  = parameters.nextString("Input Surface File Name");
+        const AString outputFileName = parameters.nextString("Output Surface File Name");
+        
+        SurfaceFile matchSurfaceFile;
+        matchSurfaceFile.readFile(matchFileName);
+        
+        SurfaceFile surfaceFile;
+        surfaceFile.readFile(inputFileName);
+        
+        surfaceFile.matchSurfaceBoundingBox(&matchSurfaceFile);
+        
+        surfaceFile.writeFile(outputFileName);
+    }
+    catch (const DataFileException& dfe) {
+        throw CommandException(dfe);
+    }
 }

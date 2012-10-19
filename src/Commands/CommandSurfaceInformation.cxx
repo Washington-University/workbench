@@ -77,10 +77,15 @@ void
 CommandSurfaceInformation::executeOperation(ProgramParameters& parameters) throw (CommandException,
                                                                ProgramParametersException)
 {
-    const AString surfaceFileName  = parameters.nextString("Surface File Name");
-    
-    SurfaceFile surfaceFile;
-    surfaceFile.readFile(surfaceFileName);
-    
-    std::cout << qPrintable(surfaceFile.getInformation()) << std::endl;
+    try {
+        const AString surfaceFileName  = parameters.nextString("Surface File Name");
+        
+        SurfaceFile surfaceFile;
+        surfaceFile.readFile(surfaceFileName);
+        
+        std::cout << qPrintable(surfaceFile.getInformation()) << std::endl;
+    }
+    catch (const DataFileException& dfe) {
+        throw CommandException(dfe);
+    }
 }
