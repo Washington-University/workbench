@@ -94,9 +94,10 @@ void TimeCourseDialog::addTimeLine(TimeLine &tl)
 {    
     tlV.push_back(tl);
     //readjust x values to account for timestep
+    double timeStep = ((tlV.last().timeStep>0.0001) ? tlV.last().timeStep : 1.0);
     for(int j = 0;j<tlV.last().x.size();j++)
     {
-        tlV.last().x[j] = startOffset + tlV.last().timeStep*(double)j;
+        tlV.last().x[j] = startOffset + timeStep*(double)j;
     }
 }
 
@@ -165,10 +166,11 @@ void TimeCourseDialog::setAnimationStartTime(const double &time)
     if(tlV.isEmpty()) return;
     
     for(int i =0;i<tlV.size();i++)
-    {        
+    { 
+        double timeStep = ((tlV[i].timeStep>0.0001) ? tlV[i].timeStep : 1.0);
         for(int j = 0;j<tlV[i].x.size();j++)
         {
-            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
+            tlV[i].x[j] = startOffset + timeStep*(double)j;
         }
     }
     plot->detachItems();
