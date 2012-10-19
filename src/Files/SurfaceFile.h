@@ -46,6 +46,7 @@ namespace caret {
     class GeodesicHelper;
     class GeodesicHelperBase;
     class GiftiDataArray;
+    class Matrix4x4;
     class SignedDistanceHelper;
     class SignedDistanceHelperBase;
     class TopologyHelper;
@@ -122,6 +123,10 @@ namespace caret {
         void getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const;
         
         const BoundingBox* getBoundingBox() const;
+        
+        void matchSurfaceBoundingBox(const SurfaceFile* surfaceFile);
+        
+        void applyMatrix(const Matrix4x4& matrix);
         
         void getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const;
         

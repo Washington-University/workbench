@@ -37,6 +37,7 @@
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
+#include "Matrix4x4.h"
 
 #include "CaretPointLocator.h"
 #include "GeodesicHelper.h"
@@ -806,6 +807,91 @@ SurfaceFile::getBoundingBox() const
         }
     }
     return this->boundingBox;
+}
+
+/**
+ * Match this surface to the given surface.  That is, after this
+ * method is called, this surface and the given surface will 
+ * fit within the same bounding box.
+ * @param surfaceFile
+ *     Match to this surface file.
+ */
+void
+SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
+{
+    CaretAssert(surfaceFile);
+    
+    const BoundingBox* targetBoundingBox = surfaceFile->getBoundingBox();
+    const BoundingBox* myBoundingBox = getBoundingBox();
+    
+    Matrix4x4 matrix;
+    
+    /*
+     * Translate to origin
+     */
+    Matrix4x4 originMatrix;
+    originMatrix.translate(-myBoundingBox->getMinX(),
+                           -myBoundingBox->getMinY(),
+                           -myBoundingBox->getMinZ());
+    matrix.translate(-myBoundingBox->getMinX(),
+                           -myBoundingBox->getMinY(),
+                           -myBoundingBox->getMinZ());
+//    applyMatrix(originMatrix);
+    
+    /*
+     * Scale to match size
+     */
+    const float scaleX = (targetBoundingBox->getDifferenceX()
+                          / myBoundingBox->getDifferenceX());
+    const float scaleY = (targetBoundingBox->getDifferenceY()
+                          / myBoundingBox->getDifferenceY());
+    const float scaleZ = (targetBoundingBox->getDifferenceY()
+                          / myBoundingBox->getDifferenceY());
+    Matrix4x4 scaleMatrix;
+    scaleMatrix.scale(scaleX,
+                      scaleY,
+                      scaleZ);
+    matrix.scale(scaleX,
+                      scaleY,
+                      scaleZ);
+//    applyMatrix(scaleMatrix);
+    
+    /*
+     * Scale min X/Y/Z of other surface
+     */
+    Matrix4x4 targetTranslate;
+    targetTranslate.translate(targetBoundingBox->getMinX(),
+                              targetBoundingBox->getMinY(),
+                              targetBoundingBox->getMinZ());
+    matrix.translate(targetBoundingBox->getMinX(),
+                              targetBoundingBox->getMinY(),
+                              targetBoundingBox->getMinZ());
+//    applyMatrix(targetTranslate);
+    
+    applyMatrix(matrix);
+}
+
+/**
+ * Apply the given matrix to the coordinates of this surface.
+ *
+ * @param matrix
+ *    Transformation matrix that is used.
+ */
+void
+SurfaceFile::applyMatrix(const Matrix4x4& matrix)
+{
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    
+    const int32_t numberOfNodes = getNumberOfNodes();
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (th->getNodeHasNeighbors(i)) {
+            matrix.multiplyPoint3(&coordinatePointer[i*3]);
+        }
+    }
+    
+    computeNormals();
+    
+    setModified();
 }
 
 /**

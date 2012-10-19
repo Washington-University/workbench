@@ -21,26 +21,30 @@ CommandClassAddMember.h
 CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
+CommandException.h
 CommandGiftiConvert.h
 CommandNiftiConvert.h
 CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
-CommandException.h
+CommandSurfaceInformation.h
+CommandSurfaceMatch.h
 CommandUnitTest.h
 
 CommandClassAddMember.cxx
 CommandClassCreate.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
+CommandException.cxx
 CommandGiftiConvert.cxx
 CommandNiftiConvert.cxx
 CommandNiftiInformation.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx
-CommandException.cxx
+CommandSurfaceInformation.cxx
+CommandSurfaceMatch.cxx
 CommandUnitTest.cxx
 )
 

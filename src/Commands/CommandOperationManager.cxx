@@ -85,6 +85,8 @@
 #include "CommandGiftiConvert.h"
 #include "CommandNiftiConvert.h"
 #include "CommandNiftiInformation.h"
+#include "CommandSurfaceInformation.h"
+#include "CommandSurfaceMatch.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -179,6 +181,8 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandClassCreate());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandGiftiConvert());
+    this->commandOperations.push_back(new CommandSurfaceInformation());
+    this->commandOperations.push_back(new CommandSurfaceMatch());
     this->commandOperations.push_back(new CommandUnitTest());
     this->commandOperations.push_back(new CommandNiftiConvert());
 }
