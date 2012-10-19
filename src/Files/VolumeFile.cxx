@@ -421,11 +421,13 @@ VolumeFile::clearModified()
 {
     CaretMappableDataFile::clearModified();
     VolumeBase::clearModified();
-    
-    const int32_t numMaps = getNumberOfMaps();
-    for (int32_t i = 0; i < numMaps; i++) {
-        PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
-        pcm->clearModified();
+    if (isMappedWithPalette())
+    {
+        const int32_t numMaps = getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+            pcm->clearModified();
+        }
     }
 }
 
@@ -436,10 +438,13 @@ bool
 VolumeFile::isModified() const
 {
     const int32_t numMaps = getNumberOfMaps();
-    for (int32_t i = 0; i < numMaps; i++) {
-        const PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
-        if (pcm->isModified()) {
-            return true;
+    if (isMappedWithPalette())
+    {
+        for (int32_t i = 0; i < numMaps; i++) {
+            const PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+            if (pcm->isModified()) {
+                return true;
+            }
         }
     }
     
