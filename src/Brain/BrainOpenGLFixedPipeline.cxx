@@ -925,9 +925,10 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     this->drawSurface(surface,
                       nodeColoringRGBA);
     
-    if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
-        this->drawSurfaceFiberOrientations();
-    }
+// Disable on individual surface for Matt's NX crash
+//    if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
+//        this->drawSurfaceFiberOrientations();
+//    }
 }
 
 /**
