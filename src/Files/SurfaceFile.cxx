@@ -827,19 +827,14 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
     Matrix4x4 matrix;
     
     /*
-     * Translate to origin
+     * Translate min x/y/z to origin
      */
-    Matrix4x4 originMatrix;
-    originMatrix.translate(-myBoundingBox->getMinX(),
-                           -myBoundingBox->getMinY(),
-                           -myBoundingBox->getMinZ());
     matrix.translate(-myBoundingBox->getMinX(),
                            -myBoundingBox->getMinY(),
                            -myBoundingBox->getMinZ());
-//    applyMatrix(originMatrix);
     
     /*
-     * Scale to match size
+     * Scale to match size of match surface
      */
     const float scaleX = (targetBoundingBox->getDifferenceX()
                           / myBoundingBox->getDifferenceX());
@@ -847,26 +842,17 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
                           / myBoundingBox->getDifferenceY());
     const float scaleZ = (targetBoundingBox->getDifferenceY()
                           / myBoundingBox->getDifferenceY());
-    Matrix4x4 scaleMatrix;
-    scaleMatrix.scale(scaleX,
-                      scaleY,
-                      scaleZ);
     matrix.scale(scaleX,
                       scaleY,
                       scaleZ);
-//    applyMatrix(scaleMatrix);
     
     /*
-     * Scale min X/Y/Z of other surface
+     * Translate to min x/y/z of match surface so that
+     * the two surfaces are now within the same "shoebox".
      */
-    Matrix4x4 targetTranslate;
-    targetTranslate.translate(targetBoundingBox->getMinX(),
-                              targetBoundingBox->getMinY(),
-                              targetBoundingBox->getMinZ());
     matrix.translate(targetBoundingBox->getMinX(),
                               targetBoundingBox->getMinY(),
                               targetBoundingBox->getMinZ());
-//    applyMatrix(targetTranslate);
     
     applyMatrix(matrix);
 }
