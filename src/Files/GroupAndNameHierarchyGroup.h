@@ -50,6 +50,10 @@ namespace caret {
         
         virtual void clear();
         
+        virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t tabIndex,
+                                 const bool status);
+        
         void copySelections(const int32_t sourceTabIndex,
                             const int32_t targetTabIndex);
         
@@ -58,6 +62,9 @@ namespace caret {
         void setAllSelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex,
                             const bool status);
+        
+        bool isAnySelected(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex) const;
         
         bool isAllSelected(const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex) const;

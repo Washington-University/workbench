@@ -57,7 +57,7 @@ namespace caret {
         bool isSelected(const DisplayGroupEnum::Enum displayGroup,
                         const int32_t tabIndex) const;
         
-        void setSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex,
                          const bool status);
         

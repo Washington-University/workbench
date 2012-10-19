@@ -212,9 +212,35 @@ GroupAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
             GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            const bool anySelected = classSelector->isAnySelected(m_displayGroup,
+                                                                  browserTabIndex);
             classSelector->setSelected(m_displayGroup,
                                        browserTabIndex,
                                        isSelected);
+            
+            /*
+             * If turned on and no child names selected,
+             * select all child names.
+             */
+            if (isSelected
+                && (anySelected == false)) {
+                const int32_t  numberOfChildren = item->childCount();
+                for (int32_t i = 0; i < numberOfChildren; i++) {
+                    QTreeWidgetItem* twi = item->child(i);
+                    void* ptr = twi->data(0, Qt::UserRole).value<void*>();
+                    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
+                    CaretAssert(selectionInfo);
+                    if (selectionInfo->getItemType() == GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME) {
+                        GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
+                        nameSelector->setSelected(m_displayGroup,
+                                                  browserTabIndex,
+                                                  isSelected);
+                        m_treeWidget->blockSignals(true);
+                        twi->setCheckState(0, Qt::Checked);
+                        m_treeWidget->blockSignals(false);
+                    }
+                }
+            }
         }
             break;
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:

@@ -129,6 +129,45 @@ GroupAndNameHierarchyGroup::clearPrivate()
 }
 
 /**
+ * Set class seletion status for the given display group.  *
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @param status
+ *    New selection status.
+ */
+void
+GroupAndNameHierarchyGroup::setSelected(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex,
+                                       const bool status)
+{
+    GroupAndNameHierarchyName::setSelected(displayGroup,
+                                           tabIndex,
+                                           status);
+    
+//    /*
+//     * Turning class on?
+//     */
+//    if (status) {
+//        /*
+//         * If NO children are selected
+//         */
+//        if (isAnySelected(displayGroup, tabIndex) == false) {
+//            for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
+//                 iter != this->nameToNameSelectorMap.end();
+//                 iter++) {
+//                GroupAndNameHierarchyName* nameSelector = iter->second;
+//                nameSelector->setSelected(displayGroup,
+//                                          tabIndex,
+//                                          true);
+//            }
+//        }
+//    }
+}
+
+
+/**
  * Set the selection status for this class and all of its child names
  * and for all display groups.
  *
@@ -230,6 +269,36 @@ GroupAndNameHierarchyGroup::isAllSelected(const DisplayGroupEnum::Enum displayGr
     
     return true;
 }
+
+/**
+ * Is this class and ANY of its child names selected?
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return
+ *    true if everything is selected, else false.
+ */
+bool
+GroupAndNameHierarchyGroup::isAnySelected(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex) const
+{
+    if (isSelected(displayGroup, tabIndex)) {
+        return false;
+    }
+    
+    for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
+         iter != this->nameToNameSelectorMap.end();
+         iter++) {
+        const GroupAndNameHierarchyName* nameSelector = iter->second;
+        if (nameSelector->isSelected(displayGroup, tabIndex)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 
 /**
