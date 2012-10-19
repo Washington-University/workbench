@@ -90,6 +90,10 @@ namespace caret {
 
         void captureFrame(AString filename);
 
+		void processRotateTransformation(const double dx,
+			const double dy,
+			const double dz);
+
         Qt::Orientation orientation;
         
         int32_t browserWindowIndex;

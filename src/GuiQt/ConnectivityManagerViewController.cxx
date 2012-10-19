@@ -175,17 +175,17 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
         if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
         if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
-        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,100, Qt::AlignLeft);
+        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,0, Qt::AlignLeft);
 
-        /*if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
+        if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
         if(this->frameRotateXLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateXLabel,0, Qt::AlignLeft);
         if(this->frameRotateXSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateXSpinBox, 0, Qt::AlignLeft);
         if(this->frameRotateYLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateYLabel,0, Qt::AlignLeft);
         if(this->frameRotateYSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateYSpinBox, 0, Qt::AlignLeft);
         if(this->frameRotateZLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateZLabel,0, Qt::AlignLeft);
-        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 0, Qt::AlignLeft);
+        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 100, Qt::AlignLeft);
 
-        if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
+        /*if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
         if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
         if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 100, Qt::AlignLeft);*/
 
@@ -431,6 +431,11 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
         if(this->movieAction->isChecked())
         {
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
+			if(this->frameRotateXSpinBox->value() || this->frameRotateYSpinBox->value() || this->frameRotateZSpinBox->value())
+			{
+				this->processRotateTransformation(this->frameRotateXSpinBox->value(),this->frameRotateYSpinBox->value(),this->frameRotateZSpinBox->value());
+
+			}
 			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
 			CaretLogFine(temp);
             CaretLogFine("frame number:" + frame_number);
@@ -455,30 +460,26 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 }
 
 
-#if 0
+#if 1
+#include <Matrix4x4.h>
+#include "BrowserTabContent.h"
+#include "Model.h"
+
 void 
-ConnectivityViewController::processRotateTransformation(BrainOpenGLViewportContent* viewportContent,                                                  
-                                                  const double x,
-                                                  const double y,
-                                                  const double z)
+ConnectivityManagerViewController::processRotateTransformation(const double dx,
+                                                  const double dy,
+                                                  const double dz)
 {
-    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+	BrowserTabContent* browserTabContent = 
+		GuiManager::get()->getBrowserTabContentForBrowserWindow(browserWindowIndex, true);
+	if (browserTabContent == NULL) {
+		return;
+	}
     Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        float dx = mouseEvent->getDx();
-        float dy = mouseEvent->getDy();
-        
-        /*
-         * Is this a mouse wheel event?
-         */
-        const bool isWheelEvent = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
             
-        //
-        // Mouse moved with just left button down
-        //
-        if ((isWheelEvent == false) 
-            && (mouseEvent->isAnyKeyDown() == false)) {
+        {
             /*
              * There are several rotation matrix.  The 'NORMAL' matrix is used
              * in most cases and others are used in special viewing modes
@@ -487,89 +488,28 @@ ConnectivityViewController::processRotateTransformation(BrainOpenGLViewportConte
             if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                       Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dy);
-                rotationMatrix->rotateY(-dx);
+                rotationMatrix->rotateX(dx);
+                rotationMatrix->rotateY(dy);
+                rotationMatrix->rotateZ(dz);
                 
                 /*
                  * Matrix for a right medial/lateral yoked surface
                  */
                 Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                       Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dy);
-                rotationMatrixRightLatMedYoked->rotateY(dx);
+                rotationMatrixRightLatMedYoked->rotateX(-dy);
+                rotationMatrixRightLatMedYoked->rotateY(-dx);
+                rotationMatrixRightLatMedYoked->rotateZ(-dz);
             }
             else {
                 ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
-                if (montageModel != NULL) {
-                    /*
-                     * Need to adjust mouse for location in viewport
-                     */
-                    int viewport[4];
-                    viewportContent->getViewport(viewport);
-//                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
-//                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
-                    const int32_t halfWidth  = viewport[2] / 2;
-                    const int32_t halfHeight = viewport[3] / 2;
-                    
-                    /*
-                     * Use location of where mouse is originally pressed
-                     * to determine the surface montage surface being
-                     * manipulated.  Otherwise, if mouse is moved out of
-                     * region where originally pressed, the rotations
-                     * would change.
-                     */
-                    const int32_t viewportMousePressedX = mousePressedX - viewport[0];
-                    const int32_t viewportMousePressedY = mousePressedY - viewport[1];
-                    
-                    /*
-                     * Determine hemisphere of surface and if it is lateral or 
-                     * medial view.
-                     * Row2 => Top => Lateral View
-                     * Row1 => Bottom => Medial View
-                     * Columns 1 and 3 => Left Hemisphere
-                     * Columns 2 and 4 => Right Hemisphere
-                     */
-                    bool isRight  = false;
-                    bool isMedial = false;
-                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
-                        const int32_t quarterWidth = halfWidth / 2;
-                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
-                        if (viewportMousePressedX > halfWidth) {
-                            isRight = true;
-                        }
-                        
-                        if ((viewportMousePressedX >= quarterWidth)
-                            && (viewportMousePressedX < halfWidth)) {
-                            isMedial = true;
-                        }
-                        else if (viewportMousePressedX >= threeQuarterWidth) {
-                            isMedial = true;
-                        }
-                    }
-                    else {
-                        if (viewportMousePressedX > halfWidth) {
-                            isRight = true;
-                        }
-                        if (viewportMousePressedY < halfHeight) {
-                            isMedial = true;
-                        }
-                    }
-                    
-                    if (isRight) {
-                        dx = -dx;
-                    }
-                    
-                    if (isMedial) {
-                        dy = -dy;
-                    }
-                    
-
-                }
+                
                 
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                       Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dy);
+                rotationMatrix->rotateX(dy);
                 rotationMatrix->rotateY(dx);
+                rotationMatrix->rotateZ(dz);
                 
                 /*
                  * Matrix for a left surface opposite view in surface montage
@@ -578,22 +518,25 @@ ConnectivityViewController::processRotateTransformation(BrainOpenGLViewportConte
                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
                 rotationMatrixSurfMontLeftOpp->rotateX(-dy);
                 rotationMatrixSurfMontLeftOpp->rotateY(dx);
+                rotationMatrixSurfMontLeftOpp->rotateZ(dz);
                 
                 /*
                  * Matrix for a right surface view in surface montage
                  */
                 Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                rotationMatrixSurfMontRight->rotateX(dy); //-dy);
+                rotationMatrixSurfMontRight->rotateX(dy); 
                 rotationMatrixSurfMontRight->rotateY(-dx);
+                rotationMatrixSurfMontRight->rotateZ(dz);
                 
                 /*
                  * Matrix for a right surface opposite view in surface montage
                  */
                 Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
+                rotationMatrixSurfMontRightOpp->rotateX(dy);
                 rotationMatrixSurfMontRightOpp->rotateY(-dx);
+                rotationMatrixSurfMontRightOpp->rotateZ(dz);
                 
                 /*
                  * Matrix for a right medial/lateral yoked surface
@@ -602,8 +545,8 @@ ConnectivityViewController::processRotateTransformation(BrainOpenGLViewportConte
                                                                                            Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
                 rotationMatrixRightLatMedYoked->rotateX(dy);
                 rotationMatrixRightLatMedYoked->rotateY(-dx);
-            }
-            //}
+                rotationMatrixRightLatMedYoked->rotateZ(dz);
+            }            
         }
     }
 }
