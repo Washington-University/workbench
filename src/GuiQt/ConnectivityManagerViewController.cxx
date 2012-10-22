@@ -103,18 +103,18 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->frameRotateLabel = new QLabel("Rotate: ");
     this->frameRotateXLabel = new QLabel("X:");
     this->frameRotateXSpinBox = new QDoubleSpinBox();
-    this->frameRotateXSpinBox->setMaximum(360.0);
-    this->frameRotateXSpinBox->setMinimum(0.0);
+    this->frameRotateXSpinBox->setMaximum(180.0);
+    this->frameRotateXSpinBox->setMinimum(-180.0);
 
     this->frameRotateYLabel = new QLabel("Y:");
     this->frameRotateYSpinBox = new QDoubleSpinBox();
-    this->frameRotateYSpinBox->setMaximum(360.0);
-    this->frameRotateYSpinBox->setMinimum(0.0);
+    this->frameRotateYSpinBox->setMaximum(180.0);
+    this->frameRotateYSpinBox->setMinimum(-180.0);
 
     this->frameRotateZLabel = new QLabel("Z:");
     this->frameRotateZSpinBox = new QDoubleSpinBox();
-    this->frameRotateZSpinBox->setMaximum(360.0);
-    this->frameRotateZSpinBox->setMinimum(0.0);
+    this->frameRotateZSpinBox->setMaximum(180.0);
+    this->frameRotateZSpinBox->setMinimum(-180.0);
 
     this->frameRotateCountCheckBox = new QCheckBox();
     this->frameRotateCountCheckBox->setText("Rotate Frame Count:");
