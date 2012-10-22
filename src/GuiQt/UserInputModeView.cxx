@@ -56,6 +56,7 @@
 #include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Model.h"
+#include "ModelVolume.h"
 #include "Surface.h"
 #include "TimeLine.h"
 #include "TimeCourseDialog.h"
@@ -583,6 +584,73 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
          */
         const bool isWheelEvent = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
             
+        ModelVolume* modelVolumeController = dynamic_cast<ModelVolume*>(modelController);
+        if (modelVolumeController != NULL)
+        {
+            if (!isWheelEvent && mouseEvent->isShiftKeyDown())//shift left drag
+            {
+                const float* t1 = modelController->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);       
+                float t2[] = { t1[0], t1[1], t1[2] };
+                VolumeFile* vf = modelVolumeController->getUnderlayVolumeFile(tabIndex);
+                BoundingBox mybox = vf->getSpaceBoundingBox();
+                float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+                float slowdown = 0.005f * cubesize / modelController->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
+                switch (modelVolumeController->getSliceViewPlane(tabIndex))
+                {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                    {
+                        int viewport[4];
+                        viewportContent->getViewport(viewport);
+                        const int32_t halfWidth  = viewport[2] / 2;
+                        const int32_t halfHeight = viewport[3] / 2;
+                        const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+                        const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+                        bool isRight  = false;
+                        bool isTop = false;
+                        if (viewportMousePressedX > halfWidth) {
+                            isRight = true;
+                        }
+                        if (viewportMousePressedY > halfHeight) {
+                            isTop = true;
+                        }
+                        //CaretLogInfo("right: " + AString::fromBool(isRight) + " top: " + AString::fromBool(isTop));
+                        if (isTop)
+                        {
+                            if (isRight)//coronal
+                            {
+                                t2[0] += dx * slowdown;
+                                t2[2] += dy * slowdown;
+                            } else {//parasaggital
+                                t2[1] -= dx * slowdown;
+                                t2[2] += dy * slowdown;
+                            }
+                        } else {
+                            if (isRight)//axial
+                            {
+                                t2[0] += dx * slowdown;
+                                t2[1] += dy * slowdown;
+                            }//bottom left has no slice
+                        }
+                        break;
+                    }
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        t2[0] += dx * slowdown;
+                        t2[1] += dy * slowdown;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        t2[0] += dx * slowdown;
+                        t2[2] += dy * slowdown;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        t2[1] -= dx * slowdown;
+                        t2[2] += dy * slowdown;
+                        break;
+                }
+                modelController->setTranslation(tabIndex, t2);
+                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent->getBrowserWindowIndex()).getPointer());
+                return;
+            }
+        }
         //
         // Mouse moved with just left button down
         //
@@ -759,7 +827,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  || mouseEvent->isControlKeyDown()) {
             float scale = modelController->getScaling(tabIndex);
             if (dy != 0) {
-                scale += (dy * 0.05);
+                scale *= (1.0f + dy * 0.01);
             }
             if (scale < 0.01) scale = 0.01;
             modelController->setScaling(tabIndex, scale);

@@ -607,14 +607,16 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
         if ((dimensions[0] > 2) 
             && (dimensions[1] > 2)
             && (dimensions[2] > 2)) {
-            int64_t centerVoxel[3] = {
+            /*int64_t centerVoxel[3] = {
                 dimensions[0] / 2,
                 dimensions[1] / 2,
                 dimensions[2] / 2
-            };
+            };//*///don't use "center voxel", use center of bounding box
             
-            float volumeCenter[3];
-            vf->indexToSpace(centerVoxel, volumeCenter);
+            float volumeCenter[3] = { (boundingBox.getMinX() + boundingBox.getMaxX()) / 2,
+                                      (boundingBox.getMinY() + boundingBox.getMaxY()) / 2,
+                                      (boundingBox.getMinZ() + boundingBox.getMaxZ()) / 2 };
+            //vf->indexToSpace(centerVoxel, volumeCenter);
             
             /*
              * Translate so that the center voxel (by dimenisons)
@@ -623,7 +625,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
             fitToWindowTranslation[0] = -volumeCenter[0];
             fitToWindowTranslation[1] = -volumeCenter[1];
             fitToWindowTranslation[2] = -volumeCenter[2];
-            switch (viewPlane) {
+            switch (viewPlane) {//prevents going outside near/far?
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
@@ -650,7 +652,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
             const float orthoExtentY = std::min(std::fabs(this->orthographicTop),
                                                 std::fabs(this->orthographicBottom));
 
-            float scaleWindowX = 1.0;
+            /*float scaleWindowX = 1.0;
             float scaleWindowY = 1.0;
             switch (viewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
@@ -667,8 +669,14 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
                     scaleWindowX = (orthoExtentX / yExtent);
                     scaleWindowY = (orthoExtentY / zExtent);
                     break;
-            }
-            
+            }//*///this method came up with potentially 3 different scalings in ALL view, bad idea, so now it will compute exactly 1 scaling for a volume without checking what view it is
+            float temp;
+            float scaleWindowX = (orthoExtentX / xExtent);
+            temp = (orthoExtentX / yExtent);//parasaggital y is screen x
+            if (temp < scaleWindowX) scaleWindowX = temp;
+            float scaleWindowY = (orthoExtentY / zExtent);
+            temp = (orthoExtentY / yExtent);//axial y is screen y
+            if (temp < scaleWindowY) scaleWindowY = temp;
             fitToWindowScaling = std::min(scaleWindowX,
                                           scaleWindowY);
             fitToWindowScaling *= 0.98;
@@ -677,15 +685,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
-    /*
-     * User's translation.
-     */
-    const float* translation = modelDisplayControllerVolume->getTranslation(tabIndex,
-                                                                            Model::VIEWING_TRANSFORM_NORMAL);
-    glTranslatef(translation[0], 
-                 translation[1], 
-                 translation[2]);
     
     /*
      * User's rotation.
@@ -705,6 +704,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
             rotationMatrix.rotateZ(90.0);
             break;
     }
+    
     
     double rotationMatrixElements[16];
     rotationMatrix.getMatrixForOpenGL(rotationMatrixElements);
@@ -735,8 +735,32 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     const float scale = modelDisplayControllerVolume->getScaling(tabIndex);
     glScalef(scale, 
              scale, 
-             scale);        
+             scale);
 
+    /*
+     * User's translation.
+     */
+    const float* translation = modelDisplayControllerVolume->getTranslation(tabIndex,
+                                                                            Model::VIEWING_TRANSFORM_NORMAL);
+    float translationadj[3] = { translation[0], translation[1], translation[2] };
+    switch (viewPlane) {//prevents going outside near/far?
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            translationadj[2] = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            translationadj[1] = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            translationadj[0] = 0.0;
+            break;
+    }
+    
+    glTranslatef(translationadj[0], 
+                 translationadj[1], 
+                 translationadj[2]);
+    
     /*
      * Translate so that center of volume is at center
      * of window
@@ -2564,7 +2588,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         const int halfX = viewport[2] / 2;
                         const int halfY = viewport[3] / 2;
                         
-                        const int axialVP[4] = { viewport[0], viewport[1] + halfY, halfX, halfY };
+                        const int axialVP[4] = { viewport[0] + halfX, viewport[1], halfX, halfY };
                         this->setViewportAndOrthographicProjection(axialVP,
                                                                    Model::VIEWING_TRANSFORM_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
@@ -2628,7 +2652,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::CORONAL, 
                                                    coronalVP);
                         
-                        const int parasagittalVP[4] = { viewport[0] + halfX, viewport[1], halfX, halfY };
+                        const int parasagittalVP[4] = { viewport[0], viewport[1] + halfY, halfX, halfY };
                         this->setViewportAndOrthographicProjection(parasagittalVP,
                                                                    Model::VIEWING_TRANSFORM_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
@@ -2786,19 +2810,36 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
         
         const bool drawIt = (slicePlane != VolumeSliceViewPlaneEnum::ALL);
         
+        float voxelXYZmod[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
+        
+        switch (slicePlane)//prevent disappearing crosshairs when zoomed in by zeroing the into/out of plane coords
+        {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                voxelXYZmod[2] = 0.0f;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                voxelXYZmod[1] = 0.0f;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                voxelXYZmod[0] = 0.0f;
+                break;
+        }
+        
         if (drawIt) {
             const float bigNumber = 10000;
             this->setLineWidth(1.0);
             glColor3ubv(green);
             glBegin(GL_LINES);
-            glVertex3f(voxelXYZ[0], -bigNumber, voxelXYZ[2]);
-            glVertex3f(voxelXYZ[0],  bigNumber, voxelXYZ[2]);
+            glVertex3f(voxelXYZmod[0], -bigNumber, voxelXYZmod[2]);
+            glVertex3f(voxelXYZmod[0],  bigNumber, voxelXYZmod[2]);
             glColor3ubv(red);
-            glVertex3f(-bigNumber, voxelXYZ[1], voxelXYZ[2]);
-            glVertex3f( bigNumber, voxelXYZ[1], voxelXYZ[2]);
+            glVertex3f(-bigNumber, voxelXYZmod[1], voxelXYZmod[2]);
+            glVertex3f( bigNumber, voxelXYZmod[1], voxelXYZmod[2]);
             glColor3ubv(blue);
-            glVertex3f(voxelXYZ[0], voxelXYZ[1], -bigNumber);
-            glVertex3f(voxelXYZ[0], voxelXYZ[1],  bigNumber);
+            glVertex3f(voxelXYZmod[0], voxelXYZmod[1], -bigNumber);
+            glVertex3f(voxelXYZmod[0], voxelXYZmod[1],  bigNumber);
             glEnd();
         }
     }    
@@ -3094,9 +3135,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get all voxel in the slice
              */
-            for (int64_t i = iStart; i <= iEnd; i++) {
+            for (int64_t k = kStart; k <= kEnd; k++) {                        
                 for (int64_t j = jStart; j <= jEnd; j++) {
-                    for (int64_t k = kStart; k <= kEnd; k++) {                        
+                    for (int64_t i = iStart; i <= iEnd; i++) {
                         int64_t voxelOffset = -1;
                         switch (slicePlane) {
                             case VolumeSliceViewPlaneEnum::ALL:
@@ -3213,7 +3254,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                     {
-                        const float z = sliceCoordinate;
+                        const float z = 0.0f;//sliceCoordinate;
                         float x = minVoxelX;
                         for (int64_t i = 0; i < dimI; i++) {
                             glBegin(GL_QUAD_STRIP);
@@ -3245,7 +3286,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                     {
-                        const float y = sliceCoordinate;
+                        const float y = 0.0f;//sliceCoordinate;
                         float x = minVoxelX;
                         for (int64_t i = 0; i < dimI; i++) {
                             glBegin(GL_QUAD_STRIP);
@@ -3274,7 +3315,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                     {
-                        const float x = sliceCoordinate;
+                        const float x = 0.0f;//sliceCoordinate;
                         float y = minVoxelY;
                         for (int64_t j = 0; j < dimJ; j++) {
                             glBegin(GL_QUAD_STRIP);
@@ -3319,7 +3360,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                     {
-                        const float z1 = sliceCoordinate;
+                        const float z1 = 0.0f;//sliceCoordinate;
                         for (int64_t i = 0; i < dimI; i++) {
                             const float x1 = minVoxelX + (voxelStepX * i);
                             const float x2 = x1 + voxelStepX;
@@ -3334,7 +3375,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                     
                                     idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
                                     idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
-                                    idVoxelCoordinates.push_back(z1); // coord of slice is not offset by half voxel
+                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
                                     idVoxelCounter++;
                                 }
                                 else {
@@ -3352,7 +3393,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                     {
-                        const float y1 = sliceCoordinate;
+                        const float y1 = 0.0f;//sliceCoordinate;
                         for (int64_t i = 0; i < dimI; i++) {
                             const float x1 = minVoxelX + (voxelStepX * i);
                             const float x2 = x1 + voxelStepX;
@@ -3366,7 +3407,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                     glColor3ubv(rgb);
                                     
                                     idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
-                                    idVoxelCoordinates.push_back(y1); // coord of slice is not offset by half voxel
+                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
                                     idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
                                     idVoxelCounter++;
                                 }
@@ -3385,7 +3426,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                     {
-                        const float x1 = sliceCoordinate;
+                        const float x1 = 0.0f;//sliceCoordinate;
                         for (int64_t j = 0; j < dimJ; j++) {
                             const float y1 = minVoxelY + (voxelStepY * j);
                             const float y2 = y1 + voxelStepY;
@@ -3398,7 +3439,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                                                        idVoxelCounter);
                                     glColor3ubv(rgb);
                                     
-                                    idVoxelCoordinates.push_back(x1); // coord of slice is not offset by half voxel
+                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
                                     idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
                                     idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
                                     idVoxelCounter++;
