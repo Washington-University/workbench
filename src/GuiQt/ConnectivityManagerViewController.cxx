@@ -95,6 +95,20 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->movieToolButton = NULL;
     this->movieAction = NULL;
 
+    this->frameRepeatLabel = NULL;
+    this->frameRepeatSpinBox = NULL;
+    this->frameRotateXLabel = NULL;
+    this->frameRotateXSpinBox = NULL;
+    this->frameRotateYLabel = NULL;
+    this->frameRotateYSpinBox = NULL;
+    this->frameRotateZLabel = NULL;
+    this->frameRotateZSpinBox = NULL;
+    this->frameRotateCountLabel = NULL;
+    this->frameRotateCountCheckBox = NULL;
+    this->frameRotateReverseDirectionLabel = NULL;
+    this->frameRotateReverseDirection = NULL;
+    this->renderMovieButton = NULL;
+
     this->frameRepeatLabel = new QLabel("Repeat Frames: ");
     this->frameRepeatSpinBox = new QSpinBox();
     this->frameRepeatSpinBox->setMaximum(59);
@@ -118,9 +132,20 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 
     this->frameRotateCountCheckBox = new QCheckBox();
     this->frameRotateCountCheckBox->setText("Rotate Frame Count:");
-    this->frameRotateCountLabel = new QLabel();
+
+    //this->frameRotateCountLabel = new QLabel();
     this->frameRotateCountSpinBox = new QSpinBox();
 
+    this->frameRotateReverseDirectionLabel = new QLabel("Reverse Direction");
+    this->frameRotateReverseDirection = new QCheckBox();
+    this->renderMovieButton = new QToolButton();
+    this->renderMovieAction = WuQtUtilities::createAction("Record",
+        "Animate Rotation...",
+        this,
+        this,
+        SLOT(renderMovieActionTriggered(bool)));
+    this->renderMovieAction->setCheckable(true);
+    this->renderMovieButton->setDefaultAction(this->renderMovieAction);
 
 	this->movieAction = WuQtUtilities::createAction("Movie...",
 		"Record Time Course Movie...",
@@ -183,11 +208,15 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->frameRotateYLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateYLabel,0, Qt::AlignLeft);
         if(this->frameRotateYSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateYSpinBox, 0, Qt::AlignLeft);
         if(this->frameRotateZLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateZLabel,0, Qt::AlignLeft);
-        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 100, Qt::AlignLeft);
+        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 0, Qt::AlignLeft);
 
-        /*if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
-        if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
-        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 100, Qt::AlignLeft);*/
+        if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
+        //if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
+        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 0, Qt::AlignLeft);
+
+        if(this->frameRotateReverseDirectionLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirectionLabel, 0, Qt::AlignLeft);
+        if(this->frameRotateReverseDirection) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirection, 0, Qt::AlignLeft);
+        if(this->renderMovieButton) this->timeSeriesButtonLayout->addWidget(this->renderMovieButton, 100, Qt::AlignLeft);
 
         layout->addLayout(this->timeSeriesButtonLayout);
     }
@@ -430,11 +459,40 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 
         if(this->movieAction->isChecked())
         {
+            /*dx = this->frameRotateXSpinBox->value();
+            dy = this->frameRotateYSpinBox->value();
+            dz = this->frameRotateZSpinBox->value();
+            frameCount = this->frameRotateCountSpinBox->value();
+            reverseDirection = this->frameRotateReverseDirection->isEnabled();
+            frameCountEnabled = this->frameRotateCountCheckBox->isEnabled();*/
+            if(frameCountEnabled && frameCount)
+            {                
+                if(!reverseDirection) 
+                {
+                    if(frameCount <= frame_number)
+                    {
+                        this->renderMovieButton->setChecked(false);
+                        dx = dy = dz = 0.0;
+                        return;
+                    }
+                }
+                else
+                {
+                    if(!(frame_number %frameCount) &&
+                        (frame_number > 0))
+                    {
+                        dx *= -1.0;
+                        dy *= -1.0;
+                        dz *= -1.0;
+                    }
+                }
+            }
+            
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
 			if(this->frameRotateXSpinBox->value() || this->frameRotateYSpinBox->value() || this->frameRotateZSpinBox->value())
 			{
-				this->processRotateTransformation(this->frameRotateXSpinBox->value(),this->frameRotateYSpinBox->value(),this->frameRotateZSpinBox->value());
-
+                
+                this->processRotateTransformation(dx,dy,dz);
 			}
 			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
 			CaretLogFine(temp);
@@ -448,7 +506,35 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 
         if(this->movieAction->isChecked())
         {
+            
+            if(frameCountEnabled && frameCount)
+            {                
+                if(!reverseDirection) 
+                {
+                    if(frameCount <= frame_number)
+                    {
+                        this->renderMovieButton->setChecked(false);
+                        dx = dy = dz = 0.0;
+                        return;
+                    }
+                }
+                else
+                {
+                    if(!(frame_number %frameCount) &&
+                        (frame_number > 0))
+                    {
+                        dx *= -1.0;
+                        dy *= -1.0;
+                        dz *= -1.0;
+                    }
+                }
+            }
+
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
+            if(this->frameRotateXSpinBox->value() || this->frameRotateYSpinBox->value() || this->frameRotateZSpinBox->value())
+            {
+                this->processRotateTransformation(this->frameRotateXSpinBox->value(),this->frameRotateYSpinBox->value(),this->frameRotateZSpinBox->value());
+            }
             AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
             CaretLogFine(temp);
             CaretLogFine("frame number:" + frame_number);
@@ -459,6 +545,33 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 
 }
 
+void ConnectivityManagerViewController::renderMovieActionTriggered(bool status)
+{
+    this->renderMovieButton->setChecked(status);
+
+    dx = this->frameRotateXSpinBox->value();
+    dy = this->frameRotateYSpinBox->value();
+    dz = this->frameRotateZSpinBox->value();
+    frameCount = this->frameRotateCountSpinBox->value();
+    reverseDirection = this->frameRotateReverseDirection->isEnabled();
+    frameCountEnabled = this->frameRotateCountCheckBox->isEnabled();
+    if(status)
+    {
+        this->renderMovieButton->setText("Stop");
+               
+
+        while(this->renderMovieButton->isChecked())
+        {            
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
+            QCoreApplication::instance()->processEvents();
+        }        
+    }
+    else
+    {        
+        this->renderMovieButton->setText("Play");
+    }
+
+}
 
 #if 1
 #include <Matrix4x4.h>

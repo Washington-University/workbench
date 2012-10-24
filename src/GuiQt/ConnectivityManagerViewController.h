@@ -76,6 +76,8 @@ namespace caret {
         void graphActionTriggered();
 
         void movieActionTriggered(bool status);
+
+        void renderMovieActionTriggered(bool status);
         
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
@@ -136,11 +138,26 @@ namespace caret {
 
         QSpinBox *frameRotateCountSpinBox;
 
+        QLabel *frameRotateReverseDirectionLabel;
+
+        QCheckBox *frameRotateReverseDirection;
+
+        QToolButton *renderMovieButton;
+
+        QAction *renderMovieAction;
+
         QToolButton *movieToolButton;
 
         QAction* movieAction;
 
 		int frame_number;
+
+        double dx;
+        double dy;
+        double dz;               
+        bool frameCountEnabled;
+        int frameCount;
+        bool reverseDirection;
 
         TimeCourseDialog *tcDialog;
         
