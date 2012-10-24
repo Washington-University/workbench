@@ -132,8 +132,6 @@ namespace caret {
 
         QDoubleSpinBox *frameRotateZSpinBox;
 
-        QCheckBox *frameRotateCountCheckBox;
-
         QLabel *frameRotateCountLabel;
 
         QSpinBox *frameRotateCountSpinBox;

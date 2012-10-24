@@ -104,7 +104,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->frameRotateZLabel = NULL;
     this->frameRotateZSpinBox = NULL;
     this->frameRotateCountLabel = NULL;
-    this->frameRotateCountCheckBox = NULL;
     this->frameRotateReverseDirectionLabel = NULL;
     this->frameRotateReverseDirection = NULL;
     this->renderMovieButton = NULL;
@@ -130,10 +129,8 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->frameRotateZSpinBox->setMaximum(180.0);
     this->frameRotateZSpinBox->setMinimum(-180.0);
 
-    this->frameRotateCountCheckBox = new QCheckBox();
-    this->frameRotateCountCheckBox->setText("Rotate Frame Count:");
-
-    //this->frameRotateCountLabel = new QLabel();
+    this->frameRotateCountLabel = new QLabel();
+	this->frameRotateCountLabel->setText("Rotate Frame Count:");
     this->frameRotateCountSpinBox = new QSpinBox();
 
     this->frameRotateReverseDirectionLabel = new QLabel("Reverse Direction");
@@ -210,8 +207,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->frameRotateZLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateZLabel,0, Qt::AlignLeft);
         if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 0, Qt::AlignLeft);
 
-        if(this->frameRotateCountCheckBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountCheckBox, 0, Qt::AlignLeft);
-        //if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
+        if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
         if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 0, Qt::AlignLeft);
 
         if(this->frameRotateReverseDirectionLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirectionLabel, 0, Qt::AlignLeft);
@@ -463,8 +459,8 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
             dy = this->frameRotateYSpinBox->value();
             dz = this->frameRotateZSpinBox->value();
             frameCount = this->frameRotateCountSpinBox->value();
-            reverseDirection = this->frameRotateReverseDirection->isEnabled();
-            frameCountEnabled = this->frameRotateCountCheckBox->isEnabled();*/
+            reverseDirection = this->frameRotateReverseDirection->isEnabled();*/
+            
             if(frameCountEnabled && frameCount)
             {                
                 if(!reverseDirection) 
@@ -553,8 +549,8 @@ void ConnectivityManagerViewController::renderMovieActionTriggered(bool status)
     dy = this->frameRotateYSpinBox->value();
     dz = this->frameRotateZSpinBox->value();
     frameCount = this->frameRotateCountSpinBox->value();
-    reverseDirection = this->frameRotateReverseDirection->isEnabled();
-    frameCountEnabled = this->frameRotateCountCheckBox->isEnabled();
+	reverseDirection = this->frameRotateReverseDirection->isChecked();
+    frameCountEnabled = this->frameRotateCountSpinBox->value() ? true : false;
     if(status)
     {
         this->renderMovieButton->setText("Stop");
