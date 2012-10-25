@@ -86,7 +86,7 @@ void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
 
 
 
-void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
+void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER /*byteOrder*/) throw (NiftiException)
 {
     AString temp;
 	temp = inputFile;

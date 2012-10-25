@@ -4600,7 +4600,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     /*
      * Slice thicknesses
      */
-    float sliceXYZ[3];
+    /*float sliceXYZ[3];
     float sliceNextXYZ[3];
     int64_t sliceIJK[3] = { 0, 0, 0 };
     int64_t sliceNextIJK[3] = { 1, 1, 1 };
@@ -4610,7 +4610,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
         sliceNextXYZ[0] - sliceXYZ[0],
         sliceNextXYZ[1] - sliceXYZ[1],
         sliceNextXYZ[2] - sliceXYZ[2]
-    };
+    };//*///these should not be computed from the underlay volume, commenting out to prevent compiler warning
     
     /*
      * Find three points on the slice so that the equation for a Plane
@@ -4619,7 +4619,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
     float p1[3];
     float p2[3];
     float p3[3];
-    float sliceThickness = 0.0;
+    //float sliceThickness = 0.0;
     switch(slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             return;
@@ -4629,7 +4629,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
             underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
             underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
-            sliceThickness = sliceThicknesses[0];
+            //sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
@@ -4637,7 +4637,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
             underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
             underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
-            sliceThickness = sliceThicknesses[1];
+            //sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
@@ -4645,7 +4645,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
             underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
             underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
-            sliceThickness = sliceThicknesses[2];
+            //sliceThickness = sliceThicknesses[2];
         }
             break;
     }
@@ -4939,7 +4939,7 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
              * End of vector
              */
             float endXYZ[3] = { 0.0, 0.0, 0.0 };
-            float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };
+            //float endTwoXYZ[3] = { 0.0, 0.0, 0.0 };//not used, commenting out to prevent compiler warning
             
             /*
              * When drawing lines, end point is the start
@@ -4953,9 +4953,9 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
                     endXYZ[0] = startXYZ[0] + halfMagnitudeVector[0];
                     endXYZ[1] = startXYZ[1] + halfMagnitudeVector[1];
                     endXYZ[2] = startXYZ[2] + halfMagnitudeVector[2];
-                    endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
-                    endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
-                    endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
+                    //endTwoXYZ[0] = startXYZ[0] - halfMagnitudeVector[0];
+                    //endTwoXYZ[1] = startXYZ[1] - halfMagnitudeVector[1];
+                    //endTwoXYZ[2] = startXYZ[2] - halfMagnitudeVector[2];
                     break;
                 case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
                     endXYZ[0] = startXYZ[0] + magnitudeVector[0];
@@ -5486,7 +5486,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     const bool haveLeft  = (leftSurface != NULL);
     const bool haveRight = (rightSurface != NULL);
     const bool haveBoth  = (haveLeft && haveRight);
-    const bool haveAny   = (haveLeft || haveRight);
+    //const bool haveAny   = (haveLeft || haveRight);//unused, commenting out to prevent compiler warning
     
     int vpSizeX = viewport[2];
     if (haveBoth) {
@@ -5932,7 +5932,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
     this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
-    bool viewingFromFarSide = false;
+    //bool viewingFromFarSide = false;//unused, commenting out to prevent compiler warning
     
     switch (rotationMatrixIndex) {
         case Model::VIEWING_TRANSFORM_NORMAL:
@@ -5944,13 +5944,13 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
                     this->orthographicFar, this->orthographicNear); 
-            viewingFromFarSide = true;
+            //viewingFromFarSide = true;
             break;
         case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
                     this->orthographicFar, this->orthographicNear);    
-            viewingFromFarSide = true;
+            //viewingFromFarSide = true;
             break;
         case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
             glOrtho(this->orthographicLeft, this->orthographicRight, 
@@ -5961,7 +5961,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
                     this->orthographicFar, this->orthographicNear);    
-            viewingFromFarSide = true;
+            //viewingFromFarSide = true;
             break;
         case Model::VIEWING_TRANSFORM_COUNT:
             CaretAssert(0);

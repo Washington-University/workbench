@@ -1205,7 +1205,7 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
             minValue = d;
         }
     }
-    bool havePositiveData = (maxValue > 0);
+    //bool havePositiveData = (maxValue > 0);//unused, commenting out to prevent compiler warning
     bool haveNegativeData = (minValue < 0);
     
     if (checkVolume) {

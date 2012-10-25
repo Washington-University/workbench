@@ -275,7 +275,7 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
  *    If the file was not successfully written.
  */
 void
-CiftiFiberTrajectoryFile::writeFile(const AString& filename) throw (DataFileException)
+CiftiFiberTrajectoryFile::writeFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Writing of Cifti Trajectory Files not supported.");
 }

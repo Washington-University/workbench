@@ -88,12 +88,12 @@ void LayoutType::getStorageOrderAsVector(std::vector <int32_t> &vec) { //gets a 
     }
 }
 
-int32_t LayoutType::getLargestCommonDimension(std::vector<int32_t> &vec)
+int32_t LayoutType::getLargestCommonDimension(std::vector<int32_t> &)//vec)
 {
     return 0;//unimplemented
 }
 
-int32_t LayoutType::getContainingDimension(MatrixDimensionsEnum &e)
+int32_t LayoutType::getContainingDimension(MatrixDimensionsEnum &)//e)
 {
     return 0;//unimplemented
 }
