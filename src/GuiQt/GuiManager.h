@@ -53,7 +53,7 @@ namespace caret {
     class ImageCaptureDialog;
     class InformationDisplayDialog;
     class MapScalarDataColorMappingEditorDialog;
-    class MovieDialog;
+    class MovieDialog1;
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -189,7 +189,7 @@ namespace caret {
         
         ImageCaptureDialog* imageCaptureDialog;
 
-        MovieDialog* movieDialog;
+        MovieDialog1* movieDialog;
         
         PreferencesDialog* preferencesDialog;       
         

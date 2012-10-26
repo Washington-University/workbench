@@ -73,7 +73,7 @@ using namespace caret;
  * @param parent
  *    Parent widget on which this dialog is displayed.
  */
-MovieDialog::MovieDialog(BrainBrowserWindow* parent)
+MovieDialog1::MovieDialog1(BrainBrowserWindow* parent)
 : WuQDialogNonModal("Record Movie",
                     parent)
 {
@@ -293,7 +293,7 @@ MovieDialog::MovieDialog(BrainBrowserWindow* parent)
 /**
  * Destructor.
  */
-MovieDialog::~MovieDialog()
+MovieDialog1::~MovieDialog1()
 {
     
 }
@@ -302,7 +302,7 @@ MovieDialog::~MovieDialog()
  * May be called to update the dialog's content.
  */
 void 
-MovieDialog::updateDialog()
+MovieDialog1::updateDialog()
 {
     
 }
@@ -314,7 +314,7 @@ MovieDialog::updateDialog()
  *    Index of browser window.
  */
 void
-MovieDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
+MovieDialog1::setBrowserWindowIndex(const int32_t browserWindowIndex)
 {
   /*  this->windowSelectionSpinBox->setValue(browserWindowIndex + 1);*/
 }
@@ -324,7 +324,7 @@ MovieDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
  * Called when choose file pushbutton is pressed.
  */
 void 
-MovieDialog::selectImagePushButtonPressed()
+MovieDialog1::selectImagePushButtonPressed()
 {
    /* QString defaultFileName = this->imageFileNameLineEdit->text().trimmed();
     if (defaultFileName.isEmpty()) {
@@ -365,7 +365,7 @@ MovieDialog::selectImagePushButtonPressed()
 /**
  * Called when the apply button is pressed.
  */
-void MovieDialog::applyButtonPressed()
+void MovieDialog1::applyButtonPressed()
 {
     /*const int browserWindowIndex = this->windowSelectionSpinBox->value() - 1;
     

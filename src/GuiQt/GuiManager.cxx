@@ -975,7 +975,7 @@ void
 GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
 {
     if (this->movieDialog == NULL) {
-        this->movieDialog = new MovieDialog(browserWindow);
+        this->movieDialog = new MovieDialog1(browserWindow);
         this->nonModalDialogs.push_back(this->movieDialog);
     }
     this->movieDialog->updateDialog();

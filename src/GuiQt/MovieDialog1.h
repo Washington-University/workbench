@@ -42,13 +42,13 @@ namespace caret {
     class BrainBrowserWindow;
     class WuQWidgetObjectGroup;
     
-    class MovieDialog : public WuQDialogNonModal {
+    class MovieDialog1 : public WuQDialogNonModal {
         Q_OBJECT
         
     public:
-        MovieDialog(BrainBrowserWindow* parent);
+        MovieDialog1(BrainBrowserWindow* parent);
         
-        virtual ~MovieDialog();
+        virtual ~MovieDialog1();
 
         void setBrowserWindowIndex(const int32_t browserWindowIndex);
         
@@ -61,9 +61,9 @@ namespace caret {
         void selectImagePushButtonPressed();
         
     private:
-        MovieDialog(const MovieDialog&);
+        MovieDialog1(const MovieDialog1&);
 
-        MovieDialog& operator=(const MovieDialog&);
+        MovieDialog1& operator=(const MovieDialog1&);
 
         QToolButton *recordMovieButton;
         QLabel *repeatFramesLabel;
