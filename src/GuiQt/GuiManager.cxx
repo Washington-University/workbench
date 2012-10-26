@@ -56,6 +56,7 @@
 #include "InformationDisplayDialog.h"
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
+#include "MovieDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -84,6 +85,7 @@ GuiManager::GuiManager(QObject* parent)
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     this->imageCaptureDialog = NULL;
+    this->movieDialog = NULL;
     m_informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
@@ -965,6 +967,25 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
     this->imageCaptureDialog->show();
     this->imageCaptureDialog->activateWindow();
 }
+
+/**
+ * Show the record movie window.
+ */
+void 
+GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
+{
+    if (this->movieDialog == NULL) {
+        this->movieDialog = new MovieDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->movieDialog);
+    }
+    this->movieDialog->updateDialog();
+    this->movieDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
+    this->movieDialog->setVisible(true);
+    this->movieDialog->show();
+    this->movieDialog->activateWindow();
+}
+
+
 
 /**
  * Show the preferences window.

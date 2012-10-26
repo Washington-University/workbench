@@ -53,6 +53,7 @@ namespace caret {
     class ImageCaptureDialog;
     class InformationDisplayDialog;
     class MapScalarDataColorMappingEditorDialog;
+    class MovieDialog;
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -110,6 +111,7 @@ namespace caret {
                                                        std::vector<BrowserTabContent*>& tabContents);
         
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
+        void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
                 
@@ -186,6 +188,8 @@ namespace caret {
         std::set<MapScalarDataColorMappingEditorDialog*> scalarDataColorMappingEditors;
         
         ImageCaptureDialog* imageCaptureDialog;
+
+        MovieDialog* movieDialog;
         
         PreferencesDialog* preferencesDialog;       
         

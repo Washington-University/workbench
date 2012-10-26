@@ -453,6 +453,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processCaptureImage()));
+
+    m_recordMovieAction = 
+    WuQtUtilities::createAction("Record Movie...",
+                                "Record a Movie of the windows content",
+                                this,
+                                this,
+                                SLOT(processRecordMovie()));
     
     m_preferencesAction = 
     WuQtUtilities::createAction("Preferences...",
@@ -875,6 +882,9 @@ BrainBrowserWindow::createMenuView()
     menu->addMenu(createMenuViewMoveFeaturesToolBox());
     menu->addMenu(createMenuViewMoveOverlayToolBox());
     menu->addSeparator();
+
+    menu->addAction(m_recordMovieAction);
+    menu->addSeparator();
     
     QMenu* screenMenu = new QMenu("Screen");
     screenMenu->addAction(m_viewScreenNormalAction);
@@ -1153,6 +1163,15 @@ void
 BrainBrowserWindow::processCaptureImage()
 {
     GuiManager::get()->processShowImageCaptureDialog(this);
+}
+
+/**
+ * Called when record movie is selected.
+ */
+void 
+BrainBrowserWindow::processRecordMovie()
+{
+    GuiManager::get()->processShowMovieDialog(this);
 }
 
 /**

@@ -114,6 +114,7 @@ namespace caret {
         void processDataFileOpenFromSpecFile();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
+        void processRecordMovie();
         void processEditPreferences();
         void processCloseSpecFile();
         void processExitProgram();
@@ -243,6 +244,8 @@ namespace caret {
         QAction* m_closeWindowAction;
         
         QAction* m_captureImageAction;
+
+        QAction* m_recordMovieAction;
         
         QAction* m_preferencesAction;
         
