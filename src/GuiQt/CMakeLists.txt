@@ -62,7 +62,7 @@ InformationDisplayWidget.h
 LabelSelectionViewController.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
-MovieDialog.h
+MovieDialog1.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -168,7 +168,7 @@ ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
 MouseEventTypeEnum.h
-MovieDialog.h
+MovieDialog1.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -272,7 +272,7 @@ ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
-MovieDialog.cxx
+MovieDialog1.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 PreferencesDialog.cxx
