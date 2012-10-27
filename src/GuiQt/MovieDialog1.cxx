@@ -43,7 +43,7 @@
 #include <QImageWriter>
 
 #define __IMAGE_CAPTURE_DIALOG__H__DECLARE__
-#include "MovieDialog.h"
+#include "MovieDialog1.h"
 #undef __IMAGE_CAPTURE_DIALOG__H__DECLARE__
 
 #include "Brain.h"

@@ -56,7 +56,7 @@
 #include "InformationDisplayDialog.h"
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
-#include "MovieDialog.h"
+#include "MovieDialog1.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
