@@ -69,7 +69,7 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
     LabelFile* myLabel = myParams->getLabel(1);
     SurfaceFile* mySurf = myParams->getSurface(2);
     float myDist = (float)myParams->getDouble(3);
-    LabelFile* myLabelOut = myParams->getLabel(4);
+    LabelFile* myLabelOut = myParams->getOutputLabel(4);
     OptionalParameter* columnSelect = myParams->getOptionalParameter(5);
     int columnNum = -1;
     if (columnSelect->m_present)
