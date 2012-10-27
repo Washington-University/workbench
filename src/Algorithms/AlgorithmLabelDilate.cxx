@@ -109,6 +109,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, myLabel->getNumberOfColumns());
         *(myLabelOut->getLabelTable()) = *(myLabel->getLabelTable());
+        myLabelOut->setStructure(mySurf->getStructure());
         for (int thisCol = 0; thisCol < myLabel->getNumberOfColumns(); ++thisCol)
         {
             const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(thisCol);
@@ -183,6 +184,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     } else {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, 1);
         *(myLabelOut->getLabelTable()) = *(myLabel->getLabelTable());
+        myLabelOut->setStructure(mySurf->getStructure());
         const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(columnNum);
         myLabelOut->setColumnName(0, myLabel->getColumnName(columnNum) + " dilated");
         for (int i = 0; i < numNodes; ++i)
