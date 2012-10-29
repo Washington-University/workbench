@@ -1131,7 +1131,8 @@ QWidget*
 BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
-    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surface Montage");
+    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surf Montage");
+//    this->viewModeSurfaceMontageRadioButton->setText("Surface\nMontage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("Whole Brain");
     
@@ -1624,7 +1625,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     /*
      * Left/Right separation
      */
-    const int separationSpinngerWidth = 60;
+    const int separationSpinngerWidth = 48;
     this->wholeBrainSurfaceSeparationLeftRightSpinBox = new QDoubleSpinBox();
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setDecimals(0);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setFixedWidth(separationSpinngerWidth);
@@ -1649,24 +1650,41 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double)));
     
     
-    QGridLayout* gridLayout = new QGridLayout();
 
     QLabel* columnTwoSpaceLabel = new QLabel(" ");
     wholeBrainLeftSurfaceToolButton->setText("L");
     wholeBrainRightSurfaceToolButton->setText("R");
     wholeBrainCerebellumSurfaceToolButton->setText("C");
-    gridLayout->setVerticalSpacing(2);
-    gridLayout->setHorizontalSpacing(2);
-    gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
-    gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-    gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-    gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
-    gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
-    gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
-    gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
-    gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
-    gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
-    gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
+    
+    bool originalFlag = false;
+    QGridLayout* gridLayout = new QGridLayout();
+    if (originalFlag) {
+        gridLayout->setVerticalSpacing(2);
+        gridLayout->setHorizontalSpacing(2);
+        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
+        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+        gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
+        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
+        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
+        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
+        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
+    }
+    else {
+        gridLayout->setVerticalSpacing(2);
+        gridLayout->setHorizontalSpacing(2);
+        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
+        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 2, 0);
+        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 2, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 3, 0);
+        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 3, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 2, 2, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 3, 2);
+    }
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1787,7 +1805,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
                      this, SLOT(volumeIndicesAxialCheckBoxStateChanged(int)));
     
     const int sliceIndexSpinBoxWidth = 55;
-    const int sliceCoordinateSpinBoxWidth = 75;
+    const int sliceCoordinateSpinBoxWidth = 60;
     
     this->volumeIndicesParasagittalSpinBox = new QSpinBox();
     this->volumeIndicesParasagittalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
@@ -2394,7 +2412,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
                      SLOT(surfaceSelectionControlChanged(const StructureEnum::Enum,
                                                          ModelSurface*)));
     
-    this->surfaceSurfaceSelectionControl->setMinimumWidth(275);
+    this->surfaceSurfaceSelectionControl->setMinimumWidth(150); //275);
     this->surfaceSurfaceSelectionControl->setMaximumWidth(1200);
     
     QWidget* widget = new QWidget();
@@ -4476,6 +4494,11 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
     else {
         
     }
+    
+    CaretLogSevere("Toolbar width/height: "
+                   + AString::number(width())
+                   + "/"
+                   + AString::number(height()));
 }
 
 /**
@@ -4704,33 +4727,32 @@ BrainBrowserWindowToolBar::createClippingWidget()
     QObject::connect(this->clippingZCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(clippingWidgetControlChanged()));
     
-    const int32_t spinBoxWidth = 70;
-    
+    const int   thickBoxWidth = 65;
     const float thicknessMin = 0.0;
     const float thicknessMax = std::numeric_limits<float>::max();
     const float thicknessStep = 1.0;
-    const int thicknessDecimals = 1;
+    const int   thicknessDecimals = 1;
     
     this->clippingXThicknessSpinBox = new QDoubleSpinBox();
     this->clippingXThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingXThicknessSpinBox->setSingleStep(thicknessStep);
     this->clippingXThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingXThicknessSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingXThicknessSpinBox->setFixedWidth(thickBoxWidth);
     
     this->clippingYThicknessSpinBox = new QDoubleSpinBox();
     this->clippingYThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingYThicknessSpinBox->setSingleStep(thicknessStep);
     this->clippingYThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingYThicknessSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingYThicknessSpinBox->setFixedWidth(thickBoxWidth);
     
     this->clippingZThicknessSpinBox = new QDoubleSpinBox();
     this->clippingZThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingZThicknessSpinBox->setSingleStep(thicknessStep);
     this->clippingZThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingZThicknessSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingZThicknessSpinBox->setFixedWidth(thickBoxWidth);
     
     QObject::connect(this->clippingXThicknessSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingWidgetControlChanged()));
@@ -4739,31 +4761,32 @@ BrainBrowserWindowToolBar::createClippingWidget()
     QObject::connect(this->clippingZThicknessSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingWidgetControlChanged()));
     
+    const int   coordBoxWidth = 60;
     const float coordMin = -std::numeric_limits<float>::max();
     const float coordMax =  std::numeric_limits<float>::max();
     const float coordStep = 1.0;
-    const int coordDecimals = 1;
+    const int   coordDecimals = 1;
     
     this->clippingXCoordSpinBox = new QDoubleSpinBox();
     this->clippingXCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingXCoordSpinBox->setSingleStep(coordStep);
     this->clippingXCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingXCoordSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingXCoordSpinBox->setFixedWidth(coordBoxWidth);
     
     this->clippingYCoordSpinBox = new QDoubleSpinBox();
     this->clippingYCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingYCoordSpinBox->setSingleStep(coordStep);
     this->clippingYCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingYCoordSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingYCoordSpinBox->setFixedWidth(coordBoxWidth);
     
     this->clippingZCoordSpinBox = new QDoubleSpinBox();
     this->clippingZCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingZCoordSpinBox->setSingleStep(coordStep);
     this->clippingZCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingZCoordSpinBox->setFixedWidth(spinBoxWidth);
+    this->clippingZCoordSpinBox->setFixedWidth(coordBoxWidth);
     
     QObject::connect(this->clippingXCoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingWidgetControlChanged()));
