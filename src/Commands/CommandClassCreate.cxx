@@ -204,7 +204,8 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
 
     t += ("    class " + className + derivedFromDeclaration + " {\n");
     t += ("        \n");
-    if (derivedFromClassName.startsWith("Q")) {
+    if (derivedFromClassName.startsWith("Q")
+        || derivedFromClassName.startsWith("WuQ")) {
         t += ("        Q_OBJECT\n");
         t += ("\n");
     }
