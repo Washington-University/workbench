@@ -840,8 +840,8 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
                           / myBoundingBox->getDifferenceX());
     const float scaleY = (targetBoundingBox->getDifferenceY()
                           / myBoundingBox->getDifferenceY());
-    const float scaleZ = (targetBoundingBox->getDifferenceY()
-                          / myBoundingBox->getDifferenceY());
+    const float scaleZ = (targetBoundingBox->getDifferenceZ()
+                          / myBoundingBox->getDifferenceZ());
     matrix.scale(scaleX,
                       scaleY,
                       scaleZ);
