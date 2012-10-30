@@ -328,5 +328,17 @@ CommandClassCreateOperation::createImplementationFile(const AString& outputFileN
     catch (const DataFileException& e) {
         throw CommandException(e);
     }
+    
+    std::cout << std::endl;
+    std::cout << "Operation was created successfully." << std::endl;
+    std::cout << std::endl;
+    std::cout << "Add the class files to Operations/CMakeLists.txt:" << std::endl;
+    std::cout << "   " << qPrintable(operationClassName) << ".h" << std::endl;
+    std::cout << "   " << qPrintable(operationClassName) << ".cxx" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Add the header file and operation to Commands/CommandOperationManager.cxx:" << std::endl;
+    std::cout << "   #include \"" << qPrintable(operationClassName) << ".h\"" << std::endl;
+    std::cout << "   this->commandOperations.push_back(new CommandParser(new Auto" << operationClassName << "()));" << std::endl;
+    std::cout << std::endl;
 }
 
