@@ -1599,7 +1599,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     
     QAction* rightSurfaceAction = WuQtUtilities::createAction("Right", 
                                                              "Select the whole brain right surface", 
-                                                             this, 
+                                                             this,
                                                              this, 
                                                              SLOT(wholeBrainSurfaceRightToolButtonTriggered(bool)));
     QToolButton* wholeBrainRightSurfaceToolButton = new QToolButton();
@@ -4495,7 +4495,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
     }
     
-    CaretLogSevere("Toolbar width/height: "
+    CaretLogFine("Toolbar width/height: "
                    + AString::number(width())
                    + "/"
                    + AString::number(height()));
