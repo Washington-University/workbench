@@ -21,6 +21,7 @@ CommandClassAddMember.h
 CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
+CommandClassCreateOperation.h
 CommandException.h
 CommandGiftiConvert.h
 CommandNiftiConvert.h
@@ -36,6 +37,7 @@ CommandClassAddMember.cxx
 CommandClassCreate.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
+CommandClassCreateOperation.cxx
 CommandException.cxx
 CommandGiftiConvert.cxx
 CommandNiftiConvert.cxx

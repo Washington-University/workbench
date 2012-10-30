@@ -82,6 +82,7 @@
 #include "CommandClassAddMember.h"
 #include "CommandClassCreate.h"
 #include "CommandClassCreateEnum.h"
+#include "CommandClassCreateOperation.h"
 #include "CommandGiftiConvert.h"
 #include "CommandNiftiConvert.h"
 #include "CommandNiftiInformation.h"
@@ -180,6 +181,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandClassAddMember());
     this->commandOperations.push_back(new CommandClassCreate());
     this->commandOperations.push_back(new CommandClassCreateEnum());
+    this->commandOperations.push_back(new CommandClassCreateOperation());
     this->commandOperations.push_back(new CommandGiftiConvert());
     this->commandOperations.push_back(new CommandSurfaceInformation());
     this->commandOperations.push_back(new CommandSurfaceMatch());
