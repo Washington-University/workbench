@@ -392,6 +392,18 @@ namespace caret {
         
         std::map<AString, AString>* getFileMetaData();
         
+        const std::map<AString, AString>* getMapMetadata(const int& direction, const int& index) const;
+        
+        std::map<AString, AString>* getMapMetadata(const int& direction, const int& index);
+        
+        const PaletteColorMapping* getFilePalette() const;
+        
+        PaletteColorMapping* getFilePalette();
+        
+        const PaletteColorMapping* getMapPalette(const int& direction, const int& index) const;
+        
+        PaletteColorMapping* getMapPalette(const int& direction, const int& index);
+        
     protected:
         CiftiRootElement m_root;
         //int m_rowMapIndex, m_colMapIndex;

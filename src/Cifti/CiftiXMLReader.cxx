@@ -497,7 +497,7 @@ void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelEleme
 
 void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& namedMap, const bool needLabels)
 {
-    bool haveName = false, haveLabelTable = false;
+    bool haveName = false, haveLabelTable = false, haveMetaData = false;;
     xml.readNext();
     while (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
     {
@@ -521,6 +521,14 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
                 namedMap.m_labelTable.grabNew(new GiftiLabelTable());
                 namedMap.m_labelTable->readFromQXmlStreamReader(xml);
                 haveLabelTable = true;
+            } else if (xml.name() == "MetaData") {
+                if (haveMetaData)
+                {
+                    xml.raiseError("MetaData specified more than once in NamedMap");
+                    break;
+                }
+                parseMetaData(xml, namedMap.m_mapMetaData);
+                haveMetaData = true;
             } else {
                 xml.raiseError("unknown element in NamedMap: " + xml.name().toString());
                 break;

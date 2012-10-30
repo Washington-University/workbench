@@ -27,6 +27,7 @@
 #include "CiftiXML.h"
 #include "CiftiFileException.h"
 #include "FloatMatrix.h"
+#include "Palette.h"
 #include "CaretAssert.h"
 
 using namespace caret;
@@ -1742,7 +1743,7 @@ bool CiftiXML::matchesForColumns(const CiftiXML& rhs) const
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_dimToMapLookup[1]]);
 }
 
-bool CiftiXML::matchesForRows(const caret::CiftiXML& rhs) const
+bool CiftiXML::matchesForRows(const CiftiXML& rhs) const
 {
     if (this == &rhs) return true;//compare pointers to skip checking object against itself
     if (m_dimToMapLookup[0] == -1 || m_root.m_matrices.size() == 0)
@@ -1766,6 +1767,160 @@ bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     CaretAssertVectorIndex(other.m_root.m_matrices[0].m_matrixIndicesMap, other.m_dimToMapLookup[otherDirection]);
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] == other.m_root.m_matrices[0].m_matrixIndicesMap[other.m_dimToMapLookup[otherDirection]]);
+}
+
+const map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index) const
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS || myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(myMap.m_namedMaps, index);
+    return &(myMap.m_namedMaps[index].m_mapMetaData);
+}
+
+map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index)
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS || myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(myMap.m_namedMaps, index);
+    return &(myMap.m_namedMaps[index].m_mapMetaData);
+}
+
+const PaletteColorMapping* CiftiXML::getFilePalette() const
+{
+    if (m_root.m_matrices.size() == 0) return NULL;
+    if (m_root.m_matrices[0].m_palette == NULL)
+    {//load from metadata
+        m_root.m_matrices[0].m_palette = new PaletteColorMapping();
+        map<AString, AString>::const_iterator myIter = m_root.m_matrices[0].m_userMetaData.find("PaletteColorMapping");
+        if (myIter != m_root.m_matrices[0].m_userMetaData.end())
+        {
+            m_root.m_matrices[0].m_palette->decodeFromStringXML(myIter->second);
+        } else {//TODO: set palette from default
+            m_root.m_matrices[0].m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+            m_root.m_matrices[0].m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            m_root.m_matrices[0].m_palette->setInterpolatePaletteFlag(true);
+        }
+    /*} else {//will be needed if we make default palettes a user preference
+        if (m_root.m_matrices[0].m_defaultPalette)
+        {//TODO: load the current defaults into the existing palette, find some way of only doing this if the defaults were modified since last time this was called
+        }//*/
+    }
+    return m_root.m_matrices[0].m_palette;
+}
+
+PaletteColorMapping* CiftiXML::getFilePalette()
+{
+    if (m_root.m_matrices.size() == 0) return NULL;
+    if (m_root.m_matrices[0].m_palette == NULL)
+    {//load from metadata
+        m_root.m_matrices[0].m_palette = new PaletteColorMapping();
+        map<AString, AString>::const_iterator myIter = m_root.m_matrices[0].m_userMetaData.find("PaletteColorMapping");
+        if (myIter != m_root.m_matrices[0].m_userMetaData.end())
+        {
+            m_root.m_matrices[0].m_palette->decodeFromStringXML(myIter->second);
+        } else {//TODO: set palette from default
+            m_root.m_matrices[0].m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+            m_root.m_matrices[0].m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            m_root.m_matrices[0].m_palette->setInterpolatePaletteFlag(true);
+        }
+    /*} else {//will be needed if we make default palettes a user preference
+        if (m_root.m_matrices[0].m_defaultPalette)
+        {//TODO: load the current defaults into the existing palette, find some way of only doing this if the defaults were modified since last time this was called
+        }//*/
+    }
+    return m_root.m_matrices[0].m_palette;
+}
+
+const PaletteColorMapping* CiftiXML::getMapPalette(const int& direction, const int& index) const
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(myMap.m_namedMaps, index);
+    const CiftiNamedMapElement& myElem = myMap.m_namedMaps[index];
+    if (myElem.m_palette == NULL)
+    {//load from metadata
+        myElem.m_palette = new PaletteColorMapping();
+        map<AString, AString>::const_iterator myIter = myElem.m_mapMetaData.find("PaletteColorMapping");
+        if (myIter != myElem.m_mapMetaData.end())
+        {
+            myElem.m_palette->decodeFromStringXML(myIter->second);
+        } else {//TODO: set palette from default
+            myElem.m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+            myElem.m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            myElem.m_palette->setInterpolatePaletteFlag(true);
+        }
+    /*} else {//will be needed if we make default palettes a user preference
+        if (m_root.m_matrices[0].m_defaultPalette)
+        {//TODO: load the current defaults into the existing palette, find some way of only doing this if the defaults were modified since last time this was called
+        }//*/
+    }
+    return myElem.m_palette;
+}
+
+PaletteColorMapping* CiftiXML::getMapPalette(const int& direction, const int& index)
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    {
+        return NULL;
+    }
+    CaretAssertVectorIndex(myMap.m_namedMaps, index);
+    CiftiNamedMapElement& myElem = myMap.m_namedMaps[index];
+    if (myElem.m_palette == NULL)
+    {//load from metadata
+        myElem.m_palette = new PaletteColorMapping();
+        map<AString, AString>::const_iterator myIter = myElem.m_mapMetaData.find("PaletteColorMapping");
+        if (myIter != myElem.m_mapMetaData.end())
+        {
+            myElem.m_palette->decodeFromStringXML(myIter->second);
+        } else {//TODO: set palette from default
+            myElem.m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+            myElem.m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+            myElem.m_palette->setInterpolatePaletteFlag(true);
+        }
+    /*} else {//will be needed if we make default palettes a user preference
+        if (m_root.m_matrices[0].m_defaultPalette)
+        {//TODO: load the current defaults into the existing palette, find some way of only doing this if the defaults were modified since last time this was called
+        }//*/
+    }
+    return myElem.m_palette;
 }
 
 bool CiftiXML::operator==(const caret::CiftiXML& rhs) const

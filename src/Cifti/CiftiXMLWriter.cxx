@@ -25,6 +25,7 @@
 
 #include "CiftiXMLWriter.h"
 #include "GiftiLabelTable.h"
+#include "PaletteColorMapping.h"
 
 using namespace caret;
 using namespace std;
@@ -49,7 +50,17 @@ void CiftiXMLWriter::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement
 void CiftiXMLWriter::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
 { 
     xml.writeStartElement("Matrix");
-    if(matrixElement.m_userMetaData.size() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
+    map<AString, AString> metadataCopy = matrixElement.m_userMetaData;//since we may be modifying the map, we must make a copy of it
+    if (matrixElement.m_palette != NULL)
+    {//NULL palette means we didn't mess with palette at all
+        if (matrixElement.m_defaultPalette && !(matrixElement.m_palette->isModified()))
+        {//it is set to use the default palette instead of a custom palette, so remove the palette item from metadata, if it exists
+            metadataCopy.erase("PaletteColorMapping");
+        } else {
+            metadataCopy["PaletteColorMapping"] = matrixElement.m_palette->encodeInXML();
+        }
+    }
+    if(metadataCopy.size() > 0) writeMetaData(xml,metadataCopy);
     if(matrixElement.m_volume.size() > 0) writeVolume(xml, matrixElement.m_volume[0]);
     if(matrixElement.m_labelTable.size() > 0) writeLabelTable(xml, matrixElement.m_labelTable);
 
@@ -245,6 +256,20 @@ void CiftiXMLWriter::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapEle
     if (namedMap.m_labelTable != NULL)
     {
         namedMap.m_labelTable->writeAsXML(xml);
+    }
+    map<AString, AString> metadataCopy = namedMap.m_mapMetaData;//make a copy because we may need to modify it to integrate palette
+    if (namedMap.m_palette != NULL)
+    {//NULL palette means we didn't mess with palette at all, leave metadata unchanged
+        if (namedMap.m_defaultPalette && !(namedMap.m_palette->isModified()))
+        {//it is set to use the default palette instead of a custom palette, so remove the palette item from metadata, if it exists
+            metadataCopy.erase("PaletteColorMapping");
+        } else {
+            metadataCopy["PaletteColorMapping"] = namedMap.m_palette->encodeInXML();
+        }
+    }
+    if (metadataCopy.size() != 0)
+    {
+        writeMetaData(xml, metadataCopy);
     }
     xml.writeEndElement();
 }
