@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <map>
+
 #define __COMMAND_OPERATION_MANAGER_DEFINE__
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
@@ -91,6 +93,8 @@
 #include "CommandNiftiInformation.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
+
+#include "CaretLogger.h"
 
 #include <iostream>
 
@@ -218,16 +222,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
     const uint64_t numberOfCommands = this->commandOperations.size();
 
     if (parameters.hasNext() == false) {
-        for (uint64_t i = 0; i < numberOfCommands; i++) {
-            CommandOperation* op = this->commandOperations[i];
-            
-            std::cout 
-            << op->getCommandLineSwitch() 
-            << "   "
-            << op->getOperationShortDescription()
-            << std::endl;
-        }//TODO: try to align/space these better, switch order, indent?
-    
+        printAllCommands();
         return;
     }
     
@@ -258,6 +253,46 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
     catch (ProgramParametersException& e) {
         std::cerr << "caught PPE" << std::endl;
         throw CommandException(e);
+    }
+}
+
+/**
+ * Print all of the commands.
+ */
+void
+CommandOperationManager::printAllCommands()
+{
+    std::map<AString, AString> cmdMap;
+    
+    int64_t longestSwitch = 0;
+    
+    const uint64_t numberOfCommands = this->commandOperations.size();
+    for (uint64_t i = 0; i < numberOfCommands; i++) {
+        CommandOperation* op = this->commandOperations[i];
+        
+        const AString cmdSwitch = op->getCommandLineSwitch();
+        const int64_t switchLength = cmdSwitch.length();
+        if (switchLength > longestSwitch) {
+            longestSwitch = switchLength;
+        }
+        
+        cmdMap.insert(std::make_pair(cmdSwitch,
+                                     op->getOperationShortDescription()));
+        
+        const AString helpInfo = op->getHelpInformation("");
+        if (helpInfo.isEmpty()) {
+            CaretLogFine("Command has no help info: " + cmdSwitch);
+        }
+    }
+
+    for (std::map<AString, AString>::iterator iter = cmdMap.begin();
+         iter != cmdMap.end();
+         iter++) {
+        AString cmdSwitch = iter->first;
+        cmdSwitch = cmdSwitch.leftJustified(longestSwitch + 2, ' ');
+        AString description = iter->second;
+        
+        std::cout << qPrintable(cmdSwitch) << qPrintable(description) << std::endl;
     }
 }
 
