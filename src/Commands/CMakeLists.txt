@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Commands
 CommandClassAddMember.h
 CommandClassCreate.h
+CommandClassCreateAlgorithm.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
 CommandClassCreateOperation.h
@@ -29,12 +30,11 @@ CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
-CommandSurfaceInformation.h
-CommandSurfaceMatch.h
-CommandUnitTest.h
+ CommandUnitTest.h
 
 CommandClassAddMember.cxx
 CommandClassCreate.cxx
+CommandClassCreateAlgorithm.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
 CommandClassCreateOperation.cxx
@@ -45,8 +45,6 @@ CommandNiftiInformation.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx
-CommandSurfaceInformation.cxx
-CommandSurfaceMatch.cxx
 CommandUnitTest.cxx
 )
 

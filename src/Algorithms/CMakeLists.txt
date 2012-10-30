@@ -38,6 +38,7 @@ AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
+AlgorithmSurfaceMatch.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelResamplingGeneric.h
@@ -66,6 +67,7 @@ AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
+AlgorithmSurfaceMatch.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelResamplingGeneric.cxx

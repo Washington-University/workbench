@@ -44,6 +44,7 @@
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
+#include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
@@ -70,6 +71,7 @@
 #include "OperationSetStructure.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceGeodesicROIs.h"
+#include "OperationSurfaceInformation.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumeMath.h"
 #include "OperationVolumePalette.h"
@@ -81,13 +83,12 @@
 
 #include "CommandClassAddMember.h"
 #include "CommandClassCreate.h"
+#include "CommandClassCreateAlgorithm.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandClassCreateOperation.h"
 #include "CommandGiftiConvert.h"
 #include "CommandNiftiConvert.h"
 #include "CommandNiftiInformation.h"
-#include "CommandSurfaceInformation.h"
-#include "CommandSurfaceMatch.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -146,6 +147,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
@@ -172,6 +174,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
@@ -180,11 +183,10 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandNiftiInformation());
     this->commandOperations.push_back(new CommandClassAddMember());
     this->commandOperations.push_back(new CommandClassCreate());
+    this->commandOperations.push_back(new CommandClassCreateAlgorithm());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandClassCreateOperation());
     this->commandOperations.push_back(new CommandGiftiConvert());
-    this->commandOperations.push_back(new CommandSurfaceInformation());
-    this->commandOperations.push_back(new CommandSurfaceMatch());
     this->commandOperations.push_back(new CommandUnitTest());
     this->commandOperations.push_back(new CommandNiftiConvert());
 }

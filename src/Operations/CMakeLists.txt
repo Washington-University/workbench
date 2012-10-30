@@ -37,6 +37,7 @@ OperationMetricPalette.h
 OperationSetStructure.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
+OperationSurfaceInformation.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
@@ -62,6 +63,7 @@ OperationMetricPalette.cxx
 OperationSetStructure.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
+OperationSurfaceInformation.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx

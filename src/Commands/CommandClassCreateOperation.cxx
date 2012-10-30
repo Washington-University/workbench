@@ -192,7 +192,7 @@ CommandClassCreateOperation::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
-    t += ("    class " + operationClassName + " {\n");
+    t += ("    class " + operationClassName + " : public AbstractOperation {\n");
     t += ("\n");
     t += ("    public:\n");
     t += ("        static OperationParameters* getParameters();\n");
@@ -286,7 +286,7 @@ CommandClassCreateOperation::createImplementationFile(const AString& outputFileN
     t += ("AString\n");
     t += ("" + operationClassName + "::getShortDescription()\n");
     t += ("{\n");
-    t += ("    return \"" + shortDescription + "\";\n");
+    t += ("    return \"" + shortDescription.toUpper() + "\";\n");
     t += ("}\n");
     t += ("\n");
     
@@ -300,7 +300,7 @@ CommandClassCreateOperation::createImplementationFile(const AString& outputFileN
     t += ("    \n");
     t += ("    AString helpText;\n");
     t += ("    \n");
-    t += ("    ret->setHelpText(myText);\n");
+    t += ("    ret->setHelpText(helpText);\n");
     t += ("    \n");
     t += ("    return ret;\n");
     t += ("}\n");
@@ -312,7 +312,7 @@ CommandClassCreateOperation::createImplementationFile(const AString& outputFileN
     t += (" */\n");
     t += ("void\n");
     t += ("" + operationClassName + "::useParameters(OperationParameters* myParams,\n");
-    t += ("                                          ProgressObject* myProgObj\n");
+    t += ("                                          ProgressObject* myProgObj)\n");
     t += ("{\n");
     t += ("    LevelProgress myProgress(myProgObj);\n");
     t += ("    \n");
