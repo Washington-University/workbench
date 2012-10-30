@@ -34,6 +34,35 @@ CommandNiftiInformation::CommandNiftiInformation() : CommandOperation("-nifti-in
 {
 }
 
+/**
+ * @return The help information.
+ */
+AString
+CommandNiftiInformation::getHelpInformation(const AString& /*programName*/)
+{
+    AString helpInfo = ("\n"
+                        "Print information about a NIFTI file.\n"
+                        "\n"
+                        "Usage:  <nifti-file>\n"
+                        "        [-print-header]\n"
+                        "        [-print-matrix]\n"
+                        "        [-print-xml]\n"
+                        "\n"
+                        "    nifti-file\n"
+                        "        Required NIFTI file name.\n"
+                        "    \n"
+                        "    -print-header\n"
+                        "        Option to show header contents.\n"
+                        "    \n"
+                        "    -print-matrix\n"
+                        "        Option to print the matrix (CIFTI Intents only).\n"
+                        "    \n"
+                        "    -print-xml\n"
+                        "        Option to print the XML (CIFTI Intents only).\n"
+                        );
+    return helpInfo;
+}
+
 void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
     try

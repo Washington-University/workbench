@@ -52,6 +52,39 @@ CommandGiftiConvert::~CommandGiftiConvert()
 }
 
 /**
+ * @return The help information.
+ */
+AString
+CommandGiftiConvert::getHelpInformation(const AString& /*programName*/)
+{
+    AString helpInfo = ("Convert GIFTI file to different encoding\n"
+                        "\n"
+                        "Usage:  <gifti-encoding>\n"
+                        "        <input-gifti-file>\n"
+                        "        <output-gifti-file>\n"
+                        "    \n"
+                        "    gifti-encoding\n"
+                        "        Required GIFTI encoding.\n"
+                        "    \n"
+                        "    input-gifti-file\n"
+                        "        Required input GIFTI file name.\n"
+                        "    \n"
+                        "    output-gifti-file\n"
+                        "        Required output GIFTI file name.\n"
+                        "    \n"
+                        );
+    
+    helpInfo += ("    Valid GIFTI Encodings: \n"
+                 "        ASCII\n"
+                 "        BASE64_BINARY\n"
+                 "        GZIP_BASE64_BINARY\n"
+                 "        EXTERNAL_FILE_BINARY\n"
+                 "\n");
+    
+    return helpInfo;
+}
+
+/**
  * Execute the operation.
  * 
  * @param parameters

@@ -281,7 +281,7 @@ CommandOperationManager::printAllCommands()
         
         const AString helpInfo = op->getHelpInformation("");
         if (helpInfo.isEmpty()) {
-            CaretLogFine("Command has no help info: " + cmdSwitch);
+            CaretLogSevere("Command has no help info: " + cmdSwitch);
         }
     }
 

@@ -52,6 +52,9 @@ CommandClassCreateAlgorithm::~CommandClassCreateAlgorithm()
     
 }
 
+/**
+ * @return The help information.
+ */
 AString 
 CommandClassCreateAlgorithm::getHelpInformation(const AString& /*programName*/) 
 {
