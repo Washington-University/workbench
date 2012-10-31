@@ -64,11 +64,11 @@ CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
     m_sparseFile = NULL;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-        m_displayStatusInTab[i] = false;
+        m_displayStatusInTab[i] = true;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_displayStatusInDisplayGroup[i] = false;
+        m_displayStatusInDisplayGroup[i] = true;
     }
 }
 

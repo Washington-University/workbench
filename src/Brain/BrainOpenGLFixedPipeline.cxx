@@ -5224,6 +5224,9 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
         const CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
+        if (trajFile->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+            continue;
+        }
         
         const std::vector<FiberOrientationTrajectory*>& trajectories = trajFile->getLoadedFiberOrientationTrajectories();
         const int64_t numTraj = static_cast<int64_t>(trajectories.size());
