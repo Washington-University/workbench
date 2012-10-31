@@ -251,7 +251,7 @@ void CiftiXMLWriter::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapEle
 {
     xml.writeStartElement("NamedMap");
     xml.writeStartElement("MapName");
-    xml.writeCDATA(namedMap.m_mapName);
+    xml.writeCharacters(namedMap.m_mapName);
     xml.writeEndElement();
     if (namedMap.m_labelTable != NULL)
     {
