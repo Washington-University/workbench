@@ -754,6 +754,13 @@ ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex)
     {
         case LOADER_TYPE_DENSE_SCALARS:
             return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            if (ciftiInterface->getCiftiXML().getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)//because timeseries isn't always timeseries due to a hack of getting scalars to behave like dtseries
+            {
+                return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+            } else {
+                return this->ciftiInterface->getCiftiXML().getFilePalette();
+            }
         default:
             return this->ciftiInterface->getCiftiXML().getFilePalette();
     };
@@ -778,6 +785,13 @@ ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex) const
     {
         case LOADER_TYPE_DENSE_SCALARS:
             return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            if (ciftiInterface->getCiftiXML().getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)//because timeseries isn't always timeseries due to a hack of getting scalars to behave like dtseries
+            {
+                return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+            } else {
+                return this->ciftiInterface->getCiftiXML().getFilePalette();
+            }
         default:
             return this->ciftiInterface->getCiftiXML().getFilePalette();
     };
