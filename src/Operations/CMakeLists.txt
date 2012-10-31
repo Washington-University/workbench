@@ -31,6 +31,7 @@ OperationConvertMatrix4ToWorkbenchSparse.h
 OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
+OperationLabelMask.h
 OperationMetricMask.h
 OperationMetricMath.h
 OperationMetricPalette.h
@@ -57,6 +58,7 @@ OperationConvertMatrix4ToWorkbenchSparse.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx
+OperationLabelMask.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx
 OperationMetricPalette.cxx
