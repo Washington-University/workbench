@@ -55,7 +55,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->ciftiXnatFile = NULL;
     this->ciftiInterface = NULL;
     this->descriptiveStatistics = NULL;
-    this->paletteColorMapping = NULL;
+    //this->paletteColorMapping = NULL;
     this->labelTable = NULL;
     this->metadata = NULL;
     this->data = NULL;
@@ -98,10 +98,10 @@ ConnectivityLoaderFile::clearData()
         delete this->descriptiveStatistics;
         this->descriptiveStatistics = NULL;
     }
-    if (this->paletteColorMapping != NULL) {
+    /*if (this->paletteColorMapping != NULL) {
         delete this->paletteColorMapping;
         this->paletteColorMapping = NULL;
-    }
+    }//*/
     if (this->labelTable != NULL) {
         delete this->labelTable;
         this->labelTable = NULL;
@@ -147,7 +147,7 @@ ConnectivityLoaderFile::reset()
     this->clearData();
     this->descriptiveStatistics = new DescriptiveStatistics();
     
-    this->paletteColorMapping = new PaletteColorMapping();
+    //this->paletteColorMapping = new PaletteColorMapping();
     
     this->labelTable = new GiftiLabelTable();
     
@@ -303,9 +303,9 @@ ConnectivityLoaderFile::setup(const AString& path,
                 break;
         }
 
-        this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-        this->paletteColorMapping->setInterpolatePaletteFlag(true);
+        //this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+        //this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+        //this->paletteColorMapping->setInterpolatePaletteFlag(true);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -434,12 +434,12 @@ ConnectivityLoaderFile::getFileMetaData() const
  * @return The palette color mapping for a data column.
  */
 PaletteColorMapping* 
-ConnectivityLoaderFile::getPaletteColorMapping(const int32_t /*columnIndex*/)
+ConnectivityLoaderFile::getPaletteColorMapping(const int32_t columnIndex)
 {
     /*
      * Use one palette color mapping for all
      */
-    return this->paletteColorMapping;
+    return getMapPaletteColorMapping(columnIndex);
 }
 
 /**
@@ -745,12 +745,18 @@ ConnectivityLoaderFile::isMappedWithPalette() const
  *    not mapped using a palette).
  */         
 PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
     /*
      * One palette mapping for all
      */
-    return this->paletteColorMapping;    
+    switch (loaderType)
+    {
+        case LOADER_TYPE_DENSE_SCALARS:
+            return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        default:
+            return this->ciftiInterface->getCiftiXML().getFilePalette();
+    };
 }
 
 /**
@@ -763,12 +769,18 @@ ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
  *    not mapped using a palette).
  */         
 const PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
     /*
      * One palette mapping for all
      */
-    return this->paletteColorMapping;    
+    switch (loaderType)
+    {
+        case LOADER_TYPE_DENSE_SCALARS:
+            return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        default:
+            return this->ciftiInterface->getCiftiXML().getFilePalette();
+    };
 }
 
 /**

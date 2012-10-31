@@ -472,9 +472,7 @@ CiftiScalarFile::getMapHistogram(const int32_t mapIndex,
 PaletteColorMapping*
 CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
-    CaretAssertVectorIndex(m_mapData,
-                           mapIndex);
-    return m_mapData[mapIndex]->m_paletteColorMapping;
+    return m_ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
 }
 
 
@@ -490,9 +488,7 @@ CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex)
 const PaletteColorMapping*
 CiftiScalarFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
-    CaretAssertVectorIndex(m_mapData,
-                           mapIndex);
-    return m_mapData[mapIndex]->m_paletteColorMapping;
+    return m_ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
 }
 
 
@@ -578,7 +574,7 @@ CiftiScalarFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
             
             const AString paletteName = paletteColorMapping->getSelectedPaletteName();
             NodeAndVoxelColoring::colorScalarsWithPalette(md->m_fastStatistics,
-                                                          md->m_paletteColorMapping,
+                                                          getMapPaletteColorMapping(mapIndex),
                                                           palette,
                                                           md->m_data,
                                                           md->m_data,
@@ -841,7 +837,7 @@ CiftiScalarFile::MapData::MapData(const int32_t numberOfElements)
     m_fastStatistics      = new FastStatistics();
     m_histogram           = new Histogram();
     m_metadata            = new GiftiMetaData();
-    m_paletteColorMapping = new PaletteColorMapping();
+    //m_paletteColorMapping = new PaletteColorMapping();
     m_volumeFile          = NULL;
     
     m_isColoringValid = false;
@@ -858,7 +854,7 @@ CiftiScalarFile::MapData::~MapData()
     delete   m_fastStatistics;
     delete   m_histogram;
     delete   m_metadata;
-    delete   m_paletteColorMapping;
+    //delete   m_paletteColorMapping;
     if (m_volumeFile != NULL) {
         delete m_volumeFile;
     }
@@ -961,10 +957,10 @@ CiftiScalarFile::MapData::createVolumeFile(CiftiInterface* ciftiInterface,
  *    Number of elements in the data.
  */
 void
-CiftiScalarFile::MapData::initializeMetaData(const AString& fileName,
-                                            const int32_t numberOfDataElements)
+CiftiScalarFile::MapData::initializeMetaData(const AString& /*fileName*/,
+                                            const int32_t /*numberOfDataElements*/)
 {
-    bool havePalette = false;
+    //bool havePalette = false;//TODO: metadata is now stored inside the CiftiXML, change this?
     
     AString mapName = m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_NAME);
     if (mapName.isEmpty()) {
@@ -973,7 +969,7 @@ CiftiScalarFile::MapData::initializeMetaData(const AString& fileName,
                         mapName);
     }
     
-    const AString paletteString = m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING);
+    /*const AString paletteString = m_metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING);
     if (paletteString.isEmpty() == false) {
         try {
             m_paletteColorMapping->decodeFromStringXML(paletteString);
@@ -993,6 +989,6 @@ CiftiScalarFile::MapData::initializeMetaData(const AString& fileName,
                                                    mapName,
                                                    m_data,
                                                    numberOfDataElements);
-    }
+    }//*/
 }
 

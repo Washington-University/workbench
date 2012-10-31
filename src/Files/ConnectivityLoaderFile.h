@@ -272,7 +272,7 @@ namespace caret {
         
         CaretPointer<Histogram> m_histogram;
         
-        PaletteColorMapping* paletteColorMapping;
+        //PaletteColorMapping* paletteColorMapping;
         
         GiftiLabelTable* labelTable;
         

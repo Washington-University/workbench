@@ -25,6 +25,7 @@
 #include "CiftiXMLElements.h"
 #include "CiftiFileException.h"
 #include "GiftiLabelTable.h"
+#include "PaletteColorMapping.h"
 
 using namespace caret;
 using namespace std;
@@ -320,7 +321,7 @@ bool CiftiMatrixIndicesMapElement::operator==(const CiftiMatrixIndicesMapElement
     return true;
 }
 
-bool CiftiBrainModelElement::operator==(const caret::CiftiBrainModelElement& rhs) const
+bool CiftiBrainModelElement::operator==(const CiftiBrainModelElement& rhs) const
 {
     if (m_indexOffset != rhs.m_indexOffset) return false;
     if (m_indexCount != rhs.m_indexCount) return false;
@@ -390,6 +391,8 @@ bool CiftiNamedMapElement::operator==(const CiftiNamedMapElement& rhs) const
 CiftiNamedMapElement::CiftiNamedMapElement(const CiftiNamedMapElement& rhs)
 {
     m_mapName = rhs.m_mapName;
+    m_defaultPalette = rhs.m_defaultPalette;
+    if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
     if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
 }
 
@@ -397,6 +400,7 @@ CiftiNamedMapElement& CiftiNamedMapElement::operator=(const CiftiNamedMapElement
 {
     if (this == &rhs) return *this;
     m_mapName = rhs.m_mapName;
+    if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
     if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
     return *this;
 }
@@ -452,4 +456,44 @@ bool CiftiParcelSurfaceElement::operator==(const CiftiParcelSurfaceElement& rhs)
         if (m_lookup[i] != rhs.m_lookup[i]) return false;
     }
     return true;
+}
+
+CiftiMatrixElement::CiftiMatrixElement(const CiftiMatrixElement& rhs)
+{
+    m_labelTable = rhs.m_labelTable;
+    m_userMetaData = rhs.m_userMetaData;
+    if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
+    m_defaultPalette = rhs.m_defaultPalette;
+    m_matrixIndicesMap = rhs.m_matrixIndicesMap;
+    m_volume = rhs.m_volume;
+}
+
+CiftiMatrixElement& CiftiMatrixElement::operator=(const caret::CiftiMatrixElement& rhs)
+{
+    if (this == &rhs) return *this;
+    m_labelTable = rhs.m_labelTable;
+    m_userMetaData = rhs.m_userMetaData;
+    if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
+    m_defaultPalette = rhs.m_defaultPalette;
+    m_matrixIndicesMap = rhs.m_matrixIndicesMap;
+    m_volume = rhs.m_volume;
+    return *this;
+}
+
+CiftiNamedMapElement::CiftiNamedMapElement()
+{//just so that the destructors of GiftiLabelTable and PaletteColorMapping are resolved without including them into the .h
+    m_defaultPalette = false;
+}
+
+CiftiNamedMapElement::~CiftiNamedMapElement()
+{
+}
+
+CiftiMatrixElement::CiftiMatrixElement()
+{//ditto
+    m_defaultPalette = false;
+}
+
+CiftiMatrixElement::~CiftiMatrixElement()
+{
 }

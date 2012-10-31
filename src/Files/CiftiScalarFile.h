@@ -173,7 +173,7 @@ namespace caret {
             
             Histogram* m_histogram;
             
-            PaletteColorMapping* m_paletteColorMapping;
+            //PaletteColorMapping* m_paletteColorMapping;
             
             mutable GiftiMetaData* m_metadata;
             

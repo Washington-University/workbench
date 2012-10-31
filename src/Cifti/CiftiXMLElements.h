@@ -98,10 +98,11 @@ struct CiftiNamedMapElement
     AString m_mapName;
     CaretPointer<GiftiLabelTable> m_labelTable;
     std::map<AString, AString> m_mapMetaData;/*!< User Meta Data*/
-    mutable PaletteColorMapping* m_palette;//palette settings storage
+    mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
     mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
-    CiftiNamedMapElement() { m_palette = NULL; m_defaultPalette = false; }
+    CiftiNamedMapElement();
     CiftiNamedMapElement(const CiftiNamedMapElement& rhs);//to turn copy and assignment into a deep copy of the label table
+    ~CiftiNamedMapElement();
     CiftiNamedMapElement& operator=(const CiftiNamedMapElement& rhs);
     bool operator==(const CiftiNamedMapElement& rhs) const;
     bool operator!=(const CiftiNamedMapElement& rhs) const { return !(*this == rhs); }
@@ -200,9 +201,13 @@ public:
 /// Cifti Matrix XML Element
 class CiftiMatrixElement {
 public:
+    CiftiMatrixElement(const CiftiMatrixElement& rhs);
+    CiftiMatrixElement& operator=(const CiftiMatrixElement& rhs);
+    CiftiMatrixElement();
+    ~CiftiMatrixElement();
     std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO: replace this with GiftiLabelTable (or remove? not being used for anything)
     std::map<AString, AString> m_userMetaData;/*!< User Meta Data*/
-    mutable PaletteColorMapping* m_palette;//palette settings storage
+    mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
     mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
     std::vector<CiftiMatrixIndicesMapElement> m_matrixIndicesMap;/*!< Vector array of one or more Matrix Indices Map Elements*/
     std::vector<CiftiVolumeElement> m_volume;/*!< Volume Element*/

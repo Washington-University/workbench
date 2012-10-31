@@ -396,13 +396,10 @@ namespace caret {
         
         std::map<AString, AString>* getMapMetadata(const int& direction, const int& index);
         
-        const PaletteColorMapping* getFilePalette() const;
+        //HACK: const method returns non-const PaletteColorMapping pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the palette
+        PaletteColorMapping* getFilePalette() const;
         
-        PaletteColorMapping* getFilePalette();
-        
-        const PaletteColorMapping* getMapPalette(const int& direction, const int& index) const;
-        
-        PaletteColorMapping* getMapPalette(const int& direction, const int& index);
+        PaletteColorMapping* getMapPalette(const int& direction, const int& index) const;
         
     protected:
         CiftiRootElement m_root;
