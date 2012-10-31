@@ -797,47 +797,48 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
 //                        dy = -dy;
 //                    }
                     
-                        Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                              Model::VIEWING_TRANSFORM_NORMAL);
-                        rotationMatrix->rotateX(-dy);
-                        rotationMatrix->rotateY(dx);
-                        
-                        /*
-                         * Matrix for a left surface opposite view in surface montage
-                         */
-                        Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                             Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-                        rotationMatrixSurfMontLeftOpp->rotateX(-dy);
-                        rotationMatrixSurfMontLeftOpp->rotateY(dx);
-                        
-                        /*
-                         * Matrix for a right surface view in surface montage
-                         */
-                        Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                           Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                        rotationMatrixSurfMontRight->rotateX(dy); //-dy);
-                        rotationMatrixSurfMontRight->rotateY(-dx);
-                        
-                        /*
-                         * Matrix for a right surface opposite view in surface montage
-                         */
-                        Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                        rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
-                        rotationMatrixSurfMontRightOpp->rotateY(-dx);
-                        
-                        /*
-                         * Matrix for a right medial/lateral yoked surface
-                         */
-                        Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                              Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                        rotationMatrixRightLatMedYoked->rotateX(dy);
-                        rotationMatrixRightLatMedYoked->rotateY(-dx);
                     }
                 }
+            
+            Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                  Model::VIEWING_TRANSFORM_NORMAL);
+            rotationMatrix->rotateX(-dy);
+            rotationMatrix->rotateY(dx);
+            
+            /*
+             * Matrix for a left surface opposite view in surface montage
+             */
+            Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                 Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+            rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+            rotationMatrixSurfMontLeftOpp->rotateY(dx);
+            
+            /*
+             * Matrix for a right surface view in surface montage
+             */
+            Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                               Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+            rotationMatrixSurfMontRight->rotateX(dy); //-dy);
+            rotationMatrixSurfMontRight->rotateY(-dx);
+            
+            /*
+             * Matrix for a right surface opposite view in surface montage
+             */
+            Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                  Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+            rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
+            rotationMatrixSurfMontRightOpp->rotateY(-dx);
+            
+            /*
+             * Matrix for a right medial/lateral yoked surface
+             */
+            Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                  Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+            rotationMatrixRightLatMedYoked->rotateX(dy);
+            rotationMatrixRightLatMedYoked->rotateY(-dx);
             }
-            //}
         }
+        
         //
         // Mouse moved with control key and left mouse button down
         // OR is this a wheel event
