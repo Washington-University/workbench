@@ -69,7 +69,7 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
     const int32_t thresholdStreamline = 5;
     const float maximumProportionOpacity = 0.80;
     const float minimumProportionOpacity = 0.05;
-    const FiberTrajectoryDisplayModeEnum::Enum displayMode = FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION;
+    const FiberTrajectoryDisplayModeEnum::Enum displayMode = FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE;
     const int32_t countMaximum = 50;
     const int32_t countMinimum =  5;
     
