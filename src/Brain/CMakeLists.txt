@@ -120,8 +120,9 @@ OverlaySet.h
 SessionManager.h
 Surface.h
 SurfaceDrawingTypeEnum.h
-SurfaceSelectionModel.h
+SurfaceMontageViewport.h
 SurfaceNodeColoring.h
+SurfaceSelectionModel.h
 VolumeSliceCoordinateSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
@@ -200,8 +201,9 @@ OverlaySet.cxx
 SessionManager.cxx
 Surface.cxx
 SurfaceDrawingTypeEnum.cxx
-SurfaceSelectionModel.cxx
+SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
+SurfaceSelectionModel.cxx
 VolumeSliceCoordinateSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx

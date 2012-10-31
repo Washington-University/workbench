@@ -366,14 +366,17 @@ namespace caret {
         SurfaceSelectionViewController* surfaceMontageLeftSecondSurfaceViewController;
         SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
         SurfaceSelectionViewController* surfaceMontageRightSecondSurfaceViewController;
-        QCheckBox* surfaceMontageDualConfigurationCheckBox;
+        QCheckBox* surfaceMontageLeftCheckBox;
+        QCheckBox* surfaceMontageRightCheckBox;
+        QCheckBox* surfaceMontageFirstSurfaceCheckBox;
+        QCheckBox* surfaceMontageSecondSurfaceCheckBox;
         
     private slots:
         void surfaceMontageLeftSurfaceSelected(Surface*);
         void surfaceMontageLeftSecondSurfaceSelected(Surface*);
         void surfaceMontageRightSurfaceSelected(Surface*);
         void surfaceMontageRightSecondSurfaceSelected(Surface*);
-        void surfaceMontageDualConfigurationCheckBoxSelected(bool);
+        void surfaceMontageCheckBoxSelected(bool);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;

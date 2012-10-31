@@ -101,38 +101,131 @@ ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
         m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
         m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
         m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-        m_dualConfigurationEnabled[i] = false;
+        m_leftEnabled[i] = true;
+        m_rightEnabled[i] = true;
+        m_firstSurfaceEnabled[i] = true;
+        m_secondSurfaceEnabled[i] = false;
     }
 }
 
 /**
- * @return Is dual configuration enabled?
+ * @return Is  enabled?
  */
 bool 
-ModelSurfaceMontage::isDualConfigurationEnabled(const int tabIndex) const
+ModelSurfaceMontage::isLeftEnabled(const int tabIndex) const
 {
-    CaretAssertArrayIndex(m_dualConfigurationEnabled, 
+    CaretAssertArrayIndex(m_leftEnabled, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
-    return m_dualConfigurationEnabled[tabIndex];
+    return m_leftEnabled[tabIndex];
 }
 
 /**
- * Set dual configuration enabled
+ * Set  enabled
  * @param tabIndex
  *    Index of tab.
  * @param enabled
- *    New dual configuration status
+ *    New status
  */
 void 
-ModelSurfaceMontage::setDualConfigurationEnabled(const int tabIndex,
+ModelSurfaceMontage::setLeftEnabled(const int tabIndex,
                                                  const bool enabled)
 {
-    CaretAssertArrayIndex(m_dualConfigurationEnabled, 
+    CaretAssertArrayIndex(m_leftEnabled, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           tabIndex);
 
-    m_dualConfigurationEnabled[tabIndex] = enabled;
+    m_leftEnabled[tabIndex] = enabled;
+}
+
+/**
+ * @return Is  enabled?
+ */
+bool
+ModelSurfaceMontage::isRightEnabled(const int tabIndex) const
+{
+    CaretAssertArrayIndex(m_rightEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_rightEnabled[tabIndex];
+}
+
+/**
+ * Set  enabled
+ * @param tabIndex
+ *    Index of tab.
+ * @param enabled
+ *    New status
+ */
+void
+ModelSurfaceMontage::setRightEnabled(const int tabIndex,
+                                                 const bool enabled)
+{
+    CaretAssertArrayIndex(m_rightEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    
+    m_rightEnabled[tabIndex] = enabled;
+}
+
+/**
+ * @return Is  enabled?
+ */
+bool
+ModelSurfaceMontage::isFirstSurfaceEnabled(const int tabIndex) const
+{
+    CaretAssertArrayIndex(m_firstSurfaceEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_firstSurfaceEnabled[tabIndex];
+}
+
+/**
+ * Set  enabled
+ * @param tabIndex
+ *    Index of tab.
+ * @param enabled
+ *    New status
+ */
+void
+ModelSurfaceMontage::setFirstSurfaceEnabled(const int tabIndex,
+                                                 const bool enabled)
+{
+    CaretAssertArrayIndex(m_firstSurfaceEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    
+    m_firstSurfaceEnabled[tabIndex] = enabled;
+}
+
+/**
+ * @return Is  enabled?
+ */
+bool
+ModelSurfaceMontage::isSecondSurfaceEnabled(const int tabIndex) const
+{
+    CaretAssertArrayIndex(m_secondSurfaceEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_secondSurfaceEnabled[tabIndex];
+}
+
+/**
+ * Set  enabled
+ * @param tabIndex
+ *    Index of tab.
+ * @param enabled
+ *    New status
+ */
+void
+ModelSurfaceMontage::setSecondSurfaceEnabled(const int tabIndex,
+                                                 const bool enabled)
+{
+    CaretAssertArrayIndex(m_secondSurfaceEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    
+    m_secondSurfaceEnabled[tabIndex] = enabled;
 }
 
 /**
@@ -377,12 +470,7 @@ ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
                                 modelSurfaceMontage->m_rightSurfaceSelectionModel[windowTabNumberSource]->getSurface());
     
     m_rightSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-                                modelSurfaceMontage->m_rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
-    
-    m_dualConfigurationEnabled[windowTabNumberTarget] = modelSurfaceMontage->m_dualConfigurationEnabled[windowTabNumberSource];
-    
-//    m_setSliceViewPlane(windowTabNumberTarget, 
-//                            modelVolumeSource->getSliceViewPlane(windowTabNumberSource));
+                                modelSurfaceMontage->m_rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());    
 }
 
 /**
@@ -400,6 +488,8 @@ void
 ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                       SceneClass* sceneClass)
 {
+    sceneClass->addInteger("montageVersion", 2);
+    
     /*
      * Get indices of tabs that are to be saved to scene.
      */ 
@@ -440,16 +530,31 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
     sceneClass->addChild(rightSecondSurfaceMap);
     
     /*
-     * Dual configuration selection
+     * Selections
      */
-    SceneObjectMapIntegerKey* dualConfigurationMap = new SceneObjectMapIntegerKey("m_dualConfigurationEnabled",
+    SceneObjectMapIntegerKey* rightEnabledMap = new SceneObjectMapIntegerKey("m_rightEnabled",
                                                                        SceneObjectDataTypeEnum::SCENE_BOOLEAN);
+    SceneObjectMapIntegerKey* leftEnabledMap = new SceneObjectMapIntegerKey("m_leftEnabled",
+                                                                                  SceneObjectDataTypeEnum::SCENE_BOOLEAN);
+    SceneObjectMapIntegerKey* firstSurfaceEnabledMap = new SceneObjectMapIntegerKey("m_firstSurfaceEnabled",
+                                                                                  SceneObjectDataTypeEnum::SCENE_BOOLEAN);
+    SceneObjectMapIntegerKey* secondSurfaceEnabledMap = new SceneObjectMapIntegerKey("m_secondSurfaceEnabled",
+                                                                                  SceneObjectDataTypeEnum::SCENE_BOOLEAN);
     for (int32_t iat = 0; iat < numActiveTabs; iat++) {
         const int32_t tabIndex = tabIndices[iat];
-        dualConfigurationMap->addBoolean(tabIndex,
-                                         m_dualConfigurationEnabled[tabIndex]);
+        rightEnabledMap->addBoolean(tabIndex,
+                                         m_rightEnabled[tabIndex]);
+        leftEnabledMap->addBoolean(tabIndex,
+                                         m_leftEnabled[tabIndex]);
+        firstSurfaceEnabledMap->addBoolean(tabIndex,
+                                         m_firstSurfaceEnabled[tabIndex]);
+        secondSurfaceEnabledMap->addBoolean(tabIndex,
+                                         m_secondSurfaceEnabled[tabIndex]);
     }
-    sceneClass->addChild(dualConfigurationMap);
+    sceneClass->addChild(rightEnabledMap);
+    sceneClass->addChild(leftEnabledMap);
+    sceneClass->addChild(firstSurfaceEnabledMap);
+    sceneClass->addChild(secondSurfaceEnabledMap);
 }
 
 /**
@@ -467,6 +572,8 @@ void
 ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    const int32_t montageVersion = sceneClass->getIntegerValue("montageVersion", 1);
+    
     /*
      * Restore left surface
      */
@@ -531,19 +638,124 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
         }
     }
     
-    /*
-     * Restore dual configuration
-     */
-    const SceneObjectMapIntegerKey* dualConfigurationMap = sceneClass->getMapIntegerKey("m_dualConfigurationEnabled");
-    if (dualConfigurationMap != NULL) {
-        const std::map<int32_t, SceneObject*>& dataMap = dualConfigurationMap->getMap();
-        for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
-             iter != dataMap.end();
-             iter++) {
-            const int32_t key = iter->first;
-            const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
-            m_dualConfigurationEnabled[key] = primitive->booleanValue();
+    
+    if (montageVersion <= 1) {
+        /*
+         * Version 1 had only dual option so enable items added in version 2
+         */
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_leftEnabled[i] = true;
+            m_rightEnabled[i] = true;
+            m_firstSurfaceEnabled[i] = true;
+            m_secondSurfaceEnabled[i] = false;
+        }
+        
+        /*
+         * Restore dual configuration as second surface
+         */
+        const SceneObjectMapIntegerKey* dualConfigurationMap = sceneClass->getMapIntegerKey("m_dualConfigurationEnabled");
+        if (dualConfigurationMap != NULL) {
+            const std::map<int32_t, SceneObject*>& dataMap = dualConfigurationMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+                 iter != dataMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+                m_secondSurfaceEnabled[key] = primitive->booleanValue();
+            }
+        }
+    }
+    else {
+        /*
+         *  Restore left enabled
+         */
+        const SceneObjectMapIntegerKey* leftEnabledMap = sceneClass->getMapIntegerKey("m_leftEnabled");
+        if (leftEnabledMap != NULL) {
+            const std::map<int32_t, SceneObject*>& dataMap = leftEnabledMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+                 iter != dataMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+                m_leftEnabled[key] = primitive->booleanValue();
+            }
+        }
+
+        /*
+         * Restore right enabled
+         */
+        const SceneObjectMapIntegerKey* rightEnabledMap = sceneClass->getMapIntegerKey("m_rightEnabled");
+        if (rightEnabledMap != NULL) {
+            const std::map<int32_t, SceneObject*>& dataMap = rightEnabledMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+                 iter != dataMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+                m_rightEnabled[key] = primitive->booleanValue();
+            }
+        }
+        
+        /*
+         * Restore first surface enabled
+         */
+        const SceneObjectMapIntegerKey* firstSurfaceEnabledMap = sceneClass->getMapIntegerKey("m_firstSurfaceEnabled");
+        if (firstSurfaceEnabledMap != NULL) {
+            const std::map<int32_t, SceneObject*>& dataMap = firstSurfaceEnabledMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+                 iter != dataMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+                m_firstSurfaceEnabled[key] = primitive->booleanValue();
+            }
+        }
+        
+        /*
+         * Restore second surface enabled
+         */
+        const SceneObjectMapIntegerKey* secondSurfaceEnabledMap = sceneClass->getMapIntegerKey("m_secondSurfaceEnabled");
+        if (secondSurfaceEnabledMap != NULL) {
+            const std::map<int32_t, SceneObject*>& dataMap = secondSurfaceEnabledMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = dataMap.begin();
+                 iter != dataMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(iter->second);
+                m_secondSurfaceEnabled[key] = primitive->booleanValue();
+            }
         }
     }
 }
+
+/**
+ * Set the montage viewports that were drawn for the given tab.
+ * 
+ * @param tabIndex
+ *    Index of the tab.
+ * @param montageViewports
+ *    The viewports/models that were drawn.
+ */
+void
+ModelSurfaceMontage::setMontageViewports(const int32_t tabIndex,
+                                         const std::vector<SurfaceMontageViewport>& montageViewports)
+{
+    m_montageViewports[tabIndex] = montageViewports;
+}
+
+/**
+ * Get the montage viewports that were drawn for the given tab.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ * @param montageViewportsOut
+ *    The viewports/models that were drawn.
+ */
+void
+ModelSurfaceMontage::getMontageViewports(const int32_t tabIndex,
+                                         std::vector<SurfaceMontageViewport>& montageViewportsOut)
+{
+    montageViewportsOut = m_montageViewports[tabIndex];
+}
+
 

@@ -894,11 +894,21 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         {
             ModelSurfaceMontage* msm = getDisplayedSurfaceMontageModel();
-            displayedDataFiles.insert(msm->getLeftSurfaceSelectionModel(tabIndex)->getSurface());
-            displayedDataFiles.insert(msm->getRightSurfaceSelectionModel(tabIndex)->getSurface());
-            if (msm->isDualConfigurationEnabled(tabIndex)) {
-                displayedDataFiles.insert(msm->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface());
-                displayedDataFiles.insert(msm->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface());
+            if (msm->isFirstSurfaceEnabled(tabIndex)) {
+                if (msm->isLeftEnabled(tabIndex)) {
+                    displayedDataFiles.insert(msm->getLeftSurfaceSelectionModel(tabIndex)->getSurface());
+                }
+                if (msm->isRightEnabled(tabIndex)) {
+                    displayedDataFiles.insert(msm->getRightSurfaceSelectionModel(tabIndex)->getSurface());
+                }
+            }
+            if (msm->isSecondSurfaceEnabled(tabIndex)) {
+                if (msm->isLeftEnabled(tabIndex)) {
+                    displayedDataFiles.insert(msm->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface());
+                }
+                if (msm->isRightEnabled(tabIndex)) {
+                    displayedDataFiles.insert(msm->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface());
+                }
             }
         }
             break;

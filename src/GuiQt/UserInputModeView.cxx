@@ -678,144 +678,163 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
             else {
                 ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
                 if (montageModel != NULL) {
-                    /*
-                     * Need to adjust mouse for location in viewport
-                     */
-                    int viewport[4];
-                    viewportContent->getViewport(viewport);
-//                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
-//                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
-                    const int32_t halfWidth  = viewport[2] / 2;
-                    const int32_t halfHeight = viewport[3] / 2;
+                    std::vector<SurfaceMontageViewport> montageViewports;
+                    montageModel->getMontageViewports(tabIndex,
+                                                      montageViewports);
                     
-                    /*
-                     * Use location of where mouse is originally pressed
-                     * to determine the surface montage surface being
-                     * manipulated.  Otherwise, if mouse is moved out of
-                     * region where originally pressed, the rotations
-                     * would change.
-                     */
-                    const int32_t viewportMousePressedX = mousePressedX - viewport[0];
-                    const int32_t viewportMousePressedY = mousePressedY - viewport[1];
-                    
-                    /*
-                     * Determine hemisphere of surface and if it is lateral or 
-                     * medial view.
-                     * Row2 => Top => Lateral View
-                     * Row1 => Bottom => Medial View
-                     * Columns 1 and 3 => Left Hemisphere
-                     * Columns 2 and 4 => Right Hemisphere
-                     */
-                    bool isRight  = false;
-                    bool isMedial = false;
-                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
-                        const int32_t quarterWidth = halfWidth / 2;
-                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
-                        if (viewportMousePressedX > halfWidth) {
-                            isRight = true;
+                    bool isValid = false;
+                    bool isLeft = true;
+                    bool isLateral = true;
+                    const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+                    for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                        const SurfaceMontageViewport& smv = montageViewports[ivp];
+                        if (smv.isInside(mousePressedX,
+                                         mousePressedY)) {
+                            if (StructureEnum::isLeft(smv.structure)) {
+                                isValid = true;
+                                isLeft  = true;
+                            }
+                            else if (StructureEnum::isRight(smv.structure)) {
+                                isValid = true;
+                                isLeft  = false;
+                            }
+                            
+                            if (isValid) {
+                                switch (smv.viewingMatrixIndex) {
+                                    case Model::VIEWING_TRANSFORM_COUNT:
+                                        isValid = false;
+                                        break;
+                                    case Model::VIEWING_TRANSFORM_NORMAL:
+                                        isLateral = true;
+                                        break;
+                                    case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+                                        isValid = false;
+                                        break;
+                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+                                        isLateral = false;
+                                        break;
+                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+                                        isLateral = true;
+                                        break;
+                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+                                        isLateral = false;
+                                        break;
+                                }
+                            }
                         }
                         
-                        if ((viewportMousePressedX >= quarterWidth)
-                            && (viewportMousePressedX < halfWidth)) {
-                            isMedial = true;
-                        }
-                        else if (viewportMousePressedX >= threeQuarterWidth) {
-                            isMedial = true;
-                        }
-                    }
-                    else {
-                        if (viewportMousePressedX > halfWidth) {
-                            isRight = true;
-                        }
-                        if (viewportMousePressedY < halfHeight) {
-                            isMedial = true;
+                        if (isValid) {
+                            break;
                         }
                     }
                     
-                    if (isRight) {
-                        dx = -dx;
-                    }
-                    
-                    if (isMedial) {
-                        dy = -dy;
-                    }
-                    
-//                    /*
-//                     * By default, surface montage rotates a left surface.
-//                     * Bottom row contains a right surface so flip the 
-//                     * rotation.
+                    if (isValid) {
+                        if (isLeft == false) {
+                            dx = -dx;
+                        }
+                        if (isLateral == false) {
+                            dy = -dy;
+                        }
+                    /*
+//                     * Need to adjust mouse for location in viewport
 //                     */
-//                    if (viewportMousePressedY < halfHeight) {
-//                        dx = -dx;
-//                    }
+//                    int viewport[4];
+//                    viewportContent->getViewport(viewport);
+////                    const int32_t mouseX = mouseEvent->getX() - viewport[0];
+////                    const int32_t mouseY = mouseEvent->getY() - viewport[1];
+//                    const int32_t halfWidth  = viewport[2] / 2;
+//                    const int32_t halfHeight = viewport[3] / 2;
 //                    
 //                    /*
-//                     * For single configuration, need to rotate second column
-//                     * opposite of first.  For dual, rotate second and fourth
-//                     * columns opposite of first and third.
+//                     * Use location of where mouse is originally pressed
+//                     * to determine the surface montage surface being
+//                     * manipulated.  Otherwise, if mouse is moved out of
+//                     * region where originally pressed, the rotations
+//                     * would change.
 //                     */
-//                    bool flipY = false;
-//                    bool flipX = false;
+//                    const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+//                    const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+//                    
+//                    /*
+//                     * Determine hemisphere of surface and if it is lateral or 
+//                     * medial view.
+//                     * Row2 => Top => Lateral View
+//                     * Row1 => Bottom => Medial View
+//                     * Columns 1 and 3 => Left Hemisphere
+//                     * Columns 2 and 4 => Right Hemisphere
+//                     */
+//                    bool isRight  = false;
+//                    bool isMedial = false;
 //                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
 //                        const int32_t quarterWidth = halfWidth / 2;
 //                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
-//                        if ((viewportMousePressedX > quarterWidth)
-//                            && (mouseX <= halfWidth)) {
-//                            flipY = true;
+//                        if (viewportMousePressedX > halfWidth) {
+//                            isRight = true;
 //                        }
-//                        else if (viewportMousePressedX > threeQuarterWidth) {
-//                            flipY = true;
+//                        
+//                        if ((viewportMousePressedX >= quarterWidth)
+//                            && (viewportMousePressedX < halfWidth)) {
+//                            isMedial = true;
+//                        }
+//                        else if (viewportMousePressedX >= threeQuarterWidth) {
+//                            isMedial = true;
 //                        }
 //                    }
 //                    else {
 //                        if (viewportMousePressedX > halfWidth) {
-//                            flipY = true;
+//                            isRight = true;
+//                        }
+//                        if (viewportMousePressedY < halfHeight) {
+//                            isMedial = true;
 //                        }
 //                    }
-//                    if (flipX) {
+//                    
+//                    if (isRight) {
 //                        dx = -dx;
 //                    }
-//                    if (flipY) {
+//                    
+//                    if (isMedial) {
 //                        dy = -dy;
 //                    }
+                    
+                        Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                              Model::VIEWING_TRANSFORM_NORMAL);
+                        rotationMatrix->rotateX(-dy);
+                        rotationMatrix->rotateY(dx);
+                        
+                        /*
+                         * Matrix for a left surface opposite view in surface montage
+                         */
+                        Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                             Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                        rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+                        rotationMatrixSurfMontLeftOpp->rotateY(dx);
+                        
+                        /*
+                         * Matrix for a right surface view in surface montage
+                         */
+                        Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                           Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+                        rotationMatrixSurfMontRight->rotateX(dy); //-dy);
+                        rotationMatrixSurfMontRight->rotateY(-dx);
+                        
+                        /*
+                         * Matrix for a right surface opposite view in surface montage
+                         */
+                        Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                              Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+                        rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
+                        rotationMatrixSurfMontRightOpp->rotateY(-dx);
+                        
+                        /*
+                         * Matrix for a right medial/lateral yoked surface
+                         */
+                        Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
+                                                                                                              Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+                        rotationMatrixRightLatMedYoked->rotateX(dy);
+                        rotationMatrixRightLatMedYoked->rotateY(-dx);
+                    }
                 }
-                
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dy);
-                rotationMatrix->rotateY(dx);
-                
-                /*
-                 * Matrix for a left surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
-                rotationMatrixSurfMontLeftOpp->rotateY(dx);
-                
-                /*
-                 * Matrix for a right surface view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                rotationMatrixSurfMontRight->rotateX(dy); //-dy);
-                rotationMatrixSurfMontRight->rotateY(-dx);
-                
-                /*
-                 * Matrix for a right surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
-                rotationMatrixSurfMontRightOpp->rotateY(-dx);
-                
-                /*
-                 * Matrix for a right medial/lateral yoked surface
-                 */
-                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                           Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dy);
-                rotationMatrixRightLatMedYoked->rotateY(-dx);
             }
             //}
         }
@@ -838,102 +857,191 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         else if (mouseEvent->isShiftKeyDown()) {
             ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
             if (montageModel != NULL) {
-                /*
-                 * Single Configuration Layout:
-                 *    S1  S3
-                 *    S2  S4
-                 *
-                 * Dual Configuration Layout:
-                 *    S1  S3  S5  S7   (S5 behaves like S1,  S7 behaves like S3)
-                 *    S2  S4  S6  S8   (S6 behaves like S2,  S8 behaves like S4)
-                 */
-                /*
-                 * Need to adjust mouse for location in viewport
-                 */
-                int viewport[4];
-                viewportContent->getViewport(viewport);
-//                const int32_t mouseX = mouseEvent->getX() - viewport[0];
-//                const int32_t mouseY = mouseEvent->getY() - viewport[1];
-                const int32_t halfWidth  = viewport[2] / 2;
-                const int32_t halfHeight = viewport[3] / 2;
-
-                /*
-                 * Use location of where mouse is originally pressed
-                 * to determine the surface montage surface being
-                 * manipulated.  Otherwise, if mouse is moved out of
-                 * region where originally pressed, the rotations
-                 * would change.
-                 */
-                const int32_t viewportMousePressedX = mousePressedX - viewport[0];
-                const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+                std::vector<SurfaceMontageViewport> montageViewports;
+                montageModel->getMontageViewports(tabIndex,
+                                                  montageViewports);
                 
-                /*
-                 * Determine which surface S1 to S4  (S5 to S8 duplicate S1 to S4)
-                 */
-                const int32_t quarterWidth = halfWidth / 2;
-                
-                int32_t xp = 0;
-                int32_t yp = (viewportMousePressedY / halfHeight);
-                if (montageModel->isDualConfigurationEnabled(tabIndex)) {
-                    xp = (viewportMousePressedX / quarterWidth); 
-                }
-                else {
-                    xp = (viewportMousePressedX / halfWidth);
-                }
-                
-                float flipX = 1.0;
-                switch (yp) {
-                    case 0:
-                        switch (xp) {
-                            case 0:
-                            case 2:
-                                flipX = -1.0;
-                            default:
-                                break;
+                bool isValid = false;
+                bool isLeft = true;
+                bool isLateral = true;
+                const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+                for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                    const SurfaceMontageViewport& smv = montageViewports[ivp];
+                    if (smv.isInside(mousePressedX,
+                                     mousePressedY)) {
+                        if (StructureEnum::isLeft(smv.structure)) {
+                            isValid = true;
+                            isLeft  = true;
                         }
-                        break;
-                    case 1:
-                        switch (xp) {
-                            case 1:
-                            case 3:
-                                flipX = -1.0;
-                            default:
-                                break;
+                        else if (StructureEnum::isRight(smv.structure)) {
+                            isValid = true;
+                            isLeft  = false;
                         }
+                        
+                        if (isValid) {
+                            switch (smv.viewingMatrixIndex) {
+                                case Model::VIEWING_TRANSFORM_COUNT:
+                                    isValid = false;
+                                    break;
+                                case Model::VIEWING_TRANSFORM_NORMAL:
+                                    isLateral = true;
+                                    break;
+                                case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+                                    isValid = false;
+                                    break;
+                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+                                    isLateral = false;
+                                    break;
+                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+                                    isLateral = true;
+                                    break;
+                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+                                    isLateral = false;
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    if (isValid) {
                         break;
+                    }
                 }
-                
-                const float* translation = modelController->getTranslation(tabIndex, 
-                                                                           Model::VIEWING_TRANSFORM_NORMAL);
-                const float tx = translation[0];
-                const float ty = translation[1];
-                const float tz = translation[2];
-                
-                modelController->setTranslation(tabIndex,
-                                                Model::VIEWING_TRANSFORM_NORMAL,
-                                                tx + (dx * flipX),
-                                                ty + dy,
-                                                tz);
-                modelController->setTranslation(tabIndex,
-                                                Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
-                                                tx - (dx * flipX),
-                                                ty + dy,
-                                                tz);
-                modelController->setTranslation(tabIndex,
-                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
-                                                tx + (dx * flipX),
-                                                ty + dy,
-                                                tz);
-                modelController->setTranslation(tabIndex,
-                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
-                                                tx + (dx * flipX),
-                                                ty + dy,
-                                                tz);
-                modelController->setTranslation(tabIndex,
-                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
-                                                tx + (dx * flipX),
-                                                ty + dy,
-                                                tz);
+                if (isValid) {
+                    if (isLeft == false) {
+                        dx = -dx;
+                    }
+                    if (isLateral == false) {
+                        dx = -dx;
+                    }
+                    
+                    const float* translation = modelController->getTranslation(tabIndex,
+                                                                               Model::VIEWING_TRANSFORM_NORMAL);
+                    const float tx = translation[0];
+                    const float ty = translation[1];
+                    const float tz = translation[2];
+                    
+                    modelController->setTranslation(tabIndex,
+                                                    Model::VIEWING_TRANSFORM_NORMAL,
+                                                    tx + dx,
+                                                    ty + dy,
+                                                    tz);
+                    modelController->setTranslation(tabIndex,
+                                                    Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
+                                                    tx - dx,
+                                                    ty + dy,
+                                                    tz);
+                    modelController->setTranslation(tabIndex,
+                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
+                                                    tx + dx,
+                                                    ty + dy,
+                                                    tz);
+                    modelController->setTranslation(tabIndex,
+                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
+                                                    tx + dx,
+                                                    ty + dy,
+                                                    tz);
+                    modelController->setTranslation(tabIndex,
+                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
+                                                    tx + dx,
+                                                    ty + dy,
+                                                    tz);
+                }
+//                /*
+//                 * Single Configuration Layout:
+//                 *    S1  S3
+//                 *    S2  S4
+//                 *
+//                 * Dual Configuration Layout:
+//                 *    S1  S3  S5  S7   (S5 behaves like S1,  S7 behaves like S3)
+//                 *    S2  S4  S6  S8   (S6 behaves like S2,  S8 behaves like S4)
+//                 */
+//                /*
+//                 * Need to adjust mouse for location in viewport
+//                 */
+//                int viewport[4];
+//                viewportContent->getViewport(viewport);
+////                const int32_t mouseX = mouseEvent->getX() - viewport[0];
+////                const int32_t mouseY = mouseEvent->getY() - viewport[1];
+//                const int32_t halfWidth  = viewport[2] / 2;
+//                const int32_t halfHeight = viewport[3] / 2;
+//
+//                /*
+//                 * Use location of where mouse is originally pressed
+//                 * to determine the surface montage surface being
+//                 * manipulated.  Otherwise, if mouse is moved out of
+//                 * region where originally pressed, the rotations
+//                 * would change.
+//                 */
+//                const int32_t viewportMousePressedX = mousePressedX - viewport[0];
+//                const int32_t viewportMousePressedY = mousePressedY - viewport[1];
+//                
+//                /*
+//                 * Determine which surface S1 to S4  (S5 to S8 duplicate S1 to S4)
+//                 */
+//                const int32_t quarterWidth = halfWidth / 2;
+//                
+//                int32_t xp = 0;
+//                int32_t yp = (viewportMousePressedY / halfHeight);
+////                if (montageModel->isDualConfigurationEnabled(tabIndex)) {
+////                    xp = (viewportMousePressedX / quarterWidth); 
+////                }
+////                else {
+////                    xp = (viewportMousePressedX / halfWidth);
+////                }
+//                
+//                float flipX = 1.0;
+//                switch (yp) {
+//                    case 0:
+//                        switch (xp) {
+//                            case 0:
+//                            case 2:
+//                                flipX = -1.0;
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                    case 1:
+//                        switch (xp) {
+//                            case 1:
+//                            case 3:
+//                                flipX = -1.0;
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                }
+//                
+//                const float* translation = modelController->getTranslation(tabIndex, 
+//                                                                           Model::VIEWING_TRANSFORM_NORMAL);
+//                const float tx = translation[0];
+//                const float ty = translation[1];
+//                const float tz = translation[2];
+//                
+//                modelController->setTranslation(tabIndex,
+//                                                Model::VIEWING_TRANSFORM_NORMAL,
+//                                                tx + (dx * flipX),
+//                                                ty + dy,
+//                                                tz);
+//                modelController->setTranslation(tabIndex,
+//                                                Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
+//                                                tx - (dx * flipX),
+//                                                ty + dy,
+//                                                tz);
+//                modelController->setTranslation(tabIndex,
+//                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
+//                                                tx + (dx * flipX),
+//                                                ty + dy,
+//                                                tz);
+//                modelController->setTranslation(tabIndex,
+//                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
+//                                                tx + (dx * flipX),
+//                                                ty + dy,
+//                                                tz);
+//                modelController->setTranslation(tabIndex,
+//                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
+//                                                tx + (dx * flipX),
+//                                                ty + dy,
+//                                                tz);
             }
             else {
                 if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {

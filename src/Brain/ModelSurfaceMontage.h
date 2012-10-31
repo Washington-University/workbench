@@ -29,6 +29,7 @@
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "StructureEnum.h"
+#include "SurfaceMontageViewport.h"
 
 namespace caret {
 
@@ -69,14 +70,35 @@ namespace caret {
         
         void setDefaultScalingToFitWindow();
         
-        bool isDualConfigurationEnabled(const int tabIndex) const;
+        bool isLeftEnabled(const int tabIndex) const;
         
-        void setDualConfigurationEnabled(const int tabIndex,
+        void setLeftEnabled(const int tabIndex,
+                                    const bool enabled);
+        
+        bool isRightEnabled(const int tabIndex) const;
+        
+        void setRightEnabled(const int tabIndex,
+                            const bool enabled);
+        
+        bool isFirstSurfaceEnabled(const int tabIndex) const;
+        
+        void setFirstSurfaceEnabled(const int tabIndex,
                                          const bool enabled);
+        
+        bool isSecondSurfaceEnabled(const int tabIndex) const;
+        
+        void setSecondSurfaceEnabled(const int tabIndex,
+                                    const bool enabled);
         
         virtual void copyTransformationsAndViews(const Model& controller,
                                                  const int32_t windowTabNumberSource,
                                                  const int32_t windowTabNumberTarget);
+        
+        void setMontageViewports(const int32_t tabIndex,
+                                 const std::vector<SurfaceMontageViewport>& montageViewports);
+        
+        void getMontageViewports(const int32_t tabIndex,
+                                 std::vector<SurfaceMontageViewport>& montageViewportsOut);
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -99,8 +121,16 @@ namespace caret {
         
         SurfaceSelectionModel* m_rightSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool m_dualConfigurationEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
+        bool m_leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_rightEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_firstSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_secondSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        std::vector<SurfaceMontageViewport> m_montageViewports[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         /** Overlays sets for this model and for each tab */
         OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
