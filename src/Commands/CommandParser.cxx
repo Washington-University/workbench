@@ -33,6 +33,7 @@
 #include "OperationException.h"
 #include "AlgorithmException.h"
 #include "DataFileException.h"
+#include "FileInformation.h"
 #include <iostream>
 
 using namespace caret;
@@ -60,6 +61,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         //this gets set on output files during writeOutput
         parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
         parameters.verifyAllParametersProcessed();
+        checkOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
         //code to show what arguments map to what parameters should go here
         provenanceForOnDiskOutputs(myOutAssoc);//on-disk writing poses challenges for persistent metadata, this is where the special handling goes
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
@@ -127,6 +129,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::CIFTI:
             {
+                FileInformation myInfo(nextArg);
+                m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track all input cifti names - don't need to worry about "doesn't exist" case, because openFile below will error
                 CaretPointer<CiftiFile> myFile(new CiftiFile());
                 myFile->openFile(nextArg, ON_DISK);
                 const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
@@ -428,6 +432,28 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
                     (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
                 }
                 myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
+{
+    for (uint32_t i = 0; i < outAssociation.size(); ++i)
+    {
+        AbstractParameter* myParam = outAssociation[i].m_param;
+        switch (myParam->getType())
+        {
+            case OperationParametersEnum::CIFTI:
+            {
+                FileInformation myInfo(outAssociation[i].m_fileName);
+                if (m_inputCiftiNames.find(myInfo.getCanonicalFilePath()) != m_inputCiftiNames.end())
+                {
+                    throw CommandException("output cifti file '" + outAssociation[i].m_fileName + "' is also an input file, aborting to avoid corrupting files");
+                }
                 break;
             }
             default:
