@@ -669,6 +669,19 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
                                                                                  true);
         }
+        
+        /*
+         * Set the default tab to whole brain, if present
+         */
+        int32_t defaultTabIndex = 0;
+        for (int32_t i = 0; i < numTabs; i++) {
+            BrowserTabContent* btc = getTabContentFromTab(i);
+            if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN) {
+                defaultTabIndex = i;
+                break;
+            }
+        }
+        this->tabBar->setCurrentIndex(defaultTabIndex);
     }
 }
 
@@ -1131,10 +1144,10 @@ QWidget*
 BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
-    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surf Montage");
+    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
 //    this->viewModeSurfaceMontageRadioButton->setText("Surface\nMontage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
-    this->viewModeWholeBrainRadioButton = new QRadioButton("Whole Brain");
+    this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);

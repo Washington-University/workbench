@@ -495,14 +495,14 @@ BrainBrowserWindow::createActions()
                                                              this);
     m_viewScreenFullAction->setCheckable(true);
     
-    m_viewScreenMontageTabsAction = WuQtUtilities::createAction("Tab Montage", 
-                                                                    "View all tabs in a grid layout", 
+    m_viewScreenMontageTabsAction = WuQtUtilities::createAction("Tile Tabs", 
+                                                                    "View all tabs in a tiled layout", 
                                                                     Qt::CTRL+Qt::Key_M, 
                                                                     this);
     m_viewScreenMontageTabsAction->setCheckable(true);
     
-    m_viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tab Montage (Full Screen)", 
-                                                                        "View all tabs in a grid layout using all of screen", 
+    m_viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tile Tabs (Full Screen)", 
+                                                                        "View all tabs in a tiled layout using all of screen", 
                                                                         Qt::CTRL+Qt::SHIFT+Qt::Key_M, 
                                                                         this);
     m_viewScreenFullMontageTabsAction->setCheckable(true);

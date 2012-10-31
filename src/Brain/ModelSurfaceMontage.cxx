@@ -214,7 +214,7 @@ ModelSurfaceMontage::getNameForGUI(const bool /*includeStructureFlag*/) const
 AString 
 ModelSurfaceMontage::getNameForBrowserTab() const
 {
-    AString name = "Surface Montage";
+    AString name = "Montage";
     
     return name;
 }

@@ -389,7 +389,7 @@ ModelWholeBrain::getNameForGUI(const bool /*includeStructureFlag*/) const
 AString 
 ModelWholeBrain::getNameForBrowserTab() const
 {
-    return "Whole Brain";
+    return "All ";
 }
 
 /**

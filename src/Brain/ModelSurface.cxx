@@ -156,7 +156,10 @@ AString
 ModelSurface::getNameForBrowserTab() const
 {
     const StructureEnum::Enum structure = m_surface->getStructure();
-    const AString name = StructureEnum::toGuiName(structure);
+    AString name = StructureEnum::toGuiName(structure);
+    if (structure == StructureEnum::CEREBELLUM) {
+        name = "Cbllm";
+    }
     return name;
 }
 
