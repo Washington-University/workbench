@@ -92,7 +92,12 @@ FociSelectionViewController::FociSelectionViewController(const int32_t browserWi
     QHBoxLayout* groupLayout = new QHBoxLayout();
     groupLayout->addWidget(groupLabel);
     groupLayout->addWidget(m_fociDisplayGroupComboBox->getWidget());
-    groupLayout->addStretch(); 
+    groupLayout->addStretch();
+    
+    m_fociDisplayCheckBox = new QCheckBox("Display Foci");
+    m_fociDisplayCheckBox->setToolTip("Enable the display of foci");
+    QObject::connect(m_fociDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
     
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
@@ -108,9 +113,12 @@ FociSelectionViewController::FociSelectionViewController(const int32_t browserWi
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
+    layout->addSpacing(10);
+    layout->addWidget(m_fociDisplayCheckBox);
     layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
-    layout->addStretch();
+    layout->addStretch();    
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
@@ -144,11 +152,6 @@ FociSelectionViewController::createSelectionWidget()
 QWidget*
 FociSelectionViewController::createAttributesWidget()
 {
-    m_fociDisplayCheckBox = new QCheckBox("Display Foci");
-    m_fociDisplayCheckBox->setToolTip("Enable the display of foci");
-    QObject::connect(m_fociDisplayCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processAttributesChanges()));
-    
     m_fociContralateralCheckBox = new QCheckBox("Contralateral");
     m_fociContralateralCheckBox->setToolTip("Enable display of foci from contralateral brain structure");
     QObject::connect(m_fociContralateralCheckBox, SIGNAL(clicked(bool)),
@@ -210,8 +213,6 @@ FociSelectionViewController::createAttributesWidget()
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_fociDisplayCheckBox, row, 0, 1, 2);
-    row++;
     gridLayout->addWidget(m_fociContralateralCheckBox, row, 0, 1, 2);
     row++;
     gridLayout->addWidget(m_pasteOntoSurfaceCheckBox, row, 0, 1, 2);

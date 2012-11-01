@@ -93,9 +93,12 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     groupLayout->addWidget(m_bordersDisplayGroupComboBox->getWidget());
     groupLayout->addStretch(); 
     
+    m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
+    QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
-    
     
 //    QTabWidget* tabWidget = new QTabWidget();
     WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
@@ -107,7 +110,10 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
+    layout->addSpacing(10);
+    layout->addWidget(m_bordersDisplayCheckBox);
     layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -143,10 +149,6 @@ BorderSelectionViewController::createSelectionWidget()
 QWidget* 
 BorderSelectionViewController::createAttributesWidget()
 {
-    m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
-    QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processAttributesChanges()));
-    
     m_bordersContralateralCheckBox = new QCheckBox("Contralateral");
     QObject::connect(m_bordersContralateralCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
@@ -203,8 +205,6 @@ BorderSelectionViewController::createAttributesWidget()
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_bordersDisplayCheckBox, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
     gridLayout->addWidget(m_bordersContralateralCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);

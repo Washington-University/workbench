@@ -97,6 +97,10 @@ WuQTabWidget::WuQTabWidget(const TabAlignment alignment,
     
     m_widget = new QWidget();
     QVBoxLayout* verticalLayout = new QVBoxLayout(m_widget);
+    QMargins margins = verticalLayout->contentsMargins();
+    margins.setLeft(0);
+    margins.setRight(0);
+    verticalLayout->setContentsMargins(margins);
     verticalLayout->setSpacing(3);
     verticalLayout->addLayout(tabBarLayout,
                               0);

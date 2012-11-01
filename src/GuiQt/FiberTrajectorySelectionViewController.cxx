@@ -95,6 +95,11 @@ FiberTrajectorySelectionViewController::FiberTrajectorySelectionViewController(c
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
     
+    m_displayTrajectoriesCheckBox = new QCheckBox("Display Trajectories");
+    m_displayTrajectoriesCheckBox->setToolTip("Display Trajectories");
+    QObject::connect(m_displayTrajectoriesCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processSelectionChanges()));
+    
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
     
@@ -102,15 +107,18 @@ FiberTrajectorySelectionViewController::FiberTrajectorySelectionViewController(c
     //QTabWidget* tabWidget = new QTabWidget();
     WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                                this);
+    
     tabWidget->addTab(attributesWidget,
                       "Attributes");
     tabWidget->addTab(selectionWidget,
-                      "Files");
+                      "Selection");
     tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
+    layout->addSpacing(10);
+    layout->addWidget(m_displayTrajectoriesCheckBox);
     layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -137,6 +145,7 @@ QWidget*
 FiberTrajectorySelectionViewController::createSelectionWidget()
 {
     m_selectionWidgetLayout = new QVBoxLayout();
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(m_selectionWidgetLayout);
@@ -152,11 +161,6 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
     const int spinBoxWidth = 65;
-    
-    m_displayTrajectoriesCheckBox = new QCheckBox("Display Trajectories");
-    m_displayTrajectoriesCheckBox->setToolTip("Display Trajectories");
-    QObject::connect(m_displayTrajectoriesCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processAttributesChanges()));
     
     m_displayModeButtonGroup = new QButtonGroup(this);
     QObject::connect(m_displayModeButtonGroup, SIGNAL(buttonClicked(int)),
@@ -302,8 +306,6 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(m_displayTrajectoriesCheckBox);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(modeGroupBox);
     layout->addWidget(dataMappingGroupBox);
     layout->addStretch();
@@ -334,10 +336,6 @@ FiberTrajectorySelectionViewController::processAttributesChanges()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
     
-    dpfo->setDisplayed(displayGroup,
-                       browserTabIndex,
-                       m_displayTrajectoriesCheckBox->isChecked());
-
     const int32_t selectedModeRadioButtonIndex = m_displayModeButtonGroup->checkedId();
     const FiberTrajectoryDisplayModeEnum::Enum displayMode = m_displayModeRadioButtonData[selectedModeRadioButtonIndex];
     dpfo->setDisplayMode(displayGroup,
@@ -528,7 +526,11 @@ FiberTrajectorySelectionViewController::processSelectionChanges()
     DisplayPropertiesFiberTrajectory* dpfo = brain->getDisplayPropertiesFiberTrajectory();
     
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
-    //dpfo->setDisplayed(displayGroup, browserTabIndex, m_fileSelectionCheckBoxes[iff]->isChecked());
+    
+    dpfo->setDisplayed(displayGroup,
+                       browserTabIndex,
+                       m_displayTrajectoriesCheckBox->isChecked());
+    
     
     const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
     const int32_t numberOfFiberTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();

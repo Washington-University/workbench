@@ -41,6 +41,7 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -92,6 +93,11 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     QWidget* selectionWidget = this->createSelectionWidget();
     QWidget* samplesWidget   = this->createSamplesWidget();
     
+    m_displayFibersCheckBox = new QCheckBox("Display Fibers");
+    m_displayFibersCheckBox->setToolTip("Display Fibers");
+    QObject::connect(m_displayFibersCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processSelectionChanges()));
+    
     
     //QTabWidget* tabWidget = new QTabWidget();
     WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
@@ -99,7 +105,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     tabWidget->addTab(attributesWidget,
                       "Attributes");
     tabWidget->addTab(selectionWidget,
-                      "Files");
+                      "Selection");
     tabWidget->addTab(samplesWidget,
                       "Samples");
     tabWidget->setCurrentWidget(attributesWidget);
@@ -107,6 +113,8 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
+    layout->addSpacing(10);
+    layout->addWidget(m_displayFibersCheckBox);
     layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -133,6 +141,7 @@ QWidget*
 FiberOrientationSelectionViewController::createSelectionWidget()
 {
     m_selectionWidgetLayout = new QVBoxLayout();
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(m_selectionWidgetLayout);
@@ -147,11 +156,6 @@ QWidget*
 FiberOrientationSelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
-    
-    m_displayFibersCheckBox = new QCheckBox("Display Fibers");
-    m_displayFibersCheckBox->setToolTip("Display Fibers");
-    QObject::connect(m_displayFibersCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processAttributesChanges()));
     
     QLabel* aboveLimitLabel = new QLabel("Slice Above Limit");
     m_aboveLimitSpinBox = new QDoubleSpinBox();
@@ -224,8 +228,6 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     gridLayout->setColumnStretch(1, 100);
     WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_displayFibersCheckBox, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
     gridLayout->addWidget(coloringTypeLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox->getWidget() , row, 1);
     row++;
@@ -288,10 +290,6 @@ FiberOrientationSelectionViewController::processAttributesChanges()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
-    
-    dpfo->setDisplayed(displayGroup,
-                       browserTabIndex,
-                       m_displayFibersCheckBox->isChecked());
     
     dpfo->setAboveLimit(displayGroup,
                        browserTabIndex,
@@ -484,7 +482,10 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     DisplayPropertiesFiberOrientation* dpfo = brain->getDisplayPropertiesFiberOrientation();
     
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(browserTabIndex);
-    //dpfo->setDisplayed(displayGroup, browserTabIndex, m_fileSelectionCheckBoxes[iff]->isChecked());
+    
+    dpfo->setDisplayed(displayGroup,
+                       browserTabIndex,
+                       m_displayFibersCheckBox->isChecked());
     
     const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
