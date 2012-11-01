@@ -599,7 +599,7 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
     AString curIndentString = getIndentString(curIndent);
     bool haveAddedBreak = false;
     AString ret;
-    int charMax = m_maxWidth - curIndent;
+    int charMax = m_maxWidth - curIndentString.size();
     int curIndex = 0;
     while (curIndex < in.size())
     {
@@ -608,10 +608,10 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
             if (haveAddedBreak)
             {
                 curIndentString = getIndentString(curIndent + m_indentIncrement);
-                charMax = m_maxWidth - curIndent - m_indentIncrement;
+                charMax = m_maxWidth - curIndentString.size();
             } else {
                 curIndentString = getIndentString(curIndent);
-                charMax = m_maxWidth - curIndent;
+                charMax = m_maxWidth - curIndentString.size();
             }
         }
         int endIndex = curIndex;
