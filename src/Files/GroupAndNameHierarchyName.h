@@ -37,13 +37,14 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "GroupAndNameCheckStateEnum.h"
 
 namespace caret {
 
     class GroupAndNameHierarchyName : public CaretObject {
     public:
         GroupAndNameHierarchyName(const AString& name,
-                                 const int32_t key);
+                                  const int32_t key);
         
         ~GroupAndNameHierarchyName();
         
@@ -54,12 +55,15 @@ namespace caret {
         
         int32_t getKey() const;
         
-        bool isSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual bool isSelected(const DisplayGroupEnum::Enum displayGroup,
                         const int32_t tabIndex) const;
+        
+        virtual GroupAndNameCheckStateEnum::Enum getSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                     const int32_t tabIndex) const;
         
         virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex,
-                         const bool status);
+                         const GroupAndNameCheckStateEnum::Enum status);
         
         void clearCounter();
         
@@ -85,10 +89,10 @@ namespace caret {
         int32_t key;
         
         /** Selection for each display group */
-        bool selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        GroupAndNameCheckStateEnum::Enum selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         /** Selection for each tab */
-        bool selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        GroupAndNameCheckStateEnum::Enum selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Counter for tracking usage of item */
         int32_t counter;

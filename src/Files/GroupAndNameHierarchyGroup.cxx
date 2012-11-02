@@ -129,7 +129,60 @@ GroupAndNameHierarchyGroup::clearPrivate()
 }
 
 /**
- * Set class seletion status for the given display group.  *
+ * Get the selection status for the given display group and tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return
+ *    The check state.  
+ */
+GroupAndNameCheckStateEnum::Enum
+GroupAndNameHierarchyGroup::getSelected(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const
+{
+    GroupAndNameCheckStateEnum::Enum myStatus = GroupAndNameHierarchyName::getSelected(displayGroup,
+                                                                                       tabIndex);
+    if (myStatus == GroupAndNameCheckStateEnum::UNCHECKED) {
+        return myStatus;
+    }
+    
+    int64_t numChildren = 0;
+    int64_t numChildrenChecked = 0;
+    
+    for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
+         iter != this->nameToNameSelectorMap.end();
+         iter++) {
+        numChildren++;
+        
+        const GroupAndNameHierarchyName* nameSelector = iter->second;
+        const GroupAndNameCheckStateEnum::Enum childStatus = nameSelector->getSelected(displayGroup,
+                                                                                       tabIndex);
+        
+        switch (childStatus) {
+            case GroupAndNameCheckStateEnum::CHECKED:
+                numChildrenChecked++;
+                break;
+            case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
+                return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+                break;
+            case GroupAndNameCheckStateEnum::UNCHECKED:
+                break;
+        }
+    }
+
+    if (numChildrenChecked == numChildren) {
+        return GroupAndNameCheckStateEnum::CHECKED;
+    }
+    else if (numChildrenChecked > 0) {
+        return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+    }
+    
+    return GroupAndNameCheckStateEnum::UNCHECKED;
+}
+
+/**
+ * Set class seletion status for the given display group.
  * @param displayGroup
  *    Display group selected.
  * @param tabIndex
@@ -140,7 +193,7 @@ GroupAndNameHierarchyGroup::clearPrivate()
 void
 GroupAndNameHierarchyGroup::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const bool status)
+                                       const GroupAndNameCheckStateEnum::Enum status)
 {
     GroupAndNameHierarchyName::setSelected(displayGroup,
                                            tabIndex,
@@ -177,15 +230,20 @@ GroupAndNameHierarchyGroup::setSelected(const DisplayGroupEnum::Enum displayGrou
 void
 GroupAndNameHierarchyGroup::setAllSelected(const bool status)
 {
+    GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
+    if (status) {
+        checkState = GroupAndNameCheckStateEnum::CHECKED;
+    }
+    
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         DisplayGroupEnum::Enum group = (DisplayGroupEnum::Enum)i;
         if (group == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
             for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
-                this->setSelected(group, j, status);
+                this->setSelected(group, j, checkState);
             }
         }
         else {
-            this->setSelected(group, -1, status);
+            this->setSelected(group, -1, checkState);
         }
     }
     
@@ -198,11 +256,11 @@ GroupAndNameHierarchyGroup::setAllSelected(const bool status)
                 DisplayGroupEnum::Enum group = (DisplayGroupEnum::Enum)i;
                 if (group == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
                     for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
-                        ns->setSelected(group, j, status);
+                        ns->setSelected(group, j, checkState);
                     }
                 }
                 else {
-                    ns->setSelected(group, -1, status);
+                    ns->setSelected(group, -1, checkState);
                 }
             }
         }
@@ -223,13 +281,18 @@ GroupAndNameHierarchyGroup::setAllSelected(const DisplayGroupEnum::Enum displayG
                                                                       const int32_t tabIndex,
                                                                       const bool selectionStatus)
 {
+    GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
+    if (selectionStatus) {
+        checkState = GroupAndNameCheckStateEnum::CHECKED;
+    }
+    
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectionStatusInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
                           displayIndex);
     setSelected(displayGroup,
                 tabIndex,
-                selectionStatus);
+                checkState);
     
     for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
          iter != this->nameToNameSelectorMap.end();
@@ -237,7 +300,7 @@ GroupAndNameHierarchyGroup::setAllSelected(const DisplayGroupEnum::Enum displayG
         GroupAndNameHierarchyName* nameSelector = iter->second;
         nameSelector->setSelected(displayGroup,
                                   tabIndex,
-                                  selectionStatus);
+                                  checkState);
     }
 }
 
@@ -254,20 +317,12 @@ bool
 GroupAndNameHierarchyGroup::isAllSelected(const DisplayGroupEnum::Enum displayGroup,
                                                                      const int32_t tabIndex) const
 {
-    if (isSelected(displayGroup, tabIndex) == false) {
-        return false;
+    GroupAndNameCheckStateEnum::Enum checkState = getSelected(displayGroup,
+                                                              tabIndex);
+    if (checkState == GroupAndNameCheckStateEnum::CHECKED) {
+        return true;
     }
-    
-    for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
-         iter != this->nameToNameSelectorMap.end();
-         iter++) {
-        const GroupAndNameHierarchyName* nameSelector = iter->second;
-        if (nameSelector->isSelected(displayGroup, tabIndex) == false) {
-            return false;
-        }
-    }
-    
-    return true;
+    return false;
 }
 
 /**
@@ -283,23 +338,14 @@ bool
 GroupAndNameHierarchyGroup::isAnySelected(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const
 {
-    if (isSelected(displayGroup, tabIndex)) {
-        return false;
+    GroupAndNameCheckStateEnum::Enum checkState = getSelected(displayGroup,
+                                                              tabIndex);
+    if ((checkState == GroupAndNameCheckStateEnum::CHECKED)
+        && (checkState == GroupAndNameCheckStateEnum::CHECKED)) {
+        return true;
     }
-    
-    for (std::map<AString, GroupAndNameHierarchyName*>::const_iterator iter = this->nameToNameSelectorMap.begin();
-         iter != this->nameToNameSelectorMap.end();
-         iter++) {
-        const GroupAndNameHierarchyName* nameSelector = iter->second;
-        if (nameSelector->isSelected(displayGroup, tabIndex)) {
-            return true;
-        }
-    }
-    
     return false;
 }
-
-
 
 /**
  * @return All keys for the names.

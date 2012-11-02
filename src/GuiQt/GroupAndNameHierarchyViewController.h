@@ -40,6 +40,7 @@
 
 #include "AString.h"
 #include "DisplayGroupEnum.h"
+#include "GroupAndNameCheckStateEnum.h"
 
 class QCheckBox;
 class QTreeWidgetItem;
@@ -98,10 +99,14 @@ namespace caret {
         
         QTreeWidgetItem* createTreeWidgetItem(const AString& name,
                                               const float* iconColorRGBA,
-                                              const bool isSelected,
+                                              const GroupAndNameCheckStateEnum::Enum checkedStatus,
                                               GroupAndNameHierarchySelectedItem* selectionInfo);
         
         void expandCollapseTreeWidgetItem(QTreeWidgetItem* twi);
+        
+        static GroupAndNameCheckStateEnum::Enum fromQCheckState(const Qt::CheckState checkState);
+
+        static Qt::CheckState toQCheckState(const GroupAndNameCheckStateEnum::Enum checkState);
         
         QWidget* createAllOnOffControls();
         

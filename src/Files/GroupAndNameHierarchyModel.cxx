@@ -91,11 +91,11 @@ GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
 {
     this->clear();
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectionStatusInDisplayGroup[i] = true;
+        this->selectionStatusInDisplayGroup[i] = GroupAndNameCheckStateEnum::CHECKED;
         this->expandedStatusInDisplayGroup[i] = true;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectionStatusInTab[i] = true;
+        this->selectionStatusInTab[i] = GroupAndNameCheckStateEnum::CHECKED;
         this->expandedStatusInTab[i] = true;
     }
 }
@@ -179,6 +179,11 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
                                            const int32_t tabIndex,
                                            const bool selectionStatus)
 {
+    GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
+    if (selectionStatus) {
+        checkState = GroupAndNameCheckStateEnum::CHECKED;
+    }
+    
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
@@ -187,10 +192,10 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
         CaretAssertArrayIndex(this->selectionStatusInTab, 
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                               tabIndex);
-        this->selectionStatusInTab[tabIndex] = selectionStatus;
+        this->selectionStatusInTab[tabIndex] = checkState;
     }
     else {
-        this->selectionStatusInDisplayGroup[displayIndex] = selectionStatus;
+        this->selectionStatusInDisplayGroup[displayIndex] = checkState;
     }
     
     for (std::vector<GroupAndNameHierarchyGroup*>::iterator groupIterator = keyToGroupNameSelectorVector.begin();
@@ -706,7 +711,7 @@ GroupAndNameHierarchyModel::isSelected(const DisplayGroupEnum::Enum displayGroup
 void 
 GroupAndNameHierarchyModel::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
-                                        const bool selectionStatus)
+                                        const GroupAndNameCheckStateEnum::Enum selectionStatus)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
@@ -721,6 +726,73 @@ GroupAndNameHierarchyModel::setSelected(const DisplayGroupEnum::Enum displayGrou
     else {
         this->selectionStatusInDisplayGroup[displayIndex] = selectionStatus;
     }
+}
+
+/**
+ * Get the selection status for the given display group and tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return
+ *    The check state.
+ */
+GroupAndNameCheckStateEnum::Enum
+GroupAndNameHierarchyModel::getSelected(const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex) const
+{
+    GroupAndNameCheckStateEnum::Enum myStatus = GroupAndNameCheckStateEnum::UNCHECKED;
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          displayIndex);
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->selectionStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        myStatus = this->selectionStatusInTab[tabIndex];
+    }
+    else {
+        myStatus = this->selectionStatusInDisplayGroup[displayIndex];
+    }
+
+    if (myStatus == GroupAndNameCheckStateEnum::UNCHECKED) {
+        return myStatus;
+    }
+    
+    int64_t numChildren = 0;
+    int64_t numChildrenChecked = 0;
+    
+    for (std::map<AString, GroupAndNameHierarchyGroup*>::const_iterator iter = this->groupNameToGroupSelectorMap.begin();
+         iter != this->groupNameToGroupSelectorMap.end();
+         iter++) {
+        const GroupAndNameHierarchyGroup* cs = iter->second;
+        if (cs != NULL) {
+            numChildren++;
+            const GroupAndNameCheckStateEnum::Enum childStatus = cs->getSelected(displayGroup,
+                                                                                           tabIndex);
+            
+            switch (childStatus) {
+                case GroupAndNameCheckStateEnum::CHECKED:
+                    numChildrenChecked++;
+                    break;
+                case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
+                    return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+                    break;
+                case GroupAndNameCheckStateEnum::UNCHECKED:
+                    break;
+            }
+        }
+    }
+    
+    if (numChildrenChecked == numChildren) {
+        return GroupAndNameCheckStateEnum::CHECKED;
+    }
+    else if (numChildrenChecked > 0) {
+        return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+    }
+    
+    return GroupAndNameCheckStateEnum::UNCHECKED;
 }
 
 /**
@@ -943,7 +1015,11 @@ GroupAndNameHierarchyModel::setGroupSelected(const DisplayGroupEnum::Enum displa
         && (groupKey < static_cast<int32_t>(this->keyToGroupNameSelectorVector.size()))) {
         GroupAndNameHierarchyGroup* cs = this->keyToGroupNameSelectorVector[groupKey];
         if (cs != NULL) {
-            cs->setSelected(displayGroup, tabIndex, selected);
+            GroupAndNameCheckStateEnum::Enum checkStatus = GroupAndNameCheckStateEnum::UNCHECKED;
+            if (selected) {
+                checkStatus = GroupAndNameCheckStateEnum::CHECKED;
+            }
+            cs->setSelected(displayGroup, tabIndex, checkStatus);
         }
         else {
             CaretAssertMessage(0, "No group group for group key="
@@ -1023,7 +1099,11 @@ void GroupAndNameHierarchyModel::setNameSelected(const DisplayGroupEnum::Enum di
         if (cs != NULL) {
             GroupAndNameHierarchyName* ns = cs->getNameSelectorWithKey(nameKey);
             if (ns != NULL) {
-                ns->setSelected(displayGroup, tabIndex, selected);
+                GroupAndNameCheckStateEnum::Enum checkStatus = GroupAndNameCheckStateEnum::UNCHECKED;
+                if (selected) {
+                    checkStatus = GroupAndNameCheckStateEnum::CHECKED;
+                }
+                ns->setSelected(displayGroup, tabIndex, checkStatus);
             }
             else {
                 CaretAssertMessage(0, "No name group for name key="

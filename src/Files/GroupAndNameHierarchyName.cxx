@@ -62,10 +62,10 @@ GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
     this->iconRGBA[2] = 0.0;
     this->iconRGBA[3] = 0.0;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectedInDisplayGroup[i] = true;
+        this->selectedInDisplayGroup[i] = GroupAndNameCheckStateEnum::CHECKED;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectedInTab[i] = true;
+        this->selectedInTab[i] = GroupAndNameCheckStateEnum::CHECKED;
     }
     this->counter = 0;
 }
@@ -136,17 +136,38 @@ GroupAndNameHierarchyName::getKey() const
 }
 
 /**
- * Is this name selected for the given display group.
+ * Is this name selected for the given display group and tab.
  * @param displayGroup
  *    Display Group for which selection status is requested.
  * @param tabIndex
  *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @return
- *    True if selected, else false.
+ *    True if check state is PartiallyChecked or Checked.  False if Unchecked.
  */
 bool
 GroupAndNameHierarchyName::isSelected(const DisplayGroupEnum::Enum displayGroup,
                                       const int32_t tabIndex) const
+{
+    const GroupAndNameCheckStateEnum::Enum status = getSelected(displayGroup,
+                                                                tabIndex);
+    if (status == GroupAndNameCheckStateEnum::UNCHECKED) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Get the selection status for the given display group and tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return The check state.
+ */
+GroupAndNameCheckStateEnum::Enum
+GroupAndNameHierarchyName::getSelected(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectedInDisplayGroup,
@@ -163,7 +184,7 @@ GroupAndNameHierarchyName::isSelected(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
- * Set name seletion status for the given display group.
+ * Set name seletion status for the given display group and tab.
  * @param displayGroup
  *    Display group selected.
  * @param tabIndex
@@ -174,7 +195,7 @@ GroupAndNameHierarchyName::isSelected(const DisplayGroupEnum::Enum displayGroup,
 void
 GroupAndNameHierarchyName::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const bool status)
+                                       const GroupAndNameCheckStateEnum::Enum status)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectedselectedInDisplayGroup,

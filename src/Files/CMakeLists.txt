@@ -47,6 +47,7 @@ GroupAndNameHierarchyGroupGeneratedKey.h
 GroupAndNameHierarchyGroupUserKey.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
+GroupAndNameCheckStateEnum.h
 ImageFile.h
 LabelFile.h
 MetricFile.h
@@ -108,6 +109,7 @@ GroupAndNameHierarchyGroupGeneratedKey.cxx
 GroupAndNameHierarchyGroupUserKey.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
+GroupAndNameCheckStateEnum.cxx
 ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx

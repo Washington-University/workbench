@@ -40,6 +40,7 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "GroupAndNameCheckStateEnum.h"
 
 class QIcon;
 
@@ -92,7 +93,10 @@ namespace caret {
         
         void setSelected(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex,
-                         const bool selectionStatus);
+                         const GroupAndNameCheckStateEnum::Enum selectionStatus);
+        
+        GroupAndNameCheckStateEnum::Enum getSelected(const DisplayGroupEnum::Enum displayGroup,
+                                                             const int32_t tabIndex) const;
         
         std::vector<int32_t> getAllGroupKeysSortedByName() const;
         
@@ -147,10 +151,10 @@ namespace caret {
         AString name;
         
         /* overlay selection status in display group */
-        bool selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        GroupAndNameCheckStateEnum::Enum selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         /* overlay selection status in tab */
-        bool selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        GroupAndNameCheckStateEnum::Enum selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Expanded (collapsed) status in display group */        
         bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
