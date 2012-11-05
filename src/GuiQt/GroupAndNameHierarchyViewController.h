@@ -123,6 +123,8 @@ namespace caret {
         DisplayGroupEnum::Enum m_displayGroup;
         
         bool m_alwaysDisplayNames;
+        
+        bool m_ignoreUpdates;
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__

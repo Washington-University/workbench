@@ -63,9 +63,9 @@ namespace caret {
         void copyGroupNameAndHierarchy(const int32_t sourceTabIndex,
                                        const int32_t targetTabIndex);
         
-        void removeUnusedNamesAndGroups(BorderFile* borderFile);
-        
-        void removeUnusedNamesAndGroups(FociFile* fociFile);
+//        void removeUnusedNamesAndGroups(BorderFile* borderFile);
+//        
+//        void removeUnusedNamesAndGroups(FociFile* fociFile);
         
         bool isGroupValid(const int32_t groupKey) const;
         
@@ -93,9 +93,9 @@ namespace caret {
         
         void setSelected(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex,
-                         const GroupAndNameCheckStateEnum::Enum selectionStatus);
+                         const bool status);
         
-        GroupAndNameCheckStateEnum::Enum getSelected(const DisplayGroupEnum::Enum displayGroup,
+        GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
                                                              const int32_t tabIndex) const;
         
         std::vector<int32_t> getAllGroupKeysSortedByName() const;
@@ -142,19 +142,24 @@ namespace caret {
                          const int32_t tabIndex,
                          const bool expanded);
         
+        bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
+                         const int32_t tabIndex) const;
+        
     private:
         GroupAndNameHierarchyModel(const GroupAndNameHierarchyModel&);
 
         GroupAndNameHierarchyModel& operator=(const GroupAndNameHierarchyModel&);
         
+        void setUserInterfaceUpdateNeeded();
+        
         /** Name of model, does NOT get cleared. */
         AString name;
         
         /* overlay selection status in display group */
-        GroupAndNameCheckStateEnum::Enum selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        bool selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         /* overlay selection status in tab */
-        GroupAndNameCheckStateEnum::Enum selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Expanded (collapsed) status in display group */        
         bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
@@ -171,6 +176,17 @@ namespace caret {
         /** Maps a group name to its group selector.  Map is fastest way to search by name.  */
         std::map<AString, GroupAndNameHierarchyGroup*> groupNameToGroupSelectorMap;
         
+        /** 
+         * Update needed status of DISPLAY GROUP in EACH TAB.
+         * Used when user has set to a display group.
+         * Indicates that an update is needed for the given display group in the given tab.
+         */
+        mutable bool updateNeededInDisplayGroupAndTab[DisplayGroupEnum::NUMBER_OF_GROUPS][BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /**
+         * Update needed in TAB.
+         */
+        mutable bool updatedNeededInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
     

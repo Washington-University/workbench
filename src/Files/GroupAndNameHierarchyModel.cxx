@@ -91,13 +91,14 @@ GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
 {
     this->clear();
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectionStatusInDisplayGroup[i] = GroupAndNameCheckStateEnum::CHECKED;
+        this->selectionStatusInDisplayGroup[i] = true;
         this->expandedStatusInDisplayGroup[i] = true;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectionStatusInTab[i] = GroupAndNameCheckStateEnum::CHECKED;
+        this->selectionStatusInTab[i] = true;
         this->expandedStatusInTab[i] = true;
     }
+    setUserInterfaceUpdateNeeded();
 }
 
 /**
@@ -130,7 +131,8 @@ GroupAndNameHierarchyModel::clear()
     this->keyToGroupNameSelectorVector.clear();
     this->groupNameToGroupSelectorMap.clear();
     
-    this->availableGroupKeys.clear();        
+    this->availableGroupKeys.clear();
+    setUserInterfaceUpdateNeeded();
 }
 
 /**
@@ -179,11 +181,6 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
                                            const int32_t tabIndex,
                                            const bool selectionStatus)
 {
-    GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
-    if (selectionStatus) {
-        checkState = GroupAndNameCheckStateEnum::CHECKED;
-    }
-    
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS, 
@@ -192,10 +189,10 @@ GroupAndNameHierarchyModel::setAllSelected(const DisplayGroupEnum::Enum displayG
         CaretAssertArrayIndex(this->selectionStatusInTab, 
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                               tabIndex);
-        this->selectionStatusInTab[tabIndex] = checkState;
+        this->selectionStatusInTab[tabIndex] = selectionStatus;
     }
     else {
-        this->selectionStatusInDisplayGroup[displayIndex] = checkState;
+        this->selectionStatusInDisplayGroup[displayIndex] = selectionStatus;
     }
     
     for (std::vector<GroupAndNameHierarchyGroup*>::iterator groupIterator = keyToGroupNameSelectorVector.begin();
@@ -291,48 +288,52 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             border->setSelectionClassAndNameKeys(groupKey,
                                                  nameKey);
         }
+        
+        setUserInterfaceUpdateNeeded();
     }
 }
 
-/**
- * Remove any unused names and groups.
- * @param borderFile
- *    Border file that contains names and groups.
- */
-void 
-GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(BorderFile* borderFile)
-{
-    /*
-     * Update with latest data.
-     */ 
-    this->update(borderFile,
-                 true);
-    
-    /*
-     * Remove unused groups.
-     */
-    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
-        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
-        if (groupSelector != NULL) {
-            groupSelector->removeNamesWithCountersEqualZero();
-            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
-                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
-                     iter != this->groupNameToGroupSelectorMap.end();
-                     iter++) {
-                    if (groupSelector == iter->second) {
-                        this->groupNameToGroupSelectorMap.erase(iter);
-                        break;
-                    }
-                }
-                
-                this->availableGroupKeys.push_front(groupKey);
-                delete groupSelector;
-                this->keyToGroupNameSelectorVector[groupKey] = NULL;
-            }
-        }
-    }
-}
+///**
+// * Remove any unused names and groups.
+// * @param borderFile
+// *    Border file that contains names and groups.
+// */
+//void 
+//GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(BorderFile* borderFile)
+//{
+//    /*
+//     * Update with latest data.
+//     */ 
+//    this->update(borderFile,
+//                 true);
+//    
+//    /*
+//     * Remove unused groups.
+//     */
+//    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
+//    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
+//        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
+//        if (groupSelector != NULL) {
+//            groupSelector->removeNamesWithCountersEqualZero();
+//            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
+//                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
+//                     iter != this->groupNameToGroupSelectorMap.end();
+//                     iter++) {
+//                    if (groupSelector == iter->second) {
+//                        this->groupNameToGroupSelectorMap.erase(iter);
+//                        break;
+//                    }
+//                }
+//                
+//                this->availableGroupKeys.push_front(groupKey);
+//                delete groupSelector;
+//                this->keyToGroupNameSelectorVector[groupKey] = NULL;
+//            }
+//        }
+//    }
+//    
+//    setUserInterfaceUpdateNeeded();
+//}
 
 /**
  * Update this group hierarchy with the label names
@@ -442,6 +443,8 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
             
             this->addGroup(groupSelector);
         }
+        
+        setUserInterfaceUpdateNeeded();
     }
     
     
@@ -531,6 +534,8 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             focus->setSelectionClassAndNameKeys(groupKey,
                                                  nameKey);
         }
+        
+        setUserInterfaceUpdateNeeded();
     }
 }
 
@@ -539,40 +544,42 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
  * @param fociFile
  *    Foci file that contains names and groups.
  */
-void 
-GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(FociFile* fociFile)
-{
-    /*
-     * Update with latest data.
-     */ 
-    this->update(fociFile,
-                 true);
-    
-    /*
-     * Remove unused groups.
-     */
-    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
-        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
-        if (groupSelector != NULL) {
-            groupSelector->removeNamesWithCountersEqualZero();
-            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
-                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
-                     iter != this->groupNameToGroupSelectorMap.end();
-                     iter++) {
-                    if (groupSelector == iter->second) {
-                        this->groupNameToGroupSelectorMap.erase(iter);
-                        break;
-                    }
-                }
-                
-                this->availableGroupKeys.push_front(groupKey);
-                delete groupSelector;
-                this->keyToGroupNameSelectorVector[groupKey] = NULL;
-            }
-        }
-    }
-}
+//void 
+//GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(FociFile* fociFile)
+//{
+//    /*
+//     * Update with latest data.
+//     */ 
+//    this->update(fociFile,
+//                 true);
+//    
+//    /*
+//     * Remove unused groups.
+//     */
+//    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
+//    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
+//        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
+//        if (groupSelector != NULL) {
+//            groupSelector->removeNamesWithCountersEqualZero();
+//            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
+//                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
+//                     iter != this->groupNameToGroupSelectorMap.end();
+//                     iter++) {
+//                    if (groupSelector == iter->second) {
+//                        this->groupNameToGroupSelectorMap.erase(iter);
+//                        break;
+//                    }
+//                }
+//                
+//                this->availableGroupKeys.push_front(groupKey);
+//                delete groupSelector;
+//                this->keyToGroupNameSelectorVector[groupKey] = NULL;
+//            }
+//        }
+//    }
+//
+//    setUserInterfaceUpdateNeeded();
+//}
 
 /**
  * Is the group valid?  Valid if group has at least one child
@@ -711,7 +718,7 @@ GroupAndNameHierarchyModel::isSelected(const DisplayGroupEnum::Enum displayGroup
 void 
 GroupAndNameHierarchyModel::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
-                                        const GroupAndNameCheckStateEnum::Enum selectionStatus)
+                                        const bool selectionStatus)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectionStatusInDisplayGroup, 
@@ -738,58 +745,42 @@ GroupAndNameHierarchyModel::setSelected(const DisplayGroupEnum::Enum displayGrou
  *    The check state.
  */
 GroupAndNameCheckStateEnum::Enum
-GroupAndNameHierarchyModel::getSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyModel::getCheckState(const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex) const
 {
-    GroupAndNameCheckStateEnum::Enum myStatus = GroupAndNameCheckStateEnum::UNCHECKED;
-    const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selectionStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          displayIndex);
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(this->selectionStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        myStatus = this->selectionStatusInTab[tabIndex];
-    }
-    else {
-        myStatus = this->selectionStatusInDisplayGroup[displayIndex];
-    }
-
-    if (myStatus == GroupAndNameCheckStateEnum::UNCHECKED) {
-        return myStatus;
-    }
-    
-    int64_t numChildren = 0;
-    int64_t numChildrenChecked = 0;
-    
-    for (std::map<AString, GroupAndNameHierarchyGroup*>::const_iterator iter = this->groupNameToGroupSelectorMap.begin();
-         iter != this->groupNameToGroupSelectorMap.end();
-         iter++) {
-        const GroupAndNameHierarchyGroup* cs = iter->second;
-        if (cs != NULL) {
-            numChildren++;
-            const GroupAndNameCheckStateEnum::Enum childStatus = cs->getSelected(displayGroup,
-                                                                                           tabIndex);
-            
-            switch (childStatus) {
-                case GroupAndNameCheckStateEnum::CHECKED:
-                    numChildrenChecked++;
-                    break;
-                case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
-                    return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
-                    break;
-                case GroupAndNameCheckStateEnum::UNCHECKED:
-                    break;
+    if (isSelected(displayGroup,
+                   tabIndex)) {
+        int64_t numChildren = 0;
+        int64_t numChildrenChecked = 0;
+        
+        for (std::map<AString, GroupAndNameHierarchyGroup*>::const_iterator iter = this->groupNameToGroupSelectorMap.begin();
+             iter != this->groupNameToGroupSelectorMap.end();
+             iter++) {
+            const GroupAndNameHierarchyGroup* cs = iter->second;
+            if (cs != NULL) {
+                numChildren++;
+                const GroupAndNameCheckStateEnum::Enum childStatus = cs->getCheckState(displayGroup,
+                                                                                     tabIndex);
+                
+                switch (childStatus) {
+                    case GroupAndNameCheckStateEnum::CHECKED:
+                        numChildrenChecked++;
+                        break;
+                    case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
+                        return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+                        break;
+                    case GroupAndNameCheckStateEnum::UNCHECKED:
+                        break;
+                }
             }
         }
-    }
-    
-    if (numChildrenChecked == numChildren) {
-        return GroupAndNameCheckStateEnum::CHECKED;
-    }
-    else if (numChildrenChecked > 0) {
-        return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+        
+        if (numChildrenChecked == numChildren) {
+            return GroupAndNameCheckStateEnum::CHECKED;
+        }
+        else if (numChildrenChecked > 0) {
+            return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
+        }
     }
     
     return GroupAndNameCheckStateEnum::UNCHECKED;
@@ -925,6 +916,7 @@ GroupAndNameHierarchyModel::addName(const AString& parentGroupName,
     CaretAssert(groupKeyOut >= 0);
     
     nameKeyOut = groupSelector->addName(name);
+    this->setUserInterfaceUpdateNeeded();
 }
 
 /**
@@ -958,6 +950,8 @@ GroupAndNameHierarchyModel::addGroup(GroupAndNameHierarchyGroup* group)
     this->keyToGroupNameSelectorVector[key] = group;
     this->groupNameToGroupSelectorMap.insert(std::make_pair(groupName,
                                                             group));
+    
+    this->setUserInterfaceUpdateNeeded();
 }
 
 /**
@@ -1011,15 +1005,11 @@ GroupAndNameHierarchyModel::setGroupSelected(const DisplayGroupEnum::Enum displa
                                              const int32_t groupKey,
                                              const bool selected)
 {
-    if ((groupKey >= 0) 
+    if ((groupKey >= 0)
         && (groupKey < static_cast<int32_t>(this->keyToGroupNameSelectorVector.size()))) {
         GroupAndNameHierarchyGroup* cs = this->keyToGroupNameSelectorVector[groupKey];
         if (cs != NULL) {
-            GroupAndNameCheckStateEnum::Enum checkStatus = GroupAndNameCheckStateEnum::UNCHECKED;
-            if (selected) {
-                checkStatus = GroupAndNameCheckStateEnum::CHECKED;
-            }
-            cs->setSelected(displayGroup, tabIndex, checkStatus);
+            cs->setSelected(displayGroup, tabIndex, selected);
         }
         else {
             CaretAssertMessage(0, "No group group for group key="
@@ -1099,11 +1089,7 @@ void GroupAndNameHierarchyModel::setNameSelected(const DisplayGroupEnum::Enum di
         if (cs != NULL) {
             GroupAndNameHierarchyName* ns = cs->getNameSelectorWithKey(nameKey);
             if (ns != NULL) {
-                GroupAndNameCheckStateEnum::Enum checkStatus = GroupAndNameCheckStateEnum::UNCHECKED;
-                if (selected) {
-                    checkStatus = GroupAndNameCheckStateEnum::CHECKED;
-                }
-                ns->setSelected(displayGroup, tabIndex, checkStatus);
+                ns->setSelected(displayGroup, tabIndex, selected);
             }
             else {
                 CaretAssertMessage(0, "No name group for name key="
@@ -1174,4 +1160,55 @@ GroupAndNameHierarchyModel::setExpanded(const DisplayGroupEnum::Enum displayGrou
         this->expandedStatusInDisplayGroup[displayIndex] = expanded;
     }
 }
+
+/**
+ * Is a User-Interface needed in the given display group and tab?
+ * This occurs when the hierarchy has changed (group and name).
+ * After calling this method, the status for the display group/tab is cleared.
+ * 
+ * @param displayGroup
+ *    Display group.
+ * @param tabIndex
+ *    Index of tab.
+ * @return True if update needed, else false.
+ */
+bool
+GroupAndNameHierarchyModel::needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
+                                                     const int32_t tabIndex) const
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->expandedStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          displayIndex);
+    
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(this->expandedStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return this->updatedNeededInTab[tabIndex];
+        this->updatedNeededInTab[tabIndex] = false;
+    }
+    else {
+        return this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex];
+        this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex] = false;
+    }
+}
+
+/**
+ * Set user interface updates needed.
+ */
+void
+GroupAndNameHierarchyModel::setUserInterfaceUpdateNeeded()
+{
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
+            updateNeededInDisplayGroupAndTab[i][j] = true;
+        }
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        updatedNeededInTab[i] = true;
+    }
+}
+
+
 

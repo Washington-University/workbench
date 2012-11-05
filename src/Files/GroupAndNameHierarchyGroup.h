@@ -52,10 +52,10 @@ namespace caret {
         
         virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t tabIndex,
-                                 const GroupAndNameCheckStateEnum::Enum status);
+                                 const bool status);
         
-        virtual GroupAndNameCheckStateEnum::Enum getSelected(const DisplayGroupEnum::Enum displayGroup,
-                                                             const int32_t tabIndex) const;
+        virtual GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
+                                                               const int32_t tabIndex) const;
         
         void copySelections(const int32_t sourceTabIndex,
                             const int32_t targetTabIndex);

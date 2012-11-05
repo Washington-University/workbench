@@ -43,6 +43,11 @@ using namespace caret;
 /**
  * \class caret::GroupAndNameHierarchyName
  * \brief Maintains selection of a name in each 'DisplayGroupEnum'.
+ *
+ * Methods that operate on a boolean value are used to query and set
+ * the selected status.  A separate method is provided to query
+ * the 'check state'.  The 'check state' may be unchecked, checked, or
+ * partially checked (some children checked but not all).
  */
 
 /**
@@ -62,10 +67,10 @@ GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
     this->iconRGBA[2] = 0.0;
     this->iconRGBA[3] = 0.0;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectedInDisplayGroup[i] = GroupAndNameCheckStateEnum::CHECKED;
+        this->selectedInDisplayGroup[i] = true;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectedInTab[i] = GroupAndNameCheckStateEnum::CHECKED;
+        this->selectedInTab[i] = true;
     }
     this->counter = 0;
 }
@@ -142,32 +147,11 @@ GroupAndNameHierarchyName::getKey() const
  * @param tabIndex
  *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
  * @return
- *    True if check state is PartiallyChecked or Checked.  False if Unchecked.
+ *    True if selected, false if not selected.
  */
 bool
 GroupAndNameHierarchyName::isSelected(const DisplayGroupEnum::Enum displayGroup,
                                       const int32_t tabIndex) const
-{
-    const GroupAndNameCheckStateEnum::Enum status = getSelected(displayGroup,
-                                                                tabIndex);
-    if (status == GroupAndNameCheckStateEnum::UNCHECKED) {
-        return false;
-    }
-    
-    return true;
-}
-
-/**
- * Get the selection status for the given display group and tab.
- * @param displayGroup
- *    Display group selected.
- * @param tabIndex
- *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
- * @return The check state.
- */
-GroupAndNameCheckStateEnum::Enum
-GroupAndNameHierarchyName::getSelected(const DisplayGroupEnum::Enum displayGroup,
-                                             const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectedInDisplayGroup,
@@ -184,6 +168,25 @@ GroupAndNameHierarchyName::getSelected(const DisplayGroupEnum::Enum displayGroup
 }
 
 /**
+ * Get the selection status for the given display group and tab.
+ * @param displayGroup
+ *    Display group selected.
+ * @param tabIndex
+ *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
+ * @return The check state (CHECKED if selected, otherwise UNCHECKED).  
+ *         Subclasses may override this to provide the PartiallyChecked status.
+ */
+GroupAndNameCheckStateEnum::Enum
+GroupAndNameHierarchyName::getCheckState(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex) const
+{
+    if (isSelected(displayGroup, tabIndex)) {
+        return GroupAndNameCheckStateEnum::CHECKED;
+    }
+    return GroupAndNameCheckStateEnum::UNCHECKED;
+}
+
+/**
  * Set name seletion status for the given display group and tab.
  * @param displayGroup
  *    Display group selected.
@@ -195,7 +198,7 @@ GroupAndNameHierarchyName::getSelected(const DisplayGroupEnum::Enum displayGroup
 void
 GroupAndNameHierarchyName::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const GroupAndNameCheckStateEnum::Enum status)
+                                       const bool status)
 {
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->selectedselectedInDisplayGroup,

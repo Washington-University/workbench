@@ -58,12 +58,12 @@ namespace caret {
         virtual bool isSelected(const DisplayGroupEnum::Enum displayGroup,
                         const int32_t tabIndex) const;
         
-        virtual GroupAndNameCheckStateEnum::Enum getSelected(const DisplayGroupEnum::Enum displayGroup,
+        virtual GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
                                                      const int32_t tabIndex) const;
         
         virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex,
-                         const GroupAndNameCheckStateEnum::Enum status);
+                         const bool status);
         
         void clearCounter();
         
@@ -89,10 +89,10 @@ namespace caret {
         int32_t key;
         
         /** Selection for each display group */
-        GroupAndNameCheckStateEnum::Enum selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        bool selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         /** Selection for each tab */
-        GroupAndNameCheckStateEnum::Enum selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Counter for tracking usage of item */
         int32_t counter;

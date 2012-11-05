@@ -79,6 +79,7 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
 : QWidget(parent)
 {
     m_alwaysDisplayNames = false;
+    m_ignoreUpdates = false;
     
     m_displayGroup = DisplayGroupEnum::getDefaultValue();
     m_browserWindowIndex = browserWindowIndex;
@@ -189,12 +190,17 @@ void
 GroupAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item,
                                                           int /*column*/)
 {
+    CaretAssert(item);
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
     GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
     CaretAssert(selectionInfo);
     
     const Qt::CheckState qtCheckState = item->checkState(0);
     const GroupAndNameCheckStateEnum::Enum checkState = fromQCheckState(qtCheckState);
+    std::cout
+    << "Name: " << qPrintable(item->text(0))
+    << "    CheckState: " << qPrintable(GroupAndNameCheckStateEnum::toName(checkState)) << std::endl;
+    const bool selectedStatus = (checkState != GroupAndNameCheckStateEnum::UNCHECKED);
     
     BrowserTabContent* browserTabContent = 
        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
@@ -207,17 +213,18 @@ GroupAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
             CaretAssert(hierarchyModel);
             hierarchyModel->setSelected(m_displayGroup,
                                         browserTabIndex,
-                                        checkState);
+                                        selectedStatus);
         }
             break;
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
         {
             GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            const bool anySelected = classSelector->isAnySelected(m_displayGroup,
-                                                                  browserTabIndex);
+            CaretAssert(classSelector);
+//            const bool anySelected = classSelector->isAnySelected(m_displayGroup,
+//                                                                  browserTabIndex);
             classSelector->setSelected(m_displayGroup,
                                        browserTabIndex,
-                                       checkState);
+                                       selectedStatus);
             
 //            /*
 //             * If turned on and no child names selected,
@@ -247,14 +254,22 @@ GroupAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
         {
             GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
+            CaretAssert(nameSelector);
             nameSelector->setSelected(m_displayGroup,
                                       browserTabIndex,
-                                      checkState);
+                                      selectedStatus);
         }
             break;
     }
     
+    /*
+     * Selecting an item may require update to parent or child checkbox status
+     */
+    updateContents(m_classAndNameHierarchyModels);
+    
+    m_ignoreUpdates = true;
     emit itemSelected(selectionInfo);
+    m_ignoreUpdates = false;
 }
 
 /**
@@ -312,8 +327,10 @@ GroupAndNameHierarchyViewController::toQCheckState(const GroupAndNameCheckStateE
  */
 void 
 GroupAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* item)
-{    
+{
+    CaretAssert(item);
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    CaretAssert(ptr);
     GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
     CaretAssert(selectionInfo);
     
@@ -354,7 +371,9 @@ GroupAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* it
 void 
 GroupAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* item)
 {
+    CaretAssert(item);
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    CaretAssert(ptr);
     GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
     CaretAssert(selectionInfo);
     
@@ -397,6 +416,10 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
+    if (m_ignoreUpdates) {
+        return;
+    }
+    
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<BorderFile*>::iterator iter = borderFiles.begin();
@@ -423,6 +446,10 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
+    if (m_ignoreUpdates) {
+        return;
+    }
+    
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
@@ -449,6 +476,10 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labelFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
+    if (m_ignoreUpdates) {
+        return;
+    }
+    
     m_alwaysDisplayNames = true;
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
@@ -492,99 +523,117 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
      */
     m_classAndNameHierarchyModels = classAndNameHierarchyModels;
     
-    /*
-     * Remove everything from the tree widget
-     */
-    m_treeWidget->blockSignals(true);
-    m_treeWidget->clear();
-    
-    deleteItemSelectionInfo();
-    
-    BrowserTabContent* browserTabContent = 
-        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     /*
-     * Loop through the models.
+     * See if an update is needed.
      */
+    bool needUpdate = false;
     const int32_t numberOfModels = static_cast<int32_t>(m_classAndNameHierarchyModels.size());
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        GroupAndNameHierarchyModel* classNamesModel = m_classAndNameHierarchyModels[iModel];
+        if (m_classAndNameHierarchyModels[iModel]->needsUserInterfaceUpdate(m_displayGroup,
+                                                                            browserTabIndex)) {
+            needUpdate = true;
+            break;
+        }
+    }
+    
+    if (needUpdate) {
+        /*
+         * Remove everything from the tree widget
+         */
+        this->blockSignals(true);
+        m_treeWidget->clear();
         
-        QList<QTreeWidgetItem*> classTreeWidgets;
+        deleteItemSelectionInfo();
         
         /*
-         * Loop through each class
+         * Loop through the models.
          */
-        const std::vector<int32_t> classKeysVector = classNamesModel->getAllGroupKeysSortedByName();
-        for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
-             classIter != classKeysVector.end();
-             classIter++) {
-            const int32_t classKey = *classIter;
-            GroupAndNameHierarchyGroup* classSelector = classNamesModel->getGroupSelectorForGroupKey(classKey);
-            CaretAssert(classSelector);
-                
+        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+            GroupAndNameHierarchyModel* classNamesModel = m_classAndNameHierarchyModels[iModel];
+            
+            QList<QTreeWidgetItem*> classTreeWidgets;
+            
             /*
-             * Names in the model
+             * Loop through each class
              */
-            QList<QTreeWidgetItem*> nameTreeWidgets;
-            const std::vector<int32_t> nameKeysVector = classSelector->getAllNameKeysSortedByName();
-            for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
-                 nameIter != nameKeysVector.end();
-                 nameIter++) {
-                const int32_t nameKey = *nameIter;
-                GroupAndNameHierarchyName* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
-                CaretAssert(nameSelector);
+            const std::vector<int32_t> classKeysVector = classNamesModel->getAllGroupKeysSortedByName();
+            for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
+                 classIter != classKeysVector.end();
+                 classIter++) {
+                const int32_t classKey = *classIter;
+                GroupAndNameHierarchyGroup* classSelector = classNamesModel->getGroupSelectorForGroupKey(classKey);
+                CaretAssert(classSelector);
                 
-                if ((nameSelector->getCounter() > 0)
-                    || m_alwaysDisplayNames) {
-                    GroupAndNameHierarchySelectedItem* nameInfo = 
-                    new GroupAndNameHierarchySelectedItem(nameSelector);
-                    QTreeWidgetItem* nameItem = createTreeWidgetItem(nameSelector->getName(),
-                                                                     nameSelector->getIconColorRGBA(),
-                                                                     nameSelector->getSelected(m_displayGroup,
-                                                                                              browserTabIndex),
-                                                                     nameInfo);
-                    nameTreeWidgets.append(nameItem);
+                /*
+                 * Names in the model
+                 */
+                QList<QTreeWidgetItem*> nameTreeWidgets;
+                const std::vector<int32_t> nameKeysVector = classSelector->getAllNameKeysSortedByName();
+                for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
+                     nameIter != nameKeysVector.end();
+                     nameIter++) {
+                    const int32_t nameKey = *nameIter;
+                    GroupAndNameHierarchyName* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
+                    CaretAssert(nameSelector);
+                    
+                    if ((nameSelector->getCounter() > 0)
+                        || m_alwaysDisplayNames) {
+                        GroupAndNameHierarchySelectedItem* nameInfo =
+                        new GroupAndNameHierarchySelectedItem(nameSelector);
+                        QTreeWidgetItem* nameItem = createTreeWidgetItem(nameSelector->getName(),
+                                                                         nameSelector->getIconColorRGBA(),
+                                                                         nameSelector->getCheckState(m_displayGroup,
+                                                                                                     browserTabIndex),
+                                                                         nameInfo);
+                        nameTreeWidgets.append(nameItem);
+                    }
+                }
+                
+                /*
+                 * Only create a class item if it has valid child names
+                 */
+                if (nameTreeWidgets.empty() == false) {
+                    /*
+                     * Item for class
+                     */
+                    GroupAndNameHierarchySelectedItem* classInfo =
+                    new GroupAndNameHierarchySelectedItem(classSelector);
+                    CaretAssert(classInfo);
+                    QTreeWidgetItem* classItem = createTreeWidgetItem(classSelector->getName(),
+                                                                      classSelector->getIconColorRGBA(),
+                                                                      classSelector->getCheckState(m_displayGroup,
+                                                                                                   browserTabIndex),
+                                                                      classInfo);
+                    CaretAssert(classItem);
+                    classItem->addChildren(nameTreeWidgets);
+                    classTreeWidgets.append(classItem);
+                    classItem->setExpanded(classSelector->isExpanded(m_displayGroup,
+                                                                     browserTabIndex));
                 }
             }
             
             /*
-             * Only create a class item if it has valid child names
+             * If there are any valid, classes in the model, add a class/name model in the tree widget
              */
-            if (nameTreeWidgets.empty() == false) {                    
-                /*
-                 * Item for class
-                 */
-                GroupAndNameHierarchySelectedItem* classInfo = 
-                   new GroupAndNameHierarchySelectedItem(classSelector);
-                QTreeWidgetItem* classItem = createTreeWidgetItem(classSelector->getName(),
-                                                                  classSelector->getIconColorRGBA(),
-                                                                  classSelector->getSelected(m_displayGroup,
-                                                                                            browserTabIndex),
-                                                                  classInfo);
-                classItem->addChildren(nameTreeWidgets);
-                classTreeWidgets.append(classItem);
-                classItem->setExpanded(classSelector->isExpanded(m_displayGroup,
-                                                                 browserTabIndex));
+            if (classTreeWidgets.empty() == false) {
+                GroupAndNameHierarchySelectedItem* modelInfo =
+                new GroupAndNameHierarchySelectedItem(classNamesModel);
+                CaretAssert(modelInfo);
+                QTreeWidgetItem* modelItem = createTreeWidgetItem(classNamesModel->getName(),
+                                                                  NULL,
+                                                                  classNamesModel->getCheckState(m_displayGroup,
+                                                                                                 browserTabIndex),
+                                                                  modelInfo);
+                CaretAssert(modelItem);
+                modelItem->addChildren(classTreeWidgets);
+                m_treeWidget->addTopLevelItem(modelItem);
+                modelItem->setExpanded(classNamesModel->isExpanded(m_displayGroup,
+                                                                   browserTabIndex));
             }
-        }
-        
-        /*
-         * If there are any valid, classes in the model, add a class/name model in the tree widget
-         */
-        if (classTreeWidgets.empty() == false) {
-            GroupAndNameHierarchySelectedItem* modelInfo = 
-               new GroupAndNameHierarchySelectedItem(classNamesModel);
-            QTreeWidgetItem* modelItem = createTreeWidgetItem(classNamesModel->getName(),
-                                                              NULL,
-                                                              classNamesModel->getSelected(m_displayGroup,
-                                                                                          browserTabIndex),
-                                                              modelInfo);
-            modelItem->addChildren(classTreeWidgets);
-            m_treeWidget->addTopLevelItem(modelItem);
-            modelItem->setExpanded(classNamesModel->isExpanded(m_displayGroup,
-                                                               browserTabIndex));
         }
     }
     
@@ -598,11 +647,12 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
         const int numChildren = twi->childCount();
         for (int ic = 0; ic < numChildren; ic++) {
             QTreeWidgetItem* child = twi->child(ic);
+            CaretAssert(child);
             expandCollapseTreeWidgetItem(child);
         }
     }
     
-    m_treeWidget->blockSignals(false);
+    this->blockSignals(false);
 }
 
 /**
@@ -613,7 +663,12 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
 void 
 GroupAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetItem* item)
 {
+    CaretAssert(item);
+    const bool blockStatus = m_treeWidget->signalsBlocked();
+    //m_treeWidget->blockSignals(true);
+    
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    CaretAssert(ptr);
     GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
     CaretAssert(selectionInfo);
     
@@ -628,6 +683,8 @@ GroupAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
             CaretAssert(hierarchyModel);
             item->setExpanded(hierarchyModel->isExpanded(m_displayGroup,
                                                          browserTabIndex));
+            item->setCheckState(0, toQCheckState(hierarchyModel->getCheckState(m_displayGroup,
+                                                                 browserTabIndex)));
         }
             break;
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
@@ -636,11 +693,22 @@ GroupAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
             CaretAssert(classSelector);
             item->setExpanded(classSelector->isExpanded(m_displayGroup,
                                                         browserTabIndex));
+            item->setCheckState(0, toQCheckState(classSelector->getCheckState(m_displayGroup,
+                                                                               browserTabIndex)));
         }
             break;
         case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
+        {
+            GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
+            CaretAssert(nameSelector);
+            item->setCheckState(0, toQCheckState(nameSelector->getCheckState(m_displayGroup,
+                                                                               browserTabIndex)));
+            
+        }
             break;
     }
+    
+    m_treeWidget->blockSignals(blockStatus);
 }
 
 
@@ -661,10 +729,12 @@ GroupAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
                                                           const GroupAndNameCheckStateEnum::Enum checkedStatus,
                                                           GroupAndNameHierarchySelectedItem* selectionInfo)
 {
+    CaretAssert(selectionInfo);
     QTreeWidgetItem* twi = new QTreeWidgetItem();
     twi->setText(0, name);
     twi->setFlags(Qt::ItemIsUserCheckable
-                  | Qt::ItemIsEnabled);
+                  | Qt::ItemIsEnabled
+                  | Qt::ItemIsTristate);
     
     const Qt::CheckState checkState = toQCheckState(checkedStatus);
     twi->setCheckState(0, checkState);
