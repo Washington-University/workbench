@@ -53,6 +53,7 @@ FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
+GroupAndNameHierarchySelectedItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h

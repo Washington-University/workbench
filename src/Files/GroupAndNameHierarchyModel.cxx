@@ -1176,6 +1176,8 @@ bool
 GroupAndNameHierarchyModel::needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
                                                      const int32_t tabIndex) const
 {
+    bool needUpdate = false;
+    
     const int32_t displayIndex = (int32_t)displayGroup;
     CaretAssertArrayIndex(this->expandedStatusInDisplayGroup,
                           DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -1185,13 +1187,15 @@ GroupAndNameHierarchyModel::needsUserInterfaceUpdate(const DisplayGroupEnum::Enu
         CaretAssertArrayIndex(this->expandedStatusInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        return this->updatedNeededInTab[tabIndex];
+        needUpdate = this->updatedNeededInTab[tabIndex];
         this->updatedNeededInTab[tabIndex] = false;
     }
     else {
-        return this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex];
+        needUpdate = this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex];
         this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex] = false;
     }
+    
+    return needUpdate;
 }
 
 /**

@@ -78,19 +78,10 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
                                                                          QWidget* parent)
 : QWidget(parent)
 {
-    m_alwaysDisplayNames = false;
-    m_ignoreUpdates = false;
-    
     m_displayGroup = DisplayGroupEnum::getDefaultValue();
     m_browserWindowIndex = browserWindowIndex;
-    m_treeWidget = new WuQTreeWidget();
-    m_treeWidget->setStyleSheet("background-color: rgba(125,125,125,0)");
-    QObject::connect(m_treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-                     this, SLOT(treeWidgetItemChanged(QTreeWidgetItem*,int)));
-    QObject::connect(m_treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
-                     this, SLOT(treeWidgetItemCollapsed(QTreeWidgetItem*)));
-    QObject::connect(m_treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-                     this, SLOT(treeWidgetItemExpanded(QTreeWidgetItem*)));
+    m_modelLayout = new QVBoxLayout();
+    m_ignoreUpdates = false;
     
     QWidget* allOnOffWidget = createAllOnOffControls();
     
@@ -98,7 +89,7 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(allOnOffWidget);
     layout->addSpacing(5);
-    layout->addWidget(m_treeWidget);
+    layout->addLayout(m_modelLayout);
     
 }
 
@@ -107,7 +98,7 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
  */
 GroupAndNameHierarchyViewController::~GroupAndNameHierarchyViewController()
 {
-    deleteItemSelectionInfo();
+    removeAllModelItems();
 }
 
 /**
@@ -164,246 +155,19 @@ GroupAndNameHierarchyViewController::setAllSelected(bool selected)
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     if (browserTabContent != NULL) {
-        const int32_t browserTabIndex = browserTabContent->getTabNumber();
-        for (std::vector<GroupAndNameHierarchyModel*>::iterator iter = m_classAndNameHierarchyModels.begin();
-             iter != m_classAndNameHierarchyModels.end();
-             iter++) {
-            GroupAndNameHierarchyModel* model = *iter;
-            model->setAllSelected(m_displayGroup,
-                                  browserTabIndex,
-                                  selected);
-        }
-        updateContents(m_classAndNameHierarchyModels);
+//        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+//        for (std::vector<GroupAndNameHierarchyModel*>::iterator iter = m_classAndNameHierarchyModels.begin();
+//             iter != m_classAndNameHierarchyModels.end();
+//             iter++) {
+//            GroupAndNameHierarchyModel* model = *iter;
+//            model->setAllSelected(m_displayGroup,
+//                                  browserTabIndex,
+//                                  selected);
+//        }
+//        updateContents(modelItems);
     }
 }
 
-
-/**
- * Called when an item in the border selection tree widget
- * is changed.
- * @param item
- *    Item that is changed.
- * @param column
- *    Not used.
- */
-void 
-GroupAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item,
-                                                          int /*column*/)
-{
-    CaretAssert(item);
-    void* ptr = item->data(0, Qt::UserRole).value<void*>();
-    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
-    CaretAssert(selectionInfo);
-    
-    const Qt::CheckState qtCheckState = item->checkState(0);
-    const GroupAndNameCheckStateEnum::Enum checkState = fromQCheckState(qtCheckState);
-    std::cout
-    << "Name: " << qPrintable(item->text(0))
-    << "    CheckState: " << qPrintable(GroupAndNameCheckStateEnum::toName(checkState)) << std::endl;
-    const bool selectedStatus = (checkState != GroupAndNameCheckStateEnum::UNCHECKED);
-    
-    BrowserTabContent* browserTabContent = 
-       GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    switch (selectionInfo->getItemType()) {
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
-        {
-            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
-            CaretAssert(hierarchyModel);
-            hierarchyModel->setSelected(m_displayGroup,
-                                        browserTabIndex,
-                                        selectedStatus);
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
-        {
-            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            CaretAssert(classSelector);
-//            const bool anySelected = classSelector->isAnySelected(m_displayGroup,
-//                                                                  browserTabIndex);
-            classSelector->setSelected(m_displayGroup,
-                                       browserTabIndex,
-                                       selectedStatus);
-            
-//            /*
-//             * If turned on and no child names selected,
-//             * select all child names.
-//             */
-//            if (isSelected
-//                && (anySelected == false)) {
-//                const int32_t  numberOfChildren = item->childCount();
-//                for (int32_t i = 0; i < numberOfChildren; i++) {
-//                    QTreeWidgetItem* twi = item->child(i);
-//                    void* ptr = twi->data(0, Qt::UserRole).value<void*>();
-//                    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
-//                    CaretAssert(selectionInfo);
-//                    if (selectionInfo->getItemType() == GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME) {
-//                        GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
-//                        nameSelector->setSelected(m_displayGroup,
-//                                                  browserTabIndex,
-//                                                  isSelected);
-//                        m_treeWidget->blockSignals(true);
-//                        twi->setCheckState(0, Qt::Checked);
-//                        m_treeWidget->blockSignals(false);
-//                    }
-//                }
-//            }
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
-        {
-            GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
-            CaretAssert(nameSelector);
-            nameSelector->setSelected(m_displayGroup,
-                                      browserTabIndex,
-                                      selectedStatus);
-        }
-            break;
-    }
-    
-    /*
-     * Selecting an item may require update to parent or child checkbox status
-     */
-    updateContents(m_classAndNameHierarchyModels);
-    
-    m_ignoreUpdates = true;
-    emit itemSelected(selectionInfo);
-    m_ignoreUpdates = false;
-}
-
-/**
- * Convert QCheckState to GroupAndNameCheckStateEnum
- * @param checkState
- *    The QCheckState
- * @return GroupAndNameCheckStateEnum converted from QCheckState
- */
-GroupAndNameCheckStateEnum::Enum
-GroupAndNameHierarchyViewController::fromQCheckState(const Qt::CheckState checkState)
-{
-    switch (checkState) {
-        case Qt::Unchecked:
-            return GroupAndNameCheckStateEnum::CHECKED;
-            break;
-        case Qt::PartiallyChecked:
-            return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
-            break;
-        case Qt::Checked:
-            return GroupAndNameCheckStateEnum::UNCHECKED;
-            break;
-    }
-    return GroupAndNameCheckStateEnum::UNCHECKED;
-}
-
-/**
- * Convert GroupAndNameCheckStateEnum to QCheckState
- * @param checkState
- *    The GroupAndNameCheckStateEnum
- * @return QCheckState converted from GroupAndNameCheckStateEnum converted.
- */
-Qt::CheckState
-GroupAndNameHierarchyViewController::toQCheckState(const GroupAndNameCheckStateEnum::Enum checkState)
-{
-    switch (checkState) {
-        case GroupAndNameCheckStateEnum::CHECKED:
-            return Qt::Checked;
-            break;
-        case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
-            return Qt::PartiallyChecked;
-            break;
-        case GroupAndNameCheckStateEnum::UNCHECKED:
-            return Qt::Unchecked;
-            break;
-    }
-    return Qt::Unchecked;
-}
-
-
-/**
- * Called when an item in the border selection tree widget
- * is collapsed.
- * @param item
- *    Item that is collapsed.
- */
-void 
-GroupAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* item)
-{
-    CaretAssert(item);
-    void* ptr = item->data(0, Qt::UserRole).value<void*>();
-    CaretAssert(ptr);
-    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
-    CaretAssert(selectionInfo);
-    
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    switch (selectionInfo->getItemType()) {
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
-        {
-            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
-            CaretAssert(hierarchyModel);
-            hierarchyModel->setExpanded(m_displayGroup,
-                                        browserTabIndex,
-                                        false);
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
-        {
-            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            CaretAssert(classSelector);
-            classSelector->setExpanded(m_displayGroup,
-                                       browserTabIndex,
-                                       false);
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
-            break;
-    }
-}
-
-/**
- * Called when an item in the border selection tree widget
- * is expanded.
- * @param item
- *    Item that is expanded.
- */
-void 
-GroupAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* item)
-{
-    CaretAssert(item);
-    void* ptr = item->data(0, Qt::UserRole).value<void*>();
-    CaretAssert(ptr);
-    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
-    CaretAssert(selectionInfo);
-    
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    switch (selectionInfo->getItemType()) {
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
-        {
-            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
-            CaretAssert(hierarchyModel);
-            hierarchyModel->setExpanded(m_displayGroup,
-                                        browserTabIndex,
-                                        true);
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
-        {
-            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            CaretAssert(classSelector);
-            classSelector->setExpanded(m_displayGroup, 
-                                       browserTabIndex,
-                                       true);
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
-            break;
-    }
-}
 
 /**
  * Update with border files.
@@ -420,6 +184,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
         return;
     }
     
+    std::vector<GroupAndNameHierarchyModel*> models;
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
     for (std::vector<BorderFile*>::iterator iter = borderFiles.begin();
@@ -427,12 +192,11 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
          iter++) {
         BorderFile* bf = *iter;
         CaretAssert(bf);
-        classAndNameHierarchyModels.push_back(bf->getGroupAndNameHierarchyModel());
+        models.push_back(bf->getGroupAndNameHierarchyModel());
     }
     
-    updateContents(classAndNameHierarchyModels);
+    updateContents(models);
     
-    m_treeWidget->resizeToFitContent();
 }
 
 /**
@@ -450,19 +214,17 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
         return;
     }
     
-    m_displayGroup = displayGroup;
-    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
-    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
-         iter != fociFiles.end();
-         iter++) {
-        FociFile* ff = *iter;
-        CaretAssert(ff);
-        classAndNameHierarchyModels.push_back(ff->getGroupAndNameHierarchyModel());
-    }
-    
-    updateContents(classAndNameHierarchyModels);
-    
-    m_treeWidget->resizeToFitContent();
+//    m_displayGroup = displayGroup;
+//    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
+//    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
+//         iter != fociFiles.end();
+//         iter++) {
+//        FociFile* ff = *iter;
+//        CaretAssert(ff);
+//        classAndNameHierarchyModels.push_back(ff->getGroupAndNameHierarchyModel());
+//    }
+//    
+//    updateContents(classAndNameHierarchyModels);    
 }
 
 /**
@@ -479,32 +241,41 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labe
     if (m_ignoreUpdates) {
         return;
     }
-    
-    m_alwaysDisplayNames = true;
-    m_displayGroup = displayGroup;
-    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
-    for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
-         iter != labelFiles.end();
-         iter++) {
-        LabelFile* lf = *iter;
-        CaretAssert(lf);
-        classAndNameHierarchyModels.push_back(lf->getGroupAndNameHierarchyModel());
-    }
-    
-    updateContents(classAndNameHierarchyModels);
-    
-    m_treeWidget->resizeToFitContent();
+//    
+//    m_alwaysDisplayNames = true;
+//    m_displayGroup = displayGroup;
+//    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
+//    for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
+//         iter != labelFiles.end();
+//         iter++) {
+//        LabelFile* lf = *iter;
+//        CaretAssert(lf);
+//        classAndNameHierarchyModels.push_back(lf->getGroupAndNameHierarchyModel());
+//    }
+//    
+//    updateContents(classAndNameHierarchyModels);
+//    
 }
 
+/**
+ * Remove all model items.
+ */
 void
-GroupAndNameHierarchyViewController::deleteItemSelectionInfo()
+GroupAndNameHierarchyViewController::removeAllModelItems()
 {
-    for (std::vector<GroupAndNameHierarchySelectedItem*>::iterator itemSelIter = m_itemSelectionInfo.begin();
-         itemSelIter != m_itemSelectionInfo.end();
-         itemSelIter++) {
-        delete *itemSelIter;
+    std::cout << "Before removeAllModelItems() layout contains "
+    << m_modelLayout->count() << " items." << std::endl;
+    
+    int32_t numberOfModels = static_cast<int32_t>(this->modelItems.size());
+    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+        GroupAndNameHierarchySelectedItem* item = this->modelItems[iModel];
+        m_modelLayout->removeWidget(item);
+        delete item;
     }
-    m_itemSelectionInfo.clear();
+    this->modelItems.clear();
+    
+    std::cout << "After removeAllModelItems() layout contains "
+    << m_modelLayout->count() << " items." << std::endl;
 }
 
 
@@ -518,11 +289,6 @@ GroupAndNameHierarchyViewController::deleteItemSelectionInfo()
 void 
 GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels)
 {
-    /*
-     * Copy the models
-     */
-    m_classAndNameHierarchyModels = classAndNameHierarchyModels;
-    
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
@@ -531,185 +297,49 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
      * See if an update is needed.
      */
     bool needUpdate = false;
-    const int32_t numberOfModels = static_cast<int32_t>(m_classAndNameHierarchyModels.size());
-    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        if (m_classAndNameHierarchyModels[iModel]->needsUserInterfaceUpdate(m_displayGroup,
-                                                                            browserTabIndex)) {
-            needUpdate = true;
-            break;
+    int32_t numberOfModels = static_cast<int32_t>(classAndNameHierarchyModels.size());
+    if (numberOfModels != static_cast<int32_t>(this->modelItems.size())) {
+        needUpdate = true;
+    }
+    else {
+        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+            if (classAndNameHierarchyModels[iModel]->needsUserInterfaceUpdate(m_displayGroup,
+                                                                              browserTabIndex)) {
+                needUpdate = true;
+                break;
+            }
         }
     }
     
     if (needUpdate) {
+        
+        removeAllModelItems();
+        
+        /*
+         * Copy the models
+         */
+        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+            GroupAndNameHierarchySelectedItem* modelItem = new GroupAndNameHierarchySelectedItem(m_displayGroup,
+                                                                                                 browserTabIndex,
+                                                                                                 classAndNameHierarchyModels[iModel]);
+            m_modelLayout->addWidget(modelItem);
+            this->modelItems.push_back(modelItem);
+        }
+        
         /*
          * Remove everything from the tree widget
          */
         this->blockSignals(true);
-        m_treeWidget->clear();
-        
-        deleteItemSelectionInfo();
-        
-        /*
-         * Loop through the models.
-         */
-        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-            GroupAndNameHierarchyModel* classNamesModel = m_classAndNameHierarchyModels[iModel];
-            
-            QList<QTreeWidgetItem*> classTreeWidgets;
-            
-            /*
-             * Loop through each class
-             */
-            const std::vector<int32_t> classKeysVector = classNamesModel->getAllGroupKeysSortedByName();
-            for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
-                 classIter != classKeysVector.end();
-                 classIter++) {
-                const int32_t classKey = *classIter;
-                GroupAndNameHierarchyGroup* classSelector = classNamesModel->getGroupSelectorForGroupKey(classKey);
-                CaretAssert(classSelector);
-                
-                /*
-                 * Names in the model
-                 */
-                QList<QTreeWidgetItem*> nameTreeWidgets;
-                const std::vector<int32_t> nameKeysVector = classSelector->getAllNameKeysSortedByName();
-                for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
-                     nameIter != nameKeysVector.end();
-                     nameIter++) {
-                    const int32_t nameKey = *nameIter;
-                    GroupAndNameHierarchyName* nameSelector = classSelector->getNameSelectorWithKey(nameKey);
-                    CaretAssert(nameSelector);
-                    
-                    if ((nameSelector->getCounter() > 0)
-                        || m_alwaysDisplayNames) {
-                        GroupAndNameHierarchySelectedItem* nameInfo =
-                        new GroupAndNameHierarchySelectedItem(nameSelector);
-                        QTreeWidgetItem* nameItem = createTreeWidgetItem(nameSelector->getName(),
-                                                                         nameSelector->getIconColorRGBA(),
-                                                                         nameSelector->getCheckState(m_displayGroup,
-                                                                                                     browserTabIndex),
-                                                                         nameInfo);
-                        nameTreeWidgets.append(nameItem);
-                    }
-                }
-                
-                /*
-                 * Only create a class item if it has valid child names
-                 */
-                if (nameTreeWidgets.empty() == false) {
-                    /*
-                     * Item for class
-                     */
-                    GroupAndNameHierarchySelectedItem* classInfo =
-                    new GroupAndNameHierarchySelectedItem(classSelector);
-                    CaretAssert(classInfo);
-                    QTreeWidgetItem* classItem = createTreeWidgetItem(classSelector->getName(),
-                                                                      classSelector->getIconColorRGBA(),
-                                                                      classSelector->getCheckState(m_displayGroup,
-                                                                                                   browserTabIndex),
-                                                                      classInfo);
-                    CaretAssert(classItem);
-                    classItem->addChildren(nameTreeWidgets);
-                    classTreeWidgets.append(classItem);
-                    classItem->setExpanded(classSelector->isExpanded(m_displayGroup,
-                                                                     browserTabIndex));
-                }
-            }
-            
-            /*
-             * If there are any valid, classes in the model, add a class/name model in the tree widget
-             */
-            if (classTreeWidgets.empty() == false) {
-                GroupAndNameHierarchySelectedItem* modelInfo =
-                new GroupAndNameHierarchySelectedItem(classNamesModel);
-                CaretAssert(modelInfo);
-                QTreeWidgetItem* modelItem = createTreeWidgetItem(classNamesModel->getName(),
-                                                                  NULL,
-                                                                  classNamesModel->getCheckState(m_displayGroup,
-                                                                                                 browserTabIndex),
-                                                                  modelInfo);
-                CaretAssert(modelItem);
-                modelItem->addChildren(classTreeWidgets);
-                m_treeWidget->addTopLevelItem(modelItem);
-                modelItem->setExpanded(classNamesModel->isExpanded(m_displayGroup,
-                                                                   browserTabIndex));
-            }
-        }
     }
     
-    /*
-     * Expand collapse items
-     */
-    const int numTopItems = m_treeWidget->topLevelItemCount();
-    for (int nti = 0; nti < numTopItems; nti++) {
-        QTreeWidgetItem* twi = m_treeWidget->topLevelItem(nti);
-        expandCollapseTreeWidgetItem(twi);
-        const int numChildren = twi->childCount();
-        for (int ic = 0; ic < numChildren; ic++) {
-            QTreeWidgetItem* child = twi->child(ic);
-            CaretAssert(child);
-            expandCollapseTreeWidgetItem(child);
-        }
+    numberOfModels = static_cast<int32_t>(this->modelItems.size());
+    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+        modelItems[iModel]->updateSelections();
     }
     
     this->blockSignals(false);
 }
 
-/**
- * Expand or collapse tree widget item using its assigned model's status.
- * @param item
- *    The tree widget item.
- */
-void 
-GroupAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetItem* item)
-{
-    CaretAssert(item);
-    const bool blockStatus = m_treeWidget->signalsBlocked();
-    //m_treeWidget->blockSignals(true);
-    
-    void* ptr = item->data(0, Qt::UserRole).value<void*>();
-    CaretAssert(ptr);
-    GroupAndNameHierarchySelectedItem* selectionInfo = (GroupAndNameHierarchySelectedItem*)ptr;
-    CaretAssert(selectionInfo);
-    
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    switch (selectionInfo->getItemType()) {
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
-        {
-            GroupAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
-            CaretAssert(hierarchyModel);
-            item->setExpanded(hierarchyModel->isExpanded(m_displayGroup,
-                                                         browserTabIndex));
-            item->setCheckState(0, toQCheckState(hierarchyModel->getCheckState(m_displayGroup,
-                                                                 browserTabIndex)));
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
-        {
-            GroupAndNameHierarchyGroup* classSelector = selectionInfo->getClassDisplayGroupSelector();
-            CaretAssert(classSelector);
-            item->setExpanded(classSelector->isExpanded(m_displayGroup,
-                                                        browserTabIndex));
-            item->setCheckState(0, toQCheckState(classSelector->getCheckState(m_displayGroup,
-                                                                               browserTabIndex)));
-        }
-            break;
-        case GroupAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
-        {
-            GroupAndNameHierarchyName* nameSelector = selectionInfo->getNameDisplayGroupSelector();
-            CaretAssert(nameSelector);
-            item->setCheckState(0, toQCheckState(nameSelector->getCheckState(m_displayGroup,
-                                                                               browserTabIndex)));
-            
-        }
-            break;
-    }
-    
-    m_treeWidget->blockSignals(blockStatus);
-}
 
 
 /**
@@ -723,48 +353,21 @@ GroupAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetIte
  * @param selectionInfo
  *    Selection information for item.
  */
-QTreeWidgetItem*
-GroupAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
-                                                          const float* iconColorRGBA,
-                                                          const GroupAndNameCheckStateEnum::Enum checkedStatus,
-                                                          GroupAndNameHierarchySelectedItem* selectionInfo)
-{
-    CaretAssert(selectionInfo);
-    QTreeWidgetItem* twi = new QTreeWidgetItem();
-    twi->setText(0, name);
-    twi->setFlags(Qt::ItemIsUserCheckable
-                  | Qt::ItemIsEnabled
-                  | Qt::ItemIsTristate);
-    
-    const Qt::CheckState checkState = toQCheckState(checkedStatus);
-    twi->setCheckState(0, checkState);
-    twi->setData(0, Qt::UserRole, qVariantFromValue((void*)selectionInfo));
-    
-    if (iconColorRGBA != NULL) {
-        if (iconColorRGBA[3] > 0.0) {
-            QPixmap pm(10, 10);
-            pm.fill(QColor::fromRgbF(iconColorRGBA[0],
-                                     iconColorRGBA[1],
-                                     iconColorRGBA[2]));
-            QIcon icon(pm);
-            twi->setIcon(0, icon);
-        }
-    }
-    
-    m_itemSelectionInfo.push_back(selectionInfo);
-    
-    return twi;
-
+//QTreeWidgetItem*
+//GroupAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
+//                                                          const float* iconColorRGBA,
+//                                                          const GroupAndNameCheckStateEnum::Enum checkedStatus,
+//                                                          GroupAndNameHierarchySelectedItem* selectionInfo)
+//{
+//    CaretAssert(selectionInfo);
 //    QTreeWidgetItem* twi = new QTreeWidgetItem();
 //    twi->setText(0, name);
 //    twi->setFlags(Qt::ItemIsUserCheckable
-//                  | Qt::ItemIsEnabled);
-//    if (isSelected) {
-//        twi->setCheckState(0, Qt::Checked);
-//    }
-//    else {
-//        twi->setCheckState(0, Qt::Unchecked);
-//    }
+//                  | Qt::ItemIsEnabled
+//                  | Qt::ItemIsTristate);
+//    
+//    const Qt::CheckState checkState = toQCheckState(checkedStatus);
+//    twi->setCheckState(0, checkState);
 //    twi->setData(0, Qt::UserRole, qVariantFromValue((void*)selectionInfo));
 //    
 //    if (iconColorRGBA != NULL) {
@@ -781,7 +384,34 @@ GroupAndNameHierarchyViewController::createTreeWidgetItem(const AString& name,
 //    m_itemSelectionInfo.push_back(selectionInfo);
 //    
 //    return twi;
-/*
- */
-}
+//
+////    QTreeWidgetItem* twi = new QTreeWidgetItem();
+////    twi->setText(0, name);
+////    twi->setFlags(Qt::ItemIsUserCheckable
+////                  | Qt::ItemIsEnabled);
+////    if (isSelected) {
+////        twi->setCheckState(0, Qt::Checked);
+////    }
+////    else {
+////        twi->setCheckState(0, Qt::Unchecked);
+////    }
+////    twi->setData(0, Qt::UserRole, qVariantFromValue((void*)selectionInfo));
+////
+////    if (iconColorRGBA != NULL) {
+////        if (iconColorRGBA[3] > 0.0) {
+////            QPixmap pm(10, 10);
+////            pm.fill(QColor::fromRgbF(iconColorRGBA[0],
+////                                     iconColorRGBA[1],
+////                                     iconColorRGBA[2]));
+////            QIcon icon(pm);
+////            twi->setIcon(0, icon);
+////        }
+////    }
+////    
+////    m_itemSelectionInfo.push_back(selectionInfo);
+////    
+////    return twi;
+///*
+// */
+//}
 

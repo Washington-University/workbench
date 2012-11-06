@@ -35,12 +35,24 @@
 /*LICENSE_END*/
 
 
+#include <QWidget>
+
 #include "CaretObject.h"
-#include "GroupAndNameHierarchyModel.h"
+#include "DisplayGroupEnum.h"
+#include "GroupAndNameCheckStateEnum.h"
+
+class QAction;
+class QCheckBox;
+class QVBoxLayout;
 
 namespace caret {
 
-    class GroupAndNameHierarchySelectedItem : public CaretObject {
+    class GroupAndNameHierarchyGroup;
+    class GroupAndNameHierarchyModel;
+    class GroupAndNameHierarchyName;
+    
+    class GroupAndNameHierarchySelectedItem : public QWidget, public CaretObject {
+        Q_OBJECT
         
     public:
         /** Type of item within the hierarchy */
@@ -53,11 +65,20 @@ namespace caret {
             ITEM_TYPE_NAME
         };
         
-        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyModel* classAndNameHierarchyModel);
+        GroupAndNameHierarchySelectedItem(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex,
+                                          GroupAndNameHierarchyModel* classAndNameHierarchyModel,
+                                          QWidget* parent = 0);
         
-        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyGroup* classDisplayGroupSelector);
+        GroupAndNameHierarchySelectedItem(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex,
+                                          GroupAndNameHierarchyGroup* classDisplayGroupSelector,
+                                          QWidget* parent = 0);
         
-        GroupAndNameHierarchySelectedItem(GroupAndNameHierarchyName* nameDisplayGroupSelector);
+        GroupAndNameHierarchySelectedItem(const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex,
+                                          GroupAndNameHierarchyName* nameDisplayGroupSelector,
+                                          QWidget* parent = 0);
         
         ~GroupAndNameHierarchySelectedItem();
         
@@ -69,20 +90,60 @@ namespace caret {
         
         GroupAndNameHierarchyName* getNameDisplayGroupSelector();
         
+        void addChild(GroupAndNameHierarchySelectedItem* child);
+        
+        QVBoxLayout* getChildrenLayout();
+        
+        void updateSelections();
+        
+    signals:
+        void statusChanged();
+        
+    private slots:
+        void checkBoxStateChanged(int state);
+        
+        void childStatusWasChanged();
+        
+        void expandCollapseActionTriggered(bool);
+        
     private:
         GroupAndNameHierarchySelectedItem(const GroupAndNameHierarchySelectedItem&);
         
         GroupAndNameHierarchySelectedItem& operator=(const GroupAndNameHierarchySelectedItem&);
         
-        void initialize(const ItemType itemType);
+        void initialize(const DisplayGroupEnum::Enum displayGroup,
+                        const int32_t tabIndex,
+                        const ItemType itemType,
+                        const QString text,
+                        const float* iconColorRGBA);
+        
+        static GroupAndNameCheckStateEnum::Enum fromQCheckState(const Qt::CheckState checkState);
+        
+        static Qt::CheckState toQCheckState(const GroupAndNameCheckStateEnum::Enum checkState);
         
         ItemType itemType;
+        
+        DisplayGroupEnum::Enum m_displayGroup;
+        
+        int32_t m_tabIndex;
         
         GroupAndNameHierarchyModel* classAndNameHierarchyModel;
         
         GroupAndNameHierarchyGroup* classDisplayGroupSelector;
         
         GroupAndNameHierarchyName* nameDisplayGroupSelector;
+        
+        std::vector<GroupAndNameHierarchySelectedItem*> m_children;
+        
+        QWidget* m_childrenWidget;
+        
+        QVBoxLayout* m_childrenLayout;
+        
+        QCheckBox* m_checkBox;
+        
+        QAction* m_expandCollapseAction;
+        
+        bool m_displayNamesWithZeroCount;
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__

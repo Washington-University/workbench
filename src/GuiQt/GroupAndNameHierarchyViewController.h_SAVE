@@ -40,9 +40,10 @@
 
 #include "AString.h"
 #include "DisplayGroupEnum.h"
+#include "GroupAndNameCheckStateEnum.h"
 
 class QCheckBox;
-class QVBoxLayout;
+class QTreeWidgetItem;
 
 namespace caret {
 
@@ -51,6 +52,7 @@ namespace caret {
     class LabelFile;
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchySelectedItem;
+    class WuQTreeWidget;
     
     class GroupAndNameHierarchyViewController : public QWidget {
         
@@ -75,6 +77,13 @@ namespace caret {
         void itemSelected(GroupAndNameHierarchySelectedItem* selectedItem);
         
     private slots:
+        void treeWidgetItemChanged(QTreeWidgetItem* item,
+                                   int column);
+        
+        void treeWidgetItemCollapsed(QTreeWidgetItem* item);
+        
+        void treeWidgetItemExpanded(QTreeWidgetItem* item);
+        
         void allOnPushButtonClicked();
         
         void allOffPushButtonClicked();
@@ -84,24 +93,38 @@ namespace caret {
 
         GroupAndNameHierarchyViewController& operator=(const GroupAndNameHierarchyViewController&);
         
-        void updateContents(std::vector<GroupAndNameHierarchyModel*>& modelItems);
+        void updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels);
         
-        void removeAllModelItems();
+        void deleteItemSelectionInfo();
         
-        std::vector<GroupAndNameHierarchySelectedItem*> modelItems;
+        QTreeWidgetItem* createTreeWidgetItem(const AString& name,
+                                              const float* iconColorRGBA,
+                                              const GroupAndNameCheckStateEnum::Enum checkedStatus,
+                                              GroupAndNameHierarchySelectedItem* selectionInfo);
         
-        QVBoxLayout* m_modelLayout;
+        void expandCollapseTreeWidgetItem(QTreeWidgetItem* twi);
+        
+        static GroupAndNameCheckStateEnum::Enum fromQCheckState(const Qt::CheckState checkState);
+
+        static Qt::CheckState toQCheckState(const GroupAndNameCheckStateEnum::Enum checkState);
         
         QWidget* createAllOnOffControls();
         
         void setAllSelected(bool selected);
         
+        std::vector<GroupAndNameHierarchyModel*> m_classAndNameHierarchyModels;
+        
+        WuQTreeWidget* m_treeWidget;
+        
+        std::vector<GroupAndNameHierarchySelectedItem*> m_itemSelectionInfo;
+
         int32_t m_browserWindowIndex;
         
         DisplayGroupEnum::Enum m_displayGroup;
         
-        bool m_ignoreUpdates;
+        bool m_alwaysDisplayNames;
         
+        bool m_ignoreUpdates;
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
