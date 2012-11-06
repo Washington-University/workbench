@@ -132,8 +132,8 @@ QWidget*
 LabelSelectionViewController::createSelectionWidget()
 {
     m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_labelClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-                     this, SLOT(labelsSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
+//    QObject::connect(m_labelClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+//                     this, SLOT(labelsSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_labelClassNameHierarchyViewController;
 }

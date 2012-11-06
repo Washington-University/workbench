@@ -47,17 +47,21 @@
 #include "BorderFile.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GroupAndNameHierarchyName.h"
-#include "GroupAndNameHierarchySelectedItem.h"
+#include "GroupAndNameHierarchyTreeWidgetItem.h"
 #include "FociFile.h"
 #include "GuiManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
-#include "WuQtUtilities.h"
 #include "WuQTreeWidget.h"
+#include "WuQtUtilities.h"
+//#include "WuQTreeWidget.h"
 
 using namespace caret;
 
@@ -80,16 +84,23 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
 {
     m_displayGroup = DisplayGroupEnum::getDefaultValue();
     m_browserWindowIndex = browserWindowIndex;
-    m_modelLayout = new QVBoxLayout();
     m_ignoreUpdates = false;
     
     QWidget* allOnOffWidget = createAllOnOffControls();
+
+    m_modelTreeWidget = new WuQTreeWidget();
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+                     this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+                     this, SLOT(itemWasExpanded(QTreeWidgetItem*)));
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
+                     this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(allOnOffWidget);
     layout->addSpacing(5);
-    layout->addLayout(m_modelLayout);
+    layout->addWidget(m_modelTreeWidget);
     
 }
 
@@ -102,9 +113,75 @@ GroupAndNameHierarchyViewController::~GroupAndNameHierarchyViewController()
 }
 
 /**
+ * Gets called when an item is collapsed so that its children are not visible.
+ *
+ * @param item
+ *    The QTreeWidgetItem that was collapsed.
+ */
+void
+GroupAndNameHierarchyViewController::itemWasCollapsed(QTreeWidgetItem* item)
+{
+    std::cout << "Item collapsed: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << std::endl;
+    GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
+    CaretAssert(treeItem);
+    treeItem->setModelDataExpanded(false);
+    
+    updateGraphicsAndUserInterface();
+}
+
+/**
+ * Gets called when an item is expaned so that its children are visible.
+ *
+ * @param item
+ *    The QTreeWidgetItem that was expanded.
+ */
+void
+GroupAndNameHierarchyViewController::itemWasExpanded(QTreeWidgetItem* item)
+{
+    std::cout << "Item expanded: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << std::endl;
+    GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
+    CaretAssert(treeItem);
+    treeItem->setModelDataExpanded(true);
+
+    updateGraphicsAndUserInterface();
+}
+
+/**
+ * Called when an item is changed (checkbox selected/deselected).
+ *
+ * @param item
+ *    The QTreeWidgetItem that was collapsed.
+ * @param column
+ *    Ignored.
+ */
+void
+GroupAndNameHierarchyViewController::itemWasChanged(QTreeWidgetItem* item,
+                                                   int /*column*/)
+{
+    GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
+    CaretAssert(treeItem);
+    const bool newStatus = (item->checkState(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN) != Qt::Unchecked);
+    std::cout << "Item checkbox changed: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << " to " << newStatus << std::endl;
+    treeItem->setModelDataSelected(newStatus);
+
+    updateGraphicsAndUserInterface();
+}
+
+/**
+ * Update graphics and the user-interface.
+ */
+void
+GroupAndNameHierarchyViewController::updateGraphicsAndUserInterface()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+
+/**
  * Create buttons for all on and off
  */
-QWidget* 
+QWidget*
 GroupAndNameHierarchyViewController::createAllOnOffControls()
 {
     QLabel* allLabel = new QLabel("All: ");
@@ -155,17 +232,37 @@ GroupAndNameHierarchyViewController::setAllSelected(bool selected)
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     if (browserTabContent != NULL) {
-//        const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//        for (std::vector<GroupAndNameHierarchyModel*>::iterator iter = m_classAndNameHierarchyModels.begin();
-//             iter != m_classAndNameHierarchyModels.end();
-//             iter++) {
-//            GroupAndNameHierarchyModel* model = *iter;
-//            model->setAllSelected(m_displayGroup,
-//                                  browserTabIndex,
-//                                  selected);
-//        }
-//        updateContents(modelItems);
+        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+        
+        std::vector<GroupAndNameHierarchyModel*> allModels = getAllModels();
+        const int32_t numModels = static_cast<int32_t>(allModels.size());
+        for (int32_t i = 0; i < numModels; i++) {
+            GroupAndNameHierarchyModel* model = allModels[i];
+            model->setAllSelected(m_displayGroup,
+                                  browserTabIndex,
+                                  selected);
+        }
+        
+        updateContents(allModels);
     }
+}
+
+/**
+ * @return All models in this view controller.
+ */
+std::vector<GroupAndNameHierarchyModel*>
+GroupAndNameHierarchyViewController::getAllModels() const
+{
+    std::vector<GroupAndNameHierarchyModel*> allModels;
+    
+    const int32_t numItems = static_cast<int32_t>(m_treeWidgetItems.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        GroupAndNameHierarchyTreeWidgetItem* treeItem = m_treeWidgetItems[i];
+        GroupAndNameHierarchyModel* model = treeItem->getClassAndNameHierarchyModel();
+        allModels.push_back(model);
+    }
+    
+    return allModels;
 }
 
 
@@ -195,8 +292,9 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
         models.push_back(bf->getGroupAndNameHierarchyModel());
     }
     
+//    m_ignoreUpdates = true;
     updateContents(models);
-    
+//    m_ignoreUpdates = false;
 }
 
 /**
@@ -263,19 +361,24 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labe
 void
 GroupAndNameHierarchyViewController::removeAllModelItems()
 {
-    std::cout << "Before removeAllModelItems() layout contains "
-    << m_modelLayout->count() << " items." << std::endl;
+    m_modelTreeWidget->blockSignals(true);
     
-    int32_t numberOfModels = static_cast<int32_t>(this->modelItems.size());
-    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        GroupAndNameHierarchySelectedItem* item = this->modelItems[iModel];
-        m_modelLayout->removeWidget(item);
+    std::cout << "Before removeAllModelItems() layout contains "
+    << m_treeWidgetItems.size() << " items." << std::endl;
+    
+    int32_t numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
+    for (int32_t iModel = (numberOfModels - 1); iModel >= 0; iModel--) {
+        GroupAndNameHierarchyTreeWidgetItem* item = this->m_treeWidgetItems[iModel];
+        m_modelTreeWidget->removeItemWidget(item,
+                                            GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN);
         delete item;
     }
-    this->modelItems.clear();
+    this->m_treeWidgetItems.clear();
     
     std::cout << "After removeAllModelItems() layout contains "
-    << m_modelLayout->count() << " items." << std::endl;
+    << m_treeWidgetItems.size() << " items." << std::endl;
+    
+    m_modelTreeWidget->blockSignals(false);
 }
 
 
@@ -289,6 +392,11 @@ GroupAndNameHierarchyViewController::removeAllModelItems()
 void 
 GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels)
 {
+    if (m_ignoreUpdates) {
+        return;
+    }
+    m_ignoreUpdates = true;
+    
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
@@ -298,7 +406,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
      */
     bool needUpdate = false;
     int32_t numberOfModels = static_cast<int32_t>(classAndNameHierarchyModels.size());
-    if (numberOfModels != static_cast<int32_t>(this->modelItems.size())) {
+    if (numberOfModels != static_cast<int32_t>(this->m_treeWidgetItems.size())) {
         needUpdate = true;
     }
     else {
@@ -311,33 +419,32 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
         }
     }
     
+    m_modelTreeWidget->blockSignals(true);
+    
     if (needUpdate) {
         
         removeAllModelItems();
-        
+        m_modelTreeWidget->blockSignals(true); // gets reset
+
         /*
          * Copy the models
          */
         for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-            GroupAndNameHierarchySelectedItem* modelItem = new GroupAndNameHierarchySelectedItem(m_displayGroup,
+            GroupAndNameHierarchyTreeWidgetItem* modelItem = new GroupAndNameHierarchyTreeWidgetItem(m_displayGroup,
                                                                                                  browserTabIndex,
                                                                                                  classAndNameHierarchyModels[iModel]);
-            m_modelLayout->addWidget(modelItem);
-            this->modelItems.push_back(modelItem);
-        }
-        
-        /*
-         * Remove everything from the tree widget
-         */
-        this->blockSignals(true);
+            this->m_treeWidgetItems.push_back(modelItem);
+            m_modelTreeWidget->addTopLevelItem(modelItem);
+        }        
     }
     
-    numberOfModels = static_cast<int32_t>(this->modelItems.size());
+    numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        modelItems[iModel]->updateSelections();
+        m_treeWidgetItems[iModel]->updateSelections();
     }
     
-    this->blockSignals(false);
+    m_ignoreUpdates = false;
+    m_modelTreeWidget->blockSignals(false);
 }
 
 

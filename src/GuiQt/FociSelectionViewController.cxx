@@ -140,8 +140,8 @@ QWidget*
 FociSelectionViewController::createSelectionWidget()
 {
     m_fociClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-                     this, SLOT(fociSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
+//    QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+//                     this, SLOT(fociSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_fociClassNameHierarchyViewController;
 }

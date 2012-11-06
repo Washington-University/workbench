@@ -137,8 +137,8 @@ QWidget*
 BorderSelectionViewController::createSelectionWidget()
 {
     m_borderClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-    QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-                     this, SLOT(bordersSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
+//    QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
+//                     this, SLOT(bordersSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_borderClassNameHierarchyViewController;
 }

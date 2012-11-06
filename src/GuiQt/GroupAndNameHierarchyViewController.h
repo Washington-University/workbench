@@ -38,11 +38,9 @@
 
 #include <QWidget>
 
-#include "AString.h"
 #include "DisplayGroupEnum.h"
 
-class QCheckBox;
-class QVBoxLayout;
+class QTreeWidgetItem;
 
 namespace caret {
 
@@ -50,7 +48,8 @@ namespace caret {
     class FociFile;
     class LabelFile;
     class GroupAndNameHierarchyModel;
-    class GroupAndNameHierarchySelectedItem;
+    class GroupAndNameHierarchyTreeWidgetItem;
+    class WuQTreeWidget;
     
     class GroupAndNameHierarchyViewController : public QWidget {
         
@@ -71,14 +70,18 @@ namespace caret {
         void updateContents(std::vector<LabelFile*> labelFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
-    signals:
-        void itemSelected(GroupAndNameHierarchySelectedItem* selectedItem);
-        
     private slots:
         void allOnPushButtonClicked();
         
         void allOffPushButtonClicked();
         
+        void itemWasCollapsed(QTreeWidgetItem* item);
+        
+        void itemWasExpanded(QTreeWidgetItem* item);
+
+        void itemWasChanged(QTreeWidgetItem* item,
+                            int column);
+
     private:
         GroupAndNameHierarchyViewController(const GroupAndNameHierarchyViewController&);
 
@@ -86,11 +89,15 @@ namespace caret {
         
         void updateContents(std::vector<GroupAndNameHierarchyModel*>& modelItems);
         
+        std::vector<GroupAndNameHierarchyModel*> getAllModels() const;
+        
         void removeAllModelItems();
         
-        std::vector<GroupAndNameHierarchySelectedItem*> modelItems;
+        void updateGraphicsAndUserInterface();
         
-        QVBoxLayout* m_modelLayout;
+        std::vector<GroupAndNameHierarchyTreeWidgetItem*> m_treeWidgetItems;
+        
+        WuQTreeWidget* m_modelTreeWidget;
         
         QWidget* createAllOnOffControls();
         
