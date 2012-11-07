@@ -35,6 +35,7 @@ OperationLabelMask.h
 OperationMetricMask.h
 OperationMetricMath.h
 OperationMetricPalette.h
+OperationProbtrackXDotConvert.h
 OperationSetStructure.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
@@ -62,6 +63,7 @@ OperationLabelMask.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx
 OperationMetricPalette.cxx
+OperationProbtrackXDotConvert.cxx
 OperationSetStructure.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx

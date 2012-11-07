@@ -94,7 +94,7 @@ void NiftiFile::openFile(const AString &fileName)
         return;
     }
     QFile file;
-    gzFile zFile;
+    gzFile zFile = NULL;
     if(isCompressed())
     {
         /*

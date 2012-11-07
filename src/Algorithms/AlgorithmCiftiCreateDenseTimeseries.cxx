@@ -247,9 +247,9 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
             StructureEnum::Enum thisStructure = StructureEnum::fromName(myLabelTable->getLabelName(labelKeys[i]), &ok);
             if (ok)
             {
+                labelMap[labelKeys[i]] = thisStructure;
                 if (componentMap.find(thisStructure) == componentMap.end())//make sure we don't already have this structure from another label
                 {
-                    labelMap[labelKeys[i]] = thisStructure;
                     componentMap[thisStructure] = count;
                     ++count;
                 }
