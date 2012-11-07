@@ -66,21 +66,27 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     ret->addStringParameter(1, "dot-file", "input .dot file");
     ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
     
-    OptionalParameter* rowVoxelOpt = ret->createOptionalParameter(3, "-row-voxels", "the mapping along a row is voxels");
+    OptionalParameter* rowVoxelOpt = ret->createOptionalParameter(3, "-row-voxels", "the output mapping along a row will be voxels");
     rowVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
     rowVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
-    OptionalParameter* rowSurfaceOpt = ret->createOptionalParameter(4, "-row-surface", "the mapping along a row is surface vertices");
+    OptionalParameter* rowSurfaceOpt = ret->createOptionalParameter(4, "-row-surface", "the output mapping along a row will be surface vertices");
     rowSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
     
-    OptionalParameter* colVoxelOpt = ret->createOptionalParameter(5, "-col-voxels", "the mapping along a row is voxels");
+    OptionalParameter* colVoxelOpt = ret->createOptionalParameter(5, "-col-voxels", "the output mapping along a row will be voxels");
     colVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
     colVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
-    OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the mapping along a row is surface vertices");
+    OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the output mapping along a row will be surface vertices");
     colSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
     
+    ret->createOptionalParameter(7, "-transpose", "transpose the input matrix");
+    
     AString myText = AString("NOTE: exactly one -row option and one -col option must be used.\n\n") +
+        "If the input file does not have its indexes sorted in the correct ordering, this command may take longer than expected.  " +
+        "Specifying -transpose will transpose the input matrix before trying to put its values into the cifti file, which is currently needed for at least matrix2 " +
+        "in order to display it as intended.  " +
+        "How the cifti file is displayed is based on which -row option is specified: if -row-voxels is specified, then it will display data on volume slices.  " +
         "The label names in the label volume(s) must have the following names, other names are ignored:\n\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
@@ -101,6 +107,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     OptionalParameter* rowSurfaceOpt = myParams->getOptionalParameter(4);
     OptionalParameter* colVoxelOpt = myParams->getOptionalParameter(5);
     OptionalParameter* colSurfaceOpt = myParams->getOptionalParameter(6);
+    bool transpose = myParams->getOptionalParameter(7)->m_present;
     if (rowVoxelOpt->m_present == rowSurfaceOpt->m_present)//if both false or both true, basically using equals as a quick hack for xnor
     {
         throw OperationException("you must specify exactly one of -row-voxels and -row-surface");
@@ -134,16 +141,33 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     SparseValue tempValue;
     vector<SparseValue> dotFileContents;
     int32_t rowSize = myXML.getNumberOfColumns(), colSize = myXML.getNumberOfRows();
-    while (dotFile >> tempValue.index[0] >> tempValue.index[1] >> tempValue.value)
+    if (transpose)
     {
-        if (tempValue.index[0] < 1 || tempValue.index[0] >  rowSize||
-            tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+        while (dotFile >> tempValue.index[1] >> tempValue.index[0] >> tempValue.value)//this is the only line that is different for transpose
         {
-            throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]));
+            if (tempValue.index[0] < 1 || tempValue.index[0] >  rowSize ||
+                tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+            {
+                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
+                    ", perhaps you need to use -transpose");
+            }
+            tempValue.index[0] -= 1;//fix for 1-indexing
+            tempValue.index[1] -= 1;
+            dotFileContents.push_back(tempValue);
         }
-        tempValue.index[0] -= 1;//fix for 1-indexing
-        tempValue.index[1] -= 1;
-        dotFileContents.push_back(tempValue);
+    } else {
+        while (dotFile >> tempValue.index[0] >> tempValue.index[1] >> tempValue.value)
+        {
+            if (tempValue.index[0] < 1 || tempValue.index[0] >  rowSize ||
+                tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+            {
+                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
+                    ", perhaps you need to use -transpose");
+            }
+            tempValue.index[0] -= 1;//fix for 1-indexing
+            tempValue.index[1] -= 1;
+            dotFileContents.push_back(tempValue);
+        }
     }
     bool sorted = true;
     int64_t numValues = (int64_t)dotFileContents.size();
@@ -152,11 +176,15 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         if (dotFileContents[i - 1].index[1] > dotFileContents[i].index[1])
         {
             sorted = false;
-            CaretLogInfo("dot file indexes are not correctly sorted, sorting them will take some time...");
+            CaretLogInfo("dot file indexes are not correctly sorted, sorting them may take a minute or so...");
             break;
         }
     }
     if (!sorted) sort(dotFileContents.begin(), dotFileContents.end());
+    if (!sorted)
+    {
+        CaretLogInfo("sorting finished");
+    }
     myCiftiOut->setCiftiXML(myXML);
     int64_t cur = 0, end = (int64_t)dotFileContents.size();
     vector<float> scratchRow(myXML.getNumberOfColumns(), 0.0f);
