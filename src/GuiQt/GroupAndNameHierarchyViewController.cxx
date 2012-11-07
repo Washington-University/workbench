@@ -160,8 +160,13 @@ GroupAndNameHierarchyViewController::itemWasChanged(QTreeWidgetItem* item,
 {
     GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
     CaretAssert(treeItem);
-    const bool newStatus = (item->checkState(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN) != Qt::Unchecked);
-    std::cout << "Item checkbox changed: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << " to " << newStatus << std::endl;
+    const Qt::CheckState checkState = item->checkState(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN);
+    const GroupAndNameCheckStateEnum::Enum itemCheckState = GroupAndNameHierarchyTreeWidgetItem::fromQCheckState(checkState);
+    const bool newStatus = (itemCheckState != GroupAndNameCheckStateEnum::UNCHECKED);
+    std::cout << "Item checkbox changed: "
+        << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN))
+        << " GUIcheckState " << GroupAndNameCheckStateEnum::toName(itemCheckState)
+        << " new status " << (int)newStatus << std::endl;
     treeItem->setModelDataSelected(newStatus);
 
     updateGraphicsAndUserInterface();

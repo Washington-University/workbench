@@ -193,9 +193,9 @@ GroupAndNameHierarchyGroup::setSelected(const DisplayGroupEnum::Enum displayGrou
                                        const int32_t tabIndex,
                                        const bool status)
 {
-    setAllSelected(displayGroup,
-                   tabIndex,
-                   status);
+    GroupAndNameHierarchyName::setSelected(displayGroup,
+                                           tabIndex,
+                                           status);
 //    GroupAndNameCheckStateEnum::Enum checkState = getCheckState(displayGroup,
 //                                                                tabIndex);
 //    

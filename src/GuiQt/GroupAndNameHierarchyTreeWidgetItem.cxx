@@ -182,8 +182,15 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
             m_hasChildren = false;
             break;
     }
-    
+
     this->setText(TREE_COLUMN, text);
+    
+    Qt::ItemFlags itemFlags = (Qt::ItemIsSelectable
+                              | Qt::ItemIsUserCheckable
+                              | Qt::ItemIsEnabled);
+    if (m_hasChildren) {
+        itemFlags |= Qt::ItemIsTristate;
+    }
     
     if (iconColorRGBA != NULL) {
         if (iconColorRGBA[3] > 0.0) {
@@ -302,13 +309,13 @@ GroupAndNameHierarchyTreeWidgetItem::fromQCheckState(const Qt::CheckState checkS
 {
     switch (checkState) {
         case Qt::Unchecked:
-            return GroupAndNameCheckStateEnum::CHECKED;
+            return GroupAndNameCheckStateEnum::UNCHECKED;
             break;
         case Qt::PartiallyChecked:
             return GroupAndNameCheckStateEnum::PARTIALLY_CHECKED;
             break;
         case Qt::Checked:
-            return GroupAndNameCheckStateEnum::UNCHECKED;
+            return GroupAndNameCheckStateEnum::CHECKED;
             break;
     }
     return GroupAndNameCheckStateEnum::UNCHECKED;
