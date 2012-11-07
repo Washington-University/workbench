@@ -672,6 +672,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
     menu->addSeparator();
+    menu->addAction(m_recordMovieAction);
     menu->addAction(m_captureImageAction);
     menu->addSeparator();
     menu->addAction(m_closeTabAction);
@@ -883,8 +884,8 @@ BrainBrowserWindow::createMenuView()
     menu->addMenu(createMenuViewMoveOverlayToolBox());
     menu->addSeparator();
 
-    menu->addAction(m_recordMovieAction);
-    menu->addSeparator();
+    /*menu->addAction(m_recordMovieAction);
+    menu->addSeparator();*/
     
     QMenu* screenMenu = new QMenu("Screen");
     screenMenu->addAction(m_viewScreenNormalAction);
