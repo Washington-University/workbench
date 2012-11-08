@@ -65,8 +65,8 @@ namespace caret {
         };
         
         GroupAndNameHierarchyTreeWidgetItem(const DisplayGroupEnum::Enum displayGroup,
-                                          const int32_t tabIndex,
-                                          GroupAndNameHierarchyModel* classAndNameHierarchyModel);
+                                            const int32_t tabIndex,
+                                            GroupAndNameHierarchyModel* classAndNameHierarchyModel);
         
         GroupAndNameHierarchyTreeWidgetItem(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex,

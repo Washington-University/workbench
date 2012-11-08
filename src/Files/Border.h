@@ -28,6 +28,7 @@
 #include "BorderException.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
+#include "GroupAndNameAbstractItem.h"
 #include "StructureEnum.h"
 #include "XmlException.h"
 
@@ -110,6 +111,10 @@ namespace caret {
         
         bool isSelectionClassOrNameModified() const;
         
+        void setGroupNameSelectionItem(GroupAndNameAbstractItem* item);
+        
+        const GroupAndNameAbstractItem* getGroupNameSelectionItem() const;
+        
         void setSelectionClassAndNameKeys(const int32_t selectionClassKey,
                                           const int32_t selectionNameKey);
         
@@ -150,6 +155,9 @@ namespace caret {
         
         /** RGBA color components assigned to border's class name validity */
         bool m_classRgbaColorValid;
+        
+        /** Selection status of this border in the group/name hierarchy */
+        GroupAndNameAbstractItem* m_groupNameSelectionItem;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
         int32_t selectionNameKey;

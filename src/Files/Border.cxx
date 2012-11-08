@@ -125,6 +125,8 @@ void
 Border::clear()
 {
     this->removeAllPoints();
+ 
+    m_groupNameSelectionItem = NULL;
     
     m_classRgbaColor[0] = 0.0;
     m_classRgbaColor[1] = 0.0;
@@ -945,6 +947,29 @@ Border::isSelectionClassOrNameModified() const
 {
     return this->selectionClassNameModificationStatus;
 }
+
+/**
+ * Set the selection item for the group/name hierarchy.
+ * 
+ * @param item
+ *     The selection item from the group/name hierarchy.
+ */
+void
+Border::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
+{
+    m_groupNameSelectionItem = item;
+}
+
+/**
+ * @return The selection item for the Group/Name selection hierarchy.
+ *      May be NULL in some circumstances.
+ */
+const GroupAndNameAbstractItem*
+Border::getGroupNameSelectionItem() const
+{
+    return m_groupNameSelectionItem;
+}
+
 
 /**
  * Set the keys for the border's name and class

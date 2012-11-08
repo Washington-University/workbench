@@ -36,6 +36,8 @@
 #include "GroupAndNameHierarchyGroupUserKey.h"
 #undef __CLASS_AND_NAME_HIERARCHY_GROUP_USER_KEY_DECLARE__
 
+#include "GroupAndNameHierarchyName.h"
+
 using namespace caret;
 
 

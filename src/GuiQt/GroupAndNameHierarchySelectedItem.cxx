@@ -80,19 +80,19 @@ GroupAndNameHierarchySelectedItem::GroupAndNameHierarchySelectedItem(const Displ
     /*
      * Loop through each class
      */
-    const std::vector<int32_t> classKeysVector = classAndNameHierarchyModel->getAllGroupKeysSortedByName();
-    for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
-         classIter != classKeysVector.end();
-         classIter++) {
-        const int32_t classKey = *classIter;
-        GroupAndNameHierarchyGroup* classSelector = classAndNameHierarchyModel->getGroupSelectorForGroupKey(classKey);
-        CaretAssert(classSelector);
-        
-        GroupAndNameHierarchySelectedItem* classItem = new GroupAndNameHierarchySelectedItem(displayGroup,
-                                                                                             tabIndex,
-                                                                                             classSelector);
-        addChild(classItem);
-    }
+//    const std::vector<int32_t> classKeysVector = classAndNameHierarchyModel->getAllGroupKeysSortedByName();
+//    for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
+//         classIter != classKeysVector.end();
+//         classIter++) {
+//        const int32_t classKey = *classIter;
+//        GroupAndNameHierarchyGroup* classSelector = classAndNameHierarchyModel->getGroupSelectorForGroupKey(classKey);
+//        CaretAssert(classSelector);
+//        
+//        GroupAndNameHierarchySelectedItem* classItem = new GroupAndNameHierarchySelectedItem(displayGroup,
+//                                                                                             tabIndex,
+//                                                                                             classSelector);
+//        addChild(classItem);
+//    }
 }
 
 /**
@@ -116,20 +116,20 @@ GroupAndNameHierarchySelectedItem::GroupAndNameHierarchySelectedItem(const Displ
     /*
      * Names in the model
      */
-    const std::vector<int32_t> nameKeysVector = this->classDisplayGroupSelector->getAllNameKeysSortedByName();
-    for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
-         nameIter != nameKeysVector.end();
-         nameIter++) {
-        const int32_t nameKey = *nameIter;
-        GroupAndNameHierarchyName* nameSelector = this->classDisplayGroupSelector->getNameSelectorWithKey(nameKey);
-        CaretAssert(nameSelector);
-        
-            GroupAndNameHierarchySelectedItem* nameInfo =
-            new GroupAndNameHierarchySelectedItem(displayGroup,
-                                                  tabIndex,
-                                                  nameSelector);
-            this->addChild(nameInfo);
-    }    
+//    const std::vector<int32_t> nameKeysVector = this->classDisplayGroupSelector->getAllNameKeysSortedByName();
+//    for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
+//         nameIter != nameKeysVector.end();
+//         nameIter++) {
+//        const int32_t nameKey = *nameIter;
+//        GroupAndNameHierarchyName* nameSelector = this->classDisplayGroupSelector->getNameSelectorWithKey(nameKey);
+//        CaretAssert(nameSelector);
+//        
+//            GroupAndNameHierarchySelectedItem* nameInfo =
+//            new GroupAndNameHierarchySelectedItem(displayGroup,
+//                                                  tabIndex,
+//                                                  nameSelector);
+//            this->addChild(nameInfo);
+//    }    
 }
 
 /**
@@ -271,11 +271,11 @@ GroupAndNameHierarchySelectedItem::updateSelections()
     switch (this->itemType) {
         case ITEM_TYPE_CLASS:
             checkState = this->classDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);
-            expandedStatus = this->classDisplayGroupSelector->isExpanded(m_displayGroup, m_tabIndex);
+            expandedStatus = this->classDisplayGroupSelector->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
             break;
         case ITEM_TYPE_HIERARCHY_MODEL:
             checkState = this->classAndNameHierarchyModel->getCheckState(m_displayGroup, m_tabIndex);
-            expandedStatus = this->classAndNameHierarchyModel->isExpanded(m_displayGroup, m_tabIndex);
+            expandedStatus = this->classAndNameHierarchyModel->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
             break;
         case ITEM_TYPE_NAME:
             checkState = this->nameDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);

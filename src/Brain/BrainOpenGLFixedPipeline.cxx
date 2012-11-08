@@ -2006,17 +2006,17 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             Focus* focus = fociFile->getFocus(j);
             const int32_t selectionClassKey = focus->getSelectionClassKey();
             const int32_t selectionNameKey  = focus->getSelectionNameKey();
-            if (classAndNameSelection->isGroupSelected(displayGroup,
-                                                       this->windowTabIndex,
-                                                       selectionClassKey) == false) {
-                continue;
-            }
-            if (classAndNameSelection->isNameSelected(displayGroup, 
-                                                      this->windowTabIndex,
-                                                      selectionClassKey, 
-                                                      selectionNameKey) == false) {
-                continue;
-            }
+//            if (classAndNameSelection->isGroupSelected(displayGroup,
+//                                                       this->windowTabIndex,
+//                                                       selectionClassKey) == false) {
+//                continue;
+//            }
+//            if (classAndNameSelection->isNameSelected(displayGroup, 
+//                                                      this->windowTabIndex,
+//                                                      selectionClassKey, 
+//                                                      selectionNameKey) == false) {
+//                continue;
+//            }
             
             float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
             switch (fociColoringType) {
@@ -4456,19 +4456,19 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
     
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
-            const int32_t selectionClassKey = focus->getSelectionClassKey();
-            const int32_t selectionNameKey  = focus->getSelectionNameKey();
-            if (classAndNameSelection->isGroupSelected(displayGroup,
-                                                       this->windowTabIndex,
-                                                       selectionClassKey) == false) {
-                continue;
-            }
-            if (classAndNameSelection->isNameSelected(displayGroup,
-                                                      this->windowTabIndex,
-                                                      selectionClassKey,
-                                                      selectionNameKey) == false) {
-                continue;
-            }
+//            const int32_t selectionClassKey = focus->getSelectionClassKey();
+//            const int32_t selectionNameKey  = focus->getSelectionNameKey();
+//            if (classAndNameSelection->isGroupSelected(displayGroup,
+//                                                       this->windowTabIndex,
+//                                                       selectionClassKey) == false) {
+//                continue;
+//            }
+//            if (classAndNameSelection->isNameSelected(displayGroup,
+//                                                      this->windowTabIndex,
+//                                                      selectionClassKey,
+//                                                      selectionNameKey) == false) {
+//                continue;
+//            }
             
             float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
             switch (fociColoringType) {

@@ -35,88 +35,26 @@
 /*LICENSE_END*/
 
 
-#include "GroupAndNameHierarchyName.h"
-#include "DisplayGroupEnum.h"
+#include "GroupAndNameAbstractItem.h"
 
 namespace caret {
 
-    class GroupAndNameHierarchyGroup : public GroupAndNameHierarchyName {
-    protected:
-        GroupAndNameHierarchyGroup(const AString& name,
-                                   const int32_t key);
-        
+    class GroupAndNameHierarchyName;
+    
+    class GroupAndNameHierarchyGroup : public GroupAndNameAbstractItem {
     public:
+        GroupAndNameHierarchyGroup(const AString& name,
+                                   const int32_t idNumber);
+        
         virtual ~GroupAndNameHierarchyGroup();
         
-        virtual void clear();
-        
-        virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
-                                 const int32_t tabIndex,
-                                 const bool status);
-        
-        virtual GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
-                                                               const int32_t tabIndex) const;
-        
-        void copySelections(const int32_t sourceTabIndex,
-                            const int32_t targetTabIndex);
-        
-        void setAllSelected(const bool status);
-        
-        void setAllSelected(const DisplayGroupEnum::Enum displayGroup,
-                            const int32_t tabIndex,
-                            const bool status);
-        
-        bool isAnySelected(const DisplayGroupEnum::Enum displayGroup,
-                           const int32_t tabIndex) const;
-        
-        bool isAllSelected(const DisplayGroupEnum::Enum displayGroup,
-                           const int32_t tabIndex) const;
-        
-        std::vector<int32_t> getAllNameKeysSortedByName() const;
-        
-        virtual GroupAndNameHierarchyName* getNameSelectorWithKey(const int32_t nameKey) = 0;
-        
-        virtual const GroupAndNameHierarchyName* getNameSelectorWithKey(const int32_t nameKey) const = 0;
-        
-        GroupAndNameHierarchyName* getNameSelectorWithName(const AString& name);
-        
-        bool isExpanded(const DisplayGroupEnum::Enum displayGroup,
-                        const int32_t tabIndex) const;
-        
-        void setExpanded(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const bool expanded);
-        
-        virtual int32_t getNumberOfNamesWithCountersGreaterThanZero() const = 0;
-        
-        virtual void clearAllNameCounters() = 0;
-        
-        virtual void removeNamesWithCountersEqualZero() = 0;
-        
         // ADD_NEW_METHODS_HERE
-        
-    protected:
-        void addToNameSelectorMap(const AString& name,
-                                  GroupAndNameHierarchyName* nameSelector);
-        
-        void removeNameSelector(GroupAndNameHierarchyName* nameSelector);
         
     private:
         GroupAndNameHierarchyGroup(const GroupAndNameHierarchyGroup&);
         
         GroupAndNameHierarchyGroup& operator=(const GroupAndNameHierarchyGroup&);
         
-        void clearPrivate();
-        
-        /** Maps a name to its name information.  Map is fastest way to search by name.   */
-        std::map<AString, GroupAndNameHierarchyName*> nameToNameSelectorMap;
-        
-        /** Expanded (collapsed) status in display group */
-        bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        /** Expanded (collapsed) status in tab */
-        bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
         // ADD_NEW_MEMBERS_HERE
 
     };

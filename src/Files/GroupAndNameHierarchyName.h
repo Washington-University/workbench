@@ -34,46 +34,16 @@
  */
 /*LICENSE_END*/
 
-#include "BrainConstants.h"
-#include "CaretObject.h"
-#include "DisplayGroupEnum.h"
-#include "GroupAndNameCheckStateEnum.h"
+#include "GroupAndNameAbstractItem.h"
 
 namespace caret {
 
-    class GroupAndNameHierarchyName : public CaretObject {
+    class GroupAndNameHierarchyName : public GroupAndNameAbstractItem {
     public:
         GroupAndNameHierarchyName(const AString& name,
-                                  const int32_t key);
+                                  const int32_t idNumber);
         
         ~GroupAndNameHierarchyName();
-        
-        void copySelections(const int32_t sourceTabIndex,
-                            const int32_t targetTabIndex);
-        
-        AString getName() const;
-        
-        int32_t getKey() const;
-        
-        virtual bool isSelected(const DisplayGroupEnum::Enum displayGroup,
-                        const int32_t tabIndex) const;
-        
-        virtual GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
-                                                     const int32_t tabIndex) const;
-        
-        virtual void setSelected(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const bool status);
-        
-        void clearCounter();
-        
-        void incrementCounter();
-        
-        int32_t getCounter() const;
-        
-        const float* getIconColorRGBA() const;
-        
-        void setIconColorRGBA(const float rgba[4]);
         
         // ADD_NEW_METHODS_HERE
     
@@ -82,24 +52,6 @@ namespace caret {
         
         GroupAndNameHierarchyName& operator=(const GroupAndNameHierarchyName&);
         
-        /** Name of an item (border, focus, etc) */
-        AString name;
-        
-        /** Key for quickly locating item */
-        int32_t key;
-        
-        /** Selection for each display group */
-        bool selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        /** Selection for each tab */
-        bool selectedInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Counter for tracking usage of item */
-        int32_t counter;
-        
-        /** Color for icon, valid when (iconRGBA[3] > 0.0) */
-        float iconRGBA[4];
-
         // ADD_NEW_MEMBERS_HERE
 
     };

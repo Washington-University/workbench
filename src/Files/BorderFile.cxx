@@ -413,26 +413,14 @@ BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
                               const int32_t browserTabIndex,
                               const Border* border)
 {
-    const GroupAndNameHierarchyModel* classAndNameSelection = this->getGroupAndNameHierarchyModel();
-    if (classAndNameSelection->isSelected(displayGroup,
-                                          browserTabIndex) == false) {
-        return false;
+    const GroupAndNameAbstractItem* selectionItem = border->getGroupNameSelectionItem();
+    if (selectionItem != NULL) {
+        if (selectionItem->isSelected(displayGroup,
+                                      browserTabIndex) == false) {
+            return false;
+        }
     }
-    
-    const int32_t selectionClassKey = border->getSelectionClassKey();
-    const int32_t selectionNameKey  = border->getSelectionNameKey();
-    if (classAndNameSelection->isGroupSelected(displayGroup,
-                                               browserTabIndex,
-                                               selectionClassKey) == false) {
-        return false;
-    }
-    if (classAndNameSelection->isNameSelected(displayGroup,
-                                              browserTabIndex,
-                                              selectionClassKey,
-                                              selectionNameKey) == false) {
-        return false;
-    }
-    
+        
     return true;
 }
 

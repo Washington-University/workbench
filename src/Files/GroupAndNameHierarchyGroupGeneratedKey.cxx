@@ -37,6 +37,7 @@
 #undef __CLASS_AND_NAME_HIERARCHY_GROUP_GENERATED_KEY_DECLARE__
 
 #include "CaretAssert.h"
+#include "GroupAndNameHierarchyName.h"
 
 using namespace caret;
 

@@ -54,25 +54,15 @@ using namespace caret;
  * Constructor.
  * @param name
  *    The name.
- * @param key
- *    Key assigned to the name.
+ * @param idNumber
+ *    ID number assigned to the name.
  */
 GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
-                                                     const int32_t key)
+                                                     const int32_t idNumber)
+: GroupAndNameAbstractItem(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+                           name,
+                           idNumber)
 {
-    this->name = name;
-    this->key  = key;
-    this->iconRGBA[0] = 0.0;
-    this->iconRGBA[1] = 0.0;
-    this->iconRGBA[2] = 0.0;
-    this->iconRGBA[3] = 0.0;
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        this->selectedInDisplayGroup[i] = true;
-    }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectedInTab[i] = true;
-    }
-    this->counter = 0;
 }
 
 /**
@@ -80,165 +70,5 @@ GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
  */
 GroupAndNameHierarchyName::~GroupAndNameHierarchyName()
 {
-}
-
-/**
- * Copy the selections from one tab to another.
- * @param sourceTabIndex
- *    Index of tab from which selections are copied.
- * @param targetTabIndex
- *    Index of tab to which selections are copied.
- */
-void
-GroupAndNameHierarchyName::copySelections(const int32_t sourceTabIndex,
-                                          const int32_t targetTabIndex)
-{
-    this->selectedInTab[targetTabIndex] = this->selectedInTab[sourceTabIndex];
-}
-
-/**
- * @return The RGBA color components for the icon.
- * Valid when alpha is greater than zero.
- * The color components range [0.0, 1.0]
- */
-const float*
-GroupAndNameHierarchyName::getIconColorRGBA() const
-{
-    return this->iconRGBA;
-}
-
-/**
- * Set the RGBA color components for the icon.
- * Valid when alpha is greater than zero.
- * @param rgba
- *     The color components ranging [0.0, 1.0]
- */
-void
-GroupAndNameHierarchyName::setIconColorRGBA(const float rgba[4])
-{
-    this->iconRGBA[0] = rgba[0];
-    this->iconRGBA[1] = rgba[1];
-    this->iconRGBA[2] = rgba[2];
-    this->iconRGBA[3] = rgba[3];
-}
-
-/**
- * @return The name.
- */
-AString
-GroupAndNameHierarchyName::getName() const
-{
-    return this->name;
-}
-
-/**
- * @return The key.
- */
-int32_t
-GroupAndNameHierarchyName::getKey() const
-{
-    return this->key;
-}
-
-/**
- * Is this name selected for the given display group and tab.
- * @param displayGroup
- *    Display Group for which selection status is requested.
- * @param tabIndex
- *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
- * @return
- *    True if selected, false if not selected.
- */
-bool
-GroupAndNameHierarchyName::isSelected(const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t tabIndex) const
-{
-    const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selectedInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          displayIndex);
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(this->selectedInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        return this->selectedInTab[tabIndex];
-    }
-    
-    return this->selectedInDisplayGroup[displayIndex];
-}
-
-/**
- * Get the selection status for the given display group and tab.
- * @param displayGroup
- *    Display group selected.
- * @param tabIndex
- *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
- * @return The check state (CHECKED if selected, otherwise UNCHECKED).  
- *         Subclasses may override this to provide the PartiallyChecked status.
- */
-GroupAndNameCheckStateEnum::Enum
-GroupAndNameHierarchyName::getCheckState(const DisplayGroupEnum::Enum displayGroup,
-                                             const int32_t tabIndex) const
-{
-    if (isSelected(displayGroup, tabIndex)) {
-        return GroupAndNameCheckStateEnum::CHECKED;
-    }
-    return GroupAndNameCheckStateEnum::UNCHECKED;
-}
-
-/**
- * Set name seletion status for the given display group and tab.
- * @param displayGroup
- *    Display group selected.
- * @param tabIndex
- *    Index of tab used when displayGroup is DisplayGroupEnum::DISPLAY_GROUP_TAB.
- * @param status
- *    New selection status.
- */
-void
-GroupAndNameHierarchyName::setSelected(const DisplayGroupEnum::Enum displayGroup,
-                                       const int32_t tabIndex,
-                                       const bool status)
-{
-    const int32_t displayIndex = (int32_t)displayGroup;
-    CaretAssertArrayIndex(this->selectedselectedInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          displayIndex);
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(this->selectedInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        this->selectedInTab[tabIndex] = status;
-    }
-    else {
-        this->selectedInDisplayGroup[displayIndex] = status;
-    }
-}
-
-/**
- * Clear the counter.
- */
-void
-GroupAndNameHierarchyName::clearCounter()
-{
-    this->counter = 0;
-}
-
-/**
- * Increment the counter.
- */
-void
-GroupAndNameHierarchyName::incrementCounter()
-{
-    this->counter++;
-}
-
-/**
- * @return The value of the counter.
- */
-int32_t
-GroupAndNameHierarchyName::getCounter() const
-{
-    return this->counter;
 }
 

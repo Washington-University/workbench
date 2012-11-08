@@ -37,31 +37,22 @@
 #include <deque>
 #include <map>
 
-#include "BrainConstants.h"
-#include "CaretObject.h"
-#include "DisplayGroupEnum.h"
+#include "GroupAndNameAbstractItem.h"
 #include "GroupAndNameCheckStateEnum.h"
-
-class QIcon;
 
 namespace caret {
 
     class BorderFile;
-    class GroupAndNameHierarchyGroup;
-    class GroupAndNameHierarchyName;
     class FociFile;
     class LabelFile;
     
-    class GroupAndNameHierarchyModel : public CaretObject {
+    class GroupAndNameHierarchyModel : public GroupAndNameAbstractItem {
     public:
         GroupAndNameHierarchyModel();
         
         virtual ~GroupAndNameHierarchyModel();
         
-        void clear();
-        
-        void copyGroupNameAndHierarchy(const int32_t sourceTabIndex,
-                                       const int32_t targetTabIndex);
+        virtual void clear();
         
 //        void removeUnusedNamesAndGroups(BorderFile* borderFile);
 //        
@@ -84,63 +75,42 @@ namespace caret {
         void update(LabelFile* labelFile,
                     const bool forceUpdate);
         
-        AString toString() const;
-        
-        AString getName() const;
-        
-        bool isSelected(const DisplayGroupEnum::Enum displayGroup,
-                        const int32_t tabIndex) const;
-        
-        void setSelected(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const bool status);
-        
-        GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
-                                                             const int32_t tabIndex) const;
-        
-        std::vector<int32_t> getAllGroupKeysSortedByName() const;
-        
-        GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName);
-        
-        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName) const;
-        
-        GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey);
-        
-        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey) const;
-        
-        void addName(const AString& parentGroupName,
-                     const AString& name,
-                     int32_t& parentGroupKeyOut,
-                     int32_t& nameKeyOut);
-        
-        void addGroup(GroupAndNameHierarchyGroup* group);
-        
-        bool isGroupSelected(const DisplayGroupEnum::Enum displayGroup,
-                             const int32_t tabIndex,
-                             const int32_t groupKey) const;
-        
-        void setGroupSelected(const DisplayGroupEnum::Enum displayGroup,
-                              const int32_t tabIndex,
-                              const int32_t groupKey,
-                              const bool selected);
-        
-        bool isNameSelected(const DisplayGroupEnum::Enum displayGroup,
-                            const int32_t tabIndex,
-                            const int32_t parentGroupKey,
-                            const int32_t nameKey) const;
-
-        void setNameSelected(const DisplayGroupEnum::Enum displayGroup,
-                             const int32_t tabIndex,
-                             const int32_t parentGroupKey,
-                             const int32_t nameKey,
-                             const bool selected);
-        
-        bool isExpanded(const DisplayGroupEnum::Enum displayGroup,
-                        const int32_t tabIndex) const;
-        
-        void setExpanded(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const bool expanded);
+//        std::vector<int32_t> getAllGroupKeysSortedByName() const;
+//        
+//        GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName);
+//        
+//        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName) const;
+//        
+//        GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey);
+//        
+//        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey) const;
+//        
+//        void addName(const AString& parentGroupName,
+//                     const AString& name,
+//                     int32_t& parentGroupKeyOut,
+//                     int32_t& nameKeyOut);
+//        
+//        void addGroup(GroupAndNameHierarchyGroup* group);
+//        
+//        bool isGroupSelected(const DisplayGroupEnum::Enum displayGroup,
+//                             const int32_t tabIndex,
+//                             const int32_t groupKey) const;
+//        
+//        void setGroupSelected(const DisplayGroupEnum::Enum displayGroup,
+//                              const int32_t tabIndex,
+//                              const int32_t groupKey,
+//                              const bool selected);
+//        
+//        bool isNameSelected(const DisplayGroupEnum::Enum displayGroup,
+//                            const int32_t tabIndex,
+//                            const int32_t parentGroupKey,
+//                            const int32_t nameKey) const;
+//
+//        void setNameSelected(const DisplayGroupEnum::Enum displayGroup,
+//                             const int32_t tabIndex,
+//                             const int32_t parentGroupKey,
+//                             const int32_t nameKey,
+//                             const bool selected);
         
         bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex) const;
@@ -150,31 +120,9 @@ namespace caret {
 
         GroupAndNameHierarchyModel& operator=(const GroupAndNameHierarchyModel&);
         
+        void clearPrivate();
+        
         void setUserInterfaceUpdateNeeded();
-        
-        /** Name of model, does NOT get cleared. */
-        AString name;
-        
-        /* overlay selection status in display group */
-        bool selectionStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        /* overlay selection status in tab */
-        bool selectionStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Expanded (collapsed) status in display group */        
-        bool expandedStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-
-        /** Expanded (collapsed) status in tab */        
-        bool expandedStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** If keys are removed, they are stored here for future reuse. */
-        std::deque<int32_t> availableGroupKeys;
-        
-        /** Holds group and its names, indexed by group key.  Vector provides fast access by key. */
-        std::vector<GroupAndNameHierarchyGroup*> keyToGroupNameSelectorVector;
-        
-        /** Maps a group name to its group selector.  Map is fastest way to search by name.  */
-        std::map<AString, GroupAndNameHierarchyGroup*> groupNameToGroupSelectorMap;
         
         /** 
          * Update needed status of DISPLAY GROUP in EACH TAB.
