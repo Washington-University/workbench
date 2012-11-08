@@ -45,8 +45,7 @@ struct SparseValue
     float value;
     bool operator<(const SparseValue& rhs) const
     {
-        if (index[1] < rhs.index[1]) return true;//NOTE: this specifically avoids minor ordering by the other index to make the sort faster (less swapping because more "equals" cases)
-        return false;//we do NOT need full ordering to do what we need
+        return (index[1] < rhs.index[1]);//NOTE: this specifically avoids minor ordering by the other index to make the sort faster (less swapping because more "equals" cases)
     }
 };
 
@@ -119,16 +118,17 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     CiftiXML myXML;
     myXML.resetRowsToBrainModels();
     myXML.resetColumnsToBrainModels();
+    vector<int64_t> rowReorderMap, colReorderMap;
     if (rowVoxelOpt->m_present)
     {
-        addVoxelMapping(rowVoxelOpt->getVolume(2), rowVoxelOpt->getString(1), myXML, CiftiXML::ALONG_ROW);
+        addVoxelMapping(rowVoxelOpt->getVolume(2), rowVoxelOpt->getString(1), myXML, rowReorderMap, CiftiXML::ALONG_ROW);
     } else {
         MetricFile* myMetric = rowSurfaceOpt->getMetric(1);
         myXML.addSurfaceModelToRows(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
     }
     if (colVoxelOpt->m_present)
     {
-        addVoxelMapping(colVoxelOpt->getVolume(2), colVoxelOpt->getString(1), myXML, CiftiXML::ALONG_COLUMN);
+        addVoxelMapping(colVoxelOpt->getVolume(2), colVoxelOpt->getString(1), myXML, colReorderMap, CiftiXML::ALONG_COLUMN);
     } else {
         MetricFile* myMetric = colSurfaceOpt->getMetric(1);
         myXML.addSurfaceModelToColumns(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
@@ -193,15 +193,30 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     {
         int64_t next = cur;
         while (next < end && dotFileContents[next].index[1] == whichRow) ++next;
-        for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = dotFileContents[i].value;
-        myCiftiOut->setRow(scratchRow.data(), whichRow);
-        for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = 0.0f;
+        if (rowVoxelOpt->m_present)
+        {
+            for (int64_t i = cur; i < next; ++i) scratchRow[rowReorderMap[dotFileContents[i].index[0]]] = dotFileContents[i].value;
+        } else {
+            for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = dotFileContents[i].value;
+        }
+        if (colVoxelOpt->m_present)
+        {
+            myCiftiOut->setRow(scratchRow.data(), colReorderMap[whichRow]);
+        } else {
+            myCiftiOut->setRow(scratchRow.data(), whichRow);
+        }
+        if (rowVoxelOpt->m_present)
+        {
+            for (int64_t i = cur; i < next; ++i) scratchRow[rowReorderMap[dotFileContents[i].index[0]]] = 0.0f;
+        } else {
+            for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = 0.0f;
+        }
         cur = next;
         ++whichRow;
     }
 }
 
-void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiXML& myXML, const int& direction)
+void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol, const AString& textFileName, CiftiXML& myXML, vector<int64_t>& reorderMapping, const int& direction)
 {
     if (myLabelVol->getType() != SubvolumeAttributes::LABEL)
     {
@@ -213,10 +228,11 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
     const GiftiLabelTable* myLabelTable = myLabelVol->getMapLabelTable(0);
     map<int, StructureEnum::Enum> labelMap;//maps label values to structures
     vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
+    vector<vector<int64_t> > inputIndices;//index from the input space, matched to voxelLists
     map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
     vector<int32_t> labelKeys;
     myLabelTable->getKeys(labelKeys);
-    int count = 0;
+    int64_t count = 0;
     for (int i = 0; i < (int)labelKeys.size(); ++i)
     {
         bool ok = false;
@@ -226,18 +242,20 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
             labelMap[labelKeys[i]] = thisStructure;
             if (componentMap.find(thisStructure) == componentMap.end())//make sure we don't already have this structure from another label
             {
-                componentMap[thisStructure] = count;
+                componentMap[thisStructure] = (int)count;
                 ++count;
             }
         }
     }
     voxelLists.resize(count);
+    inputIndices.resize(count);
     voxelIndexType vi, vj, vk;
     fstream myTextFile(textFileName.toAscii().constData(), fstream::in);
     if (!myTextFile.good())
     {
         throw OperationException("error opening text file '" + textFileName + "'");
     }
+    count = 0;
     while (myTextFile >> vi >> vj >> vk)
     {
         if (!myLabelVol->indexValid(vi, vj, vk))
@@ -254,13 +272,18 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
             voxelLists[myListIndex].push_back(vi);
             voxelLists[myListIndex].push_back(vj);
             voxelLists[myListIndex].push_back(vk);
+            inputIndices[myListIndex].push_back(count);
+            ++count;
         }
     }
+    vector<int64_t> forwardMap;
     for (map<StructureEnum::Enum, int>::const_iterator iter = componentMap.begin(); iter != componentMap.end(); ++iter)
     {
         int i = iter->second;
-        if (voxelLists[i].size() != 0)
+        int64_t listSize = voxelLists[i].size();
+        if (listSize != 0)
         {
+            forwardMap.insert(forwardMap.end(), inputIndices[i].begin(), inputIndices[i].end());//append the structure's input index list, building lookup of new index->input index
             if (direction == CiftiXML::ALONG_ROW)
             {
                 myXML.addVolumeModelToRows(voxelLists[i], iter->first);
@@ -268,5 +291,11 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
                 myXML.addVolumeModelToColumns(voxelLists[i], iter->first);
             }
         }
+    }
+    int64_t reorderSize = (int64_t)forwardMap.size();
+    reorderMapping.resize(reorderSize);
+    for (int i = 0; i < reorderSize; ++i)
+    {
+        reorderMapping[forwardMap[i]] = i;//reverse it, building lookup from input index->new index
     }
 }
