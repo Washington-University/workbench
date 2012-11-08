@@ -374,6 +374,9 @@ namespace caret {
         ///set the volume space
         void setVolumeDimsAndSForm(const int64_t dims[3], const std::vector<std::vector<float> >& sform);
         
+        ///swap mappings between two directions
+        void swapMappings(const int& direction1, const int& direction2);
+        
         ///check what types of data it has
         bool hasRowVolumeData() const;
         bool hasColumnVolumeData() const;

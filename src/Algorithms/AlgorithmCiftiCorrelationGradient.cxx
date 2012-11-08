@@ -81,7 +81,7 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     volumeExcludeOpt->addDoubleParameter(1, "distance", "distance from seed voxel for the exclusion zone, in mm");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
-    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default unlimited)");
+    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     //ret->createOptionalParameter(9, "-local-method", "use the local gradient at each vertex instead of averaging all gradients");
     

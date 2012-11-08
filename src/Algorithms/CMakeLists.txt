@@ -30,6 +30,7 @@ AlgorithmCiftiMerge.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
+AlgorithmCiftiTranspose.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmLabelDilate.h
@@ -59,6 +60,7 @@ AlgorithmCiftiMerge.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx
+AlgorithmCiftiTranspose.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmLabelDilate.cxx

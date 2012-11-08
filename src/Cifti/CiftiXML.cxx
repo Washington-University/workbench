@@ -1912,3 +1912,47 @@ bool CiftiXML::matchesVolumeSpace(const CiftiXML& rhs) const
     }
     return true;
 }
+
+void CiftiXML::swapMappings(const int& direction1, const int& direction2)
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction1);
+    CaretAssertVectorIndex(m_dimToMapLookup, direction2);
+    if (direction1 < 0 || direction1 >= (int)m_dimToMapLookup.size() ||
+        direction2 < 0 || direction2 >= (int)m_dimToMapLookup.size())
+    {
+        throw CiftiFileException("invalid direction specified to swapMappings, notify the developers");
+    }
+    int mapIndex1 = m_dimToMapLookup[direction1];
+    int mapIndex2 = m_dimToMapLookup[direction2];
+    if (mapIndex1 == -1 || mapIndex2 == -1 || m_root.m_matrices.size() == 0)
+    {
+        throw CiftiFileException("invalid direction specified to swapMappings, notify the developers");
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, mapIndex1);
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, mapIndex2);
+    if (mapIndex1 == mapIndex2) return;//nothing to do if they refer to the same mapping
+    CiftiMatrixIndicesMapElement& mapRef1 = m_root.m_matrices[0].m_matrixIndicesMap[mapIndex1];//give them shorter variable names
+    CiftiMatrixIndicesMapElement& mapRef2 = m_root.m_matrices[0].m_matrixIndicesMap[mapIndex2];
+    m_dimToMapLookup[direction1] = mapIndex2;//swap them by changing the lookup values
+    m_dimToMapLookup[direction2] = mapIndex1;
+    int numApply = (int)mapRef1.m_appliesToMatrixDimension.size(), i;//but we also need to modify the "applies to" lists
+    for (i = 0; i < numApply; ++i)
+    {
+        if (mapRef1.m_appliesToMatrixDimension[i] == direction1)//we made the references from the old lookup values, so these are same
+        {
+            mapRef1.m_appliesToMatrixDimension[i] = direction2;//change the "applies to" element
+            break;
+        }
+    }
+    CaretAssert(i < numApply);//otherwise, we didn't find the element to modify, ie, something went horribly wrong
+    numApply = (int)mapRef2.m_appliesToMatrixDimension.size();//and for the other mapping
+    for (i = 0; i < numApply; ++i)
+    {
+        if (mapRef2.m_appliesToMatrixDimension[i] == direction2)
+        {
+            mapRef2.m_appliesToMatrixDimension[i] = direction1;
+            break;
+        }
+    }
+    CaretAssert(i < numApply);
+}

@@ -72,7 +72,7 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     ret->createOptionalParameter(5, "-fisher-z", "apply fisher z transform to correlation");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
-    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default unlimited)");
+    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
         AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.  ") +
