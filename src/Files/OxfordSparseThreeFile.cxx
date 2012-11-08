@@ -124,7 +124,10 @@ void OxfordSparseThreeFile::getRowSparse(const int64_t& index, vector<int64_t>& 
     {
         indicesOut[i] = m_scratchArray[i * 2];
         valuesOut[i] = m_scratchArray[i * 2 + 1];
-        if (indicesOut[i] <= lastIndex || indicesOut[i] >= m_dims[0]) throw DataFileException("impossible index value found in file");
+        if (indicesOut[i] <= lastIndex || indicesOut[i] >= m_dims[0])
+        {
+            throw DataFileException("impossible index value found in file");
+        }
         lastIndex = indicesOut[i];
     }
 }
