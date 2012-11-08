@@ -81,10 +81,13 @@ m_parent(0)
  */
 GroupAndNameAbstractItem::~GroupAndNameAbstractItem()
 {
+    std::cout << "Deleting GroupAndNameAbstractItem: "
+    << m_itemType << " " << qPrintable(m_name) << std::endl;
+    
     clearPrivate();
     
-    if (m_parent) {
-        m_parent->removeChild(this);
+    if (m_parent != NULL) {
+//        m_parent->removeChild(this);
     }
 }
 

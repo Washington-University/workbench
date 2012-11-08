@@ -144,7 +144,7 @@ GroupAndNameHierarchyTreeWidgetItem::~GroupAndNameHierarchyTreeWidgetItem()
      * Note: Do not need to delete children since they are added to
      * Qt layouts which will delete them.
      */
-    std::cout << "Deleting " << qPrintable(this->text(TREE_COLUMN)) << std::endl;
+    std::cout << "Deleting GroupAndNameHierarchyTreeWidgetItem::" << qPrintable(this->text(TREE_COLUMN)) << std::endl;
 }
 
 /**
@@ -376,22 +376,61 @@ GroupAndNameHierarchyTreeWidgetItem::setModelDataExpanded(const bool expanded)
 void
 GroupAndNameHierarchyTreeWidgetItem::setModelDataSelected(const bool selected)
 {
+    
+    GroupAndNameAbstractItem* item = NULL;
     switch (this->itemType) {
         case ITEM_TYPE_CLASS:
-            this->classDisplayGroupSelector->setSelected(m_displayGroup,
-                                                         m_tabIndex,
-                                                         selected);
+            item = this->classDisplayGroupSelector;
+//            this->classDisplayGroupSelector->setSelected(m_displayGroup,
+//                                                         m_tabIndex,
+//                                                         selected);
             break;
         case ITEM_TYPE_HIERARCHY_MODEL:
-            this->classAndNameHierarchyModel->setSelected(m_displayGroup,
-                                                          m_tabIndex,
-                                                          selected);
+            item = this->classAndNameHierarchyModel;
+//            this->classAndNameHierarchyModel->setSelected(m_displayGroup,
+//                                                          m_tabIndex,
+//                                                          selected);
             break;
         case ITEM_TYPE_NAME:
-            this->nameDisplayGroupSelector->setSelected(m_displayGroup,
-                                                        m_tabIndex,
-                                                        selected);
+            item = this->nameDisplayGroupSelector;
+//            this->nameDisplayGroupSelector->setSelected(m_displayGroup,
+//                                                        m_tabIndex,
+//                                                        selected);
             break;
+    }
+    
+    if (item != NULL) {
+        const GroupAndNameCheckStateEnum::Enum existingCheckState = item->getCheckState(m_displayGroup,
+                                                                                        m_tabIndex);
+        
+        switch (existingCheckState) {
+            case GroupAndNameCheckStateEnum::CHECKED:
+                break;
+            case GroupAndNameCheckStateEnum::PARTIALLY_CHECKED:
+                break;
+            case GroupAndNameCheckStateEnum::UNCHECKED:
+                break;
+        }
+        
+        if (selected) {
+            item->setSelected(m_displayGroup,
+                              m_tabIndex,
+                              true);
+            item->setAncestorsSelected(m_displayGroup,
+                                       m_tabIndex,
+                                       true);
+            item->setDescendantsSelected(m_displayGroup,
+                                         m_tabIndex,
+                                         true);
+        }
+        else {
+            item->setSelected(m_displayGroup,
+                              m_tabIndex,
+                              false);
+            item->setDescendantsSelected(m_displayGroup,
+                                         m_tabIndex,
+                                         false);
+        }
     }
 }
 

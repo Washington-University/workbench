@@ -91,8 +91,7 @@ GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
                            "",
                            -1)
 {
-    this->clearPrivate();
-    setUserInterfaceUpdateNeeded();
+    this->clearModelPrivate();
 }
 
 /**
@@ -100,7 +99,7 @@ GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
  */
 GroupAndNameHierarchyModel::~GroupAndNameHierarchyModel()
 {
-    this->clearPrivate();
+    this->clearModelPrivate();
 }
 
 /**
@@ -110,14 +109,14 @@ void
 GroupAndNameHierarchyModel::clear()
 {
     GroupAndNameAbstractItem::clear();
-    clearPrivate();
+    clearModelPrivate();
 }
 
 /**
  * Clear the group/name hierarchy.
  */
 void 
-GroupAndNameHierarchyModel::clearPrivate()
+GroupAndNameHierarchyModel::clearModelPrivate()
 {
     setUserInterfaceUpdateNeeded();
 }

@@ -120,7 +120,7 @@ namespace caret {
 
         GroupAndNameHierarchyModel& operator=(const GroupAndNameHierarchyModel&);
         
-        void clearPrivate();
+        void clearModelPrivate();
         
         void setUserInterfaceUpdateNeeded();
         

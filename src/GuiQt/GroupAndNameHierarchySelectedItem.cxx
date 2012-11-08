@@ -161,7 +161,7 @@ GroupAndNameHierarchySelectedItem::~GroupAndNameHierarchySelectedItem()
      * Note: Do not need to delete children since they are added to
      * Qt layouts which will delete them.
      */
-    std::cout << "Deleting " << qPrintable(m_checkBox->text()) << std::endl;
+    std::cout << "Deleting GroupAndNameHierarchySelectedItem: " << qPrintable(m_checkBox->text()) << std::endl;
     if (m_childrenLayout != NULL) {
         std::cout << "Child Layout has " << m_childrenLayout->count() << std::endl;
     }
