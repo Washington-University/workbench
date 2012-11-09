@@ -331,6 +331,115 @@ void
 GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                                    const bool forceUpdate)
 {
+    bool needToGenerateKeys = forceUpdate;
+
+    setName(labelFile->getFileNameNoPath());
+
+    /*
+     * The label table
+     */
+    GiftiLabelTable* labelTable = labelFile->getLabelTable();
+    
+    if (needToGenerateKeys == false) {
+        /*
+         * Check to see if any group (map) names have changed.
+         */
+        const std::vector<GroupAndNameAbstractItem*> groups = getChildren();
+        const int numGroups = static_cast<int32_t>(groups.size());
+        if (numGroups != labelFile->getNumberOfMaps()) {
+            needToGenerateKeys = true;
+        }
+        else {
+            for (int32_t i = 0; i < numGroups; i++) {
+                if (groups[i]->getName() != labelFile->getMapName(i)) {
+                    needToGenerateKeys = true;
+                    break;
+                }
+            }
+            
+            if (needToGenerateKeys == false) {
+                if (labelTable->hasLabelsWithInvalidGroupNameHierarchy()) {
+                    needToGenerateKeys = true;
+                }
+            }
+        }
+    }
+
+    if (needToGenerateKeys) {
+        const int32_t ID_NOT_USED = 0;
+        
+        /*
+         * Clear everything
+         */
+        this->clear();
+
+        /*
+         * Names for missing group names or foci names.
+         */
+        const AString missingGroupName = "NoGroup";
+        const AString missingName = "NoName";
+
+        /*
+         * Update with labels from maps
+         */
+        const int32_t numMaps = labelFile->getNumberOfMaps();
+        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+            /*
+             * Get the group.  If it is empty, use the default name.
+             */
+            AString theGroupName = labelFile->getMapName(iMap);
+            if (theGroupName.isEmpty()) {
+                theGroupName = missingGroupName;
+            }
+
+            /*
+             * Find/create group
+             */
+            GroupAndNameAbstractItem* groupItem = addChild(GroupAndNameAbstractItem::ITEM_TYPE_GROUP,
+                                                           theGroupName,
+                                                           iMap);
+            CaretAssert(groupItem);
+            
+            /*
+             * Get indices of labels used in this map
+             */
+            std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
+
+            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
+                const int32_t labelKey = labelKeys[iLabel];
+                GiftiLabel* label = labelTable->getLabel(labelKey);
+                if (label == NULL) {
+                    continue;
+                }
+                
+                AString labelName = label->getName();
+                if (labelName.isEmpty()) {
+                    labelName = missingName;
+                }
+
+                const float* rgba = label->getColor();
+
+                /*
+                 * Adding focus to class
+                 */
+                GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+                                                                         labelName,
+                                                                         ID_NOT_USED);
+                nameItem->setIconColorRGBA(rgba);
+                
+                /*
+                 * Place the name selector into the label.
+                 */
+                label->setGroupNameSelectionItem(nameItem);
+            }
+        }
+        
+        setUserInterfaceUpdateNeeded();
+    }
+    
+    
+//    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
 //    bool needToGenerateKeys = forceUpdate;
 //    
 ////    setName(labelFile->getFileNameNoPath());
@@ -520,7 +629,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             }
             
             /*
-             * Adding border to class
+             * Adding focus to class
              */
             GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
                                                                      name,

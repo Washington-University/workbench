@@ -49,6 +49,7 @@
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -178,6 +179,9 @@ GroupAndNameHierarchyViewController::itemWasChanged(QTreeWidgetItem* item,
 void
 GroupAndNameHierarchyViewController::updateGraphicsAndUserInterface()
 {
+    if (m_selectionInvalidatesSurfaceNodeColoring) {
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -248,7 +252,8 @@ GroupAndNameHierarchyViewController::setAllSelected(bool selected)
                                   selected);
         }
         
-        updateContents(allModels);
+        updateContents(allModels,
+                       m_selectionInvalidatesSurfaceNodeColoring);
     }
 }
 
@@ -298,7 +303,8 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
     }
     
 //    m_ignoreUpdates = true;
-    updateContents(models);
+    updateContents(models,
+                   false);
 //    m_ignoreUpdates = false;
 }
 
@@ -329,7 +335,8 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
     }
     
     //    m_ignoreUpdates = true;
-    updateContents(models);
+    updateContents(models,
+                   false);
     //    m_ignoreUpdates = false;
 //    if (m_ignoreUpdates) {
 //        return;
@@ -362,7 +369,26 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labe
     if (m_ignoreUpdates) {
         return;
     }
-//    
+    
+    std::vector<GroupAndNameHierarchyModel*> models;
+    m_displayGroup = displayGroup;
+    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
+    for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
+         iter != labelFiles.end();
+         iter++) {
+        LabelFile* lf = *iter;
+        CaretAssert(lf);
+        models.push_back(lf->getGroupAndNameHierarchyModel());
+    }
+    
+    //    m_ignoreUpdates = true;
+    updateContents(models,
+                   true);
+    //    m_ignoreUpdates = false;
+//    if (m_ignoreUpdates) {
+//        return;
+//    }
+//
 //    m_alwaysDisplayNames = true;
 //    m_displayGroup = displayGroup;
 //    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
@@ -413,11 +439,13 @@ GroupAndNameHierarchyViewController::removeAllModelItems()
  *    If true, display names even if the usage count is zero.
  */
 void 
-GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels)
+GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels,
+                                                    const bool selectionInvalidatesSurfaceNodeColoring)
 {
     if (m_ignoreUpdates) {
         return;
     }
+    m_selectionInvalidatesSurfaceNodeColoring = selectionInvalidatesSurfaceNodeColoring;
     m_ignoreUpdates = true;
     
     BrowserTabContent* browserTabContent =

@@ -87,7 +87,8 @@ namespace caret {
 
         GroupAndNameHierarchyViewController& operator=(const GroupAndNameHierarchyViewController&);
         
-        void updateContents(std::vector<GroupAndNameHierarchyModel*>& modelItems);
+        void updateContents(std::vector<GroupAndNameHierarchyModel*>& modelItems,
+                            const bool selectionInvalidatesSurfaceNodeColoring);
         
         std::vector<GroupAndNameHierarchyModel*> getAllModels() const;
         
@@ -106,6 +107,8 @@ namespace caret {
         int32_t m_browserWindowIndex;
         
         DisplayGroupEnum::Enum m_displayGroup;
+        
+        bool m_selectionInvalidatesSurfaceNodeColoring;
         
         bool m_ignoreUpdates;
         

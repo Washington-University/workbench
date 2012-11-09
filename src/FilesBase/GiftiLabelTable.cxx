@@ -927,6 +927,29 @@ GiftiLabelTable::resetLabelCounts()
 }
 
 /**
+ * @return Are there any labels that have an invalid group/name
+ * hierarchy settings.  This can be caused by changing the name
+ * of a label or its color.
+ */
+bool
+GiftiLabelTable::hasLabelsWithInvalidGroupNameHierarchy() const
+{
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        if (iter != this->labelsMap.end()) {
+            GiftiLabel* gl = iter->second;
+            if (gl->getGroupNameSelectionItem() == NULL) {
+                return true;
+                break;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Remove labels that have the 'count' attribute
  * set to zero.
  * Note the ??? label is not removed.

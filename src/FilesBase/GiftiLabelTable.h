@@ -199,6 +199,8 @@ public:
 
     void getKeys(std::vector<int32_t>& keysOut) const;
 
+    bool hasLabelsWithInvalidGroupNameHierarchy() const;
+    
 private:
     /** The label table storage.  Use a TreeMap since label keys
  may be sparse.
