@@ -55,7 +55,8 @@ TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(Connectiv
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     
     double time;
-    prefs->getAnimationStartTime( time );
+    time = 0.0;
+    //prefs->getAnimationStartTime( time );
     this->setAnimationStartTime(time);
 
     QObject::connect(this, SIGNAL(frameSpinBoxValueChanged(const int)),
@@ -90,7 +91,7 @@ void TimeSeriesManagerForViewController::update()
     {
         stop();//prevent timer events from piling up if the CPU is bogging down        
         QCoreApplication::instance()->processEvents();//give mouse events a chance to process
-        emit frameSpinBoxValueChanged(m_frameIndex);        
+        emit frameSpinBoxValueChanged(m_frameIndex+1);        
         play();
     }
     else {

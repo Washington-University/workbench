@@ -737,7 +737,7 @@ CaretPreferences::readPreferences()
     this->dataFileAddToSpecFileEnabled = this->getBoolean(CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE,
                                                           true);
     
-    this->animationStartTime = this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
+    this->animationStartTime = 0.0;//this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 
     this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,
                                          0);
@@ -759,7 +759,7 @@ void CaretPreferences::getAnimationStartTime(double& time)
 void CaretPreferences::setAnimationStartTime(const double& time)
 {
    animationStartTime = time;
-   this->qSettings->setValue(CaretPreferences::NAME_ANIMATION_START_TIME, time);
+   //this->qSettings->setValue(CaretPreferences::NAME_ANIMATION_START_TIME, time);
 }
 
 

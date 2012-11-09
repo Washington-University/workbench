@@ -78,8 +78,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
-    double time = 0.0;
-    prefs->getAnimationStartTime(time);
+    double time = 0.0;    
     this->setAnimationStartTime(time);
 }
 

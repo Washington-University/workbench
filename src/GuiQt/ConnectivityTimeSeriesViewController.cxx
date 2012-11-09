@@ -119,7 +119,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     this->graphToolButton->setDefaultAction(this->graphDisplayAction);
     
     this->frameSpinBox = new QSpinBox();
-    this->frameSpinBox->setMinimum(0);
+    this->frameSpinBox->setMinimum(1);
     this->frameSpinBox->setMaximum(std::numeric_limits<int>::max());
     this->frameSpinBox->setSingleStep(1.0);
     this->frameSpinBox->setMaximumWidth(80);
@@ -167,15 +167,26 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     if(this->connectivityLoaderFile != NULL)
     {
         this->frameSpinBox->blockSignals(true);
-        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame());
+        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame()+1);
         this->frameSpinBox->blockSignals(false);
     }
-    double time = 0.0f;
-    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getAnimationStartTime(time);
-    this->setAnimationStartTime(time);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME);
+    this->animationStartTime = 0.0;
     
+    if (this->connectivityLoaderFile != NULL) {
+        if (this->connectivityLoaderFile->isDenseTimeSeries()) {
+            frameName->blockSignals(true);
+            if(this->connectivityLoaderFile->hasDataSeriesLabels())
+            {
+                this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(this->connectivityLoaderFile->getSelectedFrame()));
+            }
+            else
+            {
+                double time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep();
+                this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));            
+            }
+            frameName->blockSignals(false);
+        }
+    }
      
     allConnectivityTimeSeriesViewControllers.insert(this);
 }
@@ -187,8 +198,7 @@ ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
 {
     this->deleteAnimator();
     
-    allConnectivityTimeSeriesViewControllers.erase(this);
-    EventManager::get()->removeAllEventsFromListener(this);
+    allConnectivityTimeSeriesViewControllers.erase(this);    
 }
 
 /**
@@ -295,7 +305,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         this->graphToolButton->blockSignals(false);
 
         this->frameSpinBox->blockSignals(true);
-        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame());
+        this->frameSpinBox->setValue(this->connectivityLoaderFile->getSelectedFrame()+1);
         this->frameSpinBox->blockSignals(false);
 
         this->frameName->blockSignals(true);
@@ -305,10 +315,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         }
         else
         {
-            CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
-            double startTime, time;
-            prefs->getAnimationStartTime(startTime);
-            time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep() + startTime;
+            double time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep();
             this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));//sets the frame string even if clf is null
         }
         this->frameName->blockSignals(false);
@@ -345,7 +352,7 @@ ConnectivityTimeSeriesViewController::updateOtherYokedFrameSpinBoxes(int frame)
              iter++) {
             ConnectivityTimeSeriesViewController* clvc = *iter;
             if (clvc != this) {
-                if(clvc->frameSpinBox->value() != frame) 
+                if((clvc->frameSpinBox->value() - 1) != frame) 
                 {
                     clvc->updateFrameSpinBox(this, alreadyLoaded, frame);
                     alreadyLoaded.insert(clvc->connectivityLoaderFile,true);
@@ -407,7 +414,7 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
         if(timeSeriesViewController->connectivityLoaderFile == this->connectivityLoaderFile)
         {
             this->frameSpinBox->blockSignals(true);            
-            this->frameSpinBox->setValue(frame);
+            this->frameSpinBox->setValue(frame+1);
             this->frameSpinBox->update();
             this->frameSpinBox->blockSignals(false);
         }
@@ -418,13 +425,13 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
             if(alreadyLoaded.value(this->connectivityLoaderFile, false))
             {
                 this->frameSpinBox->blockSignals(true);
-                this->frameSpinBox->setValue(frame);
+                this->frameSpinBox->setValue(frame+1);
                 this->frameSpinBox->update();
                 this->frameSpinBox->blockSignals(false);
             }
             else
             {
-                this->frameSpinBox->setValue(frame);
+                this->frameSpinBox->setValue(frame+1);
                 this->frameSpinBox->update();
                 alreadyLoaded.insert(this->connectivityLoaderFile, true);
             }            
@@ -531,12 +538,11 @@ ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
 void 
 ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
 {
+    frame--;
     if (this->connectivityLoaderFile != NULL) {
         //const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
         const int currentValue = this->connectivityLoaderFile->getSelectedFrame();
-        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
-        double timeStepOffset;
-        prefs->getAnimationStartTime(timeStepOffset);
+        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();        
         
         //TODOJS: Remember to update frame label
         //NOTE!!
@@ -544,13 +550,13 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
         //To properly compare the two, add timeStepOffset.
         if(frame >= this->connectivityLoaderFile->getNumberOfTimePoints())
         {
-            this->frameSpinBox->setValue(this->connectivityLoaderFile->getNumberOfTimePoints() - 1);
+            this->frameSpinBox->setValue(this->connectivityLoaderFile->getNumberOfTimePoints());
             return;
         }
         if(this->connectivityLoaderFile->isDenseTimeSeries())
         {
             this->frameName->blockSignals(true);
-            double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep() + timeStepOffset;
+            double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep();
             if(this->connectivityLoaderFile->hasDataSeriesLabels())
             {
                 this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(frame));
@@ -577,7 +583,7 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
         
         bool dataLoadedFlag = false;
         if (manager->loadFrame(this->connectivityLoaderFile, 
-                                         this->frameSpinBox->value())) {
+                                         frame)) {
             dataLoadedFlag = true;
         }
         const float loadTime = et.getElapsedTimeSeconds();
@@ -608,17 +614,6 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
     }
 }
 
-void 
-ConnectivityTimeSeriesViewController::receiveEvent(Event* event)
-{    
-    if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME) {
-        EventUpdateAnimationStartTime *e = (EventUpdateAnimationStartTime *)event->getPointer();
-        double time = e->getStartTime();
-        this->setAnimationStartTime(time);
-        e->setEventProcessed();
-    }
-}
-
 QSpinBox *
 ConnectivityTimeSeriesViewController::getFrameSpinBox()
 {
@@ -635,30 +630,6 @@ QAction*
 ConnectivityTimeSeriesViewController::getAnimateAction()
 {
     return this->animateAction;
-}
-
-void 
-ConnectivityTimeSeriesViewController::setAnimationStartTime(const double &value)
-{
-    if (this->connectivityLoaderFile != NULL) {
-        if (this->connectivityLoaderFile->isDenseTimeSeries()) {
-            if(animator) animator->setAnimationStartTime(value);
-            TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(this->connectivityLoaderFile);
-            dialog->setAnimationStartTime(value);
-            
-            frameName->blockSignals(true);
-            if(this->connectivityLoaderFile->hasDataSeriesLabels())
-            {
-                this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(this->connectivityLoaderFile->getSelectedFrame()));
-            }
-            else
-            {
-                double time = this->connectivityLoaderFile->getSelectedFrame()*this->connectivityLoaderFile->getTimeStep() + value;
-                this->frameName->setText(AString::number(time,'f',2)+AString(" seconds"));            
-            }
-            frameName->blockSignals(false);
-        }
-    }
 }
 
 

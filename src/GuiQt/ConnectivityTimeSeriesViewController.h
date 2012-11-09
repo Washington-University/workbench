@@ -56,7 +56,7 @@ namespace caret {
     class TimeSeriesManagerForViewController;
     class WuQGridLayoutGroup;
     
-    class ConnectivityTimeSeriesViewController : public QObject, public EventListenerInterface {
+    class ConnectivityTimeSeriesViewController : public QObject {
         
         Q_OBJECT
 
@@ -73,15 +73,11 @@ namespace caret {
         
         static QGridLayout* createGridLayout(const Qt::Orientation orientation);
         
-        void receiveEvent(Event* event);
-        
         QSpinBox *getFrameSpinBox();
 
         QToolButton *getAnimateToolButton();
 
         QAction *getAnimateAction();
-        
-        void setAnimationStartTime(const double &value);
         
         ConnectivityLoaderFile* getConnectivityLoaderFile();
 

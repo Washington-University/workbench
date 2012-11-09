@@ -290,15 +290,15 @@ PreferencesDialog::addTimeCourseItems()
     
     this->allWidgets->add(this->animationStartDoubleSpinBox);
 
-    double time;
+    /*double time;
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->getAnimationStartTime(time);
     this->animationStartDoubleSpinBox->blockSignals(true);
     this->animationStartDoubleSpinBox->setValue(time);    
     this->animationStartDoubleSpinBox->blockSignals(false);
 
-    this->addWidgetToLayout("Timecourse Animation Starts at: ", 
-                             this->animationStartDoubleSpinBox);
+    /*this->addWidgetToLayout("Timecourse Animation Starts at: ", 
+                             this->animationStartDoubleSpinBox);*/
 }
 
 /**
