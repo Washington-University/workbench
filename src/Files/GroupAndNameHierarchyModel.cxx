@@ -45,6 +45,7 @@
 #include "GroupAndNameHierarchyName.h"
 #include "FociFile.h"
 #include "Focus.h"
+#include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 
@@ -176,7 +177,7 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
 {
     bool needToGenerateKeys = forceUpdate;
     
-//    setName(borderFile->getFileNameNoPath());
+    setName(borderFile->getFileNameNoPath());
 
     const int32_t numBorders = borderFile->getNumberOfBorders();
     if (needToGenerateKeys == false) {
@@ -205,6 +206,11 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
          */
         clearCounters();
 
+        /*
+         * For icons
+         */
+        const GiftiLabelTable* labelTable = borderFile->getClassColorTable();
+        
         /*
          * Update with all borders.
          */
@@ -235,8 +241,16 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
                                                            ID_NOT_USED);
             CaretAssert(groupItem);
             
+            const float* color = groupItem->getIconColorRGBA();
+            if (color[3] == 0.0) {
+                const GiftiLabel* label = labelTable->getLabelBestMatching(theGroupName);
+                if (label != NULL) {
+                    groupItem->setIconColorRGBA(label->getColor());
+                }
+            }
+            
             /*
-             * Adding border class and name will set the group name keys.
+             * Adding border to class
              */
             GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
                                                                      name,
@@ -431,79 +445,98 @@ void
 GroupAndNameHierarchyModel::update(FociFile* fociFile,
                                    const bool forceUpdate)
 {
-//    bool needToGenerateKeys = forceUpdate;
-//    
-////    setName(fociFile->getFileNameNoPath());
-//    
-//    const int32_t numFoci = fociFile->getNumberOfFoci();
-//    if (needToGenerateKeys == false) {
-//        for (int32_t i = 0; i < numFoci; i++) {
-//            const Focus* focus = fociFile->getFocus(i);
-//            if (focus->isSelectionClassOrNameModified()) {
-//                needToGenerateKeys = true;
-//            }
-//        }
-//    }
-//    
-//    if (needToGenerateKeys) {
-//        /*
-//         * Names for missing group names or foci names.
-//         */
-//        const AString missingGroupName = "NoGroup";
-//        const AString missingName = "NoName";
-//        
-//        /*
-//         * Reset the counts for all group and children names.
-//         */
-//        const int32_t numberOfGroupKeys = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-//        for (int32_t groupKey = 0; groupKey < numberOfGroupKeys; groupKey++) {
-//            GroupAndNameHierarchyGroup* cs = this->keyToGroupNameSelectorVector[groupKey];
-//            if (cs != NULL) {
-//                cs->clearAllNameCounters();
-//            }
-//        }
-//        
-//        /*
-//         * Update with all foci.
-//         */
-//        for (int32_t i = 0; i < numFoci; i++) {
-//            Focus* focus = fociFile->getFocus(i);
-//            
-//            /*
-//             * Get the group.  If it is empty, use the default name.
-//             */
-//            AString theGroupName = focus->getClassName();
-//            if (theGroupName.isEmpty()) {
-//                theGroupName = missingGroupName;
-//            }
-//            
-//            /*
-//             * Get the name.
-//             */
-//            AString name = focus->getName();
-//            if (name.isEmpty()) {
-//                name = missingName;
-//            }
-//            
-//            /*
-//             * Adding focus group and name will set the group name keys.
-//             */
-//            int32_t groupKey = -1;
-//            int32_t nameKey = -1;
-//            this->addName(theGroupName,
-//                          name,
-//                          groupKey,
-//                          nameKey);
-//            
-//            /*
-//             * Update keys used by the focus.
-//             */
-//            focus->setSelectionClassAndNameKeys(groupKey,
-//                                                 nameKey);
-//        }
-//        
-//        setUserInterfaceUpdateNeeded();
-//    }
+    bool needToGenerateKeys = forceUpdate;
+    
+    setName(fociFile->getFileNameNoPath());
+    
+    const int32_t numFoci = fociFile->getNumberOfFoci();
+    if (needToGenerateKeys == false) {
+        for (int32_t i = 0; i < numFoci; i++) {
+            const Focus* focus = fociFile->getFocus(i);
+            if (focus->isSelectionClassOrNameModified()) {
+                needToGenerateKeys = true;
+            }
+        }
+    }
+    
+    /*
+     * ID for groups and names is not used
+     */
+    const int32_t ID_NOT_USED = 0;
+    
+    if (needToGenerateKeys) {
+        /*
+         * Names for missing group names or foci names.
+         */
+        const AString missingGroupName = "NoGroup";
+        const AString missingName = "NoName";
+        
+        /*
+         * Reset the counts for all group and children names.
+         */
+        clearCounters();
+        
+        /*
+         * For icons
+         */
+        const GiftiLabelTable* labelTable = fociFile->getColorTable();
+        
+        /*
+         * Update with all foci.
+         */
+        for (int32_t i = 0; i < numFoci; i++) {
+            Focus* focus = fociFile->getFocus(i);
+            
+            /*
+             * Get the group.  If it is empty, use the default name.
+             */
+            AString theGroupName = focus->getClassName();
+            if (theGroupName.isEmpty()) {
+                theGroupName = missingGroupName;
+            }
+            
+            /*
+             * Get the name.
+             */
+            AString name = focus->getName();
+            if (name.isEmpty()) {
+                name = missingName;
+            }
+            
+            /*
+             * Find/create group
+             */
+            GroupAndNameAbstractItem* groupItem = addChild(GroupAndNameAbstractItem::ITEM_TYPE_GROUP,
+                                                           theGroupName,
+                                                           ID_NOT_USED);
+            CaretAssert(groupItem);
+            
+            const float* color = groupItem->getIconColorRGBA();
+            if (color[3] == 0.0) {
+                const GiftiLabel* label = labelTable->getLabelBestMatching(theGroupName);
+                if (label != NULL) {
+                    groupItem->setIconColorRGBA(label->getColor());
+                }
+            }
+            
+            /*
+             * Adding border to class
+             */
+            GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+                                                                     name,
+                                                                     ID_NOT_USED);
+            
+            /*
+             * Place the name selector into the border.
+             */
+            focus->setGroupNameSelectionItem(nameItem);
+        }
+        
+        setUserInterfaceUpdateNeeded();
+
+        std::cout << "HIERARCHY:" << std::endl;
+        std::cout << qPrintable(toString()) << std::endl;
+    }
 }
 
 /**

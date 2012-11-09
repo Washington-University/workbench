@@ -41,6 +41,7 @@
 namespace caret {
 
     class FociFileSaxReader;
+    class GroupAndNameAbstractItem;
     class StudyMetaDataLinkSet;
     
     class Focus : public CaretObjectTracksModification {
@@ -154,6 +155,10 @@ namespace caret {
         
         const StudyMetaDataLinkSet* getStudyMetaDataLinkSet() const;
         
+        void setGroupNameSelectionItem(GroupAndNameAbstractItem* item);
+        
+        const GroupAndNameAbstractItem* getGroupNameSelectionItem() const;
+        
         void writeAsXML(XmlWriter& xmlWriter,
                         const int32_t focusIndex) throw (XmlException);
         
@@ -247,6 +252,9 @@ namespace caret {
         
         /** May project to more than one surface */
         std::vector<SurfaceProjectedItem*> m_projections;
+        
+        /** Selection status of this border in the group/name hierarchy */
+        GroupAndNameAbstractItem* m_groupNameSelectionItem;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
         int32_t m_selectionNameKey;

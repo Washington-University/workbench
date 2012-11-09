@@ -143,6 +143,9 @@ namespace caret {
 
         virtual AString toString() const;
         
+    protected:
+        void setName(const AString& name);
+        
     private:
         GroupAndNameAbstractItem(const GroupAndNameAbstractItem&);
         
@@ -204,7 +207,7 @@ namespace caret {
         const ItemType m_itemType;
         
         /** Name of this item */
-        const AString m_name;
+        AString m_name;
         
         /** ID Number */
         const int32_t m_idNumber;

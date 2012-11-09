@@ -317,6 +317,24 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
         return;
     }
     
+    std::vector<GroupAndNameHierarchyModel*> models;
+    m_displayGroup = displayGroup;
+    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
+    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
+         iter != fociFiles.end();
+         iter++) {
+        FociFile* ff = *iter;
+        CaretAssert(ff);
+        models.push_back(ff->getGroupAndNameHierarchyModel());
+    }
+    
+    //    m_ignoreUpdates = true;
+    updateContents(models);
+    //    m_ignoreUpdates = false;
+//    if (m_ignoreUpdates) {
+//        return;
+//    }
+    
 //    m_displayGroup = displayGroup;
 //    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
 //    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();

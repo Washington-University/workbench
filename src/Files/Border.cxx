@@ -958,6 +958,7 @@ void
 Border::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
 {
     m_groupNameSelectionItem = item;
+    this->selectionClassNameModificationStatus = false;
 }
 
 /**

@@ -4456,6 +4456,14 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
     
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
+            
+            const GroupAndNameAbstractItem* groupNameItem = focus->getGroupNameSelectionItem();
+            if (groupNameItem != NULL) {
+                if (groupNameItem->isSelected(displayGroup,
+                                              this->windowTabIndex) == false) {
+                    continue;
+                }
+            }
 //            const int32_t selectionClassKey = focus->getSelectionClassKey();
 //            const int32_t selectionNameKey  = focus->getSelectionNameKey();
 //            if (classAndNameSelection->isGroupSelected(displayGroup,

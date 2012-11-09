@@ -163,6 +163,20 @@ GroupAndNameAbstractItem::getName() const
 }
 
 /**
+ * Set the name of the item.  This should only be used
+ * to set the name of an item without a parent as names
+ * are used when creating a hierarchy.
+ *
+ * @param name
+ *     Name of item.
+ */
+void
+GroupAndNameAbstractItem::setName(const AString& name)
+{
+    m_name = name;
+}
+
+/**
  * @return The parent of this item.
  */
 GroupAndNameAbstractItem*
@@ -750,10 +764,10 @@ AString
 GroupAndNameAbstractItem::toString() const
 {
     AString info = (CaretObject::toString()
-                    + "   type" + m_itemType
-                    + "   name=" + m_name
-                    + "   idNumber=" + AString::number(m_idNumber)
-                    + "   counter=" + AString::number(m_counter)
+                    + "\n   name=" + m_name
+                    + ", type" + AString::number(m_itemType)
+                    + ", idNumber=" + AString::number(m_idNumber)
+                    + ", counter=" + AString::number(m_counter)
                     + "\n");
     
     AString childInfo;

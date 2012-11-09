@@ -28,12 +28,12 @@
 #include "BorderException.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
-#include "GroupAndNameAbstractItem.h"
 #include "StructureEnum.h"
 #include "XmlException.h"
 
 namespace caret {
 
+    class GroupAndNameAbstractItem;
     class SurfaceFile;
     class SurfaceProjectedItem;
     class XmlWriter;

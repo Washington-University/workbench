@@ -129,6 +129,8 @@ Focus::clear()
     m_sumsMSLID = "";
     m_attributeID = "";
 
+    m_groupNameSelectionItem = NULL;
+    
     m_nameRgbaColor[0] = 0.0;
     m_nameRgbaColor[1] = 0.0;
     m_nameRgbaColor[2] = 0.0;
@@ -534,6 +536,29 @@ void Focus::setNameRgba(const float rgba[4])
     m_nameRgbaColor[2] = rgba[2];
     m_nameRgbaColor[3] = rgba[3];
     m_nameRgbaColorValid = true;
+}
+
+/**
+ * Set the selection item for the group/name hierarchy.
+ *
+ * @param item
+ *     The selection item from the group/name hierarchy.
+ */
+void
+Focus::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
+{
+    m_groupNameSelectionItem = item;
+    m_selectionClassNameModificationStatus = false;
+}
+
+/**
+ * @return The selection item for the Group/Name selection hierarchy.
+ *      May be NULL in some circumstances.
+ */
+const GroupAndNameAbstractItem*
+Focus::getGroupNameSelectionItem() const
+{
+    return m_groupNameSelectionItem;
 }
 
 /**
