@@ -48,6 +48,7 @@ static int runCommand(int argc, char* argv[]) {
     CaretLogFine("Running: " + caret_global_commandLine);
     
     CommandOperationManager* commandManager = NULL;
+    int ret = 0;
     try {
         commandManager = CommandOperationManager::getCommandOperationManager();
         
@@ -56,13 +57,13 @@ static int runCommand(int argc, char* argv[]) {
     }
     catch (CommandException& e) {
         std::cerr << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
-        return -1;
+        ret = -1;
     }
     
     if (commandManager != NULL) {
         CommandOperationManager::deleteCommandOperationManager();
     }
-    return 0;
+    return ret;
 }
 
 int main(int argc, char* argv[]) {
