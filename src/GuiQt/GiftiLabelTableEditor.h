@@ -44,6 +44,7 @@ class QListWidgetItem;
 
 namespace caret {
 
+    class BorderFile;
     class ColorEditorWidget;
     class FociFile;
     class GiftiLabel;
@@ -59,6 +60,10 @@ namespace caret {
                               QWidget* parent);
         
         GiftiLabelTableEditor(FociFile* fociFile,
+                              const AString& dialogTitle,
+                              QWidget* parent);
+        
+        GiftiLabelTableEditor(BorderFile* fociFile,
                               const AString& dialogTitle,
                               QWidget* parent);
         
@@ -84,6 +89,9 @@ namespace caret {
         
         void labelNameLineEditTextEdited(const QString&);
         
+    protected:
+        virtual void okButtonClicked();
+
     private:
         void initializeDialog(GiftiLabelTable* giftiLabelTable);
         
@@ -96,6 +104,8 @@ namespace caret {
                                     const float rgba[4]);
         
         QListWidget* m_labelSelectionListWidget;
+        
+        BorderFile* m_borderFile;
         
         FociFile* m_fociFile;
         

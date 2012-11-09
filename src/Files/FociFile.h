@@ -89,7 +89,7 @@ namespace caret {
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
-        void invalidateAllAssigndColors();
+        void invalidateAllAssignedColors();
         
         virtual bool isModified() const;
         

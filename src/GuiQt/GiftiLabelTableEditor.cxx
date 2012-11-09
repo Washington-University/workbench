@@ -48,8 +48,12 @@
 #include <QVBoxLayout>
 #include <QToolButton>
 
+#include "BorderFile.h"
 #include "CaretAssert.h"
 #include "ColorEditorWidget.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -115,6 +119,28 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
 }
 
 /**
+ * Constructor.
+ *
+ * @param borderFile
+ *    Border file whose color table being edited.  As colors are edited,
+ *    the assigned borders will have their color validity invalidated.
+ * @param dialogTitle
+ *    Title for the dialog.
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ */
+GiftiLabelTableEditor::GiftiLabelTableEditor(BorderFile* borderFile,
+                                             const AString& dialogTitle,
+                                             QWidget* parent)
+: WuQDialogModal(dialogTitle,
+                 parent)
+{
+    CaretAssert(borderFile);
+    initializeDialog(borderFile->getClassColorTable());
+    m_borderFile = borderFile;
+}
+
+/**
  * Destructor.
  */
 GiftiLabelTableEditor::~GiftiLabelTableEditor()
@@ -128,6 +154,7 @@ GiftiLabelTableEditor::~GiftiLabelTableEditor()
 void
 GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable)
 {
+    m_borderFile = NULL;
     m_fociFile = NULL;
     
     CaretAssert(giftiLabelTable);
@@ -326,10 +353,12 @@ GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
     }
     GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
-        gl->setColor(rgba);
-        
+        gl->setColor(rgba);        
         if (m_fociFile != NULL) {
-            m_fociFile->invalidateAllAssigndColors();
+            m_fociFile->invalidateAllAssignedColors();
+        }
+        if (m_borderFile != NULL) {
+            m_borderFile->invalidateAllAssignedColors();
         }
     }
 }
@@ -512,5 +541,14 @@ GiftiLabelTableEditor::deleteButtonClicked()
             loadLabels("", true);
         }
     }
-    
 }
+
+void
+GiftiLabelTableEditor::okButtonClicked()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+    WuQDialogModal::okButtonClicked();
+}
+

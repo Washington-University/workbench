@@ -571,8 +571,7 @@ BorderPropertiesEditorDialog::displayClassEditor()
         return;
     }
     
-    GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
-    GiftiLabelTableEditor editor(classLabelTable,
+    GiftiLabelTableEditor editor(borderFile,
                                  "Edit Class Attributes",
                                  this);
     const QString className = this->classNameComboBox->currentText();

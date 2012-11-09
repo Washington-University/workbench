@@ -372,13 +372,14 @@ FociFile::getFileVersionAsString()
  * Invalidate all assigned colors.
  */
 void
-FociFile::invalidateAllAssigndColors()
+FociFile::invalidateAllAssignedColors()
 {
     const int32_t numFoci = this->getNumberOfFoci();
     for (int32_t i = 0;i < numFoci; i++) {
         m_foci[i]->setNameRgbaInvalid();
         m_foci[i]->setClassRgbaInvalid();
     }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**

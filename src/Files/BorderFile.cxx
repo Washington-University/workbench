@@ -456,6 +456,20 @@ BorderFile::getClassColorTable() const
 }
 
 /**
+ * Invalidate all assigned colors.
+ */
+void
+BorderFile::invalidateAllAssignedColors()
+{
+    const int32_t numBorders = this->getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        borders[i]->setClassRgbaInvalid();
+        //m_foci[i]->setNameRgbaInvalid();
+    }
+    forceUpdateOfGroupAndNameHierarchy = true;
+}
+
+/**
  * @return The version of the file as a number.
  */
 float 

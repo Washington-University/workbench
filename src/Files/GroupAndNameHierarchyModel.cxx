@@ -194,16 +194,16 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
     
     if (needToGenerateKeys) {
         /*
+         * Remove everything
+         */
+        this->clear();
+        
+        /*
          * Names for missing group names or border names.
          */
         const AString missingGroupName = "NoGroup";
         const AString missingBorderName = "NoName";
         
-        /*
-         * Reset the counts for all group and children names.
-         */
-        clearCounters();
-
         /*
          * For icons
          */

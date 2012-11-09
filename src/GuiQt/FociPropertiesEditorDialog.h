@@ -93,6 +93,8 @@ namespace caret {
         
         void loadClassNameComboBox(const QString& className = "");
         
+        void updateGraphicsAndUserInterface();
+        
         Focus* m_focus;
         
         QComboBox* m_fociFileSelectionComboBox;

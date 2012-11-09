@@ -113,6 +113,8 @@ namespace caret {
         
         virtual void clearModified();
         
+        void invalidateAllAssignedColors();
+        
     private:
         void copyHelperBorderFile(const BorderFile& obj);
         

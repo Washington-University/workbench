@@ -131,8 +131,6 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
                               tabIndex,
                               true);
         }
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         
         return true;
     }
@@ -140,7 +138,6 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
     delete focus;
     return false;
 }
-
 
 /**
  * Edit an existing focus.
@@ -582,11 +579,24 @@ FociPropertiesEditorDialog::okButtonClicked()
      */
     s_previousFociProjectSelected = m_projectCheckBox->isChecked();
     
+    updateGraphicsAndUserInterface();
+    
     /*
      * continue with OK button processing
      */
     WuQDialogModal::okButtonClicked();
 }
+
+/**
+ * Update the graphics and user interface.
+ */
+void
+FociPropertiesEditorDialog::updateGraphicsAndUserInterface()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 /**
  * Load data from the given focus into the dialog.
