@@ -2006,6 +2006,14 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             Focus* focus = fociFile->getFocus(j);
             float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
             
+            const GroupAndNameHierarchyItem* nameItem = focus->getGroupNameSelectionItem();
+            if (nameItem != NULL) {
+                if (nameItem->isSelected(displayGroup,
+                                         this->windowTabIndex) == false) {
+                    continue;
+                }
+            }
+            
             switch (fociColoringType) {
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
@@ -4444,7 +4452,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
         for (int32_t j = 0; j < numFoci; j++) {
             Focus* focus = fociFile->getFocus(j);
             
-            const GroupAndNameAbstractItem* groupNameItem = focus->getGroupNameSelectionItem();
+            const GroupAndNameHierarchyItem* groupNameItem = focus->getGroupNameSelectionItem();
             if (groupNameItem != NULL) {
                 if (groupNameItem->isSelected(displayGroup,
                                               this->windowTabIndex) == false) {

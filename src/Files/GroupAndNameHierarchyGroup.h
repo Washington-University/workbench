@@ -35,13 +35,13 @@
 /*LICENSE_END*/
 
 
-#include "GroupAndNameAbstractItem.h"
+#include "GroupAndNameHierarchyItem.h"
 
 namespace caret {
 
     class GroupAndNameHierarchyName;
     
-    class GroupAndNameHierarchyGroup : public GroupAndNameAbstractItem {
+    class GroupAndNameHierarchyGroup : public GroupAndNameHierarchyItem {
     public:
         GroupAndNameHierarchyGroup(const AString& name,
                                    const int32_t idNumber);

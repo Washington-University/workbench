@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __GROUP_AND_NAME_ABSTRACT_ITEM_DECLARE__
-#include "GroupAndNameAbstractItem.h"
-#undef __GROUP_AND_NAME_ABSTRACT_ITEM_DECLARE__
+#define __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
+#include "GroupAndNameHierarchyItem.h"
+#undef __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
 
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyGroup.h"
@@ -45,7 +45,7 @@ using namespace caret;
 
 
 /**
- * \class caret::GroupAndNameAbstractItem
+ * \class caret::GroupAndNameHierarchyItem
  * \brief Base class for items in a hierarchy tree.
  */
 
@@ -59,7 +59,7 @@ using namespace caret;
  * @param idNumber
  *    Id number for the item.
  */
-GroupAndNameAbstractItem::GroupAndNameAbstractItem(const ItemType itemType,
+GroupAndNameHierarchyItem::GroupAndNameHierarchyItem(const ItemType itemType,
                                                    const AString& name,
                                                    const int32_t idNumber)
 : CaretObject(),
@@ -79,9 +79,9 @@ m_parent(0)
 /**
  * Destructor.
  */
-GroupAndNameAbstractItem::~GroupAndNameAbstractItem()
+GroupAndNameHierarchyItem::~GroupAndNameHierarchyItem()
 {
-    std::cout << "Deleting GroupAndNameAbstractItem: "
+    std::cout << "Deleting GroupAndNameHierarchyItem: "
     << m_itemType << " " << qPrintable(m_name) << std::endl;
     
     clearPrivate();
@@ -95,7 +95,7 @@ GroupAndNameAbstractItem::~GroupAndNameAbstractItem()
  * Clear the contents of this class selector.
  */
 void
-GroupAndNameAbstractItem::clear()
+GroupAndNameHierarchyItem::clear()
 {
     clearPrivate();
 }
@@ -105,12 +105,12 @@ GroupAndNameAbstractItem::clear()
  * Clear the contents of this class selector.
  */
 void
-GroupAndNameAbstractItem::clearPrivate()
+GroupAndNameHierarchyItem::clearPrivate()
 {
-    for (std::vector<GroupAndNameAbstractItem*>::iterator iter = m_children.begin();
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
-        GroupAndNameAbstractItem* item = *iter;
+        GroupAndNameHierarchyItem* item = *iter;
         delete item;
     }
     m_children.clear();
@@ -147,8 +147,8 @@ GroupAndNameAbstractItem::clearPrivate()
 /**
  * @return The type of the item.
  */
-GroupAndNameAbstractItem::ItemType
-GroupAndNameAbstractItem::getItemType() const
+GroupAndNameHierarchyItem::ItemType
+GroupAndNameHierarchyItem::getItemType() const
 {
     return m_itemType;
 }
@@ -157,7 +157,7 @@ GroupAndNameAbstractItem::getItemType() const
  * @return The name of the item.
  */
 AString
-GroupAndNameAbstractItem::getName() const
+GroupAndNameHierarchyItem::getName() const
 {
     return m_name;
 }
@@ -171,7 +171,7 @@ GroupAndNameAbstractItem::getName() const
  *     Name of item.
  */
 void
-GroupAndNameAbstractItem::setName(const AString& name)
+GroupAndNameHierarchyItem::setName(const AString& name)
 {
     m_name = name;
 }
@@ -179,8 +179,8 @@ GroupAndNameAbstractItem::setName(const AString& name)
 /**
  * @return The parent of this item.
  */
-GroupAndNameAbstractItem*
-GroupAndNameAbstractItem::getParent()
+GroupAndNameHierarchyItem*
+GroupAndNameHierarchyItem::getParent()
 {
     return m_parent;
 }
@@ -188,8 +188,8 @@ GroupAndNameAbstractItem::getParent()
 /**
  * @return The parent of this item.
  */
-const GroupAndNameAbstractItem*
-GroupAndNameAbstractItem::getParent() const
+const GroupAndNameHierarchyItem*
+GroupAndNameHierarchyItem::getParent() const
 {
     return m_parent;
 }
@@ -197,15 +197,15 @@ GroupAndNameAbstractItem::getParent() const
 /**
  * @return The ancestors of this item.
  */
-std::vector<GroupAndNameAbstractItem*>
-GroupAndNameAbstractItem::getAncestors() const
+std::vector<GroupAndNameHierarchyItem*>
+GroupAndNameHierarchyItem::getAncestors() const
 {
-    std::vector<GroupAndNameAbstractItem*> ancestors;
+    std::vector<GroupAndNameHierarchyItem*> ancestors;
     
     if (m_parent != NULL) {
         ancestors.push_back(m_parent);
         
-        std::vector<GroupAndNameAbstractItem*> parentsAncestors = m_parent->getAncestors();
+        std::vector<GroupAndNameHierarchyItem*> parentsAncestors = m_parent->getAncestors();
         ancestors.insert(ancestors.end(),
                          parentsAncestors.begin(),
                          parentsAncestors.end());
@@ -217,19 +217,19 @@ GroupAndNameAbstractItem::getAncestors() const
 /**
  * @return The descendants of this item.
  */
-std::vector<GroupAndNameAbstractItem*>
-GroupAndNameAbstractItem::getDescendants() const
+std::vector<GroupAndNameHierarchyItem*>
+GroupAndNameHierarchyItem::getDescendants() const
 {
-    std::vector<GroupAndNameAbstractItem*> descendants;
+    std::vector<GroupAndNameHierarchyItem*> descendants;
     
     if (m_parent != NULL) {
-        for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+        for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
              iter != m_children.end();
              iter++) {
-            GroupAndNameAbstractItem* child = *iter;
+            GroupAndNameHierarchyItem* child = *iter;
             descendants.push_back(child);
             
-            std::vector<GroupAndNameAbstractItem*> childDescendants = child->getDescendants();
+            std::vector<GroupAndNameHierarchyItem*> childDescendants = child->getDescendants();
             descendants.insert(descendants.end(),
                                childDescendants.begin(),
                                childDescendants.end());
@@ -242,8 +242,8 @@ GroupAndNameAbstractItem::getDescendants() const
 /**
  * @return The children of this item.
  */
-std::vector<GroupAndNameAbstractItem*>
-GroupAndNameAbstractItem::getChildren() const
+std::vector<GroupAndNameHierarchyItem*>
+GroupAndNameHierarchyItem::getChildren() const
 {
     return m_children;
 }
@@ -251,10 +251,10 @@ GroupAndNameAbstractItem::getChildren() const
 /**
  * @return The children of this item sorted by name.
  */
-std::vector<GroupAndNameAbstractItem*>
-GroupAndNameAbstractItem::getChildrenSortedByName() const
+std::vector<GroupAndNameHierarchyItem*>
+GroupAndNameHierarchyItem::getChildrenSortedByName() const
 {
-    std::cout << "GroupAndNameAbstractItem::getChildrenSortedByName() needs implementation." << std::endl;
+    std::cout << "GroupAndNameHierarchyItem::getChildrenSortedByName() needs implementation." << std::endl;
     return m_children;
 }
 
@@ -266,17 +266,17 @@ GroupAndNameAbstractItem::getChildrenSortedByName() const
  * @return Child with the given name and ID number or NULL if no 
  *     child with the name and ID number.
  */
-GroupAndNameAbstractItem*
-GroupAndNameAbstractItem::getChildWithNameAndIdNumber(const AString& name,
+GroupAndNameHierarchyItem*
+GroupAndNameHierarchyItem::getChildWithNameAndIdNumber(const AString& name,
                                                       const int32_t idNumber)
 {
     ChildMapKey childMapKey(idNumber,
                             name);
     
-    std::map<ChildMapKey, GroupAndNameAbstractItem*>::iterator iter;
+    std::map<ChildMapKey, GroupAndNameHierarchyItem*>::iterator iter;
     iter = m_childrenNameIdMap.find(childMapKey);
     if (iter != m_childrenNameIdMap.end()) {
-        GroupAndNameAbstractItem* item = iter->second;
+        GroupAndNameHierarchyItem* item = iter->second;
         return item;
     }
     return NULL;
@@ -289,7 +289,7 @@ GroupAndNameAbstractItem::getChildWithNameAndIdNumber(const AString& name,
  *    Child to add.
  */
 void
-GroupAndNameAbstractItem::addChild(GroupAndNameAbstractItem* child)
+GroupAndNameHierarchyItem::addChild(GroupAndNameHierarchyItem* child)
 {
     const int32_t idNumber = child->getIdNumber();
     const AString childName = child->getName();
@@ -311,7 +311,7 @@ GroupAndNameAbstractItem::addChild(GroupAndNameAbstractItem* child)
  *    Child to add.
  */
 void
-GroupAndNameAbstractItem::addChildPrivate(GroupAndNameAbstractItem* child)
+GroupAndNameHierarchyItem::addChildPrivate(GroupAndNameHierarchyItem* child)
 {
     child->m_parent = this;
     m_children.push_back(child);
@@ -335,12 +335,12 @@ GroupAndNameAbstractItem::addChildPrivate(GroupAndNameAbstractItem* child)
  *     it is returned.  Otherwise, a new child with the given
  *     name and id number is created and returned.
  */
-GroupAndNameAbstractItem*
-GroupAndNameAbstractItem::addChild(const ItemType itemType,
+GroupAndNameHierarchyItem*
+GroupAndNameHierarchyItem::addChild(const ItemType itemType,
                                    const AString& name,
                                    const int32_t idNumber)
 {
-    GroupAndNameAbstractItem* child = getChildWithNameAndIdNumber(name,
+    GroupAndNameHierarchyItem* child = getChildWithNameAndIdNumber(name,
                                                                   idNumber);
     if (child != NULL) {
         return child;
@@ -373,9 +373,9 @@ GroupAndNameAbstractItem::addChild(const ItemType itemType,
  *    Child to remove.
  */
 void
-GroupAndNameAbstractItem::removeChild(GroupAndNameAbstractItem* child)
+GroupAndNameHierarchyItem::removeChild(GroupAndNameHierarchyItem* child)
 {
-    std::vector<GroupAndNameAbstractItem*>::iterator iter = std::find(m_children.begin(),
+    std::vector<GroupAndNameHierarchyItem*>::iterator iter = std::find(m_children.begin(),
                                                                       m_children.end(),
                                                                       child);
     if (iter != m_children.end()) {
@@ -383,10 +383,10 @@ GroupAndNameAbstractItem::removeChild(GroupAndNameAbstractItem* child)
         m_children.erase(iter);
     }
     
-    for (std::map<ChildMapKey, GroupAndNameAbstractItem*>::iterator mapIter = m_childrenNameIdMap.begin();
+    for (std::map<ChildMapKey, GroupAndNameHierarchyItem*>::iterator mapIter = m_childrenNameIdMap.begin();
          mapIter != m_childrenNameIdMap.end();
          mapIter++) {
-        GroupAndNameAbstractItem* item = mapIter->second;
+        GroupAndNameHierarchyItem* item = mapIter->second;
         if (item == child) {
             m_childrenNameIdMap.erase(mapIter);
             break;
@@ -405,7 +405,7 @@ GroupAndNameAbstractItem::removeChild(GroupAndNameAbstractItem* child)
  *    True if item is selected, else false.
  */
 bool
-GroupAndNameAbstractItem::isSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::isSelected(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
@@ -436,19 +436,19 @@ GroupAndNameAbstractItem::isSelected(const DisplayGroupEnum::Enum displayGroup,
  *    UNCHECKED if this item is not selected.
  */
 GroupAndNameCheckStateEnum::Enum
-GroupAndNameAbstractItem::getCheckState(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::getCheckState(const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex) const
 {
     if (isSelected(displayGroup, tabIndex)) {
         int64_t numChildren = 0;
         int64_t numChildrenChecked = 0;
         
-        for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+        for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
              iter != m_children.end();
              iter++) {
             numChildren++;
             
-            GroupAndNameAbstractItem* child = *iter;
+            GroupAndNameHierarchyItem* child = *iter;
             const GroupAndNameCheckStateEnum::Enum childStatus = child->getCheckState(displayGroup,
                                                                                              tabIndex);
             switch (childStatus) {
@@ -486,7 +486,7 @@ GroupAndNameAbstractItem::getCheckState(const DisplayGroupEnum::Enum displayGrou
  *    True if item is selected, else false.
  */
 void
-GroupAndNameAbstractItem::setSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::setSelected(const DisplayGroupEnum::Enum displayGroup,
                                       const int32_t tabIndex,
                                       const bool status)
 {
@@ -516,14 +516,14 @@ GroupAndNameAbstractItem::setSelected(const DisplayGroupEnum::Enum displayGroup,
  *    True if item is selected, else false.
  */
 void
-GroupAndNameAbstractItem::setDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::setDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
                                               const int32_t tabIndex,
                                               const bool status)
 {
-    for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
-        GroupAndNameAbstractItem* child = *iter;
+        GroupAndNameHierarchyItem* child = *iter;
         child->setSelected(displayGroup,
                            tabIndex,
                            status);
@@ -545,7 +545,7 @@ GroupAndNameAbstractItem::setDescendantsSelected(const DisplayGroupEnum::Enum di
  *    True if item is selected, else false.
  */
 void
-GroupAndNameAbstractItem::setAncestorsSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::setAncestorsSelected(const DisplayGroupEnum::Enum displayGroup,
                                                const int32_t tabIndex,
                                                const bool status)
 {
@@ -571,7 +571,7 @@ GroupAndNameAbstractItem::setAncestorsSelected(const DisplayGroupEnum::Enum disp
  *    True if item is selected, else false.
  */
 void
-GroupAndNameAbstractItem::setSelfAncestorsAndDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::setSelfAncestorsAndDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
                                                               const int32_t tabIndex,
                                                               const bool status)
 {
@@ -598,7 +598,7 @@ GroupAndNameAbstractItem::setSelfAncestorsAndDescendantsSelected(const DisplayGr
  *     If no icon is to be displayed, the alpha component is zero.
  */
 const float*
-GroupAndNameAbstractItem::getIconColorRGBA() const
+GroupAndNameHierarchyItem::getIconColorRGBA() const
 {
     return m_iconRGBA;
 }
@@ -612,7 +612,7 @@ GroupAndNameAbstractItem::getIconColorRGBA() const
  *     If no icon is to be displayed, the alpha component is zero.
  */
 void
-GroupAndNameAbstractItem::setIconColorRGBA(const float rgba[4])
+GroupAndNameHierarchyItem::setIconColorRGBA(const float rgba[4])
 {
     m_iconRGBA[0] = rgba[0];
     m_iconRGBA[1] = rgba[1];
@@ -632,7 +632,7 @@ GroupAndNameAbstractItem::setIconColorRGBA(const float rgba[4])
  *    True if children should be visible, else false.
  */
 bool
-GroupAndNameAbstractItem::isExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::isExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
                                                       const int32_t tabIndex) const
 {
     const int32_t displayIndex = (int32_t)displayGroup;
@@ -660,7 +660,7 @@ GroupAndNameAbstractItem::isExpandedToDisplayChildren(const DisplayGroupEnum::En
  *    True if children should be visible, else false.
  */
 void
-GroupAndNameAbstractItem::setExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyItem::setExpandedToDisplayChildren(const DisplayGroupEnum::Enum displayGroup,
                                                        const int32_t tabIndex,
                                                        const bool expanded)
 {
@@ -689,16 +689,16 @@ GroupAndNameAbstractItem::setExpandedToDisplayChildren(const DisplayGroupEnum::E
  *     Index of target tab (copy "to")
  */
 void
-GroupAndNameAbstractItem::copySelections(const int32_t sourceTabIndex,
+GroupAndNameHierarchyItem::copySelections(const int32_t sourceTabIndex,
                                          const int32_t targetTabIndex)
 {
     m_selectedInTab[targetTabIndex] = m_selectedInTab[sourceTabIndex];
     m_expandedStatusInTab[targetTabIndex] = m_expandedStatusInTab[sourceTabIndex];
 
-    for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
-        GroupAndNameAbstractItem* child = *iter;
+        GroupAndNameHierarchyItem* child = *iter;
         child->copySelections(sourceTabIndex,
                               targetTabIndex);
     }
@@ -708,7 +708,7 @@ GroupAndNameAbstractItem::copySelections(const int32_t sourceTabIndex,
  * @return The Id Number.
  */
 int32_t
-GroupAndNameAbstractItem::getIdNumber() const
+GroupAndNameHierarchyItem::getIdNumber() const
 {
     return m_idNumber;
 }
@@ -717,14 +717,14 @@ GroupAndNameAbstractItem::getIdNumber() const
  * Clear the counter.  Also clears counters in descendants.
  */
 void
-GroupAndNameAbstractItem::clearCounters()
+GroupAndNameHierarchyItem::clearCounters()
 {
     m_counter = 0;
     
-    for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
-        GroupAndNameAbstractItem* child = *iter;
+        GroupAndNameHierarchyItem* child = *iter;
         child->clearCounters();
     }
 }
@@ -733,7 +733,7 @@ GroupAndNameAbstractItem::clearCounters()
  * Increment the counter.
  */
 void
-GroupAndNameAbstractItem::incrementCounter()
+GroupAndNameHierarchyItem::incrementCounter()
 {
     m_counter++;
 }
@@ -742,7 +742,7 @@ GroupAndNameAbstractItem::incrementCounter()
  * @return The value of the counter.
  */
 int32_t
-GroupAndNameAbstractItem::getCounter() const
+GroupAndNameHierarchyItem::getCounter() const
 {
     return m_counter;
 }
@@ -751,9 +751,9 @@ GroupAndNameAbstractItem::getCounter() const
  * Remove all descendants with counters equal to zero.
  */
 void
-GroupAndNameAbstractItem::removeDescendantsWithCountersEqualToZeros()
+GroupAndNameHierarchyItem::removeDescendantsWithCountersEqualToZeros()
 {
-    std::cout << "GroupAndNameAbstractItem::removeDescendantsWithCountersEqualToZeros() not implemented" << std::endl;
+    std::cout << "GroupAndNameHierarchyItem::removeDescendantsWithCountersEqualToZeros() not implemented" << std::endl;
 }
 
 /**
@@ -761,7 +761,7 @@ GroupAndNameAbstractItem::removeDescendantsWithCountersEqualToZeros()
  * @return String describing this object's content.
  */
 AString
-GroupAndNameAbstractItem::toString() const
+GroupAndNameHierarchyItem::toString() const
 {
     AString info = (CaretObject::toString()
                     + "\n   name=" + m_name
@@ -771,10 +771,10 @@ GroupAndNameAbstractItem::toString() const
                     + "\n");
     
     AString childInfo;
-    for (std::vector<GroupAndNameAbstractItem*>::const_iterator iter = m_children.begin();
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
-        GroupAndNameAbstractItem* child = *iter;
+        GroupAndNameHierarchyItem* child = *iter;
         childInfo += child->toString();
     }
     if (childInfo.isEmpty() == false) {

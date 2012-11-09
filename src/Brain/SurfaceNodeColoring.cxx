@@ -467,7 +467,7 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
             continue;
         }
         
-        const GroupAndNameAbstractItem* nameItem = label->getGroupNameSelectionItem();
+        const GroupAndNameHierarchyItem* nameItem = label->getGroupNameSelectionItem();
         if (nameItem != NULL) {
             if (nameItem->isSelected(displayGroup, browserTabIndex) == false) {
                 continue;

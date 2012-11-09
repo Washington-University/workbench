@@ -68,11 +68,11 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
     /*
      * Loop through each class
      */
-    std::vector<GroupAndNameAbstractItem*> classChildren =  this->classAndNameHierarchyModel->getChildrenSortedByName();
-    for (std::vector<GroupAndNameAbstractItem*>::iterator classIter = classChildren.begin();
+    std::vector<GroupAndNameHierarchyItem*> classChildren =  this->classAndNameHierarchyModel->getChildrenSortedByName();
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator classIter = classChildren.begin();
          classIter != classChildren.end();
          classIter++) {
-        GroupAndNameAbstractItem* classItem = *classIter;
+        GroupAndNameHierarchyItem* classItem = *classIter;
         CaretAssert(classItem);
         
         GroupAndNameHierarchyGroup* group = dynamic_cast<GroupAndNameHierarchyGroup*>(classItem);
@@ -101,11 +101,11 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                      classDisplayGroupSelector->getIconColorRGBA());
     this->classDisplayGroupSelector = classDisplayGroupSelector;
     
-    std::vector<GroupAndNameAbstractItem*> nameChildren = this->classDisplayGroupSelector ->getChildrenSortedByName();
-    for (std::vector<GroupAndNameAbstractItem*>::iterator nameIter = nameChildren.begin();
+    std::vector<GroupAndNameHierarchyItem*> nameChildren = this->classDisplayGroupSelector ->getChildrenSortedByName();
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator nameIter = nameChildren.begin();
          nameIter != nameChildren.end();
          nameIter++) {
-        GroupAndNameAbstractItem* nameItem = *nameIter;
+        GroupAndNameHierarchyItem* nameItem = *nameIter;
         CaretAssert(nameItem);
         
         GroupAndNameHierarchyName* name = dynamic_cast<GroupAndNameHierarchyName*>(nameItem);
@@ -377,7 +377,7 @@ void
 GroupAndNameHierarchyTreeWidgetItem::setModelDataSelected(const bool selected)
 {
     
-    GroupAndNameAbstractItem* item = NULL;
+    GroupAndNameHierarchyItem* item = NULL;
     switch (this->itemType) {
         case ITEM_TYPE_CLASS:
             item = this->classDisplayGroupSelector;

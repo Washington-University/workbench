@@ -37,7 +37,7 @@
 #include <deque>
 #include <map>
 
-#include "GroupAndNameAbstractItem.h"
+#include "GroupAndNameHierarchyItem.h"
 #include "GroupAndNameCheckStateEnum.h"
 
 namespace caret {
@@ -46,7 +46,7 @@ namespace caret {
     class FociFile;
     class LabelFile;
     
-    class GroupAndNameHierarchyModel : public GroupAndNameAbstractItem {
+    class GroupAndNameHierarchyModel : public GroupAndNameHierarchyItem {
     public:
         GroupAndNameHierarchyModel();
         
@@ -129,12 +129,12 @@ namespace caret {
          * Used when user has set to a display group.
          * Indicates that an update is needed for the given display group in the given tab.
          */
-        mutable bool updateNeededInDisplayGroupAndTab[DisplayGroupEnum::NUMBER_OF_GROUPS][BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable bool m_updateNeededInDisplayGroupAndTab[DisplayGroupEnum::NUMBER_OF_GROUPS][BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /**
          * Update needed in TAB.
          */
-        mutable bool updatedNeededInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable bool m_updateNeededInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     };
     

@@ -941,7 +941,7 @@ Border::setNameOrClassModified()
  *     The selection item from the group/name hierarchy.
  */
 void
-Border::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
+Border::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
 {
     m_groupNameSelectionItem = item;
 }
@@ -950,7 +950,7 @@ Border::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
  * @return The selection item for the Group/Name selection hierarchy.
  *      May be NULL in some circumstances.
  */
-const GroupAndNameAbstractItem*
+const GroupAndNameHierarchyItem*
 Border::getGroupNameSelectionItem() const
 {
     return m_groupNameSelectionItem;

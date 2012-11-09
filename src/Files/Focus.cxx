@@ -540,7 +540,7 @@ void Focus::setNameRgba(const float rgba[4])
  *     The selection item from the group/name hierarchy.
  */
 void
-Focus::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
+Focus::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
 {
     m_groupNameSelectionItem = item;
 }
@@ -549,7 +549,7 @@ Focus::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
  * @return The selection item for the Group/Name selection hierarchy.
  *      May be NULL in some circumstances.
  */
-const GroupAndNameAbstractItem*
+const GroupAndNameHierarchyItem*
 Focus::getGroupNameSelectionItem() const
 {
     return m_groupNameSelectionItem;

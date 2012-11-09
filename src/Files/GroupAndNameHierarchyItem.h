@@ -1,5 +1,5 @@
-#ifndef __GROUP_AND_NAME_ABSTRACT_ITEM_H__
-#define __GROUP_AND_NAME_ABSTRACT_ITEM_H__
+#ifndef __GROUP_AND_NAME_HIERARCHY_ITEM_H__
+#define __GROUP_AND_NAME_HIERARCHY_ITEM_H__
 
 /*LICENSE_START*/
 /*
@@ -42,7 +42,7 @@
 
 namespace caret {
 
-    class GroupAndNameAbstractItem : public CaretObject {
+    class GroupAndNameHierarchyItem : public CaretObject {
         
     public:
         /**
@@ -58,11 +58,11 @@ namespace caret {
         };
         
     protected:
-        GroupAndNameAbstractItem(const ItemType itemType,
+        GroupAndNameHierarchyItem(const ItemType itemType,
                                  const AString& name,
                                  const int32_t idNumber);
     public:
-        virtual ~GroupAndNameAbstractItem();
+        virtual ~GroupAndNameHierarchyItem();
         
         virtual void clear();
         
@@ -70,28 +70,28 @@ namespace caret {
         
         AString getName() const;
         
-        GroupAndNameAbstractItem* getParent();
+        GroupAndNameHierarchyItem* getParent();
         
-        const GroupAndNameAbstractItem* getParent() const;
+        const GroupAndNameHierarchyItem* getParent() const;
         
-        std::vector<GroupAndNameAbstractItem*> getAncestors() const;
+        std::vector<GroupAndNameHierarchyItem*> getAncestors() const;
         
-        std::vector<GroupAndNameAbstractItem*> getChildren() const;
+        std::vector<GroupAndNameHierarchyItem*> getChildren() const;
         
-        std::vector<GroupAndNameAbstractItem*> getChildrenSortedByName() const;
+        std::vector<GroupAndNameHierarchyItem*> getChildrenSortedByName() const;
         
-        GroupAndNameAbstractItem* getChildWithNameAndIdNumber(const AString& name,
+        GroupAndNameHierarchyItem* getChildWithNameAndIdNumber(const AString& name,
                                                               const int32_t idNumber);
         
-        std::vector<GroupAndNameAbstractItem*> getDescendants() const;
+        std::vector<GroupAndNameHierarchyItem*> getDescendants() const;
         
-        GroupAndNameAbstractItem* addChild(const ItemType itemType,
+        GroupAndNameHierarchyItem* addChild(const ItemType itemType,
                                            const AString& name,
                                            const int32_t idNumber);
         
-        void addChild(GroupAndNameAbstractItem* child);
+        void addChild(GroupAndNameHierarchyItem* child);
         
-        void removeChild(GroupAndNameAbstractItem* child);
+        void removeChild(GroupAndNameHierarchyItem* child);
         
         bool isSelected(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex) const;
@@ -147,11 +147,11 @@ namespace caret {
         void setName(const AString& name);
         
     private:
-        GroupAndNameAbstractItem(const GroupAndNameAbstractItem&);
+        GroupAndNameHierarchyItem(const GroupAndNameHierarchyItem&);
         
-        GroupAndNameAbstractItem& operator=(const GroupAndNameAbstractItem&);
+        GroupAndNameHierarchyItem& operator=(const GroupAndNameHierarchyItem&);
         
-        void addChildPrivate(GroupAndNameAbstractItem* child);
+        void addChildPrivate(GroupAndNameHierarchyItem* child);
         
         void clearPrivate();
         
@@ -213,13 +213,13 @@ namespace caret {
         const int32_t m_idNumber;
         
         /** Parent of this item */
-        GroupAndNameAbstractItem* m_parent;
+        GroupAndNameHierarchyItem* m_parent;
         
         /** Children of this item */
-        std::vector<GroupAndNameAbstractItem*> m_children;
+        std::vector<GroupAndNameHierarchyItem*> m_children;
         
         /** For fast access to children by name and id number of child */
-        std::map<ChildMapKey, GroupAndNameAbstractItem*> m_childrenNameIdMap;
+        std::map<ChildMapKey, GroupAndNameHierarchyItem*> m_childrenNameIdMap;
         
         /** Selection for each display group */
         bool m_selectedInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
@@ -243,9 +243,9 @@ namespace caret {
 
     };
     
-#ifdef __GROUP_AND_NAME_ABSTRACT_ITEM_DECLARE__
+#ifdef __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GROUP_AND_NAME_ABSTRACT_ITEM_DECLARE__
+#endif // __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
 
 } // namespace
-#endif  //__GROUP_AND_NAME_ABSTRACT_ITEM_H__
+#endif  //__GROUP_AND_NAME_HIERARCHY_ITEM_H__

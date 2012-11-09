@@ -86,7 +86,7 @@ using namespace caret;
  * Constructor.
  */
 GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
-: GroupAndNameAbstractItem(GroupAndNameAbstractItem::ITEM_TYPE_MODEL,
+: GroupAndNameHierarchyItem(GroupAndNameHierarchyItem::ITEM_TYPE_MODEL,
                            "",
                            -1)
 {
@@ -107,7 +107,7 @@ GroupAndNameHierarchyModel::~GroupAndNameHierarchyModel()
 void
 GroupAndNameHierarchyModel::clear()
 {
-    GroupAndNameAbstractItem::clear();
+    GroupAndNameHierarchyItem::clear();
     clearModelPrivate();
 }
 
@@ -234,7 +234,7 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             /*
              * Find/create group
              */
-            GroupAndNameAbstractItem* groupItem = addChild(GroupAndNameAbstractItem::ITEM_TYPE_GROUP,
+            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
                                                            theGroupName,
                                                            ID_NOT_USED);
             CaretAssert(groupItem);
@@ -250,7 +250,7 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             /*
              * Adding border to class
              */
-            GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+            GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                      name,
                                                                      ID_NOT_USED);
             
@@ -337,7 +337,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
         /*
          * Check to see if any group (map) names have changed.
          */
-        const std::vector<GroupAndNameAbstractItem*> groups = getChildren();
+        const std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
         const int numGroups = static_cast<int32_t>(groups.size());
         if (numGroups != labelFile->getNumberOfMaps()) {
             needToGenerateKeys = true;
@@ -388,7 +388,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
             /*
              * Find/create group
              */
-            GroupAndNameAbstractItem* groupItem = addChild(GroupAndNameAbstractItem::ITEM_TYPE_GROUP,
+            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
                                                            theGroupName,
                                                            iMap);
             CaretAssert(groupItem);
@@ -416,7 +416,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                 /*
                  * Adding focus to class
                  */
-                GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+                GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                          labelName,
                                                                          ID_NOT_USED);
                 nameItem->setIconColorRGBA(rgba);
@@ -608,7 +608,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             /*
              * Find/create group
              */
-            GroupAndNameAbstractItem* groupItem = addChild(GroupAndNameAbstractItem::ITEM_TYPE_GROUP,
+            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
                                                            theGroupName,
                                                            ID_NOT_USED);
             CaretAssert(groupItem);
@@ -624,7 +624,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             /*
              * Adding focus to class
              */
-            GroupAndNameAbstractItem* nameItem = groupItem->addChild(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+            GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                      name,
                                                                      ID_NOT_USED);
             
@@ -709,12 +709,12 @@ GroupAndNameHierarchyModel::needsUserInterfaceUpdate(const DisplayGroupEnum::Enu
         CaretAssertArrayIndex(this->expandedStatusInTab,
                               BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                               tabIndex);
-        needUpdate = this->updatedNeededInTab[tabIndex];
-        this->updatedNeededInTab[tabIndex] = false;
+        needUpdate = m_updateNeededInTab[tabIndex];
+        m_updateNeededInTab[tabIndex] = false;
     }
     else {
-        needUpdate = this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex];
-        this->updateNeededInDisplayGroupAndTab[displayIndex][tabIndex] = false;
+        needUpdate = m_updateNeededInDisplayGroupAndTab[displayIndex][tabIndex];
+        m_updateNeededInDisplayGroupAndTab[displayIndex][tabIndex] = false;
     }
     
     return needUpdate;
@@ -728,11 +728,11 @@ GroupAndNameHierarchyModel::setUserInterfaceUpdateNeeded()
 {
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         for (int32_t j = 0; j < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; j++) {
-            updateNeededInDisplayGroupAndTab[i][j] = true;
+            m_updateNeededInDisplayGroupAndTab[i][j] = true;
         }
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        updatedNeededInTab[i] = true;
+        m_updateNeededInTab[i] = true;
     }
 }
 

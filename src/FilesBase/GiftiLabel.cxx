@@ -771,7 +771,7 @@ GiftiLabel::matches(const GiftiLabel& rhs, const bool checkColor, const bool che
  *     The selection item from the group/name hierarchy.
  */
 void
-GiftiLabel::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
+GiftiLabel::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
 {
     m_groupNameSelectionItem = item;
 }
@@ -780,7 +780,7 @@ GiftiLabel::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
  * @return The selection item for the Group/Name selection hierarchy.
  *      May be NULL in some circumstances.
  */
-const GroupAndNameAbstractItem*
+const GroupAndNameHierarchyItem*
 GiftiLabel::getGroupNameSelectionItem() const
 {
     return m_groupNameSelectionItem;

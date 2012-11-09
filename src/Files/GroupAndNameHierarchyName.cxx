@@ -59,7 +59,7 @@ using namespace caret;
  */
 GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
                                                      const int32_t idNumber)
-: GroupAndNameAbstractItem(GroupAndNameAbstractItem::ITEM_TYPE_NAME,
+: GroupAndNameHierarchyItem(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                            name,
                            idNumber)
 {

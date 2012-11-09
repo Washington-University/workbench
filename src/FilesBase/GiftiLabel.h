@@ -35,7 +35,7 @@
 
 namespace caret {
     
-    class GroupAndNameAbstractItem;
+    class GroupAndNameHierarchyItem;
     
     /**
      * Represents a GIFTI Label.
@@ -177,9 +177,9 @@ namespace caret {
         
         bool matches(const GiftiLabel& rhs, const bool checkColor = false, const bool checkCoord = false) const;
         
-        void setGroupNameSelectionItem(GroupAndNameAbstractItem* item);
+        void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
         
-        const GroupAndNameAbstractItem* getGroupNameSelectionItem() const;
+        const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
     private:
         /**tracks modification status (DO NOT CLONE) */
@@ -209,7 +209,7 @@ namespace caret {
         int32_t count;
         
         /** Selection status of this label in the map/label hierarchy */
-        GroupAndNameAbstractItem* m_groupNameSelectionItem;
+        GroupAndNameHierarchyItem* m_groupNameSelectionItem;
         
     };
     

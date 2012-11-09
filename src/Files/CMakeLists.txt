@@ -42,9 +42,9 @@ FociFileSaxReader.h
 Focus.h
 GeodesicHelper.h
 GiftiTypeFile.h
-GroupAndNameAbstractItem.h
 GroupAndNameCheckStateEnum.h
 GroupAndNameHierarchyGroup.h
+GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
 ImageFile.h
@@ -103,9 +103,9 @@ FociFileSaxReader.cxx
 Focus.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
-GroupAndNameAbstractItem.cxx
 GroupAndNameCheckStateEnum.cxx
 GroupAndNameHierarchyGroup.cxx
+GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
 ImageFile.cxx

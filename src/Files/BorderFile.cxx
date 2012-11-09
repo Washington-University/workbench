@@ -413,7 +413,7 @@ BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
                               const int32_t browserTabIndex,
                               const Border* border)
 {
-    const GroupAndNameAbstractItem* selectionItem = border->getGroupNameSelectionItem();
+    const GroupAndNameHierarchyItem* selectionItem = border->getGroupNameSelectionItem();
     if (selectionItem != NULL) {
         if (selectionItem->isSelected(displayGroup,
                                       browserTabIndex) == false) {

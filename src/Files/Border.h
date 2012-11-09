@@ -33,7 +33,7 @@
 
 namespace caret {
 
-    class GroupAndNameAbstractItem;
+    class GroupAndNameHierarchyItem;
     class SurfaceFile;
     class SurfaceProjectedItem;
     class XmlWriter;
@@ -109,9 +109,9 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        void setGroupNameSelectionItem(GroupAndNameAbstractItem* item);
+        void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
         
-        const GroupAndNameAbstractItem* getGroupNameSelectionItem() const;
+        const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
         bool isClassRgbaValid() const;
         
@@ -148,7 +148,7 @@ namespace caret {
         bool m_classRgbaColorValid;
         
         /** Selection status of this border in the group/name hierarchy */
-        GroupAndNameAbstractItem* m_groupNameSelectionItem;        
+        GroupAndNameHierarchyItem* m_groupNameSelectionItem;        
     };
     
 #ifdef __BORDER_DECLARE__
