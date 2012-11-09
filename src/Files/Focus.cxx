@@ -58,7 +58,6 @@ Focus::Focus()
 : CaretObjectTracksModification()
 {
     m_studyMetaDataLinkSet = new StudyMetaDataLinkSet();
-    m_selectionClassNameModificationStatus = true; // name/class is new!!
     clear();
 }
 
@@ -80,7 +79,6 @@ Focus::~Focus()
 Focus::Focus(const Focus& obj)
 : CaretObjectTracksModification(obj)
 {
-    m_selectionClassNameModificationStatus = true; // name/class is new!!
     m_studyMetaDataLinkSet = new StudyMetaDataLinkSet();
     clear();
     this->copyHelperFocus(obj);
@@ -142,9 +140,6 @@ Focus::clear()
     m_classRgbaColor[2] = 0.0;
     m_classRgbaColor[3] = 1.0;
     m_classRgbaColorValid = false;
-    
-    m_selectionClassKey = -1;
-    m_selectionNameKey  = -1;
     
     setNameOrClassModified(); // new name/class so modified
     
@@ -548,7 +543,6 @@ void
 Focus::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
 {
     m_groupNameSelectionItem = item;
-    m_selectionClassNameModificationStatus = false;
 }
 
 /**
@@ -850,68 +844,9 @@ Focus::writeAsXML(XmlWriter& xmlWriter,
 void 
 Focus::setNameOrClassModified()
 {
-    m_selectionClassNameModificationStatus = true;
+    m_groupNameSelectionItem = NULL;
     m_nameRgbaColorValid = false;
     m_classRgbaColorValid = false;
-}
-
-/**
- * @return Is name/class modified?
- * 
- * Name/Class modification status is used
- * by the selection controls that display
- * borders based upon selected classes and
- * names.
- */
-bool 
-Focus::isSelectionClassOrNameModified() const
-{
-    return m_selectionClassNameModificationStatus;
-}
-
-/**
- * Set the keys for the border's name and class
- * used in the class and name hierarchy.
- * 
- * Name/Class modification status is used
- * by the selection controls that display
- * borders based upon selected classes and
- * names.
- *
- * @param selectionClassKey
- *     Key for the border class.
- * @param selectionNameKey
- *     Key for the border name.
- */
-void
-Focus::setSelectionClassAndNameKeys(const int32_t selectionClassKey,
-                                    const int32_t selectionNameKey)
-{
-    m_selectionClassKey = selectionClassKey;
-    m_selectionNameKey  = selectionNameKey;
-    
-    /*
-     * Clear status 
-     */
-    m_selectionClassNameModificationStatus = false;
-}
-
-/**
- * @return The key for the border's name in the class and name hierarchy.
- */
-int32_t
-Focus::getSelectionNameKey() const
-{
-    return m_selectionNameKey;
-}
-
-/**
- * @return The key for the border's class in the class and name hierarchy.
- */
-int32_t
-Focus::getSelectionClassKey() const
-{
-    return m_selectionClassKey;
 }
 
 /**

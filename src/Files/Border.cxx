@@ -930,22 +930,8 @@ Border::replacePoints(const Border* border)
 void 
 Border::setNameOrClassModified()
 {
-    this->selectionClassNameModificationStatus = true;
+    m_groupNameSelectionItem = NULL;
     m_classRgbaColorValid = false;
-}
-
-/**
- * @return Is name/class modified?
- * 
- * Name/Class modification status is used
- * by the selection controls that display
- * borders based upon selected classes and
- * names.
- */
-bool 
-Border::isSelectionClassOrNameModified() const
-{
-    return this->selectionClassNameModificationStatus;
 }
 
 /**
@@ -958,7 +944,6 @@ void
 Border::setGroupNameSelectionItem(GroupAndNameAbstractItem* item)
 {
     m_groupNameSelectionItem = item;
-    this->selectionClassNameModificationStatus = false;
 }
 
 /**
@@ -971,51 +956,6 @@ Border::getGroupNameSelectionItem() const
     return m_groupNameSelectionItem;
 }
 
-
-/**
- * Set the keys for the border's name and class
- * used in the class and name hierarchy.
- * 
- * Name/Class modification status is used
- * by the selection controls that display
- * borders based upon selected classes and
- * names.
- *
- * @param selectionClassKey
- *     Key for the border class.
- * @param selectionNameKey
- *     Key for the border name.
- */
-void 
-Border::setSelectionClassAndNameKeys(const int32_t selectionClassKey,
-                                     const int32_t selectionNameKey)
-{
-    this->selectionClassKey = selectionClassKey;
-    this->selectionNameKey = selectionNameKey;
-    
-    /*
-     * Clear status 
-     */
-    this->selectionClassNameModificationStatus = false;
-}
-
-/**
- * @return The key for the border's name in the class and name hierarchy.
- */
-int32_t 
-Border::getSelectionNameKey() const
-{
-    return this->selectionNameKey;
-}
-
-/**
- * @return The key for the border's class in the class and name hierarchy.
- */
-int32_t 
-Border::getSelectionClassKey() const
-{
-    return this->selectionClassKey;
-}
 
 /**
  * Get a description of this object's content.

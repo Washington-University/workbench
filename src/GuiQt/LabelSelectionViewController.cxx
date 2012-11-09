@@ -132,8 +132,6 @@ QWidget*
 LabelSelectionViewController::createSelectionWidget()
 {
     m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-//    QObject::connect(m_labelClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-//                     this, SLOT(labelsSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_labelClassNameHierarchyViewController;
 }
@@ -225,17 +223,6 @@ LabelSelectionViewController::labelDisplayGroupSelected(const DisplayGroupEnum::
     /*
      * Apply the changes.
      */
-    processLabelSelectionChanges();
-}
-
-/**
- * Called when the label selections are changed.
- * Updates label display information and redraws
- * graphics.
- */
-void 
-LabelSelectionViewController::labelsSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
-{
     processLabelSelectionChanges();
 }
 

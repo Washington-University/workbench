@@ -137,8 +137,6 @@ QWidget*
 BorderSelectionViewController::createSelectionWidget()
 {
     m_borderClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-//    QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-//                     this, SLOT(bordersSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_borderClassNameHierarchyViewController;
 }
@@ -299,17 +297,6 @@ BorderSelectionViewController::borderDisplayGroupSelected(const DisplayGroupEnum
     /*
      * Apply the changes.
      */
-    processBorderSelectionChanges();
-}
-
-/**
- * Called when the border selections are changed.
- * Updates border display information and redraws
- * graphics.
- */
-void 
-BorderSelectionViewController::bordersSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
-{
     processBorderSelectionChanges();
 }
 

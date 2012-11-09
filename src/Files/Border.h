@@ -109,18 +109,9 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        bool isSelectionClassOrNameModified() const;
-        
         void setGroupNameSelectionItem(GroupAndNameAbstractItem* item);
         
         const GroupAndNameAbstractItem* getGroupNameSelectionItem() const;
-        
-        void setSelectionClassAndNameKeys(const int32_t selectionClassKey,
-                                          const int32_t selectionNameKey);
-        
-        int32_t getSelectionNameKey() const;
-        
-        int32_t getSelectionClassKey() const;
         
         bool isClassRgbaValid() const;
         
@@ -157,20 +148,7 @@ namespace caret {
         bool m_classRgbaColorValid;
         
         /** Selection status of this border in the group/name hierarchy */
-        GroupAndNameAbstractItem* m_groupNameSelectionItem;
-        
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t selectionNameKey;
-        
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t selectionClassKey;
-        
-        /** 
-         * Name/Class modification status, not saved to file. 
-         * COMPLETELY separate from the modification status
-         * that tracks all modifications to a border.
-         */
-        bool selectionClassNameModificationStatus;
+        GroupAndNameAbstractItem* m_groupNameSelectionItem;        
     };
     
 #ifdef __BORDER_DECLARE__

@@ -162,15 +162,6 @@ namespace caret {
         void writeAsXML(XmlWriter& xmlWriter,
                         const int32_t focusIndex) throw (XmlException);
         
-        bool isSelectionClassOrNameModified() const;
-        
-        void setSelectionClassAndNameKeys(const int32_t selectionClassKey,
-                                          const int32_t selectionNameKey);
-        
-        int32_t getSelectionNameKey() const;
-        
-        int32_t getSelectionClassKey() const;
-        
         bool setElementFromText(const AString& elementName,
                                 const AString& textValue);
         
@@ -255,19 +246,6 @@ namespace caret {
         
         /** Selection status of this border in the group/name hierarchy */
         GroupAndNameAbstractItem* m_groupNameSelectionItem;
-        
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t m_selectionNameKey;
-        
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t m_selectionClassKey;
-        
-        /** 
-         * Name/Class modification status, not saved to file. 
-         * COMPLETELY separate from the modification status
-         * that tracks all modifications to a border.
-         */
-        bool m_selectionClassNameModificationStatus;
         
         /** Allow foci file SAX reader to remove all projections */
         friend class FociFileSaxReader;

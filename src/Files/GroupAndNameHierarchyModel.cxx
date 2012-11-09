@@ -40,8 +40,6 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyGroup.h"
-#include "GroupAndNameHierarchyGroupGeneratedKey.h"
-#include "GroupAndNameHierarchyGroupUserKey.h"
 #include "GroupAndNameHierarchyName.h"
 #include "FociFile.h"
 #include "Focus.h"
@@ -183,7 +181,7 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
     if (needToGenerateKeys == false) {
         for (int32_t i = 0; i < numBorders; i++) {
             const Border* border = borderFile->getBorder(i);
-            if (border->isSelectionClassOrNameModified()) {
+            if (border->getGroupNameSelectionItem() == NULL) {
                 needToGenerateKeys = true;
             }
         }
@@ -260,11 +258,6 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
              * Place the name selector into the border.
              */
             border->setGroupNameSelectionItem(nameItem);
-            
-            /*
-             * Update keys used by the border.
-             */
-            border->setSelectionClassAndNameKeys(0, 0);
         }
         
         setUserInterfaceUpdateNeeded();
@@ -562,7 +555,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
     if (needToGenerateKeys == false) {
         for (int32_t i = 0; i < numFoci; i++) {
             const Focus* focus = fociFile->getFocus(i);
-            if (focus->isSelectionClassOrNameModified()) {
+            if (focus->getGroupNameSelectionItem() == NULL) {
                 needToGenerateKeys = true;
             }
         }

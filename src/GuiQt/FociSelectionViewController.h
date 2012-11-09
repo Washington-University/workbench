@@ -48,7 +48,6 @@ class QDoubleSpinBox;
 
 namespace caret {
 
-    class GroupAndNameHierarchySelectedItem;
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
     
@@ -65,8 +64,6 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private slots:
-        void fociSelectionsChanged(GroupAndNameHierarchySelectedItem* selectedItem);
-        
         void processFociSelectionChanges();
         
         void processSelectionChanges();

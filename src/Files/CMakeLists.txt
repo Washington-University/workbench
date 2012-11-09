@@ -47,7 +47,6 @@ GroupAndNameCheckStateEnum.h
 GroupAndNameHierarchyGroup.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
-GroupAndNameItemInterface.h
 ImageFile.h
 LabelFile.h
 MetricFile.h

@@ -140,8 +140,6 @@ QWidget*
 FociSelectionViewController::createSelectionWidget()
 {
     m_fociClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
-//    QObject::connect(m_fociClassNameHierarchyViewController, SIGNAL(itemSelected(GroupAndNameHierarchySelectedItem*)),
-//                     this, SLOT(fociSelectionsChanged(GroupAndNameHierarchySelectedItem*)));
     
     return m_fociClassNameHierarchyViewController;
 }
@@ -316,17 +314,6 @@ FociSelectionViewController::fociDisplayGroupSelected(const DisplayGroupEnum::En
     /*
      * Apply the changes.
      */
-    processFociSelectionChanges();
-}
-
-/**
- * Called when the foci selections are changed.
- * Updates foci display information and redraws
- * graphics.
- */
-void 
-FociSelectionViewController::fociSelectionsChanged(GroupAndNameHierarchySelectedItem* /*selectedItem*/)
-{
     processFociSelectionChanges();
 }
 
