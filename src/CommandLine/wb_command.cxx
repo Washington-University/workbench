@@ -38,7 +38,7 @@
 using namespace caret;
 
 
-static void runCommand(int argc, char* argv[]) {
+static int runCommand(int argc, char* argv[]) {
     
     ProgramParameters parameters(argc, argv);
     caret_global_commandLine = AString(argv[0]) + " " + parameters.getAllParametersInString();
@@ -55,16 +55,18 @@ static void runCommand(int argc, char* argv[]) {
         
     }
     catch (CommandException& e) {
-        std::cout << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
+        std::cerr << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
+        return -1;
     }
     
     if (commandManager != NULL) {
         CommandOperationManager::deleteCommandOperationManager();
     }
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
-
+    int result = 0;
     {
         /*
          * Handle uncaught exceptions
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
         
         QCoreApplication myApp(argc, argv);//so that it doesn't need to link against gui
         
-        runCommand(argc, argv);
+        result = runCommand(argc, argv);
         
         /*
          * Delete the session manager.
@@ -91,5 +93,6 @@ int main(int argc, char* argv[]) {
      * See if any objects were not deleted.
      */
     CaretObject::printListOfObjectsNotDeleted(true);
+    return result;
 }
   
