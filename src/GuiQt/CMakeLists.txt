@@ -63,6 +63,7 @@ LabelSelectionViewController.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MovieDialog1.h
+MovieDialog.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -169,6 +170,7 @@ MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
 MouseEventTypeEnum.h
 MovieDialog1.h
+MovieDialog.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -273,6 +275,7 @@ MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
 MovieDialog1.cxx
+MovieDialog.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 PreferencesDialog.cxx
@@ -323,6 +326,7 @@ WuQtUtilities.cxx
 
 SET(FORMS
     ImageExportDialog.ui
+    MovieDialog.ui
     TimeCourseDialog.ui)
 
 
