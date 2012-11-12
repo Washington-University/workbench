@@ -84,8 +84,12 @@ namespace caret {
             STATE_FOCI_FILE,
             /// processing MetaData tag
             STATE_METADATA,
-            /// processing Classes (GiftiLabelTable) tag
-            STATE_CLASSES,
+            /// processing version one color table tag
+            STATE_VERSION_ONE_COLOR_TABLE,
+            /// processing class color table tag
+            STATE_CLASS_COLOR_TABLE,
+            /// processing name color table tag
+            STATE_NAME_COLOR_TABLE,
             /// processing focus
             STATE_FOCUS,
             /// processing StudyMetaDataLinkSet tag
@@ -124,9 +128,18 @@ namespace caret {
         /// GIFTI meta data sax reader
         GiftiMetaDataSaxReader* m_metaDataSaxReader;   
         
-        /// GIFTI Label Table (Classes) SAX Reader;
-        GiftiLabelTableSaxReader* m_classTableSaxReader;
+        /// GIFTI Label Table SAX Reader;
+        GiftiLabelTableSaxReader* m_labelTableSaxReader;
 
+        /** 
+         * Version 1 had only one color table that contained names and classes 
+         * After reading, split into name and class color tables
+         */
+        GiftiLabelTable* m_versionOneColorTable;
+        
+        /** Version of file being read */
+        int32_t m_versionBeingRead;
+        
         /// Study meta data link set reader
         StudyMetaDataLinkSetSaxReader* m_studyMetaDataLinkSetSaxReader;
     };

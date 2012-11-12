@@ -25,6 +25,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCompleter>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -218,6 +219,25 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
+
+//    const FociFile* defaultFociFile = getSelectedFociFile();
+//    if (defaultFociFile != NULL) {
+//        QStringList stringList;
+//        const GiftiLabelTable* labelTable = defaultFociFile->getColorTable();
+//        std::set<int32_t> keys = labelTable->getKeys();
+//        for (std::set<int32_t>::iterator iter = keys.begin();
+//             iter != keys.end();
+//             iter++) {
+//            const int k = *iter;
+//            const GiftiLabel* gl = labelTable->getLabel(k);
+//            if (gl != NULL) {
+//                stringList += gl->getName();
+//            }
+//        }
+//        std::cout << "Completer contains items count=" << stringList.size() << std::endl;
+//        QCompleter* completer = new QCompleter(stringList, this);
+//        m_nameLineEdit->setCompleter(completer);
+//    }
     
     /*
      * Color
@@ -418,9 +438,10 @@ FociPropertiesEditorDialog::loadFociFileComboBox(const FociFile* selectedFociFil
             defaultFileComboIndex = m_fociFileSelectionComboBox->count() - 1;
         }
     }
+    
     if (numFociFiles > 0) {
         m_fociFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
-    }
+    }    
 }
 
 /**
@@ -485,7 +506,7 @@ FociPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     
     FociFile* fociFile = getSelectedFociFile();
     if (fociFile != NULL) {
-        const GiftiLabelTable* classLabelTable = fociFile->getColorTable();
+        const GiftiLabelTable* classLabelTable = fociFile->getClassColorTable();
         std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
         for (std::vector<int32_t>::iterator keyIterator = keys.begin();
              keyIterator != keys.end();

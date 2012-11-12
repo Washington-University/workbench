@@ -83,9 +83,15 @@ namespace caret {
         
         void removeFocus(Focus* focus);
         
-        GiftiLabelTable* getColorTable();
+        GiftiLabelTable* getClassColorTable();
         
-        const GiftiLabelTable* getColorTable() const;
+        const GiftiLabelTable* getClassColorTable() const;
+        
+        GiftiLabelTable* getNameColorTable();
+        
+        const GiftiLabelTable* getNameColorTable() const;
+        
+        void createNameAndClassColorTables(const GiftiLabelTable* oldColorTable);
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
@@ -95,7 +101,7 @@ namespace caret {
         
         virtual void clearModified();
         
-        static float getFileVersion();
+        static int32_t getFileVersion();
         
         static AString getFileVersionAsString();
         
@@ -105,6 +111,12 @@ namespace caret {
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
 
+        /** XML Tag for Name Color Table */
+        static const AString XML_TAG_NAME_COLOR_TABLE;
+        
+        /** XML Tag for Class Color Table */
+        static const AString XML_TAG_CLASS_COLOR_TABLE;
+        
     private:
         void copyHelperFociFile(const FociFile& obj);
         
@@ -114,8 +126,11 @@ namespace caret {
         
         std::vector<Focus*> m_foci;
         
-        /** Holds colors assigned to classes and names */
-        GiftiLabelTable* m_colorTable;
+        /** Holds colors assigned to classes */
+        GiftiLabelTable* m_classColorTable;
+        
+        /** Holds colors assigned to names */
+        GiftiLabelTable* m_nameColorTable;
         
         /** Holds class and name hierarchy used for display selection */
         mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
@@ -124,13 +139,15 @@ namespace caret {
         bool m_forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this FociFile */
-        static const float fociFileVersion;
+        static const int32_t fociFileVersion;
     };
     
 #ifdef __FOCI_FILE_DECLARE__
     const AString FociFile::XML_TAG_FOCI_FILE = "FociFile";
     const AString FociFile::XML_ATTRIBUTE_VERSION = "Version";
-    const float FociFile::fociFileVersion = 1.0;
+    const AString FociFile::XML_TAG_NAME_COLOR_TABLE = "FociNameColorTable";
+    const AString FociFile::XML_TAG_CLASS_COLOR_TABLE = "FociClassColorTable";
+    const int32_t FociFile::fociFileVersion = 2;
 #endif // __FOCI_FILE_DECLARE__
 
 } // namespace

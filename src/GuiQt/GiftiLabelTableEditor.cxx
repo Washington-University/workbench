@@ -114,7 +114,7 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
                  parent)
 {
     CaretAssert(fociFile);
-    initializeDialog(fociFile->getColorTable());
+    initializeDialog(fociFile->getClassColorTable());
     m_fociFile = fociFile;
 }
 

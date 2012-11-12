@@ -1998,7 +1998,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             continue;
         }
         
-        const GiftiLabelTable* colorTable = fociFile->getColorTable();
+        const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
+        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
         
         const int32_t numFoci = fociFile->getNumberOfFoci();
         
@@ -2017,7 +2018,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             switch (fociColoringType) {
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getClassName());
+                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
                             focus->setClassRgba(colorLabel->getColor());
                         }
@@ -2029,7 +2030,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     break;
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getName());
+                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
                             focus->setNameRgba(colorLabel->getColor());
                         }
@@ -4445,7 +4446,8 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
         continue;
     }
     
-    const GiftiLabelTable* colorTable = fociFile->getColorTable();
+    const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
+        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
     
     const int32_t numFoci = fociFile->getNumberOfFoci();
     
@@ -4477,7 +4479,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             switch (fociColoringType) {
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getClassName());
+                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
                             focus->setClassRgba(colorLabel->getColor());
                         }
@@ -4489,7 +4491,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                     break;
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getName());
+                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
                             focus->setNameRgba(colorLabel->getColor());
                         }

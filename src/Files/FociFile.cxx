@@ -47,6 +47,7 @@
 #include "FileAdapter.h"
 #include "FociFileSaxReader.h"
 #include "Focus.h"
+#include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceProjectedItem.h"
@@ -77,7 +78,8 @@ FociFile::FociFile()
  */
 FociFile::~FociFile()
 {
-    delete m_colorTable;
+    delete m_nameColorTable;
+    delete m_classColorTable;
     delete m_metadata;
     
     for (std::vector<Focus*>::iterator iter = m_foci.begin();
@@ -123,7 +125,8 @@ FociFile::operator=(const FociFile& obj)
 void 
 FociFile::initializeFociFile()
 {
-    m_colorTable = new GiftiLabelTable();
+    m_classColorTable = new GiftiLabelTable();
+    m_nameColorTable  = new GiftiLabelTable();
     m_classNameHierarchy = new GroupAndNameHierarchyModel();
     m_metadata = new GiftiMetaData();
     m_forceUpdateOfGroupAndNameHierarchy = true;
@@ -138,8 +141,8 @@ FociFile::initializeFociFile()
 void 
 FociFile::copyHelperFociFile(const FociFile& ff)
 {
-    *m_colorTable = *ff.m_colorTable;
-    
+    *m_classColorTable = *ff.m_classColorTable;
+    *m_nameColorTable  = *ff.m_nameColorTable;
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
@@ -212,7 +215,8 @@ FociFile::clear()
 {
     CaretDataFile::clear();
     m_classNameHierarchy->clear();
-    m_colorTable->clear();
+    m_classColorTable->clear();
+    m_nameColorTable->clear();
     m_metadata->clear();
     const int32_t numFoci = this->getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {
@@ -273,11 +277,18 @@ void
 FociFile::addFocus(Focus* focus)
 {
     m_foci.push_back(focus);
+    const AString name = focus->getName();
+    if (name.isEmpty() == false) {
+        const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
+        if (nameColorKey < 0) {
+            m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+    }
     AString className = focus->getClassName();
     if (className.isEmpty() == false) {
-        const int32_t classColorKey = m_colorTable->getLabelKeyFromName(className);
+        const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
         if (classColorKey < 0) {
-            m_colorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 0.0f);
+            m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
         }
     }
     m_forceUpdateOfGroupAndNameHierarchy = true;
@@ -333,27 +344,104 @@ FociFile::getGroupAndNameHierarchyModel()
 }
 
 /**
- * @return  The color table.
+ * @return  The class color table.
  */
 GiftiLabelTable* 
-FociFile::getColorTable()
+FociFile::getClassColorTable()
 {
-    return m_colorTable;
+    return m_classColorTable;
 }
 
 /**
  * @return  The class color table.
  */
 const GiftiLabelTable* 
-FociFile::getColorTable() const
+FociFile::getClassColorTable() const
 {
-    return m_colorTable;
+    return m_classColorTable;
+}
+
+/**
+ * @return  The name color table.
+ */
+GiftiLabelTable*
+FociFile::getNameColorTable()
+{
+    return m_nameColorTable;
+}
+
+/**
+ * @return  The name color table.
+ */
+const GiftiLabelTable*
+FociFile::getNameColorTable() const
+{
+    return m_nameColorTable;
+}
+
+/**
+ * Version 1 foci files contained one color table for both names
+ * and classes.  Newer versions of the foci file keep them in
+ * separate tables.
+ *
+ * @param oldColorTable
+ *    Old color table that is split into name and class color tables.
+ */
+void
+FociFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
+{
+    CaretAssert(oldColorTable);
+    
+    m_classColorTable->clear();
+    m_nameColorTable->clear();
+    
+    std::set<QString> nameSet;
+    std::set<QString> classSet;
+    
+    const int numFoci = getNumberOfFoci();
+    for (int32_t i = 0; i < numFoci; i++) {
+        const Focus* focus = getFocus(i);
+        nameSet.insert(focus->getName());
+        classSet.insert(focus->getClassName());
+    }
+    
+    for (std::set<QString>::iterator iter = nameSet.begin();
+         iter != nameSet.end();
+         iter++) {
+        const AString colorName = *iter;
+        const GiftiLabel* label = oldColorTable->getLabelBestMatching(colorName);
+        float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+        if (label != NULL) {
+            label->getColor(rgba);
+        }
+        m_nameColorTable->addLabel(colorName,
+                                   rgba[0],
+                                   rgba[1],
+                                   rgba[2],
+                                   rgba[3]);
+    }
+    
+    for (std::set<QString>::iterator iter = classSet.begin();
+         iter != classSet.end();
+         iter++) {
+        const AString colorName = *iter;
+        const GiftiLabel* label = oldColorTable->getLabelBestMatching(colorName);
+        float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+        if (label != NULL) {
+            label->getColor(rgba);
+        }
+        m_classColorTable->addLabel(colorName,
+                                   rgba[0],
+                                   rgba[1],
+                                   rgba[2],
+                                   rgba[3]);
+    }
 }
 
 /**
  * @return The version of the file as a number.
  */
-float 
+int32_t
 FociFile::getFileVersion()
 {
     return FociFile::fociFileVersion;
@@ -455,7 +543,7 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Format the version string so that it ends with at most one zero
         //
-        const AString versionString = AString::number(1.0);
+        const AString versionString = FociFile::getFileVersionAsString();
         
         //
         // Open the file
@@ -500,9 +588,18 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         }
         
         //
-        // Write the classes
+        // Write the class color table
         //
-        m_colorTable->writeAsXML(xmlWriter);
+        xmlWriter.writeStartElement(XML_TAG_CLASS_COLOR_TABLE);
+        m_classColorTable->writeAsXML(xmlWriter);
+        xmlWriter.writeEndElement();
+        
+        //
+        // Write the name color table
+        //
+        xmlWriter.writeStartElement(XML_TAG_NAME_COLOR_TABLE);
+        m_nameColorTable->writeAsXML(xmlWriter);
+        xmlWriter.writeEndElement();
         
         //
         // Write foci
@@ -539,7 +636,10 @@ FociFile::isModified() const
     if (m_metadata->isModified()) {
         return true;
     }
-    if (m_colorTable->isModified()) {
+    if (m_classColorTable->isModified()) {
+        return true;
+    }
+    if (m_nameColorTable->isModified()) {
         return true;
     }
     
@@ -568,7 +668,8 @@ FociFile::clearModified()
     
     m_metadata->clearModified();
     
-    m_colorTable->clearModified();
+    m_classColorTable->clearModified();
+    m_nameColorTable->clearModified();
     
     const int32_t numFoci = this->getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {

@@ -581,7 +581,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
         /*
          * For icons
          */
-        const GiftiLabelTable* labelTable = fociFile->getColorTable();
+        const GiftiLabelTable* classLabelTable = fociFile->getClassColorTable();
         
         /*
          * Update with all foci.
@@ -615,7 +615,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             
             const float* color = groupItem->getIconColorRGBA();
             if (color[3] == 0.0) {
-                const GiftiLabel* label = labelTable->getLabelBestMatching(theGroupName);
+                const GiftiLabel* label = classLabelTable->getLabelBestMatching(theGroupName);
                 if (label != NULL) {
                     groupItem->setIconColorRGBA(label->getColor());
                 }
