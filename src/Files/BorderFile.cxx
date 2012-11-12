@@ -511,22 +511,32 @@ BorderFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
         classSet.insert(border->getClassName());
     }
     
+    /*
+     * Create colors for only the "best matching" color.
+     */
     for (std::set<QString>::iterator iter = nameSet.begin();
          iter != nameSet.end();
          iter++) {
         const AString colorName = *iter;
-        const GiftiLabel* label = oldColorTable->getLabelBestMatching(colorName);
-        float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
-        if (label != NULL) {
-            label->getColor(rgba);
+        const GiftiLabel* oldLabel = oldColorTable->getLabelBestMatching(colorName);
+        if (oldLabel != NULL) {
+            const AString bestMatchingName = oldLabel->getName();
+            const int32_t labelKey = m_nameColorTable->getLabelKeyFromName(bestMatchingName);
+            if (labelKey < 0) {
+                float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+                oldLabel->getColor(rgba);
+                m_nameColorTable->addLabel(bestMatchingName,
+                                           rgba[0],
+                                           rgba[1],
+                                           rgba[2],
+                                           rgba[3]);
+            }
         }
-        m_nameColorTable->addLabel(colorName,
-                                   rgba[0],
-                                   rgba[1],
-                                   rgba[2],
-                                   rgba[3]);
     }
     
+    /*
+     * Create a color for each class name using the best matching color
+     */
     for (std::set<QString>::iterator iter = classSet.begin();
          iter != classSet.end();
          iter++) {
