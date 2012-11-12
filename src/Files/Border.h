@@ -133,13 +133,13 @@ namespace caret {
         
         void setNameOrClassModified();
         
-        AString name;
+        AString m_name;
         
-        AString className;
+        AString m_className;
         
-        CaretColorEnum::Enum color;
+        CaretColorEnum::Enum m_color;
         
-        std::vector<SurfaceProjectedItem*> points;
+        std::vector<SurfaceProjectedItem*> m_points;
         
         /** RGBA color component assigned to border's class name */
         float m_classRgbaColor[4];

@@ -39,6 +39,7 @@ namespace caret {
 
     class Border;
     class BorderFile;
+    class GiftiLabelTable;
     class GiftiLabelTableSaxReader;
     class GiftiMetaDataSaxReader;
     class SurfaceProjectedItem;
@@ -84,43 +85,54 @@ namespace caret {
             /// processing MetaData tag
             STATE_METADATA,
             /// processing Classes (GiftiLabelTable) tag
-            STATE_CLASSES,
-            /// processing Border
+            /// processing version one color table tag
+            STATE_VERSION_ONE_COLOR_TABLE,
+            /// processing class color table tag
+            STATE_CLASS_COLOR_TABLE,
+            /// processing name color table tag
+            STATE_NAME_COLOR_TABLE,
+            /// processing border tag
             STATE_BORDER,
             /// processing SurfaceProjectedItem tag
             STATE_SURFACE_PROJECTED_ITEM
         };
         
         /// file reading state
-        STATE state;
+        STATE m_state;
         
         /// the state stack used when reading a file
-        std::stack<STATE> stateStack;
+        std::stack<STATE> m_stateStack;
         
         /// the error message
-        AString errorMessage;
+        AString m_errorMessage;
         
         /// Border file that is being read
-        BorderFile* borderFile;
+        BorderFile* m_borderFile;
         
         /// border that is being read
-        Border* border;
+        Border* m_border;
         
         /// surface projected item that is being read
-        SurfaceProjectedItem* surfaceProjectedItem;
+        SurfaceProjectedItem* m_surfaceProjectedItem;
         
         /// Reads a SurfaceProjectedItem
-        SurfaceProjectedItemSaxReader* surfaceProjectedItemSaxReader;
+        SurfaceProjectedItemSaxReader* m_surfaceProjectedItemSaxReader;
         
         /// element text
-        AString elementText;
+        AString m_elementText;
         
         /// GIFTI meta data sax reader
-        GiftiMetaDataSaxReader* metaDataSaxReader;   
+        GiftiMetaDataSaxReader* m_metaDataSaxReader;
         
         /// GIFTI Label Table (Classes) SAX Reader;
-        GiftiLabelTableSaxReader* classTableSaxReader;
+        GiftiLabelTableSaxReader* m_labelTableSaxReader;
 
+        /**
+         * Version 1 had only one color table that contained names and classes
+         * After reading, split into name and class color tables
+         */
+        GiftiLabelTable* m_versionOneColorTable;
+        
     };
 
 } // namespace

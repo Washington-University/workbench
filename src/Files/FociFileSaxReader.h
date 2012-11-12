@@ -137,9 +137,6 @@ namespace caret {
          */
         GiftiLabelTable* m_versionOneColorTable;
         
-        /** Version of file being read */
-        int32_t m_versionBeingRead;
-        
         /// Study meta data link set reader
         StudyMetaDataLinkSetSaxReader* m_studyMetaDataLinkSetSaxReader;
     };

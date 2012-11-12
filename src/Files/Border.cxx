@@ -53,9 +53,9 @@ using namespace caret;
 Border::Border()
 : CaretObjectTracksModification()
 {
-    this->clear();
-//    this->color = CaretColorEnum::BLACK;
-//    this->selectionClassNameModificationStatus = true; // name/class is new!!
+    clear();
+//    m_color = CaretColorEnum::BLACK;
+//    m_selectionClassNameModificationStatus = true; // name/class is new!!
 }
 
 /**
@@ -63,7 +63,7 @@ Border::Border()
  */
 Border::~Border()
 {
-    this->clear();
+    clear();
 }
 
 /**
@@ -74,7 +74,7 @@ Border::~Border()
 Border::Border(const Border& obj)
 : CaretObjectTracksModification(obj)
 {
-    this->copyHelperBorder(obj);
+    copyHelperBorder(obj);
 }
 
 /**
@@ -89,7 +89,7 @@ Border::operator=(const Border& obj)
 {
     if (this != &obj) {
         CaretObjectTracksModification::operator=(obj);
-        this->copyHelperBorder(obj);
+        copyHelperBorder(obj);
     }
     return *this;    
 }
@@ -102,19 +102,19 @@ Border::operator=(const Border& obj)
 void 
 Border::copyHelperBorder(const Border& obj)
 {
-    this->clear();
+    clear();
     
     const int32_t numPoints = obj.getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
-        SurfaceProjectedItem* spi = new SurfaceProjectedItem(*obj.points[i]);
-        this->addPoint(spi);
+        SurfaceProjectedItem* spi = new SurfaceProjectedItem(*obj.m_points[i]);
+        addPoint(spi);
     }
     
-    this->name = obj.name;
-    this->className = obj.className;
+    m_name = obj.m_name;
+    m_className = obj.m_className;
     
-    this->clearModified();
-    this->setNameOrClassModified(); // new name/class so modified
+    clearModified();
+    setNameOrClassModified(); // new name/class so modified
 }
 
 /**
@@ -124,7 +124,7 @@ Border::copyHelperBorder(const Border& obj)
 void 
 Border::clear()
 {
-    this->removeAllPoints();
+    removeAllPoints();
  
     m_groupNameSelectionItem = NULL;
     
@@ -134,10 +134,10 @@ Border::clear()
     m_classRgbaColor[3] = 1.0;
     m_classRgbaColorValid = false;
     
-    this->name = "";
-    this->className = "";
-    this->color = CaretColorEnum::BLACK;
-    this->setNameOrClassModified(); // new name/class so modified
+    m_name = "";
+    m_className = "";
+    m_color = CaretColorEnum::BLACK;
+    setNameOrClassModified(); // new name/class so modified
 }
 
 /**
@@ -148,8 +148,8 @@ Border::getStructure()
 {
     StructureEnum::Enum structure = StructureEnum::INVALID;
     
-    if (this->points.empty() == false) {
-        structure = this->points[0]->getStructure();
+    if (m_points.empty() == false) {
+        structure = m_points[0]->getStructure();
     }
     
     return structure;
@@ -218,15 +218,15 @@ Border::setClassRgba(const float rgba[3])
 bool 
 Border::verifyAllPointsOnSameStructure() const
 {
-    const int32_t numPoints = this->getNumberOfPoints();
+    const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 1) {
         return true;
     }
     
-    StructureEnum::Enum structure = this->points[0]->getStructure();
+    StructureEnum::Enum structure = m_points[0]->getStructure();
 
     for (int32_t i = 1; i < numPoints; i++) {
-        if (this->points[i]->getStructure() != structure) {
+        if (m_points[i]->getStructure() != structure) {
             return false;
         }
     }
@@ -241,13 +241,13 @@ Border::verifyAllPointsOnSameStructure() const
 void 
 Border::removeAllPoints()
 {
-    const int32_t numPoints = this->getNumberOfPoints();
+    const int32_t numPoints =getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
-        delete this->points[i];
+        delete m_points[i];
     }
-    this->points.clear();
+    m_points.clear();
     
-    this->setModified();
+    setModified();
 }
 
 /**
@@ -256,7 +256,7 @@ Border::removeAllPoints()
 AString 
 Border::getName() const
 {
-    return this->name;
+    return m_name;
 }
 
 /**
@@ -267,10 +267,10 @@ Border::getName() const
 void 
 Border::setName(const AString& name)
 {
-    if (this->name != name) {
-        this->name = name;
-        this->setModified();
-        this->setNameOrClassModified();
+    if (m_name != name) {
+        m_name = name;
+        setModified();
+        setNameOrClassModified();
     }
 }
 
@@ -280,7 +280,7 @@ Border::setName(const AString& name)
 AString 
 Border::getClassName() const
 {
-    return this->className;
+    return m_className;
 }
 
 /**
@@ -291,10 +291,10 @@ Border::getClassName() const
 void 
 Border::setClassName(const AString& className)
 {
-    if (this->className != className) {
-        this->className = className;
-        this->setModified();
-        this->setNameOrClassModified();
+    if (m_className != className) {
+        m_className = className;
+        setModified();
+        setNameOrClassModified();
     }
 }
 
@@ -304,7 +304,7 @@ Border::setClassName(const AString& className)
 CaretColorEnum::Enum 
 Border::getColor() const
 {
-    return this->color;
+    return m_color;
 }
 
 /**
@@ -315,7 +315,7 @@ Border::getColor() const
 void 
 Border::setColor(const CaretColorEnum::Enum color)
 {
-    this->color = color;
+    m_color = color;
 }
 
 /**
@@ -324,7 +324,7 @@ Border::setColor(const CaretColorEnum::Enum color)
 int32_t
 Border::getNumberOfPoints() const
 {
-    return this->points.size();
+    return m_points.size();
 }
 
 /**
@@ -337,8 +337,8 @@ Border::getNumberOfPoints() const
 const SurfaceProjectedItem* 
 Border::getPoint(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->points, indx);
-    return this->points[indx];
+    CaretAssertVectorIndex(m_points, indx);
+    return m_points[indx];
 }
 
 /**
@@ -351,8 +351,8 @@ Border::getPoint(const int32_t indx) const
 SurfaceProjectedItem* 
 Border::getPoint(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->points, indx);
-    return this->points[indx];
+    CaretAssertVectorIndex(m_points, indx);
+    return m_points[indx];
 }
 
 /**
@@ -382,7 +382,7 @@ Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
                                 float& distanceToNearestPointOut) const
 {
     CaretAssert(surfaceFile);
-    const int32_t numPoints = this->getNumberOfPoints();
+    const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 0) {
         return -1;
     }
@@ -392,7 +392,7 @@ Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
     
     float pointXYZ[3];
     for (int32_t i = 0; i < numPoints; i++) {
-        if (this->points[i]->getProjectedPosition(*surfaceFile, 
+        if (m_points[i]->getProjectedPosition(*surfaceFile, 
                                               pointXYZ, 
                                                   true)) {
             const float distSQ = MathFunctions::distanceSquared3D(xyz, 
@@ -422,8 +422,8 @@ Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
 void 
 Border::addPoint(SurfaceProjectedItem* point)
 {
-    this->points.push_back(point);
-    this->setModified();
+    m_points.push_back(point);
+    setModified();
 }
 
 /**
@@ -453,7 +453,7 @@ Border::addPoints(const Border* border,
     
     for (int32_t i = startIndex; i < endIndex; i++) {
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
-        this->addPoint(spi);
+        addPoint(spi);
     }
 }
 
@@ -464,7 +464,7 @@ Border::addPoints(const Border* border,
 void 
 Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
 {
-    const int32_t numberOfPoints = this->getNumberOfPoints();
+    const int32_t numberOfPoints = getNumberOfPoints();
     if (numberOfPoints < 3) {
         return;
     }
@@ -473,7 +473,7 @@ Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
      * Index of surface node nearest first border point
      */
     float firstBorderPointXYZ[3];
-    this->points[0]->getProjectedPosition(*surfaceFile, firstBorderPointXYZ, true);
+    m_points[0]->getProjectedPosition(*surfaceFile, firstBorderPointXYZ, true);
     const int firstNodeIndex = surfaceFile->closestNode(firstBorderPointXYZ);
     if (firstNodeIndex < 0) {
         return;
@@ -483,7 +483,7 @@ Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
      * Index of surface node nearest last border point
      */
     float lastBorderPointXYZ[3];
-    this->points[numberOfPoints - 1]->getProjectedPosition(*surfaceFile, lastBorderPointXYZ, true);
+    m_points[numberOfPoints - 1]->getProjectedPosition(*surfaceFile, lastBorderPointXYZ, true);
     const int lastNodeIndex = surfaceFile->closestNode(lastBorderPointXYZ);
     if (lastNodeIndex < 0) {
         return;
@@ -542,7 +542,7 @@ Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
         bp->setTriangleNodes(triangleNodes);
         bp->setValid(true);
         
-        this->addPoint(spi);
+        addPoint(spi);
     }
 }
 
@@ -554,10 +554,10 @@ Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
 void 
 Border::removePoint(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->points, indx);
-    delete this->points[indx];
-    this->points.erase(this->points.begin() + indx);
-    this->setModified();
+    CaretAssertVectorIndex(m_points, indx);
+    delete m_points[indx];
+    m_points.erase(m_points.begin() + indx);
+    setModified();
 }
 
 /**
@@ -566,9 +566,9 @@ Border::removePoint(const int32_t indx)
 void 
 Border::removeLastPoint()
 {
-    const int numPoints = this->getNumberOfPoints();
+    const int numPoints = getNumberOfPoints();
     if (numPoints > 0) {
-        this->removePoint(numPoints - 1);
+        removePoint(numPoints - 1);
     }
 }
 
@@ -578,9 +578,9 @@ Border::removeLastPoint()
 void 
 Border::reverse()
 {
-    std::reverse(this->points.begin(),
-                 this->points.end());
-    this->setModified();
+    std::reverse(m_points.begin(),
+                 m_points.end());
+    setModified();
 }
 
 /**
@@ -597,7 +597,7 @@ void
 Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                             const Border* segment) throw (BorderException)
 {
-    const int32_t numPoints = this->getNumberOfPoints();
+    const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 0) {
         throw BorderException("Border being update contains no points");
     }
@@ -623,7 +623,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
     const float distanceTolerance = 5.0;
     float distanceToStartOfNewSegment = 0.0;
     const int32_t borderPointNearestNewSegmentStart =
-        this->findPointIndexNearestXYZ(surfaceFile, 
+        findPointIndexNearestXYZ(surfaceFile, 
                                        segmentStartXYZ, 
                                        distanceTolerance, 
                                        distanceToStartOfNewSegment);
@@ -636,14 +636,14 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
      * point in new segment
      */
     float borderStartXYZ[3];
-    this->getPoint(0)->getProjectedPosition(*surfaceFile, 
+    getPoint(0)->getProjectedPosition(*surfaceFile, 
                                             borderStartXYZ, 
                                             true);
     const float distToStart = MathFunctions::distance3D(borderStartXYZ, 
                                                         segmentStartXYZ);
     
     float borderEndXYZ[3]; 
-    this->getPoint(numPoints - 1)->getProjectedPosition(*surfaceFile, 
+    getPoint(numPoints - 1)->getProjectedPosition(*surfaceFile, 
                                                         borderEndXYZ, 
                                                         true);
     const float distToEnd = MathFunctions::distance3D(borderEndXYZ, 
@@ -707,7 +707,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                              (endPointIndex + 1));
     }
     
-    this->replacePoints(&tempBorder);
+    replacePoints(&tempBorder);
 }
 
 /**
@@ -752,7 +752,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
      * last points in the erase segment
      */
     float distanceToStartPoint = 0.0;
-    int32_t startPointIndex = this->findPointIndexNearestXYZ(surfaceFile, 
+    int32_t startPointIndex = findPointIndexNearestXYZ(surfaceFile, 
                                                             segmentStartXYZ, 
                                                             tolerance,
                                                             distanceToStartPoint);
@@ -760,7 +760,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
     }
     float distanceToEndPoint = 0.0;
-    int32_t endPointIndex   = this->findPointIndexNearestXYZ(surfaceFile, 
+    int32_t endPointIndex   = findPointIndexNearestXYZ(surfaceFile, 
                                                             segmentEndXYZ, 
                                                             tolerance,
                                                             distanceToEndPoint);
@@ -798,7 +798,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
                              (endPointIndex + 1));
     }
     
-    this->replacePoints(&tempBorder);
+    replacePoints(&tempBorder);
 }
 
 /**
@@ -843,7 +843,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
      * last points in the erase segment
      */
     float distanceToStartPoint = 0.0;
-    int32_t startPointIndex = this->findPointIndexNearestXYZ(surfaceFile, 
+    int32_t startPointIndex = findPointIndexNearestXYZ(surfaceFile, 
                                                              segmentStartXYZ, 
                                                              tolerance,
                                                              distanceToStartPoint);
@@ -851,7 +851,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
         throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
     }
     float distanceToEndPoint = 0.0;
-    int32_t endPointIndex   = this->findPointIndexNearestXYZ(surfaceFile, 
+    int32_t endPointIndex   = findPointIndexNearestXYZ(surfaceFile, 
                                                              segmentEndXYZ, 
                                                              tolerance,
                                                              distanceToEndPoint);
@@ -898,7 +898,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                              (endPointIndex + 1));
     }
     
-    this->replacePoints(&tempBorder);
+    replacePoints(&tempBorder);
 }
 
 /**
@@ -910,12 +910,12 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
 void 
 Border::replacePoints(const Border* border)
 {
-    this->removeAllPoints();
+    removeAllPoints();
     
     const int32_t numPoints = border->getNumberOfPoints();
     for (int i = 0; i < numPoints; i++) {
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
-        this->addPoint(spi);
+        addPoint(spi);
     } 
 }
 
@@ -964,7 +964,7 @@ Border::getGroupNameSelectionItem() const
 AString 
 Border::toString() const
 {
-    return "Border " + this->name;
+    return "Border " + m_name;
 }
 
 /**
@@ -977,16 +977,16 @@ Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
 {
     xmlWriter.writeStartElement(XML_TAG_BORDER);
     
-    xmlWriter.writeElementCharacters(XML_TAG_NAME, this->name);
+    xmlWriter.writeElementCharacters(XML_TAG_NAME, m_name);
     
-    if (this->className.isEmpty() == false) {
-        xmlWriter.writeElementCharacters(XML_TAG_CLASS_NAME, this->className);
+    if (m_className.isEmpty() == false) {
+        xmlWriter.writeElementCharacters(XML_TAG_CLASS_NAME, m_className);
     }
-    xmlWriter.writeElementCharacters(XML_TAG_COLOR_NAME, CaretColorEnum::toName(this->color));
+    xmlWriter.writeElementCharacters(XML_TAG_COLOR_NAME, CaretColorEnum::toName(m_color));
     
-    const int32_t numPoints = this->getNumberOfPoints();
+    const int32_t numPoints = getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
-        this->points[i]->writeAsXML(xmlWriter);    
+        m_points[i]->writeAsXML(xmlWriter);    
     }
     
     xmlWriter.writeEndElement();

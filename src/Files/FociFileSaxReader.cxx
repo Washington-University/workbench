@@ -67,7 +67,6 @@ FociFileSaxReader::FociFileSaxReader(FociFile* fociFile)
     m_surfaceProjectedItem = NULL;
     m_studyMetaDataLinkSetSaxReader = NULL;
     m_projectionCounter = 0;
-    m_versionBeingRead = 1;
     m_versionOneColorTable = NULL;
 }
 
@@ -123,17 +122,17 @@ FociFileSaxReader::startElement(const AString& namespaceURI,
                  * getting the version fails as integer get as float
                  * and convert to integer.
                  */
-                m_versionBeingRead = 0;
+                int32_t versionBeingRead = 0;
                 try {
-                    m_versionBeingRead = attributes.getValueAsInt(FociFile::XML_ATTRIBUTE_VERSION);
+                    versionBeingRead = attributes.getValueAsInt(FociFile::XML_ATTRIBUTE_VERSION);
                 }
                 catch (const XmlSaxParserException& e) {
                     const float floatVersion = attributes.getValueAsFloat(FociFile::XML_ATTRIBUTE_VERSION);
-                    m_versionBeingRead = static_cast<int32_t>(floatVersion);
+                    versionBeingRead = static_cast<int32_t>(floatVersion);
                 }
-                if (m_versionBeingRead > FociFile::getFileVersion()) {
+                if (versionBeingRead > FociFile::getFileVersion()) {
                     AString msg = XmlUtilities::createInvalidVersionMessage(FociFile::getFileVersion(),
-                                                                            m_versionBeingRead);
+                                                                            versionBeingRead);
                     XmlSaxParserException e(msg);
                     CaretLogThrowing(e);
                     throw e;

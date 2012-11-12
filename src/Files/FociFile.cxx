@@ -101,7 +101,7 @@ FociFile::FociFile(const FociFile& obj)
 : CaretDataFile(obj)
 {
     initializeFociFile();
-    this->copyHelperFociFile(obj);
+    copyHelperFociFile(obj);
 }
 
 /**
@@ -117,7 +117,7 @@ FociFile::operator=(const FociFile& obj)
     if (this != &obj) {
         clear();
         CaretDataFile::operator=(obj);
-        this->copyHelperFociFile(obj);
+        copyHelperFociFile(obj);
     }
     return *this;    
 }
@@ -218,7 +218,7 @@ FociFile::clear()
     m_classColorTable->clear();
     m_nameColorTable->clear();
     m_metadata->clear();
-    const int32_t numFoci = this->getNumberOfFoci();
+    const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {
         delete m_foci[i];
     }
@@ -304,7 +304,7 @@ void
 FociFile::removeFocus(const int32_t indx)
 {
     CaretAssertVectorIndex(m_foci, indx);
-    Focus* focus = this->getFocus(indx);
+    Focus* focus = getFocus(indx);
     m_foci.erase(m_foci.begin() + indx);
     delete focus;
     m_forceUpdateOfGroupAndNameHierarchy = true;
@@ -319,10 +319,10 @@ FociFile::removeFocus(const int32_t indx)
 void 
 FociFile::removeFocus(Focus* focus)
 {
-    const int32_t numFoci = this->getNumberOfFoci();
+    const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0;i < numFoci; i++) {
         if (m_foci[i] == focus) {
-            this->removeFocus(i);
+            removeFocus(i);
             return;
         }
     }
@@ -444,7 +444,7 @@ FociFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
 int32_t
 FociFile::getFileVersion()
 {
-    return FociFile::fociFileVersion;
+    return FociFile::s_fociFileVersion;
 }
 
 /**
@@ -462,7 +462,7 @@ FociFile::getFileVersionAsString()
 void
 FociFile::invalidateAllAssignedColors()
 {
-    const int32_t numFoci = this->getNumberOfFoci();
+    const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0;i < numFoci; i++) {
         m_foci[i]->setNameRgbaInvalid();
         m_foci[i]->setClassRgbaInvalid();
@@ -487,7 +487,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
-        this->setFileName("");
+        setFileName("");
         
         int lineNum = e.getLineNumber();
         int colNum  = e.getColumnNumber();
@@ -511,7 +511,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
         throw dfe;
     }
     
-    this->setFileName(filename);
+    setFileName(filename);
     
     m_classNameHierarchy->update(this,
                                      true);
@@ -519,11 +519,11 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
     m_classNameHierarchy->setAllSelected(true);
     
     CaretLogFiner("CLASS/NAME Table for : "
-                  + this->getFileNameNoPath()
+                  + getFileNameNoPath()
                   + "\n"
                   + m_classNameHierarchy->toString());
     
-    this->clearModified();
+    clearModified();
 }
 
 /**
@@ -537,7 +537,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
 void 
 FociFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    this->setFileName(filename);
+    setFileName(filename);
     
     try {
         //
@@ -550,7 +550,7 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         //
         FileAdapter file;
         AString errorMessage;
-        QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
+        QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
                                                                      errorMessage);
         if (textStream == NULL) {
             throw DataFileException(errorMessage);
@@ -604,7 +604,7 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write foci
         //
-        const int32_t numFoci = this->getNumberOfFoci();
+        const int32_t numFoci = getNumberOfFoci();
         for (int32_t i = 0; i < numFoci; i++) {
             m_foci[i]->writeAsXML(xmlWriter, i);
         }
@@ -614,7 +614,7 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         
         file.close();
         
-        this->clearModified();
+        clearModified();
     }
     catch (const GiftiException& e) {
         throw DataFileException(e);
@@ -648,7 +648,7 @@ FociFile::isModified() const
      * classNameHierarchy 
      */
     
-    const int32_t numFoci = this->getNumberOfFoci();
+    const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {
         if (m_foci[i]->isModified()) {
             return true;
@@ -671,7 +671,7 @@ FociFile::clearModified()
     m_classColorTable->clearModified();
     m_nameColorTable->clearModified();
     
-    const int32_t numFoci = this->getNumberOfFoci();
+    const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {
         m_foci[i]->clearModified();
     }

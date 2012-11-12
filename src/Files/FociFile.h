@@ -139,7 +139,7 @@ namespace caret {
         bool m_forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this FociFile */
-        static const int32_t fociFileVersion;
+        static const int32_t s_fociFileVersion;
     };
     
 #ifdef __FOCI_FILE_DECLARE__
@@ -147,7 +147,7 @@ namespace caret {
     const AString FociFile::XML_ATTRIBUTE_VERSION = "Version";
     const AString FociFile::XML_TAG_NAME_COLOR_TABLE = "FociNameColorTable";
     const AString FociFile::XML_TAG_CLASS_COLOR_TABLE = "FociClassColorTable";
-    const int32_t FociFile::fociFileVersion = 2;
+    const int32_t FociFile::s_fociFileVersion = 2;
 #endif // __FOCI_FILE_DECLARE__
 
 } // namespace

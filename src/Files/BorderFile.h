@@ -95,11 +95,17 @@ namespace caret {
         
         const GiftiLabelTable* getClassColorTable() const;
         
+        GiftiLabelTable* getNameColorTable();
+        
+        const GiftiLabelTable* getNameColorTable() const;
+        
+        void createNameAndClassColorTables(const GiftiLabelTable* oldColorTable);
+        
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
         const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
-        static float getFileVersion();
+        static int32_t getFileVersion();
         
         static AString getFileVersionAsString();
         
@@ -108,6 +114,13 @@ namespace caret {
         
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
+        
+        
+        /** XML Tag for Name Color Table */
+        static const AString XML_TAG_NAME_COLOR_TABLE;
+        
+        /** XML Tag for Class Color Table */
+        static const AString XML_TAG_CLASS_COLOR_TABLE;
         
         virtual bool isModified() const;
         
@@ -120,28 +133,33 @@ namespace caret {
         
         void initializeBorderFile();
         
-        GiftiMetaData* metadata;
+        GiftiMetaData* m_metadata;
         
-        std::vector<Border*> borders;
+        std::vector<Border*> m_borders;
         
         /** Holds colors assigned to classes */
-        GiftiLabelTable* classColorTable;
+        GiftiLabelTable* m_classColorTable;
+        
+        /** Holds colors assigned to names */
+        GiftiLabelTable* m_nameColorTable;
         
         /** Holds class and name hierarchy used for display selection */
-        mutable GroupAndNameHierarchyModel* classNameHierarchy;
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        bool forceUpdateOfGroupAndNameHierarchy;
+        bool m_forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this BorderFile */
-        static const float borderFileVersion;
+        static const int32_t s_borderFileVersion;
     };
     
 #ifdef __BORDER_FILE_DECLARE__
     const AString BorderFile::XML_TAG_BORDER_FILE = "BorderFile";
     const AString BorderFile::XML_ATTRIBUTE_VERSION = "Version";
+    const AString BorderFile::XML_TAG_NAME_COLOR_TABLE = "BorderNameColorTable";
+    const AString BorderFile::XML_TAG_CLASS_COLOR_TABLE = "BorderClassColorTable";
     
-    const float BorderFile::borderFileVersion = 1.0;
+    const int32_t BorderFile::s_borderFileVersion = 2;
 #endif // __BORDER_FILE_DECLARE__
 
 } // namespace
