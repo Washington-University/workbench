@@ -219,6 +219,13 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
+    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
+                                                                        "Add and/or edit name colors",
+                                                                        this,
+                                                                        this,
+                                                                        SLOT(displayNameEditor()));
+    QToolButton* displayNameColorEditorToolButton = new QToolButton();
+    displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
 
 //    const FociFile* defaultFociFile = getSelectedFociFile();
 //    if (defaultFociFile != NULL) {
@@ -334,6 +341,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
     gridLayout->addWidget(m_nameLineEdit, row, 1, 1, 3);
+    gridLayout->addWidget(displayNameColorEditorToolButton, row, 4);
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
     gridLayout->addWidget(m_colorSelectionComboBox->getWidget(), row, 1, 1, 3);
@@ -672,6 +680,7 @@ FociPropertiesEditorDialog::displayClassEditor()
     }
     
     GiftiLabelTableEditor editor(fociFile,
+                                 fociFile->getClassColorTable(),
                                  "Edit Class Attributes",
                                  this);
     const QString className = m_classNameComboBox->currentText();
@@ -689,6 +698,33 @@ FociPropertiesEditorDialog::displayClassEditor()
             m_classNameComboBox->setCurrentIndex(indx);
         }
     }
+}
+
+/**
+ * Display the class editor
+ */
+void
+FociPropertiesEditorDialog::displayNameEditor()
+{
+    FociFile* fociFile = getSelectedFociFile();
+    if (fociFile == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "Focus file is not valid, use the New button to create a focus file.");
+        return;
+    }
+    
+    GiftiLabelTableEditor editor(fociFile,
+                                 fociFile->getNameColorTable(),
+                                 "Edit Class Attributes",
+                                 this);
+    const QString name = this->m_nameLineEdit->text();
+    if (name.isEmpty() == false) {
+        const GiftiLabel* label = fociFile->getNameColorTable()->getLabelBestMatching(name);
+        if (label != NULL) {
+            editor.selectLabelWithName(label->getName());
+        }
+    }
+    editor.exec();
 }
 
 /**

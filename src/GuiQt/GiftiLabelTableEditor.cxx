@@ -102,19 +102,22 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
  * @param fociFile
  *    Foci file whose color table being edited.  As colors are edited,
  *    the assigned foci will have their color validity invalidated.
+ * @param giftiLabelTable
+ *    Label table being edited.
  * @param dialogTitle
  *    Title for the dialog.
  * @param parent
  *    Parent on which this dialog is displayed.
  */
 GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
+                                             GiftiLabelTable* giftiLableTable,
                                              const AString& dialogTitle,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
     CaretAssert(fociFile);
-    initializeDialog(fociFile->getClassColorTable());
+    initializeDialog(giftiLableTable);
     m_fociFile = fociFile;
 }
 
@@ -124,19 +127,22 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
  * @param borderFile
  *    Border file whose color table being edited.  As colors are edited,
  *    the assigned borders will have their color validity invalidated.
+ * @param giftiLabelTable
+ *    Label table being edited.
  * @param dialogTitle
  *    Title for the dialog.
  * @param parent
  *    Parent on which this dialog is displayed.
  */
 GiftiLabelTableEditor::GiftiLabelTableEditor(BorderFile* borderFile,
+                                             GiftiLabelTable* giftiLableTable,
                                              const AString& dialogTitle,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
     CaretAssert(borderFile);
-    initializeDialog(borderFile->getClassColorTable());
+    initializeDialog(giftiLableTable);
     m_borderFile = borderFile;
 }
 

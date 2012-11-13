@@ -60,10 +60,12 @@ namespace caret {
                               QWidget* parent);
         
         GiftiLabelTableEditor(FociFile* fociFile,
+                              GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
                               QWidget* parent);
         
-        GiftiLabelTableEditor(BorderFile* fociFile,
+        GiftiLabelTableEditor(BorderFile* borderFile,
+                              GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
                               QWidget* parent);
         

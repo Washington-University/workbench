@@ -80,6 +80,8 @@ namespace caret {
     private slots:
         void displayClassEditor();
     
+        void displayNameEditor();
+        
         void fociFileSelected();
         
         void newFociFileButtonClicked();

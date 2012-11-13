@@ -182,6 +182,13 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     QLabel* nameLabel = new QLabel("Name");
     this->nameLineEdit = new QLineEdit();
     this->nameLineEdit->setText(borderName);
+    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
+                                                                    "Add and/or edit name colors",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(displayNameEditor()));
+    QToolButton* displayNameColorEditorToolButton = new QToolButton();
+    displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
     
     /*
      * Color
@@ -248,6 +255,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
     gridLayout->addWidget(this->nameLineEdit, row, 1);
+    gridLayout->addWidget(displayNameColorEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
     gridLayout->addWidget(this->colorSelectionComboBox->getWidget(), row, 1);
@@ -563,6 +571,7 @@ BorderPropertiesEditorDialog::displayClassEditor()
     }
     
     GiftiLabelTableEditor editor(borderFile,
+                                 borderFile->getClassColorTable(),
                                  "Edit Class Attributes",
                                  this);
     const QString className = this->classNameComboBox->currentText();
@@ -583,6 +592,34 @@ BorderPropertiesEditorDialog::displayClassEditor()
         }
     }
 }
+
+/**
+ * Display the class editor
+ */
+void
+BorderPropertiesEditorDialog::displayNameEditor()
+{
+    BorderFile* borderFile = this->getSelectedBorderFile();
+    if (borderFile == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "Border file is not valid, use the New button to create a border file.");
+        return;
+    }
+    
+    GiftiLabelTableEditor editor(borderFile,
+                                 borderFile->getNameColorTable(),
+                                 "Edit Class Attributes",
+                                 this);
+    const QString name = this->nameLineEdit->text();
+    if (name.isEmpty() == false) {
+        const GiftiLabel* label = borderFile->getNameColorTable()->getLabelBestMatching(name);
+        if (label != NULL) {
+            editor.selectLabelWithName(label->getName());
+        }
+    }
+    editor.exec();
+}
+
 
 
 

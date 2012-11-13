@@ -61,6 +61,8 @@ namespace caret {
         virtual void okButtonClicked();
         
     private slots:
+        void displayNameEditor();
+        
         void displayClassEditor();
     
         void borderFileSelected();

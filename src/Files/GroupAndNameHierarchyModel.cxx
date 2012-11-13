@@ -207,7 +207,9 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
         /*
          * For icons
          */
-        const GiftiLabelTable* labelTable = borderFile->getClassColorTable();
+        const GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
+        const GiftiLabelTable* nameLabelTable  = borderFile->getNameColorTable();
+        const float rgbaBlack[4] = { 0.0, 0.0, 0.0, 1.0 };
         
         /*
          * Update with all borders.
@@ -232,27 +234,34 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             }
             
             /*
-             * Find/create group
+             * Class
              */
             GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
                                                            theGroupName,
                                                            ID_NOT_USED);
             CaretAssert(groupItem);
             
-            const float* color = groupItem->getIconColorRGBA();
-            if (color[3] == 0.0) {
-                const GiftiLabel* label = labelTable->getLabelBestMatching(theGroupName);
-                if (label != NULL) {
-                    groupItem->setIconColorRGBA(label->getColor());
-                }
+            const GiftiLabel* groupLabel = classLabelTable->getLabelBestMatching(theGroupName);
+            if (groupLabel != NULL) {
+                groupItem->setIconColorRGBA(groupLabel->getColor());
+            }
+            else {
+                groupItem->setIconColorRGBA(rgbaBlack);
             }
             
             /*
-             * Adding border to class
+             * Name
              */
             GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                      name,
                                                                      ID_NOT_USED);
+            const GiftiLabel* nameLabel = nameLabelTable->getLabelBestMatching(name);
+            if (nameLabel != NULL) {
+                nameItem->setIconColorRGBA(nameLabel->getColor());
+            }
+            else {
+                nameItem->setIconColorRGBA(rgbaBlack);
+            }
             
             /*
              * Place the name selector into the border.
@@ -582,7 +591,9 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
          * For icons
          */
         const GiftiLabelTable* classLabelTable = fociFile->getClassColorTable();
-        
+        const GiftiLabelTable* nameLabelTable  = fociFile->getNameColorTable();
+        const float rgbaBlack[4] = { 0.0, 0.0, 0.0, 1.0 };
+                
         /*
          * Update with all foci.
          */
@@ -606,27 +617,35 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             }
             
             /*
-             * Find/create group
+             * Class
              */
             GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
-                                                           theGroupName,
-                                                           ID_NOT_USED);
+                                                            theGroupName,
+                                                            ID_NOT_USED);
+            CaretAssert(groupItem);
             CaretAssert(groupItem);
             
-            const float* color = groupItem->getIconColorRGBA();
-            if (color[3] == 0.0) {
-                const GiftiLabel* label = classLabelTable->getLabelBestMatching(theGroupName);
-                if (label != NULL) {
-                    groupItem->setIconColorRGBA(label->getColor());
-                }
+            const GiftiLabel* groupLabel = classLabelTable->getLabelBestMatching(theGroupName);
+            if (groupLabel != NULL) {
+                groupItem->setIconColorRGBA(groupLabel->getColor());
             }
-            
+            else {
+                groupItem->setIconColorRGBA(rgbaBlack);
+            }
+
             /*
-             * Adding focus to class
+             * Name
              */
             GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
-                                                                     name,
-                                                                     ID_NOT_USED);
+                                                                      name,
+                                                                      ID_NOT_USED);
+            const GiftiLabel* nameLabel = nameLabelTable->getLabelBestMatching(name);
+            if (nameLabel != NULL) {
+                nameItem->setIconColorRGBA(nameLabel->getColor());
+            }
+            else {
+                nameItem->setIconColorRGBA(rgbaBlack);
+            }
             
             /*
              * Place the name selector into the border.
