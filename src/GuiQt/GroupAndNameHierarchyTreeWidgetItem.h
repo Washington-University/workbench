@@ -88,7 +88,7 @@ namespace caret {
         
         void addChildItem(GroupAndNameHierarchyTreeWidgetItem* child);
         
-        void updateSelections();
+        void updateSelections(const DisplayGroupEnum::Enum displayGroup);
         
         void setModelDataExpanded(const bool expanded);
         

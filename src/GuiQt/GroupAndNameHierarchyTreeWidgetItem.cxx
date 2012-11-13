@@ -202,9 +202,15 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
     }
 }
 
+/**
+ * Update the selections in this and its children.
+ * @param displayGroup
+ *    Display group that is active.
+ */
 void
-GroupAndNameHierarchyTreeWidgetItem::updateSelections()
+GroupAndNameHierarchyTreeWidgetItem::updateSelections(const DisplayGroupEnum::Enum displayGroup)
 {
+    m_displayGroup = displayGroup;
     GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
     
     bool expandedStatus = false;
@@ -233,7 +239,7 @@ GroupAndNameHierarchyTreeWidgetItem::updateSelections()
              iter != m_children.end();
              iter++) {
             GroupAndNameHierarchyTreeWidgetItem* item = *iter;
-            item->updateSelections();
+            item->updateSelections(m_displayGroup);
         }
     }
 }

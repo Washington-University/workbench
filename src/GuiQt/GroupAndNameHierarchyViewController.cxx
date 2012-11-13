@@ -491,7 +491,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     
     numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        m_treeWidgetItems[iModel]->updateSelections();
+        m_treeWidgetItems[iModel]->updateSelections(m_displayGroup);
     }
     
     m_ignoreUpdates = false;
