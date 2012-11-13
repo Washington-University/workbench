@@ -25,6 +25,8 @@
  * 
  */ 
 
+#include <QStringList>
+
 #include "CaretColorEnum.h"
 #include "WuQDialogModal.h"
 
@@ -33,6 +35,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QStringListModel;
 class QTextEdit;
 
 namespace caret {
@@ -125,6 +128,9 @@ namespace caret {
         
         QCheckBox* m_projectCheckBox;
 
+        QStringList m_nameCompleterStringList;
+        QStringListModel* m_nameCompleterStringListModel;
+        
         static bool s_previousFociProjectSelected;
 
         /** 

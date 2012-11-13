@@ -34,7 +34,6 @@
  */
 /*LICENSE_END*/
 
-
 #include "CaretDataFile.h"
 
 namespace caret {
@@ -95,6 +94,8 @@ namespace caret {
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
+        QStringList getAllFociNamesSorted() const;
+        
         void invalidateAllAssignedColors();
         
         virtual bool isModified() const;
@@ -140,6 +141,7 @@ namespace caret {
         
         /** Version of this FociFile */
         static const int32_t s_fociFileVersion;
+        
     };
     
 #ifdef __FOCI_FILE_DECLARE__

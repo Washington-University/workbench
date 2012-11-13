@@ -35,6 +35,7 @@
 
 #include <memory>
 
+#include <QStringList>
 #include <QTextStream>
 
 #define __FOCI_FILE_DECLARE__
@@ -446,6 +447,30 @@ FociFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
                                    rgba[2],
                                    rgba[3]);
     }
+}
+
+/**
+ * @return A string list containing all foci names
+ * sorted in alphabetical order.
+ */
+QStringList
+FociFile::getAllFociNamesSorted() const
+{
+    std::set<QString> nameSet;
+    
+    const int32_t numFoci = getNumberOfFoci();
+    for (int32_t i = 0;i < numFoci; i++) {
+        nameSet.insert(m_foci[i]->getName());
+    }
+
+    QStringList sl;
+    for (std::set<QString>::iterator iter = nameSet.begin();
+         iter != nameSet.end();
+         iter++) {
+        sl += *iter;
+    }
+    
+    return sl;
 }
 
 /**

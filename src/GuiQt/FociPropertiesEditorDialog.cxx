@@ -30,6 +30,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QStringListModel>
 #include <QTextEdit>
 #include <QToolButton>
 
@@ -200,7 +201,6 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     QLabel* fociFileLabel = new QLabel("File");
     m_fociFileSelectionComboBox = new QComboBox();
-    loadFociFileComboBox(fociFile);
     WuQtUtilities::setToolTipAndStatusTip(m_fociFileSelectionComboBox, 
                                           "Selects an existing focus file\n"
                                           "to which new focus are added.");
@@ -215,10 +215,20 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     newFileToolButton->setDefaultAction(newFileAction);
     
     /*
+     * Completer for name
+     */
+    m_nameCompleterStringListModel = new QStringListModel(this);
+
+    /*
      * Name
      */
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
+    QCompleter* nameCompleter = new QCompleter(m_nameCompleterStringListModel,
+                                               this);
+    nameCompleter->setCaseSensitivity(Qt::CaseSensitive);
+    nameCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
+    m_nameLineEdit->setCompleter(nameCompleter);
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
                                                                         "Add and/or edit name colors",
                                                                         this,
@@ -227,25 +237,6 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     QToolButton* displayNameColorEditorToolButton = new QToolButton();
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
 
-//    const FociFile* defaultFociFile = getSelectedFociFile();
-//    if (defaultFociFile != NULL) {
-//        QStringList stringList;
-//        const GiftiLabelTable* labelTable = defaultFociFile->getColorTable();
-//        std::set<int32_t> keys = labelTable->getKeys();
-//        for (std::set<int32_t>::iterator iter = keys.begin();
-//             iter != keys.end();
-//             iter++) {
-//            const int k = *iter;
-//            const GiftiLabel* gl = labelTable->getLabel(k);
-//            if (gl != NULL) {
-//                stringList += gl->getName();
-//            }
-//        }
-//        std::cout << "Completer contains items count=" << stringList.size() << std::endl;
-//        QCompleter* completer = new QCompleter(stringList, this);
-//        m_nameLineEdit->setCompleter(completer);
-//    }
-    
     /*
      * Color
      */
@@ -390,6 +381,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     setCentralWidget(widget);
     
+    loadFociFileComboBox(fociFile);
     loadFromFocusDataIntoDialog(m_focus);
 }
 
@@ -443,7 +435,13 @@ FociPropertiesEditorDialog::loadFociFileComboBox(const FociFile* selectedFociFil
     
     if (numFociFiles > 0) {
         m_fociFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
-    }    
+        
+        const FociFile* fociFile = getSelectedFociFile();
+        if (fociFile != NULL) {
+            m_nameCompleterStringList = fociFile->getAllFociNamesSorted();
+            m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
+        }
+    }
 }
 
 /**
@@ -594,6 +592,12 @@ FociPropertiesEditorDialog::okButtonClicked()
     s_previousFociProjectSelected = m_projectCheckBox->isChecked();
     
     updateGraphicsAndUserInterface();
+    
+    if (m_nameCompleterStringList.contains(name) == false) {
+        m_nameCompleterStringList.append(name);
+        m_nameCompleterStringList.sort();
+        m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
+    }
     
     /*
      * continue with OK button processing
