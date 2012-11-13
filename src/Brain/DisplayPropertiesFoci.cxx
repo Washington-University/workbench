@@ -64,7 +64,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
         m_displayStatusInTab[i] = false;
         m_contralateralDisplayStatusInTab[i] = false;
         m_fociSizeInTab[i] = 4.0;
-        m_coloringTypeInTab[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+        m_coloringTypeInTab[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
         m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
     }
     
@@ -73,7 +73,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
         m_displayStatusInDisplayGroup[i] = false;
         m_contralateralDisplayStatusInDisplayGroup[i] = false;
         m_fociSizeInDisplayGroup[i] = 4.0;
-        m_coloringTypeInDisplayGroup[i] = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+        m_coloringTypeInDisplayGroup[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
         m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
     }
     
@@ -87,7 +87,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
                                m_contralateralDisplayStatusInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_fociSizeInTab", 
                                m_fociSizeInTab);
-    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FociColoringTypeEnum,FociColoringTypeEnum::Enum>("m_coloringTypeInTab", 
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FeatureColoringTypeEnum,FeatureColoringTypeEnum::Enum>("m_coloringTypeInTab", 
                                                                                                         m_coloringTypeInTab);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
                                                                                                       m_drawingTypeInTab);
@@ -108,10 +108,10 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
                                m_fociSizeInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
                                m_fociSizeInDisplayGroup[0]);
-    m_sceneAssistant->addArray<FociColoringTypeEnum, FociColoringTypeEnum::Enum>("m_coloringTypeInDisplayGroup",
+    m_sceneAssistant->addArray<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>("m_coloringTypeInDisplayGroup",
                                                                                  m_coloringTypeInDisplayGroup,
                                                                                  DisplayGroupEnum::NUMBER_OF_GROUPS,
-                                                                                 FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME);
+                                                                                 FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME);
     
     m_sceneAssistant->addArray<FociDrawingTypeEnum, FociDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
                                                                                m_drawingTypeInDisplayGroup,
@@ -352,7 +352,7 @@ DisplayPropertiesFoci::setFociSize(const DisplayGroupEnum::Enum displayGroup,
  * @param displayGroup
  *     Display group.
  */
-FociColoringTypeEnum::Enum 
+FeatureColoringTypeEnum::Enum 
 DisplayPropertiesFoci::getColoringType(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex) const
 {
@@ -378,7 +378,7 @@ DisplayPropertiesFoci::getColoringType(const DisplayGroupEnum::Enum displayGroup
 void 
 DisplayPropertiesFoci::setColoringType(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const FociColoringTypeEnum::Enum coloringType)
+                                       const FeatureColoringTypeEnum::Enum coloringType)
 {
     CaretAssertArrayIndex(m_coloringTypeInDisplayGroup, 
                           DisplayGroupEnum::NUMBER_OF_GROUPS,

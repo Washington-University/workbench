@@ -187,8 +187,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    this->colorSelectionComboBox = new CaretColorEnumComboBox(this,
-                                                             CaretColorEnum::OPTION_INCLUDE_CLASS);
+    this->colorSelectionComboBox = new CaretColorEnumComboBox(this);
     this->colorSelectionComboBox->setSelectedColor(borderColor);
     WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionComboBox->getWidget(), 
                                           "If the color is set to \"CLASS\", the border is colored\n"
@@ -483,14 +482,6 @@ BorderPropertiesEditorDialog::okButtonClicked()
     }
     const QString className = this->classNameComboBox->currentText().trimmed();
     const CaretColorEnum::Enum color = this->colorSelectionComboBox->getSelectedColor();
-    
-    if (color == CaretColorEnum::CLASS) {
-        if (className.isEmpty()) {
-            errorMessage += ("Color is set to class but no class is selected.  "
-                             "Either change the color or add a class using "
-                             "the Edit button to the right of the class control.\n");
-        }
-    }
     
     /*
      * Error?

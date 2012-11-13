@@ -1,5 +1,5 @@
-#ifndef __FOCI_COLORING_TYPE_ENUM__H_
-#define __FOCI_COLORING_TYPE_ENUM__H_
+#ifndef __FEATURE_COLORING_TYPE_ENUM__H_
+#define __FEATURE_COLORING_TYPE_ENUM__H_
 
 /*LICENSE_START*/
 /*
@@ -41,7 +41,7 @@
 
 namespace caret {
 
-class FociColoringTypeEnum {
+class FeatureColoringTypeEnum {
 
 public:
     /**
@@ -49,12 +49,14 @@ public:
      */
     enum Enum {
         /** Use class for coloring */
-        FOCI_COLORING_TYPE_CLASS,
+        FEATURE_COLORING_TYPE_CLASS,
+        /** Use color list for coloring */
+        FEATURE_COLORING_TYPE_COLOR_LIST,
         /** Use name for coloring */
-        FOCI_COLORING_TYPE_NAME
+        FEATURE_COLORING_TYPE_NAME
     };
 
-    ~FociColoringTypeEnum();
+    ~FeatureColoringTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -75,14 +77,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    FociColoringTypeEnum(const Enum enumValue, 
+    FeatureColoringTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const FociColoringTypeEnum* findData(const Enum enumValue);
+    static const FeatureColoringTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<FociColoringTypeEnum> enumData;
+    static std::vector<FeatureColoringTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,11 +108,11 @@ private:
     AString guiName;
 };
 
-#ifdef __FOCI_COLORING_TYPE_ENUM_DECLARE__
-std::vector<FociColoringTypeEnum> FociColoringTypeEnum::enumData;
-bool FociColoringTypeEnum::initializedFlag = false;
-int32_t FociColoringTypeEnum::integerCodeCounter = 0; 
-#endif // __FOCI_COLORING_TYPE_ENUM_DECLARE__
+#ifdef __FEATURE_COLORING_TYPE_ENUM_DECLARE__
+std::vector<FeatureColoringTypeEnum> FeatureColoringTypeEnum::enumData;
+bool FeatureColoringTypeEnum::initializedFlag = false;
+int32_t FeatureColoringTypeEnum::integerCodeCounter = 0; 
+#endif // __FEATURE_COLORING_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__FOCI_COLORING_TYPE_ENUM__H_
+#endif  //__FEATURE_COLORING_TYPE_ENUM__H_

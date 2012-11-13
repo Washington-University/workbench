@@ -46,10 +46,12 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 
+
 namespace caret {
 
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
+    class EnumComboBoxTemplate;
     
     class BorderSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -96,6 +98,8 @@ namespace caret {
         DisplayGroupEnumComboBox* m_bordersDisplayGroupComboBox;
 
         QComboBox* m_drawTypeComboBox;
+        
+        EnumComboBoxTemplate* m_coloringTypeComboBox;
         
         QDoubleSpinBox* m_lineWidthSpinBox;
         

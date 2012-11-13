@@ -38,6 +38,7 @@
 #include "BorderDrawingTypeEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
+#include "FeatureColoringTypeEnum.h"
 
 namespace caret {
 
@@ -97,6 +98,13 @@ namespace caret {
                             const int32_t tabIndex,
                             const BorderDrawingTypeEnum::Enum drawingType);
         
+        FeatureColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup,
+                                                   const int32_t tabIndex) const;
+        
+        void setColoringType(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex,
+                            const FeatureColoringTypeEnum::Enum drawingType);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -128,6 +136,10 @@ namespace caret {
         BorderDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         BorderDrawingTypeEnum::Enum m_drawingTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        FeatureColoringTypeEnum::Enum m_coloringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        FeatureColoringTypeEnum::Enum m_coloringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

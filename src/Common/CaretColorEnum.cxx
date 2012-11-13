@@ -91,13 +91,6 @@ CaretColorEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(CaretColorEnum(CLASS, 
-                                      "CLASS", 
-                                      "Class",
-                                      0,
-                                      0,
-                                      0));
-      
     enumData.push_back(CaretColorEnum(AQUA, 
                                       "AQUA", 
                                       "Aqua",
@@ -414,13 +407,9 @@ CaretColorEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
- * @param options
- *     Controls inclusion of special colors by bitwise or'ing the 
- *     Options enumerated type values.
  */
 void
-CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
-                            const uint64_t options)
+CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
@@ -429,11 +418,6 @@ CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
     for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        if (iter->enumValue == CLASS) {
-            if ((options & OPTION_INCLUDE_CLASS) == 0) {
-                continue;
-            }
-        }
         allEnums.push_back(iter->enumValue);
     }
 }
@@ -445,21 +429,17 @@ CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
  *     A vector that is OUTPUT containing all of the names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.
- * @param options
- *     Controls inclusion of special colors by bitwise or'ing the 
- *     Options enumerated type values.
  */
 void
 CaretColorEnum::getAllNames(std::vector<AString>& allNames, 
-                            const bool isSorted,
-                            const uint64_t options)
+                            const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
     std::vector<CaretColorEnum::Enum> allEnums;
-    CaretColorEnum::getAllEnums(allEnums, options);
+    CaretColorEnum::getAllEnums(allEnums);
     for (std::vector<CaretColorEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {
@@ -478,21 +458,17 @@ CaretColorEnum::getAllNames(std::vector<AString>& allNames,
  *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.
- * @param options
- *     Controls inclusion of special colors by bitwise or'ing the 
- *     Options enumerated type values.
  */
 void
 CaretColorEnum::getAllGuiNames(std::vector<AString>& allGuiNames, 
-                               const bool isSorted,
-                               const uint64_t options)
+                               const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
     std::vector<CaretColorEnum::Enum> allEnums;
-    CaretColorEnum::getAllEnums(allEnums, options);
+    CaretColorEnum::getAllEnums(allEnums);
     for (std::vector<CaretColorEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {

@@ -123,6 +123,16 @@ namespace caret {
         
         void setClassRgba(const float rgba[4]);
         
+        bool isNameRgbaValid() const;
+        
+        void setNameRgbaInvalid();
+        
+        const float* getNameRgba() const;
+        
+        void getNameRgba(float rgba[4]) const;
+        
+        void setNameRgba(const float rgba[4]);
+        
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
@@ -146,6 +156,12 @@ namespace caret {
         
         /** RGBA color components assigned to border's class name validity */
         bool m_classRgbaColorValid;
+        
+        /** RGBA color components assigned to focus' name */
+        float m_nameRgbaColor[4];
+        
+        /** RGBA color components assigned to focus' name validity */
+        bool m_nameRgbaColorValid;
         
         /** Selection status of this border in the group/name hierarchy */
         GroupAndNameHierarchyItem* m_groupNameSelectionItem;        

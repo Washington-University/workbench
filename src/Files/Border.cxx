@@ -134,6 +134,12 @@ Border::clear()
     m_classRgbaColor[3] = 1.0;
     m_classRgbaColorValid = false;
     
+    m_nameRgbaColor[0] = 0.0;
+    m_nameRgbaColor[1] = 0.0;
+    m_nameRgbaColor[2] = 0.0;
+    m_nameRgbaColor[3] = 1.0;
+    m_nameRgbaColorValid = false;
+    
     m_name = "";
     m_className = "";
     m_color = CaretColorEnum::BLACK;
@@ -212,6 +218,62 @@ Border::setClassRgba(const float rgba[3])
 }
 
 /**
+ * @return Is the name RGBA color valid?
+ */
+bool
+Border::isNameRgbaValid() const
+{
+    return m_nameRgbaColorValid;
+}
+
+/**
+ * Set then name RGBA color invalid.
+ */
+void
+Border::setNameRgbaInvalid()
+{
+    m_nameRgbaColorValid = false;
+}
+
+/**
+ * @return The name RGBA color components
+ * ranging zero to one.
+ */
+const float*
+Border::getNameRgba() const
+{
+    return m_nameRgbaColor;
+}
+
+/**
+ * Get the name RGBA color components
+ * ranging zero to one.
+ */
+void
+Border::getNameRgba(float rgba[4]) const
+{
+    rgba[0] = m_nameRgbaColor[0];
+    rgba[1] = m_nameRgbaColor[1];
+    rgba[2] = m_nameRgbaColor[2];
+    rgba[3] = m_nameRgbaColor[3];
+}
+
+/**
+ * Set the RGBA color components assigned to the name.
+ * @param rgba
+ *     Red, green, blue, alpha ranging zero to one.
+ */
+void
+Border::setNameRgba(const float rgba[4])
+{
+    m_nameRgbaColor[0] = rgba[0];
+    m_nameRgbaColor[1] = rgba[1];
+    m_nameRgbaColor[2] = rgba[2];
+    m_nameRgbaColor[3] = rgba[3];
+    m_nameRgbaColorValid = true;
+}
+
+/**
  * @return True if all points are on the 
  * same structure, else false.
  */
@@ -233,7 +295,6 @@ Border::verifyAllPointsOnSameStructure() const
     
     return true;
 }
-
 
 /**
  * Remove all points in this border.
@@ -931,6 +992,7 @@ void
 Border::setNameOrClassModified()
 {
     m_groupNameSelectionItem = NULL;
+    m_nameRgbaColorValid = false;
     m_classRgbaColorValid = false;
 }
 

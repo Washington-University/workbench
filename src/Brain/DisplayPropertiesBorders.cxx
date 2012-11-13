@@ -69,6 +69,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
     const float defaultPointSize = 2.0;
     const float defaultLineSize  = 1.0;
     const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
+    const FeatureColoringTypeEnum::Enum defaultColoringType = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
@@ -76,6 +77,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         m_contralateralDisplayStatusInTab[i] = false;
         m_lineWidthInTab[i] = defaultLineSize;
         m_pointSizeInTab[i] = defaultPointSize;
+        m_coloringTypeInTab[i] = defaultColoringType;
         m_drawingTypeInTab[i] = defaultDrawingType;
     }
     
@@ -84,6 +86,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         m_contralateralDisplayStatusInDisplayGroup[i] = false;
         m_lineWidthInDisplayGroup[i]  = defaultLineSize;
         m_pointSizeInDisplayGroup[i] = defaultPointSize;
+        m_coloringTypeInDisplayGroup[i] = defaultColoringType;
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
     }
 
@@ -118,6 +121,15 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
                                m_pointSizeInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS, 
                                defaultPointSize);
+    
+    
+    m_sceneAssistant->addArray<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>("m_coloringTypeInDisplayGroup",
+                                                                                   m_coloringTypeInDisplayGroup,
+                                                                                   DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                                   defaultColoringType);
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>("m_coloringTypeInTab",
+                                                                                                           m_coloringTypeInTab);
     
     m_sceneAssistant->addArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInDisplayGroup",
                                                                                    m_drawingTypeInDisplayGroup,
@@ -463,6 +475,53 @@ DisplayPropertiesBorders::setDrawingType(const DisplayGroupEnum::Enum  displayGr
     }
     else {
         m_drawingTypeInDisplayGroup[displayGroup] = drawingType;
+    }
+}
+
+/**
+ * @return The coloring type.
+ * @param displayGroup
+ *     Display group.
+ */
+FeatureColoringTypeEnum::Enum
+DisplayPropertiesBorders::getColoringType(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_coloringTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_coloringTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_coloringTypeInTab[tabIndex];
+    }
+    return m_coloringTypeInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the coloring type.
+ * @param displayGroup
+ *     Display group.
+ * @param coloringType
+ *    New value for coloring type.
+ */
+void
+DisplayPropertiesBorders::setColoringType(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex,
+                                       const FeatureColoringTypeEnum::Enum coloringType)
+{
+    CaretAssertArrayIndex(m_coloringTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_coloringTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_coloringTypeInTab[tabIndex] = coloringType;
+    }
+    else {
+        m_coloringTypeInDisplayGroup[displayGroup] = coloringType;
     }
 }
 

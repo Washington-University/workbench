@@ -38,8 +38,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        CaretColorEnumComboBox(QObject* parent,
-                                       const uint64_t options = 0);
+        CaretColorEnumComboBox(QObject* parent);
         
         virtual ~CaretColorEnumComboBox();
         

@@ -33,9 +33,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __FOCI_COLORING_TYPE_ENUM_DECLARE__
-#include "FociColoringTypeEnum.h"
-#undef __FOCI_COLORING_TYPE_ENUM_DECLARE__
+#define __FEATURE_COLORING_TYPE_ENUM_DECLARE__
+#include "FeatureColoringTypeEnum.h"
+#undef __FEATURE_COLORING_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -43,11 +43,10 @@ using namespace caret;
 
     
 /**
- * \class caret::FociColoringTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::FeatureColoringTypeEnum 
+ * \brief Coloring type for features.
  */
+
 /**
  * Constructor.
  *
@@ -59,7 +58,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-FociColoringTypeEnum::FociColoringTypeEnum(const Enum enumValue,
+FeatureColoringTypeEnum::FeatureColoringTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -72,7 +71,7 @@ FociColoringTypeEnum::FociColoringTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-FociColoringTypeEnum::~FociColoringTypeEnum()
+FeatureColoringTypeEnum::~FeatureColoringTypeEnum()
 {
 }
 
@@ -80,21 +79,24 @@ FociColoringTypeEnum::~FociColoringTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-FociColoringTypeEnum::initialize()
+FeatureColoringTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(FociColoringTypeEnum(FOCI_COLORING_TYPE_CLASS, 
-                                    "FOCI_COLORING_TYPE_CLASS", 
-                                    "Class Name"));
+    enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_CLASS,
+                                               "FEATURE_COLORING_TYPE_CLASS",
+                                               "Class"));
     
-    enumData.push_back(FociColoringTypeEnum(FOCI_COLORING_TYPE_NAME, 
-                                    "FOCI_COLORING_TYPE_NAME", 
-                                    "Focus Name"));
+    enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_COLOR_LIST,
+                                               "FEATURE_COLORING_TYPE_COLOR_LIST",
+                                               "Color List"));
     
+    enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_NAME,
+                                               "FEATURE_COLORING_TYPE_NAME",
+                                               "Name"));
 }
 
 /**
@@ -104,14 +106,14 @@ FociColoringTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const FociColoringTypeEnum*
-FociColoringTypeEnum::findData(const Enum enumValue)
+const FeatureColoringTypeEnum*
+FeatureColoringTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const FociColoringTypeEnum* d = &enumData[i];
+        const FeatureColoringTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -128,10 +130,10 @@ FociColoringTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-FociColoringTypeEnum::toName(Enum enumValue) {
+FeatureColoringTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const FociColoringTypeEnum* enumInstance = findData(enumValue);
+    const FeatureColoringTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -145,18 +147,30 @@ FociColoringTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-FociColoringTypeEnum::Enum 
-FociColoringTypeEnum::fromName(const AString& name, bool* isValidOut)
+FeatureColoringTypeEnum::Enum 
+FeatureColoringTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
+    AString name = nameIn;
+    
+    /*
+     * Translate foci coloring type that was replaced
+     */
+    if (name == "FOCI_COLORING_TYPE_CLASS") {
+        name = "FEATURE_COLORING_TYPE_CLASS";
+    }
+    else if (name == "FOCI_COLORING_TYPE_NAME") {
+        name = "FEATURE_COLORING_TYPE_NAME";
+    }
+    
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = FOCI_COLORING_TYPE_NAME;
+    Enum enumValue = FEATURE_COLORING_TYPE_NAME;
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const FociColoringTypeEnum& d = *iter;
+        const FeatureColoringTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -168,7 +182,7 @@ FociColoringTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type FociColoringTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type FeatureColoringTypeEnum"));
     }
     return enumValue;
 }
@@ -181,10 +195,10 @@ FociColoringTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-FociColoringTypeEnum::toGuiName(Enum enumValue) {
+FeatureColoringTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const FociColoringTypeEnum* enumInstance = findData(enumValue);
+    const FeatureColoringTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -198,18 +212,18 @@ FociColoringTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-FociColoringTypeEnum::Enum 
-FociColoringTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+FeatureColoringTypeEnum::Enum 
+FeatureColoringTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = FOCI_COLORING_TYPE_NAME;
+    Enum enumValue = FEATURE_COLORING_TYPE_NAME;
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const FociColoringTypeEnum& d = *iter;
+        const FeatureColoringTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -221,7 +235,7 @@ FociColoringTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type FociColoringTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type FeatureColoringTypeEnum"));
     }
     return enumValue;
 }
@@ -233,10 +247,10 @@ FociColoringTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-FociColoringTypeEnum::toIntegerCode(Enum enumValue)
+FeatureColoringTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const FociColoringTypeEnum* enumInstance = findData(enumValue);
+    const FeatureColoringTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -251,18 +265,18 @@ FociColoringTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-FociColoringTypeEnum::Enum
-FociColoringTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+FeatureColoringTypeEnum::Enum
+FeatureColoringTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = FOCI_COLORING_TYPE_NAME;
+    Enum enumValue = FEATURE_COLORING_TYPE_NAME;
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const FociColoringTypeEnum& enumInstance = *iter;
+        const FeatureColoringTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -274,7 +288,7 @@ FociColoringTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type FociColoringTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type FeatureColoringTypeEnum"));
     }
     return enumValue;
 }
@@ -287,13 +301,13 @@ FociColoringTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-FociColoringTypeEnum::getAllEnums(std::vector<FociColoringTypeEnum::Enum>& allEnums)
+FeatureColoringTypeEnum::getAllEnums(std::vector<FeatureColoringTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -309,16 +323,16 @@ FociColoringTypeEnum::getAllEnums(std::vector<FociColoringTypeEnum::Enum>& allEn
  *     If true, the names are sorted in alphabetical order.
  */
 void
-FociColoringTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+FeatureColoringTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(FociColoringTypeEnum::toName(iter->enumValue));
+        allNames.push_back(FeatureColoringTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -335,16 +349,16 @@ FociColoringTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isS
  *     If true, the names are sorted in alphabetical order.
  */
 void
-FociColoringTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+FeatureColoringTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<FociColoringTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<FeatureColoringTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(FociColoringTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(FeatureColoringTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

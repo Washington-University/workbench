@@ -37,7 +37,7 @@
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
-#include "FociColoringTypeEnum.h"
+#include "FeatureColoringTypeEnum.h"
 #include "FociDrawingTypeEnum.h"
 
 namespace caret {
@@ -84,12 +84,12 @@ namespace caret {
                          const int32_t tabIndex,
                          const float pointSize);
         
-        FociColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup,
+        FeatureColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup,
                                                    const int32_t tabIndex) const;
         
         void setColoringType(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
-                             const FociColoringTypeEnum::Enum coloringType);
+                             const FeatureColoringTypeEnum::Enum coloringType);
         
         FociDrawingTypeEnum::Enum getDrawingType(const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex) const;
@@ -134,9 +134,9 @@ namespace caret {
         
         float m_fociSizeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        FociColoringTypeEnum::Enum m_coloringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        FeatureColoringTypeEnum::Enum m_coloringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        FociColoringTypeEnum::Enum m_coloringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        FeatureColoringTypeEnum::Enum m_coloringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         FociDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

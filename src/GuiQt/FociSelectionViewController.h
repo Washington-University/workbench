@@ -50,6 +50,7 @@ namespace caret {
 
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
+    class EnumComboBoxTemplate;
     
     class FociSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -97,7 +98,7 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_fociDisplayGroupComboBox;
 
-        QComboBox* m_coloringTypeComboBox;
+        EnumComboBoxTemplate* m_coloringTypeComboBox;
         
         QDoubleSpinBox* m_lineWidthSpinBox;
         

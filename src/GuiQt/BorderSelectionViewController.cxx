@@ -54,6 +54,7 @@
 #include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesBorders.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -166,6 +167,14 @@ BorderSelectionViewController::createAttributesWidget()
     QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
     
+    QLabel* coloringLabel = new QLabel("Coloring");
+    m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
+    m_coloringTypeComboBox->setup<FeatureColoringTypeEnum,
+    FeatureColoringTypeEnum::Enum>();
+    m_coloringTypeComboBox->getWidget()->setToolTip("Select the coloring assignment for borders");
+    QObject::connect(m_coloringTypeComboBox, SIGNAL(itemSelected()),
+                     this, SLOT(processAttributesChanges()));
+    
     float minLineWidth = 0;
     float maxLineWidth = 1000;
     //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
@@ -210,6 +219,9 @@ BorderSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(drawAsLabel, row, 0);
     gridLayout->addWidget(m_drawTypeComboBox, row, 1);
     row++;
+    gridLayout->addWidget(coloringLabel, row, 0);
+    gridLayout->addWidget(m_coloringTypeComboBox->getWidget(), row, 1);
+    row++;
     gridLayout->addWidget(lineWidthLabel, row, 0);
     gridLayout->addWidget(m_lineWidthSpinBox, row, 1);
     row++;
@@ -238,6 +250,7 @@ BorderSelectionViewController::processAttributesChanges()
     const int selectedDrawTypeIndex = m_drawTypeComboBox->currentIndex();
     const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
     const BorderDrawingTypeEnum::Enum selectedDrawingType = static_cast<BorderDrawingTypeEnum::Enum>(drawTypeInteger);
+    const FeatureColoringTypeEnum::Enum selectedColoringType = m_coloringTypeComboBox->getSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>();
 
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -256,6 +269,9 @@ BorderSelectionViewController::processAttributesChanges()
     dpb->setDrawingType(displayGroup,
                         browserTabIndex,
                         selectedDrawingType);
+    dpb->setColoringType(displayGroup,
+                         browserTabIndex,
+                         selectedColoringType);
     dpb->setLineWidth(displayGroup,
                       browserTabIndex,
                       m_lineWidthSpinBox->value());
@@ -357,6 +373,8 @@ BorderSelectionViewController::updateBorderViewController()
     }
     m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
     
+    m_coloringTypeComboBox->setSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>(dpb->getColoringType(displayGroup,
+                                                                                                                         browserTabIndex));
     m_lineWidthSpinBox->blockSignals(true);
     m_lineWidthSpinBox->setValue(dpb->getLineWidth(displayGroup,
                                                    browserTabIndex));

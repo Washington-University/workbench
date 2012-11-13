@@ -109,7 +109,7 @@ Focus::clear()
 {
     m_area = "";
     m_className = "";
-    m_color = CaretColorEnum::CLASS;
+    m_color = CaretColorEnum::BLACK;
     m_comment = "";
     m_extent = 0.0;
     m_geography = "";
@@ -872,7 +872,7 @@ Focus::setElementFromText(const AString& elementName,
         bool isValid = false;
         m_color = CaretColorEnum::fromName(textValue, &isValid);
         if (isValid == false) {
-            m_color = CaretColorEnum::CLASS;
+            m_color = CaretColorEnum::BLACK;
         }
     }
     else if (elementName == Focus::XML_TAG_COMMENT) {

@@ -43,19 +43,14 @@ using namespace caret;
  * Constructor.
  * @param parent
  *     Parent object. 
- * @param options
- *     Controls inclusion of special colors by bitwise or'ing the 
- *     CaretColorEnum::Options enumerated type values.
  */
-CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent,
-                                                               const uint64_t options)
+CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
 : WuQWidget(parent)
 {
     this->colorComboBox = new QComboBox();
     
     std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getAllEnums(colors,
-                                options);
+    CaretColorEnum::getAllEnums(colors);
     
     const int32_t numColors = static_cast<int32_t>(colors.size());
     for (int32_t i = 0; i < numColors; i++) {

@@ -1967,7 +1967,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     }
     const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
                                                                  this->windowTabIndex) / 2.0;
-    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
@@ -2016,7 +2016,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             }
             
             switch (fociColoringType) {
-                case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
@@ -2028,7 +2028,16 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     focus->getClassRgba(rgba);
                     break;
-                case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
+                {
+                    const float* colorRGBA = CaretColorEnum::toRGB(focus->getColor());
+                    rgba[0] = colorRGBA[0];
+                    rgba[1] = colorRGBA[1];
+                    rgba[2] = colorRGBA[2];
+                    rgba[3] = colorRGBA[3];
+                }
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
@@ -2167,6 +2176,8 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         return;
     }
     
+    const FeatureColoringTypeEnum::Enum borderColoringType = borderDisplayProperties->getColoringType(displayGroup,
+                                                                                                      this->windowTabIndex);
     const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                           this->windowTabIndex);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
@@ -2180,6 +2191,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         }
         
         const GiftiLabelTable* classColorTable = borderFile->getClassColorTable();
+        const GiftiLabelTable* nameColorTable  = borderFile->getNameColorTable();
         
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
@@ -2205,30 +2217,43 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 //            }
             
             float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
-            
-            const CaretColorEnum::Enum colorEnum = border->getColor();
-            if (colorEnum == CaretColorEnum::CLASS) {
-                if (border->isClassRgbaValid() == false) {
-                    const AString classColorName = border->getClassName();
-                    const GiftiLabel* classColorLabel = classColorTable->getLabel(classColorName);
-                    if (classColorLabel != NULL) {
-                        border->setClassRgba(classColorLabel->getColor());
+            switch (borderColoringType) {
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
+                    if (border->isClassRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(border->getClassName());
+                        if (colorLabel != NULL) {
+                            border->setClassRgba(colorLabel->getColor());
+                        }
+                        else {
+                            border->setClassRgba(rgba);
+                        }
                     }
-                }
-                
-                if (border->isClassRgbaValid()) {
                     border->getClassRgba(rgba);
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
+                {
+                    const float* colorRGBA = CaretColorEnum::toRGB(border->getColor());
+                    rgba[0] = colorRGBA[0];
+                    rgba[1] = colorRGBA[1];
+                    rgba[2] = colorRGBA[2];
+                    rgba[3] = colorRGBA[3];
                 }
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
+                    if (border->isNameRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(border->getName());
+                        if (colorLabel != NULL) {
+                            border->setNameRgba(colorLabel->getColor());
+                        }
+                        else {
+                            border->setNameRgba(rgba);
+                        }
+                    }
+                    border->getNameRgba(rgba);
+                    break;
             }
-            else {
-                const float* colorRGB = CaretColorEnum::toRGB(border->getColor());
-                rgba[0] = colorRGB[0];
-                rgba[1] = colorRGB[1];
-                rgba[2] = colorRGB[2];
-            }
-            
             glColor3fv(rgba);
-            
+                        
             this->drawBorder(surface, 
                              border,
                              i,
@@ -4420,7 +4445,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
     }
     const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
                                                                  this->windowTabIndex) / 2.0;
-    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     
     bool drawAsSpheres = false;
@@ -4477,7 +4502,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             
             float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
             switch (fociColoringType) {
-                case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
@@ -4489,7 +4514,16 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                     }
                     focus->getClassRgba(rgba);
                     break;
-                case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
+                {
+                    const float* colorRGBA = CaretColorEnum::toRGB(focus->getColor());
+                    rgba[0] = colorRGBA[0];
+                    rgba[1] = colorRGBA[1];
+                    rgba[2] = colorRGBA[2];
+                    rgba[3] = colorRGBA[3];
+                }
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {

@@ -70,8 +70,7 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
     m_previousSelectedItemIndex = -1;
     
     std::vector<CaretColorEnum::Enum> allColors;
-    CaretColorEnum::getAllEnums(allColors, 
-                                0);
+    CaretColorEnum::getAllEnums(allColors);
     for (std::vector<CaretColorEnum::Enum>::iterator iter = allColors.begin();
          iter != allColors.end();
          iter++) {
@@ -346,7 +345,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::Item(const CaretColorEnum::Enum color
  */
 VolumeSurfaceOutlineColorOrTabModel::Item::Item(const int32_t browserTabIndex)
 {
-    m_color = CaretColorEnum::CLASS;
+    m_color = CaretColorEnum::BLACK;
     m_browserTabIndex = browserTabIndex;
     m_itemType = ITEM_TYPE_BROWSER_TAB;
 }

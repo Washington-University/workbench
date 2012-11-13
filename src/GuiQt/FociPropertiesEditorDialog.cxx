@@ -243,13 +243,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    m_colorSelectionComboBox = new CaretColorEnumComboBox(this,
-                                                             CaretColorEnum::OPTION_INCLUDE_CLASS);
-    WuQtUtilities::setToolTipAndStatusTip(m_colorSelectionComboBox->getWidget(), 
-                                          "If the color is set to \"CLASS\", the focus is colored\n"
-                                          "using the color associated with the focus's class.\n"
-                                          "Otherwise, if a color name is selected, it is used\n"
-                                          "to color the focus.");
+    m_colorSelectionComboBox = new CaretColorEnumComboBox(this);
 
     /*
      * Class
@@ -549,15 +543,6 @@ FociPropertiesEditorDialog::okButtonClicked()
         errorMessage += ("Name is invalid.\n");
     }
     const QString className = m_classNameComboBox->currentText().trimmed();
-    const CaretColorEnum::Enum color = m_colorSelectionComboBox->getSelectedColor();
-    
-    if (color == CaretColorEnum::CLASS) {
-        if (className.isEmpty()) {
-            errorMessage += ("Color is set to class but no class is selected.  "
-                             "Either change the color or add a class using "
-                             "the Edit button to the right of the class control.\n");
-        }
-    }
     
     if ((m_xCoordSpinBox->value() == 0.0)
         && (m_yCoordSpinBox->value() == 0.0)
