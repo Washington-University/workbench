@@ -56,8 +56,8 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     ret->addCiftiOutputParameter(1, "cifti-out", "the output cifti file");
     
     OptionalParameter* volumeOpt = ret->createOptionalParameter(2, "-volume", "volume component");
-    volumeOpt->addVolumeParameter(1, "label-volume", "volume file containing all volume labels");
-    volumeOpt->addVolumeParameter(2, "parcel-volume", "label volume file containing the parcels desired for cifti structures");
+    volumeOpt->addVolumeParameter(1, "label-volume", "volume file containing the label data");
+    volumeOpt->addVolumeParameter(2, "parcel-volume", "label volume file with cifti structure names to define the volume parcels");
     
     OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for left surface");
     leftLabelOpt->addLabelParameter(1, "label", "the label file");
@@ -75,7 +75,12 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
-        "At least one component must be specified.  The parcel volume should have some of the label names from this list, all other label names will be ignored:\n";
+        "At least one component must be specified.\n\n" +
+        "The -volume option of -cifti-create-label requires two volume arguments, " +
+        "the label-volume argument contains all labels you want to display (e.g. nuclei of the thalamus), " +
+        "whereas the parcel-volume argument includes all CIFTI structures you want to include data within (e.g. THALAMUS_LEFT, THALAMUS_RIGHT).  " +
+        "If you just want the labels in voxels to be the structure names, you may use the same file for both arguments.  " +
+        "The parcel-volume must use some of the label names from this list, all other label names in the parcel-volume will be ignored:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
