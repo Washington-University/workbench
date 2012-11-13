@@ -76,6 +76,7 @@ namespace caret {
             std::vector<ET> allEnums;
             CT::getAllEnums(allEnums);
             
+            m_itemComboBox->blockSignals(true);
             const int32_t numColors = static_cast<int32_t>(allEnums.size());
             for (int32_t i = 0; i < numColors; i++) {
                 const ET enumValue = allEnums[i];
@@ -85,6 +86,7 @@ namespace caret {
                 m_itemComboBox->setItemData(indx,
                                             CT::toIntegerCode(enumValue));
             }
+            m_itemComboBox->blockSignals(false);
         }
         
         /**
@@ -110,7 +112,9 @@ namespace caret {
                 const int32_t integerCode = m_itemComboBox->itemData(i).toInt();
                 ET enumValue = CT::fromIntegerCode(integerCode, NULL);
                 if (enumValue == item) {
+                    m_itemComboBox->blockSignals(true);
                     m_itemComboBox->setCurrentIndex(i);
+                    m_itemComboBox->blockSignals(false);
                     break;
                 }
             }
