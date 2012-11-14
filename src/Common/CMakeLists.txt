@@ -34,6 +34,8 @@ CaretAssert.h
 CaretAssertion.h
 CaretColorEnum.h
 CaretCommandLine.h
+CaretCompact3DLookup.h
+CaretCompactLookup.h
 CaretException.h
 CaretFunctionName.h
 CaretHeap.h

@@ -288,10 +288,10 @@ void CiftiXMLWriter::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement
     {
         xml.writeStartElement("VoxelIndicesIJK");
         xml.writeCharacters(AString::number(parcel.m_voxelIndicesIJK[0]));
-        int state = 1;
+        int state = 0;
         for (int i = 1; i < numVoxInds; ++i)
         {
-            if (state >= 3)
+            if (state >= 2)
             {
                 state = 0;
                 xml.writeCharacters("\n");

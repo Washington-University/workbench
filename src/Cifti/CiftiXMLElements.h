@@ -29,6 +29,7 @@
 #include <map>
 #include "AString.h"
 #include "CaretPointer.h"
+#include "CaretCompact3DLookup.h"
 #include "nifti2.h"
 #include "StructureEnum.h"
 /* Cifti Defines */
@@ -75,6 +76,8 @@ enum IndicesMapToDataType {
 
 typedef int voxelIndexType;
 
+class CiftiMatrixIndicesMapElement;
+
 /// Cifti Brain Model XML Element
 class CiftiBrainModelElement {
 public:
@@ -89,7 +92,7 @@ public:
     std::vector<int64_t> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
     std::vector<voxelIndexType> m_voxelIndicesIJK; /*!<  Identifies the voxels that model a brain structure. */
     std::vector<int64_t> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
-    void setupLookup();//convenience function to populate lookup
+    void setupLookup(CiftiMatrixIndicesMapElement& myMap);//convenience function to populate lookup
     bool operator==(const CiftiBrainModelElement& rhs) const;
 };
 
@@ -156,6 +159,7 @@ public:
     int m_timeStepUnits;/*!< Indicates units of TimeStep. */
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
+    CaretCompact3DLookup<int64_t> m_voxelToIndexLookup;//make one unified lookup rather than separate lookups per volume structure
     std::vector<CiftiNamedMapElement> m_namedMaps;
     std::vector<CiftiParcelElement> m_parcels;
     std::vector<CiftiParcelSurfaceElement> m_parcelSurfaces;

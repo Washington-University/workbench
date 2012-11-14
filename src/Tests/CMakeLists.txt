@@ -22,6 +22,7 @@ ADD_LIBRARY(Tests
 CiftiFileTest.h
 HttpTest.h
 HeapTest.h
+LookupTest.h
 MathExpressionTest.h
 NiftiTest.h
 NiftiMatrixTest.h
@@ -39,6 +40,7 @@ XnatTest.h
 CiftiFileTest.cxx
 HttpTest.cxx
 HeapTest.cxx
+LookupTest.cxx
 MathExpressionTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx

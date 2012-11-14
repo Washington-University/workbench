@@ -367,6 +367,16 @@ void CiftiXMLReader::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixInd
                     xml.raiseError("Surface element missing required attribute 'SurfaceNumberOfNodes'");
                 }
                 matrixIndicesMap.m_parcelSurfaces.push_back(tempParcelSurf);
+                while (!xml.atEnd() && xml.readNext() != QXmlStreamReader::EndElement);
+                if (xml.atEnd())
+                {
+                    xml.raiseError("End element for Surface not found");
+                }
+                if (xml.name() != "Surface")
+                {
+                    xml.raiseError("Found incorrect end element name: " + xml.name().toString());
+                }
+                xml.readNext();
             } else if (elementName == "Parcel") {
                 if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS)
                 {
@@ -375,6 +385,7 @@ void CiftiXMLReader::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixInd
                 }
                 matrixIndicesMap.m_parcels.push_back(CiftiParcelElement());
                 parseParcel(xml, matrixIndicesMap.m_parcels.back());
+                xml.readNext();
             } else xml.raiseError("unknown element in MatrixIndicesMap: " + elementName);
         }
     }

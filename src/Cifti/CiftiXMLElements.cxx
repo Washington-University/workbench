@@ -112,7 +112,7 @@ AString CiftiVersion::toString() const
     return ret;
 }
 
-void CiftiBrainModelElement::setupLookup()
+void CiftiBrainModelElement::setupLookup(CiftiMatrixIndicesMapElement& myMap)
 {
     if (m_modelType == CIFTI_MODEL_TYPE_SURFACE)
     {
@@ -143,6 +143,14 @@ void CiftiBrainModelElement::setupLookup()
             }
         }
     }
+    if (m_modelType == CIFTI_MODEL_TYPE_VOXELS)
+    {//we need access to the Volume element to support the "empty list" behavior, but since it is never used, and will be removed from the spec, ignore it
+        int64_t voxListSize = (int64_t)m_voxelIndicesIJK.size();
+        for (int64_t i = 0; i < voxListSize; i += 3)
+        {
+            myMap.m_voxelToIndexLookup.at(m_voxelIndicesIJK[i], m_voxelIndicesIJK[i + 1], m_voxelIndicesIJK[i + 2]) = m_indexOffset + (i / 3);
+        }
+    }
 }
 
 void CiftiMatrixIndicesMapElement::setupLookup()
@@ -152,7 +160,7 @@ void CiftiMatrixIndicesMapElement::setupLookup()
         int numModels = (int)m_brainModels.size();
         for (int i = 0; i < numModels; ++i)
         {
-            m_brainModels[i].setupLookup();
+            m_brainModels[i].setupLookup(*this);
         }
     }
     if (m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS) return;
@@ -200,7 +208,7 @@ void CiftiMatrixIndicesMapElement::setupLookup()
             int numNodes = myNodeElement.m_nodes.size();
             for (int k = 0; k < numNodes; ++k)
             {
-                int64_t node = myNodeElement.m_nodes[i];
+                int64_t node = myNodeElement.m_nodes[k];
                 if (node < 0 || node >= mySurf.m_numNodes)
                 {
                     throw CiftiFileException("node number " + AString::number(node) + " is invalid for surface " + StructureEnum::toName(myStruct));
@@ -211,6 +219,18 @@ void CiftiMatrixIndicesMapElement::setupLookup()
                 }
                 mySurf.m_lookup[node] = i;
             }
+        }
+        int64_t voxListSize = (int64_t)myParcel.m_voxelIndicesIJK.size();
+        for (int64_t j = 0; j < voxListSize; j += 3)
+        {
+            int64_t* test = m_voxelToIndexLookup.find(myParcel.m_voxelIndicesIJK[j], myParcel.m_voxelIndicesIJK[j + 1], myParcel.m_voxelIndicesIJK[j + 2]);
+            if (test != NULL && *test != i)
+            {
+                throw CiftiFileException("voxel " + AString::number(myParcel.m_voxelIndicesIJK[j]) + ", " +
+                                                    AString::number(myParcel.m_voxelIndicesIJK[j + 1]) + ", " +
+                                                    AString::number(myParcel.m_voxelIndicesIJK[j + 2]) + " used by more than one parcel");
+            }
+            m_voxelToIndexLookup.at(myParcel.m_voxelIndicesIJK[j], myParcel.m_voxelIndicesIJK[j + 1], myParcel.m_voxelIndicesIJK[j + 2]) = i;
         }
     }
 }

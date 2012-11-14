@@ -1274,14 +1274,17 @@ GiftiLabelTable::readFromXmlString(const AString& /*s*/)
 void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
 {
     clear();
-    if (xml.name() != GiftiXmlElements::TAG_LABEL_TABLE || !xml.isStartElement())
+    if (!xml.isStartElement() || xml.name() != GiftiXmlElements::TAG_LABEL_TABLE)
     {//TODO: try to recover instead of erroring?
         xml.raiseError("tried to read GiftiLabelTable when current element is not " + GiftiXmlElements::TAG_LABEL_TABLE);
         return;
     }
-    xml.readNext();
-    while (!xml.hasError() && xml.isStartElement() && xml.name() == GiftiXmlElements::TAG_LABEL)
+    while (xml.readNextStartElement() && !xml.atEnd())
     {
+        if (xml.name() != GiftiXmlElements::TAG_LABEL)
+        {
+            xml.raiseError("unexpected element '" + xml.name().toString() + "' encountered in " + GiftiXmlElements::TAG_LABEL_TABLE);
+        }
         int key;
         float rgba[4];
         QXmlStreamAttributes myAttrs = xml.attributes();

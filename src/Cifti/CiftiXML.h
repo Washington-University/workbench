@@ -155,16 +155,16 @@ namespace caret {
         ///get the column index for a node, returns -1 if it doesn't find a matching mapping
         int64_t getColumnIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         
-        ///SLOW! - get the row index for a voxel, returns -1 if it doesn't find a matching mapping
+        ///get the row index for a voxel, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForVoxel(const int64_t* ijk) const;
         
-        ///SLOW! - get the column index for a voxel, returns -1 if it doesn't find a matching mapping
+        ///get the column index for a voxel, returns -1 if it doesn't find a matching mapping
         int64_t getColumnIndexForVoxel(const int64_t* ijk) const;
         
-        ///SLOW! - get the column index for a voxel coordinate, returns -1 if the closest indexes have no cifti data
+        ///get the column index for a voxel coordinate, returns -1 if the closest indexes have no cifti data
         int64_t getRowIndexForVoxelCoordinate(const float* xyz) const;
         
-        ///SLOW! - get the column index for a voxel coordinate, returns -1 if the closest indexes have no cifti data
+        ///get the column index for a voxel coordinate, returns -1 if the closest indexes have no cifti data
         int64_t getColumnIndexForVoxelCoordinate(const float* xyz) const;
         
         ///get row index for a timepoint
@@ -179,11 +179,17 @@ namespace caret {
         ///get the mapping for a surface in columns, returns false and empty vector if not found
         bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const;
             
+        ///get the mapping for a surface in columns, returns false and empty vector if not found
+        bool getSurfaceMap(const int& direction, std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const;
+            
         ///get the mapping for a volume in rows, returns false and empty vector if not found
         bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut) const;
         
         ///get the mapping for a volume in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
+            
+        ///get the mapping for a volume in columns, returns false and empty vector if not found
+        bool getVolumeMap(const int& direction, std::vector<CiftiVolumeMap>& mappingOut) const;
             
         ///get the mapping for a volume in rows, returns false and empty vector if not found
         bool getVolumeStructureMapForRows(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
@@ -208,6 +214,9 @@ namespace caret {
         
         ///get the original number of nodes of the surfaces used to make this cifti, for columns
         int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
+        
+        ///get the original number of nodes of the surfaces used to make this cifti along a direction
+        int64_t getSurfaceNumberOfNodes(const int& direction, const StructureEnum::Enum& structure) const;
         
         ///get the timestep for rows, returns false if not timeseries
         bool getRowTimestep(float& seconds) const;
@@ -239,10 +248,10 @@ namespace caret {
         ///get the column parcel for a node
         int64_t getColumnParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         
-        ///SLOW! - get the row parcel for a voxel
+        ///get the row parcel for a voxel
         int64_t getRowParcelForVoxel(const int64_t* ijk) const;
         
-        ///SLOW! - get the row parcel for a voxel
+        ///get the row parcel for a voxel
         int64_t getColumnParcelForVoxel(const int64_t* ijk) const;
         
         ///set the timestep for rows, returns false if not timeseries
@@ -290,14 +299,20 @@ namespace caret {
         ///add a surface to the list of parcel surfaces for rows
         bool addParcelSurfaceToRows(const int& numberOfNodes, const StructureEnum::Enum& structure);
         
-        ///add a surface to the list of parcel surfaces for rows
+        ///add a surface to the list of parcel surfaces for columns
         bool addParcelSurfaceToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure);
+        
+        ///add a surface to the list of parcel surfaces
+        bool addParcelSurface(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure);
         
         ///add a parcel to rows
         bool addParcelToRows(const CiftiParcelElement& parcel);
         
         ///add a parcel to columns
         bool addParcelToColumns(const CiftiParcelElement& parcel);
+        
+        ///add a parcel to columns
+        bool addParcel(const int& direction, const CiftiParcelElement& parcel);
         
         ///set rows to be of type timepoints
         void resetRowsToTimepoints(const float& timestep, const int& numTimepoints, const float& timestart = 0.0f);
@@ -365,6 +380,9 @@ namespace caret {
         ///get what mapping type the columns use
         IndicesMapToDataType getColumnMappingType() const;
         
+        ///get what mapping type a dimension uses
+        IndicesMapToDataType getMappingType(const int& direction) const;
+        
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
         
@@ -380,8 +398,10 @@ namespace caret {
         ///check what types of data it has
         bool hasRowVolumeData() const;
         bool hasColumnVolumeData() const;
+        bool hasVolumeData(const int& direction) const;
         bool hasRowSurfaceData(const StructureEnum::Enum& structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
+        bool hasSurfaceData(const int& direction, const StructureEnum::Enum& structure) const;
         
         ///comparison
         bool mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection) const;
@@ -435,14 +455,11 @@ namespace caret {
         bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
         ///some boilerplate to retrieve mappings
-        bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
-        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const int& myMapIndex) const;
         bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
         bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
         bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
         
         ///boilerplate for has data
-        bool hasVolumeData(const int& myMapIndex) const;
         
         ///boilerplate to create mappings
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);

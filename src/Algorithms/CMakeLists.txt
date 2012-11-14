@@ -27,6 +27,7 @@ AlgorithmCiftiCreateDenseTimeseries.h
 AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
+AlgorithmCiftiParcellate.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
@@ -57,6 +58,7 @@ AlgorithmCiftiCreateDenseTimeseries.cxx
 AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
+AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx

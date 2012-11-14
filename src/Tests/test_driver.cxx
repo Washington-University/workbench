@@ -36,6 +36,7 @@
 #include "CiftiFileTest.h"
 #include "HttpTest.h"
 #include "HeapTest.h"
+#include "LookupTest.h"
 #include "MathExpressionTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
@@ -74,6 +75,7 @@ int main(int argc, char** argv)
         mytests.push_back(new CiftiFileTest("ciftifile"));
         mytests.push_back(new HeapTest("heap"));
         mytests.push_back(new HttpTest("http"));
+        mytests.push_back(new LookupTest("lookup"));
         mytests.push_back(new MathExpressionTest("mathexpression"));
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));
