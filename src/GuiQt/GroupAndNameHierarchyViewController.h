@@ -108,6 +108,10 @@ namespace caret {
         
         DisplayGroupEnum::Enum m_displayGroup;
         
+        DisplayGroupEnum::Enum m_previousDisplayGroup;
+        
+        int32_t m_previousBrowserTabIndex;
+        
         bool m_selectionInvalidatesSurfaceNodeColoring;
         
         bool m_ignoreUpdates;

@@ -84,6 +84,8 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
 : QWidget(parent)
 {
     m_displayGroup = DisplayGroupEnum::getDefaultValue();
+    m_previousDisplayGroup = DisplayGroupEnum::getDefaultValue();
+    m_previousBrowserTabIndex = -1;
     m_browserWindowIndex = browserWindowIndex;
     m_ignoreUpdates = false;
     
@@ -453,14 +455,36 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     /*
-     * See if an update is needed.
+     * May need an update
      */
     bool needUpdate = false;
     int32_t numberOfModels = static_cast<int32_t>(classAndNameHierarchyModels.size());
+    
+    /*
+     * Has the number of models changed?
+     */
     if (numberOfModels != static_cast<int32_t>(this->m_treeWidgetItems.size())) {
         needUpdate = true;
     }
+    else if (m_displayGroup != m_previousDisplayGroup) {
+        needUpdate = true;
+    }
+    else if (browserTabIndex != m_previousBrowserTabIndex) {
+        needUpdate = true;
+    }
     else {
+        /*
+         * Have the displayed models changed?
+         */
+        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+            if (classAndNameHierarchyModels[iModel] != this->m_treeWidgetItems[iModel]->getClassAndNameHierarchyModel()) {
+                needUpdate = true;
+                break;
+            }
+        }
+        /*
+         * Has the model's content been altered?
+         */
         for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
             if (classAndNameHierarchyModels[iModel]->needsUserInterfaceUpdate(m_displayGroup,
                                                                               browserTabIndex)) {
@@ -493,7 +517,9 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
         m_treeWidgetItems[iModel]->updateSelections(m_displayGroup);
     }
-    
+
+    m_previousBrowserTabIndex = browserTabIndex;
+    m_previousDisplayGroup = m_displayGroup;
     m_ignoreUpdates = false;
     m_modelTreeWidget->blockSignals(false);
 }
