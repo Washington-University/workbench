@@ -352,24 +352,37 @@ void CiftiXML::rootChanged()
 
 int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const
 {
-    const CiftiBrainModelElement* myModel = findSurfaceModel(m_dimToMapLookup[1], structure);
-    if (myModel == NULL) return -1;//should this return 0? surfaces shouldn't have 0 nodes, so it seems like it would also make sense as an error value
-    return myModel->m_surfaceNumberOfNodes;
+    return getSurfaceNumberOfNodes(ALONG_COLUMN, structure);
 }
 
 int64_t CiftiXML::getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const
 {
-    const CiftiBrainModelElement* myModel = findSurfaceModel(m_dimToMapLookup[0], structure);
-    if (myModel == NULL) return -1;
-    return myModel->m_surfaceNumberOfNodes;
+    return getSurfaceNumberOfNodes(ALONG_ROW, structure);
 }
 
 int64_t CiftiXML::getSurfaceNumberOfNodes(const int& direction, const StructureEnum::Enum& structure) const
 {
     if (direction < 0 || direction >= (int)m_dimToMapLookup.size()) return -1;
-    const CiftiBrainModelElement* myModel = findSurfaceModel(m_dimToMapLookup[direction], structure);
-    if (myModel == NULL) return -1;
-    return myModel->m_surfaceNumberOfNodes;
+    if (m_root.m_matrices.size() == 0) return -1;
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
+    const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]];
+    IndicesMapToDataType myType = myMap.m_indicesMapToDataType;
+    if (myType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        const CiftiBrainModelElement* myModel = findSurfaceModel(m_dimToMapLookup[direction], structure);
+        if (myModel == NULL) return -1;
+        return myModel->m_surfaceNumberOfNodes;
+    } else if (myType == CIFTI_INDEX_TYPE_PARCELS) {
+        int numSurfs = (int)myMap.m_parcelSurfaces.size();
+        for (int i = 0; i < numSurfs; ++i)
+        {
+            if (myMap.m_parcelSurfaces[i].m_structure == structure)
+            {
+                return myMap.m_parcelSurfaces[i].m_numNodes;
+            }
+        }
+    }
+    return -1;
 }
 
 int64_t CiftiXML::getVolumeIndex(const float* xyz, const int& myMapIndex) const
