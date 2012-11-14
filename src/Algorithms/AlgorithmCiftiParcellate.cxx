@@ -235,7 +235,7 @@ void AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, 
                     int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
                     if (labelKey != unusedKey)
                     {
-                        int tempVal;
+                        int tempVal = -1;
                         map<int, pair<CiftiParcelElement, int> >::iterator iter = usedKeys.find(labelKey);
                         if (iter == usedKeys.end())
                         {
@@ -289,7 +289,7 @@ void AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, 
             int labelKey = (int)floor(labelData[labelIndex] + 0.5f);
             if (labelKey != unusedKey)
             {
-                int tempVal;
+                int tempVal = -1;
                 map<int, pair<CiftiParcelElement, int> >::iterator iter = usedKeys.find(labelKey);
                 if (iter == usedKeys.end())
                 {
