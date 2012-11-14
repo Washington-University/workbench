@@ -43,6 +43,7 @@ class QDialog;
 class QWebView;
 class QWidget;
 
+class MovieDialog;
 namespace caret {
     
     class Brain;
@@ -52,8 +53,7 @@ namespace caret {
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
-    class MapScalarDataColorMappingEditorDialog;
-    class MovieDialog1;
+    class MapScalarDataColorMappingEditorDialog;    
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -189,7 +189,7 @@ namespace caret {
         
         ImageCaptureDialog* imageCaptureDialog;
 
-        MovieDialog1* movieDialog;
+        MovieDialog* movieDialog;
         
         PreferencesDialog* preferencesDialog;       
         

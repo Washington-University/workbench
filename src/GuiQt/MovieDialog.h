@@ -4,19 +4,19 @@
 #include <QDialog>
 
 namespace Ui {
-class movieDialog;
+class MovieDialog;
 }
 
-class movieDialog : public QDialog
+class MovieDialog : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit movieDialog(QWidget *parent = 0);
-    ~movieDialog();
+    explicit MovieDialog(QWidget *parent = 0);
+    ~MovieDialog();
     
 private:
-    Ui::movieDialog *ui;
+    Ui::MovieDialog *ui;
 };
 
 #endif // MOVIEDIALOG_H

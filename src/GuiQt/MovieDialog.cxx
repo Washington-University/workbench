@@ -1,14 +1,14 @@
 #include "MovieDialog.h"
 #include "ui_MovieDialog.h"
 
-movieDialog::movieDialog(QWidget *parent) :
+MovieDialog::MovieDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::movieDialog)
+    ui(new Ui::MovieDialog)
 {
     ui->setupUi(this);
 }
 
-movieDialog::~movieDialog()
+MovieDialog::~MovieDialog()
 {
     delete ui;
 }

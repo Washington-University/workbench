@@ -56,7 +56,7 @@
 #include "InformationDisplayDialog.h"
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
-#include "MovieDialog1.h"
+#include "MovieDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -975,11 +975,11 @@ void
 GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
 {
     if (this->movieDialog == NULL) {
-        this->movieDialog = new MovieDialog1(browserWindow);
+        this->movieDialog = new MovieDialog(browserWindow);
         this->nonModalDialogs.push_back(this->movieDialog);
     }
-    this->movieDialog->updateDialog();
-    this->movieDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
+    //this->movieDialog->updateDialog();
+    //this->movieDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     this->movieDialog->setVisible(true);
     this->movieDialog->show();
     this->movieDialog->activateWindow();
