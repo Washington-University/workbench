@@ -63,6 +63,7 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
 
     }
     
+    setSelectedColor(CaretColorEnum::BLACK);
     QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(colorComboBoxIndexChanged(int)));
 }
@@ -109,7 +110,9 @@ CaretColorEnumComboBox::setSelectedColor(const CaretColorEnum::Enum color)
         const int32_t integerCode = this->colorComboBox->itemData(i).toInt();
         CaretColorEnum::Enum c = CaretColorEnum::fromIntegerCode(integerCode, NULL);
         if (c == color) {
+            this->colorComboBox->blockSignals(true);
             this->colorComboBox->setCurrentIndex(i);
+            this->colorComboBox->blockSignals(false);
             break;
         }
     }
