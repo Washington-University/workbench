@@ -91,8 +91,9 @@ using namespace caret;
 OverlaySet::OverlaySet(BrainStructure* brainStructure)
 : CaretObject()
 {
+    m_sceneAssistant = NULL;
     initializeOverlaySet(NULL,
-                               brainStructure);
+                         brainStructure);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         m_overlays[i] = new Overlay(brainStructure);
@@ -107,6 +108,7 @@ OverlaySet::OverlaySet(BrainStructure* brainStructure)
 OverlaySet::OverlaySet(ModelVolume* modelDisplayControllerVolume)
 : CaretObject()
 {
+    m_sceneAssistant = NULL;
     initializeOverlaySet(modelDisplayControllerVolume,
                                NULL);
     
@@ -123,6 +125,7 @@ OverlaySet::OverlaySet(ModelVolume* modelDisplayControllerVolume)
 OverlaySet::OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
 : CaretObject()
 {
+    m_sceneAssistant = NULL;
     initializeOverlaySet(modelDisplayControllerSurfaceMontage,
                                NULL);
     
@@ -139,6 +142,7 @@ OverlaySet::OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage
 OverlaySet::OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain)
 : CaretObject()
 {
+    m_sceneAssistant = NULL;
     initializeOverlaySet(modelDisplayControllerWholeBrain,
                                NULL);
     
@@ -155,6 +159,7 @@ OverlaySet::OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain)
 OverlaySet::OverlaySet(ModelYokingGroup* modelDisplayControllerYoking)
 : CaretObject()
 {
+    m_sceneAssistant = NULL;
     initializeOverlaySet(modelDisplayControllerYoking,
                                NULL);
     
@@ -215,6 +220,9 @@ OverlaySet::initializeOverlaySet(Model* modelDisplayController,
     
     m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     
+    if (m_sceneAssistant != NULL) {
+        delete m_sceneAssistant;
+    }
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_numberOfDisplayedOverlays", 
                           &m_numberOfDisplayedOverlays);
