@@ -33,6 +33,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QStringListModel;
 
 namespace caret {
 
@@ -100,6 +101,9 @@ namespace caret {
         QComboBox* borderFileSelectionComboBox;
         
         QLineEdit* nameLineEdit;
+        
+        QStringList m_nameCompleterStringList;
+        QStringListModel* m_nameCompleterStringListModel;
         
         QCheckBox* closedCheckBox;
         

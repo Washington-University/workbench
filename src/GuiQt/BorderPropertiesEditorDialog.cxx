@@ -25,10 +25,12 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCompleter>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QStringListModel>
 #include <QToolButton>
 
 #define __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
@@ -162,7 +164,6 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      */
     QLabel* borderFileLabel = new QLabel("Border File");
     this->borderFileSelectionComboBox = new QComboBox();
-    this->loadBorderFileComboBox();
     WuQtUtilities::setToolTipAndStatusTip(this->borderFileSelectionComboBox, 
                                           "Selects an existing border file\n"
                                           "to which new borders are added.");
@@ -177,11 +178,21 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     newFileToolButton->setDefaultAction(newFileAction);
     
     /*
+     * Completer for name
+     */
+    m_nameCompleterStringListModel = new QStringListModel(this);
+    
+    /*
      * Name
      */
     QLabel* nameLabel = new QLabel("Name");
     this->nameLineEdit = new QLineEdit();
     this->nameLineEdit->setText(borderName);
+    QCompleter* nameCompleter = new QCompleter(m_nameCompleterStringListModel,
+                                               this);
+    nameCompleter->setCaseSensitivity(Qt::CaseSensitive);
+    nameCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
+    this->nameLineEdit->setCompleter(nameCompleter);
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
                                                                     "Add and/or edit name colors",
                                                                     this,
@@ -195,12 +206,6 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      */
     QLabel* colorLabel = new QLabel("Color");
     this->colorSelectionComboBox = new CaretColorEnumComboBox(this);
-    this->colorSelectionComboBox->setSelectedColor(borderColor);
-    WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionComboBox->getWidget(), 
-                                          "If the color is set to \"CLASS\", the border is colored\n"
-                                          "using the color associated with the border's class.\n"
-                                          "Otherwise, if a color name is selected, it is used\n"
-                                          "to color the border.");
 
     /*
      * Class
@@ -218,7 +223,6 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                                                                     SLOT(displayClassEditor()));
     QToolButton* displayClassEditorToolButton = new QToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
-    this->loadClassNameComboBox(className);
     
     /*
      * Closed
@@ -292,6 +296,9 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->closedCheckBox->setVisible(showClosedOptionFlag);
     this->reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
     
+    this->loadBorderFileComboBox();
+    this->loadClassNameComboBox(className);
+    
     /*
      * Set the widget for the dialog.
      */
@@ -346,6 +353,12 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
         }
     }
     this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+
+    const BorderFile* borderFile = getSelectedBorderFile();
+    if (borderFile != NULL) {
+        m_nameCompleterStringList = borderFile->getAllBorderNamesSorted();
+        m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
+    }
 }
 
 /**
@@ -549,6 +562,12 @@ BorderPropertiesEditorDialog::okButtonClicked()
         if (this->reversePointOrderCheckBox->isChecked()) {
             this->border->reverse();
         }
+    }
+    
+    if (m_nameCompleterStringList.contains(name) == false) {
+        m_nameCompleterStringList.append(name);
+        m_nameCompleterStringList.sort();
+        m_nameCompleterStringListModel->setStringList(m_nameCompleterStringList);
     }
     
     /*

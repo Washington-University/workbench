@@ -28,6 +28,7 @@
 #include <memory>
 
 #include <QFile>
+#include <QStringList>
 #include <QTextStream>
 
 #define __BORDER_FILE_DECLARE__
@@ -552,6 +553,30 @@ BorderFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
                                     rgba[2],
                                     rgba[3]);
     }
+}
+
+/**
+ * @return A string list containing all border names
+ * sorted in alphabetical order.
+ */
+QStringList
+BorderFile::getAllBorderNamesSorted() const
+{
+    std::set<QString> nameSet;
+    
+    const int32_t numFoci = getNumberOfBorders();
+    for (int32_t i = 0;i < numFoci; i++) {
+        nameSet.insert(m_borders[i]->getName());
+    }
+    
+    QStringList sl;
+    for (std::set<QString>::iterator iter = nameSet.begin();
+         iter != nameSet.end();
+         iter++) {
+        sl += *iter;
+    }
+    
+    return sl;
 }
 
 /**
