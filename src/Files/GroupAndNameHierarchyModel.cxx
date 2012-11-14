@@ -396,6 +396,17 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
             }
         }
         
+        /*
+         * Sort names in each group
+         */
+        std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
+        for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = groups.begin();
+             iter != groups.end();
+             iter++) {
+            GroupAndNameHierarchyItem* nameItem = *iter;
+            nameItem->sortDescendantsByName();
+        }
+        
         setUserInterfaceUpdateNeeded();
     }    
 }

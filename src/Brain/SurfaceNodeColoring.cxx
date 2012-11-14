@@ -428,7 +428,9 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
         }
     }
     
-    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::getDefaultValue();
+    const DisplayPropertiesLabels* dpl = brainStructure->getBrain()->getDisplayPropertiesLabels();
+    
+    DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
     LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
     if (displayPropertiesLabels != NULL) {
         displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
