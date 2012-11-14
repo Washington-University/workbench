@@ -54,10 +54,6 @@ namespace caret {
         
         virtual void clear();
         
-//        void removeUnusedNamesAndGroups(BorderFile* borderFile);
-//        
-//        void removeUnusedNamesAndGroups(FociFile* fociFile);
-        
         bool isGroupValid(const int32_t groupKey) const;
         
         void setAllSelected(const bool status);
@@ -74,43 +70,6 @@ namespace caret {
         
         void update(LabelFile* labelFile,
                     const bool forceUpdate);
-        
-//        std::vector<int32_t> getAllGroupKeysSortedByName() const;
-//        
-//        GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName);
-//        
-//        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupName(const AString& groupName) const;
-//        
-//        GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey);
-//        
-//        const GroupAndNameHierarchyGroup* getGroupSelectorForGroupKey(const int32_t groupKey) const;
-//        
-//        void addName(const AString& parentGroupName,
-//                     const AString& name,
-//                     int32_t& parentGroupKeyOut,
-//                     int32_t& nameKeyOut);
-//        
-//        void addGroup(GroupAndNameHierarchyGroup* group);
-//        
-//        bool isGroupSelected(const DisplayGroupEnum::Enum displayGroup,
-//                             const int32_t tabIndex,
-//                             const int32_t groupKey) const;
-//        
-//        void setGroupSelected(const DisplayGroupEnum::Enum displayGroup,
-//                              const int32_t tabIndex,
-//                              const int32_t groupKey,
-//                              const bool selected);
-//        
-//        bool isNameSelected(const DisplayGroupEnum::Enum displayGroup,
-//                            const int32_t tabIndex,
-//                            const int32_t parentGroupKey,
-//                            const int32_t nameKey) const;
-//
-//        void setNameSelected(const DisplayGroupEnum::Enum displayGroup,
-//                             const int32_t tabIndex,
-//                             const int32_t parentGroupKey,
-//                             const int32_t nameKey,
-//                             const bool selected);
         
         bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex) const;

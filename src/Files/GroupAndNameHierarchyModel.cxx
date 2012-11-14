@@ -276,48 +276,6 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
     }
 }
 
-///**
-// * Remove any unused names and groups.
-// * @param borderFile
-// *    Border file that contains names and groups.
-// */
-//void 
-//GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(BorderFile* borderFile)
-//{
-//    /*
-//     * Update with latest data.
-//     */ 
-//    this->update(borderFile,
-//                 true);
-//    
-//    /*
-//     * Remove unused groups.
-//     */
-//    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-//    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
-//        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
-//        if (groupSelector != NULL) {
-//            groupSelector->removeNamesWithCountersEqualZero();
-//            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
-//                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
-//                     iter != this->groupNameToGroupSelectorMap.end();
-//                     iter++) {
-//                    if (groupSelector == iter->second) {
-//                        this->groupNameToGroupSelectorMap.erase(iter);
-//                        break;
-//                    }
-//                }
-//                
-//                this->availableGroupKeys.push_front(groupKey);
-//                delete groupSelector;
-//                this->keyToGroupNameSelectorVector[groupKey] = NULL;
-//            }
-//        }
-//    }
-//    
-//    setUserInterfaceUpdateNeeded();
-//}
-
 /**
  * Update this group hierarchy with the label names
  * and maps (as group).  Groupes and names are done
@@ -438,109 +396,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
         }
         
         setUserInterfaceUpdateNeeded();
-    }
-    
-    
-//    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
-//    bool needToGenerateKeys = forceUpdate;
-//    
-////    setName(labelFile->getFileNameNoPath());
-//
-//    if (needToGenerateKeys == false) {
-//        /*
-//         * Check to see if any group (map) names have changed.
-//         */
-//        const int32_t numGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-//        if (labelFile->getNumberOfMaps()
-//            != numGroupes) {
-//            needToGenerateKeys = true;
-//        }
-//        else {
-//            for (int32_t i = 0; i < numGroupes; i++) {
-//                GroupAndNameHierarchyGroup* cs = this->keyToGroupNameSelectorVector[i];
-//                if (cs != NULL) {
-//                    if (labelFile->getMapName(i) != cs->getName()) {
-//                        needToGenerateKeys = true;
-//                        break;
-//                    }
-//                }
-//                else {
-//                    needToGenerateKeys = true;
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//    
-//    if (needToGenerateKeys) {
-//        /*
-//         * Clear everything
-//         */
-//        this->clear();
-//        
-//        /*
-//         * Names for missing group names or foci names.
-//         */
-//        const AString missingGroupName = "NoGroup";
-//        const AString missingName = "NoName";
-//        
-//        /*
-//         * Update with labels from maps
-//         */
-//        const int32_t numMaps = labelFile->getNumberOfMaps();
-//        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//            /*
-//             * Get the group.  If it is empty, use the default name.
-//             */
-//            AString theGroupName = labelFile->getMapName(iMap);
-//            if (theGroupName.isEmpty()) {
-//                theGroupName = missingGroupName;
-//            }
-//            
-//            /*
-//             * Create the group
-//             */
-//            GroupAndNameHierarchyGroupUserKey* groupSelector = new GroupAndNameHierarchyGroupUserKey(theGroupName,
-//                                                                                                   iMap);
-////            const int32_t numGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-////            CaretAssert(numGroupes == iMap);
-////            this->keyToGroupNameSelectorVector.push_back(groupSelector);
-//
-//            /*
-//             * The label table
-//             */
-//            const GiftiLabelTable* labelTable = labelFile->getLabelTable();
-//            
-//            /*
-//             * Get indices of labels used in this map
-//             */
-//            std::vector<int32_t> labelKeys = labelFile->getUniqueLabelKeysUsedInMap(iMap);
-//            
-//            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
-//            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
-//                const int32_t labelKey = labelKeys[iLabel];
-//                AString labelName = labelFile->getLabelTable()->getLabelName(labelKey);
-//                if (labelName.isEmpty()) {
-//                    labelName = missingName;
-//                }
-//                
-//                float rgba[4] = { 1.0, 1.0, 1.0, 1.0 };
-//                labelTable->getLabelColor(labelKey,
-//                                          rgba);
-//                
-//                groupSelector->addNameWithKey(labelName,
-//                                              labelKey,
-//                                              rgba);
-//            }
-//            
-//            this->addGroup(groupSelector);
-//        }
-//        
-//        setUserInterfaceUpdateNeeded();
-//    }
-//    
-//    
-////    std::cout << "LABELS: " << qPrintable(this->toString()) << std::endl;
+    }    
 }
 
 /**
@@ -659,48 +515,6 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
         std::cout << qPrintable(toString()) << std::endl;
     }
 }
-
-/**
- * Remove any unused names and groups.
- * @param fociFile
- *    Foci file that contains names and groups.
- */
-//void 
-//GroupAndNameHierarchyModel::removeUnusedNamesAndGroups(FociFile* fociFile)
-//{
-//    /*
-//     * Update with latest data.
-//     */ 
-//    this->update(fociFile,
-//                 true);
-//    
-//    /*
-//     * Remove unused groups.
-//     */
-//    const int32_t numberOfGroupes = static_cast<int32_t>(this->keyToGroupNameSelectorVector.size());
-//    for (int32_t groupKey = 0; groupKey < numberOfGroupes; groupKey++) {
-//        GroupAndNameHierarchyGroup* groupSelector = this->keyToGroupNameSelectorVector[groupKey];
-//        if (groupSelector != NULL) {
-//            groupSelector->removeNamesWithCountersEqualZero();
-//            if (groupSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
-//                for (std::map<AString, GroupAndNameHierarchyGroup*>::iterator iter = this->groupNameToGroupSelectorMap.begin();
-//                     iter != this->groupNameToGroupSelectorMap.end();
-//                     iter++) {
-//                    if (groupSelector == iter->second) {
-//                        this->groupNameToGroupSelectorMap.erase(iter);
-//                        break;
-//                    }
-//                }
-//                
-//                this->availableGroupKeys.push_front(groupKey);
-//                delete groupSelector;
-//                this->keyToGroupNameSelectorVector[groupKey] = NULL;
-//            }
-//        }
-//    }
-//
-//    setUserInterfaceUpdateNeeded();
-//}
 
 /**
  * Is a User-Interface needed in the given display group and tab?
