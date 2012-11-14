@@ -269,10 +269,11 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             border->setGroupNameSelectionItem(nameItem);
         }
         
+        sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
         
-        std::cout << "HIERARCHY:" << std::endl;
-        std::cout << qPrintable(toString()) << std::endl;
+//        std::cout << "HIERARCHY:" << std::endl;
+//        std::cout << qPrintable(toString()) << std::endl;
     }
 }
 
@@ -509,10 +510,11 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             focus->setGroupNameSelectionItem(nameItem);
         }
         
+        sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
 
-        std::cout << "HIERARCHY:" << std::endl;
-        std::cout << qPrintable(toString()) << std::endl;
+//        std::cout << "HIERARCHY:" << std::endl;
+//        std::cout << qPrintable(toString()) << std::endl;
     }
 }
 

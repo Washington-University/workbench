@@ -68,7 +68,7 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
     /*
      * Loop through each class
      */
-    std::vector<GroupAndNameHierarchyItem*> classChildren =  this->classAndNameHierarchyModel->getChildrenSortedByName();
+    std::vector<GroupAndNameHierarchyItem*> classChildren =  this->classAndNameHierarchyModel->getChildren();
     for (std::vector<GroupAndNameHierarchyItem*>::iterator classIter = classChildren.begin();
          classIter != classChildren.end();
          classIter++) {
@@ -101,7 +101,7 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                      classDisplayGroupSelector->getIconColorRGBA());
     this->classDisplayGroupSelector = classDisplayGroupSelector;
     
-    std::vector<GroupAndNameHierarchyItem*> nameChildren = this->classDisplayGroupSelector ->getChildrenSortedByName();
+    std::vector<GroupAndNameHierarchyItem*> nameChildren = this->classDisplayGroupSelector->getChildren();
     for (std::vector<GroupAndNameHierarchyItem*>::iterator nameIter = nameChildren.begin();
          nameIter != nameChildren.end();
          nameIter++) {
@@ -144,7 +144,6 @@ GroupAndNameHierarchyTreeWidgetItem::~GroupAndNameHierarchyTreeWidgetItem()
      * Note: Do not need to delete children since they are added to
      * Qt layouts which will delete them.
      */
-    std::cout << "Deleting GroupAndNameHierarchyTreeWidgetItem::" << qPrintable(this->text(TREE_COLUMN)) << std::endl;
 }
 
 /**
@@ -159,8 +158,6 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
                                               const QString text,
                                               const float* iconColorRGBA)
 {
-    std::cout << "Creating GroupAndNameHierarchyTreeWidgetItem: " << qPrintable(text) << std::endl;
-    
     m_displayGroup = displayGroup;
     m_tabIndex = tabIndex;
     this->itemType = itemType;
@@ -255,9 +252,6 @@ GroupAndNameHierarchyTreeWidgetItem::addChildItem(GroupAndNameHierarchyTreeWidge
     CaretAssert(child);
     m_children.push_back(child);
     this->addChild(child);
-    
-    
-    std::cout << "Added child: " << qPrintable(child->text(TREE_COLUMN)) << std::endl;
 }
 
 /**

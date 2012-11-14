@@ -124,7 +124,6 @@ GroupAndNameHierarchyViewController::~GroupAndNameHierarchyViewController()
 void
 GroupAndNameHierarchyViewController::itemWasCollapsed(QTreeWidgetItem* item)
 {
-    std::cout << "Item collapsed: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << std::endl;
     GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
     CaretAssert(treeItem);
     treeItem->setModelDataExpanded(false);
@@ -141,7 +140,6 @@ GroupAndNameHierarchyViewController::itemWasCollapsed(QTreeWidgetItem* item)
 void
 GroupAndNameHierarchyViewController::itemWasExpanded(QTreeWidgetItem* item)
 {
-    std::cout << "Item expanded: " << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN)) << std::endl;
     GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
     CaretAssert(treeItem);
     treeItem->setModelDataExpanded(true);
@@ -166,10 +164,6 @@ GroupAndNameHierarchyViewController::itemWasChanged(QTreeWidgetItem* item,
     const Qt::CheckState checkState = item->checkState(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN);
     const GroupAndNameCheckStateEnum::Enum itemCheckState = GroupAndNameHierarchyTreeWidgetItem::fromQCheckState(checkState);
     const bool newStatus = (itemCheckState != GroupAndNameCheckStateEnum::UNCHECKED);
-    std::cout << "Item checkbox changed: "
-        << qPrintable(item->text(GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN))
-        << " GUIcheckState " << GroupAndNameCheckStateEnum::toName(itemCheckState)
-        << " new status " << (int)newStatus << std::endl;
     treeItem->setModelDataSelected(newStatus);
 
     updateGraphicsAndUserInterface();
@@ -414,9 +408,6 @@ GroupAndNameHierarchyViewController::removeAllModelItems()
 {
     m_modelTreeWidget->blockSignals(true);
     
-    std::cout << "Before removeAllModelItems() layout contains "
-    << m_treeWidgetItems.size() << " items." << std::endl;
-    
     int32_t numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
     for (int32_t iModel = (numberOfModels - 1); iModel >= 0; iModel--) {
         GroupAndNameHierarchyTreeWidgetItem* item = this->m_treeWidgetItems[iModel];
@@ -425,9 +416,6 @@ GroupAndNameHierarchyViewController::removeAllModelItems()
         delete item;
     }
     this->m_treeWidgetItems.clear();
-    
-    std::cout << "After removeAllModelItems() layout contains "
-    << m_treeWidgetItems.size() << " items." << std::endl;
     
     m_modelTreeWidget->blockSignals(false);
 }

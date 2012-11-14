@@ -181,7 +181,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
         const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
         for (int32_t i = 0; i < numBorderFiles; i++) {
             BorderFile* bf = brain->getBorderFile(i);
-            std::cout << "Copying of group and name hierarchy needs implementation" << std::endl;
             bf->getGroupAndNameHierarchyModel()->copySelections(tabToClone->getTabNumber(),
                                                                 getTabNumber());
         }
@@ -189,7 +188,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
         const int32_t numFociFiles = brain->getNumberOfFociFiles();
         for (int32_t i = 0; i < numFociFiles; i++) {
             FociFile* ff = brain->getFociFile(i);
-            std::cout << "Copying of group and name hierarchy needs implementation" << std::endl;
             ff->getGroupAndNameHierarchyModel()->copySelections(tabToClone->getTabNumber(),
                                                                 getTabNumber());
         }

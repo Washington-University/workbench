@@ -78,7 +78,7 @@ namespace caret {
         
         std::vector<GroupAndNameHierarchyItem*> getChildren() const;
         
-        std::vector<GroupAndNameHierarchyItem*> getChildrenSortedByName() const;
+        void sortDescendantsByName();
         
         GroupAndNameHierarchyItem* getChildWithNameAndIdNumber(const AString& name,
                                                               const int32_t idNumber);

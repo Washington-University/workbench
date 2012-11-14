@@ -81,14 +81,7 @@ m_parent(0)
  */
 GroupAndNameHierarchyItem::~GroupAndNameHierarchyItem()
 {
-    std::cout << "Deleting GroupAndNameHierarchyItem: "
-    << m_itemType << " " << qPrintable(m_name) << std::endl;
-    
     clearPrivate();
-    
-    if (m_parent != NULL) {
-//        m_parent->removeChild(this);
-    }
 }
 
 /**
@@ -248,14 +241,28 @@ GroupAndNameHierarchyItem::getChildren() const
     return m_children;
 }
 
-/**
- * @return The children of this item sorted by name.
- */
-std::vector<GroupAndNameHierarchyItem*>
-GroupAndNameHierarchyItem::getChildrenSortedByName() const
+static bool
+lessName(const GroupAndNameHierarchyItem* itemOne,
+                   const GroupAndNameHierarchyItem* itemTwo)
 {
-    std::cout << "GroupAndNameHierarchyItem::getChildrenSortedByName() needs implementation." << std::endl;
-    return m_children;
+    return (itemOne->getName() < itemTwo->getName());
+}
+/**
+ * Sort the descendants by name
+ */
+void
+GroupAndNameHierarchyItem::sortDescendantsByName()
+{
+    std::sort(m_children.begin(),
+              m_children.end(),
+              lessName);
+    
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyItem* child = *iter;
+        child->sortDescendantsByName();
+    }
 }
 
 /**
