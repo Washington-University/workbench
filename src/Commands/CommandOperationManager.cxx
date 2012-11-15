@@ -45,6 +45,7 @@
 #include "AlgorithmCreateSignedDistanceVolume.h"
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmMetricDilate.h"
+#include "AlgorithmMetricExtrema.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -154,6 +155,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));

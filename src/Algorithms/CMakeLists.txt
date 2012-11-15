@@ -36,6 +36,7 @@ AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmLabelDilate.h
 AlgorithmMetricDilate.h
+AlgorithmMetricExtrema.h
 AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
@@ -67,6 +68,7 @@ AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmMetricDilate.cxx
+AlgorithmMetricExtrema.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
