@@ -46,7 +46,7 @@ AString AlgorithmMetricExtrema::getCommandSwitch()
 
 AString AlgorithmMetricExtrema::getShortDescription()
 {
-    return "FIND THE EXTREMA IN A METRIC FILE";
+    return "FIND EXTREMA IN A METRIC FILE";
 }
 
 OperationParameters* AlgorithmMetricExtrema::getParameters()
@@ -54,7 +54,7 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to use for distance information");
     
-    ret->addMetricParameter(2, "metric-in", "the metric to fine the extrema of");
+    ret->addMetricParameter(2, "metric-in", "the metric to find the extrema of");
     
     ret->addDoubleParameter(3, "distance", "the minimum distance between identified extrema of the same type");
     
@@ -63,15 +63,18 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(5, "-presmooth", "smooth the metric before finding extrema");
     presmoothOpt->addDoubleParameter(1, "presmoothing", "the sigma for the gaussian smoothing kernel, in mm");
     
-    OptionalParameter* thresholdOpt = ret->createOptionalParameter(6, "-threshold", "ignore small extrema");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(6, "-roi", "ignore values outside the selected area");
+    roiOpt->addMetricParameter(1, "roi-metric", "the area to find extrema in, as a metric");
+    
+    OptionalParameter* thresholdOpt = ret->createOptionalParameter(7, "-threshold", "ignore small extrema");
     thresholdOpt->addDoubleParameter(1, "low", "the largest value to consider for being a minimum");
     thresholdOpt->addDoubleParameter(2, "high", "the smallest value to consider for being a maximum");
     
-    ret->createOptionalParameter(7, "-sum-columns", "output the sum of the extrema columns instead of each column separately");
+    ret->createOptionalParameter(8, "-sum-columns", "output the sum of the extrema columns instead of each column separately");
     
-    ret->createOptionalParameter(8, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
+    ret->createOptionalParameter(9, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
     
-    OptionalParameter* columnSelect = ret->createOptionalParameter(9, "-column", "select a single column to find extrema in");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(10, "-column", "select a single column to find extrema in");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
@@ -94,7 +97,13 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
     MetricFile* myMetric = myParams->getMetric(2);
     float distance = (float)myParams->getDouble(3);
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
-    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
+    MetricFile* myRoi = NULL;
+    if (roiOpt->m_present)
+    {
+        myRoi = roiOpt->getMetric(1);
+    }
+    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(6);
     float presmooth = -1.0f;
     if (presmoothOpt->m_present)
     {
@@ -104,18 +113,18 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
             throw AlgorithmException("smoothing amount must be positive");
         }
     }
+    OptionalParameter* thresholdOpt = myParams->getOptionalParameter(7);
     bool thresholdMode = false;
     float lowThresh = 0.0f, highThresh = 0.0f;
-    OptionalParameter* thresholdOpt = myParams->getOptionalParameter(6);
     if (thresholdOpt->m_present)
     {
         thresholdMode = true;
         lowThresh = (float)thresholdOpt->getDouble(1);
         highThresh = (float)thresholdOpt->getDouble(2);
     }
-    bool sumColumns = myParams->getOptionalParameter(7)->m_present;
-    bool consolidateMode = myParams->getOptionalParameter(8)->m_present;
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(9);
+    bool sumColumns = myParams->getOptionalParameter(8)->m_present;
+    bool consolidateMode = myParams->getOptionalParameter(9)->m_present;
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(10);
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
@@ -127,20 +136,30 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
     }
     if (thresholdMode)
     {
-        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, lowThresh, highThresh, presmooth, sumColumns, consolidateMode, columnNum);
+        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, lowThresh, highThresh, myRoi, presmooth, sumColumns, consolidateMode, columnNum);
     } else {
-        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, presmooth, sumColumns, consolidateMode, columnNum);
+        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, myRoi, presmooth, sumColumns, consolidateMode, columnNum);
     }
 }
 
 AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
-                                               MetricFile* myMetricOut, const float& presmooth, const bool& sumColumns, const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
+                                               MetricFile* myMetricOut, const MetricFile* myRoi, const float& presmooth, const bool& sumColumns,
+                                               const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes)
     {
         throw AlgorithmException("input metric has different number of vertices than input surface");
+    }
+    const float* roiColumn = NULL;
+    if (myRoi != NULL)
+    {
+        if (myRoi->getNumberOfNodes() != numNodes)
+        {
+            throw AlgorithmException("roi metric has a different number of nodes than input surface");
+        }
+        roiColumn = myRoi->getValuePointerForColumn(0);
     }
     int numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
@@ -152,7 +171,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     MetricFile tempMetric;
     if (presmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, NULL, false, columnNum);
+        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, myRoi, false, columnNum);
         toProcess = &tempMetric;
         if (columnNum != -1)
         {
@@ -162,7 +181,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     vector<vector<int32_t> > neighborhoods;
     if (!consolidateMode)
     {
-        precomputeNeighborhoods(mySurf, distance, neighborhoods);
+        precomputeNeighborhoods(mySurf, roiColumn, distance, neighborhoods);
     }
     if (columnNum == -1)
     {
@@ -179,7 +198,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), distance, minima, maxima);
+                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, minima, maxima);
             } else {
                 findMinimaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, minima, maxima);
             }
@@ -229,7 +248,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         if (consolidateMode)
         {
-            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), distance, minima, maxima);
+            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
         } else {
             findMinimaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
         }
@@ -248,13 +267,23 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
 }
 
 AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
-                                               MetricFile* myMetricOut, const float& lowThresh, const float& highThresh, const float& presmooth, const bool& sumColumns, const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
+                                               MetricFile* myMetricOut, const float& lowThresh, const float& highThresh, const MetricFile* myRoi, const float& presmooth,
+                                               const bool& sumColumns, const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes)
     {
         throw AlgorithmException("input metric has different number of vertices than input surface");
+    }
+    const float* roiColumn = NULL;
+    if (myRoi != NULL)
+    {
+        if (myRoi->getNumberOfNodes() != numNodes)
+        {
+            throw AlgorithmException("roi metric has a different number of nodes than input surface");
+        }
+        roiColumn = myRoi->getValuePointerForColumn(0);
     }
     int numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
@@ -276,7 +305,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     vector<vector<int32_t> > neighborhoods;
     if (!consolidateMode)
     {
-        precomputeNeighborhoods(mySurf, distance, neighborhoods);
+        precomputeNeighborhoods(mySurf, roiColumn, distance, neighborhoods);
     }
     if (columnNum == -1)
     {
@@ -292,7 +321,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), distance, lowThresh, highThresh, minima, maxima);
+                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, lowThresh, highThresh, minima, maxima);
             } else {
                 findMinimaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, lowThresh, highThresh, minima, maxima);
             }
@@ -342,7 +371,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         if (consolidateMode)
         {
-            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), distance, minima, maxima);
+            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
         } else {
             findMinimaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
         }
@@ -360,27 +389,55 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     }
 }
 
-void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, const float& distance, vector<vector<int32_t> >& neighborhoods)
+void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, const float* roiColumn, const float& distance, vector<vector<int32_t> >& neighborhoods)
 {
     int numNodes = mySurf->getNumberOfNodes();
+    neighborhoods.clear();
     neighborhoods.resize(numNodes);
     CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//can share this, we will only use 1-hop neighbors
     CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();//must be thread-private
     vector<float> junk;//also thread-private
     for (int i = 0; i < numNodes; ++i)
     {
-        myGeoHelp->getNodesToGeoDist(i, distance, neighborhoods[i], junk);
-        if (junk.size() < 7)
+        if (roiColumn == NULL || roiColumn[i] > 0.0f)
         {
-            neighborhoods[i] = myTopoHelp->getNodeNeighbors(i);
-        } else {
+            myGeoHelp->getNodesToGeoDist(i, distance, neighborhoods[i], junk);
             int numelems = (int)junk.size();
-            for (int j = 0; j < numelems; ++j)
+            if (numelems < 7)
             {
-                if (neighborhoods[i][j] == i)
+                neighborhoods[i] = myTopoHelp->getNodeNeighbors(i);
+                if (roiColumn != NULL)
                 {
-                    neighborhoods[i].erase(neighborhoods[i].begin() + j);//we don't want the node itself, so erase it
-                    break;
+                    numelems = (int)neighborhoods[i].size();
+                    for (int j = 0; j < numelems; ++j)
+                    {
+                        if (roiColumn[neighborhoods[i][j]] <= 0.0f)
+                        {
+                            neighborhoods[i].erase(neighborhoods[i].begin() + j);//erase it
+                            --j;//don't skip any or walk off the vector
+                        }
+                    }
+                }
+            } else {
+                if (roiColumn == NULL)
+                {
+                    for (int j = 0; j < numelems; ++j)
+                    {
+                        if (neighborhoods[i][j] == i)
+                        {
+                            neighborhoods[i].erase(neighborhoods[i].begin() + j);//we don't want the node itself, so erase it
+                            break;
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < numelems; ++j)
+                    {
+                        if (neighborhoods[i][j] == i || roiColumn[neighborhoods[i][j]] <= 0.0f)//don't want the node itself, or anything outside the roi
+                        {
+                            neighborhoods[i].erase(neighborhoods[i].begin() + j);//erase it
+                            --j;//don't skip any or walk off the vector
+                        }
+                    }
                 }
             }
         }
@@ -553,7 +610,7 @@ void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const ve
     }
 }
 
-void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float& distance, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
@@ -564,7 +621,7 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
     for (int i = 0; i < numNodes; ++i)
     {
         bool canBeMin = minPos[i], canBeMax = maxPos[i];
-        if (canBeMin || canBeMax)
+        if ((roiColumn == NULL || roiColumn[i] > 0.0f) && (canBeMin || canBeMax))
         {
             const vector<int32_t>& myneighbors = myTopoHelp->getNodeNeighbors(i);
             int numNeigh = (int)myneighbors.size();
@@ -572,35 +629,44 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
             float myval = data[i];
             int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
-            {//should be fairly rare, and doesn't need to loop
-                int32_t neighNode = myneighbors[0];//NOTE: the equals case should set one of these to false, so that only one of the two loops needs to execute
-                float otherval = data[neighNode];
-                if (myval < otherval)
+            {//NOTE: the equals case should set one of these to false, so that only one of the two below loops needs to execute
+                for (; j < numNeigh; ++j)//but, due to ROI, we may need to loop before we find a valid neighbor
                 {
-                    minPos[neighNode] = 0;
-                } else {
-                    canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
+                    int32_t neighNode = myneighbors[j];
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
+                    {
+                        float otherval = data[neighNode];
+                        if (myval < otherval)
+                        {
+                            minPos[neighNode] = 0;
+                        } else {
+                            canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
+                        }
+                        if (myval > otherval)
+                        {
+                            maxPos[neighNode] = 0;
+                        } else {
+                            canBeMax = false;
+                        }
+                        break;//now we can go to the shorter loops, because one of the two possibilities is gone
+                    }
                 }
-                if (myval > otherval)
-                {
-                    maxPos[neighNode] = 0;
-                } else {
-                    canBeMax = false;
-                }
-                j = 1;//don't test 0 again if we did the double test
             }
             if (canBeMax)
             {
                 for (; j < numNeigh; ++j)
                 {
                     int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval > otherval)
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
                     {
-                        maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
-                    } else {
-                        canBeMax = false;
-                        break;
+                        float otherval = data[neighNode];
+                        if (myval > otherval)
+                        {
+                            maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
+                        } else {
+                            canBeMax = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -609,13 +675,16 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
                 for (; j < numNeigh; ++j)
                 {
                     int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval < otherval)
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
                     {
-                        minPos[neighNode] = 0;//ditto
-                    } else {
-                        canBeMin = false;
-                        break;
+                        float otherval = data[neighNode];
+                        if (myval < otherval)
+                        {
+                            minPos[neighNode] = 0;//ditto
+                        } else {
+                            canBeMin = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -638,7 +707,7 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
     consolidateStep(mySurf, distance, tempExtrema, minima, maxima);
 }
 
-void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float& lowThresh, const float& highThresh, const float& distance, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& lowThresh, const float& highThresh, const float& distance, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
@@ -659,35 +728,44 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
             if (myval <= highThresh) canBeMax = false;
             int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
-            {//should be fairly rare, and doesn't need to loop
-                int32_t neighNode = myneighbors[0];//NOTE: the equals case should set one of these to false, so that only one of the two loops needs to execute
-                float otherval = data[neighNode];
-                if (myval < otherval)
+            {//NOTE: the equals case should set one of these to false, so that only one of the two below loops needs to execute
+                for (; j < numNeigh; ++j)//but, due to ROI, we may need to loop before we find a valid neighbor
                 {
-                    minPos[neighNode] = 0;
-                } else {
-                    canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
+                    int32_t neighNode = myneighbors[j];
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
+                    {
+                        float otherval = data[neighNode];
+                        if (myval < otherval)
+                        {
+                            minPos[neighNode] = 0;
+                        } else {
+                            canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
+                        }
+                        if (myval > otherval)
+                        {
+                            maxPos[neighNode] = 0;
+                        } else {
+                            canBeMax = false;
+                        }
+                        break;//now we can go to the shorter loops, because one of the two possibilities is gone
+                    }
                 }
-                if (myval > otherval)
-                {
-                    maxPos[neighNode] = 0;
-                } else {
-                    canBeMax = false;
-                }
-                j = 1;//don't test 0 again if we did the double test
             }
             if (canBeMax)
             {
                 for (; j < numNeigh; ++j)
                 {
                     int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval > otherval)
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
                     {
-                        maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
-                    } else {
-                        canBeMax = false;
-                        break;
+                        float otherval = data[neighNode];
+                        if (myval > otherval)
+                        {
+                            maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
+                        } else {
+                            canBeMax = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -696,13 +774,16 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
                 for (; j < numNeigh; ++j)
                 {
                     int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval < otherval)
+                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
                     {
-                        minPos[neighNode] = 0;//ditto
-                    } else {
-                        canBeMin = false;
-                        break;
+                        float otherval = data[neighNode];
+                        if (myval < otherval)
+                        {
+                            minPos[neighNode] = 0;//ditto
+                        } else {
+                            canBeMin = false;
+                            break;
+                        }
                     }
                 }
             }
