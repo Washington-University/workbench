@@ -410,6 +410,7 @@ BorderSelectionViewController::processBorderSelectionChanges()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    CaretAssert(browserTabContent);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();

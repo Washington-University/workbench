@@ -293,6 +293,7 @@ LabelSelectionViewController::processLabelSelectionChanges()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    CaretAssert(browserTabContent);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesLabels* dsb = brain->getDisplayPropertiesLabels();

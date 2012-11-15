@@ -34,13 +34,16 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 #include <vector>
 
 #include <QWidget>
 
+#include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 
 class QTreeWidgetItem;
+class QVBoxLayout;
 
 namespace caret {
 
@@ -88,21 +91,31 @@ namespace caret {
         GroupAndNameHierarchyViewController& operator=(const GroupAndNameHierarchyViewController&);
         
         void updateContents(std::vector<GroupAndNameHierarchyModel*>& modelItems,
+                            const DataFileTypeEnum::Enum dataFileType,
                             const bool selectionInvalidatesSurfaceNodeColoring);
         
         std::vector<GroupAndNameHierarchyModel*> getAllModels() const;
         
-        void removeAllModelItems();
+        void updateGraphics();
         
-        void updateGraphicsAndUserInterface();
+        void updateSelectedAndExpandedCheckboxes();
         
-        std::vector<GroupAndNameHierarchyTreeWidgetItem*> m_treeWidgetItems;
+        void updateSelectedAndExpandedCheckboxesInOtherViewControllers();
         
-        WuQTreeWidget* m_modelTreeWidget;
+        void createTreeWidget();
         
         QWidget* createAllOnOffControls();
         
         void setAllSelected(bool selected);
+        
+        DataFileTypeEnum::Enum m_dataFileType;
+        
+        /** Contains pointers to items managed by Qt, so do not delete content */
+        std::vector<GroupAndNameHierarchyTreeWidgetItem*> m_treeWidgetItems;
+        
+        QVBoxLayout* m_modelTreeWidgetLayout;
+        
+        WuQTreeWidget* m_modelTreeWidget;
         
         int32_t m_browserWindowIndex;
         
@@ -114,12 +127,12 @@ namespace caret {
         
         bool m_selectionInvalidatesSurfaceNodeColoring;
         
-        bool m_ignoreUpdates;
+        static std::set<GroupAndNameHierarchyViewController*> s_allViewControllers;
         
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<GroupAndNameHierarchyViewController*> GroupAndNameHierarchyViewController::s_allViewControllers;
 #endif // __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

@@ -51,7 +51,7 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyName;
     
-    class GroupAndNameHierarchyTreeWidgetItem : public QTreeWidgetItem {
+    class GroupAndNameHierarchyTreeWidgetItem : public QTreeWidgetItem, public QObject {
         
     public:
         /** Type of item within the hierarchy */
@@ -88,7 +88,8 @@ namespace caret {
         
         void addChildItem(GroupAndNameHierarchyTreeWidgetItem* child);
         
-        void updateSelections(const DisplayGroupEnum::Enum displayGroup);
+        void updateSelections(const DisplayGroupEnum::Enum displayGroup,
+                              const int32_t tabIndex);
         
         void setModelDataExpanded(const bool expanded);
         
@@ -109,17 +110,17 @@ namespace caret {
         
         static Qt::CheckState toQCheckState(const GroupAndNameCheckStateEnum::Enum checkState);
         
-        ItemType itemType;
+        ItemType m_itemType;
         
         DisplayGroupEnum::Enum m_displayGroup;
         
         int32_t m_tabIndex;
         
-        GroupAndNameHierarchyModel* classAndNameHierarchyModel;
+        GroupAndNameHierarchyModel* m_classAndNameHierarchyModel;
         
-        GroupAndNameHierarchyGroup* classDisplayGroupSelector;
+        GroupAndNameHierarchyGroup* m_classDisplayGroupSelector;
         
-        GroupAndNameHierarchyName* nameDisplayGroupSelector;
+        GroupAndNameHierarchyName* m_nameDisplayGroupSelector;
         
         std::vector<GroupAndNameHierarchyTreeWidgetItem*> m_children;
         

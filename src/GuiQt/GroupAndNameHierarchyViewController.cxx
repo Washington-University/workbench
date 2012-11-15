@@ -62,7 +62,6 @@
 #include "LabelFile.h"
 #include "WuQTreeWidget.h"
 #include "WuQtUtilities.h"
-//#include "WuQTreeWidget.h"
 
 using namespace caret;
 
@@ -83,28 +82,26 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
                                                                          QWidget* parent)
 : QWidget(parent)
 {
+    m_dataFileType = DataFileTypeEnum::UNKNOWN;
     m_displayGroup = DisplayGroupEnum::getDefaultValue();
     m_previousDisplayGroup = DisplayGroupEnum::getDefaultValue();
     m_previousBrowserTabIndex = -1;
     m_browserWindowIndex = browserWindowIndex;
-    m_ignoreUpdates = false;
     
     QWidget* allOnOffWidget = createAllOnOffControls();
 
-    m_modelTreeWidget = new WuQTreeWidget();
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
-                     this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-                     this, SLOT(itemWasExpanded(QTreeWidgetItem*)));
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
-                     this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
+    m_modelTreeWidgetLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutMargins(m_modelTreeWidgetLayout, 0, 0);
+    m_modelTreeWidget = NULL;
+    createTreeWidget();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(allOnOffWidget);
     layout->addSpacing(5);
-    layout->addWidget(m_modelTreeWidget);
+    layout->addLayout(m_modelTreeWidgetLayout);
     
+    s_allViewControllers.insert(this);
 }
 
 /**
@@ -112,7 +109,7 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
  */
 GroupAndNameHierarchyViewController::~GroupAndNameHierarchyViewController()
 {
-    removeAllModelItems();
+    s_allViewControllers.erase(this);
 }
 
 /**
@@ -127,8 +124,9 @@ GroupAndNameHierarchyViewController::itemWasCollapsed(QTreeWidgetItem* item)
     GroupAndNameHierarchyTreeWidgetItem* treeItem = dynamic_cast<GroupAndNameHierarchyTreeWidgetItem*>(item);
     CaretAssert(treeItem);
     treeItem->setModelDataExpanded(false);
-    
-    updateGraphicsAndUserInterface();
+
+    updateSelectedAndExpandedCheckboxes();
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
 }
 
 /**
@@ -144,7 +142,8 @@ GroupAndNameHierarchyViewController::itemWasExpanded(QTreeWidgetItem* item)
     CaretAssert(treeItem);
     treeItem->setModelDataExpanded(true);
 
-    updateGraphicsAndUserInterface();
+    updateSelectedAndExpandedCheckboxes();
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
 }
 
 /**
@@ -166,19 +165,20 @@ GroupAndNameHierarchyViewController::itemWasChanged(QTreeWidgetItem* item,
     const bool newStatus = (itemCheckState != GroupAndNameCheckStateEnum::UNCHECKED);
     treeItem->setModelDataSelected(newStatus);
 
-    updateGraphicsAndUserInterface();
+    updateSelectedAndExpandedCheckboxes();
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    updateGraphics();
 }
 
 /**
- * Update graphics and the user-interface.
+ * Update graphics and, in some circumstances, surface node coloring.
  */
 void
-GroupAndNameHierarchyViewController::updateGraphicsAndUserInterface()
+GroupAndNameHierarchyViewController::updateGraphics()
 {
     if (m_selectionInvalidatesSurfaceNodeColoring) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -247,9 +247,10 @@ GroupAndNameHierarchyViewController::setAllSelected(bool selected)
                                   browserTabIndex,
                                   selected);
         }
-        
-        updateContents(allModels,
-                       m_selectionInvalidatesSurfaceNodeColoring);
+
+        updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+        updateSelectedAndExpandedCheckboxes();
+        updateGraphics();
     }
 }
 
@@ -283,10 +284,6 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
-    if (m_ignoreUpdates) {
-        return;
-    }
-    
     std::vector<GroupAndNameHierarchyModel*> models;
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
@@ -298,10 +295,9 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
         models.push_back(bf->getGroupAndNameHierarchyModel());
     }
     
-//    m_ignoreUpdates = true;
     updateContents(models,
+                   DataFileTypeEnum::BORDER,
                    false);
-//    m_ignoreUpdates = false;
 }
 
 /**
@@ -315,10 +311,6 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
-    if (m_ignoreUpdates) {
-        return;
-    }
-    
     std::vector<GroupAndNameHierarchyModel*> models;
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
@@ -330,25 +322,9 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
         models.push_back(ff->getGroupAndNameHierarchyModel());
     }
     
-    //    m_ignoreUpdates = true;
     updateContents(models,
+                   DataFileTypeEnum::FOCI,
                    false);
-    //    m_ignoreUpdates = false;
-//    if (m_ignoreUpdates) {
-//        return;
-//    }
-    
-//    m_displayGroup = displayGroup;
-//    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
-//    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
-//         iter != fociFiles.end();
-//         iter++) {
-//        FociFile* ff = *iter;
-//        CaretAssert(ff);
-//        classAndNameHierarchyModels.push_back(ff->getGroupAndNameHierarchyModel());
-//    }
-//    
-//    updateContents(classAndNameHierarchyModels);    
 }
 
 /**
@@ -362,10 +338,6 @@ void
 GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labelFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
-    if (m_ignoreUpdates) {
-        return;
-    }
-    
     std::vector<GroupAndNameHierarchyModel*> models;
     m_displayGroup = displayGroup;
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
@@ -377,48 +349,45 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labe
         models.push_back(lf->getGroupAndNameHierarchyModel());
     }
     
-    //    m_ignoreUpdates = true;
     updateContents(models,
+                   DataFileTypeEnum::LABEL,
                    true);
-    //    m_ignoreUpdates = false;
-//    if (m_ignoreUpdates) {
-//        return;
-//    }
-//
-//    m_alwaysDisplayNames = true;
-//    m_displayGroup = displayGroup;
-//    std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
-//    for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
-//         iter != labelFiles.end();
-//         iter++) {
-//        LabelFile* lf = *iter;
-//        CaretAssert(lf);
-//        classAndNameHierarchyModels.push_back(lf->getGroupAndNameHierarchyModel());
-//    }
-//    
-//    updateContents(classAndNameHierarchyModels);
-//    
 }
 
 /**
- * Remove all model items.
+ * Create/recreate the tree widget.
  */
 void
-GroupAndNameHierarchyViewController::removeAllModelItems()
+GroupAndNameHierarchyViewController::createTreeWidget()
 {
-    m_modelTreeWidget->blockSignals(true);
     
-    int32_t numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
-    for (int32_t iModel = (numberOfModels - 1); iModel >= 0; iModel--) {
-        GroupAndNameHierarchyTreeWidgetItem* item = this->m_treeWidgetItems[iModel];
-        m_modelTreeWidget->removeItemWidget(item,
-                                            GroupAndNameHierarchyTreeWidgetItem::TREE_COLUMN);
-        delete item;
+    /*
+     * Delete and recreate the tree widget
+     * Seems that adding and removing items from tree widget eventually
+     * causes a crash.
+     */
+    
+    m_treeWidgetItems.clear();
+    if (m_modelTreeWidget != NULL) {
+        m_modelTreeWidget->blockSignals(true);
+        m_modelTreeWidget->clear();
+        m_modelTreeWidgetLayout->removeWidget(m_modelTreeWidget);
+        delete m_modelTreeWidget;
     }
-    this->m_treeWidgetItems.clear();
+    
+    m_modelTreeWidget = new WuQTreeWidget();
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+                     this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+                     this, SLOT(itemWasExpanded(QTreeWidgetItem*)));
+    QObject::connect(m_modelTreeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
+                     this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
+    
+    m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget);
     
     m_modelTreeWidget->blockSignals(false);
 }
+
 
 
 /**
@@ -430,16 +399,15 @@ GroupAndNameHierarchyViewController::removeAllModelItems()
  */
 void 
 GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHierarchyModel*>& classAndNameHierarchyModels,
+                                                    const DataFileTypeEnum::Enum dataFileType,
                                                     const bool selectionInvalidatesSurfaceNodeColoring)
 {
-    if (m_ignoreUpdates) {
-        return;
-    }
+    m_dataFileType= dataFileType;
     m_selectionInvalidatesSurfaceNodeColoring = selectionInvalidatesSurfaceNodeColoring;
-    m_ignoreUpdates = true;
     
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    CaretAssert(browserTabContent);
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     /*
@@ -454,18 +422,23 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     if (numberOfModels != static_cast<int32_t>(this->m_treeWidgetItems.size())) {
         needUpdate = true;
     }
-    else if (m_displayGroup != m_previousDisplayGroup) {
-        needUpdate = true;
-    }
-    else if (browserTabIndex != m_previousBrowserTabIndex) {
-        needUpdate = true;
-    }
+//    else if (m_displayGroup != m_previousDisplayGroup) {
+//        needUpdate = true;
+//    }
+//    else if (browserTabIndex != m_previousBrowserTabIndex) {
+//        needUpdate = true;
+//    }
     else {
         /*
          * Have the displayed models changed?
          */
         for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
             if (classAndNameHierarchyModels[iModel] != this->m_treeWidgetItems[iModel]->getClassAndNameHierarchyModel()) {
+                needUpdate = true;
+                break;
+            }
+            else if (classAndNameHierarchyModels[iModel]->getChildren().size()
+                     != this->m_treeWidgetItems[iModel]->getClassAndNameHierarchyModel()->getChildren().size()) {
                 needUpdate = true;
                 break;
             }
@@ -486,7 +459,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     
     if (needUpdate) {
         
-        removeAllModelItems();
+        createTreeWidget();
         m_modelTreeWidget->blockSignals(true); // gets reset
 
         /*
@@ -498,17 +471,64 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
                                                                                                  classAndNameHierarchyModels[iModel]);
             this->m_treeWidgetItems.push_back(modelItem);
             m_modelTreeWidget->addTopLevelItem(modelItem);
-        }        
+        }
     }
     
-    numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
-    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        m_treeWidgetItems[iModel]->updateSelections(m_displayGroup);
-    }
-
+    updateSelectedAndExpandedCheckboxes();
+    
     m_previousBrowserTabIndex = browserTabIndex;
     m_previousDisplayGroup = m_displayGroup;
-    m_ignoreUpdates = false;
     m_modelTreeWidget->blockSignals(false);
 }
+
+/**
+ * Update the selection and expansion controls.
+ */
+void
+GroupAndNameHierarchyViewController::updateSelectedAndExpandedCheckboxes()
+{
+    if (m_modelTreeWidget == NULL) {
+        return;
+    }
+    
+    m_modelTreeWidget->blockSignals(true);
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
+    CaretAssert(browserTabContent);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    const int32_t numberOfModels = static_cast<int32_t>(this->m_treeWidgetItems.size());
+    for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+        m_treeWidgetItems[iModel]->updateSelections(m_displayGroup,
+                                                    browserTabIndex);
+    }
+    m_modelTreeWidget->blockSignals(false);
+}
+
+/**
+ * Update the selection and expansion controls in other view controllers
+ * that are set to the same display group (not tab) and contain the
+ * same type of data.
+ */
+void
+GroupAndNameHierarchyViewController::updateSelectedAndExpandedCheckboxesInOtherViewControllers()
+{
+    if (m_displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        return;
+    }
+    
+    for (std::set<GroupAndNameHierarchyViewController*>::iterator iter = s_allViewControllers.begin();
+         iter != s_allViewControllers.end();
+         iter++) {
+        GroupAndNameHierarchyViewController* vc = *iter;
+        if (vc != this) {
+            if (vc->m_displayGroup == m_displayGroup) {
+                if (vc->m_dataFileType == m_dataFileType) {
+                    vc->updateSelectedAndExpandedCheckboxes();
+                }
+            }
+        }
+    }
+}
+
 

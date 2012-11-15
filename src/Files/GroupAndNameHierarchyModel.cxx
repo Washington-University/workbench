@@ -386,7 +386,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                  */
                 GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
                                                                          labelName,
-                                                                         ID_NOT_USED);
+                                                                         labelKey);
                 nameItem->setIconColorRGBA(rgba);
                 
                 /*

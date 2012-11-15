@@ -240,11 +240,9 @@ namespace caret {
         int32_t m_counter;
         
         // ADD_NEW_MEMBERS_HERE
-
     };
     
 #ifdef __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
 
 } // namespace

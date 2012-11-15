@@ -58,17 +58,18 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                                                                      GroupAndNameHierarchyModel* classAndNameHierarchyModel)
 : QTreeWidgetItem()
 {
-    this->initialize(displayGroup,
+    CaretAssert(classAndNameHierarchyModel);
+    initialize(displayGroup,
                      tabIndex,
                      ITEM_TYPE_HIERARCHY_MODEL,
                      classAndNameHierarchyModel->getName(),
                      NULL);
-    this->classAndNameHierarchyModel = classAndNameHierarchyModel;
+    m_classAndNameHierarchyModel = classAndNameHierarchyModel;
 
     /*
      * Loop through each class
      */
-    std::vector<GroupAndNameHierarchyItem*> classChildren =  this->classAndNameHierarchyModel->getChildren();
+    std::vector<GroupAndNameHierarchyItem*> classChildren =  m_classAndNameHierarchyModel->getChildren();
     for (std::vector<GroupAndNameHierarchyItem*>::iterator classIter = classChildren.begin();
          classIter != classChildren.end();
          classIter++) {
@@ -94,14 +95,15 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                                                                      GroupAndNameHierarchyGroup* classDisplayGroupSelector)
 : QTreeWidgetItem()
 {
-    this->initialize(displayGroup,
+    CaretAssert(classDisplayGroupSelector);
+    initialize(displayGroup,
                      tabIndex,
                      ITEM_TYPE_CLASS,
                      classDisplayGroupSelector->getName(),
                      classDisplayGroupSelector->getIconColorRGBA());
-    this->classDisplayGroupSelector = classDisplayGroupSelector;
+    m_classDisplayGroupSelector = classDisplayGroupSelector;
     
-    std::vector<GroupAndNameHierarchyItem*> nameChildren = this->classDisplayGroupSelector->getChildren();
+    std::vector<GroupAndNameHierarchyItem*> nameChildren = m_classDisplayGroupSelector->getChildren();
     for (std::vector<GroupAndNameHierarchyItem*>::iterator nameIter = nameChildren.begin();
          nameIter != nameChildren.end();
          nameIter++) {
@@ -127,12 +129,13 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
                                                                      GroupAndNameHierarchyName* nameDisplayGroupSelector)
 : QTreeWidgetItem()
 {
-    this->initialize(displayGroup,
+    CaretAssert(nameDisplayGroupSelector);
+    initialize(displayGroup,
                      tabIndex,
                      ITEM_TYPE_NAME,
                      nameDisplayGroupSelector->getName(),
                      nameDisplayGroupSelector->getIconColorRGBA());
-    this->nameDisplayGroupSelector = nameDisplayGroupSelector;
+    m_nameDisplayGroupSelector = nameDisplayGroupSelector;
 }
 
 /**
@@ -140,7 +143,7 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
  */
 GroupAndNameHierarchyTreeWidgetItem::~GroupAndNameHierarchyTreeWidgetItem()
 {
-    /* 
+    /*
      * Note: Do not need to delete children since they are added to
      * Qt layouts which will delete them.
      */
@@ -160,13 +163,13 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
 {
     m_displayGroup = displayGroup;
     m_tabIndex = tabIndex;
-    this->itemType = itemType;
-    this->classAndNameHierarchyModel = NULL;
-    this->classDisplayGroupSelector  = NULL;
-    this->nameDisplayGroupSelector   = NULL;
+    m_itemType = itemType;
+    m_classAndNameHierarchyModel = NULL;
+    m_classDisplayGroupSelector  = NULL;
+    m_nameDisplayGroupSelector   = NULL;
     m_hasChildren = false;
 
-    switch (this->itemType) {
+    switch (m_itemType) {
         case ITEM_TYPE_CLASS:
             m_hasChildren = true;
             break;
@@ -178,14 +181,15 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
             break;
     }
 
-    this->setText(TREE_COLUMN, text);
+    setText(TREE_COLUMN, text);
     
     Qt::ItemFlags itemFlags = (Qt::ItemIsSelectable
                               | Qt::ItemIsUserCheckable
                               | Qt::ItemIsEnabled);
     if (m_hasChildren) {
-        itemFlags |= Qt::ItemIsTristate;
+    //    itemFlags |= Qt::ItemIsTristate;
     }
+//    setFlags(itemFlags);   // NEW 11/14/12
     
     if (iconColorRGBA != NULL) {
         if (iconColorRGBA[3] > 0.0) {
@@ -194,7 +198,7 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
                                      iconColorRGBA[1],
                                      iconColorRGBA[2]));
             QIcon icon(pm);
-            this->setIcon(TREE_COLUMN, icon);
+            setIcon(TREE_COLUMN, icon);
         }
     }
 }
@@ -203,40 +207,47 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
  * Update the selections in this and its children.
  * @param displayGroup
  *    Display group that is active.
+ * @param tabIndex
+ *    Index of tab that is displayed.
  */
 void
-GroupAndNameHierarchyTreeWidgetItem::updateSelections(const DisplayGroupEnum::Enum displayGroup)
+GroupAndNameHierarchyTreeWidgetItem::updateSelections(const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex)
 {
     m_displayGroup = displayGroup;
+    m_tabIndex     = tabIndex;
     GroupAndNameCheckStateEnum::Enum checkState = GroupAndNameCheckStateEnum::UNCHECKED;
     
     bool expandedStatus = false;
-    switch (this->itemType) {
+    switch (m_itemType) {
         case ITEM_TYPE_CLASS:
-            checkState = this->classDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);
-            expandedStatus = this->classDisplayGroupSelector->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
+            CaretAssert(m_classDisplayGroupSelector);
+            checkState = m_classDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);
+            expandedStatus = m_classDisplayGroupSelector->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
             break;
         case ITEM_TYPE_HIERARCHY_MODEL:
-            checkState = this->classAndNameHierarchyModel->getCheckState(m_displayGroup, m_tabIndex);
-            expandedStatus = this->classAndNameHierarchyModel->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
+            CaretAssert(m_classAndNameHierarchyModel);
+            checkState = m_classAndNameHierarchyModel->getCheckState(m_displayGroup, m_tabIndex);
+            expandedStatus = m_classAndNameHierarchyModel->isExpandedToDisplayChildren(m_displayGroup, m_tabIndex);
             break;
         case ITEM_TYPE_NAME:
-            checkState = this->nameDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);
+            CaretAssert(m_nameDisplayGroupSelector);
+            checkState = m_nameDisplayGroupSelector->getCheckState(m_displayGroup, m_tabIndex);
             expandedStatus = false;
             break;
     }
     
     Qt::CheckState qtCheckState = toQCheckState(checkState);
-    this->setCheckState(TREE_COLUMN,
+    setCheckState(TREE_COLUMN,
                         qtCheckState);
     
     if (m_hasChildren) {
-        this->setExpanded(expandedStatus);
+        setExpanded(expandedStatus);
         for (std::vector<GroupAndNameHierarchyTreeWidgetItem*>::iterator iter = m_children.begin();
              iter != m_children.end();
              iter++) {
             GroupAndNameHierarchyTreeWidgetItem* item = *iter;
-            item->updateSelections(m_displayGroup);
+            item->updateSelections(m_displayGroup, tabIndex);
         }
     }
 }
@@ -251,7 +262,7 @@ GroupAndNameHierarchyTreeWidgetItem::addChildItem(GroupAndNameHierarchyTreeWidge
 {
     CaretAssert(child);
     m_children.push_back(child);
-    this->addChild(child);
+    addChild(child);
 }
 
 /**
@@ -260,7 +271,7 @@ GroupAndNameHierarchyTreeWidgetItem::addChildItem(GroupAndNameHierarchyTreeWidge
 GroupAndNameHierarchyTreeWidgetItem::ItemType 
 GroupAndNameHierarchyTreeWidgetItem::getItemType() const 
 { 
-    return this->itemType; 
+    return m_itemType; 
 }
 
 /**
@@ -270,8 +281,8 @@ GroupAndNameHierarchyTreeWidgetItem::getItemType() const
 GroupAndNameHierarchyModel* 
 GroupAndNameHierarchyTreeWidgetItem::getClassAndNameHierarchyModel()
 {
-    CaretAssert(this->itemType == ITEM_TYPE_HIERARCHY_MODEL);
-    return this->classAndNameHierarchyModel;
+    CaretAssert(m_itemType == ITEM_TYPE_HIERARCHY_MODEL);
+    return m_classAndNameHierarchyModel;
 }
 
 /**
@@ -281,8 +292,8 @@ GroupAndNameHierarchyTreeWidgetItem::getClassAndNameHierarchyModel()
 GroupAndNameHierarchyGroup*
 GroupAndNameHierarchyTreeWidgetItem::getClassDisplayGroupSelector()
 {
-    CaretAssert(this->itemType == ITEM_TYPE_CLASS);
-    return this->classDisplayGroupSelector;
+    CaretAssert(m_itemType == ITEM_TYPE_CLASS);
+    return m_classDisplayGroupSelector;
 }
 
 /**
@@ -292,8 +303,8 @@ GroupAndNameHierarchyTreeWidgetItem::getClassDisplayGroupSelector()
 GroupAndNameHierarchyName*
 GroupAndNameHierarchyTreeWidgetItem::getNameDisplayGroupSelector()
 {
-    CaretAssert(this->itemType == ITEM_TYPE_NAME);
-    return this->nameDisplayGroupSelector;
+    CaretAssert(m_itemType == ITEM_TYPE_NAME);
+    return m_nameDisplayGroupSelector;
 }
 
 /**
@@ -351,19 +362,23 @@ GroupAndNameHierarchyTreeWidgetItem::toQCheckState(const GroupAndNameCheckStateE
 void
 GroupAndNameHierarchyTreeWidgetItem::setModelDataExpanded(const bool expanded)
 {
-    switch (this->itemType) {
+    GroupAndNameHierarchyItem* item = NULL;
+    switch (m_itemType) {
         case ITEM_TYPE_CLASS:
-            this->classDisplayGroupSelector->setExpandedToDisplayChildren(m_displayGroup,
-                                                         m_tabIndex,
-                                                         expanded);
+            item = m_classDisplayGroupSelector;
             break;
         case ITEM_TYPE_HIERARCHY_MODEL:
-            this->classAndNameHierarchyModel->setExpandedToDisplayChildren(m_displayGroup,
-                                                          m_tabIndex,
-                                                          expanded);
+            item = m_classAndNameHierarchyModel;
             break;
         case ITEM_TYPE_NAME:
+            item = m_nameDisplayGroupSelector;
             break;
+    }
+    
+    if (item != NULL) {
+        item->setExpandedToDisplayChildren(m_displayGroup,
+                                           m_tabIndex,
+                                           expanded);
     }
 }
 
@@ -378,24 +393,15 @@ GroupAndNameHierarchyTreeWidgetItem::setModelDataSelected(const bool selected)
 {
     
     GroupAndNameHierarchyItem* item = NULL;
-    switch (this->itemType) {
+    switch (m_itemType) {
         case ITEM_TYPE_CLASS:
-            item = this->classDisplayGroupSelector;
-//            this->classDisplayGroupSelector->setSelected(m_displayGroup,
-//                                                         m_tabIndex,
-//                                                         selected);
+            item = m_classDisplayGroupSelector;
             break;
         case ITEM_TYPE_HIERARCHY_MODEL:
-            item = this->classAndNameHierarchyModel;
-//            this->classAndNameHierarchyModel->setSelected(m_displayGroup,
-//                                                          m_tabIndex,
-//                                                          selected);
+            item = m_classAndNameHierarchyModel;
             break;
         case ITEM_TYPE_NAME:
-            item = this->nameDisplayGroupSelector;
-//            this->nameDisplayGroupSelector->setSelected(m_displayGroup,
-//                                                        m_tabIndex,
-//                                                        selected);
+            item = m_nameDisplayGroupSelector;
             break;
     }
     

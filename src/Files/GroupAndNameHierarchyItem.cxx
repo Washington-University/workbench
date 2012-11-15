@@ -104,6 +104,7 @@ GroupAndNameHierarchyItem::clearPrivate()
          iter != m_children.end();
          iter++) {
         GroupAndNameHierarchyItem* item = *iter;
+        item->m_parent = NULL;
         delete item;
     }
     m_children.clear();

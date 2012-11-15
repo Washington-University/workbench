@@ -31,6 +31,7 @@
 
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GroupAndNameHierarchyGroup.h"
@@ -42,6 +43,7 @@
 #include "EventManager.h"
 #include "EventModelYokingGroupGetAll.h"
 #include "FociFile.h"
+#include "LabelFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -175,9 +177,20 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     if (model != NULL) {
         Brain* brain = model->getBrain();
         
-        brain->copyDisplayProperties(tabToClone->getTabNumber(), 
+        brain->copyDisplayProperties(tabToClone->getTabNumber(),
                                      getTabNumber());
         
+        const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+        for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+            BrainStructure* bs = brain->getBrainStructure(i);
+            const int32_t numLabelFiles = bs->getNumberOfLabelFiles();
+            for (int32_t j = 0; j < numLabelFiles; j++) {
+                LabelFile* labelFile = bs->getLabelFile(j);
+                labelFile->getGroupAndNameHierarchyModel()->copySelections(tabToClone->getTabNumber(),
+                                                                           getTabNumber());
+            }
+        }
+
         const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
         for (int32_t i = 0; i < numBorderFiles; i++) {
             BorderFile* bf = brain->getBorderFile(i);
