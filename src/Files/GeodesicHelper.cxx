@@ -23,11 +23,12 @@
  */
 /*LICENSE_END*/
 
-#include "SurfaceFile.h"
 #include "GeodesicHelper.h"
-#include "TopologyHelper.h"
-#include "CaretMutex.h"
+#include "CaretAssert.h"
 #include "CaretHeap.h"
+#include "CaretMutex.h"
+#include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include <iostream>
 #include <stdint.h>
 
@@ -174,7 +175,8 @@ void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, 
 {//public methods sanity check, private methods process
     nodesOut.clear();
     distsOut.clear();
-    if (node >= numNodes || maxdist < 0.0f || node < 0) return;
+    CaretAssert(node < numNodes && node >= 0);
+    if (node >= numNodes || maxdist < 0.0f || node < 0) return;//check what we asserted so release doesn't do strange things
     CaretMutexLocker locked(&inUse);//let sanity checks go multithreaded, as if it mattered
     dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
 }
@@ -183,6 +185,7 @@ void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, 
 {//public methods sanity check, private methods process
     nodesOut.clear();
     distsOut.clear();
+    CaretAssert(node < numNodes && node >= 0);
     if (node >= numNodes || maxdist < 0.0f || node < 0) return;
     CaretMutexLocker locked(&inUse);//we need the parents array to stay put, so don't scope this
     dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
@@ -583,6 +586,7 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
 
 void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, const bool smoothflag)
 {
+    CaretAssert(node >= 0 && node < numNodes && valuesOut != NULL);
     if (node < 0 || node >= numNodes || !valuesOut)
     {
         return;
@@ -596,6 +600,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, const 
 
 void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, int32_t* parentsOut, const bool smoothflag)
 {
+    CaretAssert(node >= 0 && node < numNodes && valuesOut != NULL && parentsOut != NULL);
     if (node < 0 || node >= numNodes || !valuesOut || !parentsOut)
     {
         return;
@@ -612,8 +617,10 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, int32_
 
 void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, const bool smoothflag)
 {
+    CaretAssert(node >= 0 && node < numNodes);
     if (node < 0 || node >= numNodes)
     {
+        valuesOut.clear();//empty array is error condition
         return;
     }
     CaretMutexLocker locked(&inUse);
@@ -626,6 +633,7 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valu
 
 void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag)
 {
+    CaretAssert(node >= 0 && node < numNodes);
     if (node < 0 || node >= numNodes)
     {
         return;
@@ -738,6 +746,7 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
 
 void GeodesicHelper::getGeoToTheseNodes(const int32_t root, const std::vector<int32_t>& ofInterest, std::vector<float>& distsOut, bool smoothflag)
 {
+    CaretAssert(root >= 0 && root < numNodes);
     if (root < 0 || root >= numNodes)
     {
         distsOut.clear();//empty array is error condition
@@ -759,5 +768,38 @@ void GeodesicHelper::getGeoToTheseNodes(const int32_t root, const std::vector<in
     for (i = 0; i < mysize; ++i)
     {
         distsOut[i] = output[ofInterest[i]];
+    }
+}
+
+void GeodesicHelper::getPathToNode(const int32_t root, const int32_t endpoint, vector<int32_t>& pathNodesOut, vector<float>& pathDistsOut, bool smoothflag)
+{
+    CaretAssert(root >= 0 && root < numNodes && endpoint >= 0 && endpoint < numNodes);
+    pathNodesOut.clear();
+    pathDistsOut.clear();
+    if (root < 0 || root >= numNodes || endpoint < 0 || endpoint >= numNodes)
+    {
+        return;
+    }
+    vector<int32_t> ofInterest(1, endpoint);
+    CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
+    dijkstra(root, ofInterest, smoothflag);
+    if (!(marked[endpoint] & 4))//check for valid value
+    {
+        return;
+    }
+    vector<int32_t> tempReverse;
+    int32_t next = endpoint;
+    while (next != root)
+    {
+        tempReverse.push_back(next);
+        next = parent[next];
+    }
+    tempReverse.push_back(next);
+    int32_t tempSize = (int32_t)tempReverse.size();
+    for (int32_t i = tempSize - 1; i >= 0; ++i)
+    {
+        int32_t tempNode = tempReverse[i];
+        pathNodesOut.push_back(tempNode);
+        pathDistsOut.push_back(output[tempNode]);
     }
 }
