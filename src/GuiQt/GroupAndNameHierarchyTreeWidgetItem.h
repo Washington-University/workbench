@@ -37,7 +37,6 @@
 
 #include <QTreeWidgetItem>
 
-#include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 #include "GroupAndNameCheckStateEnum.h"
 
@@ -51,7 +50,7 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyName;
     
-    class GroupAndNameHierarchyTreeWidgetItem : public QTreeWidgetItem, public QObject {
+    class GroupAndNameHierarchyTreeWidgetItem : public QTreeWidgetItem {
         
     public:
         /** Type of item within the hierarchy */
