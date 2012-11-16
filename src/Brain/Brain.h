@@ -43,6 +43,7 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
     class CiftiScalarFile;
     class ConnectivityLoaderFile;

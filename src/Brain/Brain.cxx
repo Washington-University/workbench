@@ -35,6 +35,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiFiberOrientationAdapter.h"
+#include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiScalarFile.h"
 #include "ConnectivityLoaderFile.h"
@@ -1021,6 +1022,8 @@ Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (Data
                                 DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
         }
         
+//        CiftiFiberOrientationFile fiberFile;
+//        fiberFile.readFile(filename);
         //validateConnectivityFile(clf);
     }
     catch (const DataFileException& dfe) {
