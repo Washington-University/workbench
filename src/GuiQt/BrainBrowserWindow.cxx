@@ -455,8 +455,8 @@ BrainBrowserWindow::createActions()
                                 SLOT(processCaptureImage()));
 
     m_recordMovieAction = 
-    WuQtUtilities::createAction("Record Movie...",
-                                "Record a Movie of the windows content",
+    WuQtUtilities::createAction("Animation Control...",
+                                "Animate Brain Surface",
                                 this,
                                 this,
                                 SLOT(processRecordMovie()));

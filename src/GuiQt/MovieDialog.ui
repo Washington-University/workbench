@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>203</height>
+    <width>423</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Animation Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -41,12 +41,15 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox_2"/>
+       <widget class="QSpinBox" name="repeatFramesSpinBox"/>
       </item>
       <item>
        <widget class="QPushButton" name="recordButton">
         <property name="text">
          <string>Record</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -58,56 +61,124 @@
      <property name="title">
       <string>Rotation Control</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
+     <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0,0,0,0,1">
+      <item row="1" column="8">
+       <widget class="QPushButton" name="animateButton">
+        <property name="text">
+         <string>Animate</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="rotateYLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Y:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="rotateXLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>X:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <widget class="QDoubleSpinBox" name="rotateZSpinBox"/>
+      </item>
+      <item row="0" column="5" alignment="Qt::AlignLeft">
+       <widget class="QDoubleSpinBox" name="rotateYSpinBox"/>
+      </item>
+      <item row="1" column="2" colspan="2">
+       <widget class="QSpinBox" name="rotateFrameCountSpinBox"/>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="rotateFrameCountLabel">
+        <property name="text">
+         <string>Rotate Frame Count:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4" colspan="4">
+       <widget class="QCheckBox" name="reverseDirectionCheckBox">
+        <property name="text">
+         <string>Reverse Direction</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QDoubleSpinBox" name="rotateXSpinBox"/>
+      </item>
+      <item row="0" column="6">
+       <widget class="QLabel" name="rotateZLabel">
+        <property name="text">
+         <string>Z:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="9">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="imageOptionsGroupBox">
+     <property name="title">
+      <string>Image Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="rotateXLabel">
+         <widget class="QCheckBox" name="cropImageCheckBox">
           <property name="text">
-           <string>X:</string>
+           <string>Automatically Crop Image</string>
           </property>
          </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="rotateXSpinBox"/>
-        </item>
-        <item>
-         <widget class="QLabel" name="rotateYLabel">
-          <property name="text">
-           <string>Y:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="rotateYSpinBox"/>
-        </item>
-        <item>
-         <widget class="QLabel" name="rotateZLabel">
-          <property name="text">
-           <string>Z:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="rotateZSpinBox"/>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="marginLabel">
+          <property name="text">
+           <string>Margin</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="marginSpinBox"/>
+        </item>
         <item>
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
@@ -121,37 +192,13 @@
           </property>
          </spacer>
         </item>
-        <item>
-         <widget class="QLabel" name="rotateFrameCountLabel">
-          <property name="text">
-           <string>Rotate Frame Count:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="rotateFrameCountSpinBox"/>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="reverseDirectionCheckBox">
-          <property name="text">
-           <string>Reverse Direction</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="animateButton">
-          <property name="text">
-           <string>Animate</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
      </layout>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="dialogButtonLayout">
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
