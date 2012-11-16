@@ -7479,10 +7479,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     /*
      * Account for margin around colorbar when calculating text locations
      */
-    int textCenterX = colorbarViewportX + (colorbarViewportWidth / 2);
-    //const int textHalfX   = colorbarViewportWidth / 2;
-    const int textLeftX   = colorbarViewportX; //textCenterX - textHalfX;
-    const int textRightX  = (colorbarViewportX + colorbarViewportWidth); //textCenterX + textHalfX;
+    int textCenterX = colorbarViewportX - modelViewport[0] + (colorbarViewportWidth / 2);
+    const int textLeftX   = colorbarViewportX - modelViewport[0];
+    const int textRightX  = (colorbarViewportX  - modelViewport[0] + colorbarViewportWidth);
     if (isPositiveOnly) {
         textCenterX = textLeftX;
     }
