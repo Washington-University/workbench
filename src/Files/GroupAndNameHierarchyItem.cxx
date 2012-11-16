@@ -44,6 +44,7 @@
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 
+#include <algorithm>
 
 using namespace caret;
 
