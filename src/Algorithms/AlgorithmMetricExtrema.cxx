@@ -34,7 +34,6 @@
 #include <cmath>
 #include <utility>
 #include <vector>
-#include <iostream>
 
 using namespace caret;
 using namespace std;
@@ -61,7 +60,7 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     ret->addMetricOutputParameter(4, "metric-out", "the output extrema metric");
     
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(5, "-presmooth", "smooth the metric before finding extrema");
-    presmoothOpt->addDoubleParameter(1, "presmoothing", "the sigma for the gaussian smoothing kernel, in mm");
+    presmoothOpt->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(6, "-roi", "ignore values outside the selected area");
     roiOpt->addMetricParameter(1, "roi-metric", "the area to find extrema in, as a metric");
@@ -80,9 +79,9 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     ret->setHelpText(
         AString("Finds extrema in a metric file, such that no two extrema of the same type are within <distance> of each other.  ") +
         "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.\n\n" +
-        "If -sum-columns is specified, these extrema colums are summed across the input maps, and the output has a single column with this result.\n\n" +
+        "If -sum-columns is specified, these extrema columns are summed, and the output has a single column with this result.\n\n" +
         "By default, a datapoint is an extrema only if it is more extreme than every other datapoint that is within <distance> from it.  " +
-        "If -consolidate-mode is used, it instead starts by finding all datapoints that are more extreme than the immediate neighbors, " +
+        "If -consolidate-mode is used, it instead starts by finding all datapoints that are more extreme than their immediate neighbors, " +
         "then while there are any extrema within <distance> of each other, take the two extrema closest to each other and merge them into one by a weighted average " +
         "based on how many original extrema have been merged into each.\n\n" +
         "By default, all input columns are used with no smoothing, use -column to specify a single column to use, and -presmooth to smooth the input before " +
@@ -812,7 +811,6 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
     vector<float> scratchDist(numNodes, -1.0f);
     for (int sign = 0; sign < 2; ++sign)
     {
-        cout << "sign start" << endl;
         int numInitExtrema = (int)initExtrema[sign].size();
         vector<bool> removed(numInitExtrema, false);//track which extrema locations are dropped during consolidation - the one that isn't dropped in a merge has its node number changed
         vector<vector<float> > distmatrix(numInitExtrema, vector<float>(numInitExtrema, -1.0f));
@@ -851,10 +849,7 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
         }//initial distance matrix computed, now we iterate
         while (!myDistHeap.isEmpty())
         {
-            cout << "pop...";
-            cout.flush();
             pair<int, int> toMerge = myDistHeap.pop();//we don't need to know the key
-            cout << "(" << toMerge.first << ", " << toMerge.second << ")" << endl;
             int extr1 = toMerge.first;
             int extr2 = toMerge.second;
             heapIDmatrix[extr1][extr2] = -1;
@@ -924,20 +919,15 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
                         {
                             if (tempID != -1)
                             {
-                                cout << "changekey " << tempID << ", " << tempf << endl;
                                 myDistHeap.changekey(tempID, tempf);
                             } else {
-                                cout << "push (" << extr1 << ", " << j << "), " << tempf << "...";
-                                cout.flush();
                                 tempID = myDistHeap.push(pair<int, int>(extr1, j), tempf);
-                                cout << tempID << endl;
                                 heapIDmatrix[extr1][j] = tempID;
                                 heapIDmatrix[j][extr1] = tempID;
                             }
                         } else {
                             if (tempID != -1)
                             {
-                                cout << "remove " << tempID << endl;
                                 myDistHeap.remove(tempID);
                                 heapIDmatrix[extr1][j] = -1;
                                 heapIDmatrix[j][extr1] = -1;

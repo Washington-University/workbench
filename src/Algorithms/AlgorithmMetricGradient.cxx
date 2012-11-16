@@ -58,7 +58,7 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     ret->addMetricOutputParameter(3, "metric-out", "the magnitude of the gradient");
     
     OptionalParameter* presmooth = ret->createOptionalParameter(4, "-presmooth", "smooth the metric before computing the gradient");
-    presmooth->addDoubleParameter(1, "presmoothing", "the sigma for the gaussian smoothing kernel, in mm");
+    presmooth->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to take the gradient of");
     roiOption->addMetricParameter(1, "roi-metric", "the area to take the gradient within, as a metric");

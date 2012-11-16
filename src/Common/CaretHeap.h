@@ -30,15 +30,12 @@
 #include "stdint.h"
 #include "CaretAssert.h"
 
-#include <iostream>
-
 namespace caret
 {
     ///heap base used to be able to modify existing data's keys, and to automatically indirect the heap data through indexing, so that all heap reordering involves only integer assignments
     template <typename T, typename K, typename C>
     class CaretHeapBase
     {
-    public:
         struct DataStruct
         {
             K m_key;
@@ -46,8 +43,6 @@ namespace caret
             int64_t m_index;
             DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
         };
-    protected:
-        CaretHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
         std::vector<DataStruct> m_datastore;
         std::vector<int64_t> m_heap;
         std::vector<int64_t> m_unusedStore;
@@ -58,6 +53,8 @@ namespace caret
         inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
+    protected:
+        CaretHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
     public:
         ///this heap is special, save the return value of push() and you can modify the key/data later (constant time for data, log(heapsize) time to change key)
         int64_t push(const T& data, const K& key);
@@ -97,20 +94,19 @@ namespace caret
     template <typename T, typename K, typename C>
     class CaretSimpleHeapBase
     {
-    public:
         struct DataStruct
         {
             K m_key;
             T m_data;
             DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
         };
-    protected:
-        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
         std::vector<DataStruct> m_heap;
         //uses curiously recurring template pattern to use child class's comparison without virtual
         inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
+    protected:
+        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
     public:
         
         void push(const T& data, const K& key);
