@@ -1092,7 +1092,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
         SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         if (dataFileType == DataFileTypeEnum::SCENE) {
-            CaretLogInfo("Note: Scene files not added to scene at this time");
+            //CaretLogInfo("Note: Scene files not added to scene at this time");
         }
         else if (dataFileType == DataFileTypeEnum::PALETTE) {
             CaretLogInfo("Note: Palette files not added to scene at this time");
