@@ -46,7 +46,7 @@ OperationParameters* OperationCiftiMath::getParameters()
     
     ret->addStringParameter(1, "expression", "the expression to evaluate, in quotes");
     
-    ret->addCiftiOutputParameter(2, "volume-out", "the output cifti file");
+    ret->addCiftiOutputParameter(2, "cifti-out", "the output cifti file");
     
     ParameterComponent* varOpt = ret->createRepeatableParameter(3, "-var", "a cifti file to use as a variable");
     varOpt->addStringParameter(1, "name", "the name of the variable, as used in the expression");
@@ -83,7 +83,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     int numInputs = myVarOpts.size();
     int numVars = myVarNames.size();
     vector<CiftiFile*> varCiftiFiles(numVars, (CiftiFile*)NULL);
-    if (numInputs == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
+    if (numInputs == 0) throw OperationException("you must specify at least one input file (-var), even if the expression doesn't use a variable");
     CiftiFile* first = myVarOpts[0]->getCifti(2);
     for (int i = 0; i < numInputs; ++i)
     {
