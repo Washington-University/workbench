@@ -45,6 +45,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
@@ -1358,6 +1359,17 @@ BrainStructure::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(m_nodeAttributes->saveToScene(sceneAttributes, 
                                                        "m_nodeAttributes"));
     
+    /*
+     * Save Group/Name Selection Hierarchies
+     */
+    for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+         labelIter != m_labelFiles.end();
+         labelIter++) {
+        LabelFile* lf = *labelIter;
+        sceneClass->addClass(lf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                         lf->getFileNameNoPath()));
+    }
+    
     return sceneClass;
 }
 
@@ -1385,10 +1397,27 @@ BrainStructure::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                          0);
     const StructureEnum::Enum structure = sceneClass->getEnumeratedTypeValue<StructureEnum,StructureEnum::Enum>("m_structure", 
                                                                                                                 StructureEnum::INVALID);
+    
+    /*
+     * Since there may be multiple brain structures in scene,
+     * match by structure-type and number of nodes
+     */
     if ((numNodes == getNumberOfNodes())
         && (structure == m_structure)) {
         m_nodeAttributes->restoreFromScene(sceneAttributes, 
                                            sceneClass->getClass("m_nodeAttributes"));
+
+        /*
+         * Save Group/Name Selection Hierarchies
+         */
+        for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+             labelIter != m_labelFiles.end();
+             labelIter++) {
+            LabelFile* lf = *labelIter;
+            const SceneClass* labelClass = sceneClass->getClass(lf->getFileNameNoPath());
+            lf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                                  labelClass);
+        }
     }
 }
 

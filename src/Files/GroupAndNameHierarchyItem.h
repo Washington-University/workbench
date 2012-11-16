@@ -38,11 +38,14 @@
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 #include "GroupAndNameCheckStateEnum.h"
+#include "SceneableInterface.h"
 
 
 namespace caret {
 
-    class GroupAndNameHierarchyItem : public CaretObject {
+    class SceneClassAssistant;
+    
+    class GroupAndNameHierarchyItem : public CaretObject, SceneableInterface {
         
     public:
         /**
@@ -143,6 +146,12 @@ namespace caret {
 
         virtual AString toString() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     protected:
         void setName(const AString& name);
         
@@ -238,7 +247,10 @@ namespace caret {
         
         /** Counter for tracking usage of item */
         int32_t m_counter;
-        
+
+        /** Assists with scenes */
+        SceneClassAssistant* m_sceneAssistant;
+
         // ADD_NEW_MEMBERS_HERE
     };
     

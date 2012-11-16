@@ -58,6 +58,7 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
@@ -3363,6 +3364,24 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(m_connectivityLoaderManager->saveToScene(sceneAttributes,
                                                                   "m_connectivityLoaderManager"));
     
+    /*
+     * Save Group/Name Selection Hierarchies
+     */
+    for (std::vector<BorderFile*>::iterator borderIter = m_borderFiles.begin();
+         borderIter != m_borderFiles.end();
+         borderIter++) {
+        BorderFile* bf = *borderIter;
+        sceneClass->addClass(bf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                         bf->getFileNameNoPath()));
+    }
+    for (std::vector<FociFile*>::iterator fociIter = m_fociFiles.begin();
+         fociIter != m_fociFiles.end();
+         fociIter++) {
+        FociFile* ff = *fociIter;
+        sceneClass->addClass(ff->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                         ff->getFileNameNoPath()));
+    }
+    
     return sceneClass;
 }
 
@@ -3460,6 +3479,23 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
+    /*
+     * Restore Group/Name Selection Hierarchies
+     */
+    for (std::vector<BorderFile*>::iterator borderIter = m_borderFiles.begin();
+         borderIter != m_borderFiles.end();
+         borderIter++) {
+        BorderFile* bf = *borderIter;
+        bf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                              sceneClass->getClass(bf->getFileNameNoPath()));
+    }
+    for (std::vector<FociFile*>::iterator fociIter = m_fociFiles.begin();
+         fociIter != m_fociFiles.end();
+         fociIter++) {
+        FociFile* ff = *fociIter;
+        ff->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                              sceneClass->getClass(ff->getFileNameNoPath()));
+    }
 }
 
 /**

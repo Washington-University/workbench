@@ -39,6 +39,11 @@
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyName.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
+
 
 using namespace caret;
 
@@ -68,12 +73,30 @@ m_name(name),
 m_idNumber(idNumber),
 m_parent(0)
 {
+    m_sceneAssistant = new SceneClassAssistant();
+    
     m_iconRGBA[0] = 0.0;
     m_iconRGBA[1] = 0.0;
     m_iconRGBA[2] = 0.0;
     m_iconRGBA[3] = 0.0;
 
     clearPrivate();
+    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_selectedInTab",
+                                                m_selectedInTab);
+    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_expandedStatusInTab",
+                                                m_expandedStatusInTab);
+    
+    m_sceneAssistant->addArray("m_selectedInDisplayGroup",
+                               m_selectedInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_selectedInDisplayGroup[0]);
+    
+    m_sceneAssistant->addArray("m_expandedStatusInDisplayGroup",
+                               m_expandedStatusInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               m_expandedStatusInDisplayGroup[0]);
 }
 
 /**
@@ -81,6 +104,7 @@ m_parent(0)
  */
 GroupAndNameHierarchyItem::~GroupAndNameHierarchyItem()
 {
+    delete m_sceneAssistant;
     clearPrivate();
 }
 
@@ -792,3 +816,74 @@ GroupAndNameHierarchyItem::toString() const
     
     return info;
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+GroupAndNameHierarchyItem::saveToScene(const SceneAttributes* sceneAttributes,
+                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "GroupAndNameHierarchyItem",
+                                            1);
+    
+    sceneClass->addString("m_name", m_name);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyItem* child = *iter;
+        sceneClass->addClass(child->saveToScene(sceneAttributes,
+                                                child->getName()));
+    }
+
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+GroupAndNameHierarchyItem::restoreFromScene(const SceneAttributes* sceneAttributes,
+                           const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyItem* child = *iter;
+        child->restoreFromScene(sceneAttributes,
+                                sceneClass->getClass(child->getName()));
+    }
+}
+
