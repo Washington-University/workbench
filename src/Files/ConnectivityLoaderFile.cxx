@@ -1083,7 +1083,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 break;
             case LOADER_TYPE_DENSE:
             {
-                this->zeroizeData();
+                // WB-174 this->zeroizeData();
 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
@@ -1193,7 +1193,7 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                 }
                 
                 this->allocateData(num);
-                this->zeroizeData();
+                // WB-174 this->zeroizeData();
                 
                 // JWH-Oct2if (this->ciftiInterface->hasRowSurfaceData(structure)) {
                 if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
@@ -1444,7 +1444,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 break;
             case LOADER_TYPE_DENSE:
             {
-                this->zeroizeData();
+                // WB-174  this->zeroizeData();
                 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
