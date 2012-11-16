@@ -109,7 +109,7 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
         presmooth = (float)presmoothOpt->getDouble(1);
         if (presmooth <= 0.0f)
         {
-            throw AlgorithmException("smoothing amount must be positive");
+            throw AlgorithmException("smoothing kernel must be positive");
         }
     }
     OptionalParameter* thresholdOpt = myParams->getOptionalParameter(7);
@@ -224,6 +224,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
                 {
                     scratchcol[maxima[j]] = 1.0f;
                 }
+                myMetricOut->setColumnName(i, "extrema of " + myMetric->getColumnName(i));//don't include the whatever smoothing adds to the names, i guess
                 myMetricOut->setValuesForColumn(i, scratchcol.data());
                 numelems = (int)minima.size();
                 for (int j = 0; j < numelems; ++j)
@@ -245,6 +246,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         vector<float> scratchcol(numNodes, 0.0f);
         vector<int> minima, maxima;
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(mySurf->getStructure());
         if (consolidateMode)
         {
             findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
@@ -261,6 +263,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             scratchcol[maxima[j]] = 1.0f;
         }
+        myMetricOut->setColumnName(0, "extrema of" + myMetric->getColumnName(columnNum));//ditto
         myMetricOut->setValuesForColumn(0, scratchcol.data());
     }
 }
