@@ -45,7 +45,7 @@ float Vector3D::length() const
     return MathFunctions::vectorLength(m_vec);
 }
 
-float Vector3D::lengthsqr() const
+float Vector3D::lengthsquared() const
 {
     return m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2];
 }

@@ -569,7 +569,7 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
                 tempnode1 = triNodes[i];
                 mypoint = verts[i];
             }
-            float tempdistsqr = (point - mypoint).lengthsqr();
+            float tempdistsqr = (point - mypoint).lengthsquared();
             if (first || tempdistsqr < bestLengthSqr)
             {
                 first = false;
