@@ -41,6 +41,7 @@
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 #include "FiberTrajectoryDisplayModeEnum.h"
+#include "SceneableInterface.h"
 
 class QButtonGroup;
 class QCheckBox;
@@ -52,8 +53,9 @@ class QVBoxLayout;
 namespace caret {
     class DisplayGroupEnumComboBox;
     class WuQTrueFalseComboBox;
+    class WuQTabWidget;
 
-    class FiberTrajectorySelectionViewController : public QWidget, public EventListenerInterface {
+    class FiberTrajectorySelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -64,6 +66,12 @@ namespace caret {
         virtual ~FiberTrajectorySelectionViewController();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
         // ADD_NEW_METHODS_HERE
         
@@ -120,6 +128,8 @@ namespace caret {
         QVBoxLayout* m_selectionWidgetLayout;
         
         bool m_updateInProgress;
+        
+        WuQTabWidget* m_tabWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

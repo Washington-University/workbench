@@ -79,6 +79,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_borderSelectionViewController = NULL;
     m_connectivityViewController = NULL;
     m_fiberOrientationViewController = NULL;
+    m_fiberTrajectorySelectionViewController = NULL;
     m_fociSelectionViewController = NULL;
     m_labelSelectionViewController = NULL;
     m_overlaySetViewController = NULL;
@@ -286,6 +287,30 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     sceneClass->addClass(swg.saveToScene(sceneAttributes,
                                          "geometry"));
     
+    /*
+     * Save controllers in the toolbox
+     */
+    if (m_borderSelectionViewController != NULL) {
+        sceneClass->addClass(m_borderSelectionViewController->saveToScene(sceneAttributes,
+                                                     "m_borderSelectionViewController"));
+    }
+    if (m_fiberOrientationViewController != NULL) {
+        sceneClass->addClass(m_fiberOrientationViewController->saveToScene(sceneAttributes,
+                                                     "m_fiberOrientationViewController"));
+    }
+    if (m_fociSelectionViewController != NULL) {
+        sceneClass->addClass(m_fociSelectionViewController->saveToScene(sceneAttributes,
+                                                     "m_fociSelectionViewController"));
+    }
+    if (m_labelSelectionViewController != NULL) {
+        sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
+                                                     "m_labelSelectionViewController"));
+    }
+    if (m_fiberTrajectorySelectionViewController != NULL) {
+        sceneClass->addClass(m_fiberTrajectorySelectionViewController->saveToScene(sceneAttributes,
+                                                     "m_fiberTrajectorySelectionViewController"));
+    }
+    
 ////    if (isFloating()) {
 //        /*
 //         * Position and size
@@ -328,6 +353,30 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
             m_tabWidget->setCurrentIndex(i);
             break;
         }
+    }
+    
+    /*
+     * Save controllers in the toolbox
+     */
+    if (m_borderSelectionViewController != NULL) {
+        m_borderSelectionViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_borderSelectionViewController"));
+    }
+    if (m_fiberOrientationViewController != NULL) {
+        m_fiberOrientationViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_fiberOrientationViewController"));
+    }
+    if (m_fociSelectionViewController != NULL) {
+        m_fociSelectionViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_fociSelectionViewController"));
+    }
+    if (m_labelSelectionViewController != NULL) {
+        m_labelSelectionViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_labelSelectionViewController"));
+    }
+    if (m_fiberTrajectorySelectionViewController != NULL) {
+        m_fiberTrajectorySelectionViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_fiberTrajectorySelectionViewController"));
     }
     
     /*

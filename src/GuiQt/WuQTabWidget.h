@@ -36,13 +36,14 @@
 
 
 #include "WuQWidget.h"
+#include "SceneableInterface.h"
 
 class QTabBar;
 class QStackedWidget;
 
 namespace caret {
 
-    class WuQTabWidget : public WuQWidget {
+    class WuQTabWidget : public WuQWidget, public SceneableInterface {
         
         Q_OBJECT
 
@@ -66,6 +67,12 @@ namespace caret {
         int currentIndex() const;
         
         QWidget* currentWidget() const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     signals:
         void currentChanged(int index);

@@ -45,6 +45,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
 #include "LabelDrawingTypeEnum.h"
+#include "SceneableInterface.h"
 
 class QCheckBox;
 
@@ -52,8 +53,11 @@ namespace caret {
 
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
+    class WuQTabWidget;
     
-    class LabelSelectionViewController : public QWidget, public EventListenerInterface {
+
+    
+    class LabelSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -64,6 +68,12 @@ namespace caret {
         virtual ~LabelSelectionViewController();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private slots:
         void processLabelSelectionChanges();
@@ -104,6 +114,8 @@ namespace caret {
         QDoubleSpinBox* m_lineWidthSpinBox;
         
         QDoubleSpinBox* m_pointSizeSpinBox;
+        
+        WuQTabWidget* m_tabWidget;
         
         static std::set<LabelSelectionViewController*> allLabelSelectionViewControllers;
     };

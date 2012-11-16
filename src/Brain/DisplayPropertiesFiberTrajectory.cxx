@@ -110,6 +110,8 @@ DisplayPropertiesFiberTrajectory::DisplayPropertiesFiberTrajectory(Brain* brain)
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
                                               m_displayStatusInTab);
     
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
+                                                                                                m_displayGroup);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FiberTrajectoryDisplayModeEnum, FiberTrajectoryDisplayModeEnum::Enum>("m_displayModeInTab", m_displayModeInTab);
     m_sceneAssistant->addTabIndexedIntegerArray("m_proportionStreamlineInTab",
                                               m_proportionStreamlineInTab);

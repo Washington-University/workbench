@@ -112,6 +112,8 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brai
         m_displaySphereOrientationsInDisplayGroup[i] = displaySphereOrientions;
     }
 
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
+                                                                                                m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
                                               m_displayStatusInTab);
     m_sceneAssistant->addTabIndexedFloatArray("m_aboveLimitInTab",

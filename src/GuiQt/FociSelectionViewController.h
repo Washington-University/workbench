@@ -41,6 +41,7 @@
 
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 
 class QCheckBox;
 class QComboBox;
@@ -51,8 +52,9 @@ namespace caret {
     class GroupAndNameHierarchyViewController;
     class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
+    class WuQTabWidget;
     
-    class FociSelectionViewController : public QWidget, public EventListenerInterface {
+    class FociSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -63,6 +65,12 @@ namespace caret {
         virtual ~FociSelectionViewController();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private slots:
         void processFociSelectionChanges();
@@ -105,6 +113,8 @@ namespace caret {
         QDoubleSpinBox* m_sizeSpinBox;
         
         QComboBox* m_drawTypeComboBox;
+        
+        WuQTabWidget* m_tabWidget;
         
         static std::set<FociSelectionViewController*> allFociSelectionViewControllers;
     };

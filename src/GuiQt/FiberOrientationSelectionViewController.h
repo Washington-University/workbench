@@ -41,6 +41,7 @@
 #include "DisplayGroupEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 
 class QCheckBox;
 class QDoubleSpinBox;
@@ -49,9 +50,10 @@ class QVBoxLayout;
 namespace caret {
     class DisplayGroupEnumComboBox;
     class FiberSamplesOpenGLWidget;
+    class WuQTabWidget;
     class WuQTrueFalseComboBox;
 
-    class FiberOrientationSelectionViewController : public QWidget, public EventListenerInterface {
+    class FiberOrientationSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -62,6 +64,12 @@ namespace caret {
         virtual ~FiberOrientationSelectionViewController();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
         // ADD_NEW_METHODS_HERE
         
@@ -116,6 +124,8 @@ namespace caret {
         FiberSamplesOpenGLWidget* m_samplesOpenGLWidget;
         
         QCheckBox* m_displaySphereOrientationsCheckBox;
+        
+        WuQTabWidget* m_tabWidget;
         
         bool m_updateInProgress;
         

@@ -59,6 +59,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "SceneClass.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
@@ -97,19 +98,17 @@ LabelSelectionViewController::LabelSelectionViewController(const int32_t browser
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
     
-    
-//    QTabWidget* tabWidget = new QTabWidget();
-    WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
+    m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                                this);
-    tabWidget->addTab(attributesWidget, 
+    m_tabWidget->addTab(attributesWidget, 
                       "Attributes");
-    tabWidget->addTab(selectionWidget, 
+    m_tabWidget->addTab(selectionWidget, 
                       "Selection");
-    tabWidget->setCurrentWidget(attributesWidget);
+    m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(groupLayout);
-    layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
+    layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -342,5 +341,55 @@ LabelSelectionViewController::receiveEvent(Event* event)
         updateLabelViewController();
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+LabelSelectionViewController::saveToScene(const SceneAttributes* sceneAttributes,
+                                           const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "LabelSelectionViewController",
+                                            1);
+    sceneClass->addClass(m_tabWidget->saveToScene(sceneAttributes,
+                                                  "m_tabWidget"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+LabelSelectionViewController::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_tabWidget->restoreFromScene(sceneAttributes,
+                                  sceneClass->getClass("m_tabWidget"));
+}
+
 
 

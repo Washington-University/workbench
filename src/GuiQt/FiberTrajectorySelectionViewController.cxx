@@ -60,6 +60,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FiberTrajectorySelectionViewController.h"
 #include "GuiManager.h"
+#include "SceneClass.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -104,22 +105,21 @@ FiberTrajectorySelectionViewController::FiberTrajectorySelectionViewController(c
     QWidget* selectionWidget = this->createSelectionWidget();
     
     
-    //QTabWidget* tabWidget = new QTabWidget();
-    WuQTabWidget* tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
+    m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                                this);
     
-    tabWidget->addTab(attributesWidget,
+    m_tabWidget->addTab(attributesWidget,
                       "Attributes");
-    tabWidget->addTab(selectionWidget,
+    m_tabWidget->addTab(selectionWidget,
                       "Selection");
-    tabWidget->setCurrentWidget(attributesWidget);
+    m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
     layout->addSpacing(10);
     layout->addWidget(m_displayTrajectoriesCheckBox);
-    layout->addWidget(tabWidget->getWidget(), 0, Qt::AlignLeft);
+    layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this,
@@ -589,5 +589,55 @@ FiberTrajectorySelectionViewController::receiveEvent(Event* event)
         updateViewController();
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+FiberTrajectorySelectionViewController::saveToScene(const SceneAttributes* sceneAttributes,
+                                           const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "FiberTrajectorySelectionViewController",
+                                            1);
+    sceneClass->addClass(m_tabWidget->saveToScene(sceneAttributes,
+                                                  "m_tabWidget"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+FiberTrajectorySelectionViewController::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_tabWidget->restoreFromScene(sceneAttributes,
+                                  sceneClass->getClass("m_tabWidget"));
+}
+
 
 

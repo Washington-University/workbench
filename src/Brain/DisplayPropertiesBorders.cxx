@@ -90,6 +90,8 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
     }
 
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
+                                                                                                m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
                                               m_displayStatusInTab);
     

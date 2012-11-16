@@ -42,6 +42,8 @@
 #include "WuQTabWidget.h"
 #undef __WU_Q_TAB_WIDGET_DECLARE__
 
+#include "SceneClass.h"
+
 using namespace caret;
 
 
@@ -210,4 +212,66 @@ WuQTabWidget::setCurrentWidget(QWidget* widget)
         m_tabBar->blockSignals(false);
     }
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+WuQTabWidget::saveToScene(const SceneAttributes* sceneAttributes,
+                                           const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "WuQTabWidget",
+                                            1);
+
+    AString tabName;
+    const int32_t selectedTabIndex = currentIndex();
+    if (selectedTabIndex >= 0) {
+        tabName = m_tabBar->tabText(selectedTabIndex);
+    }
+    sceneClass->addString("selectedTabName",
+                          tabName);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+WuQTabWidget::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const AString tabName = sceneClass->getStringValue("selectedTabName");
+    const int32_t numTabs = m_tabBar->count();
+    for (int32_t i = 0; i < numTabs; i++) {
+        if (m_tabBar->tabText(i) == tabName) {
+            setCurrentIndex(i);
+            break;
+        }
+    }
+}
+
 
