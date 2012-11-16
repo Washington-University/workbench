@@ -143,19 +143,18 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->border = border;
     this->classNameComboBox = NULL;
     
-    QString borderName = "";
-    CaretColorEnum::Enum borderColor = CaretColorEnum::BLACK;
-    QString className = "";
+    QString borderName = border->getName();
+    CaretColorEnum::Enum borderColor = border->getColor();
+    QString className = border->getClassName();
     switch (this->mode) {
         case MODE_EDIT:
-            borderName = border->getName();
-            borderColor = border->getColor();
-            className = border->getClassName();
             break;
         case MODE_FINISH_DRAWING:
-            borderName = BorderPropertiesEditorDialog::previousName;
-            borderColor = BorderPropertiesEditorDialog::previousCaretColor;
-            className = BorderPropertiesEditorDialog::previousClassName;
+            if (s_previousDataValid) {
+                borderName = BorderPropertiesEditorDialog::previousName;
+                borderColor = BorderPropertiesEditorDialog::previousCaretColor;
+                className = BorderPropertiesEditorDialog::previousClassName;
+            }
             break;
     }
     
@@ -206,6 +205,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      */
     QLabel* colorLabel = new QLabel("Color");
     this->colorSelectionComboBox = new CaretColorEnumComboBox(this);
+    this->colorSelectionComboBox->setSelectedColor(borderColor);
 
     /*
      * Class
@@ -552,6 +552,7 @@ BorderPropertiesEditorDialog::okButtonClicked()
          * use them to initialize the dialog next
          * time it is displayed.
          */
+        s_previousDataValid = true;
         BorderPropertiesEditorDialog::previousName = name;
         BorderPropertiesEditorDialog::previousClassName = className;
         BorderPropertiesEditorDialog::previousClosedSelected = this->closedCheckBox->isChecked();

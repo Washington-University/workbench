@@ -115,6 +115,7 @@ namespace caret {
         
         SurfaceFile* finishBorderSurfaceFile;
         
+        static bool s_previousDataValid;
         static AString previousName;
         static BorderFile* previousBorderFile;
         static bool previousClosedSelected;
@@ -123,6 +124,7 @@ namespace caret {
     };
     
 #ifdef __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
+    bool BorderPropertiesEditorDialog::s_previousDataValid = false;
     AString BorderPropertiesEditorDialog::previousName = "Name";
     BorderFile* BorderPropertiesEditorDialog::previousBorderFile = NULL;
     bool BorderPropertiesEditorDialog::previousClosedSelected = false;

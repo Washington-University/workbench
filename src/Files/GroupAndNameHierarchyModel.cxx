@@ -194,9 +194,9 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
     
     if (needToGenerateKeys) {
         /*
-         * Remove everything
+         * Clear the counters
          */
-        this->clear();
+        clearCounters();
         
         /*
          * Names for missing group names or border names.

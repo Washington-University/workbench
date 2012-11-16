@@ -110,6 +110,7 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
         if (focus->getStatistic().isEmpty()) {
             focus->setStatistic(s_previousCreateFocus->getStatistic());
         }
+        focus->setColor(s_previousCreateFocus->getColor());
     }
     
     FociPropertiesEditorDialog focusCreateDialog("Create Focus",
@@ -133,6 +134,8 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
                               tabIndex,
                               true);
         }
+        
+        focusCreateDialog.updateGraphicsAndUserInterface();
         
         return true;
     }
@@ -242,6 +245,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     QLabel* colorLabel = new QLabel("Color");
     m_colorSelectionComboBox = new CaretColorEnumComboBox(this);
+    m_colorSelectionComboBox->setSelectedColor(focus->getColor());
 
     /*
      * Class

@@ -61,6 +61,14 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent)
         this->colorComboBox->setItemData(indx, 
                                          CaretColorEnum::toIntegerCode(colorEnum));
 
+        const float* rgb = CaretColorEnum::toRGB(colorEnum);
+        QPixmap pm(10, 10);
+        pm.fill(QColor::fromRgbF(rgb[0],
+                                 rgb[1],
+                                 rgb[2]));
+        QIcon icon(pm);
+        this->colorComboBox->setItemIcon(indx,
+                                         icon);
     }
     
     setSelectedColor(CaretColorEnum::BLACK);
