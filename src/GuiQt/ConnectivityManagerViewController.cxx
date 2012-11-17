@@ -195,7 +195,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     if(this->timeSeriesButtonLayout)
     {
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
-        if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
+        /*if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
         if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
         if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,0, Qt::AlignLeft);
 
@@ -213,7 +213,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
         if(this->frameRotateReverseDirectionLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirectionLabel, 0, Qt::AlignLeft);
         if(this->frameRotateReverseDirection) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirection, 0, Qt::AlignLeft);
         if(this->renderMovieButton) this->timeSeriesButtonLayout->addWidget(this->renderMovieButton, 100, Qt::AlignLeft);
-
+*/
         layout->addLayout(this->timeSeriesButtonLayout);
     }
     
