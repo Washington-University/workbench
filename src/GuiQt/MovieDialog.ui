@@ -114,7 +114,7 @@
       <item row="0" column="7">
        <widget class="QDoubleSpinBox" name="rotateZSpinBox"/>
       </item>
-      <item row="0" column="5" alignment="Qt::AlignLeft">
+      <item row="0" column="5">
        <widget class="QDoubleSpinBox" name="rotateYSpinBox"/>
       </item>
       <item row="1" column="2" colspan="2">

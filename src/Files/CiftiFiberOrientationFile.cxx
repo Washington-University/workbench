@@ -43,6 +43,8 @@
 #include "GiftiMetaData.h"
 #include "MathFunctions.h"
 
+#include <limits>
+
 using namespace caret;
 
 
