@@ -198,9 +198,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, minima, maxima);
             } else {
-                findMinimaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, minima, maxima);
             }
             if (sumColumns)
             {
@@ -250,9 +250,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setStructure(mySurf->getStructure());
         if (consolidateMode)
         {
-            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
         } else {
-            findMinimaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -324,9 +324,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, lowThresh, highThresh, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, lowThresh, highThresh, minima, maxima);
             } else {
-                findMinimaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, lowThresh, highThresh, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, lowThresh, highThresh, minima, maxima);
             }
             if (sumColumns)
             {
@@ -374,9 +374,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         if (consolidateMode)
         {
-            findMinimaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
         } else {
-            findMinimaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -447,7 +447,7 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
     }
 }
 
-void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = (int)neighborhoods.size();
     minima.clear();
@@ -529,7 +529,7 @@ void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const ve
     }
 }
 
-void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = (int)neighborhoods.size();
     minima.clear();
@@ -613,7 +613,7 @@ void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const ve
     }
 }
 
-void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
@@ -710,7 +710,7 @@ void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, co
     consolidateStep(mySurf, distance, tempExtrema, minima, maxima);
 }
 
-void AlgorithmMetricExtrema::findMinimaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& lowThresh, const float& highThresh, const float& distance, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& lowThresh, const float& highThresh, const float& distance, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
