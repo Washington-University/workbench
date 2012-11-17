@@ -119,9 +119,9 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
         for(int64_t i=0;i<columnSize;i++)//apparently read also is unable to handle reading in more than 2GB's at a time, reading a row at a time to get around this
         {
 #ifdef CARET_OS_WINDOWS
-            _read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float));
+            if (_read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float)) != rowSize*sizeof(float)) throw CiftiFileException("error reading from file");
 #else
-            read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float));
+            if (read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float)) != (ssize_t)(rowSize*sizeof(float))) throw CiftiFileException("error reading from file");
 #endif
         }
         m_file->close();

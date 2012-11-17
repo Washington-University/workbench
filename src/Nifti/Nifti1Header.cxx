@@ -323,9 +323,9 @@ void Nifti1Header::getSForm(std::vector<std::vector<float> >& sForm)
                 quat[0] = sqrt(1.0f - checkquat);
             }
             MathFunctions::quaternToMatrix(quat, rotmat);
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 3; ++i)
             {
-                for (int j = 0; j < 4; ++j)
+                for (int j = 0; j < 3; ++j)
                 {
                     rotmat[i][j] *= m_header.pixdim[i + 1];
                 }
