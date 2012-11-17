@@ -189,6 +189,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         if (sumColumns)
         {
             myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+            myMetricOut->setColumnName(0, "sum of extrema");
         } else {
             myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
         }
@@ -459,7 +460,7 @@ void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const ve
         {
             const vector<int32_t>& myneighbors = neighborhoods[i];
             int numNeigh = (int)myneighbors.size();
-            if (numNeigh == 0) break;//don't count isolated nodes as minima or maxima
+            if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
             float myval = data[i];
             int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
@@ -541,7 +542,7 @@ void AlgorithmMetricExtrema::findMinimaNeighborhoods(const float* data, const ve
         {
             const vector<int32_t>& myneighbors = neighborhoods[i];
             int numNeigh = (int)myneighbors.size();
-            if (numNeigh == 0) break;//don't count isolated nodes as minima or maxima
+            if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
             float myval = data[i];
             if (myval >= lowThresh) canBeMin = false;//check thresholds
             if (myval <= highThresh) canBeMax = false;
