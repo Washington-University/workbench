@@ -32,6 +32,7 @@
 /*LICENSE_END*/
 
 #include <QDir>
+#include <QFileDialog>
 
 #include "MovieDialog.h"
 #include "ui_MovieDialog.h"
@@ -99,7 +100,36 @@ void MovieDialog::on_animateButton_toggled(bool checked)
 
 void MovieDialog::on_recordButton_toggled(bool checked)
 {
+    if(!checked&&(frame_number > 0))
+    {
+        //render frames....
 
+        QString formatString("Movie Files (*.mpg)");
+
+        AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+        AString tempDir = QDir::tempPath();
+        if ( !fileName.isEmpty() )
+        {
+            unlink(fileName);
+            CaretLogInfo("Rendering movie to:" + fileName);
+            AString ffmpeg = QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
+
+            double frame_rate = 30.0/double(1 + this->ui->repeatFramesSpinBox->value());
+
+            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
+            CaretLogFine("running " + command);
+
+            system(command.toAscii().data());
+            CaretLogFine("Finished rendering " + fileName);
+
+        }
+        for(int i = 0;i<frame_number;i++)
+        {
+            AString tempFile = tempDir + "/movie" + AString::number(i) + AString(".png");
+            unlink(tempFile);
+        }
+        frame_number = 0;
+    }
 }
 
 void MovieDialog::on_cropImageCheckBox_toggled(bool checked)
@@ -233,8 +263,10 @@ MovieDialog::receiveEvent(Event* event)
                         dz *= -1.0;
                     }
                 }
-            }
-            
+            }            
+        }
+        if(this->ui->recordButton->isChecked())
+        {        
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
 			if(dx || dy || dz)
 			{
@@ -276,7 +308,9 @@ MovieDialog::receiveEvent(Event* event)
                     }
                 }
             }
-
+        }
+        if(this->ui->recordButton->isChecked())
+        {
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
             if(dx || dy || dz)
             {

@@ -36,7 +36,7 @@
       <item>
        <widget class="QLabel" name="repeatFramesLabel">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Repeat Frames:</string>
@@ -46,14 +46,14 @@
       <item>
        <widget class="QSpinBox" name="repeatFramesSpinBox">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="recordButton">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Record</string>
@@ -162,6 +162,9 @@
    </item>
    <item>
     <widget class="QGroupBox" name="imageOptionsGroupBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
       <string>Image Options</string>
      </property>
