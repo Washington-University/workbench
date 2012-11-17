@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
+    <width>429</width>
     <height>285</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Animation Dialog</string>
+   <string>Animation Control</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -35,16 +35,26 @@
       </item>
       <item>
        <widget class="QLabel" name="repeatFramesLabel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Repeat Frames:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="repeatFramesSpinBox"/>
+       <widget class="QSpinBox" name="repeatFramesSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="recordButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Record</string>
         </property>
@@ -160,6 +170,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QCheckBox" name="cropImageCheckBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Automatically Crop Image</string>
           </property>
@@ -171,13 +184,20 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QLabel" name="marginLabel">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Margin</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="marginSpinBox"/>
+         <widget class="QSpinBox" name="marginSpinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_2">
