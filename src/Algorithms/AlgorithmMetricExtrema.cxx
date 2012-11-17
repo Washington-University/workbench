@@ -198,9 +198,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, false, 0.0f, 0.0f, minima, maxima);
             } else {
-                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, false, 0.0f, 0.0f, minima, maxima);
             }
             if (sumColumns)
             {
@@ -250,9 +250,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setStructure(mySurf->getStructure());
         if (consolidateMode)
         {
-            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, false, 0.0f, 0.0f, minima, maxima);
         } else {
-            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, false, 0.0f, 0.0f, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -324,9 +324,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, lowThresh, highThresh, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, true, lowThresh, highThresh, minima, maxima);
             } else {
-                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, lowThresh, highThresh, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, true, lowThresh, highThresh, minima, maxima);
             }
             if (sumColumns)
             {
@@ -374,9 +374,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         if (consolidateMode)
         {
-            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, true, lowThresh, highThresh, minima, maxima);
         } else {
-            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, true, lowThresh, highThresh, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -447,89 +447,7 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
     }
 }
 
-void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, vector<int>& minima, vector<int>& maxima)
-{
-    int numNodes = (int)neighborhoods.size();
-    minima.clear();
-    maxima.clear();
-    vector<int> minPos(numNodes, 1), maxPos(numNodes, 1);//mark off things that fail a comparison to reduce the work - these are just used as booleans, but we don't want bitwise packing slowing us down or dropping writes
-    for (int i = 0; i < numNodes; ++i)
-    {
-        bool canBeMin = minPos[i], canBeMax = maxPos[i];
-        if (canBeMin || canBeMax)
-        {
-            const vector<int32_t>& myneighbors = neighborhoods[i];
-            int numNeigh = (int)myneighbors.size();
-            if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
-            float myval = data[i];
-            int j = 0;
-            if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
-            {//should be fairly rare, and doesn't need to loop
-                int32_t neighNode = myneighbors[0];//NOTE: the equals case should set one of these to false, so that only one of the two loops needs to execute
-                float otherval = data[neighNode];
-                if (myval < otherval)
-                {
-                    minPos[neighNode] = 0;
-                } else {
-                    canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
-                }
-                if (myval > otherval)
-                {
-                    maxPos[neighNode] = 0;
-                } else {
-                    canBeMax = false;
-                }
-                j = 1;//don't test 0 again if we did the double test
-            }
-            if (canBeMax)
-            {
-                for (; j < numNeigh; ++j)
-                {
-                    int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval > otherval)
-                    {
-                        maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
-                    } else {
-                        canBeMax = false;
-                        break;
-                    }
-                }
-            }
-            if (canBeMin)
-            {
-                for (; j < numNeigh; ++j)
-                {
-                    int32_t neighNode = myneighbors[j];
-                    float otherval = data[neighNode];
-                    if (myval < otherval)
-                    {
-                        minPos[neighNode] = 0;//ditto
-                    } else {
-                        canBeMin = false;
-                        break;
-                    }
-                }
-            }
-            if (canBeMax)
-            {
-#pragma omp critical
-                {
-                    maxima.push_back(i);
-                }
-            }
-            if (canBeMin)
-            {
-#pragma omp critical
-                {
-                    minima.push_back(i);
-                }
-            }
-        }
-    }
-}
-
-void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const bool& threshMode, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = (int)neighborhoods.size();
     minima.clear();
@@ -544,8 +462,11 @@ void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const v
             int numNeigh = (int)myneighbors.size();
             if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
             float myval = data[i];
-            if (myval >= lowThresh) canBeMin = false;//check thresholds
-            if (myval <= highThresh) canBeMax = false;
+            if (threshMode)
+            {
+                if (myval > lowThresh) canBeMin = false;//check thresholds
+                if (myval < highThresh) canBeMax = false;
+            }
             int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
             {//should be fairly rare, and doesn't need to loop
@@ -613,104 +534,7 @@ void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const v
     }
 }
 
-void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, vector<int>& minima, vector<int>& maxima)
-{
-    int numNodes = mySurf->getNumberOfNodes();
-    minima.clear();
-    maxima.clear();
-    vector<pair<int, int> > tempExtrema[2];
-    vector<int> minPos(numNodes, 1), maxPos(numNodes, 1);//mark off things that fail a comparison to reduce the work - these are just used as booleans, but we don't want bitwise packing slowing us down or dropping writes
-    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-    for (int i = 0; i < numNodes; ++i)
-    {
-        bool canBeMin = minPos[i], canBeMax = maxPos[i];
-        if ((roiColumn == NULL || roiColumn[i] > 0.0f) && (canBeMin || canBeMax))
-        {
-            const vector<int32_t>& myneighbors = myTopoHelp->getNodeNeighbors(i);
-            int numNeigh = (int)myneighbors.size();
-            if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
-            float myval = data[i];
-            int j = 0;
-            if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
-            {//NOTE: the equals case should set one of these to false, so that only one of the two below loops needs to execute
-                for (; j < numNeigh; ++j)//but, due to ROI, we may need to loop before we find a valid neighbor
-                {
-                    int32_t neighNode = myneighbors[j];
-                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
-                    {
-                        float otherval = data[neighNode];
-                        if (myval < otherval)
-                        {
-                            minPos[neighNode] = 0;
-                        } else {
-                            canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
-                        }
-                        if (myval > otherval)
-                        {
-                            maxPos[neighNode] = 0;
-                        } else {
-                            canBeMax = false;
-                        }
-                        break;//now we can go to the shorter loops, because one of the two possibilities is gone
-                    }
-                }
-            }
-            if (canBeMax)
-            {
-                for (; j < numNeigh; ++j)
-                {
-                    int32_t neighNode = myneighbors[j];
-                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
-                    {
-                        float otherval = data[neighNode];
-                        if (myval > otherval)
-                        {
-                            maxPos[neighNode] = 0;//TODO: test if performing an intelligent comparison here is faster than doing unneeded stores
-                        } else {
-                            canBeMax = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (canBeMin)
-            {
-                for (; j < numNeigh; ++j)
-                {
-                    int32_t neighNode = myneighbors[j];
-                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
-                    {
-                        float otherval = data[neighNode];
-                        if (myval < otherval)
-                        {
-                            minPos[neighNode] = 0;//ditto
-                        } else {
-                            canBeMin = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (canBeMax)
-            {
-#pragma omp critical
-                {
-                    tempExtrema[0].push_back(pair<int, int>(i, 1));
-                }
-            }
-            if (canBeMin)
-            {
-#pragma omp critical
-                {
-                    tempExtrema[1].push_back(pair<int, int>(i, 1));
-                }
-            }
-        }
-    }
-    consolidateStep(mySurf, distance, tempExtrema, minima, maxima);
-}
-
-void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& lowThresh, const float& highThresh, const float& distance, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, const bool& threshMode, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
@@ -727,8 +551,11 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
             int numNeigh = (int)myneighbors.size();
             if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
             float myval = data[i];
-            if (myval >= lowThresh) canBeMin = false;//check thresholds
-            if (myval <= highThresh) canBeMax = false;
+            if (threshMode)
+            {
+                if (myval > lowThresh) canBeMin = false;//check thresholds
+                if (myval < highThresh) canBeMax = false;
+            }
             int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
             {//NOTE: the equals case should set one of these to false, so that only one of the two below loops needs to execute
