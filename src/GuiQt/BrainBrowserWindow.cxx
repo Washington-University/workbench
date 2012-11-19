@@ -607,6 +607,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processConnectToAllenDataBase()));
+    m_connectToAllenDatabaseAction->setEnabled(false);
     
     m_connectToConnectomeDatabaseAction =
     WuQtUtilities::createAction("Human Connectome Project Database...",
@@ -614,6 +615,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processConnectToConnectomeDataBase()));
+    m_connectToConnectomeDatabaseAction->setEnabled(false);
 }
 
 /**
