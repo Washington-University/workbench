@@ -28,6 +28,8 @@
 #include "CaretOMP.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
+//because the ROY_BIG_BL palette name is a constant defined in Palette.h
+#include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteXmlElements.h"
@@ -129,7 +131,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
 void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {
-    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE;
+    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE;
     this->autoScalePercentageNegativeMaximum = 98.0f;
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
@@ -138,8 +140,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->userScaleNegativeMinimum = 0.0f;
     this->userScalePositiveMinimum = 0.0f;
     this->userScalePositiveMaximum = 100.0f;
-    this->selectedPaletteName = "PSYCH";
-    this->interpolatePaletteFlag = false;
+    this->selectedPaletteName = Palette::ROY_BIG_BL_PALETTE_NAME;
+    this->interpolatePaletteFlag = true;
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
