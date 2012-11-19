@@ -40,6 +40,7 @@
 
 namespace caret {
 
+    class CiftiXML;
     class FiberOrientation;
     
     class CiftiFiberOrientationFile : public CaretDataFile {
@@ -73,6 +74,8 @@ namespace caret {
         
         bool isEmpty() const;
         
+        const CiftiXML* getCiftiXML() const;
+        
         virtual StructureEnum::Enum getStructure() const;
         
         virtual void setStructure(const StructureEnum::Enum structure);
@@ -95,6 +98,8 @@ namespace caret {
     private:
 
         void clearPrivate();
+        
+        CiftiXML* m_ciftiXML;
         
         GiftiMetaData* m_metadata;
 

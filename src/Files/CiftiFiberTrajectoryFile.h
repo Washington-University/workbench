@@ -41,7 +41,7 @@
 
 namespace caret {
 
-    class ConnectivityLoaderFile;
+    class CiftiFiberOrientationFile;
     class FiberOrientationTrajectory;
     class GiftiMetaData;
     
@@ -80,7 +80,7 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                                    const DisplayGroupEnum::Enum displayGroup);
         
-        void loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOrientFile,
+        void loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
                                     const StructureEnum::Enum structure,
                                     const int32_t nodeIndex) throw (DataFileException);
         

@@ -34,7 +34,6 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
-#include "CiftiFiberOrientationAdapter.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiScalarFile.h"
@@ -359,10 +358,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseScalarFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityFiberOrientationFiles.begin();
+    for (std::vector<CiftiFiberOrientationFile*>::iterator clfi = m_connectivityFiberOrientationFiles.begin();
          clfi != m_connectivityFiberOrientationFiles.end();
          clfi++) {
-        ConnectivityLoaderFile* clf = *clfi;
+        CiftiFiberOrientationFile* clf = *clfi;
         delete clf;
     }
     m_connectivityFiberOrientationFiles.clear();
@@ -1008,26 +1007,13 @@ Brain::readConnectivityDenseScalarFile(const AString& filename) throw (DataFileE
 void
 Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException)
 {
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    CiftiFiberOrientationFile* cfof = new CiftiFiberOrientationFile();
     
     try {
-        if (DataFile::isFileOnNetwork(filename)) {
-            clf->setupNetworkFile(filename,
-                                  DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
-                                  CaretDataFile::getFileReadingUsername(),
-                                  CaretDataFile::getFileReadingPassword());
-        }
-        else {
-            clf->setupLocalFile(filename,
-                                DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
-        }
-        
-//        CiftiFiberOrientationFile fiberFile;
-//        fiberFile.readFile(filename);
-        //validateConnectivityFile(clf);
+        cfof->readFile(filename);
     }
     catch (const DataFileException& dfe) {
-        delete clf;
+        delete cfof;
         throw dfe;
     }
     
@@ -1036,19 +1022,17 @@ Brain::readConnectivityFiberOrientationFile(const AString& filename) throw (Data
      * to +/- one-half voxel size.
      */
     if (m_connectivityFiberOrientationFiles.empty()) {
-        CiftiFiberOrientationAdapter* orientationAdapter = clf->getFiberOrientationAdapter();
-        if (orientationAdapter != NULL) {
-            float voxelSizes[3];
-            orientationAdapter->getVolumeSpacing(voxelSizes);
-            if (voxelSizes[2] > 0.0) {
-                const float aboveLimit =  voxelSizes[2] * 0.5;
-                const float belowLimit = -voxelSizes[2] * 0.5;
-                m_displayPropertiesFiberOrientation->setAboveAndBelowLimitsForAll(aboveLimit,
-                                                                                  belowLimit);
-            }
+        float voxelSizes[3];
+        cfof->getVolumeSpacing(voxelSizes);
+        if (voxelSizes[2] > 0.0) {
+            const float aboveLimit =  voxelSizes[2] * 0.5;
+            const float belowLimit = -voxelSizes[2] * 0.5;
+            m_displayPropertiesFiberOrientation->setAboveAndBelowLimitsForAll(aboveLimit,
+                                                                              belowLimit);
         }
     }
-    m_connectivityFiberOrientationFiles.push_back(clf);
+    
+    m_connectivityFiberOrientationFiles.push_back(cfof);
 }
 
 /**
@@ -1359,7 +1343,7 @@ Brain::getNumberOfConnectivityFiberOrientationFiles() const
  *    Index of file.
  * @return Conectivity fiber orientation file at index.
  */
-ConnectivityLoaderFile*
+CiftiFiberOrientationFile*
 Brain::getConnectivityFiberOrientationFile(int32_t indx)
 {
     CaretAssertVectorIndex(m_connectivityFiberOrientationFiles, indx);
@@ -1372,7 +1356,7 @@ Brain::getConnectivityFiberOrientationFile(int32_t indx)
  *    Index of file.
  * @return Conectivity fiber orientation file at index.
  */
-const ConnectivityLoaderFile*
+const CiftiFiberOrientationFile*
 Brain::getConnectivityFiberOrientationFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityFiberOrientationFiles, indx);
@@ -1385,7 +1369,7 @@ Brain::getConnectivityFiberOrientationFile(int32_t indx) const
  *   Contains all connectivity fiber orientation files on exit.
  */
 void
-Brain::getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const
+Brain::getConnectivityFiberOrientationFiles(std::vector<CiftiFiberOrientationFile*>& connectivityFiberOrientationFilesOut) const
 {
     connectivityFiberOrientationFilesOut = m_connectivityFiberOrientationFiles;
 }
@@ -1427,7 +1411,7 @@ Brain::getConnectivityFiberTrajectoryFile(int32_t indx) const
 
 /**
  * Get ALL connectivity fiber trajectory files.
- * @param connectivityFiberOrientationFilesOut
+ * @param connectivityFiberTrajectoryFilesOut
  *   Contains all connectivity fiber trajectory files on exit.
  */
 void
@@ -3026,12 +3010,12 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
     
-    std::vector<ConnectivityLoaderFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
+    std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
                                                                             m_connectivityFiberOrientationFiles.end(),
                                                                             caretDataFile);
     bool remvovedFiberOrientationFile = false;
     if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
-        ConnectivityLoaderFile* connFile = *connFiberOrientationIterator;
+        CiftiFiberOrientationFile* connFile = *connFiberOrientationIterator;
         delete connFile;
         m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
         wasRemoved = true;

@@ -151,13 +151,10 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
             }
             
             CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-            ConnectivityLoaderFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
-            CiftiFiberOrientationAdapter* fiberAdapter = connFiberFile->getFiberOrientationAdapter();
-            if (fiberAdapter != NULL) {
-                trajFile->loadDataForSurfaceNode(connFiberFile,
+            CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
+            trajFile->loadDataForSurfaceNode(connFiberFile,
                                                  surfaceFile->getStructure(),
                                                  nodeIndex);
-            }
         }
     }
     

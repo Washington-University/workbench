@@ -38,7 +38,6 @@ namespace caret {
     class CiftiFile;
     class CiftiXnat;
     class CiftiInterface;
-    class CiftiFiberOrientationAdapter;
     class CiftiScalarFile;
     class Palette;
     class SurfaceFile;
@@ -220,8 +219,6 @@ namespace caret {
         ///get the map name for an index along a row
         AString getMapNameForRowIndex(const int& index) const;
         
-        CiftiFiberOrientationAdapter* getFiberOrientationAdapter();
-        
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
         ConnectivityLoaderFile& operator=(const ConnectivityLoaderFile&);
@@ -253,8 +250,6 @@ namespace caret {
         void allocateData(const int32_t numberOfDataElements);
         
         void zeroizeData();
-        
-        void createFiberOrientationAdapter() throw (DataFileException);
         
         LoaderType loaderType;
         
@@ -301,9 +296,6 @@ namespace caret {
                 
         AString uniqueID; // DO NOT COPY
         
-        CiftiFiberOrientationAdapter* m_fiberOrientationAdapter;
-        
-        friend class CiftiFiberOrientationAdapter;
         friend class CiftiFiberTrajectoryFile;
         friend class CiftiScalarFile;
     };

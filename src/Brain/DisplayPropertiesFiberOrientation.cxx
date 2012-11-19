@@ -40,7 +40,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "CiftiFiberOrientationAdapter.h"
+#include "CiftiFiberOrientationFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
@@ -956,10 +956,9 @@ DisplayPropertiesFiberOrientation::getSphericalOrientationVectors(std::vector<Or
         }
 
         if (m_brain->getNumberOfConnectivityFiberOrientationFiles() > 0) {
-            ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(0);
-            CiftiFiberOrientationAdapter* cfoa = clf->getFiberOrientationAdapter();
+            CiftiFiberOrientationFile* cfof = m_brain->getConnectivityFiberOrientationFile(0);
             FiberOrientation* nearestFiberOrientation =
-                cfoa->getFiberOrientationNearestCoordinate(m_lastIdentificationXYZ, 3.0);
+                cfof->getFiberOrientationNearestCoordinate(m_lastIdentificationXYZ, 3.0);
             if (nearestFiberOrientation != NULL) {
                 fiberOrientationOut = nearestFiberOrientation;
             }

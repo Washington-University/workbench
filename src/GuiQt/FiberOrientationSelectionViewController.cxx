@@ -53,7 +53,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
-#include "CiftiFiberOrientationAdapter.h"
+#include "CiftiFiberOrientationFile.h"
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSelectionViewController.h"
 #include "FiberSamplesOpenGLWidget.h"
@@ -399,25 +399,22 @@ FiberOrientationSelectionViewController::updateViewController()
     std::vector<ConnectivityLoaderFile*> allFiberOrientFiles;
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
-        ConnectivityLoaderFile* clf = brain->getConnectivityFiberOrientationFile(iff);
-        CiftiFiberOrientationAdapter* foca = clf->getFiberOrientationAdapter();
-        if (foca != NULL) {
-            QCheckBox* cb = NULL;
-            if (iff < numberOfFileCheckBoxes) {
-                cb = m_fileSelectionCheckBoxes[iff];
-            }
-            else {
-                cb = new QCheckBox("");
-                QObject::connect(cb, SIGNAL(clicked(bool)),
-                                 this, SLOT(processSelectionChanges()));
-                m_fileSelectionCheckBoxes.push_back(cb);
-                m_selectionWidgetLayout->addWidget(cb);
-            }
-            cb->setText(clf->getFileNameNoPath());
-            cb->setChecked(foca->isDisplayed(displayGroup,
-                                             browserTabIndex));
-            cb->setVisible(true);
+        CiftiFiberOrientationFile* cfof = brain->getConnectivityFiberOrientationFile(iff);
+        QCheckBox* cb = NULL;
+        if (iff < numberOfFileCheckBoxes) {
+            cb = m_fileSelectionCheckBoxes[iff];
         }
+        else {
+            cb = new QCheckBox("");
+            QObject::connect(cb, SIGNAL(clicked(bool)),
+                             this, SLOT(processSelectionChanges()));
+            m_fileSelectionCheckBoxes.push_back(cb);
+            m_selectionWidgetLayout->addWidget(cb);
+        }
+        cb->setText(cfof->getFileNameNoPath());
+        cb->setChecked(cfof->isDisplayed(displayGroup,
+                                         browserTabIndex));
+        cb->setVisible(true);
     }
     
     /*
@@ -490,12 +487,10 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
-        CiftiFiberOrientationAdapter* foca = brain->getConnectivityFiberOrientationFile(iff)->getFiberOrientationAdapter();
-        if (foca != NULL) {
-            foca->setDisplayed(displayGroup,
-                               browserTabIndex,
-                               m_fileSelectionCheckBoxes[iff]->isChecked());
-        }
+        CiftiFiberOrientationFile* cfof = brain->getConnectivityFiberOrientationFile(iff);
+        cfof->setDisplayed(displayGroup,
+                           browserTabIndex,
+                           m_fileSelectionCheckBoxes[iff]->isChecked());
     }
     
     updateOtherViewControllers();

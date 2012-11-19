@@ -60,7 +60,8 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "GroupAndNameHierarchyModel.h"
+#include "CiftiFiberOrientationFile.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
@@ -78,12 +79,11 @@
 #include "Fiber.h"
 #include "FiberOrientation.h"
 #include "FiberOrientationTrajectory.h"
-#include "CiftiFiberOrientationAdapter.h"
-#include "CiftiFiberTrajectoryFile.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemFocusSurface.h"
 #include "IdentificationItemFocusVolume.h"
@@ -4831,26 +4831,15 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
      */
     const int32_t numFiberOrienationFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iFile = 0; iFile < numFiberOrienationFiles; iFile++) {
-        ConnectivityLoaderFile* clf = m_brain->getConnectivityFiberOrientationFile(iFile);
-        CiftiFiberOrientationAdapter* ciftiAdapter = NULL;
-        try {
-            ciftiAdapter = clf->getFiberOrientationAdapter();
-            if (ciftiAdapter == NULL) {
-                continue;
-            }
-        }
-        catch (const DataFileException& dfe) {
-            CaretLogSevere(dfe.whatString());
-            continue;
-        }
-        if (ciftiAdapter->isDisplayed(displayGroup,
+        CiftiFiberOrientationFile* cfof = m_brain->getConnectivityFiberOrientationFile(iFile);
+        if (cfof->isDisplayed(displayGroup,
                               this->windowTabIndex)) {
             /*
              * Draw each of the fiber orientations which may contain multiple fibers
              */
-            const int64_t numberOfFiberOrientations = ciftiAdapter->getNumberOfFiberOrientations();
+            const int64_t numberOfFiberOrientations = cfof->getNumberOfFiberOrientations();
             for (int64_t i = 0; i < numberOfFiberOrientations; i++) {
-                const FiberOrientation* fiberOrientation = ciftiAdapter->getFiberOrientations(i);
+                const FiberOrientation* fiberOrientation = cfof->getFiberOrientations(i);
                 if (fiberOrientation->m_valid == false) {
                     continue;
                 }

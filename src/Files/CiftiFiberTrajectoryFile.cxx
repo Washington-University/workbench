@@ -39,7 +39,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
-#include "CiftiFiberOrientationAdapter.h"
+#include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
 #include "ConnectivityLoaderFile.h"
 #include "FiberOrientationTrajectory.h"
@@ -306,7 +306,7 @@ CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
  *    Index of the surface node.
  */
 void
-CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOrientFile,
+CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
                                                  const StructureEnum::Enum structure,
                                                  const int32_t nodeIndex) throw (DataFileException)
 {
@@ -316,9 +316,9 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOr
         throw DataFileException("No data has been loaded.");
     }
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXML& orientXML = fiberOrientFile->ciftiInterface->getCiftiXML();
+    const CiftiXML* orientXML = fiberOrientFile->getCiftiXML();
     if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
-                               orientXML,
+                               *orientXML,
                                CiftiXML::ALONG_COLUMN) == false) {
         QString msg = (getFileNameNoPath()
                        + " rows="
@@ -328,9 +328,9 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOr
                        + "   "
                        + fiberOrientFile->getFileNameNoPath()
                        + " rows="
-                       + QString::number(orientXML.getNumberOfRows())
+                       + QString::number(orientXML->getNumberOfRows())
                        + " cols="
-                       + QString::number(orientXML.getNumberOfColumns()));
+                       + QString::number(orientXML->getNumberOfColumns()));
         throw DataFileException("Row to Columns do not match: "
                                 + msg);
     }
@@ -356,12 +356,11 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(ConnectivityLoaderFile* fiberOr
         m_fiberOrientationTrajectories.reserve(numFibers);
         
         for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
-            CiftiFiberOrientationAdapter* fiberOrientAdapter = fiberOrientFile->getFiberOrientationAdapter();
-            const int64_t numFiberOrientations = fiberOrientAdapter->getNumberOfFiberOrientations();
+            const int64_t numFiberOrientations = fiberOrientFile->getNumberOfFiberOrientations();
             const int64_t fiberIndex = fiberIndices[iFiber];
             if (fiberIndex < numFiberOrientations) {
                 const FiberFractions* fiberFraction = &m_fiberFractions[iFiber];
-                const FiberOrientation* fiberOrientation = fiberOrientAdapter->getFiberOrientations(fiberIndex);
+                const FiberOrientation* fiberOrientation = fiberOrientFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberFraction,
                                                                                  fiberOrientation,
                                                                                  rowIndex);

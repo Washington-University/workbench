@@ -27,7 +27,6 @@ CaretDataFile.h
 CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
-CiftiFiberOrientationAdapter.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiScalarFile.h
@@ -90,7 +89,6 @@ CaretDataFile.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
-CiftiFiberOrientationAdapter.cxx
 CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
 CiftiScalarFile.cxx

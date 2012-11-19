@@ -37,6 +37,7 @@
 #undef __CIFTI_FIBER_ORIENTATION_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CiftiFile.h"
 #include "CaretLogger.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
@@ -62,7 +63,7 @@ CiftiFiberOrientationFile::CiftiFiberOrientationFile()
 : CaretDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY)
 {
     m_metadata = new GiftiMetaData();
-    
+    m_ciftiXML = NULL;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = true;
     }
@@ -76,7 +77,7 @@ CiftiFiberOrientationFile::CiftiFiberOrientationFile()
  */
 CiftiFiberOrientationFile::~CiftiFiberOrientationFile()
 {
-    
+    clearPrivate();
     delete m_metadata;
 }
 
@@ -99,6 +100,10 @@ void
 CiftiFiberOrientationFile::clearPrivate()
 {
     m_metadata->clear();
+    if (m_ciftiXML != NULL) {
+        delete m_ciftiXML;
+        m_ciftiXML = NULL;
+    }
     
     for (std::vector<FiberOrientation*>::iterator iter = m_fiberOrientations.begin();
          iter != m_fiberOrientations.end();
@@ -403,7 +408,15 @@ CiftiFiberOrientationFile::getVolumeSpacing(float volumeSpacingOut[3]) const
     volumeSpacingOut[2] = m_volumeSpacing[2];
 }
 
-#include "CiftiFile.h"
+/**
+ * @return a pointer to the CIFTI XML.
+ * May be NULL if a file is not loaded.
+ */
+const CiftiXML*
+CiftiFiberOrientationFile::getCiftiXML() const
+{
+    return m_ciftiXML;
+}
 
 /**
  * Read the data file.
@@ -473,6 +486,7 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
         }
         
         const CiftiXML& ciftiXML = ciftiFile.getCiftiXML();
+        m_ciftiXML = new CiftiXML(ciftiXML);
         VolumeFile::OrientTypes orient[3];
         int64_t dims[3];
         float origin[3];

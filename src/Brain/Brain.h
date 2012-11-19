@@ -212,11 +212,11 @@ namespace caret {
         
         int32_t getNumberOfConnectivityFiberOrientationFiles() const;
         
-        ConnectivityLoaderFile* getConnectivityFiberOrientationFile(int32_t indx);
+        CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx);
         
-        const ConnectivityLoaderFile* getConnectivityFiberOrientationFile(int32_t indx) const;
+        const CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx) const;
         
-        void getConnectivityFiberOrientationFiles(std::vector<ConnectivityLoaderFile*>& connectivityFiberOrientationFilesOut) const;
+        void getConnectivityFiberOrientationFiles(std::vector<CiftiFiberOrientationFile*>& connectivityFiberOrientationFilesOut) const;
         
         int32_t getNumberOfConnectivityFiberTrajectoryFiles() const;
         
@@ -391,7 +391,7 @@ namespace caret {
         
         std::vector<CiftiScalarFile*> m_connectivityDenseScalarFiles;
         
-        std::vector<ConnectivityLoaderFile*> m_connectivityFiberOrientationFiles;
+        std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
         
         std::vector<CiftiFiberTrajectoryFile*> m_connectivityFiberTrajectoryFiles;
         
