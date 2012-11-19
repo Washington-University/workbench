@@ -140,7 +140,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         
         QuaZipNewInfo zipNewInfo(unzippedDataFileName,
                                  dataFileName);
-        //zipNewInfo.externalAttr = 0xffff;
+        zipNewInfo.externalAttr |= (7 << 16L) | (7 << 19L) | (7 << 22L);//make permissions 777
         
         QuaZipFile dataFileOut(&zipFile);
         if (dataFileOut.open(QIODevice::WriteOnly,
