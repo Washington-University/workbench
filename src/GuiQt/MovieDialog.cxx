@@ -90,12 +90,14 @@ void MovieDialog::on_animateButton_toggled(bool checked)
         {            
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
             QCoreApplication::instance()->processEvents();
-        }        
+        }
+
     }
     /*else
     {        
         this->renderMovieButton->setText("Play");
     }*/
+    rotate_frame_number = 0;
 }
 
 void MovieDialog::on_recordButton_toggled(bool checked)
@@ -230,96 +232,51 @@ void
 MovieDialog::receiveEvent(Event* event)
 {
     
-    if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
-        
-        AString tempPath = QDir::tempPath();
-
-        if(this->ui->animateButton->isChecked())
-        {
-            /*dx = this->frameRotateXSpinBox->value();
-            dy = this->frameRotateYSpinBox->value();
-            dz = this->frameRotateZSpinBox->value();
-            frameCount = this->frameRotateCountSpinBox->value();
-            reverseDirection = this->frameRotateReverseDirection->isEnabled();*/
-            
-            if(frameCountEnabled && frameCount)
-            {                
-                if(!reverseDirection) 
-                {
-                    if(frameCount <= frame_number)
-                    {
-                        this->ui->animateButton->setChecked(false);
-                        dx = dy = dz = 0.0;
-                        return;
-                    }
-                }
-                else
-                {
-                    if(!(frame_number %frameCount) &&
-                        (frame_number > 0))
-                    {
-                        dx *= -1.0;
-                        dy *= -1.0;
-                        dz *= -1.0;
-                    }
-                }
-            }            
-        }
-        if(this->ui->recordButton->isChecked())
-        {        
-            this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
-			if(dx || dy || dz)
-			{
-                
-                this->processRotateTransformation(dx,dy,dz);
-			}
-			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
-			CaretLogFine(temp);
-            CaretLogFine("frame number:" + frame_number);
-			frame_number++;
-        }
-    }
-    else if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
+    if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS ||
+       event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW    )
+    {
 
         AString tempPath = QDir::tempPath();
-
-        if(this->ui->animateButton->isChecked())
-        {
-            
-            if(frameCountEnabled && frameCount)
-            {                
-                if(!reverseDirection) 
-                {
-                    if(frameCount <= frame_number)
-                    {
-                        this->ui->animateButton->setChecked(false);
-                        dx = dy = dz = 0.0;
-                        return;
-                    }
-                }
-                else
-                {
-                    if(!(frame_number %frameCount) &&
-                        (frame_number > 0))
-                    {
-                        dx *= -1.0;
-                        dy *= -1.0;
-                        dz *= -1.0;
-                    }
-                }
-            }
-        }
         if(this->ui->recordButton->isChecked())
         {
             this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
-            if(dx || dy || dz)
-            {
-                this->processRotateTransformation(dx, dy, dz);
-            }
+
             AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
             CaretLogFine(temp);
             CaretLogFine("frame number:" + frame_number);
             frame_number++;
+        }
+
+        if(this->ui->animateButton->isChecked())
+        {
+
+            if(frameCountEnabled && frameCount)
+            {                
+                if(!reverseDirection) 
+                {
+                    if(frameCount <= rotate_frame_number)
+                    {
+                        this->ui->animateButton->setChecked(false);
+                        dx = dy = dz = 0.0;
+                        return;
+                    }
+                }
+                else
+                {
+                    if(!(rotate_frame_number %frameCount) &&
+                        (rotate_frame_number > 0))
+                    {
+                        dx *= -1.0;
+                        dy *= -1.0;
+                        dz *= -1.0;
+                    }
+                }
+            }
+            if(dx || dy || dz)
+            {
+                this->processRotateTransformation(dx, dy, dz);
+            }
+            rotate_frame_number++;
         }
     }
 }

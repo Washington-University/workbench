@@ -42,12 +42,14 @@ private:
     int32_t browserWindowIndex;
 
     int frame_number;
+    int rotate_frame_number;
     double dx;
     double dy;
     double dz;               
     bool frameCountEnabled;
     int frameCount;
     bool reverseDirection;
+
 
 };
 
