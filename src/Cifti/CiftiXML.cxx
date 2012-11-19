@@ -1855,11 +1855,6 @@ PaletteColorMapping* CiftiXML::getFilePalette() const
         if (myIter != m_root.m_matrices[0].m_userMetaData.end())
         {
             m_root.m_matrices[0].m_palette->decodeFromStringXML(myIter->second);
-        } else {//TODO: set palette from default
-            m_root.m_matrices[0].m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
-            m_root.m_matrices[0].m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-            m_root.m_matrices[0].m_palette->setInterpolatePaletteFlag(true);
-            m_root.m_matrices[0].m_palette->clearModified();
         }
     /*} else {//will be needed if we make default palettes a user preference
         if (m_root.m_matrices[0].m_defaultPalette)
@@ -1892,11 +1887,6 @@ PaletteColorMapping* CiftiXML::getMapPalette(const int& direction, const int& in
         if (myIter != myElem.m_mapMetaData.end())
         {
             myElem.m_palette->decodeFromStringXML(myIter->second);
-        } else {//TODO: set palette from default
-            myElem.m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
-            myElem.m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-            myElem.m_palette->setInterpolatePaletteFlag(true);
-            myElem.m_palette->clearModified();
         }
     /*} else {//will be needed if we make default palettes a user preference
         if (m_root.m_matrices[0].m_defaultPalette)
