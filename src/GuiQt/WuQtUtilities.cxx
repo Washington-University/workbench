@@ -30,10 +30,13 @@
 #include <QDesktopWidget>
 #include <QDialog>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QFrame>
 #include <QIcon>
+#include <QLabel>
 #include <QPushButton>
+#include <QSound>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -793,4 +796,29 @@ WuQtUtilities::getLayoutContentDescription(QLayout* layout)
     return s;
 }
 
-
+/**
+ * Play a sound file.  The sound file MUST be in the distribution's
+ * "resources/sounds" directory.
+ *
+ * Note that sound files, as of Qt 4.8, do not support Qt's resource
+ * system.
+ *
+ * @param soundFileName
+ *    Name of sound file (with no path, just the filename).
+ */
+void
+WuQtUtilities::playSound(const QString& soundFileName)
+{
+    const QString soundFilePath = ("/Volumes/myelin1/distribution/caret7_distribution/workbench"
+                                   "/resources/sounds/"
+                                   + soundFileName);
+    
+    if (QFile::exists(soundFilePath)) {
+        QSound::play(soundFilePath);
+    }
+    else {
+        CaretLogSevere("Sound file \""
+                       + soundFilePath
+                       + "\" does not exist.");
+    }
+}

@@ -32,12 +32,12 @@
 #include <QClipboard>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QImageWriter>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSpinBox>
-#include <QImageWriter>
 
 #define __IMAGE_CAPTURE_DIALOG__H__DECLARE__
 #include "ImageCaptureDialog.h"
@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
@@ -52,6 +53,8 @@
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQMessageBox.h"
+#include "WuQTimedMessageDisplay.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -178,6 +181,14 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     layout->addWidget(imageDestinationGroupBox);
     
     this->setCentralWidget(w);
+    
+    /*
+     * Make apply button the default button.
+     */
+    QPushButton* applyButton = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+    CaretAssert(applyButton);
+    applyButton->setAutoDefault(true);
+    applyButton->setDefault(true);
 }
 
 /**
@@ -255,7 +266,8 @@ ImageCaptureDialog::selectImagePushButtonPressed()
 /**
  * Called when the apply button is pressed.
  */
-void ImageCaptureDialog::applyButtonPressed()
+void
+ImageCaptureDialog::applyButtonPressed()
 {
     const int browserWindowIndex = this->windowSelectionSpinBox->value() - 1;
     
@@ -284,6 +296,8 @@ void ImageCaptureDialog::applyButtonPressed()
         prefs->getColorBackground(backgroundColor);
         imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
     }
+    
+    bool errorFlag = false;
     
     if (this->copyImageToClipboardCheckBox->isChecked()) {
         QApplication::clipboard()->setImage(*imageFile.getAsQImage(), QClipboard::Clipboard);
@@ -318,7 +332,21 @@ void ImageCaptureDialog::applyButtonPressed()
         catch (const DataFileException& /*e*/) {
             QString msg("Unable to save: " + filename);
             WuQMessageBox::errorOk(this, msg);
+            errorFlag = true;
         }
+    }
+    
+    if (errorFlag == false) {
+        /*
+         * Display over "Capture" (the renamed Apply) button.
+         */
+        QWidget* parent = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+        CaretAssert(parent);
+        
+        //WuQtUtilities::playSound("sound_camera_shutter.wav");
+        WuQTimedMessageDisplay::show(parent,
+                                     2.0,
+                                     "Image captured");
     }
 }
 

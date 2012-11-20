@@ -144,6 +144,7 @@ namespace caret {
         
         static QString getLayoutContentDescription(QLayout* layout);
         
+        static void playSound(const QString& soundFileName);
         
     private:
         WuQtUtilities();
