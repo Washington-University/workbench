@@ -39,6 +39,7 @@
 #include "Windows.h"
 #endif
 
+#include "CaretLogger.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -620,7 +621,31 @@ SystemUtilities::sleepSeconds(const float numberOfSeconds)
 AString
 SystemUtilities::getWorkbenchHome()
 {
+    static QString workbenchHomeDirectory;
+    if(workbenchHomeDirectory.isEmpty() == false)
+    {
+        return workbenchHomeDirectory;
+    }
+
     QProcessEnvironment env;
-    return env.value ( AString("WORKBENCH_HOME") );
+    workbenchHomeDirectory = env.value ( AString("WORKBENCH_HOME") );
+    if (workbenchHomeDirectory.isEmpty()) {
+            workbenchHomeDirectory = QCoreApplication::applicationDirPath();            
+            if (workbenchHomeDirectory.isEmpty() == false) {                
+#ifdef CARET_OS_MACOSX
+                const bool appFlag = (workbenchHomeDirectory.indexOf(".app/") > 0);
+                if (appFlag) {
+                    QDir dir(workbenchHomeDirectory);
+                    dir.cdUp();
+                    dir.cdUp();
+                    dir.cdUp();
+                    workbenchHomeDirectory = dir.absolutePath();                    
+                }
+#endif
+            }
+        CaretLogFine("Workbench Home Directory: " + workbenchHomeDirectory);        
+    }    
+    
+    return workbenchHomeDirectory  = QDir::toNativeSeparators(workbenchHomeDirectory);    
 }
 
