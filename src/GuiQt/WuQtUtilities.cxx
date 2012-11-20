@@ -809,8 +809,9 @@ WuQtUtilities::getLayoutContentDescription(QLayout* layout)
 void
 WuQtUtilities::playSound(const QString& soundFileName)
 {
-    const QString soundFilePath = ("/Volumes/myelin1/distribution/caret7_distribution/workbench"
-                                   "/resources/sounds/"
+    const QString workbenchDir = SystemUtilities::getWorkbenchHome();
+    const QString soundFilePath = (workbenchDir
+                                   + "/resources/sounds/"
                                    + soundFileName);
     
     if (QFile::exists(soundFilePath)) {
