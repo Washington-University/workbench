@@ -61,6 +61,10 @@ using namespace caret;
 InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
 : QWidget(parent)
 {
+    m_propertiesDialogIdColorComboBox = NULL;
+    m_propertiesDialogIdContraColorComboBox = NULL;
+    m_propertiesDialogSizeSpinBox = NULL;
+    
     m_informationTextBrowser = new HyperLinkTextBrowser();
     m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     QAction* clearAction = WuQtUtilities::createAction("Clear", 
@@ -287,24 +291,48 @@ InformationDisplayWidget::showPropertiesDialog()
     
     WuQDataEntryDialog ded("Symbol Properties",
                            this);
-    CaretColorEnumComboBox* idColorComboBox = ded.addCaretColorEnumComboBox("ID Symbol Color:",
+    m_propertiesDialogIdColorComboBox = ded.addCaretColorEnumComboBox("ID Symbol Color:",
                                                                              info->getIdentificationSymbolColor());
-                                                                             
-    CaretColorEnumComboBox* idContraColorComboBox = ded.addCaretColorEnumComboBox("ID Contralateral Symbol Color:",
-                                                                             info->getIdentificationContralateralSymbolColor());
-    QDoubleSpinBox* sizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
+    QObject::connect(m_propertiesDialogIdColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+    m_propertiesDialogIdContraColorComboBox = ded.addCaretColorEnumComboBox("ID Contralateral Symbol Color:",
+                           info->getIdentificationContralateralSymbolColor());
+    QObject::connect(m_propertiesDialogIdContraColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+    m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
                                                         info->getIdentificationSymbolSize(),
                                                        0.5,
                                                        100000.0,
                                                        0.5);
+    QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
     
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        info->setIdentificationSymbolColor(idColorComboBox->getSelectedColor());
-        info->setIdentificationContralateralSymbolColor(idContraColorComboBox->getSelectedColor());
-        info->setIdentificationSymbolSize(sizeSpinBox->value());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    }
+    ded.setOkButtonText("Close");
+    ded.setCancelButtonText("");
+    ded.exec();
+    
+    m_propertiesDialogIdColorComboBox = NULL;
+    m_propertiesDialogIdContraColorComboBox = NULL;
+    m_propertiesDialogSizeSpinBox = NULL;
 }
+
+/**
+ * Gets called when a control in the Properties Dialog is changed.
+ * Updates properties and graphics.
+ */
+void
+InformationDisplayWidget::controlInPropertiesDialogChanged()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    info->setIdentificationSymbolColor(m_propertiesDialogIdColorComboBox->getSelectedColor());
+    info->setIdentificationContralateralSymbolColor(m_propertiesDialogIdContraColorComboBox->getSelectedColor());
+    info->setIdentificationSymbolSize(m_propertiesDialogSizeSpinBox->value());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 /**
  * Create a scene for an instance of a class.

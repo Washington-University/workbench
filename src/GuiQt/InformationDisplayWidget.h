@@ -30,10 +30,13 @@
 #include <QWidget>
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
+
 class QAction;
+class QDoubleSpinBox;
 
 namespace caret {
 
+    class CaretColorEnumComboBox;
     class EventInformationTextDisplay;
     class HyperLinkTextBrowser;
     
@@ -69,6 +72,8 @@ namespace caret {
         
         void showPropertiesDialog();
         
+        void controlInPropertiesDialogChanged();
+        
     private:
         InformationDisplayWidget(const InformationDisplayWidget&);
 
@@ -85,6 +90,12 @@ namespace caret {
         QAction* m_volumeSliceIdentificationAction;
         
         QString m_informationText;
+
+        CaretColorEnumComboBox* m_propertiesDialogIdColorComboBox;
+        
+        CaretColorEnumComboBox* m_propertiesDialogIdContraColorComboBox;
+        
+        QDoubleSpinBox* m_propertiesDialogSizeSpinBox;
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__
