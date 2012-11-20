@@ -627,7 +627,7 @@ SystemUtilities::getWorkbenchHome()
         return workbenchHomeDirectory;
     }
 
-    QProcessEnvironment env;
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     workbenchHomeDirectory = env.value ( AString("WORKBENCH_HOME") );
     if (workbenchHomeDirectory.isEmpty()) {
             workbenchHomeDirectory = QCoreApplication::applicationDirPath();            
