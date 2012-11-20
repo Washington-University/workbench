@@ -58,6 +58,8 @@ MovieDialog::MovieDialog(QWidget *parent) :
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
 
     browserWindowIndex = 0;
+    frame_number = 0;
+    rotate_frame_number = 0;
 }
 
 MovieDialog::~MovieDialog()
