@@ -36,6 +36,7 @@
 #include <map>
 #include <vector>
 #include <fstream>
+#include <string>
 
 using namespace caret;
 using namespace std;
@@ -110,7 +111,20 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
         voxelIndices.push_back(ind2);
         voxelIndices.push_back(ind3);
     }
-    if ((int64_t)voxelIndices.size() != sparseDims[0] * 3) throw OperationException("voxel list file contains the wrong number of voxels");
+    if (!voxelFile.eof())
+    {
+        voxelFile.clear();
+        string mystring;
+        while (getline(voxelFile, mystring))
+        {
+            if (AString(mystring.c_str()).trimmed() != "")
+            {
+                throw OperationException("found non-digit, non-whitespace characters: " + AString(mystring.c_str()));
+            }
+        }
+    }
+    if ((int64_t)voxelIndices.size() != sparseDims[0] * 3) throw OperationException("voxel list file contains the wrong number of voxels, expected " +
+                                                                                    AString::number(sparseDims[0] * 3) + " integers, read " + AString::number(voxelIndices.size()));
     myXML.applyColumnMapToRows();
     myXML.resetColumnsToBrainModels();
     myXML.addSurfaceModelToColumns(numNodes, myROI->getStructure(), roiData);
