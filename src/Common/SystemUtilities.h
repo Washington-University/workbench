@@ -100,6 +100,8 @@ public:
     static AString systemCurrentDirectory();
     
     static void sleepSeconds(const float numberOfSeconds);
+
+    static AString getWorkbenchHome();
 };
 
 } // namespace

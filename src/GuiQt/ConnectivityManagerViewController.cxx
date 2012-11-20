@@ -261,7 +261,8 @@ ConnectivityManagerViewController::movieActionTriggered(bool status)
         {
             unlink(fileName);
             CaretLogInfo("Rendering movie to:" + fileName);
-            AString ffmpeg = QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
+            AString ffmpeg = SystemUtilities::getWorkbenchHome() + AString("/ffmpeg");
+                //QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
 
             double frame_rate = 30.0/double(1 + this->frameRepeatSpinBox->value());
             

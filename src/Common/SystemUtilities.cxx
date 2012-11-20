@@ -612,3 +612,15 @@ SystemUtilities::sleepSeconds(const float numberOfSeconds)
     Sleeper::sleepSeconds(numberOfSeconds);
 }
 
+/**
+ * Get the workbench home directory
+ * @return workbenchHomeDirectory
+ *    The path to the workbench installation
+ */
+AString
+SystemUtilities::getWorkbenchHome()
+{
+    QProcessEnvironment env;
+    return env.value ( AString("WORKBENCH_HOME") );
+}
+
