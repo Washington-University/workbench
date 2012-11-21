@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>344</height>
+    <height>381</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -128,7 +128,11 @@
        </widget>
       </item>
       <item row="1" column="2" colspan="2">
-       <widget class="QSpinBox" name="rotateFrameCountSpinBox"/>
+       <widget class="QSpinBox" name="rotateFrameCountSpinBox">
+        <property name="maximum">
+         <number>999999999</number>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0" colspan="2">
        <widget class="QLabel" name="rotateFrameCountLabel">
