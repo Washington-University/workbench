@@ -1213,7 +1213,7 @@ GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
                                         AString::number(rgba[2]));
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
                                         AString::number(rgba[3]));
-                xmlWriter.writeCDATA(label->getName());
+                xmlWriter.writeCharacters(label->getName());
                 xmlWriter.writeEndElement();
                 delete[] rgba;
             }
