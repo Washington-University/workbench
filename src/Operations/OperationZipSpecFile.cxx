@@ -71,22 +71,28 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     /*
      * Verify that ZIP file DOES NOT exist
      */
-    FileInformation zipFileInfo(zipFileName);
+    /*FileInformation zipFileInfo(zipFileName);
     if (zipFileInfo.exists()) {
         throw OperationException("ZIP file \""
                                  + zipFileName
                                  + "\" exists and this command will not overwrite the ZIP file.");
-    }
+    }//*/ //TSC: this is annoying, and all other commands overwrite existing output files without warning
     
     /*
      * Read the spec file and get the names of its data files.
      * Look for any files that are missing (name in spec file
      * but file not found).
      */
+    FileInformation specFileInfo(specFileName);
+    AString specFilePath = specFileInfo.getAbsolutePath();//resolve filenames to open from the spec file's location, NOT from current directory
+    if (!specFilePath.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
+    {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
+        specFilePath += "/";//so, add the trailing slash to the path
+    }
     SpecFile specFile;
     specFile.readFile(specFileName);
     std::vector<AString> allDataFileNames = specFile.getAllDataFileNames();
-    allDataFileNames.push_back(specFileName);
+    allDataFileNames.push_back(specFileInfo.getFileName());
     
     /*
      * Verify that all data files exist
@@ -94,7 +100,13 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     AString missingDataFileNames;
     const int32_t numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
-        FileInformation dataFileInfo(allDataFileNames[i]);
+        AString dataFileName = allDataFileNames[i];
+        FileInformation tempInfo(dataFileName);
+        if (tempInfo.isRelative())
+        {
+            dataFileName = specFilePath + dataFileName;
+        }
+        FileInformation dataFileInfo(dataFileName);
         if (dataFileInfo.exists() == false) {
             if (missingDataFileNames.isEmpty()) {
                 missingDataFileNames = "These data file(s) are missing and ZIP file has not been created:\n";
@@ -123,35 +135,39 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      */
     AString errorMessage;
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
-        const AString dataFileName = allDataFileNames[i];
-        
+        AString dataFileName = allDataFileNames[i];
+        FileInformation tempInfo(dataFileName);
+        AString unzippedDataFileName;
+        if (tempInfo.isRelative())
+        {
+            unzippedDataFileName = outputSubDirectory + "/" + dataFileName;
+            dataFileName = specFilePath + dataFileName;
+        } else {
+            unzippedDataFileName = dataFileName;
+        }
         QFile dataFileIn(dataFileName);
         if (dataFileIn.open(QFile::ReadOnly) == false) {
-            errorMessage = ("Unable to open \""
+            errorMessage = "Unable to open \""
                                    + dataFileName
                                    + "\" for reading: "
-                                   + dataFileIn.errorString());
+                                   + dataFileIn.errorString();
             break;
         }
         
-        const AString unzippedDataFileName = (outputSubDirectory
-                                              + "/"
-                                              + dataFileName);
-        
         QuaZipNewInfo zipNewInfo(unzippedDataFileName,
                                  dataFileName);
-        zipNewInfo.externalAttr |= (7 << 16L) | (7 << 19L) | (7 << 22L);//make permissions 777
+        zipNewInfo.externalAttr |= (6 << 22L) | (6 << 19L) | (4 << 16L);//make permissions 664
         
         QuaZipFile dataFileOut(&zipFile);
         if (dataFileOut.open(QIODevice::WriteOnly,
                              zipNewInfo) == false) {
-            errorMessage = ("Unable to open zip output for \""
+            errorMessage = "Unable to open zip output for \""
                             + dataFileName
-                            + "\"");
+                            + "\"";
             break;
         }
         
-        const qint64 BUFFER_SIZE = 1024 * 10;
+        const qint64 BUFFER_SIZE = 1024 * 1024;
         char buffer[BUFFER_SIZE];
         
         while (dataFileIn.QIODevice::atEnd() == false) {
@@ -160,10 +176,6 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
                 dataFileOut.write(buffer, numRead);
             }
         }
-        
-        QuaZipFileInfo zipOutFileInfo;
-        dataFileOut.getFileInfo(&zipOutFileInfo);
-        zipOutFileInfo.externalAttr = 0xffff;
         
         dataFileIn.close();
         dataFileOut.close();

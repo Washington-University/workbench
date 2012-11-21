@@ -109,14 +109,21 @@ namespace caret {
         AString getFilePath() const;
         
         /**
-         * @return The full path to the file, resolving any symlinks or ".." or "." components.  This should give exactly one string per file, no matter how many ways to get to a file there are (except for hardlinks).
+         * @return The full path to the file including the file name, resolving any symlinks or ".." or "." components.  This should give exactly one string per file, no matter how many ways to get to a file there are (except for hardlinks).
          */
         AString getCanonicalFilePath() const { return m_fileInfo.canonicalFilePath(); }
+        
+        /**
+         * @return The full path to the file (excluding the file name), resolving any symlinks or ".." or "." components.
+         */
+        AString getCanonicalPath() const { return m_fileInfo.canonicalPath(); }
         
         /**
          * @return The file name's extension.
          */
         AString getFileExtension() const { return m_fileInfo.suffix(); }
+        
+        AString getAbsolutePath() const { return m_fileInfo.absolutePath(); }
         
         bool remove();
         
