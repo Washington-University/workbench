@@ -530,7 +530,12 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
                     break;
                 }
                 namedMap.m_labelTable.grabNew(new GiftiLabelTable());
-                namedMap.m_labelTable->readFromQXmlStreamReader(xml);
+                namedMap.m_labelTable->readFromQXmlStreamReader(xml);//we need to do something to read through the label table, so give it to the parser always
+                if (!needLabels)//if it shouldn't exist, drop it
+                {
+                    CaretLogWarning("found label table in a scalar map, discarding");
+                    namedMap.m_labelTable.grabNew(NULL);
+                }
                 haveLabelTable = true;
             } else if (xml.name() == "MetaData") {
                 if (haveMetaData)
