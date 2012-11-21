@@ -48,12 +48,13 @@ AString OperationZipSpecFile::getShortDescription()
 OperationParameters* OperationZipSpecFile::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "Zip File", "the zip file that will be created");
-    ret->addStringParameter(2, "Spec File", "the specification file to add to zip file");
-    ret->addStringParameter(3, "Output Sub-Directory", "the sub-directory created when the zip file is unzipped");
-    AString myText = ("The ZIP file must not exist.  If it does, delete it prior to "
-                      "running this command.");
-    ret->setHelpText(myText);
+    ret->addStringParameter(1, "zip-file", "the zip file that will be created");
+    
+    ret->addStringParameter(2, "spec-file", "the specification file to add to zip file");
+    
+    ret->addStringParameter(3, "sub-directory", "the sub-directory created when the zip file is unzipped");
+    
+    ret->setHelpText("If zip-file already exists, it will be overwritten.");
     return ret;
 }
 
