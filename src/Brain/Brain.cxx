@@ -1838,6 +1838,27 @@ Brain::getSpecFileName() const
 }
 
 /**
+ * Set the name of the spec file.  This SHOULD ONLY BE CALLED if
+ * there is no spec file.  If there is a spec file, calling this
+ * method will have no effect.  This method is only called by
+ * SpecFileCreateAddToDialog in the GUI.
+ *
+ * @param specFileName
+ *    New name for spec file.
+ */
+void
+Brain::setSpecFileName(const AString& specFileName)
+{
+    if (m_specFileName.isEmpty() == false) {
+        CaretLogSevere("PROGRAM ERROR: Brain::setSpecFileName() was called "
+                       "but there is already a spec file.  It should only"
+                       "be called if there is no spec file.");
+    }
+    m_specFileName = specFileName;
+}
+
+
+/**
  * Is the spec file valid?
  *
  * The spec file is valid when:

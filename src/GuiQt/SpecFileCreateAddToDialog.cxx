@@ -61,8 +61,6 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain
- *    Brain that contains or will contain a spec file.
  * @param mode
  *    Indicates opening or saving a file
  * @param parent
@@ -76,7 +74,8 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
 {
     m_addFilesToSpecFileFlag = false;
     
-    m_specFileName = brain->getSpecFileName();
+    m_brain = brain;
+    m_specFileName = m_brain->getSpecFileName();
     
     FileInformation fileInfo(m_specFileName);
     m_isSpecFileValid = fileInfo.exists();
@@ -248,6 +247,8 @@ SpecFileCreateAddToDialog::okButtonClicked()
                     return;
                 }
             }
+
+            m_brain->setSpecFileName(specFileName);
             
             m_addFilesToSpecFileFlag = true;
         }

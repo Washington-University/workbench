@@ -72,6 +72,8 @@ namespace caret {
 
         SpecFileCreateAddToDialog& operator=(const SpecFileCreateAddToDialog&);
         
+        Brain* m_brain;
+        
         AString m_specFileName;
         
         QLineEdit* m_specFileNameLineEdit;
