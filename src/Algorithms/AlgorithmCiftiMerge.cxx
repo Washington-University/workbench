@@ -134,7 +134,7 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
         {
             int64_t mySize = ciftiList[i]->getNumberOfColumns();
             const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
-            for (int64_t j = 0; j < mySize; ++i)
+            for (int64_t j = 0; j < mySize; ++j)
             {
                 newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(j));
                 if (isLabel)
