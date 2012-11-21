@@ -51,6 +51,7 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
     m_identificationSymbolColor = CaretColorEnum::GREEN;
     m_identificationContralateralSymbolColor = CaretColorEnum::BLUE;
     m_identifcationSymbolSize = 3.5;
+    m_identifcationMostRecentSymbolSize = m_identifcationSymbolSize * 2.0;
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                               &m_contralateralIdentificationEnabled);
@@ -60,6 +61,9 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
     
     m_sceneAssistant->add("m_identifcationSymbolSize",
                               &m_identifcationSymbolSize);
+    
+    m_sceneAssistant->add("m_identifcationMostRecentSymbolSize",
+                          &m_identifcationMostRecentSymbolSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor);
@@ -153,9 +157,29 @@ DisplayPropertiesInformation::setIdentificationSymbolSize(const float symbolSize
 }
 
 /**
+ * @return The size of the most recent identification symbol
+ */
+float
+DisplayPropertiesInformation::getMostRecentIdentificationSymbolSize() const
+{
+    return m_identifcationMostRecentSymbolSize;
+}
+
+/**
+ * Set the size of the most recent identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+DisplayPropertiesInformation::setMostRecentIdentificationSymbolSize(const float symbolSize)
+{
+    m_identifcationMostRecentSymbolSize = symbolSize;
+}
+
+/**
  * @return The color of the identification symbol.
  */
-CaretColorEnum::Enum 
+CaretColorEnum::Enum
 DisplayPropertiesInformation::getIdentificationSymbolColor() const
 {
     return m_identificationSymbolColor;

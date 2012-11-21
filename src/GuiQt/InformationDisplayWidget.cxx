@@ -64,6 +64,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     m_propertiesDialogIdColorComboBox = NULL;
     m_propertiesDialogIdContraColorComboBox = NULL;
     m_propertiesDialogSizeSpinBox = NULL;
+    m_propertiesDialogMostRecentSizeSpinBox = NULL;
     
     m_informationTextBrowser = new HyperLinkTextBrowser();
     m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
@@ -309,6 +310,15 @@ InformationDisplayWidget::showPropertiesDialog()
     QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(controlInPropertiesDialogChanged()));
     
+    m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Size:",
+                                                                   info->getMostRecentIdentificationSymbolSize(),
+                                                                   0.5,
+                                                                   100000.0,
+                                                                   0.5);
+    QObject::connect(m_propertiesDialogMostRecentSizeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+
     ded.setOkButtonText("Close");
     ded.setCancelButtonText("");
     ded.exec();
@@ -330,6 +340,7 @@ InformationDisplayWidget::controlInPropertiesDialogChanged()
     info->setIdentificationSymbolColor(m_propertiesDialogIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_propertiesDialogIdContraColorComboBox->getSelectedColor());
     info->setIdentificationSymbolSize(m_propertiesDialogSizeSpinBox->value());
+    info->setMostRecentIdentificationSymbolSize(m_propertiesDialogMostRecentSizeSpinBox->value());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

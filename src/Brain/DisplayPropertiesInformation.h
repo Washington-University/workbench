@@ -52,6 +52,10 @@ namespace caret {
         
         void setIdentificationSymbolSize(const float symbolSize);
         
+        float getMostRecentIdentificationSymbolSize() const;
+        
+        void setMostRecentIdentificationSymbolSize(const float symbolSize);
+        
         CaretColorEnum::Enum getIdentificationSymbolColor() const;
         
         void setIdentificationSymbolColor(const CaretColorEnum::Enum color);
@@ -79,6 +83,8 @@ namespace caret {
         bool m_volumeIdentificationEnabled;
         
         float m_identifcationSymbolSize;
+        
+        float m_identifcationMostRecentSymbolSize;
         
         CaretColorEnum::Enum m_identificationSymbolColor;
         

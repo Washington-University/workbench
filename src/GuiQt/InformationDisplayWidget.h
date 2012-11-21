@@ -96,6 +96,8 @@ namespace caret {
         CaretColorEnumComboBox* m_propertiesDialogIdContraColorComboBox;
         
         QDoubleSpinBox* m_propertiesDialogSizeSpinBox;
+        
+        QDoubleSpinBox* m_propertiesDialogMostRecentSizeSpinBox;
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__
