@@ -412,6 +412,7 @@ CiftiNamedMapElement::CiftiNamedMapElement(const CiftiNamedMapElement& rhs)
 {
     m_mapName = rhs.m_mapName;
     m_defaultPalette = rhs.m_defaultPalette;
+    m_mapMetaData = rhs.m_mapMetaData;
     if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
     if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
 }
@@ -420,6 +421,7 @@ CiftiNamedMapElement& CiftiNamedMapElement::operator=(const CiftiNamedMapElement
 {
     if (this == &rhs) return *this;
     m_mapName = rhs.m_mapName;
+    m_mapMetaData = rhs.m_mapMetaData;
     if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));
     if (rhs.m_labelTable != NULL) m_labelTable.grabNew(new GiftiLabelTable(*(rhs.m_labelTable)));
     return *this;
