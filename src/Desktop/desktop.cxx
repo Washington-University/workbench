@@ -250,7 +250,6 @@ main(int argc, char* argv[])
         */
         SystemUtilities::setHandlersForUnexpected(argc, argv);
         
-        qInstallMsgHandler(messageHandlerForQt);
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
         QApplication::setGraphicsSystem("raster");
@@ -295,6 +294,7 @@ main(int argc, char* argv[])
         */
         SessionManager::createSessionManager();
         caretLoggerIsValid = true;
+        qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
 
 #ifdef NDEBUG
         CaretLogConfig("Compiled with debugging OFF");
