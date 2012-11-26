@@ -281,7 +281,19 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
+    /*
+     * Size of all graphics area containing model(s).
+     */
+    if (viewportContents.empty() == false) {
+        const int* windowVP = viewportContents[0]->getWindowViewport();
+        glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
+    }
+    
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        CaretLogFine("Drawing Model "
+                       + AString::number(i)
+                       + ": "
+                       + AString::fromNumbers(viewportContents[i]->getModelViewport(), 4, ", "));
         m_brain = viewportContents[i]->getBrain();
         CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,
@@ -314,7 +326,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         Model* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
         this->windowTabIndex = this->browserTabContent->getTabNumber();
         int viewport[4];
-        viewportContent->getViewport(viewport);
+        viewportContent->getModelViewport(viewport);
         
         
         this->mode = mode;
@@ -355,7 +367,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             
             int viewport[4];
-            viewportContent->getViewport(viewport);
+            viewportContent->getModelViewport(viewport);
             this->drawAllPalettes(modelDisplayController->getBrain());
         }
     }
@@ -7175,7 +7187,14 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                colorbarViewportY, 
                colorbarViewportWidth, 
                colorbarViewportHeight);
-        
+    
+    CaretLogFine("Palette " + palette->getName() + " Viewport: ("
+                   + AString::number(colorbarViewportX) + ", "
+                   + AString::number(colorbarViewportY) + ", "
+                   + AString::number(colorbarViewportWidth) + ", "
+                   + AString::number(colorbarViewportHeight)
+                   + ")\n Model Viewport: "
+                   + AString::fromNumbers(modelViewport, 4, ", "));
     /*
      * Types of values for display
      */

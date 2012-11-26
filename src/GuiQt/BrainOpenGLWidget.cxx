@@ -237,7 +237,7 @@ BrainOpenGLWidget::paintGL()
     
     this->clearDrawingViewportContents();
     
-    int viewport[4] = {
+    int windowViewport[4] = {
         0,
         0,
         this->windowWidth[this->windowIndex],
@@ -253,7 +253,8 @@ BrainOpenGLWidget::paintGL()
     
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(viewport,
+        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
+                                                                        windowViewport,
                                                                         GuiManager::get()->getBrain(),
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
@@ -284,12 +285,15 @@ BrainOpenGLWidget::paintGL()
             vpX = 0;
             for (int32_t j = 0; j < numCols; j++) {
                 if (iModel < numToDraw) {
-                    viewport[0] = vpX;
-                    viewport[1] = vpY;
-                    viewport[2] = vpWidth;
-                    viewport[3] = vpHeight;
+                    const int modelViewport[4] = {
+                        vpX,
+                        vpY,
+                        vpWidth,
+                        vpHeight
+                    };
                     BrainOpenGLViewportContent* vc = 
-                       new BrainOpenGLViewportContent(viewport,
+                       new BrainOpenGLViewportContent(windowViewport,
+                                                      modelViewport,
                                                       GuiManager::get()->getBrain(),
                                                       getModelEvent.getTabContentToDraw(iModel));
                     this->drawingViewportContents.push_back(vc);
@@ -498,7 +502,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
     const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
     for (int32_t i = 0; i < num; i++) {
         int viewport[4];
-        this->drawingViewportContents[i]->getViewport(viewport);
+        this->drawingViewportContents[i]->getModelViewport(viewport);
         if ((x >= viewport[0])
             && (x < (viewport[0] + viewport[2]))
             && (y >= viewport[1])

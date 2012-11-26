@@ -600,7 +600,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                     case VolumeSliceViewPlaneEnum::ALL:
                     {
                         int viewport[4];
-                        viewportContent->getViewport(viewport);
+                        viewportContent->getModelViewport(viewport);
                         const int32_t halfWidth  = viewport[2] / 2;
                         const int32_t halfHeight = viewport[3] / 2;
                         const int32_t viewportMousePressedX = mousePressedX - viewport[0];
