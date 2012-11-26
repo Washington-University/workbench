@@ -101,6 +101,8 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+
+        void getViewportSize(int &w, int &h);
     protected:
         void closeEvent(QCloseEvent* event);
         

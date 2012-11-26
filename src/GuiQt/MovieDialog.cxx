@@ -37,6 +37,7 @@
 #include "MovieDialog.h"
 #include "ui_MovieDialog.h"
 #include "BrowserTabContent.h"
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventManager.h"
@@ -60,6 +61,9 @@ MovieDialog::MovieDialog(QWidget *parent) :
     browserWindowIndex = 0;
     frame_number = 0;
     rotate_frame_number = 0;
+
+    imageX = 0;
+    imageY = 0;
 }
 
 MovieDialog::~MovieDialog()
@@ -108,20 +112,30 @@ void MovieDialog::on_recordButton_toggled(bool checked)
     {
         //render frames....
 
-        QString formatString("Movie Files (*.mpg)");
+        QString formatString("Movie Files (*.mpg *.mp4)");
 
         AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
         AString tempDir = QDir::tempPath();
         if ( !fileName.isEmpty() )
         {
+            int32_t w = 0;
+            int32_t h = 0;
+            GuiManager::get()->getBrowserWindowByWindowIndex(0)->getViewportSize(w,h);
+    
+
             unlink(fileName);
             CaretLogInfo("Rendering movie to:" + fileName);
-            AString ffmpeg = SystemUtilities::getWorkbenchHome() + AString("/ffmpeg ");
-            //QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
+            AString ffmpeg = SystemUtilities::getWorkbenchHome() + AString("/ffmpeg ");            
 
             double frame_rate = 30.0/double(1 + this->ui->repeatFramesSpinBox->value());
 
-            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
+            int32_t imageXtemp = (w/2)*2;
+            int32_t imageYtemp = (h/2)*2;
+            CaretLogInfo("Resizing image from " + AString::number(w) + AString(":") + AString::number(h) + AString(" to ") +
+                         AString::number(imageXtemp) + AString(":") + AString::number(imageYtemp));
+
+            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video -vf crop=" + 
+                AString::number(imageXtemp) + ":" +AString::number(imageYtemp) + ":" + AString(":0:0 ") + fileName);
             CaretLogFine("running " + command);
 
             system(command.toAscii().data());
@@ -289,9 +303,6 @@ MovieDialog::receiveEvent(Event* event)
 void MovieDialog::captureFrame(AString filename)
 {
     const int browserWindowIndex = 0;
-
-    int32_t imageX = 0;
-    int32_t imageY = 0;
 
     ImageFile imageFile;
     QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));

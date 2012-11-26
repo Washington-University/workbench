@@ -80,6 +80,8 @@ namespace caret {
         static void initializeDefaultGLFormat();
         
         static QString getOpenGLInformation();
+
+        void getViewPortSize(int &w, int &h);
         
     protected:
         void initializeGL();

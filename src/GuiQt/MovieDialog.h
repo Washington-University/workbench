@@ -50,6 +50,9 @@ private:
     int frameCount;
     bool reverseDirection;
 
+    int32_t imageX;
+    int32_t imageY;
+
 
 };
 

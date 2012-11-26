@@ -198,6 +198,13 @@ BrainOpenGLWidget::resizeGL(int w, int h)
     this->windowHeight[this->windowIndex] = h;
 }
 
+void
+BrainOpenGLWidget::getViewPortSize(int &w, int &h)
+{
+    w = this->windowWidth[this->windowIndex];
+    h = this->windowHeight[this->windowIndex];
+}
+
 /**
  * @return Pointer to the border that is being drawn.
  */

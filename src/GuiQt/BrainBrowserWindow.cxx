@@ -2624,5 +2624,11 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }    
 }
 
+void
+BrainBrowserWindow::getViewportSize(int &w, int &h)
+{
+    m_openGLWidget->getViewPortSize(w,h);
+}
+
 
 
