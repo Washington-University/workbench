@@ -30,6 +30,9 @@
 #include "quazip.h"
 #include "quazipfile.h"
 
+//for cleanPath
+#include <QDir>
+
 #include <vector>
 
 using namespace caret;
@@ -52,9 +55,12 @@ OperationParameters* OperationZipSpecFile::getParameters()
     
     ret->addStringParameter(2, "spec-file", "the specification file to add to zip file");
     
-    ret->addStringParameter(3, "sub-directory", "the sub-directory created when the zip file is unzipped");
+    ret->addStringParameter(3, "extract-dir", "the sub-directory created when the zip file is unzipped");
     
-    ret->setHelpText("If zip-file already exists, it will be overwritten.");
+    OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within");
+    baseOpt->addStringParameter(1, "directory", "the directory that will become the root of the zipfile's directory structure");
+    
+    ret->setHelpText("If zip-file already exists, it will be overwritten.  If -base-dir is not specified, the directory containing the spec file is used.");
     return ret;
 }
 
@@ -64,6 +70,19 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     AString zipFileName = myParams->getString(1);
     AString specFileName = myParams->getString(2);
     AString outputSubDirectory = myParams->getString(3);
+    OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
+    AString myBaseDir;
+    if (baseOpt->m_present)
+    {
+        myBaseDir = QDir::cleanPath(QDir(baseOpt->getString(1)).absolutePath());
+    } else {
+        FileInformation specFileInfo(specFileName);
+        myBaseDir = QDir::cleanPath(specFileInfo.getAbsolutePath());
+    }
+    if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
+    {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
+        myBaseDir += "/";//so, add the trailing slash to the path
+    }
 
     if (outputSubDirectory.isEmpty()) {
         throw OperationException("Output Sub-Directory must contain characters");
@@ -85,39 +104,54 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      * but file not found).
      */
     FileInformation specFileInfo(specFileName);
-    AString specFilePath = specFileInfo.getAbsolutePath();//resolve filenames to open from the spec file's location, NOT from current directory
-    if (!specFilePath.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
-    {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
-        specFilePath += "/";//so, add the trailing slash to the path
+    AString specPath = QDir::cleanPath(specFileInfo.getAbsolutePath());
+    if (!specPath.endsWith('/'))
+    {
+        specPath += "/";
     }
     SpecFile specFile;
     specFile.readFile(specFileName);
     std::vector<AString> allDataFileNames = specFile.getAllDataFileNames();
-    allDataFileNames.push_back(specFileInfo.getFileName());
+    allDataFileNames.push_back(specFileName);
     
     /*
      * Verify that all data files exist
      */
     AString missingDataFileNames;
+    AString outsideBaseDirFiles;
+    AString nonRelativeNames;
     const int32_t numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
         FileInformation tempInfo(dataFileName);
-        if (tempInfo.isRelative())
+        if (!tempInfo.isRelative())
         {
-            dataFileName = specFilePath + dataFileName;
+            nonRelativeNames += dataFileName + "\n";
+        } else {
+            dataFileName = specPath + dataFileName;
         }
         FileInformation dataFileInfo(dataFileName);
-        if (dataFileInfo.exists() == false) {
-            if (missingDataFileNames.isEmpty()) {
-                missingDataFileNames = "These data file(s) are missing and ZIP file has not been created:\n";
-            }
-            missingDataFileNames += ("    "
-                                     + allDataFileNames[i]);
+        AString absName = QDir::cleanPath(dataFileInfo.getFilePath());
+        if (!absName.startsWith(myBaseDir))
+        {
+            outsideBaseDirFiles += absName + "\n";
         }
+        if (dataFileInfo.exists() == false) {
+            missingDataFileNames += absName + "\n";
+        }
+        allDataFileNames[i] = absName;//so we don't have to do this again
     }
-    if (missingDataFileNames.isEmpty() == false) {
-        throw OperationException(missingDataFileNames);
+    if (!nonRelativeNames.isEmpty())
+    {
+        throw OperationException("These data files have absolute names in the spec file, which would break when unzipped:\n" + nonRelativeNames);
+    }
+    if (!missingDataFileNames.isEmpty())
+    {
+        throw OperationException("These data files do not exist:\n" + missingDataFileNames);
+    }
+    if (!outsideBaseDirFiles.isEmpty())
+    {
+        throw OperationException("These data files lie outside the base directiory:\n" + outsideBaseDirFiles + "Try using -base-dir.");
     }
     
     /*
@@ -137,15 +171,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     AString errorMessage;
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
-        FileInformation tempInfo(dataFileName);
-        AString unzippedDataFileName;
-        if (tempInfo.isRelative())
-        {
-            unzippedDataFileName = outputSubDirectory + "/" + dataFileName;
-            dataFileName = specFilePath + dataFileName;
-        } else {
-            unzippedDataFileName = dataFileName;
-        }
+        AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
         QFile dataFileIn(dataFileName);
         if (dataFileIn.open(QFile::ReadOnly) == false) {
             errorMessage = "Unable to open \""
