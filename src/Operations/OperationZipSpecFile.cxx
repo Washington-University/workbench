@@ -60,7 +60,10 @@ OperationParameters* OperationZipSpecFile::getParameters()
     OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within");
     baseOpt->addStringParameter(1, "directory", "the directory that will become the root of the zipfile's directory structure");
     
-    ret->setHelpText("If zip-file already exists, it will be overwritten.  If -base-dir is not specified, the directory containing the spec file is used.");
+    ret->setHelpText(AString("If zip-file already exists, it will be overwritten.  ") +
+        "If -base-dir is not specified, the directory containing the spec file is used for the base directory.  " +
+        "The spec file must contain only relative paths, and no data files may be outside the base directory.  " +
+        "Scene files inside spec files are not checked for what files they reference, ensure that all data files referenced by the scene files are also referenced by the spec file.");
     return ret;
 }
 
