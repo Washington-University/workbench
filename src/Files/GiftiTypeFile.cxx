@@ -406,8 +406,15 @@ GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex)
     return gda->getPaletteColorMapping();
 }
 
-
-
+/**
+ * @return The palette color mapping for a data column.
+ */
+const PaletteColorMapping* 
+GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex) const
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(columnIndex);
+    return gda->getPaletteColorMapping();
+}
 
 /**
  * @return Is the data mappable to a surface?

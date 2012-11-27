@@ -32,6 +32,7 @@
 #include "FloatMatrix.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
+#include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
 
@@ -205,6 +206,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
             }
             const float* myMetricColumn = toProcess->getValuePointerForColumn(col);
             myMetricOut->setColumnName(col, toProcess->getColumnName(col) + ", gradient");
+            *(myMetricOut->getPaletteColorMapping(col)) = *(toProcess->getPaletteColorMapping(col));//copy the palette settings
             if (myVectorsOut != NULL)
             {
                 myVectorsOut->setColumnName(col * 3, toProcess->getColumnName(col) + ", gradient vector X");
@@ -387,6 +389,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         }
         const float* myMetricColumn = toProcess->getValuePointerForColumn(useColumn);
         myMetricOut->setColumnName(0, toProcess->getColumnName(useColumn) + ", gradient");
+        *(myMetricOut->getPaletteColorMapping(0)) = *(toProcess->getPaletteColorMapping(useColumn));//copy the palette settings
 #pragma omp CARET_PAR
         {
             float somevec[3], xhat[3], yhat[3];

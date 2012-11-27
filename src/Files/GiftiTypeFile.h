@@ -104,6 +104,8 @@ namespace caret {
         
         PaletteColorMapping* getPaletteColorMapping(const int32_t columnIndex);
         
+        const PaletteColorMapping* getPaletteColorMapping(const int32_t columnIndex) const;
+        
         virtual bool isSurfaceMappable() const;
         
         virtual bool isVolumeMappable() const;

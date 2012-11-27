@@ -24,12 +24,13 @@
 
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmException.h"
-#include "SurfaceFile.h"
-#include "MetricFile.h"
-#include "GeodesicHelper.h"
-#include "TopologyHelper.h"
 #include "CaretOMP.h"
 #include "CaretPointer.h"
+#include "GeodesicHelper.h"
+#include "MetricFile.h"
+#include "PaletteColorMapping.h"
+#include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include <cmath>
 
 using namespace caret;
@@ -176,6 +177,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
         {
             myProgress.setTask("Smoothing Column " + AString::number(col));
             myMetricOut->setColumnName(col, myMetric->getColumnName(col) + ", smooth " + AString::number(myKernel));
+            *(myMetricOut->getPaletteColorMapping(col)) = *(myMetric->getPaletteColorMapping(col));//copy the palette settings
             if (myRoi != NULL && matchRoiColumns)
             {
                 mySmoothObj->smoothColumn(myMetric, col, myMetricOut, col, myRoi, col, fixZeros);
@@ -188,6 +190,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         myMetricOut->setStructure(mySurf->getStructure());
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum) + ", smooth " + AString::number(myKernel));
+        *(myMetricOut->getPaletteColorMapping(0)) = *(myMetric->getPaletteColorMapping(columnNum));//copy the palette settings
         myProgress.setTask("Smoothing Column " + AString::number(columnNum));
         if (myRoi != NULL && matchRoiColumns)
         {
