@@ -53,9 +53,8 @@
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "IdentificationManager.h"
-#include "IdentificationItemSurfaceTriangle.h"
-#include "IdentificationItemSurfaceNode.h"
+#include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Model.h"
@@ -335,7 +334,7 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
         return;
     }
     
-    IdentificationManager* idManager = this->performIdentification(x,
+    SelectionManager* idManager = this->performIdentification(x,
                                                                    y,
                                                                    false);
     
@@ -523,15 +522,15 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
  *    Y-coordinate for identification.
  * @param applySelectionBackgroundFiltering
  *    If true (which is in most cases), if there are multiple items
- *    identified, those items "behind" other items are not reported.
- *    For example, suppose a focus is identified and there is a node
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
  *    the focus.  If this parameter is true, the node will NOT be
- *    identified.  If this parameter is false, the node will be
- *    identified.
+ *    selected.  If this parameter is false, the node will be
+ *    selected.
  * @return
- *    IdentificationManager providing identification information.
+ *    SelectionManager providing identification information.
  */
-IdentificationManager* 
+SelectionManager* 
 BrainOpenGLWidget::performIdentification(const int x,
                                          const int y,
                                          const bool applySelectionBackgroundFiltering)
@@ -540,7 +539,7 @@ BrainOpenGLWidget::performIdentification(const int x,
 
     this->makeCurrent();
     CaretLogFine("Performing selection");
-    IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
 //    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
 //    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);

@@ -24,7 +24,7 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL_DECLARE__
-#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL_DECLARE__
 
 #include "Surface.h"
@@ -32,18 +32,18 @@
 using namespace caret;
 
 /**
- * \class IdentificationItemSurfaceNodeIdentificationSymbol
- * \brief Identified node symbol
+ * \class SelectionItemSurfaceNodeIdentificationSymbol
+ * \brief Selected node symbol
  *
- * Information about the identified node symbol.
+ * Information about the selected node symbol.
  */
 
 
 /**
  * Constructor.
  */
-IdentificationItemSurfaceNodeIdentificationSymbol::IdentificationItemSurfaceNodeIdentificationSymbol()
-: IdentificationItem(IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL)
+SelectionItemSurfaceNodeIdentificationSymbol::SelectionItemSurfaceNodeIdentificationSymbol()
+: SelectionItem(SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL)
 {
     this->surface = NULL;
     this->nodeNumber = -1;
@@ -52,7 +52,7 @@ IdentificationItemSurfaceNodeIdentificationSymbol::IdentificationItemSurfaceNode
 /**
  * Destructor.
  */
-IdentificationItemSurfaceNodeIdentificationSymbol::~IdentificationItemSurfaceNodeIdentificationSymbol()
+SelectionItemSurfaceNodeIdentificationSymbol::~SelectionItemSurfaceNodeIdentificationSymbol()
 {
     
 }
@@ -61,68 +61,68 @@ IdentificationItemSurfaceNodeIdentificationSymbol::~IdentificationItemSurfaceNod
  * Reset this selection item. 
  */
 void 
-IdentificationItemSurfaceNodeIdentificationSymbol::reset()
+SelectionItemSurfaceNodeIdentificationSymbol::reset()
 {
-    IdentificationItem::reset();
+    SelectionItem::reset();
     this->surface = NULL;
     this->nodeNumber = -1;
 }
 
 /**
- * @return Is this identified item valid?
+ * @return Is this selected item valid?
  */
 bool 
-IdentificationItemSurfaceNodeIdentificationSymbol::isValid() const
+SelectionItemSurfaceNodeIdentificationSymbol::isValid() const
 {
     return (this->nodeNumber >= 0);
 }
 
 /**
- * @return Surface containing identified node.
+ * @return Surface containing selected node.
  */
 const Surface* 
-IdentificationItemSurfaceNodeIdentificationSymbol::getSurface() const
+SelectionItemSurfaceNodeIdentificationSymbol::getSurface() const
 {
     return this->surface;
 }
 
 /**
- * @return Surface containing identified node.
+ * @return Surface containing selected node.
  */
 Surface* 
-IdentificationItemSurfaceNodeIdentificationSymbol::getSurface()
+SelectionItemSurfaceNodeIdentificationSymbol::getSurface()
 {
     return this->surface;
 }
 
 /**
- * Set the surface containing the identified node.
+ * Set the surface containing the selected node.
  * @param surface
  *    New value for surface.
  *
  */
 void 
-IdentificationItemSurfaceNodeIdentificationSymbol::setSurface(Surface* surface)
+SelectionItemSurfaceNodeIdentificationSymbol::setSurface(Surface* surface)
 {
     this->surface = surface;
 }
 
 /**
- * return Number of identified node.
+ * return Number of selected node.
  */
 int32_t 
-IdentificationItemSurfaceNodeIdentificationSymbol::getNodeNumber() const
+SelectionItemSurfaceNodeIdentificationSymbol::getNodeNumber() const
 {
     return this->nodeNumber;
 }
 
 /**
- * Set node number that was identified.
+ * Set node number that was selected.
  * @param nodeNumber
  *    New value for node.
  */
 void 
-IdentificationItemSurfaceNodeIdentificationSymbol::setNodeNumber(const int32_t nodeNumber)
+SelectionItemSurfaceNodeIdentificationSymbol::setNodeNumber(const int32_t nodeNumber)
 {
     this->nodeNumber = nodeNumber;
 }
@@ -132,9 +132,9 @@ IdentificationItemSurfaceNodeIdentificationSymbol::setNodeNumber(const int32_t n
  * @return String describing this object's content.
  */
 AString 
-IdentificationItemSurfaceNodeIdentificationSymbol::toString() const
+SelectionItemSurfaceNodeIdentificationSymbol::toString() const
 {
-    AString text = IdentificationItem::toString();
+    AString text = SelectionItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Vertex: " + AString::number(this->nodeNumber) + "\n";
     return text;

@@ -24,7 +24,7 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
-#include "IdentificationItemSurfaceTriangle.h"
+#include "SelectionItemSurfaceTriangle.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
 
 #include <limits>
@@ -33,18 +33,18 @@
 using namespace caret;
 
 /**
- * \class IdentificationItemSurfaceTriangle
- * \brief Identified node.
+ * \class SelectionItemSurfaceTriangle
+ * \brief Selected node.
  *
- * Information about the identified node.
+ * Information about the selected node.
  */
 
 
 /**
  * Constructor.
  */
-IdentificationItemSurfaceTriangle::IdentificationItemSurfaceTriangle()
-: IdentificationItem(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE)
+SelectionItemSurfaceTriangle::SelectionItemSurfaceTriangle()
+: SelectionItem(SelectionItemDataTypeEnum::SURFACE_TRIANGLE)
 {
     this->surface = NULL;
     this->triangleNumber = -1;
@@ -60,7 +60,7 @@ IdentificationItemSurfaceTriangle::IdentificationItemSurfaceTriangle()
 /**
  * Destructor.
  */
-IdentificationItemSurfaceTriangle::~IdentificationItemSurfaceTriangle()
+SelectionItemSurfaceTriangle::~SelectionItemSurfaceTriangle()
 {
     
 }
@@ -69,9 +69,9 @@ IdentificationItemSurfaceTriangle::~IdentificationItemSurfaceTriangle()
  * Reset this selection item. 
  */
 void 
-IdentificationItemSurfaceTriangle::reset()
+SelectionItemSurfaceTriangle::reset()
 {
-    IdentificationItem::reset();
+    SelectionItem::reset();
     this->surface = NULL;
     this->triangleNumber = -1;
     this->nearestNodeNumber = -1;
@@ -84,51 +84,51 @@ IdentificationItemSurfaceTriangle::reset()
 }
 
 /**
- * return Is this identified item valid?
+ * return Is this selected item valid?
  */
 bool 
-IdentificationItemSurfaceTriangle::isValid() const
+SelectionItemSurfaceTriangle::isValid() const
 {
     return (this->triangleNumber >= 0);
 }
 
 /**
- * return Surface containing identified node.
+ * return Surface containing selected node.
  */
 Surface* 
-IdentificationItemSurfaceTriangle::getSurface()
+SelectionItemSurfaceTriangle::getSurface()
 {
     return this->surface;
 }
 
 /**
- * Set the surface containing the identified node.
+ * Set the surface containing the selected node.
  * @param surface
  *    New value for surface.
  *
  */
 void 
-IdentificationItemSurfaceTriangle::setSurface(Surface* surface)
+SelectionItemSurfaceTriangle::setSurface(Surface* surface)
 {
     this->surface = surface;
 }
 
 /**
- * return Number of identified triangle.
+ * return Number of selected triangle.
  */
 int32_t 
-IdentificationItemSurfaceTriangle::getTriangleNumber() const
+SelectionItemSurfaceTriangle::getTriangleNumber() const
 {
     return this->triangleNumber;
 }
 
 /**
- * Set triangle number that was identified.
+ * Set triangle number that was selected.
  * @param triangleNumber
  *    New value for triangle.
  */
 void 
-IdentificationItemSurfaceTriangle::setTriangleNumber(const int32_t triangleNumber)
+SelectionItemSurfaceTriangle::setTriangleNumber(const int32_t triangleNumber)
 {
     this->triangleNumber = triangleNumber;
 }
@@ -138,7 +138,7 @@ IdentificationItemSurfaceTriangle::setTriangleNumber(const int32_t triangleNumbe
  * Will return negative if invalid.
  */
 int32_t 
-IdentificationItemSurfaceTriangle::getNearestNodeNumber() const
+SelectionItemSurfaceTriangle::getNearestNodeNumber() const
 {
     return this->nearestNodeNumber;
 }
@@ -149,7 +149,7 @@ IdentificationItemSurfaceTriangle::getNearestNodeNumber() const
  *    New value for the node.
  */
 void 
-IdentificationItemSurfaceTriangle::setNearestNode(const int32_t nearestNodeNumber)
+SelectionItemSurfaceTriangle::setNearestNode(const int32_t nearestNodeNumber)
 {
     this->nearestNodeNumber = nearestNodeNumber;
 }
@@ -159,9 +159,9 @@ IdentificationItemSurfaceTriangle::setNearestNode(const int32_t nearestNodeNumbe
  * @return String describing this object's content.
  */
 AString 
-IdentificationItemSurfaceTriangle::toString() const
+SelectionItemSurfaceTriangle::toString() const
 {
-    AString text = IdentificationItem::toString();
+    AString text = SelectionItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Triangle: " + AString::number(this->triangleNumber) + "\n";
     text += "Nearest Vertex: " + AString::number(this->nearestNodeNumber) + "\n";
@@ -179,7 +179,7 @@ IdentificationItemSurfaceTriangle::toString() const
  *    XYZ out.
  */
 void 
-IdentificationItemSurfaceTriangle::getNearestNodeScreenXYZ(double nearestNodeScreenXYZ[3]) const
+SelectionItemSurfaceTriangle::getNearestNodeScreenXYZ(double nearestNodeScreenXYZ[3]) const
 {
     nearestNodeScreenXYZ[0] = this->nearestNodeScreenXYZ[0];
     nearestNodeScreenXYZ[1] = this->nearestNodeScreenXYZ[1];
@@ -192,7 +192,7 @@ IdentificationItemSurfaceTriangle::getNearestNodeScreenXYZ(double nearestNodeScr
  *    new XYZ.
  */
 void 
-IdentificationItemSurfaceTriangle::setNearestNodeScreenXYZ(const double nearestNodeScreenXYZ[3])
+SelectionItemSurfaceTriangle::setNearestNodeScreenXYZ(const double nearestNodeScreenXYZ[3])
 {
     this->nearestNodeScreenXYZ[0] = nearestNodeScreenXYZ[0];
     this->nearestNodeScreenXYZ[1] = nearestNodeScreenXYZ[1];
@@ -205,7 +205,7 @@ IdentificationItemSurfaceTriangle::setNearestNodeScreenXYZ(const double nearestN
  *    XYZ out.
  */
 void 
-IdentificationItemSurfaceTriangle::getNearestNodeModelXYZ(double nearestNodeModelXYZ[3]) const
+SelectionItemSurfaceTriangle::getNearestNodeModelXYZ(double nearestNodeModelXYZ[3]) const
 {
     nearestNodeModelXYZ[0] = this->nearestNodeModelXYZ[0];
     nearestNodeModelXYZ[1] = this->nearestNodeModelXYZ[1];
@@ -218,7 +218,7 @@ IdentificationItemSurfaceTriangle::getNearestNodeModelXYZ(double nearestNodeMode
  *    new XYZ.
  */
 void 
-IdentificationItemSurfaceTriangle::setNearestNodeModelXYZ(const double nearestNodeModelXYZ[3])
+SelectionItemSurfaceTriangle::setNearestNodeModelXYZ(const double nearestNodeModelXYZ[3])
 {
     this->nearestNodeModelXYZ[0] = nearestNodeModelXYZ[0];
     this->nearestNodeModelXYZ[1] = nearestNodeModelXYZ[1];

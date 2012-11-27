@@ -26,22 +26,22 @@
  */ 
 
 #include <vector>
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 
 namespace caret {
 
     class VolumeFile;
     
-    class IdentificationItemVoxel : public IdentificationItem {
+    class SelectionItemVoxel : public SelectionItem {
         
     public:
-        IdentificationItemVoxel();
+        SelectionItemVoxel();
         
-        virtual ~IdentificationItemVoxel();
+        virtual ~SelectionItemVoxel();
         
-        IdentificationItemVoxel(const IdentificationItemVoxel&);
+        SelectionItemVoxel(const SelectionItemVoxel&);
         
-        IdentificationItemVoxel& operator=(const IdentificationItemVoxel&);
+        SelectionItemVoxel& operator=(const SelectionItemVoxel&);
         
         virtual bool isValid() const;
         
@@ -58,7 +58,7 @@ namespace caret {
         virtual AString toString() const;
 
     private:
-        void copyHelperIdentificationItemVoxel(const IdentificationItemVoxel& idItem);
+        void copyHelperSelectionItemVoxel(const SelectionItemVoxel& idItem);
 
         VolumeFile* m_volumeFile;
         

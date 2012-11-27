@@ -59,7 +59,7 @@
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "IdentificationManager.h"
+#include "SelectionManager.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -166,7 +166,7 @@ Brain::Brain()
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
     
-    this->m_identificationManager = new IdentificationManager();
+    this->m_selectionManager = new SelectionManager();
 }
 
 /**
@@ -199,7 +199,7 @@ Brain::~Brain()
         delete m_wholeBrainController;
     }
 
-    delete this->m_identificationManager;
+    delete this->m_selectionManager;
 }
 
 /**
@@ -419,8 +419,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         (*iter)->reset();
     }
     
-    m_identificationManager->reset();
-    m_identificationManager->setLastIdentifiedItem(NULL);
+    m_selectionManager->reset();
+    m_selectionManager->setLastSelectedItem(NULL);
     
     updateVolumeSliceController();
     updateWholeBrainController();
@@ -3516,10 +3516,10 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
 /**
  * @return The identification manager.
  */
-IdentificationManager*
-Brain::getIdentificationManager()
+SelectionManager*
+Brain::getSelectionManager()
 {
-    return this->m_identificationManager;
+    return this->m_selectionManager;
 }
 
 

@@ -33,12 +33,12 @@
 namespace caret {
 
 /**
- * \class IdentificationItemDataTypeEnum
- * \brief Enumerated type for identified items
+ * \class SelectionItemDataTypeEnum
+ * \brief Enumerated type for selected items
  *
- * Enumerated data type for identified items.
+ * Enumerated data type for selected items.
  */
-class IdentificationItemDataTypeEnum {
+class SelectionItemDataTypeEnum {
 
 public:
     /**
@@ -68,7 +68,7 @@ public:
     };
 
 
-    ~IdentificationItemDataTypeEnum();
+    ~SelectionItemDataTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -89,14 +89,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    IdentificationItemDataTypeEnum(const Enum enumValue, 
+    SelectionItemDataTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const IdentificationItemDataTypeEnum* findData(const Enum enumValue);
+    static const SelectionItemDataTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<IdentificationItemDataTypeEnum> enumData;
+    static std::vector<SelectionItemDataTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -121,9 +121,9 @@ private:
 };
 
 #ifdef __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
-std::vector<IdentificationItemDataTypeEnum> IdentificationItemDataTypeEnum::enumData;
-bool IdentificationItemDataTypeEnum::initializedFlag = false;
-int32_t IdentificationItemDataTypeEnum::integerCodeCounter = 0; 
+std::vector<SelectionItemDataTypeEnum> SelectionItemDataTypeEnum::enumData;
+bool SelectionItemDataTypeEnum::initializedFlag = false;
+int32_t SelectionItemDataTypeEnum::integerCodeCounter = 0; 
 #endif // __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
 
 } // namespace

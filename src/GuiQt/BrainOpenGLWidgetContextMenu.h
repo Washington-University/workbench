@@ -46,7 +46,7 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class ConnectivityLoaderManager;
-    class IdentificationManager;
+    class SelectionManager;
     class LabelFile;
     class Surface;
     
@@ -55,7 +55,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BrainOpenGLWidgetContextMenu(IdentificationManager* identificationManager,
+        BrainOpenGLWidgetContextMenu(SelectionManager* identificationManager,
                                      BrowserTabContent* browserTabContent,
                                      QWidget* parent);
         
@@ -133,7 +133,7 @@ namespace caret {
         
         std::vector<ParcelConnectivity*> parcelConnectivities;
         
-        IdentificationManager* identificationManager;
+        SelectionManager* identificationManager;
         
         BrowserTabContent* browserTabContent;
         

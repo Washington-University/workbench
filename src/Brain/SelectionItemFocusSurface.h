@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_FOCUS_VOLUME__H_
-#define __IDENTIFICATION_ITEM_FOCUS_VOLUME__H_
+#ifndef __IDENTIFICATION_ITEM_FOCUS_SURFACE__H_
+#define __IDENTIFICATION_ITEM_FOCUS_SURFACE__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,26 +26,26 @@
  */ 
 
 
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 
 namespace caret {
 
     class Focus;
     class FociFile;
-    class VolumeFile;
+    class Surface;
     
-    class IdentificationItemFocusVolume : public IdentificationItem {
+    class SelectionItemFocusSurface : public SelectionItem {
         
     public:
-        IdentificationItemFocusVolume();
+        SelectionItemFocusSurface();
         
-        virtual ~IdentificationItemFocusVolume();
+        virtual ~SelectionItemFocusSurface();
         
         virtual bool isValid() const;
         
-        VolumeFile* getVolumeFile();
+        Surface* getSurface();
         
-        const VolumeFile* getVolumeFile() const;
+        const Surface* getSurface() const;
 
         Focus* getFocus();
         
@@ -59,7 +59,7 @@ namespace caret {
         
         void setFociFile(FociFile* fociFile);
         
-        void setVolumeFile(VolumeFile* volumeFile);
+        void setSurface(Surface* surface);
         
         int32_t getFocusIndex() const;
         
@@ -74,20 +74,20 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        IdentificationItemFocusVolume(const IdentificationItemFocusVolume&);
+        SelectionItemFocusSurface(const SelectionItemFocusSurface&);
 
-        IdentificationItemFocusVolume& operator=(const IdentificationItemFocusVolume&);
+        SelectionItemFocusSurface& operator=(const SelectionItemFocusSurface&);
         
         Focus* focus;
         FociFile* fociFile;
-        VolumeFile* volumeFile;
+        Surface* surface; 
         int32_t focusIndex;
         int32_t focusProjectionIndex;
     };
     
-#ifdef __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
+#ifdef __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
+#endif // __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_FOCUS_VOLUME__H_
+#endif  //__IDENTIFICATION_ITEM_FOCUS_SURFACE__H_

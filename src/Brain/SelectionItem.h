@@ -27,25 +27,25 @@
 
 
 #include "CaretObject.h"
-#include "IdentificationItemDataTypeEnum.h"
+#include "SelectionItemDataTypeEnum.h"
 
 namespace caret {
      
     class Brain;
     
-    class IdentificationItem : public CaretObject {
+    class SelectionItem : public CaretObject {
         
     protected:
-        IdentificationItem(const IdentificationItemDataTypeEnum::Enum itemDataType);
+        SelectionItem(const SelectionItemDataTypeEnum::Enum itemDataType);
     
-        IdentificationItem(const IdentificationItem&);
+        SelectionItem(const SelectionItem&);
         
-        IdentificationItem& operator=(const IdentificationItem&);
+        SelectionItem& operator=(const SelectionItem&);
         
     public:
-        virtual ~IdentificationItem();
+        virtual ~SelectionItem();
         
-        IdentificationItemDataTypeEnum::Enum getItemDataType() const;
+        SelectionItemDataTypeEnum::Enum getItemDataType() const;
         
         bool isEnabledForSelection() const;
         
@@ -70,7 +70,7 @@ namespace caret {
         void setModelXYZ(const double modelXYZ[3]);
         
         /**
-         * @return  Is the identified item valid?
+         * @return  Is the selected item valid?
          */
         virtual bool isValid() const = 0;
         
@@ -81,7 +81,7 @@ namespace caret {
         virtual AString toString() const;
         
     protected:
-        IdentificationItemDataTypeEnum::Enum m_itemDataType;
+        SelectionItemDataTypeEnum::Enum m_itemDataType;
         
         bool m_enabledForSelection;
         
@@ -94,7 +94,7 @@ namespace caret {
         double m_modelXYZ[3];
         
     private:
-        void copyHelperIdentificationItem(const IdentificationItem& idItem);
+        void copyHelperSelectionItem(const SelectionItem& idItem);
     };
     
 #ifdef __IDENTIFICATION_ITEM_DECLARE__

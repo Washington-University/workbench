@@ -26,18 +26,18 @@
  */ 
 
 
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 
 namespace caret {
 
     class Surface;
     
-    class IdentificationItemSurfaceTriangle : public IdentificationItem {
+    class SelectionItemSurfaceTriangle : public SelectionItem {
         
     public:
-        IdentificationItemSurfaceTriangle();
+        SelectionItemSurfaceTriangle();
         
-        virtual ~IdentificationItemSurfaceTriangle();
+        virtual ~SelectionItemSurfaceTriangle();
         
         virtual bool isValid() const;
         
@@ -65,9 +65,9 @@ namespace caret {
         
         virtual AString toString() const;
     private:
-        IdentificationItemSurfaceTriangle(const IdentificationItemSurfaceTriangle&);
+        SelectionItemSurfaceTriangle(const SelectionItemSurfaceTriangle&);
 
-        IdentificationItemSurfaceTriangle& operator=(const IdentificationItemSurfaceTriangle&);
+        SelectionItemSurfaceTriangle& operator=(const SelectionItemSurfaceTriangle&);
         
     private:
         Surface* surface;

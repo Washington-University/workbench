@@ -24,7 +24,7 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
-#include "IdentificationItemBorderSurface.h"
+#include "SelectionItemBorderSurface.h"
 #undef __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
 
 #include "Border.h"
@@ -36,14 +36,14 @@ using namespace caret;
 
     
 /**
- * \class IdentificationItemBorderSurface 
- * \brief Contains information about the identified border.
+ * \class SelectionItemBorderSurface 
+ * \brief Contains information about the selected border.
  */
 /**
  * Constructor.
  */
-IdentificationItemBorderSurface::IdentificationItemBorderSurface()
-: IdentificationItem(IdentificationItemDataTypeEnum::BORDER_SURFACE)
+SelectionItemBorderSurface::SelectionItemBorderSurface()
+: SelectionItem(SelectionItemDataTypeEnum::BORDER_SURFACE)
 {
     this->surface = NULL;
     this->border = NULL;
@@ -55,7 +55,7 @@ IdentificationItemBorderSurface::IdentificationItemBorderSurface()
 /**
  * Destructor.
  */
-IdentificationItemBorderSurface::~IdentificationItemBorderSurface()
+SelectionItemBorderSurface::~SelectionItemBorderSurface()
 {
 }
 
@@ -63,9 +63,9 @@ IdentificationItemBorderSurface::~IdentificationItemBorderSurface()
  * Reset this selection item. 
  */
 void 
-IdentificationItemBorderSurface::reset()
+SelectionItemBorderSurface::reset()
 {
-    IdentificationItem::reset();
+    SelectionItem::reset();
     this->surface = NULL;
     this->border = NULL;
     this->borderFile = NULL;
@@ -74,10 +74,10 @@ IdentificationItemBorderSurface::reset()
 }
 
 /**
- * @return Is this identified item valid?
+ * @return Is this selected item valid?
  */
 bool 
-IdentificationItemBorderSurface::isValid() const
+SelectionItemBorderSurface::isValid() const
 {
     return (this->border != NULL);
 }
@@ -86,7 +86,7 @@ IdentificationItemBorderSurface::isValid() const
  * @return Surface on which border was drawn.
  */
 const Surface* 
-IdentificationItemBorderSurface::getSurface() const
+SelectionItemBorderSurface::getSurface() const
 {
     return this->surface;
 }
@@ -95,7 +95,7 @@ IdentificationItemBorderSurface::getSurface() const
  * @return Surface on which border was drawn.
  */
 Surface* 
-IdentificationItemBorderSurface::getSurface()
+SelectionItemBorderSurface::getSurface()
 {
     return this->surface;
 }
@@ -106,65 +106,65 @@ IdentificationItemBorderSurface::getSurface()
  *    New value for surface.
  */
 void 
-IdentificationItemBorderSurface::setSurface(Surface* surface)
+SelectionItemBorderSurface::setSurface(Surface* surface)
 {
     this->surface = surface;
 }
 
 /**
- * @return The border that was identified.
+ * @return The border that was selected.
  */
 const Border* 
-IdentificationItemBorderSurface::getBorder() const
+SelectionItemBorderSurface::getBorder() const
 {
     return this->border;
 }
 
 /**
- * @return The border that was identified.
+ * @return The border that was selected.
  */
 Border* 
-IdentificationItemBorderSurface::getBorder()
+SelectionItemBorderSurface::getBorder()
 {
     return this->border;
 }
 
 /**
- * Set the border that was identified.
+ * Set the border that was selected.
  * @param border
  *    New value for border.
  */
 void 
-IdentificationItemBorderSurface::setBorder(Border* border)
+SelectionItemBorderSurface::setBorder(Border* border)
 {
     this->border = border;
 }
 
 /**
- * @return The border file containing border that was identified.
+ * @return The border file containing border that was selected.
  */
 const BorderFile* 
-IdentificationItemBorderSurface::getBorderFile() const
+SelectionItemBorderSurface::getBorderFile() const
 {
     return this->borderFile;
 }
 
 /**
- * @return The border file containing border that was identified.
+ * @return The border file containing border that was selected.
  */
 BorderFile* 
-IdentificationItemBorderSurface::getBorderFile()
+SelectionItemBorderSurface::getBorderFile()
 {
     return this->borderFile;
 }
 
 /**
- * Set the border file containing border that was identified.
+ * Set the border file containing border that was selected.
  * @param borderFile
  *    New value for border file.
  */
 void 
-IdentificationItemBorderSurface::setBorderFile(BorderFile* borderFile)
+SelectionItemBorderSurface::setBorderFile(BorderFile* borderFile)
 {
     this->borderFile = borderFile;
 }
@@ -173,7 +173,7 @@ IdentificationItemBorderSurface::setBorderFile(BorderFile* borderFile)
  * return Index of selected border.
  */
 int32_t 
-IdentificationItemBorderSurface::getBorderIndex() const
+SelectionItemBorderSurface::getBorderIndex() const
 {
     return this->borderIndex;
 }
@@ -184,7 +184,7 @@ IdentificationItemBorderSurface::getBorderIndex() const
  *    New value for border index.
  */
 void 
-IdentificationItemBorderSurface::setBorderIndex(const int32_t borderIndex)
+SelectionItemBorderSurface::setBorderIndex(const int32_t borderIndex)
 {
     this->borderIndex = borderIndex;
 }
@@ -193,7 +193,7 @@ IdentificationItemBorderSurface::setBorderIndex(const int32_t borderIndex)
  * return Index of selected border.
  */
 int32_t 
-IdentificationItemBorderSurface::getBorderPointIndex() const
+SelectionItemBorderSurface::getBorderPointIndex() const
 {
     return this->borderPointIndex;
 }
@@ -204,7 +204,7 @@ IdentificationItemBorderSurface::getBorderPointIndex() const
  *    New value for border index.
  */
 void 
-IdentificationItemBorderSurface::setBorderPointIndex(const int32_t borderPointIndex)
+SelectionItemBorderSurface::setBorderPointIndex(const int32_t borderPointIndex)
 {
     this->borderPointIndex = borderPointIndex;
 }
@@ -214,9 +214,9 @@ IdentificationItemBorderSurface::setBorderPointIndex(const int32_t borderPointIn
  * @return String describing m_ object's content.
  */
 AString
-IdentificationItemBorderSurface::toString() const
+SelectionItemBorderSurface::toString() const
 {
-    AString text = IdentificationItem::toString();
+    AString text = SelectionItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Border File: " + ((borderFile != NULL) ? borderFile->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Border: " + ((border != NULL) ? border->getName() : "INVALID") + "\n");

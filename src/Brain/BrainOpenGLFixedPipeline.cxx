@@ -84,15 +84,15 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationItemFocusSurface.h"
-#include "IdentificationItemFocusVolume.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
-#include "IdentificationItemSurfaceTriangle.h"
-#include "IdentificationItemVoxel.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionItemFocusSurface.h"
+#include "SelectionItemFocusVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemSurfaceTriangle.h"
+#include "SelectionItemVoxel.h"
 #include "IdentificationWithColor.h"
-#include "IdentificationManager.h"
+#include "SelectionManager.h"
 #include "MathFunctions.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -173,11 +173,11 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *    Y position of mouse click
  * @param applySelectionBackgroundFiltering
  *    If true (which is in most cases), if there are multiple items
- *    identified, those items "behind" other items are not reported.
- *    For example, suppose a focus is identified and there is a node
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
  *    the focus.  If this parameter is true, the node will NOT be
- *    identified.  If this parameter is false, the node will be 
- *    identified.
+ *    selected.  If this parameter is false, the node will be 
+ *    selected.
  */
 void 
 BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportContent,
@@ -205,7 +205,7 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
     this->drawModelInternal(MODE_IDENTIFICATION,
                             viewportContent);
 
-    m_brain->getIdentificationManager()->filterSelections(applySelectionBackgroundFiltering);
+    m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
     m_brain = NULL;
 }
@@ -232,7 +232,7 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
     m_brain = viewportContent->getBrain();
     CaretAssert(m_brain);
     
-    m_brain->getIdentificationManager()->reset();
+    m_brain->getSelectionManager()->reset();
     
     this->modeProjectionData = &projectionOut;
     this->modeProjectionData->reset();
@@ -1103,7 +1103,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
 
-    IdentificationItemSurfaceTriangle* triangleID = NULL;
+    SelectionItemSurfaceTriangle* triangleID = NULL;
     /*
      * Check for a 'selection' type mode
      */
@@ -1113,7 +1113,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         case MODE_DRAWING:
             break;
         case MODE_IDENTIFICATION:
-            triangleID = m_brain->getIdentificationManager()->getSurfaceTriangleIdentification();
+            triangleID = m_brain->getSelectionManager()->getSurfaceTriangleIdentification();
             if (triangleID->isEnabledForSelection()) {
                 isSelect = true;
             }
@@ -1141,7 +1141,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         const int32_t n3 = triangles[i3+2];
         
         if (isSelect) {
-            this->colorIdentification->addItem(rgb, IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, i);
+            this->colorIdentification->addItem(rgb, SelectionItemDataTypeEnum::SURFACE_TRIANGLE, i);
             glColor3ubv(rgb);
             glNormal3fv(&normals[n1*3]);
             glVertex3fv(&coordinates[n1*3]);
@@ -1167,7 +1167,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
     if (isSelect) {
         int32_t triangleIndex = -1;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, 
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::SURFACE_TRIANGLE, 
                                          this->mouseX, 
                                          this->mouseY,
                                          triangleIndex,
@@ -1213,7 +1213,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
             };
             if (triangleID != NULL) {
                 if (isTriangleIdAccepted) {
-                    this->setIdentifiedItemScreenXYZ(triangleID, average);
+                    this->setSelectedItemScreenXYZ(triangleID, average);
                 }
             }
                    
@@ -1458,8 +1458,8 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
     
-    IdentificationItemSurfaceNode* nodeID = 
-    m_brain->getIdentificationManager()->getSurfaceNodeIdentification();
+    SelectionItemSurfaceNode* nodeID = 
+    m_brain->getSelectionManager()->getSurfaceNodeIdentification();
     /*
      * Check for a 'selection' type mode
      */
@@ -1495,7 +1495,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
         const int32_t i3 = i * 3;
         
         if (isSelect) {
-            this->colorIdentification->addItem(rgb, IdentificationItemDataTypeEnum::SURFACE_NODE, i);
+            this->colorIdentification->addItem(rgb, SelectionItemDataTypeEnum::SURFACE_NODE, i);
             glColor3ubv(rgb);
             glNormal3fv(&normals[i3]);
             glVertex3fv(&coordinates[i3]);
@@ -1511,7 +1511,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
     if (isSelect) {
         int nodeIndex = -1;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE, 
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::SURFACE_NODE, 
                                          this->mouseX, 
                                          this->mouseY,
                                          nodeIndex,
@@ -1522,7 +1522,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
                 nodeID->setSurface(surface);
                 nodeID->setNodeNumber(nodeIndex);
                 nodeID->setScreenDepth(depth);
-                this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
+                this->setSelectedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
                 CaretLogFine("Selected Vertex: " + nodeID->toString());   
             }
             else {
@@ -1638,8 +1638,8 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     const CaretColorEnum::Enum idContralateralColor = infoProp->getIdentificationContralateralSymbolColor();
     const float symbolSize = infoProp->getIdentificationSymbolSize();
     
-    IdentificationItemSurfaceNodeIdentificationSymbol* symbolID = 
-        m_brain->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
+    SelectionItemSurfaceNodeIdentificationSymbol* symbolID = 
+        m_brain->getSelectionManager()->getSurfaceNodeIdentificationSymbol();
     
     /*
      * Check for a 'selection' type mode
@@ -1671,7 +1671,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         if (nodeAttributes->getIdentificationType(i) != NodeIdentificationTypeEnum::NONE) {
             if (isSelect) {
                 this->colorIdentification->addItem(idRGB, 
-                                                   IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
+                                                   SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
                                                    i);
                 glColor3ubv(idRGB);
             }
@@ -1699,7 +1699,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     if (isSelect) {
         int nodeIndex = -1;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
                                          this->mouseX, 
                                          this->mouseY,
                                          nodeIndex,
@@ -1710,7 +1710,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 symbolID->setSurface(surface);
                 symbolID->setNodeNumber(nodeIndex);
                 symbolID->setScreenDepth(depth);
-                this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
+                this->setSelectedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
                 CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(nodeIndex));   
             }
         }
@@ -1839,7 +1839,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             if (isSelect) {
                 uint8_t idRGB[3];
                 this->colorIdentification->addItem(idRGB, 
-                                                   IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                                   SelectionItemDataTypeEnum::BORDER_SURFACE, 
                                                    borderFileIndex,
                                                    borderIndex,
                                                    pointIndex[i]);
@@ -1877,7 +1877,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                 const int32_t i3 = i * 3;
                 uint8_t idRGB[3];
                 this->colorIdentification->addItem(idRGB, 
-                                                   IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                                   SelectionItemDataTypeEnum::BORDER_SURFACE, 
                                                    borderFileIndex,
                                                    borderIndex,
                                                    pointIndex[i]);
@@ -1952,7 +1952,7 @@ BrainOpenGLFixedPipeline::setPointSize(const float pointSize)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 {
-    IdentificationItemFocusSurface* idFocus = m_brain->getIdentificationManager()->getSurfaceFocusIdentification();
+    SelectionItemFocusSurface* idFocus = m_brain->getSelectionManager()->getSurfaceFocusIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -2097,7 +2097,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                         if (isSelect) {
                             uint8_t idRGB[3];
                             this->colorIdentification->addItem(idRGB, 
-                                                               IdentificationItemDataTypeEnum::FOCUS_SURFACE, 
+                                                               SelectionItemDataTypeEnum::FOCUS_SURFACE, 
                                                                i, // file index
                                                                j, // focus index
                                                                k);// projection index
@@ -2124,7 +2124,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         int32_t focusIndex = -1;
         int32_t focusProjectionIndex = -1;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::FOCUS_SURFACE, 
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_SURFACE, 
                                          this->mouseX, 
                                          this->mouseY,
                                          fociFileIndex,
@@ -2146,7 +2146,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                 spi->getProjectedPosition(*surface,
                                             xyz,
                                             false);
-                this->setIdentifiedItemScreenXYZ(idFocus, xyz);
+                this->setSelectedItemScreenXYZ(idFocus, xyz);
                 CaretLogFine("Selected Focus Identification Symbol: " + QString::number(focusIndex));   
             }
         }
@@ -2162,7 +2162,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 {
-    IdentificationItemBorderSurface* idBorder = m_brain->getIdentificationManager()->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* idBorder = m_brain->getSelectionManager()->getSurfaceBorderIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -2286,7 +2286,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         int32_t borderIndex = -1;
         int32_t borderPointIndex;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::BORDER_SURFACE, 
                                          this->mouseX, 
                                          this->mouseY,
                                          borderFileIndex,
@@ -2307,7 +2307,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                 border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
                                                                          xyz,
                                                                          false);
-                this->setIdentifiedItemScreenXYZ(idBorder, xyz);
+                this->setSelectedItemScreenXYZ(idBorder, xyz);
                 CaretLogFine("Selected Border Identification Symbol: " + QString::number(borderIndex));   
             }
         }
@@ -2983,8 +2983,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
 {
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
     
-    IdentificationItemVoxel* voxelID = 
-    m_brain->getIdentificationManager()->getVoxelIdentification();
+    SelectionItemVoxel* voxelID = 
+    m_brain->getSelectionManager()->getVoxelIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -3409,7 +3409,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float y2 = y1 + voxelStepY;
                                 if (isSelect) {
                                     this->colorIdentification->addItem(rgb, 
-                                                                       IdentificationItemDataTypeEnum::VOXEL, 
+                                                                       SelectionItemDataTypeEnum::VOXEL, 
                                                                        idVoxelCounter);
                                     glColor3ubv(rgb);
                                     
@@ -3442,7 +3442,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float z2 = z1 + voxelStepZ;
                                 if (isSelect) {
                                     this->colorIdentification->addItem(rgb, 
-                                                                       IdentificationItemDataTypeEnum::VOXEL, 
+                                                                       SelectionItemDataTypeEnum::VOXEL, 
                                                                        idVoxelCounter);
                                     glColor3ubv(rgb);
                                     
@@ -3475,7 +3475,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float z2 = z1 + voxelStepZ;
                                 if (isSelect) {
                                     this->colorIdentification->addItem(rgb, 
-                                                                       IdentificationItemDataTypeEnum::VOXEL, 
+                                                                       SelectionItemDataTypeEnum::VOXEL, 
                                                                        idVoxelCounter);
                                     glColor3ubv(rgb);
                                     
@@ -3506,7 +3506,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                 if (isSelect) {
                     int32_t idIndex;
                     float depth = -1.0;
-                    this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::VOXEL, 
+                    this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL, 
                                                      this->mouseX, 
                                                      this->mouseY,
                                                      idIndex,
@@ -3529,7 +3529,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                     voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                                     voxelID->setVoxelIJK(voxelIndices);
                                     voxelID->setScreenDepth(depth);
-                                    this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                                    this->setSelectedItemScreenXYZ(voxelID, voxelCoordinates);
                                     CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
                                     break;
                                 }
@@ -3565,8 +3565,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
 {
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
     
-    IdentificationItemVoxel* voxelID = 
-    m_brain->getIdentificationManager()->getVoxelIdentification();
+    SelectionItemVoxel* voxelID = 
+    m_brain->getSelectionManager()->getVoxelIdentification();
 
     /*
      * Check for a 'selection' type mode
@@ -3946,7 +3946,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             const float y2 = y1 + voxelStepY;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
-                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   SelectionItemDataTypeEnum::VOXEL, 
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
@@ -3979,7 +3979,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             const float z2 = z1 + voxelStepZ;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
-                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   SelectionItemDataTypeEnum::VOXEL, 
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
@@ -4012,7 +4012,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             const float z2 = z1 + voxelStepZ;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
-                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   SelectionItemDataTypeEnum::VOXEL, 
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
@@ -4043,7 +4043,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
         if (isSelect) {
             int32_t idIndex;
             float depth = -1.0;
-            this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::VOXEL, 
+            this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL, 
                                              this->mouseX, 
                                              this->mouseY,
                                              idIndex,
@@ -4065,7 +4065,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                             voxelID->setVoxelIJK(voxelIndices);
                             voxelID->setScreenDepth(depth);
-                            this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                            this->setSelectedItemScreenXYZ(voxelID, voxelCoordinates);
                             CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
                             break;
                         }
@@ -4368,7 +4368,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
     CaretAssert(brain);
     CaretAssert(underlayVolume);
     
-    IdentificationItemFocusVolume* idFocus = m_brain->getIdentificationManager()->getVolumeFocusIdentification();
+    SelectionItemFocusVolume* idFocus = m_brain->getSelectionManager()->getVolumeFocusIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -4574,7 +4574,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                         if (isSelect) {
                             uint8_t idRGB[3];
                             this->colorIdentification->addItem(idRGB,
-                                                               IdentificationItemDataTypeEnum::FOCUS_VOLUME,
+                                                               SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                                                iFile, // file index
                                                                j, // focus index
                                                                k);// projection index
@@ -4601,7 +4601,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
         int32_t focusIndex = -1;
         int32_t focusProjectionIndex = -1;
         float depth = -1.0;
-        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::FOCUS_VOLUME,
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                          this->mouseX,
                                          this->mouseY,
                                          fociFileIndex,
@@ -4621,7 +4621,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                 float xyz[3];
                 const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
                 spi->getVolumeXYZ(xyz);
-                this->setIdentifiedItemScreenXYZ(idFocus, xyz);
+                this->setSelectedItemScreenXYZ(idFocus, xyz);
                 CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
             }
         }
@@ -6347,12 +6347,12 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* modelController,
  * @param y
  *    X-coordinate of identification.
  * @param indexOut
- *    Index of identified item.
+ *    Index of selected item.
  * @param depthOut
- *    Depth of identified item.
+ *    Depth of selected item.
  */
 void
-BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
                                         const int32_t y,
                                         int32_t& indexOut,
@@ -6408,14 +6408,14 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeE
  * @param y
  *    X-coordinate of identification.
  * @param indexOut1
- *    First index of identified item.
+ *    First index of selected item.
  * @param indexOut2
- *    Second index of identified item.
+ *    Second index of selected item.
  * @param depthOut
- *    Depth of identified item.
+ *    Depth of selected item.
  */
 void
-BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::Enum dataType,
                                                      const int32_t x,
                                                      const int32_t y,
                                                      int32_t& index1Out,
@@ -6473,16 +6473,16 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeE
  * @param y
  *    X-coordinate of identification.
  * @param indexOut1
- *    First index of identified item.
+ *    First index of selected item.
  * @param indexOut2
- *    Second index of identified item.
+ *    Second index of selected item.
  * @param indexOut3
- *    Third index of identified item.
+ *    Third index of selected item.
  * @param depthOut
- *    Depth of identified item.
+ *    Depth of selected item.
  */
 void
-BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::Enum dataType,
                                                      const int32_t x,
                                                      const int32_t y,
                                                      int32_t& index1Out,
@@ -6534,14 +6534,14 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeE
 }
 
 /**
- * Set the identified item's screen coordinates.
+ * Set the selected item's screen coordinates.
  * @param item
  *    Item that has screen coordinates set.
  * @param itemXYZ
  *    Model's coordinate.
  */
 void 
-BrainOpenGLFixedPipeline::setIdentifiedItemScreenXYZ(IdentificationItem* item,
+BrainOpenGLFixedPipeline::setSelectedItemScreenXYZ(SelectionItem* item,
                                         const float itemXYZ[3])
 {
     GLdouble selectionModelviewMatrix[16];

@@ -56,9 +56,9 @@
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GuiManager.h"
-#include "IdentificationManager.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemVoxel.h"
+#include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxel.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "Surface.h"
@@ -311,11 +311,11 @@ void
 UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    const IdentificationManager* idManager = brain->getIdentificationManager();
-    const IdentificationItem* idItem = idManager->getLastIdentifiedItem();
+    const SelectionManager* idManager = brain->getSelectionManager();
+    const SelectionItem* idItem = idManager->getLastSelectedItem();
     if (idItem != NULL) {
-        const IdentificationItemSurfaceNode* nodeID = dynamic_cast<const IdentificationItemSurfaceNode*>(idItem);
-        const IdentificationItemVoxel* voxelID = dynamic_cast<const IdentificationItemVoxel*>(idItem);
+        const SelectionItemSurfaceNode* nodeID = dynamic_cast<const SelectionItemSurfaceNode*>(idItem);
+        const SelectionItemVoxel* voxelID = dynamic_cast<const SelectionItemVoxel*>(idItem);
         
         BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(m_windowIndex);
         BrowserTabContent* browserTabContent = NULL;

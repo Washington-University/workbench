@@ -36,7 +36,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "Model.h"
-#include "IdentificationItemDataTypeEnum.h"
+#include "SelectionItemDataTypeEnum.h"
 #include "StructureEnum.h"
 #include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -55,8 +55,8 @@ namespace caret {
     class DisplayPropertiesFiberOrientation;
     class DescriptiveStatistics;
     class FiberOrientation;
-    class IdentificationItem;
-    class IdentificationManager;
+    class SelectionItem;
+    class SelectionManager;
     class IdentificationWithColor;
     class Plane;
     class Surface;
@@ -265,20 +265,20 @@ namespace caret {
         void enableLineAntiAliasing();
         void disableLineAntiAliasing();
         
-        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
         
-        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
                                         const int32_t y,
                                         int32_t& index1Out,
                                         int32_t& index2Out,
                                         float& depthOut);
         
-        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
                                         const int32_t y,
                                         int32_t& index1Out,
@@ -286,7 +286,7 @@ namespace caret {
                                         int32_t& index3Out,
                                         float& depthOut);
         
-        void setIdentifiedItemScreenXYZ(IdentificationItem* item,
+        void setSelectedItemScreenXYZ(SelectionItem* item,
                                         const float itemXYZ[3]);
 
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
@@ -369,7 +369,7 @@ namespace caret {
         Mode mode;
         
         /** Identification manager */
-        IdentificationManager* identificationManager;
+        SelectionManager* selectionManager;
         
         int32_t mouseX;
         int32_t mouseY;

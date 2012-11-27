@@ -121,11 +121,11 @@ namespace caret {
          *    Y position of mouse click
          * @param applySelectionBackgroundFiltering
          *    If true (which is in most cases), if there are multiple items
-         *    identified, those items "behind" other items are not reported.
-         *    For example, suppose a focus is identified and there is a node
+         *    selected, those items "behind" other items are not reported.
+         *    For example, suppose a focus is selected and there is a node
          *    the focus.  If this parameter is true, the node will NOT be
-         *    identified.  If this parameter is false, the node will be
-         *    identified.
+         *    selected.  If this parameter is false, the node will be
+         *    selected.
          */
         virtual void selectModel(BrainOpenGLViewportContent* viewportContent,
                                  const int32_t mouseX,

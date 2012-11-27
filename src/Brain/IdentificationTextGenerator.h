@@ -32,11 +32,11 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
-    class IdentificationItemBorderSurface;
-    class IdentificationItemFocusSurface;
-    class IdentificationItemFocusVolume;
-    class IdentificationItemSurfaceNode;
-    class IdentificationManager;
+    class SelectionItemBorderSurface;
+    class SelectionItemFocusSurface;
+    class SelectionItemFocusVolume;
+    class SelectionItemSurfaceNode;
+    class SelectionManager;
     class IdentificationStringBuilder;
     
     class IdentificationTextGenerator : public CaretObject {
@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~IdentificationTextGenerator();
         
-        AString createIdentificationText(const IdentificationManager* idManager,
+        AString createIdentificationText(const SelectionManager* idManager,
                                          const BrowserTabContent* browserTabContent,
                                          const Brain* brain) const;
         
@@ -60,17 +60,17 @@ namespace caret {
         
     private:
         void generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
-                                                    const IdentificationItemBorderSurface* idSurfaceBorder) const;
+                                                    const SelectionItemBorderSurface* idSurfaceBorder) const;
         
         void generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                    const IdentificationItemFocusSurface* idSurfaceFocus) const;
+                                                    const SelectionItemFocusSurface* idSurfaceFocus) const;
         
         void generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                  const IdentificationItemFocusVolume* idVolumeFocus) const;
+                                                  const SelectionItemFocusVolume* idVolumeFocus) const;
         
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,
-                                               const IdentificationItemSurfaceNode* idSurfaceNode) const;
+                                               const SelectionItemSurfaceNode* idSurfaceNode) const;
     };
     
 #ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__

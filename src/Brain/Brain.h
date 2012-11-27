@@ -59,7 +59,7 @@ namespace caret {
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
-    class IdentificationManager;    
+    class SelectionManager;    
     class LabelFile;
     class MetricFile;
     class ModelSurfaceMontage;
@@ -296,7 +296,7 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-        IdentificationManager* getIdentificationManager();
+        SelectionManager* getSelectionManager();
         
     private:
         enum ResetBrainKeepSceneFiles {
@@ -470,7 +470,7 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
         
         /** Identification manager */
-        IdentificationManager* m_identificationManager;
+        SelectionManager* m_selectionManager;
     };
 
 } // namespace

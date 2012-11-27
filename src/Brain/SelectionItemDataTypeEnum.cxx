@@ -25,7 +25,7 @@
 
 #include <algorithm>
 #define __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
-#include "IdentificationItemDataTypeEnum.h"
+#include "SelectionItemDataTypeEnum.h"
 #undef __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -43,7 +43,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-IdentificationItemDataTypeEnum::IdentificationItemDataTypeEnum(const Enum enumValue,
+SelectionItemDataTypeEnum::SelectionItemDataTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -56,7 +56,7 @@ IdentificationItemDataTypeEnum::IdentificationItemDataTypeEnum(const Enum enumVa
 /**
  * Destructor.
  */
-IdentificationItemDataTypeEnum::~IdentificationItemDataTypeEnum()
+SelectionItemDataTypeEnum::~SelectionItemDataTypeEnum()
 {
 }
 
@@ -64,50 +64,50 @@ IdentificationItemDataTypeEnum::~IdentificationItemDataTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-IdentificationItemDataTypeEnum::initialize()
+SelectionItemDataTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(IdentificationItemDataTypeEnum(INVALID, 
+    enumData.push_back(SelectionItemDataTypeEnum(INVALID, 
                                     "INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(ANNOTATION, 
+    enumData.push_back(SelectionItemDataTypeEnum(ANNOTATION, 
                                     "ANNOTATION", 
                                     "Annotation"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(BORDER_SURFACE, 
+    enumData.push_back(SelectionItemDataTypeEnum(BORDER_SURFACE, 
                                     "BORDER_SURFACE", 
                                     "Surface Border"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(BORDER_VOLUME, 
+    enumData.push_back(SelectionItemDataTypeEnum(BORDER_VOLUME, 
                                     "BORDER_VOLUME", 
                                     "Volume Border"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(FOCUS_SURFACE, 
+    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE, 
                                     "FOCUS_SURFACE", 
                                     "Surface Focus"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(FOCUS_VOLUME, 
+    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_VOLUME, 
                                     "FOCUS_VOLUME", 
                                     "Volume Focus"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_NODE, 
+    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE, 
                                     "SURFACE_NODE", 
                                     "Surface Vertex"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_NODE_IDENTIFICATION_SYMBOL,
+    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE_IDENTIFICATION_SYMBOL,
                                                       "SURFACE_NODE_IDENTIFICATION_SYMBOL",
                                                       "Surface Vertex Identification Symbol"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(SURFACE_TRIANGLE,
+    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_TRIANGLE,
                                     "SURFACE_TRIANGLE", 
                                     "Surface Triangle"));
     
-    enumData.push_back(IdentificationItemDataTypeEnum(VOXEL, 
+    enumData.push_back(SelectionItemDataTypeEnum(VOXEL, 
                                     "VOXEL", 
                                     "Voxel"));
     
@@ -120,14 +120,14 @@ IdentificationItemDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const IdentificationItemDataTypeEnum*
-IdentificationItemDataTypeEnum::findData(const Enum enumValue)
+const SelectionItemDataTypeEnum*
+SelectionItemDataTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const IdentificationItemDataTypeEnum* d = &enumData[i];
+        const SelectionItemDataTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -144,10 +144,10 @@ IdentificationItemDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-IdentificationItemDataTypeEnum::toName(Enum enumValue) {
+SelectionItemDataTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const IdentificationItemDataTypeEnum* enumInstance = findData(enumValue);
+    const SelectionItemDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -161,18 +161,18 @@ IdentificationItemDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-IdentificationItemDataTypeEnum::Enum 
-IdentificationItemDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+SelectionItemDataTypeEnum::Enum 
+SelectionItemDataTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = INVALID;
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const IdentificationItemDataTypeEnum& d = *iter;
+        const SelectionItemDataTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -184,7 +184,7 @@ IdentificationItemDataTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type IdentificationItemDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type SelectionItemDataTypeEnum"));
     }
     return enumValue;
 }
@@ -197,10 +197,10 @@ IdentificationItemDataTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-IdentificationItemDataTypeEnum::toGuiName(Enum enumValue) {
+SelectionItemDataTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const IdentificationItemDataTypeEnum* enumInstance = findData(enumValue);
+    const SelectionItemDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -214,18 +214,18 @@ IdentificationItemDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-IdentificationItemDataTypeEnum::Enum 
-IdentificationItemDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+SelectionItemDataTypeEnum::Enum 
+SelectionItemDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = INVALID;
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const IdentificationItemDataTypeEnum& d = *iter;
+        const SelectionItemDataTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -237,7 +237,7 @@ IdentificationItemDataTypeEnum::fromGuiName(const AString& guiName, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type IdentificationItemDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type SelectionItemDataTypeEnum"));
     }
     return enumValue;
 }
@@ -249,10 +249,10 @@ IdentificationItemDataTypeEnum::fromGuiName(const AString& guiName, bool* isVali
  *    Integer code for data type.
  */
 int32_t
-IdentificationItemDataTypeEnum::toIntegerCode(Enum enumValue)
+SelectionItemDataTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const IdentificationItemDataTypeEnum* enumInstance = findData(enumValue);
+    const SelectionItemDataTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -267,18 +267,18 @@ IdentificationItemDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-IdentificationItemDataTypeEnum::Enum
-IdentificationItemDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+SelectionItemDataTypeEnum::Enum
+SelectionItemDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = INVALID;
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const IdentificationItemDataTypeEnum& enumInstance = *iter;
+        const SelectionItemDataTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -290,7 +290,7 @@ IdentificationItemDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool*
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type IdentificationItemDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type SelectionItemDataTypeEnum"));
     }
     return enumValue;
 }
@@ -303,13 +303,13 @@ IdentificationItemDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool*
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-IdentificationItemDataTypeEnum::getAllEnums(std::vector<IdentificationItemDataTypeEnum::Enum>& allEnums)
+SelectionItemDataTypeEnum::getAllEnums(std::vector<SelectionItemDataTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -325,16 +325,16 @@ IdentificationItemDataTypeEnum::getAllEnums(std::vector<IdentificationItemDataTy
  *     If true, the names are sorted in alphabetical order.
  */
 void
-IdentificationItemDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+SelectionItemDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(IdentificationItemDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(SelectionItemDataTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -351,16 +351,16 @@ IdentificationItemDataTypeEnum::getAllNames(std::vector<AString>& allNames, cons
  *     If true, the names are sorted in alphabetical order.
  */
 void
-IdentificationItemDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+SelectionItemDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<IdentificationItemDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<SelectionItemDataTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(IdentificationItemDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(SelectionItemDataTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

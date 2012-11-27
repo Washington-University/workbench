@@ -44,8 +44,8 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationManager.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionManager.h"
 #include "Model.h"
 #include "ModelSurface.h"
 #include "MouseEvent.h"
@@ -248,11 +248,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 switch (this->editOperation) {
                     case EDIT_OPERATION_DELETE:  
                         if (isLeftClick) {
-                            IdentificationManager* idManager =
+                            SelectionManager* idManager =
                             openGLWidget->performIdentification(mouseEvent->getX(),
                                                                 mouseEvent->getY(),
                                                                 true);
-                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
@@ -270,11 +270,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         break;
                     case EDIT_OPERATION_PROPERTIES:
                         if (isLeftClick) {
-                            IdentificationManager* idManager =
+                            SelectionManager* idManager =
                             openGLWidget->performIdentification(mouseEvent->getX(),
                                                                 mouseEvent->getY(),
                                                                 true);
-                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
@@ -300,11 +300,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 break;
             case MODE_ROI:
                 if (isLeftClick) {
-                    IdentificationManager* idManager =
+                    SelectionManager* idManager =
                     openGLWidget->performIdentification(mouseEvent->getX(),
                                                         mouseEvent->getY(),
                                                         true);
-                    IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                     if (idBorder->isValid()) {
                         Brain* brain = idBorder->getBrain();
                         Surface* surface = idBorder->getSurface();

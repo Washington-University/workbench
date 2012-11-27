@@ -24,7 +24,7 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_VOXEL_DECLARE__
-#include "IdentificationItemVoxel.h"
+#include "SelectionItemVoxel.h"
 #undef __IDENTIFICATION_ITEM_VOXEL_DECLARE__
 
 #include "CaretAssert.h"
@@ -33,18 +33,18 @@
 using namespace caret;
 
 /**
- * \class IdentificationItemVoxel
- * \brief Identified voxel.
+ * \class SelectionItemVoxel
+ * \brief Selected voxel.
  *
- * Information about an identified voxel.
+ * Information about an selected voxel.
  */
 
 
 /**
  * Constructor.
  */
-IdentificationItemVoxel::IdentificationItemVoxel()
-: IdentificationItem(IdentificationItemDataTypeEnum::VOXEL)
+SelectionItemVoxel::SelectionItemVoxel()
+: SelectionItem(SelectionItemDataTypeEnum::VOXEL)
 {
     m_volumeFile = NULL;
     m_voxelIJK[0] = -1;
@@ -55,7 +55,7 @@ IdentificationItemVoxel::IdentificationItemVoxel()
 /**
  * Destructor.
  */
-IdentificationItemVoxel::~IdentificationItemVoxel()
+SelectionItemVoxel::~SelectionItemVoxel()
 {
     
 }
@@ -65,10 +65,10 @@ IdentificationItemVoxel::~IdentificationItemVoxel()
  * @param obj
  *    Object that is copied.
  */
-IdentificationItemVoxel::IdentificationItemVoxel(const IdentificationItemVoxel& obj)
-: IdentificationItem(obj)
+SelectionItemVoxel::SelectionItemVoxel(const SelectionItemVoxel& obj)
+: SelectionItem(obj)
 {
-    copyHelperIdentificationItemVoxel(obj);
+    copyHelperSelectionItemVoxel(obj);
 }
 
 /**
@@ -78,12 +78,12 @@ IdentificationItemVoxel::IdentificationItemVoxel(const IdentificationItemVoxel& 
  * @return
  *    Reference to m_ object.
  */
-IdentificationItemVoxel&
-IdentificationItemVoxel::operator=(const IdentificationItemVoxel& obj)
+SelectionItemVoxel&
+SelectionItemVoxel::operator=(const SelectionItemVoxel& obj)
 {
     if (this != &obj) {
-        IdentificationItem::operator=(obj);
-        copyHelperIdentificationItemVoxel(obj);
+        SelectionItem::operator=(obj);
+        copyHelperSelectionItemVoxel(obj);
     }
     return *this;
 }
@@ -94,7 +94,7 @@ IdentificationItemVoxel::operator=(const IdentificationItemVoxel& obj)
  *    Object that is copied.
  */
 void
-IdentificationItemVoxel::copyHelperIdentificationItemVoxel(const IdentificationItemVoxel& idItem)
+SelectionItemVoxel::copyHelperSelectionItemVoxel(const SelectionItemVoxel& idItem)
 {
     m_volumeFile  = idItem.m_volumeFile;
     m_voxelIJK[0] = idItem.m_voxelIJK[0];
@@ -106,9 +106,9 @@ IdentificationItemVoxel::copyHelperIdentificationItemVoxel(const IdentificationI
  * Reset this selection item. 
  */
 void 
-IdentificationItemVoxel::reset()
+SelectionItemVoxel::reset()
 {
-    IdentificationItem::reset();
+    SelectionItem::reset();
     m_volumeFile = NULL;
     m_voxelIJK[0] = -1;
     m_voxelIJK[1] = -1;
@@ -119,7 +119,7 @@ IdentificationItemVoxel::reset()
  * @return The volume file.
  */
 const VolumeFile* 
-IdentificationItemVoxel::getVolumeFile() const
+SelectionItemVoxel::getVolumeFile() const
 {
     return m_volumeFile;
 }
@@ -130,7 +130,7 @@ IdentificationItemVoxel::getVolumeFile() const
  *    Output containing voxel indices.
  */
 void 
-IdentificationItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
+SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 {
     voxelIJK[0] = m_voxelIJK[0];
     voxelIJK[1] = m_voxelIJK[1];
@@ -143,7 +143,7 @@ IdentificationItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
  *    New value for volume file.
  */
 void 
-IdentificationItemVoxel::setVolumeFile(VolumeFile* volumeFile)
+SelectionItemVoxel::setVolumeFile(VolumeFile* volumeFile)
 {
     m_volumeFile = volumeFile;
 }
@@ -154,7 +154,7 @@ IdentificationItemVoxel::setVolumeFile(VolumeFile* volumeFile)
  *    New value for voxel indices.
  */
 void 
-IdentificationItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
+SelectionItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
 {
     m_voxelIJK[0] = voxelIJK[0];
     m_voxelIJK[1] = voxelIJK[1];
@@ -162,10 +162,10 @@ IdentificationItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
 }
 
 /**
- * @return Is this identified item valid?
+ * @return Is this selected item valid?
  */
 bool 
-IdentificationItemVoxel::isValid() const
+SelectionItemVoxel::isValid() const
 {
     return (m_volumeFile != NULL);
 }
@@ -175,9 +175,9 @@ IdentificationItemVoxel::isValid() const
  * @return String describing this object's content.
  */
 AString 
-IdentificationItemVoxel::toString() const
+SelectionItemVoxel::toString() const
 {
-    AString text = IdentificationItem::toString();
+    AString text = SelectionItem::toString();
     text += ("Volume: " + ((m_volumeFile != NULL) ? m_volumeFile->getFileNameNoPath() : "INVALID"));
     text += ("Voxel: " 
              + AString::number(m_voxelIJK[0]) + ", "

@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL__H_
-#define __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL__H_
+#ifndef __IDENTIFICATION_ITEM_SURFACE_NODE__H_
+#define __IDENTIFICATION_ITEM_SURFACE_NODE__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,18 +26,22 @@
  */ 
 
 
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 
 namespace caret {
 
     class Surface;
     
-    class IdentificationItemSurfaceNodeIdentificationSymbol : public IdentificationItem {
+    class SelectionItemSurfaceNode : public SelectionItem {
         
     public:
-        IdentificationItemSurfaceNodeIdentificationSymbol();
+        SelectionItemSurfaceNode();
         
-        virtual ~IdentificationItemSurfaceNodeIdentificationSymbol();
+        virtual ~SelectionItemSurfaceNode();
+        
+        SelectionItemSurfaceNode(const SelectionItemSurfaceNode&);
+        
+        SelectionItemSurfaceNode& operator=(const SelectionItemSurfaceNode&);
         
         virtual bool isValid() const;
         
@@ -51,24 +55,29 @@ namespace caret {
         
         void setNodeNumber(const int32_t nodeNumber);
         
+        bool isContralateral() const;
+        
+        void setContralateral(const bool status);
+        
         virtual void reset();
         
         virtual AString toString() const;
-    private:
-        IdentificationItemSurfaceNodeIdentificationSymbol(const IdentificationItemSurfaceNodeIdentificationSymbol&);
 
-        IdentificationItemSurfaceNodeIdentificationSymbol& operator=(const IdentificationItemSurfaceNodeIdentificationSymbol&);
+    private:
+        void copyHelperSelectionItemSurfaceNode(const SelectionItemSurfaceNode& idItem);
         
     public:
     private:
-        Surface* surface;
+        Surface* m_surface;
         
-        int32_t nodeNumber;
+        int32_t m_nodeNumber;
+        
+        bool m_contralateralFlag;
     };
     
-#ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL_DECLARE__
+#ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL_DECLARE__
+#endif // __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL__H_
+#endif  //__IDENTIFICATION_ITEM_SURFACE_NODE__H_

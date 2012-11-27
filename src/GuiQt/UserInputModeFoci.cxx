@@ -47,11 +47,11 @@
 #include "FociFile.h"
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
-#include "IdentificationItemFocusSurface.h"
-#include "IdentificationItemFocusVolume.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemVoxel.h"
-#include "IdentificationManager.h"
+#include "SelectionItemFocusSurface.h"
+#include "SelectionItemFocusVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxel.h"
+#include "SelectionManager.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
@@ -184,7 +184,7 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         bool doTransformation = false;
         bool doIdentification = false;
         
-        IdentificationManager* idManager =
+        SelectionManager* idManager =
             openGLWidget->performIdentification(mouseEvent->getX(),
                                                 mouseEvent->getY(),
                                                 true);
@@ -197,8 +197,8 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
             case MODE_CREATE:
                 if (isLeftClick
                     && m_inputModeFociWidget->isMouseClickCreateFocusEnabled()) {
-                    IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
-                    IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+                    SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+                    SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
                     if (idNode->isValid()) {
                         if (idNode->isContralateral() == false) {
                             const Surface* surface = idNode->getSurface();
@@ -260,14 +260,14 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                     FociFile* fociFile = NULL;
                     Focus*    focus = NULL;
                     
-                    IdentificationItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
+                    SelectionItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
                     if (idVolFocus->isValid()) {
                         fociFile = idVolFocus->getFociFile();
                         CaretAssert(fociFile);
                         focus    = idVolFocus->getFocus();
                         CaretAssert(focus);
                     }
-                    IdentificationItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
+                    SelectionItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
                     if (idFocus->isValid()) {
                         fociFile = idFocus->getFociFile();
                         CaretAssert(fociFile);

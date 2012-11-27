@@ -42,7 +42,7 @@ namespace caret {
     class BrainOpenGLWidgetTextRenderer;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class IdentificationManager;
+    class SelectionManager;
     class Model;
     class MouseEvent;
     class SurfaceProjectedItem;
@@ -64,7 +64,7 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        IdentificationManager* performIdentification(const int x,
+        SelectionManager* performIdentification(const int x,
                                                      const int y,
                                                      const bool applySelectionBackgroundFiltering);
         

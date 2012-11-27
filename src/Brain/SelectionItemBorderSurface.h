@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_SURFACE_NODE__H_
-#define __IDENTIFICATION_ITEM_SURFACE_NODE__H_
+#ifndef __IDENTIFICATION_ITEM_BORDER_SURFACE__H_
+#define __IDENTIFICATION_ITEM_BORDER_SURFACE__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,58 +26,68 @@
  */ 
 
 
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 
 namespace caret {
 
+    class Border;
+    class BorderFile;
     class Surface;
     
-    class IdentificationItemSurfaceNode : public IdentificationItem {
+    class SelectionItemBorderSurface : public SelectionItem {
         
     public:
-        IdentificationItemSurfaceNode();
+        SelectionItemBorderSurface();
         
-        virtual ~IdentificationItemSurfaceNode();
-        
-        IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode&);
-        
-        IdentificationItemSurfaceNode& operator=(const IdentificationItemSurfaceNode&);
+        virtual ~SelectionItemBorderSurface();
         
         virtual bool isValid() const;
         
         Surface* getSurface();
         
         const Surface* getSurface() const;
+
+        Border* getBorder();
+        
+        const Border* getBorder() const;
+        
+        void setBorder(Border* border);
+        
+        BorderFile* getBorderFile();
+        
+        const BorderFile* getBorderFile() const;
+        
+        void setBorderFile(BorderFile* borderFile);
         
         void setSurface(Surface* surface);
         
-        int32_t getNodeNumber() const;
+        int32_t getBorderIndex() const;
         
-        void setNodeNumber(const int32_t nodeNumber);
+        void setBorderIndex(const int32_t borderIndex);
         
-        bool isContralateral() const;
+        int32_t getBorderPointIndex() const;
         
-        void setContralateral(const bool status);
+        void setBorderPointIndex(const int32_t borderPointIndex);
         
-        virtual void reset();
+        void reset();
         
         virtual AString toString() const;
+        
+    private:
+        SelectionItemBorderSurface(const SelectionItemBorderSurface&);
 
-    private:
-        void copyHelperIdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& idItem);
+        SelectionItemBorderSurface& operator=(const SelectionItemBorderSurface&);
         
-    public:
-    private:
-        Surface* m_surface;
-        
-        int32_t m_nodeNumber;
-        
-        bool m_contralateralFlag;
+        Border* border;
+        BorderFile* borderFile;
+        Surface* surface; 
+        int32_t borderIndex;
+        int32_t borderPointIndex;
     };
     
-#ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#ifdef __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#endif // __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_SURFACE_NODE__H_
+#endif  //__IDENTIFICATION_ITEM_BORDER_SURFACE__H_

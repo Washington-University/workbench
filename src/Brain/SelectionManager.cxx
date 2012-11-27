@@ -41,23 +41,23 @@
 #include "EventIdentificationSymbolRemoval.h"
 
 #define __IDENTIFICATION_MANAGER_DECLARE__
-#include "IdentificationManager.h"
+#include "SelectionManager.h"
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationItemFocusSurface.h"
-#include "IdentificationItemFocusVolume.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
-#include "IdentificationItemSurfaceTriangle.h"
-#include "IdentificationItemVoxel.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionItemFocusSurface.h"
+#include "SelectionItemFocusVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemSurfaceTriangle.h"
+#include "SelectionItemVoxel.h"
 #include "IdentificationTextGenerator.h"
 #include "Surface.h"
 
 using namespace caret;
 
 /**
- * \class IdentificationManager
+ * \class SelectionManager
  * \brief Manages identification.
  *
  * Manages identification.
@@ -67,24 +67,24 @@ using namespace caret;
 /**
  * Constructor.
  */
-IdentificationManager::IdentificationManager()
+SelectionManager::SelectionManager()
 : CaretObject()
 {
-    m_surfaceBorderIdentification = new IdentificationItemBorderSurface();
-    m_surfaceFocusIdentification = new IdentificationItemFocusSurface();
-    m_volumeFocusIdentification = new IdentificationItemFocusVolume();
-    m_surfaceNodeIdentification = new IdentificationItemSurfaceNode();
-    m_surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
-    m_surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
-    m_voxelIdentification = new IdentificationItemVoxel();
+    m_surfaceBorderIdentification = new SelectionItemBorderSurface();
+    m_surfaceFocusIdentification = new SelectionItemFocusSurface();
+    m_volumeFocusIdentification = new SelectionItemFocusVolume();
+    m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
+    m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
+    m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
+    m_voxelIdentification = new SelectionItemVoxel();
     
-    m_allIdentificationItems.push_back(m_surfaceBorderIdentification);
-    m_allIdentificationItems.push_back(m_surfaceFocusIdentification);
-    m_allIdentificationItems.push_back(m_surfaceNodeIdentification);
-    m_allIdentificationItems.push_back(m_surfaceNodeIdentificationSymbol);
-    m_allIdentificationItems.push_back(m_surfaceTriangleIdentification);
-    m_allIdentificationItems.push_back(m_voxelIdentification);
-    m_allIdentificationItems.push_back(m_volumeFocusIdentification);
+    m_allSelectionItems.push_back(m_surfaceBorderIdentification);
+    m_allSelectionItems.push_back(m_surfaceFocusIdentification);
+    m_allSelectionItems.push_back(m_surfaceNodeIdentification);
+    m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
+    m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
+    m_allSelectionItems.push_back(m_voxelIdentification);
+    m_allSelectionItems.push_back(m_volumeFocusIdentification);
     
     m_surfaceSelectedItems.push_back(m_surfaceNodeIdentification);
     m_surfaceSelectedItems.push_back(m_surfaceTriangleIdentification);
@@ -97,7 +97,7 @@ IdentificationManager::IdentificationManager()
     
     m_idTextGenerator = new IdentificationTextGenerator();
     
-    m_lastIdentifiedItem = NULL;
+    m_lastSelectedItem = NULL;
     
     reset();
     
@@ -108,7 +108,7 @@ IdentificationManager::IdentificationManager()
 /**
  * Destructor.
  */
-IdentificationManager::~IdentificationManager()
+SelectionManager::~SelectionManager()
 {
     reset();
     delete m_surfaceBorderIdentification;
@@ -128,8 +128,8 @@ IdentificationManager::~IdentificationManager()
     delete m_idTextGenerator;
     m_idTextGenerator = NULL;
     
-    if (m_lastIdentifiedItem != NULL) {
-        delete m_lastIdentifiedItem;
+    if (m_lastSelectedItem != NULL) {
+        delete m_lastSelectedItem;
     }
 
     EventManager::get()->removeAllEventsFromListener(this);
@@ -142,7 +142,7 @@ IdentificationManager::~IdentificationManager()
  *   The event.
  */
 void
-IdentificationManager::receiveEvent(Event* event)
+SelectionManager::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
         EventIdentificationSymbolRemoval* removeIdEvent =
@@ -152,7 +152,7 @@ IdentificationManager::receiveEvent(Event* event)
         /*
          * Remove last event since all ID symbols being removed
          */
-        setLastIdentifiedItem(NULL);
+        setLastSelectedItem(NULL);
     }
 }
 /**
@@ -161,28 +161,28 @@ IdentificationManager::receiveEvent(Event* event)
  *
  * @param applySelectionBackgroundFiltering
  *    If true (which is in most cases), if there are multiple items
- *    identified, those items "behind" other items are not reported.
- *    For example, suppose a focus is identified and there is a node
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
  *    the focus.  If this parameter is true, the node will NOT be
- *    identified.  If this parameter is false, the node will be
- *    identified.
+ *    selected.  If this parameter is false, the node will be
+ *    selected.
  */
 void 
-IdentificationManager::filterSelections(const bool applySelectionBackgroundFiltering)
+SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
 {
     AString logText;
-    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
-         iter != m_allIdentificationItems.end();
+    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+         iter != m_allSelectionItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
+        SelectionItem* item = *iter;
         if (item->isValid()) {
             logText += ("\n" + item->toString() + "\n");
         }
     }
     CaretLogFine("Selected Items BEFORE filtering: " + logText);
     
-    IdentificationItemSurfaceTriangle* triangleID = m_surfaceTriangleIdentification;
-    IdentificationItemSurfaceNode* nodeID = m_surfaceNodeIdentification;
+    SelectionItemSurfaceTriangle* triangleID = m_surfaceTriangleIdentification;
+    SelectionItemSurfaceNode* nodeID = m_surfaceNodeIdentification;
     
     //
     // If both a node and triangle are found
@@ -249,10 +249,10 @@ IdentificationManager::filterSelections(const bool applySelectionBackgroundFilte
     }
     
     logText = "";
-    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
-         iter != m_allIdentificationItems.end();
+    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+         iter != m_allSelectionItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
+        SelectionItem* item = *iter;
         if (item->isValid()) {
             logText += ("\n" + item->toString() + "\n");
         }
@@ -266,17 +266,17 @@ IdentificationManager::filterSelections(const bool applySelectionBackgroundFilte
  * than one group.
  */
 void 
-IdentificationManager::clearDistantSelections()
+SelectionManager::clearDistantSelections()
 {
-    std::vector<std::vector<IdentificationItem*>* > itemGroups;
+    std::vector<std::vector<SelectionItem*>* > itemGroups;
     /*
      * Make layers items slightly closer since they are 
      * often pasted onto the surface.
      */
-    for (std::vector<IdentificationItem*>::iterator iter = m_layeredSelectedItems.begin();
+    for (std::vector<SelectionItem*>::iterator iter = m_layeredSelectedItems.begin();
          iter != m_layeredSelectedItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
+        SelectionItem* item = *iter;
         item->setScreenDepth(item->getScreenDepth()* 0.99);
     }
 
@@ -285,13 +285,13 @@ IdentificationManager::clearDistantSelections()
     itemGroups.push_back(&m_surfaceSelectedItems);
     itemGroups.push_back(&m_volumeSelectedItems);
     
-    std::vector<IdentificationItem*>* minDepthGroup = NULL;
+    std::vector<SelectionItem*>* minDepthGroup = NULL;
     double minDepth = std::numeric_limits<double>::max();
-    for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
+    for (std::vector<std::vector<SelectionItem*>* >::iterator iter = itemGroups.begin();
          iter != itemGroups.end();
          iter++) {
-        std::vector<IdentificationItem*>* group = *iter;
-        IdentificationItem* minDepthItem =
+        std::vector<SelectionItem*>* group = *iter;
+        SelectionItem* minDepthItem =
         getMinimumDepthFromMultipleSelections(*group);
         if (minDepthItem != NULL) {
             double md = minDepthItem->getScreenDepth();
@@ -303,15 +303,15 @@ IdentificationManager::clearDistantSelections()
     }
     
     if (minDepthGroup != NULL) {
-        for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
+        for (std::vector<std::vector<SelectionItem*>* >::iterator iter = itemGroups.begin();
              iter != itemGroups.end();
              iter++) {
-            std::vector<IdentificationItem*>* group = *iter;
+            std::vector<SelectionItem*>* group = *iter;
             if (group != minDepthGroup) {
-                for (std::vector<IdentificationItem*>::iterator iter = group->begin();
+                for (std::vector<SelectionItem*>::iterator iter = group->begin();
                      iter != group->end();
                      iter++) {
-                    IdentificationItem* item = *iter;
+                    SelectionItem* item = *iter;
                     item->reset();
                 }
             }
@@ -320,18 +320,18 @@ IdentificationManager::clearDistantSelections()
 }
 
 /**
- * Reset all identified items except for the given identified item.
- * @param identifiedItem
- *    IdentifiedItem that is NOT reset.
+ * Reset all selected items except for the given selected item.
+ * @param selectedItem
+ *    SelectedItem that is NOT reset.
  */
 void 
-IdentificationManager::clearOtherIdentifiedItems(IdentificationItem* identifiedItem)
+SelectionManager::clearOtherSelectedItems(SelectionItem* selectedItem)
 {
-    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
-         iter != m_allIdentificationItems.end();
+    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+         iter != m_allSelectionItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
-        if (item != identifiedItem) {
+        SelectionItem* item = *iter;
+        if (item != selectedItem) {
             item->reset();
         }
     }
@@ -345,17 +345,17 @@ IdentificationManager::clearOtherIdentifiedItems(IdentificationItem* identifiedI
  * @return  Reference to selectable item with the minimum depth
  * or NULL if no valid selectable items in the list.
  */
-IdentificationItem* 
-IdentificationManager::getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const
+SelectionItem* 
+SelectionManager::getMinimumDepthFromMultipleSelections(std::vector<SelectionItem*> items) const
 {
     double minDepth = std::numeric_limits<double>::max();
     
-    IdentificationItem* minDepthItem = NULL;
+    SelectionItem* minDepthItem = NULL;
     
-    for (std::vector<IdentificationItem*>::iterator iter = items.begin();
+    for (std::vector<SelectionItem*>::iterator iter = items.begin();
          iter != items.end();
          iter++) {
-        IdentificationItem* item = *iter;
+        SelectionItem* item = *iter;
         if (item->isValid()) {
             if (item->getScreenDepth() < minDepth) {
                 minDepthItem = item;
@@ -375,7 +375,7 @@ IdentificationManager::getMinimumDepthFromMultipleSelections(std::vector<Identif
  *    Brain containing the data.
  */
 AString 
-IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent,
+SelectionManager::getIdentificationText(const BrowserTabContent* browserTabContent,
                                              const Brain* brain) const
 {
     const AString text = m_idTextGenerator->createIdentificationText(this, 
@@ -388,16 +388,16 @@ IdentificationManager::getIdentificationText(const BrowserTabContent* browserTab
  * Reset all identification.
  */
 void 
-IdentificationManager::reset()
+SelectionManager::reset()
 {
-    for (std::vector<IdentificationItem*>::iterator iter = m_allIdentificationItems.begin();
-         iter != m_allIdentificationItems.end();
+    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+         iter != m_allSelectionItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
+        SelectionItem* item = *iter;
         item->reset();
     }
     
-    for (std::vector<IdentificationItemSurfaceNode*>::iterator iter = m_additionalSurfaceNodeIdentifications.begin();
+    for (std::vector<SelectionItemSurfaceNode*>::iterator iter = m_additionalSurfaceNodeIdentifications.begin();
          iter != m_additionalSurfaceNodeIdentifications.end();
          iter++) {
         delete *iter;
@@ -408,8 +408,8 @@ IdentificationManager::reset()
 /**
  * @return Identification for surface node.
  */
-IdentificationItemSurfaceNode* 
-IdentificationManager::getSurfaceNodeIdentification()
+SelectionItemSurfaceNode* 
+SelectionManager::getSurfaceNodeIdentification()
 {
     return m_surfaceNodeIdentification;
 }
@@ -417,8 +417,8 @@ IdentificationManager::getSurfaceNodeIdentification()
 /**
  * @return Identification for surface node.
  */
-const IdentificationItemSurfaceNode* 
-IdentificationManager::getSurfaceNodeIdentification() const
+const SelectionItemSurfaceNode* 
+SelectionManager::getSurfaceNodeIdentification() const
 {
     return m_surfaceNodeIdentification;
 }
@@ -426,8 +426,8 @@ IdentificationManager::getSurfaceNodeIdentification() const
 /**
  * @return Identification for surface node.
  */
-const IdentificationItemSurfaceNodeIdentificationSymbol* 
-IdentificationManager::getSurfaceNodeIdentificationSymbol() const
+const SelectionItemSurfaceNodeIdentificationSymbol* 
+SelectionManager::getSurfaceNodeIdentificationSymbol() const
 {
     return m_surfaceNodeIdentificationSymbol;
 }
@@ -435,8 +435,8 @@ IdentificationManager::getSurfaceNodeIdentificationSymbol() const
 /**
  * @return Identification for surface node.
  */
-IdentificationItemSurfaceNodeIdentificationSymbol* 
-IdentificationManager::getSurfaceNodeIdentificationSymbol()
+SelectionItemSurfaceNodeIdentificationSymbol* 
+SelectionManager::getSurfaceNodeIdentificationSymbol()
 {
     return m_surfaceNodeIdentificationSymbol;
 }
@@ -444,8 +444,8 @@ IdentificationManager::getSurfaceNodeIdentificationSymbol()
 /**
  * @return Identification for surface triangle.
  */
-IdentificationItemSurfaceTriangle* 
-IdentificationManager::getSurfaceTriangleIdentification()
+SelectionItemSurfaceTriangle* 
+SelectionManager::getSurfaceTriangleIdentification()
 {
     return m_surfaceTriangleIdentification;
 }
@@ -453,8 +453,8 @@ IdentificationManager::getSurfaceTriangleIdentification()
 /**
  * @return Identification for surface triangle.
  */
-const IdentificationItemSurfaceTriangle* 
-IdentificationManager::getSurfaceTriangleIdentification() const
+const SelectionItemSurfaceTriangle* 
+SelectionManager::getSurfaceTriangleIdentification() const
 {
     return m_surfaceTriangleIdentification;
 }
@@ -462,8 +462,8 @@ IdentificationManager::getSurfaceTriangleIdentification() const
 /**
  * @return Identification for voxels.
  */
-const IdentificationItemVoxel* 
-IdentificationManager::getVoxelIdentification() const
+const SelectionItemVoxel* 
+SelectionManager::getVoxelIdentification() const
 {
     return m_voxelIdentification;
 }
@@ -471,8 +471,8 @@ IdentificationManager::getVoxelIdentification() const
 /**
  * @return Identification for voxels.
  */
-IdentificationItemVoxel* 
-IdentificationManager::getVoxelIdentification()
+SelectionItemVoxel* 
+SelectionManager::getVoxelIdentification()
 {
     return m_voxelIdentification;
 }
@@ -480,8 +480,8 @@ IdentificationManager::getVoxelIdentification()
 /**
  * @return Identification for borders.
  */
-IdentificationItemBorderSurface* 
-IdentificationManager::getSurfaceBorderIdentification()
+SelectionItemBorderSurface* 
+SelectionManager::getSurfaceBorderIdentification()
 {
     return m_surfaceBorderIdentification;
 }
@@ -489,8 +489,8 @@ IdentificationManager::getSurfaceBorderIdentification()
 /**
  * @return Identification for borders.
  */
-const IdentificationItemBorderSurface* 
-IdentificationManager::getSurfaceBorderIdentification() const
+const SelectionItemBorderSurface* 
+SelectionManager::getSurfaceBorderIdentification() const
 {
     return m_surfaceBorderIdentification;
 }
@@ -498,8 +498,8 @@ IdentificationManager::getSurfaceBorderIdentification() const
 /**
  * @return Identification for foci.
  */
-IdentificationItemFocusSurface* 
-IdentificationManager::getSurfaceFocusIdentification()
+SelectionItemFocusSurface* 
+SelectionManager::getSurfaceFocusIdentification()
 {
     return m_surfaceFocusIdentification;
 }
@@ -507,8 +507,8 @@ IdentificationManager::getSurfaceFocusIdentification()
 /**
  * @return Identification for foci.
  */
-const IdentificationItemFocusSurface* 
-IdentificationManager::getSurfaceFocusIdentification() const
+const SelectionItemFocusSurface* 
+SelectionManager::getSurfaceFocusIdentification() const
 {
     return m_surfaceFocusIdentification;
 }
@@ -516,8 +516,8 @@ IdentificationManager::getSurfaceFocusIdentification() const
 /**
  * @return Identification for foci.
  */
-IdentificationItemFocusVolume*
-IdentificationManager::getVolumeFocusIdentification()
+SelectionItemFocusVolume*
+SelectionManager::getVolumeFocusIdentification()
 {
     return m_volumeFocusIdentification;
 }
@@ -525,8 +525,8 @@ IdentificationManager::getVolumeFocusIdentification()
 /**
  * @return Identification for foci.
  */
-const IdentificationItemFocusVolume*
-IdentificationManager::getVolumeFocusIdentification() const
+const SelectionItemFocusVolume*
+SelectionManager::getVolumeFocusIdentification() const
 {
     return m_volumeFocusIdentification;
 }
@@ -543,12 +543,12 @@ IdentificationManager::getVolumeFocusIdentification() const
  *   True if contralateral identification.
  */
 void 
-IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
+SelectionManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
                                                               const int32_t nodeIndex,
                                                               bool isContralateralIdentification)
 {
     if (surface != m_surfaceNodeIdentification->getSurface()) {
-        IdentificationItemSurfaceNode* nodeID = new IdentificationItemSurfaceNode();
+        SelectionItemSurfaceNode* nodeID = new SelectionItemSurfaceNode();
         nodeID->setSurface(surface);
         nodeID->setNodeNumber(nodeIndex);
         nodeID->setContralateral(isContralateralIdentification);
@@ -562,30 +562,30 @@ IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
  * an contralateral identification.
  */
 int32_t 
-IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
+SelectionManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
 {
     return m_additionalSurfaceNodeIdentifications.size();
 }
 
 /**
- * Get an additional identified surface node.
+ * Get an additional selected surface node.
  * @param indx
  *   Index of the identification information.
  */
-IdentificationItemSurfaceNode* 
-IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
+SelectionItemSurfaceNode* 
+SelectionManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
 {
     CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
     return m_additionalSurfaceNodeIdentifications[indx];
 }
 
 /**
- * Get an additional identified surface node.
+ * Get an additional selected surface node.
  * @param indx
  *   Index of the identification information.
  */
-const IdentificationItemSurfaceNode* 
-IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
+const SelectionItemSurfaceNode* 
+SelectionManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
     return m_additionalSurfaceNodeIdentifications[indx];
@@ -596,42 +596,42 @@ IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx
  * @return String describing this object's content.
  */
 AString 
-IdentificationManager::toString() const
+SelectionManager::toString() const
 {
-    return "IdentificationManager";
+    return "SelectionManager";
 }
 
 /**
- * @return The last identified item (may be NULL).
+ * @return The last selected item (may be NULL).
  */
-const IdentificationItem*
-IdentificationManager::getLastIdentifiedItem() const
+const SelectionItem*
+SelectionManager::getLastSelectedItem() const
 {
-    return m_lastIdentifiedItem;
+    return m_lastSelectedItem;
 }
 
 /**
- * Set the last identified item to the given item.
+ * Set the last selected item to the given item.
  *
  * @param lastItem
- *     The last item that was identified;
+ *     The last item that was selected;
  */
 void
-IdentificationManager::setLastIdentifiedItem(const IdentificationItem* lastItem)
+SelectionManager::setLastSelectedItem(const SelectionItem* lastItem)
 {
-    if (m_lastIdentifiedItem != NULL) {
-        delete m_lastIdentifiedItem;
+    if (m_lastSelectedItem != NULL) {
+        delete m_lastSelectedItem;
     }
-    m_lastIdentifiedItem = NULL;
+    m_lastSelectedItem = NULL;
     
     if (lastItem != NULL) {
-        const IdentificationItemSurfaceNode* nodeID = dynamic_cast<const IdentificationItemSurfaceNode*>(lastItem);
-        const IdentificationItemVoxel* voxelID = dynamic_cast<const IdentificationItemVoxel*>(lastItem);
+        const SelectionItemSurfaceNode* nodeID = dynamic_cast<const SelectionItemSurfaceNode*>(lastItem);
+        const SelectionItemVoxel* voxelID = dynamic_cast<const SelectionItemVoxel*>(lastItem);
         if (nodeID != NULL) {
-            m_lastIdentifiedItem = new IdentificationItemSurfaceNode(*nodeID);
+            m_lastSelectedItem = new SelectionItemSurfaceNode(*nodeID);
         }
         else if (voxelID != NULL) {
-            m_lastIdentifiedItem = new IdentificationItemVoxel(*voxelID);
+            m_lastSelectedItem = new SelectionItemVoxel(*voxelID);
         }
         else {
             CaretAssertMessage(0,

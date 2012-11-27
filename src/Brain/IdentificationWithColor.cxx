@@ -80,7 +80,7 @@ IdentificationWithColor::~IdentificationWithColor()
  */
 void 
 IdentificationWithColor::addItem(uint8_t rgbOut[3],
-                                 const IdentificationItemDataTypeEnum::Enum dataType,
+                                 const SelectionItemDataTypeEnum::Enum dataType,
              const int32_t index1,
              const int32_t index2,
              const int32_t index3)
@@ -120,7 +120,7 @@ IdentificationWithColor::addItem(uint8_t rgbOut[3],
  */
 void 
 IdentificationWithColor::getItem(const uint8_t rgb[3],
-                                 const IdentificationItemDataTypeEnum::Enum dataType,
+                                 const SelectionItemDataTypeEnum::Enum dataType,
              int32_t* index1Out,
              int32_t* index2Out,
              int32_t* index3Out) const

@@ -37,9 +37,9 @@ using namespace caret;
  * @param surfaceNumberOfNodes
  *    Number of nodes in the surface.
  * @param xyz
- *    Stereotaxic location of identified item.
+ *    Stereotaxic location of selected item.
  */
-EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(SelectionManager* selectionManager,
                                                                            BrainStructure* brainStructure,
                                                                            const StructureEnum::Enum surfaceStructure,
                                                                            const int32_t surfaceNodeNumber,
@@ -47,7 +47,7 @@ EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(Ident
                                                                            const float xyz[3])
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION)
 {
-    this->identificationManager = identificationManager;
+    this->selectionManager = selectionManager;
     this->identificationType = IDENTIFICATION_SURFACE;
     this->brainStructure = brainStructure;
     this->surfaceStructure = surfaceStructure;
@@ -63,16 +63,16 @@ EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(Ident
  * @param modelDisplayController
  *    Controller on which identification took place.
  * @param xyz
- *    Stereotaxic location of identified item.
+ *    Stereotaxic location of selected item.
  */
-EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(SelectionManager* selectionManager,
                                                                            const VolumeFile* volumeFile,
                                                                            const int64_t volumeSliceIndices[3],
                                                                            const float xyz[3])
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION),
   volumeFile(volumeFile)
 {
-    this->identificationManager = identificationManager;
+    this->selectionManager = selectionManager;
     this->identificationType = IDENTIFICATION_VOLUME;
     this->volumeSliceIndices[0] = volumeSliceIndices[0];
     this->volumeSliceIndices[1] = volumeSliceIndices[1];
@@ -112,10 +112,10 @@ EventIdentificationHighlightLocation::initializeMembers()
 /**
  * @return Identification manager for additional node identifications.
  */
-IdentificationManager* 
-EventIdentificationHighlightLocation::getIdentificationManager()
+SelectionManager* 
+EventIdentificationHighlightLocation::getSelectionManager()
 {
-    return this->identificationManager;
+    return this->selectionManager;
 }
 
 /**

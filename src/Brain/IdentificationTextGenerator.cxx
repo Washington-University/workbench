@@ -38,12 +38,12 @@
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationItemFocusSurface.h"
-#include "IdentificationItemFocusVolume.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemVoxel.h"
-#include "IdentificationManager.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionItemFocusSurface.h"
+#include "SelectionItemFocusVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxel.h"
+#include "SelectionManager.h"
 #include "IdentificationStringBuilder.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -59,9 +59,9 @@ using namespace caret;
     
 /**
  * \class IdentificationTextGenerator 
- * \brief Creates text describing identified data.
+ * \brief Creates text describing selected data.
  *
- * Examine the identified data and generate descriptive text.
+ * Examine the selected data and generate descriptive text.
  */
 
 /**
@@ -89,13 +89,13 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  * @param brain
  */
 AString 
-IdentificationTextGenerator::createIdentificationText(const IdentificationManager* idManager,
+IdentificationTextGenerator::createIdentificationText(const SelectionManager* idManager,
                                                       const BrowserTabContent* /*browserTabConent*/,
                                                       const Brain* brain) const
 {
     IdentificationStringBuilder idText;
     
-    const IdentificationItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
+    const SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
     
     this->generateSurfaceIdentificationText(idText,
                                             brain,
@@ -128,7 +128,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     this->generateVolumeFociIdentifcationText(idText,
                                               idManager->getVolumeFocusIdentification());
     
-    const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
+    const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
         int64_t ijk[3];
         const VolumeFile* idVolumeFile = voxelID->getVolumeFile();
@@ -275,7 +275,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
 void 
 IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                                const Brain* brain,
-                                                               const IdentificationItemSurfaceNode* idSurfaceNode) const
+                                                               const SelectionItemSurfaceNode* idSurfaceNode) const
 {
     const Surface* surface = idSurfaceNode->getSurface();
     const int32_t nodeNumber = idSurfaceNode->getNodeNumber();
@@ -383,7 +383,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
  */
 void 
 IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
-                                                                    const IdentificationItemBorderSurface* idSurfaceBorder) const
+                                                                    const SelectionItemBorderSurface* idSurfaceBorder) const
 {
     if (idSurfaceBorder->isValid()) {
         const Border* border = idSurfaceBorder->getBorder();
@@ -419,7 +419,7 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
  *     Information for surface focus ID.
  */void 
 IdentificationTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
-                                          const IdentificationItemFocusSurface* idSurfaceFocus) const
+                                          const SelectionItemFocusSurface* idSurfaceFocus) const
 {
     if (idSurfaceFocus->isValid()) {
         const Focus* focus = idSurfaceFocus->getFocus();
@@ -543,7 +543,7 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
  *     Information for surface focus ID.
  */void
 IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                                  const IdentificationItemFocusVolume* idVolumeFocus) const
+                                                                  const SelectionItemFocusVolume* idVolumeFocus) const
 {
     if (idVolumeFocus->isValid()) {
         const Focus* focus = idVolumeFocus->getFocus();

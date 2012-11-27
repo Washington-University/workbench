@@ -46,7 +46,7 @@
 #include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "IdentificationManager.h"
+#include "SelectionManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
@@ -1033,7 +1033,7 @@ BrainStructure::receiveEvent(Event* event)
                 break;
         }
         
-        IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
+        SelectionManager* idManager = idLocationEvent->getSelectionManager();
         if (highlighNodeIndex >= 0) {
             BrainStructureNodeAttributes* nodeAtts = getNodeAttributes();
             nodeAtts->setIdentificationType(highlighNodeIndex,

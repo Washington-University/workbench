@@ -31,7 +31,7 @@
 namespace caret {
 
     class BrainStructure;
-    class IdentificationManager;
+    class SelectionManager;
     class VolumeFile;
     
     /// Highlight location of an indentification
@@ -43,14 +43,14 @@ namespace caret {
             IDENTIFICATION_VOLUME
         };
         
-        EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+        EventIdentificationHighlightLocation(SelectionManager* selectionManager,
                                              BrainStructure* brainStructure,
                                              const StructureEnum::Enum surfaceStructure,
                                              const int32_t surfaceNodeNumber,
                                              const int32_t surfaceNumberOfNodes,
                                              const float xyz[3]);
         
-        EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+        EventIdentificationHighlightLocation(SelectionManager* selectionManager,
                                              const VolumeFile* volumeFile,
                                              const int64_t volumeSliceIndices[3],
                                              const float xyz[3]);
@@ -73,7 +73,7 @@ namespace caret {
         
         IdentificationType getIdentificationType() const;
         
-        IdentificationManager* getIdentificationManager();
+        SelectionManager* getSelectionManager();
         
     private:
         EventIdentificationHighlightLocation(const EventIdentificationHighlightLocation&);
@@ -82,7 +82,7 @@ namespace caret {
         
         void initializeMembers();
         
-        IdentificationManager* identificationManager;
+        SelectionManager* selectionManager;
         
         const VolumeFile* volumeFile;
         

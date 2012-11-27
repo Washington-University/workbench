@@ -100,7 +100,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                           SLOT(showPropertiesDialog()));
     
     m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID", 
-                                                                        "Enable volume slice movement to identified brainordinate.", 
+                                                                        "Enable volume slice movement to selected brainordinate.", 
                                                                         this, 
                                                                         this, 
                                                                         SLOT(volumeSliceIdentificationToggled(bool)));

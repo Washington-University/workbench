@@ -48,10 +48,10 @@
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
-#include "IdentificationItemVoxel.h"
-#include "IdentificationManager.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemVoxel.h"
+#include "SelectionManager.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelYokingGroup.h"
 #include "MouseEvent.h"
@@ -174,7 +174,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     
-    IdentificationManager* idManager =
+    SelectionManager* idManager =
     openGLWidget->performIdentification(mouseClickX,
                                         mouseClickY,
                                         true);
@@ -183,7 +183,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     
     const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
     
-    IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
     if ((idSymbol->getSurface() != NULL)
         && (idSymbol->getNodeNumber() >= 0)) {
         EventIdentificationSymbolRemoval idRemoval(idSymbol->getSurface()->getStructure(),
@@ -194,7 +194,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     else {
         AString ciftiRowColumnInformation;
         
-        IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+        SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
         Surface* surface = idNode->getSurface();
         const int32_t nodeIndex = idNode->getNodeNumber();
         
@@ -202,9 +202,9 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             (nodeIndex >= 0)) {
             try {
                 /*
-                 * Save last identified node which may get used for foci creation.
+                 * Save last selected node which may get used for foci creation.
                  */
-                idManager->setLastIdentifiedItem(idNode);
+                idManager->setLastSelectedItem(idNode);
                 
                 AString nodeRowColInfo;
                 TimeLine timeLine;
@@ -269,7 +269,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             }
         }
         
-        IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+        SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
         if (idVoxel->isValid()) {
             const VolumeFile* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
@@ -285,9 +285,9 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 EventManager::get()->sendEvent(idLocation.getPointer());
                                 
                 /*
-                 * Save last identified node which may get used for foci creation.
+                 * Save last selected node which may get used for foci creation.
                  */
-                idManager->setLastIdentifiedItem(idVoxel);
+                idManager->setLastSelectedItem(idVoxel);
                 
                 updateGraphicsFlag = true;
                 
@@ -381,14 +381,14 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 //    Brain* brain = GuiManager::get()->getBrain();
 //    ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
 //    
-//    IdentificationManager* idManager =
+//    SelectionManager* idManager =
 //        openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
 //    
 //    bool updateGraphicsFlag = false;
 //    
 //    const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
 //    
-//    IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
+//    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
 //    if ((idSymbol->getSurface() != NULL)
 //        && (idSymbol->getNodeNumber() >= 0)) {
 //        EventIdentificationSymbolRemoval idRemoval(idSymbol->getSurface()->getStructure(),
@@ -399,7 +399,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 //    else {
 //        AString ciftiRowColumnInformation;
 //        
-//        IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+//        SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
 //        Surface* surface = idNode->getSurface();
 //        const int32_t nodeIndex = idNode->getNodeNumber();
 //
@@ -469,7 +469,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 //            }
 //        }
 //        
-//        const IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+//        const SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
 //        if (idVoxel->isValid()) {
 //            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
 //            int64_t voxelIJK[3];

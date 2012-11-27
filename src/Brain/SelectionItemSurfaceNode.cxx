@@ -24,7 +24,7 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
-#include "IdentificationItemSurfaceNode.h"
+#include "SelectionItemSurfaceNode.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
 
 #include "Surface.h"
@@ -32,18 +32,18 @@
 using namespace caret;
 
 /**
- * \class IdentificationItemSurfaceNode
- * \brief Identified node.
+ * \class SelectionItemSurfaceNode
+ * \brief Selected node.
  *
- * Information about the identified node.
+ * Information about the selected node.
  */
 
 
 /**
  * Constructor.
  */
-IdentificationItemSurfaceNode::IdentificationItemSurfaceNode()
-: IdentificationItem(IdentificationItemDataTypeEnum::SURFACE_NODE)
+SelectionItemSurfaceNode::SelectionItemSurfaceNode()
+: SelectionItem(SelectionItemDataTypeEnum::SURFACE_NODE)
 {
     m_surface = NULL;
     m_contralateralFlag = false;
@@ -53,7 +53,7 @@ IdentificationItemSurfaceNode::IdentificationItemSurfaceNode()
 /**
  * Destructor.
  */
-IdentificationItemSurfaceNode::~IdentificationItemSurfaceNode()
+SelectionItemSurfaceNode::~SelectionItemSurfaceNode()
 {
     
 }
@@ -63,10 +63,10 @@ IdentificationItemSurfaceNode::~IdentificationItemSurfaceNode()
  * @param obj
  *    Object that is copied.
  */
-IdentificationItemSurfaceNode::IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& obj)
-: IdentificationItem(obj)
+SelectionItemSurfaceNode::SelectionItemSurfaceNode(const SelectionItemSurfaceNode& obj)
+: SelectionItem(obj)
 {
-    copyHelperIdentificationItemSurfaceNode(obj);
+    copyHelperSelectionItemSurfaceNode(obj);
 }
 
 /**
@@ -76,12 +76,12 @@ IdentificationItemSurfaceNode::IdentificationItemSurfaceNode(const Identificatio
  * @return
  *    Reference to m_ object.
  */
-IdentificationItemSurfaceNode&
-IdentificationItemSurfaceNode::operator=(const IdentificationItemSurfaceNode& obj)
+SelectionItemSurfaceNode&
+SelectionItemSurfaceNode::operator=(const SelectionItemSurfaceNode& obj)
 {
     if (this != &obj) {
-        IdentificationItem::operator=(obj);
-        copyHelperIdentificationItemSurfaceNode(obj);
+        SelectionItem::operator=(obj);
+        copyHelperSelectionItemSurfaceNode(obj);
     }
     return *this;
 }
@@ -92,7 +92,7 @@ IdentificationItemSurfaceNode::operator=(const IdentificationItemSurfaceNode& ob
  *    Object that is copied.
  */
 void
-IdentificationItemSurfaceNode::copyHelperIdentificationItemSurfaceNode(const IdentificationItemSurfaceNode& idItem)
+SelectionItemSurfaceNode::copyHelperSelectionItemSurfaceNode(const SelectionItemSurfaceNode& idItem)
 {
     m_surface = idItem.m_surface;
     m_nodeNumber = idItem.m_nodeNumber;
@@ -103,69 +103,69 @@ IdentificationItemSurfaceNode::copyHelperIdentificationItemSurfaceNode(const Ide
  * Reset the selection item. 
  */
 void 
-IdentificationItemSurfaceNode::reset()
+SelectionItemSurfaceNode::reset()
 {
-    IdentificationItem::reset();
+    SelectionItem::reset();
     m_surface = NULL;
     m_nodeNumber = -1;
     m_contralateralFlag = false;
 }
 
 /**
- * @return Is m_ identified item valid?
+ * @return Is m_ selected item valid?
  */
 bool 
-IdentificationItemSurfaceNode::isValid() const
+SelectionItemSurfaceNode::isValid() const
 {
     return (m_nodeNumber >= 0);
 }
 
 /**
- * @return Surface containing identified node.
+ * @return Surface containing selected node.
  */
 const Surface* 
-IdentificationItemSurfaceNode::getSurface() const
+SelectionItemSurfaceNode::getSurface() const
 {
     return m_surface;
 }
 
 /**
- * @return Surface containing identified node.
+ * @return Surface containing selected node.
  */
 Surface* 
-IdentificationItemSurfaceNode::getSurface()
+SelectionItemSurfaceNode::getSurface()
 {
     return m_surface;
 }
 
 /**
- * Set the surface containing the identified node.
+ * Set the surface containing the selected node.
  * @param surface
  *    New value for surface.
  *
  */
 void 
-IdentificationItemSurfaceNode::setSurface(Surface* surface)
+SelectionItemSurfaceNode::setSurface(Surface* surface)
 {
     m_surface = surface;
 }
 
 /**
- * return Number of identified node.
+ * return Number of selected node.
  */
 int32_t 
-IdentificationItemSurfaceNode::getNodeNumber() const
+SelectionItemSurfaceNode::getNodeNumber() const
 {
     return m_nodeNumber;
 }
 
 /**
- * Set node number that was identified.
+ * Set node number that was selected.
  * @param nodeNumber
  *    New value for node.
  */
 void 
-IdentificationItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
+SelectionItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
 {
     m_nodeNumber = nodeNumber;
 }
@@ -174,7 +174,7 @@ IdentificationItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
  * @return Is m_ a contralateral identification?
  */
 bool 
-IdentificationItemSurfaceNode::isContralateral() const
+SelectionItemSurfaceNode::isContralateral() const
 {
     return m_contralateralFlag;
 }
@@ -185,7 +185,7 @@ IdentificationItemSurfaceNode::isContralateral() const
  *    New status.
  */
 void 
-IdentificationItemSurfaceNode::setContralateral(const bool status)
+SelectionItemSurfaceNode::setContralateral(const bool status)
 {
     m_contralateralFlag = status;
 }
@@ -195,9 +195,9 @@ IdentificationItemSurfaceNode::setContralateral(const bool status)
  * @return String describing m_ object's content.
  */
 AString 
-IdentificationItemSurfaceNode::toString() const
+SelectionItemSurfaceNode::toString() const
 {
-    AString text = IdentificationItem::toString();
+    AString text = SelectionItem::toString();
     text += ("Surface: " + ((m_surface != NULL) ? m_surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Vertex: " + AString::number(m_nodeNumber) + "\n";
     if (isValid() && (m_surface != NULL)) {

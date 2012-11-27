@@ -23,29 +23,29 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
-#include "IdentificationItemFocusSurface.h"
-#undef __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
+#define __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
+#include "SelectionItemFocusVolume.h"
+#undef __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
 
-#include "FociFile.h"
 #include "Focus.h"
-#include "Surface.h"
+#include "FociFile.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
 
     
 /**
- * \class IdentificationItemFocusSurface 
- * \brief Contains information about the identified focus.
+ * \class SelectionItemFocusVolume 
+ * \brief Contains information about the selected focus.
  */
 /**
  * Constructor.
  */
-IdentificationItemFocusSurface::IdentificationItemFocusSurface()
-: IdentificationItem(IdentificationItemDataTypeEnum::FOCUS_SURFACE)
+SelectionItemFocusVolume::SelectionItemFocusVolume()
+: SelectionItem(SelectionItemDataTypeEnum::FOCUS_VOLUME)
 {
-    this->surface = NULL;
+    this->volumeFile = NULL;
     this->focus = NULL;
     this->fociFile = NULL;
     this->focusIndex = -1;
@@ -55,7 +55,7 @@ IdentificationItemFocusSurface::IdentificationItemFocusSurface()
 /**
  * Destructor.
  */
-IdentificationItemFocusSurface::~IdentificationItemFocusSurface()
+SelectionItemFocusVolume::~SelectionItemFocusVolume()
 {
 }
 
@@ -63,10 +63,10 @@ IdentificationItemFocusSurface::~IdentificationItemFocusSurface()
  * Reset this selection item. 
  */
 void 
-IdentificationItemFocusSurface::reset()
+SelectionItemFocusVolume::reset()
 {
-    IdentificationItem::reset();
-    this->surface = NULL;
+    SelectionItem::reset();
+    this->volumeFile = NULL;
     this->focus = NULL;
     this->fociFile = NULL;
     this->focusIndex = -1;
@@ -74,97 +74,97 @@ IdentificationItemFocusSurface::reset()
 }
 
 /**
- * @return Is this identified item valid?
+ * @return Is this selected item valid?
  */
 bool 
-IdentificationItemFocusSurface::isValid() const
+SelectionItemFocusVolume::isValid() const
 {
     return (this->focus != NULL);
 }
 
 /**
- * @return Surface on which focus was drawn.
+ * @return VolumeFile on which focus was drawn.
  */
-const Surface* 
-IdentificationItemFocusSurface::getSurface() const
+const VolumeFile*
+SelectionItemFocusVolume::getVolumeFile() const
 {
-    return this->surface;
+    return this->volumeFile;
 }
 
 /**
- * @return Surface on which focus was drawn.
+ * @return VolumeFile on which focus was drawn.
  */
-Surface* 
-IdentificationItemFocusSurface::getSurface()
+VolumeFile* 
+SelectionItemFocusVolume::getVolumeFile()
 {
-    return this->surface;
+    return this->volumeFile;
 }
 
 /**
- * Set the surface on which focus was drawn.
- * @param surface
- *    New value for surface.
+ * Set the volume file on which focus was drawn.
+ * @param volumeFile
+ *    New value for volumeFile.
  */
 void 
-IdentificationItemFocusSurface::setSurface(Surface* surface)
+SelectionItemFocusVolume::setVolumeFile(VolumeFile* volumeFile)
 {
-    this->surface = surface;
+    this->volumeFile = volumeFile;
 }
 
 /**
- * @return The focus that was identified.
+ * @return The focus that was selected.
  */
 const Focus* 
-IdentificationItemFocusSurface::getFocus() const
+SelectionItemFocusVolume::getFocus() const
 {
     return this->focus;
 }
 
 /**
- * @return The focus that was identified.
+ * @return The focus that was selected.
  */
 Focus* 
-IdentificationItemFocusSurface::getFocus()
+SelectionItemFocusVolume::getFocus()
 {
     return this->focus;
 }
 
 /**
- * Set the focus that was identified.
+ * Set the focus that was selected.
  * @param focus
  *    New value for focus.
  */
 void 
-IdentificationItemFocusSurface::setFocus(Focus* focus)
+SelectionItemFocusVolume::setFocus(Focus* focus)
 {
     this->focus = focus;
 }
 
 /**
- * @return The focus file containing focus that was identified.
+ * @return The focus file containing focus that was selected.
  */
 const FociFile* 
-IdentificationItemFocusSurface::getFociFile() const
+SelectionItemFocusVolume::getFociFile() const
 {
     return this->fociFile;
 }
 
 /**
- * @return The focus file containing focus that was identified.
+ * @return The focus file containing focus that was selected.
  */
 FociFile* 
-IdentificationItemFocusSurface::getFociFile()
+SelectionItemFocusVolume::getFociFile()
 {
     return this->fociFile;
 }
 
 /**
- * Set the focus file containing focus that was identified.
+ * Set the focus file containing focus that was selected.
  * @param fociFile
  *    New value for focus file.
  */
 void 
-IdentificationItemFocusSurface::setFociFile(FociFile* fociFile)
+SelectionItemFocusVolume::setFociFile(FociFile* fociFile)
 {
     this->fociFile = fociFile;
 }
@@ -173,7 +173,7 @@ IdentificationItemFocusSurface::setFociFile(FociFile* fociFile)
  * return Index of selected focus.
  */
 int32_t 
-IdentificationItemFocusSurface::getFocusIndex() const
+SelectionItemFocusVolume::getFocusIndex() const
 {
     return this->focusIndex;
 }
@@ -184,7 +184,7 @@ IdentificationItemFocusSurface::getFocusIndex() const
  *    New value for focus index.
  */
 void 
-IdentificationItemFocusSurface::setFocusIndex(const int32_t focusIndex)
+SelectionItemFocusVolume::setFocusIndex(const int32_t focusIndex)
 {
     this->focusIndex = focusIndex;
 }
@@ -193,7 +193,7 @@ IdentificationItemFocusSurface::setFocusIndex(const int32_t focusIndex)
  * return Projection Index of selected focus.
  */
 int32_t 
-IdentificationItemFocusSurface::getFocusProjectionIndex() const
+SelectionItemFocusVolume::getFocusProjectionIndex() const
 {
     return this->focusProjectionIndex;
 }
@@ -204,7 +204,7 @@ IdentificationItemFocusSurface::getFocusProjectionIndex() const
  *    New value for focus index.
  */
 void 
-IdentificationItemFocusSurface::setFocusProjectionIndex(const int32_t focusProjectionIndex)
+SelectionItemFocusVolume::setFocusProjectionIndex(const int32_t focusProjectionIndex)
 {
     this->focusProjectionIndex = focusProjectionIndex;
 }
@@ -214,10 +214,10 @@ IdentificationItemFocusSurface::setFocusProjectionIndex(const int32_t focusProje
  * @return String describing m_ object's content.
  */
 AString
-IdentificationItemFocusSurface::toString() const
+SelectionItemFocusVolume::toString() const
 {
-    AString text = IdentificationItem::toString();
-    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
+    AString text = SelectionItem::toString();
+    text += ("Volume File: " + ((volumeFile != NULL) ? volumeFile->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Foci File: " + ((fociFile != NULL) ? fociFile->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Focus: " + ((focus != NULL) ? focus->getName() : "INVALID") + "\n");
     text += ("Focus Index: " + AString::number(focusIndex) + "\n");

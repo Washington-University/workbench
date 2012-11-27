@@ -96,7 +96,7 @@ BrainStructureNodeAttributes::setAllIdentificationNone()
  * Get the identification type for the given node.
  * @param nodeIndex
  *     Number of node.
- * @return The identified status of the node.
+ * @return The selected status of the node.
  */
 NodeIdentificationTypeEnum::Enum 
 BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeIndex) const
@@ -109,8 +109,8 @@ BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeIndex) con
  * Set the identification type for the given node.
  * @param nodeIndex
  *     Number of node.
- * @param identifiedStatus
- *    New identified status.
+ * @param selectedStatus
+ *    New selected status.
  */
 void 
 BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeIndex,

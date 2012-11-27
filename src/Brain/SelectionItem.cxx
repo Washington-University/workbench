@@ -24,24 +24,24 @@
  */ 
 
 #define __IDENTIFICATION_ITEM_DECLARE__
-#include "IdentificationItem.h"
+#include "SelectionItem.h"
 #undef __IDENTIFICATION_ITEM_DECLARE__
 #include <limits>
 using namespace caret;
 
-#include "IdentificationItemDataTypeEnum.h"
+#include "SelectionItemDataTypeEnum.h"
 
 /**
- * \class IdentificationItem
- * \brief Abstract class for identified items.
+ * \class SelectionItem
+ * \brief Abstract class for selected items.
  *
- * Abstract class for identified items.
+ * Abstract class for selected items.
  */
 
 /**
  * Constructor.
  */
-IdentificationItem::IdentificationItem(const IdentificationItemDataTypeEnum::Enum itemDataType)
+SelectionItem::SelectionItem(const SelectionItemDataTypeEnum::Enum itemDataType)
 : CaretObject()
 {
     m_itemDataType = itemDataType;
@@ -59,7 +59,7 @@ IdentificationItem::IdentificationItem(const IdentificationItemDataTypeEnum::Enu
 /**
  * Destructor.
  */
-IdentificationItem::~IdentificationItem()
+SelectionItem::~SelectionItem()
 {
     
 }
@@ -69,10 +69,10 @@ IdentificationItem::~IdentificationItem()
  * @param obj
  *    Object that is copied.
  */
-IdentificationItem::IdentificationItem(const IdentificationItem& obj)
+SelectionItem::SelectionItem(const SelectionItem& obj)
 : CaretObject(obj)
 {
-    copyHelperIdentificationItem(obj);
+    copyHelperSelectionItem(obj);
 }
 
 /**
@@ -82,12 +82,12 @@ IdentificationItem::IdentificationItem(const IdentificationItem& obj)
  * @return
  *    Reference to this object.
  */
-IdentificationItem&
-IdentificationItem::operator=(const IdentificationItem& obj)
+SelectionItem&
+SelectionItem::operator=(const SelectionItem& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        copyHelperIdentificationItem(obj);
+        copyHelperSelectionItem(obj);
     }
     return *this;
 }
@@ -98,7 +98,7 @@ IdentificationItem::operator=(const IdentificationItem& obj)
  *    Object that is copied.
  */
 void
-IdentificationItem::copyHelperIdentificationItem(const IdentificationItem& idItem)
+SelectionItem::copyHelperSelectionItem(const SelectionItem& idItem)
 {
     m_brain = idItem.m_brain;
     m_enabledForSelection = idItem.m_enabledForSelection;
@@ -118,7 +118,7 @@ IdentificationItem::copyHelperIdentificationItem(const IdentificationItem& idIte
  * the method in this class.
  */
 void 
-IdentificationItem::reset()
+SelectionItem::reset()
 {
     m_brain = NULL;
     m_screenDepth = 0.0;
@@ -136,10 +136,10 @@ IdentificationItem::reset()
  * @return String describing this object's content.
  */
 AString 
-IdentificationItem::toString() const
+SelectionItem::toString() const
 {
     AString text = "";
-    text += ("Type: " + IdentificationItemDataTypeEnum::toGuiName(m_itemDataType) + "\n");
+    text += ("Type: " + SelectionItemDataTypeEnum::toGuiName(m_itemDataType) + "\n");
     text += ("Depth: " + AString::number(m_screenDepth) + "\n");
     text += ("Model XYZ:  " + AString::fromNumbers(m_modelXYZ, 3, ", ") + "\n");
     text += ("Screen XYZ: " + AString::fromNumbers(m_screenXYZ, 3, ", ") + "\n");
@@ -147,10 +147,10 @@ IdentificationItem::toString() const
 }
 
 /**
- * @return The type of identified item.
+ * @return The type of selected item.
  */
-IdentificationItemDataTypeEnum::Enum 
-IdentificationItem::getItemDataType() const
+SelectionItemDataTypeEnum::Enum 
+SelectionItem::getItemDataType() const
 {
     return m_itemDataType;
 }
@@ -159,7 +159,7 @@ IdentificationItem::getItemDataType() const
  * @return Data type enabled for selection.
  */
 bool 
-IdentificationItem::isEnabledForSelection() const
+SelectionItem::isEnabledForSelection() const
 {
     return m_enabledForSelection;
 }
@@ -170,7 +170,7 @@ IdentificationItem::isEnabledForSelection() const
  *    New value for selection enabled status.
  */
 void 
-IdentificationItem::setEnabledForSelection(const bool enabled)
+SelectionItem::setEnabledForSelection(const bool enabled)
 {
     m_enabledForSelection = enabled;
 }
@@ -179,7 +179,7 @@ IdentificationItem::setEnabledForSelection(const bool enabled)
  * @return Brain in which identification item resides.
  */
 Brain* 
-IdentificationItem::getBrain()
+SelectionItem::getBrain()
 {
     return m_brain;
 }
@@ -191,7 +191,7 @@ IdentificationItem::getBrain()
  *    Brain in which identification item resides.
  */
 void 
-IdentificationItem::setBrain(Brain* brain)
+SelectionItem::setBrain(Brain* brain)
 {
     m_brain = brain;
 }
@@ -200,7 +200,7 @@ IdentificationItem::setBrain(Brain* brain)
  * @return Screen depth of item.
  */
 double 
-IdentificationItem::getScreenDepth() const
+SelectionItem::getScreenDepth() const
 {
     return m_screenDepth;
 }
@@ -211,18 +211,18 @@ IdentificationItem::getScreenDepth() const
  *    New value for screen depth.
  */
 void 
-IdentificationItem::setScreenDepth(const double screenDepth)
+SelectionItem::setScreenDepth(const double screenDepth)
 {
     m_screenDepth = screenDepth;
 }
 
 /**
- * Get the screen XYZ of the identified item.
+ * Get the screen XYZ of the selected item.
  * @param screenXYZ
  *    XYZ out.
  */
 void 
-IdentificationItem::getScreenXYZ(double screenXYZ[3]) const
+SelectionItem::getScreenXYZ(double screenXYZ[3]) const
 {
     screenXYZ[0] = m_screenXYZ[0];
     screenXYZ[1] = m_screenXYZ[1];
@@ -230,12 +230,12 @@ IdentificationItem::getScreenXYZ(double screenXYZ[3]) const
 }
 
 /**
- * Set the screen XYZ of the identified item.
+ * Set the screen XYZ of the selected item.
  * @param screenXYZ
  *    new XYZ.
  */
 void 
-IdentificationItem::setScreenXYZ(const double screenXYZ[3])
+SelectionItem::setScreenXYZ(const double screenXYZ[3])
 {
     m_screenXYZ[0] = screenXYZ[0];
     m_screenXYZ[1] = screenXYZ[1];
@@ -243,12 +243,12 @@ IdentificationItem::setScreenXYZ(const double screenXYZ[3])
 }
 
 /**
- * Get the model XYZ of the identified item.
+ * Get the model XYZ of the selected item.
  * @param modelXYZ
  *    XYZ out.
  */
 void 
-IdentificationItem::getModelXYZ(double modelXYZ[3]) const
+SelectionItem::getModelXYZ(double modelXYZ[3]) const
 {
     modelXYZ[0] = m_modelXYZ[0];
     modelXYZ[1] = m_modelXYZ[1];
@@ -256,12 +256,12 @@ IdentificationItem::getModelXYZ(double modelXYZ[3]) const
 }
 
 /**
- * Set the model XYZ of the identified item.
+ * Set the model XYZ of the selected item.
  * @param modelXYZ
  *    new XYZ.
  */
 void 
-IdentificationItem::setModelXYZ(const double modelXYZ[3])
+SelectionItem::setModelXYZ(const double modelXYZ[3])
 {
     m_modelXYZ[0] = modelXYZ[0];
     m_modelXYZ[1] = modelXYZ[1];
@@ -270,11 +270,11 @@ IdentificationItem::setModelXYZ(const double modelXYZ[3])
 
 /**
  * Is the other screen depth closer to the viewer than the currently 
- * identified item?  So, if true is returned, then replace the
+ * selected item?  So, if true is returned, then replace the
  * current identification item
  *
- * (1) If there is no identified item, true is immediately returned.
- * (2) If there is an identified item and the other screen depth is closer
+ * (1) If there is no selected item, true is immediately returned.
+ * (2) If there is an selected item and the other screen depth is closer
  * to the viewer, true is returned.
  * (3) false is returned.
  *
@@ -283,7 +283,7 @@ IdentificationItem::setModelXYZ(const double modelXYZ[3])
  * @return result of test.
  */
 bool 
-IdentificationItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) const
+SelectionItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) const
 {
     if (isValid() == false) {
         return true;
