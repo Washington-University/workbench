@@ -49,6 +49,8 @@ namespace caret {
     private slots:
         void floatingStatusChanged(bool);
         
+        void restoreMinimumAndMaximumSizesAfterSceneRestored();
+        
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
@@ -98,6 +100,9 @@ namespace caret {
         int32_t m_labelTabIndex;
         
         int32_t m_volumeSurfaceOutlineTabIndex;
+        
+        QSize m_minimumSizeAfterSceneRestored;
+        QSize m_maximumSizeAfterSceneRestored;
         
     };
 }

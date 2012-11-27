@@ -7,6 +7,7 @@
 #include <QScrollArea>
 #include <QToolBox>
 #include <QTabWidget>
+#include <QTimer>
 
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
@@ -287,6 +288,15 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     sceneClass->addClass(swg.saveToScene(sceneAttributes,
                                          "geometry"));
     
+    /**
+     * Save the size when visible BUT NOT floating
+     */
+//    if (isVisible() && (isFloating() == false)) {
+    if (isFloating() == false) {
+        sceneClass->addInteger("toolboxWidth", width());
+        sceneClass->addInteger("toolboxHeight", height());
+    }
+    
     /*
      * Save controllers in the toolbox
      */
@@ -401,6 +411,31 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                              sceneClass->getClass("geometry"));
     }
     else {
+        /*
+         * From http://stackoverflow.com/questions/2722939/c-resize-a-docked-qt-qdockwidget-programmatically
+         *
+         * Set the minimum and maximum sizes and restore them later.
+         * Trying to restore them immediately does not work.  So, as
+         * explained in the link above, set the minimum and maximum
+         * sizes to that the toolbox is the correct size and then use
+         * a timer to restore the correct values for the minimum and
+         * maximum sizes after a little delay.
+         */
+        const int w = sceneClass->getIntegerValue("toolboxWidth", -1);
+        const int h = sceneClass->getIntegerValue("toolboxHeight", -1);
+        if ((w > 0) && (h > 0)) {
+            m_minimumSizeAfterSceneRestored = minimumSize();
+            m_maximumSizeAfterSceneRestored = maximumSize();
+            
+            setMaximumWidth(w);
+            setMaximumHeight(h);
+            setMinimumWidth(w);
+            setMinimumHeight(h);
+
+            QTimer::singleShot(1000,  // 1000 ms => 1 second
+                               this,
+                               SLOT(restoreMinimumAndMaximumSizesAfterSceneRestored()));
+        }
 //        if (childWidget != NULL) {
 //            childWidget->setMinimumSize(childSize);
 //            SceneWindowGeometry swg(this,
@@ -432,6 +467,17 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
 //        swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
 //    }
 }
+
+/**
+ * This slot is called when restoring a scene
+ */
+void
+BrainBrowserWindowOrientedToolBox::restoreMinimumAndMaximumSizesAfterSceneRestored()
+{
+    setMinimumSize(m_minimumSizeAfterSceneRestored);
+    setMaximumSize(m_maximumSizeAfterSceneRestored);
+}
+
 
 /**
  * Receive events from the event manager.
