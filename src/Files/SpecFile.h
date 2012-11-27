@@ -115,6 +115,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        void appendSpecFile(const SpecFile& toAppend);
+        
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
         

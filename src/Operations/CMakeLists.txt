@@ -37,6 +37,7 @@ OperationMetricMath.h
 OperationMetricPalette.h
 OperationProbtrackXDotConvert.h
 OperationSetStructure.h
+OperationSpecFileMerge.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
@@ -65,6 +66,7 @@ OperationMetricMath.cxx
 OperationMetricPalette.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetStructure.cxx
+OperationSpecFileMerge.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx

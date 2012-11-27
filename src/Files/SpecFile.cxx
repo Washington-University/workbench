@@ -509,7 +509,9 @@ SpecFile::areAllSelectedFilesSceneFiles() const
 void 
 SpecFile::readFile(const AString& filename) throw (DataFileException)
 {
-    this->setFileName(filename);
+    FileInformation specInfo(filename);
+    AString absFileName = specInfo.getFilePath();
+    this->setFileName(absFileName);
     
     SpecFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
@@ -541,7 +543,7 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
         throw dfe;
     }
 
-    this->setFileName(filename);
+    this->setFileName(absFileName);
     this->setAllFilesSelected(true);
     
     this->clearModified();
@@ -600,7 +602,9 @@ SpecFile::readFileFromString(const AString& string) throw (DataFileException)
 void 
 SpecFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    this->setFileName(filename);
+    FileInformation specInfo(filename);
+    AString absFileName = specInfo.getFilePath();
+    this->setFileName(absFileName);
 
     try {
         //
@@ -1202,5 +1206,28 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 }
 
-
-
+void SpecFile::appendSpecFile(const SpecFile& toAppend)
+{
+    int numOtherGroups = (int)toAppend.dataFileTypeGroups.size();
+    AString otherDirectory = FileInformation(toAppend.getFileName()).getAbsolutePath();//hopefully the filename is already absolute, if it isn't and we changed directory, we can't recover the correct path
+    if (!otherDirectory.endsWith('/'))//deal with the root directory
+    {
+        otherDirectory += "/";
+    }
+    for (int i = 0; i < numOtherGroups; ++i)
+    {
+        const SpecFileDataFileTypeGroup* thisGroup = toAppend.dataFileTypeGroups[i];
+        int numOtherFiles = thisGroup->getNumberOfFiles();
+        for (int j = 0; j < numOtherFiles; ++j)
+        {
+            const SpecFileDataFile* fileData = thisGroup->getFileInformation(j);
+            AString fileName = fileData->getFileName();
+            FileInformation fileInfo(fileName);//do not trust exists, we don't have the right working directory, this is ONLY to check whether the path is absolute
+            if (fileInfo.isRelative())
+            {
+                fileName = otherDirectory + fileName;//don't trust the file to exist from current directory, use string manipulation only
+            }
+            addDataFile(thisGroup->getDataFileType(), fileData->getStructure(), fileName);//absolute paths should get converted to relative on writing
+        }
+    }
+}
