@@ -292,7 +292,7 @@ BrainOpenGLWidget::paintGL()
                         vpHeight
                     };
                     BrainOpenGLViewportContent* vc = 
-                       new BrainOpenGLViewportContent(windowViewport,
+                       new BrainOpenGLViewportContent(modelViewport,
                                                       modelViewport,
                                                       GuiManager::get()->getBrain(),
                                                       getModelEvent.getTabContentToDraw(iModel));

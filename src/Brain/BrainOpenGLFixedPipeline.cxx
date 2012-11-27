@@ -284,12 +284,18 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     /*
      * Size of all graphics area containing model(s).
      */
-    if (viewportContents.empty() == false) {
-        const int* windowVP = viewportContents[0]->getWindowViewport();
-        glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
-    }
+//    if (viewportContents.empty() == false) {
+//        const int* windowVP = viewportContents[0]->getWindowViewport();
+//        glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
+//    }
     
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        /*
+         * Viewport of window.
+         */
+        const int* windowVP = viewportContents[i]->getWindowViewport();
+        glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
+        
         CaretLogFine("Drawing Model "
                        + AString::number(i)
                        + ": "
