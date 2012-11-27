@@ -48,18 +48,12 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         if (url.mid(start + 1, 9) == "searchID=")
         {
             foundSearchID = true;
-            int32_t end = url.indexOf('&');//if doesn't exist, -1 is also special case to end of string for mid()
-            AString fullArg = url.mid(start + 1, end);
-            int32_t equalsPos = fullArg.indexOf('=');//should obviously be 8, but this is more readable
-            m_baseRequest.m_arguments.push_back(make_pair(AString(fullArg.mid(0, equalsPos)), AString(fullArg.mid(equalsPos + 1, -1))));
         }
         start = url.indexOf('&', start + 1);
     }
     m_baseRequest.m_queries.push_back(make_pair(AString("type"), AString("dconn")));
-    m_baseRequest.m_arguments.push_back(make_pair(AString("type"), AString("dconn")));
     CaretHttpRequest metadata = m_baseRequest;
     metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
-    metadata.m_arguments.push_back(make_pair(AString("metadata"), AString("")));
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(metadata, myResponse);
     if (!myResponse.m_ok)
@@ -76,7 +70,6 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
-        rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString("0")));
         m_numberOfColumns = getSizeFromReq(rowRequest);
         m_xml.setRowNumberOfTimepoints(m_numberOfColumns);//number of timepoints along a row is the number of columns
         fixedDims = true;
@@ -85,7 +78,6 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     {
         CaretHttpRequest columnRequest = m_baseRequest;
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
-        columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString("0")));
         m_numberOfRows = getSizeFromReq(columnRequest);
         m_xml.setColumnNumberOfTimepoints(m_numberOfRows);//see above
         fixedDims = true;
@@ -105,7 +97,6 @@ void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const th
 {
     CaretHttpRequest columnRequest = m_baseRequest;
     columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
-    columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     getReqAsFloats(columnOut, m_numberOfRows, columnRequest);
 }
 
@@ -113,7 +104,6 @@ void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const throw (Cift
 {
     CaretHttpRequest rowRequest = m_baseRequest;
     rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
-    rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     getReqAsFloats(rowOut, m_numberOfColumns, rowRequest);
 }
 
