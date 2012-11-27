@@ -1855,6 +1855,13 @@ Brain::setSpecFileName(const AString& specFileName)
                        "be called if there is no spec file.");
     }
     m_specFileName = specFileName;
+
+    FileInformation specFileInfo(m_specFileName);
+    if (specFileInfo.isAbsolute()) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        const AString absPathName = specFileInfo.getCanonicalFilePath();
+        prefs->addToPreviousSpecFiles(absPathName);
+    }
 }
 
 
