@@ -45,10 +45,10 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditorShow.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "ImageFile.h"
@@ -126,7 +126,7 @@ GuiManager::GuiManager(QObject* parent)
     m_informationDisplayDialogEnabledAction->blockSignals(false);
         
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
 }
@@ -626,13 +626,12 @@ GuiManager::receiveEvent(Event* event)
                                preferredMaxHeight);
         bbw->resize(w, h);
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
-        EventInformationTextDisplay* infoEvent =
-        dynamic_cast<EventInformationTextDisplay*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
+        EventUpdateInformationWindows* infoEvent =
+        dynamic_cast<EventUpdateInformationWindows*>(event);
         CaretAssert(infoEvent);
         
-        bool showInfoDialog = (infoEvent->isImportant()
-                               && (infoEvent->getText().trimmed().isEmpty() == false));
+        bool showInfoDialog = infoEvent->isImportant();
         
         if (showInfoDialog) {
             this->processShowInformationDisplayDialog(false);

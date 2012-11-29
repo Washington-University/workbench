@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_MANAGER__H_
-#define __IDENTIFICATION_MANAGER__H_
+#ifndef __SELECTION_MANAGER__H_
+#define __SELECTION_MANAGER__H_
 
 /*LICENSE_START*/
 /* 
@@ -149,9 +149,9 @@ namespace caret {
         SelectionItem* m_lastSelectedItem;
     };
     
-#ifdef __IDENTIFICATION_MANAGER_DECLARE__
+#ifdef __SELECTION_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_MANAGER_DECLARE__
+#endif // __SELECTION_MANAGER_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_MANAGER__H_
+#endif  //__SELECTION_MANAGER__H_

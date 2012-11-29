@@ -36,6 +36,8 @@
 #include "IdentifiedItem.h"
 #undef __IDENTIFIED_ITEM_DECLARE__
 
+#include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -44,6 +46,19 @@ using namespace caret;
  * \class caret::IdentifiedItem
  * \brief Describes an identified item.
  */
+
+
+/**
+ * Constructor.
+ *
+ */
+IdentifiedItem::IdentifiedItem()
+: CaretObject(),
+  m_text("")
+{
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_text", &m_text);
+}
 
 /**
  * Constructor.
@@ -55,7 +70,8 @@ IdentifiedItem::IdentifiedItem(const AString& text)
 : CaretObject(),
 m_text(text)
 {
-    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_text", &m_text);
 }
 
 /**
@@ -63,7 +79,7 @@ m_text(text)
  */
 IdentifiedItem::~IdentifiedItem()
 {
-    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -106,6 +122,24 @@ IdentifiedItem::copyHelperIdentifiedItem(const IdentifiedItem& obj)
 }
 
 /**
+ * Append text to this item's text.
+ */
+void
+IdentifiedItem::appendText(const AString& text)
+{
+    m_text += text;
+}
+
+/**
+ * Clear the text for this item.
+ */
+void
+IdentifiedItem::clearText()
+{
+    m_text = "";
+}
+
+/**
  * @return The text describing the identified item.
  */
 AString
@@ -121,5 +155,92 @@ IdentifiedItem::getText() const
 AString 
 IdentifiedItem::toString() const
 {
-    return "IdentifiedItem";
+    return ("m_text=" + m_text);
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+IdentifiedItem::saveToScene(const SceneAttributes* sceneAttributes,
+                                   const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "IdentifiedItem",
+                                            1);
+    
+    saveMembers(sceneAttributes, sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+IdentifiedItem::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    restoreMembers(sceneAttributes, sceneClass);
+}
+
+/**
+ * Restore members (protected function for derived classes).
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.
+ */
+void
+IdentifiedItem::restoreMembers(const SceneAttributes* sceneAttributes,
+                    const SceneClass* sceneClass)
+{
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+}
+
+/**
+ * Save members (protected function for derived classes).
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.
+ */
+void
+IdentifiedItem::saveMembers(const SceneAttributes* sceneAttributes,
+                            SceneClass* sceneClass)
+{
+    m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
 }

@@ -147,6 +147,7 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditorShow.h
 EventUpdateAnimationStartTime.h
+EventUpdateInformationWindows.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
@@ -252,6 +253,7 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditorShow.cxx
 EventUpdateAnimationStartTime.cxx
+EventUpdateInformationWindows.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx

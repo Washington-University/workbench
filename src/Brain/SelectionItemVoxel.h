@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_VOXEL__H_
-#define __IDENTIFICATION_ITEM_VOXEL__H_
+#ifndef __SELECTION_ITEM_VOXEL__H_
+#define __SELECTION_ITEM_VOXEL__H_
 
 /*LICENSE_START*/
 /* 
@@ -65,9 +65,9 @@ namespace caret {
         int64_t m_voxelIJK[3];
     };
     
-#ifdef __IDENTIFICATION_ITEM_VOXEL_DECLARE__
+#ifdef __SELECTION_ITEM_VOXEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_VOXEL_DECLARE__
+#endif // __SELECTION_ITEM_VOXEL_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_VOXEL__H_
+#endif  //__SELECTION_ITEM_VOXEL__H_

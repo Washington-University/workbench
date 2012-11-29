@@ -27,11 +27,11 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "DisplayPropertiesInformation.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
+#include "IdentificationManager.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
@@ -551,7 +551,7 @@ ModelWholeBrain::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
         
-        if (getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+        if (getBrain()->getIdentificationManager()->isVolumeIdentificationEnabled()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
         
             for (int32_t windowTabNumber = 0; 

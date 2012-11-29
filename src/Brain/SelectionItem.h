@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM__H_
-#define __IDENTIFICATION_ITEM__H_
+#ifndef __SELECTION_ITEM__H_
+#define __SELECTION_ITEM__H_
 
 /*LICENSE_START*/
 /* 
@@ -97,9 +97,9 @@ namespace caret {
         void copyHelperSelectionItem(const SelectionItem& idItem);
     };
     
-#ifdef __IDENTIFICATION_ITEM_DECLARE__
+#ifdef __SELECTION_ITEM_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_DECLARE__
+#endif // __SELECTION_ITEM_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM__H_
+#endif  //__SELECTION_ITEM__H_

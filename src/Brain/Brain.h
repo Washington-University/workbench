@@ -53,13 +53,12 @@ namespace caret {
     class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFiberTrajectory;
     class DisplayPropertiesFoci;
-    class DisplayPropertiesInformation;
     class DisplayPropertiesLabels;
     class DisplayPropertiesSurface;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
-    class SelectionManager;    
+    class IdentificationManager;
     class LabelFile;
     class MetricFile;
     class ModelSurfaceMontage;
@@ -69,6 +68,7 @@ namespace caret {
     class RgbaFile;
     class SceneClassAssistant;
     class SceneFile;
+    class SelectionManager;
     class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -283,10 +283,6 @@ namespace caret {
         
         const DisplayPropertiesLabels* getDisplayPropertiesLabels() const;
         
-        DisplayPropertiesInformation* getDisplayPropertiesInformation();
-        
-        const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
-        
         void copyDisplayProperties(const int32_t sourceTabIndex,
                                    const int32_t targetTabIndex);
         
@@ -296,6 +292,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        IdentificationManager* getIdentificationManager();
+
         SelectionManager* getSelectionManager();
         
     private:
@@ -458,19 +456,16 @@ namespace caret {
          */
         DisplayPropertiesFoci* m_displayPropertiesFoci;
         
-        /**
-         * Display properties for information - DO NOT delete since this
-         * is also in the displayProperties std::vector.
-         */
-        DisplayPropertiesInformation* m_displayPropertiesInformation;
-        
         /** true when a spec file is being read */
         bool m_isSpecFileBeingRead;
         
         SceneClassAssistant* m_sceneAssistant;
         
-        /** Identification manager */
+        /** Selection manager */
         SelectionManager* m_selectionManager;
+        
+        /** Identification Manager */
+        IdentificationManager* m_identificationManager;
     };
 
 } // namespace

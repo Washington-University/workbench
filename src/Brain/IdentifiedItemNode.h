@@ -43,6 +43,8 @@ namespace caret {
     class IdentifiedItemNode : public IdentifiedItem {
         
     public:
+        IdentifiedItemNode();
+        
         IdentifiedItemNode(const AString& text,
                            const StructureEnum::Enum structure,
                            const StructureEnum::Enum contralateralStructure,
@@ -81,13 +83,17 @@ namespace caret {
         
         virtual AString toString() const;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         void copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj);
 
         // ADD_NEW_MEMBERS_HERE
         
-        const AString m_text;
-
         StructureEnum::Enum m_structure;
         
         StructureEnum::Enum m_contralateralStructure;
@@ -101,6 +107,8 @@ namespace caret {
         float m_contralateralSymbolRGB[3];
         
         float m_symbolSize;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __IDENTIFIED_ITEM_NODE_DECLARE__

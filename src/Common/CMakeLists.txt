@@ -58,7 +58,6 @@ DataFileInterface.h
 DescriptiveStatistics.h
 ElapsedTimer.h
 Event.h
-EventInformationTextDisplay.h
 EventListenerInterface.h
 EventManager.h
 EventProgressUpdate.h
@@ -121,7 +120,6 @@ DataFileException.cxx
 DescriptiveStatistics.cxx
 ElapsedTimer.cxx
 Event.cxx
-EventInformationTextDisplay.cxx
 EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx

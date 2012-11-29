@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
+#define __SELECTION_ITEM_BORDER_SURFACE_DECLARE__
 #include "SelectionItemBorderSurface.h"
-#undef __IDENTIFICATION_ITEM_BORDER_SURFACE_DECLARE__
+#undef __SELECTION_ITEM_BORDER_SURFACE_DECLARE__
 
 #include "Border.h"
 #include "BorderFile.h"

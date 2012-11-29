@@ -36,12 +36,17 @@
 
 
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
-    class IdentifiedItem : public CaretObject {
+    class SceneClassAssistant;
+    
+    class IdentifiedItem : public CaretObject, public SceneableInterface {
         
     public:
+        IdentifiedItem();
+        
         IdentifiedItem(const AString& text);
         
         virtual ~IdentifiedItem();
@@ -53,9 +58,27 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
         
+        void appendText(const AString& text);
+        
+        void clearText();
+        
         AString getText() const;
 
         virtual AString toString() const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+    protected:
+        virtual void restoreMembers(const SceneAttributes* sceneAttributes,
+                         const SceneClass* sceneClass);
+        
+        virtual void saveMembers(const SceneAttributes* sceneAttributes,
+                         SceneClass* sceneClass);
+        
         
     private:
         void copyHelperIdentifiedItem(const IdentifiedItem& obj);
@@ -63,6 +86,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         AString m_text;
+
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __IDENTIFIED_ITEM_DECLARE__

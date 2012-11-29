@@ -36,6 +36,9 @@
 #include "IdentifiedItemNode.h"
 #undef __IDENTIFIED_ITEM_NODE_DECLARE__
 
+#include "SceneAttributes.h"
+#include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -44,6 +47,39 @@ using namespace caret;
  * \class caret::IdentifiedItem
  * \brief Describes an identified item.
  */
+
+/**
+ * Constructor.
+ *
+ * @param text
+ *    Text describing the identified item.
+ * @param structure
+ *    Structure on which identification took place.
+ * @param contralateralStructure
+ *    Contralateral of identification structure.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface on which identification took place.
+ * @param nodeIndex
+ *    Index of node that was identified.
+ *
+ */
+IdentifiedItemNode::IdentifiedItemNode()
+: IdentifiedItem()
+{
+    m_structure = StructureEnum::INVALID;
+    m_contralateralStructure = StructureEnum::INVALID;
+    m_surfaceNumberOfNodes = -1,
+    m_nodeIndex = -1;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
+    m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
+    m_sceneAssistant->add("m_surfaceNumberOfNodes", &m_surfaceNumberOfNodes);
+    m_sceneAssistant->add("m_nodeIndex", &m_nodeIndex);
+    m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
+    m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
+    m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
+}
 
 /**
  * Constructor.
@@ -71,6 +107,15 @@ IdentifiedItemNode::IdentifiedItemNode(const AString& text,
     m_contralateralStructure = contralateralStructure;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes,
     m_nodeIndex = nodeIndex;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
+    m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
+    m_sceneAssistant->add("m_surfaceNumberOfNodes", &m_surfaceNumberOfNodes);
+    m_sceneAssistant->add("m_nodeIndex", &m_nodeIndex);
+    m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
+    m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
+    m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
 }
 
 /**
@@ -78,7 +123,7 @@ IdentifiedItemNode::IdentifiedItemNode(const AString& text,
  */
 IdentifiedItemNode::~IdentifiedItemNode()
 {
-    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -103,7 +148,7 @@ IdentifiedItemNode&
 IdentifiedItemNode::operator=(const IdentifiedItemNode& obj)
 {
     if (this != &obj) {
-        IdentifiedItemNode::operator=(obj);
+        IdentifiedItem::operator=(obj);
         this->copyHelperIdentifiedItemNode(obj);
     }
     return *this;    
@@ -121,6 +166,16 @@ IdentifiedItemNode::copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj)
     m_contralateralStructure = obj.m_contralateralStructure;
     m_surfaceNumberOfNodes = obj.m_surfaceNumberOfNodes;
     m_nodeIndex = obj.m_nodeIndex;
+    
+    m_symbolRGB[0] = obj.m_symbolRGB[0];
+    m_symbolRGB[1] = obj.m_symbolRGB[1];
+    m_symbolRGB[2] = obj.m_symbolRGB[2];
+    
+    m_contralateralSymbolRGB[0] = obj.m_contralateralSymbolRGB[0];
+    m_contralateralSymbolRGB[1] = obj.m_contralateralSymbolRGB[1];
+    m_contralateralSymbolRGB[2] = obj.m_contralateralSymbolRGB[2];
+    
+    m_symbolSize = obj.m_symbolSize;
 }
 
 /**
@@ -235,5 +290,79 @@ IdentifiedItemNode::setSymbolSize(const float symbolSize)
 AString
 IdentifiedItemNode::toString() const
 {
-    return "IdentifiedItemNode";
+    const AString s = (IdentifiedItem::toString()
+                       + ", m_structure=" + StructureEnum::toName(m_structure)
+                       + ", m_contralateralStructure=" + StructureEnum::toName(m_contralateralStructure)
+                       + ", m_surfaceNumberOfNodes=" + AString::number(m_surfaceNumberOfNodes)
+                       + ", m_nodeIndex=" + AString::number(m_nodeIndex));
+    return s;
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+IdentifiedItemNode::saveToScene(const SceneAttributes* sceneAttributes,
+                            const AString& instanceName)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "IdentifiedItemNode",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
+    
+    /*
+     * Save data in parent class.
+     */
+    saveMembers(sceneAttributes,
+                sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+IdentifiedItemNode::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                 const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    /*
+     * Restores data in parent class.
+     */
+    restoreMembers(sceneAttributes,
+                   sceneClass);
+}
+

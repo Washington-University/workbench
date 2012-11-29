@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#define __SELECTION_ITEM_SURFACE_NODE_DECLARE__
 #include "SelectionItemSurfaceNode.h"
-#undef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#undef __SELECTION_ITEM_SURFACE_NODE_DECLARE__
 
 #include "Surface.h"
 

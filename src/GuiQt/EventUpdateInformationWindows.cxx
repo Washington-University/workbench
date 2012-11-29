@@ -1,6 +1,3 @@
-#ifndef __EVENT_INFORMATION_TEXT_DISPLAY_H__
-#define __EVENT_INFORMATION_TEXT_DISPLAY_H__
-
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -25,36 +22,47 @@
  * 
  */ 
 
-#include "Event.h"
+#include "EventUpdateInformationWindows.h"
 
-namespace caret {
+using namespace caret;
 
-    class BrainStructure;
+/**
+ * Construct an event for display text in the information windows.
+ * @param text
+ *   Text that will be displayed.
+ */
+EventUpdateInformationWindows::EventUpdateInformationWindows()
+: Event(EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS)
+{
+    m_important = true;
+}
+
+/**
+ *  Destructor.
+ */
+EventUpdateInformationWindows::~EventUpdateInformationWindows()
+{
     
-    /// Request display of text in the information window(s).
-    class EventInformationTextDisplay : public Event {
-        
-    public:
-        EventInformationTextDisplay(const AString& text);
-        
-        virtual ~EventInformationTextDisplay();
+}
 
-        EventInformationTextDisplay* setNotImportant();
-        
-        bool isImportant() const;
-        
-        AString getText() const;
-        
-    private:
-        EventInformationTextDisplay(const EventInformationTextDisplay&);
-        
-        EventInformationTextDisplay& operator=(const EventInformationTextDisplay&);
+/**
+ * Set the message as not important so that the toolbox
+ * does NOT switch to the information panel.
+ */
+EventUpdateInformationWindows*
+EventUpdateInformationWindows::setNotImportant()
+{
+    m_important = false;
+    return this;
+}
 
-        AString text;
-        
-        bool important;
-    };
-
-} // namespace
-
-#endif // __EVENT_INFORMATION_TEXT_DISPLAY_H__
+/**
+ * @return Is this message important.  If so,
+ * the Toolbox will switch to the information 
+ * display.
+ */
+bool 
+EventUpdateInformationWindows::isImportant() const
+{
+    return m_important;
+}

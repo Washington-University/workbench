@@ -66,7 +66,6 @@ DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFiberTrajectory.h
 DisplayPropertiesFoci.h
-DisplayPropertiesInformation.h
 DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
@@ -91,6 +90,7 @@ FiberOrientationColoringTypeEnum.h
 FiberTrajectoryDisplayModeEnum.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
+IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
 IdentificationWithColor.h
@@ -150,7 +150,6 @@ DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFiberTrajectory.cxx
 DisplayPropertiesFoci.cxx
-DisplayPropertiesInformation.cxx
 DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
@@ -175,6 +174,7 @@ FiberOrientationColoringTypeEnum.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
+IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx

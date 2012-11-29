@@ -51,8 +51,6 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        void processTextEvent(EventInformationTextDisplay* informationEvent);
-        
         void updateInformationDisplayWidget();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

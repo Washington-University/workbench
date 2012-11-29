@@ -40,9 +40,9 @@
 #include "CaretLogger.h"
 #include "EventIdentificationSymbolRemoval.h"
 
-#define __IDENTIFICATION_MANAGER_DECLARE__
+#define __SELECTION_MANAGER_DECLARE__
 #include "SelectionManager.h"
-#undef __IDENTIFICATION_MANAGER_DECLARE__
+#undef __SELECTION_MANAGER_DECLARE__
 
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"

@@ -49,15 +49,21 @@
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventIdentificationSymbolRemoval.h"
-#include "EventInformationTextDisplay.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GuiManager.h"
+#include "IdentifiedItemNode.h"
+#include "IdentificationManager.h"
+#include "LabelFile.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
+#include "Model.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -65,10 +71,6 @@
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
-#include "LabelFile.h"
-#include "Overlay.h"
-#include "OverlaySet.h"
-#include "Model.h"
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
 #include "VolumeFile.h"
@@ -772,7 +774,9 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
 /**
@@ -873,7 +877,9 @@ BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
 /**
@@ -889,7 +895,9 @@ BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
 /**
@@ -935,7 +943,17 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    Surface* surface = surfaceID->getSurface();
+    const StructureEnum::Enum structure = surface->getStructure();
+    
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->addIdentifiedItem(new IdentifiedItemNode(idMessage,
+                                                        structure,
+                                                        StructureEnum::getContralateralStructure(structure),
+                                                        surface->getNumberOfNodes(),
+                                                        surfaceID->getNodeNumber()));
+    
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
 /**
@@ -951,7 +969,9 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
     const AString idMessage = this->identificationManager->getIdentificationText(btc,
                                                                                  brain);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
 /**
@@ -959,8 +979,9 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
  */
 void 
 BrainOpenGLWidgetContextMenu::removeAllNodeIdentificationSymbolsSelected()
-{    
-    EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
+{
+    IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+    idManager->removeAllIdentifiedItems();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

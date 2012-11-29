@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
+#define __SELECTION_ITEM_FOCUS_VOLUME_DECLARE__
 #include "SelectionItemFocusVolume.h"
-#undef __IDENTIFICATION_ITEM_FOCUS_VOLUME_DECLARE__
+#undef __SELECTION_ITEM_FOCUS_VOLUME_DECLARE__
 
 #include "Focus.h"
 #include "FociFile.h"

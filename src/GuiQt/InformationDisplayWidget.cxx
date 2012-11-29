@@ -35,13 +35,13 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
-#include "DisplayPropertiesInformation.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationSymbolRemoval.h"
-#include "EventInformationTextDisplay.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
+#include "IdentificationManager.h"
 #include "SceneClass.h"
 #include "WuQtUtilities.h"
 #include "WuQDataEntryDialog.h"
@@ -151,7 +151,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
      * this dialog, if needed, and then display it.
      */
     EventManager::get()->addProcessedEventListener(this, 
-                                                   EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
+                                                   EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
 }
 
 /**
@@ -170,9 +170,9 @@ void
 InformationDisplayWidget::contralateralIdentificationToggled(bool)
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    info->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
-    InformationDisplayWidget::updateAllInformationDisplayWidgets();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
+    updateAllInformationDisplayWidgets();
 }
 
 /**
@@ -182,9 +182,9 @@ void
 InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    info->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
-    InformationDisplayWidget::updateAllInformationDisplayWidgets();    
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
+    updateAllInformationDisplayWidgets();    
 }
 
 /**
@@ -193,9 +193,10 @@ InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
 void 
 InformationDisplayWidget::clearInformationText()
 {
-    m_informationText = "";
-    m_informationText.reserve(32000);
-    m_informationTextBrowser->setHtml("");
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeIdentificationText();
+    updateAllInformationDisplayWidgets();
 }
 
 
@@ -205,7 +206,10 @@ InformationDisplayWidget::clearInformationText()
 void 
 InformationDisplayWidget::removeIdSymbols()
 {
-    EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeAllIdentifiedItems();
+    updateAllInformationDisplayWidgets();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -216,12 +220,15 @@ void
 InformationDisplayWidget::updateInformationDisplayWidget()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    const AString text = idManager->getIdentificationText();
+    m_informationTextBrowser->setContentToHtml(text);
+    
     m_contralateralIdentificationAction->blockSignals(true);
-    m_contralateralIdentificationAction->setChecked(info->isContralateralIdentificationEnabled());
+    m_contralateralIdentificationAction->setChecked(idManager->isContralateralIdentificationEnabled());
     m_contralateralIdentificationAction->blockSignals(false);
     m_volumeSliceIdentificationAction->blockSignals(true);
-    m_volumeSliceIdentificationAction->setChecked(info->isVolumeIdentificationEnabled());
+    m_volumeSliceIdentificationAction->setChecked(idManager->isVolumeIdentificationEnabled());
     m_volumeSliceIdentificationAction->blockSignals(false);
 }
 
@@ -232,26 +239,7 @@ InformationDisplayWidget::updateAllInformationDisplayWidgets()
          iter != s_allInformationDisplayWidgets.end();
          iter++) {
         InformationDisplayWidget* idw = *iter;
-        if (idw != this) {
-            idw->updateInformationDisplayWidget();
-        }
-    }
-}
-
-/**
- * Process a information display event directly routed to this instance..
- * 
- * @param informationEvent
- *   The information display event.
- */
-void 
-InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informationEvent)
-{
-    const AString text = informationEvent->getText();
-    if (text.isEmpty() == false) {
-        m_informationText.append(informationEvent->getText());
-        m_informationText.append("<br><br>");
-        m_informationTextBrowser->setContentToHtml(m_informationText);
+        idw->updateInformationDisplayWidget();
     }
 }
 
@@ -264,18 +252,14 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
 void 
 InformationDisplayWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
-        EventInformationTextDisplay* textEvent =
-        dynamic_cast<EventInformationTextDisplay*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
+        EventUserInterfaceUpdate* textEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(textEvent);
         
         textEvent->setEventProcessed();
         
-        const AString text = textEvent->getText();
-        if (text.isEmpty() == false) {
-            processTextEvent(textEvent);
-            textEvent->setEventProcessed();
-        }
+        updateInformationDisplayWidget();
     }
     else {
     }
@@ -288,7 +272,7 @@ void
 InformationDisplayWidget::showPropertiesDialog()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    IdentificationManager* info = brain->getIdentificationManager();
     
     WuQDataEntryDialog ded("Symbol Properties",
                            this);
@@ -336,7 +320,7 @@ void
 InformationDisplayWidget::controlInPropertiesDialogChanged()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    IdentificationManager* info = brain->getIdentificationManager();
     info->setIdentificationSymbolColor(m_propertiesDialogIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_propertiesDialogIdContraColorComboBox->getSelectedColor());
     info->setIdentificationSymbolSize(m_propertiesDialogSizeSpinBox->value());

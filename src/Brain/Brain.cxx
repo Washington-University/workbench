@@ -43,7 +43,6 @@
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
-#include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
@@ -59,7 +58,7 @@
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "SelectionManager.h"
+#include "IdentificationManager.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -73,6 +72,7 @@
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 #include "SceneFile.h"
+#include "SelectionManager.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
@@ -111,9 +111,6 @@ Brain::Brain()
     m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
-    m_displayPropertiesInformation = new DisplayPropertiesInformation(this);
-    m_displayProperties.push_back(m_displayPropertiesInformation);
-    
     m_displayPropertiesLabels = new DisplayPropertiesLabels(this);
     m_displayProperties.push_back(m_displayPropertiesLabels);
     
@@ -150,10 +147,6 @@ Brain::Brain()
                           "DisplayPropertiesFoci", 
                           m_displayPropertiesFoci);
     
-    m_sceneAssistant->add("displayPropertiesInformation", 
-                          "DisplayPropertiesInformation", 
-                          m_displayPropertiesInformation);
-    
     m_sceneAssistant->add("m_displayPropertiesLabels",
                           "m_displayPropertiesLabels",
                           m_displayPropertiesLabels);
@@ -166,7 +159,9 @@ Brain::Brain()
                           "DisplayPropertiesVolume", 
                           m_displayPropertiesVolume);
     
-    this->m_selectionManager = new SelectionManager();
+    m_selectionManager = new SelectionManager();
+
+    m_identificationManager = new IdentificationManager(this);
 }
 
 /**
@@ -199,7 +194,8 @@ Brain::~Brain()
         delete m_wholeBrainController;
     }
 
-    delete this->m_selectionManager;
+    delete m_selectionManager;
+    delete m_identificationManager;
 }
 
 /**
@@ -419,6 +415,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         (*iter)->reset();
     }
     
+    m_identificationManager->removeAllIdentifiedItems();
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
     
@@ -3271,24 +3268,6 @@ Brain::getDisplayPropertiesSurface() const
 }
 
 /**
- * @return The information display properties.
- */
-DisplayPropertiesInformation*
-Brain::getDisplayPropertiesInformation()
-{
-    return m_displayPropertiesInformation;
-}
-
-/**
- * @return The information display properties.
- */
-const DisplayPropertiesInformation*
-Brain::getDisplayPropertiesInformation() const
-{
-    return m_displayPropertiesInformation;
-}
-
-/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -3396,6 +3375,9 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(ff->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
                                                          ff->getFileNameNoPath()));
     }
+    
+    sceneClass->addClass(m_identificationManager->saveToScene(sceneAttributes,
+                                                              "m_identificationManager"));
     
     return sceneClass;
 }
@@ -3511,15 +3493,27 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         ff->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
                                                               sceneClass->getClass(ff->getFileNameNoPath()));
     }
+
+    m_identificationManager->restoreFromScene(sceneAttributes,
+                                              sceneClass->getClass("m_identificationManager"));
+}
+
+/**
+ * @return The selection manager.
+ */
+SelectionManager*
+Brain::getSelectionManager()
+{
+    return m_selectionManager;
 }
 
 /**
  * @return The identification manager.
  */
-SelectionManager*
-Brain::getSelectionManager()
+IdentificationManager*
+Brain::getIdentificationManager()
 {
-    return this->m_selectionManager;
+    return m_identificationManager;
 }
 
 

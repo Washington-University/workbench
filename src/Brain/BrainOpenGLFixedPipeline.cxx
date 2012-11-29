@@ -69,7 +69,6 @@
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
-#include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -84,6 +83,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "IdentificationManager.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -1633,10 +1633,10 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     
     const float* coordinates = surface->getCoordinate(0);
 
-    DisplayPropertiesInformation* infoProp = brain->getDisplayPropertiesInformation();
-    const CaretColorEnum::Enum idColor = infoProp->getIdentificationSymbolColor();
-    const CaretColorEnum::Enum idContralateralColor = infoProp->getIdentificationContralateralSymbolColor();
-    const float symbolSize = infoProp->getIdentificationSymbolSize();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    const CaretColorEnum::Enum idColor = idManager->getIdentificationSymbolColor();
+    const CaretColorEnum::Enum idContralateralColor = idManager->getIdentificationContralateralSymbolColor();
+    const float symbolSize = idManager->getIdentificationSymbolSize();
     
     SelectionItemSurfaceNodeIdentificationSymbol* symbolID = 
         m_brain->getSelectionManager()->getSurfaceNodeIdentificationSymbol();

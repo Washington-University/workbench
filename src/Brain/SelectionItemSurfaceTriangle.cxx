@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
+#define __SELECTION_ITEM_SURFACE_TRIANGLE_DECLARE__
 #include "SelectionItemSurfaceTriangle.h"
-#undef __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
+#undef __SELECTION_ITEM_SURFACE_TRIANGLE_DECLARE__
 
 #include <limits>
 #include "Surface.h"

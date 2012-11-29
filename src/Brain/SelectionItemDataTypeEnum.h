@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_DATA_TYPE_ENUM__H_
-#define __IDENTIFICATION_ITEM_DATA_TYPE_ENUM__H_
+#ifndef __SELECTION_ITEM_DATA_TYPE_ENUM__H_
+#define __SELECTION_ITEM_DATA_TYPE_ENUM__H_
 
 /*LICENSE_START*/
 /* 
@@ -120,11 +120,11 @@ private:
     AString guiName;
 };
 
-#ifdef __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
+#ifdef __SELECTION_ITEM_DATA_TYPE_ENUM_DECLARE__
 std::vector<SelectionItemDataTypeEnum> SelectionItemDataTypeEnum::enumData;
 bool SelectionItemDataTypeEnum::initializedFlag = false;
 int32_t SelectionItemDataTypeEnum::integerCodeCounter = 0; 
-#endif // __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
+#endif // __SELECTION_ITEM_DATA_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_DATA_TYPE_ENUM__H_
+#endif  //__SELECTION_ITEM_DATA_TYPE_ENUM__H_

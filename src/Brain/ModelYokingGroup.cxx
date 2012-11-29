@@ -24,9 +24,9 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "DisplayPropertiesInformation.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
+#include "IdentificationManager.h"
 #include "ModelYokingGroup.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -423,7 +423,7 @@ ModelYokingGroup::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
         
-        if (getBrain()->getDisplayPropertiesInformation()->isVolumeIdentificationEnabled()) {
+        if (getBrain()->getIdentificationManager()->isVolumeIdentificationEnabled()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
             float sliceXYZ[3] = {
                 highlighXYZ[0],

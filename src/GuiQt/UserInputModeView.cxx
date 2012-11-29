@@ -41,22 +41,22 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventIdentificationHighlightLocation.h"
-#include "EventIdentificationSymbolRemoval.h"
-#include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "SelectionItemSurfaceNode.h"
-#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
-#include "SelectionItemVoxel.h"
-#include "SelectionManager.h"
+#include "IdentificationManager.h"
+#include "IdentifiedItemNode.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Model.h"
 #include "ModelVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemVoxel.h"
+#include "SelectionManager.h"
 #include "Surface.h"
 #include "TimeLine.h"
 #include "TimeCourseDialog.h"
@@ -174,27 +174,42 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     
-    SelectionManager* idManager =
+    IdentificationManager* identificationManager = brain->getIdentificationManager();
+    
+    SelectionManager* selectionManager =
     openGLWidget->performIdentification(mouseClickX,
                                         mouseClickY,
                                         true);
     
     bool updateGraphicsFlag = false;
+    bool updateInformationFlag = false;
     
     const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
     
-    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     if ((idSymbol->getSurface() != NULL)
         && (idSymbol->getNodeNumber() >= 0)) {
-        EventIdentificationSymbolRemoval idRemoval(idSymbol->getSurface()->getStructure(),
-                                                   idSymbol->getNodeNumber());
-        EventManager::get()->sendEvent(idRemoval.getPointer());
+        const Surface* surface = idSymbol->getSurface();
+        const int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
+        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        const StructureEnum::Enum structure = surface->getStructure();
+        
+        identificationManager->removeIdentifiedNodeItem(structure,
+                                            surfaceNumberOfNodes,
+                                            nodeIndex);
         updateGraphicsFlag = true;
+        updateInformationFlag = true;
     }
     else {
+        IdentifiedItem* identifiedItem = NULL;
+        
+        const BrowserTabContent* btc = NULL;
+        const AString identificationMessage = selectionManager->getIdentificationText(btc,
+                                                                          brain);
+        
         AString ciftiRowColumnInformation;
         
-        SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+        SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
         Surface* surface = idNode->getSurface();
         const int32_t nodeIndex = idNode->getNodeNumber();
         
@@ -204,7 +219,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 /*
                  * Save last selected node which may get used for foci creation.
                  */
-                idManager->setLastSelectedItem(idNode);
+                selectionManager->setLastSelectedItem(idNode);
                 
                 AString nodeRowColInfo;
                 TimeLine timeLine;
@@ -227,8 +242,10 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                         ciftiRowColumnInformation += "<br>";
                     }
                 }
-                ciftiRowColumnInformation += spaces;
-                ciftiRowColumnInformation += timeLineRowColInfo;
+                if (timeLineRowColInfo.isEmpty() == false) {
+                    ciftiRowColumnInformation += spaces;
+                    ciftiRowColumnInformation += timeLineRowColInfo;
+                }
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretAssert(brainStructure);
@@ -246,7 +263,13 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                     xyz[1] = -10000000.0;
                     xyz[2] = -10000000.0;
                 }
-                EventIdentificationHighlightLocation idLocation(idManager,
+                
+                identifiedItem = new IdentifiedItemNode(identificationMessage,
+                                                                    surface->getStructure(),
+                                                                    StructureEnum::getContralateralStructure(surface->getStructure()),
+                                                                    surface->getNumberOfNodes(),
+                                                                    nodeIndex);
+                EventIdentificationHighlightLocation idLocation(selectionManager,
                                                                 brainStructure,
                                                                 brainStructure->getStructure(),
                                                                 nodeIndex,
@@ -269,7 +292,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             }
         }
         
-        SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
+        SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
         if (idVoxel->isValid()) {
             const VolumeFile* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
@@ -278,7 +301,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 float xyz[3];
                 volumeFile->indexToSpace(voxelIJK, xyz);
                 
-                EventIdentificationHighlightLocation idLocation(idManager,
+                EventIdentificationHighlightLocation idLocation(selectionManager,
                                                                 volumeFile,
                                                                 voxelIJK,
                                                                 xyz);
@@ -287,7 +310,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 /*
                  * Save last selected node which may get used for foci creation.
                  */
-                idManager->setLastSelectedItem(idVoxel);
+                selectionManager->setLastSelectedItem(idVoxel);
                 
                 updateGraphicsFlag = true;
                 
@@ -300,8 +323,10 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                             ciftiRowColumnInformation += "<br>";
                         }
                     }
-                    ciftiRowColumnInformation += spaces;
-                    ciftiRowColumnInformation += voxelRowColInfo;
+                    if (voxelRowColInfo.isEmpty() == false) {
+                        ciftiRowColumnInformation += spaces;
+                        ciftiRowColumnInformation += voxelRowColInfo;
+                    }
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
@@ -337,17 +362,18 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
         }
         
         if (ciftiRowColumnInformation.isEmpty() == false) {
-            ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:<br>");
-            EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation).getPointer());
+            ciftiRowColumnInformation.insert(0, "<p>CIFTI Rows loaded:<br>");
+            if (identifiedItem != NULL) {
+                identifiedItem->appendText(ciftiRowColumnInformation);
+            }
+            else {
+                identifiedItem = new IdentifiedItem(ciftiRowColumnInformation);
+            }
         }
-        
+        if (identifiedItem != NULL) {
+            identificationManager->addIdentifiedItem(identifiedItem);
+        }
     }
-    
-    const BrowserTabContent* btc = NULL;
-    const AString idMessage = idManager->getIdentificationText(btc,
-                                                               brain);
-    
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
     
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

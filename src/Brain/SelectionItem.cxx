@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_DECLARE__
+#define __SELECTION_ITEM_DECLARE__
 #include "SelectionItem.h"
-#undef __IDENTIFICATION_ITEM_DECLARE__
+#undef __SELECTION_ITEM_DECLARE__
 #include <limits>
 using namespace caret;
 

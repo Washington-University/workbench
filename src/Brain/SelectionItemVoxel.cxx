@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_VOXEL_DECLARE__
+#define __SELECTION_ITEM_VOXEL_DECLARE__
 #include "SelectionItemVoxel.h"
-#undef __IDENTIFICATION_ITEM_VOXEL_DECLARE__
+#undef __SELECTION_ITEM_VOXEL_DECLARE__
 
 #include "CaretAssert.h"
 #include "VolumeFile.h"

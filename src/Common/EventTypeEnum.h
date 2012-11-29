@@ -72,8 +72,6 @@ public:
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Remove all identification symbols */
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
-        /** Display text in information windows */
-        EVENT_INFORMATION_TEXT_DISPLAY,
         /** request display of map scalar color data mapping editor */
         EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
         /** model display controllers - ADD */
@@ -98,6 +96,8 @@ public:
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */
         EVENT_PROGRESS_UPDATE,
+        /** Update the information windows */
+        EVENT_UPDATE_INFORMATION_WINDOWS,
         /** Update and show the time course dialog */
         EVENT_UPDATE_TIME_COURSE_DIALOG,
         /** Update Animation start time */

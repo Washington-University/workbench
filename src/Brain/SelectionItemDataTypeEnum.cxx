@@ -24,9 +24,9 @@
  */ 
 
 #include <algorithm>
-#define __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
+#define __SELECTION_ITEM_DATA_TYPE_ENUM_DECLARE__
 #include "SelectionItemDataTypeEnum.h"
-#undef __IDENTIFICATION_ITEM_DATA_TYPE_ENUM_DECLARE__
+#undef __SELECTION_ITEM_DATA_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 

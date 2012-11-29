@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
+#define __SELECTION_ITEM_FOCUS_SURFACE_DECLARE__
 #include "SelectionItemFocusSurface.h"
-#undef __IDENTIFICATION_ITEM_FOCUS_SURFACE_DECLARE__
+#undef __SELECTION_ITEM_FOCUS_SURFACE_DECLARE__
 
 #include "FociFile.h"
 #include "Focus.h"

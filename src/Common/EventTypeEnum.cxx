@@ -130,10 +130,6 @@ EventTypeEnum::initialize()
                                      "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
                                      "Remove all identification symbols"));
     
-    enumData.push_back(EventTypeEnum(EVENT_INFORMATION_TEXT_DISPLAY,
-                                     "EVENT_INFORMATION_TEXT_DISPLAY",
-                                     "Display text in information windows"));
-    
     enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
                                      "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
                                      "Request display of map scalar data color mapping editor"));
@@ -182,11 +178,15 @@ EventTypeEnum::initialize()
                                      "EVENT_PROGRESS_UPDATE", 
                                      "Update the progress amount, text, or finished status"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG, 
-                                     "EVENT_UPDATE_TIME_COURSE_DIALOG", 
-                                     "Update the time course dialog after user has selected a node"));
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_INFORMATION_WINDOWS, 
+                                     "EVENT_UPDATE_INFORMATION_WINDOWS", 
+                                     "Update the information windows"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME, 
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG,
+                                     "EVENT_UPDATE_TIME_COURSE_DIALOG",
+                                     "Update the time course dialog after user has selected a node"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME,
                                      "EVENT_UPDATE_ANIMATION_START_TIME", 
                                      "Update the animation start time after user has modified the preference"));
     
