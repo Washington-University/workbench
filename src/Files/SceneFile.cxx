@@ -44,6 +44,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "FileAdapter.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "Scene.h"
 #include "SceneFileSaxReader.h"
@@ -320,8 +321,10 @@ SceneFile::getFileMetaData() const
  *    If there is an error reading the file.
  */
 void 
-SceneFile::readFile(const AString& filename) throw (DataFileException)
+SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
 {
+    FileInformation fileInfo(filenameIn);
+    const AString filename = fileInfo.getFilePath();
     this->setFileName(filename);
     SceneFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
