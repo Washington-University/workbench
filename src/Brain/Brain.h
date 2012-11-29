@@ -137,6 +137,9 @@ namespace caret {
                                  int32_t& borderPointIndexOut,
                                  float& distanceToBorderPointOut) const;
         
+        Surface* getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+                                                              const float tolerance);
+        
         int32_t getNumberOfFociFiles() const;
         
         FociFile* getFociFile(const int32_t indx);

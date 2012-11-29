@@ -117,7 +117,7 @@ SelectionItemSurfaceNode::reset()
 bool 
 SelectionItemSurfaceNode::isValid() const
 {
-    return (m_nodeNumber >= 0);
+    return ((m_surface != NULL) && (m_nodeNumber >= 0));
 }
 
 /**

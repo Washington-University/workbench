@@ -36,8 +36,8 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "EventGraphicsUpdateAllWindows.h"
-#include "EventIdentificationSymbolRemoval.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
@@ -67,6 +67,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     m_propertiesDialogMostRecentSizeSpinBox = NULL;
     
     m_informationTextBrowser = new HyperLinkTextBrowser();
+    m_informationTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
     m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     QAction* clearAction = WuQtUtilities::createAction("Clear", 
                                                        "Clear contents of information display", 
@@ -142,8 +143,11 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     layout->setStretchFactor(idToolBarRight, 0);
     
     s_allInformationDisplayWidgets.insert(this);
+    
+    /*
+     * There may already be identification text, so try to display it.
+     */
     updateInformationDisplayWidget();
-    clearInformationText();
     
     /*
      * Use processed event listener since the text event
@@ -208,7 +212,7 @@ InformationDisplayWidget::removeIdSymbols()
 {
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->removeAllIdentifiedItems();
+    idManager->removeAllIdentifiedNodes();
     updateAllInformationDisplayWidgets();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -252,16 +256,27 @@ InformationDisplayWidget::updateAllInformationDisplayWidgets()
 void 
 InformationDisplayWidget::receiveEvent(Event* event)
 {
+    bool doUpdate = false;
+    
     if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
-        EventUserInterfaceUpdate* textEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        EventUpdateInformationWindows* textEvent =
+        dynamic_cast<EventUpdateInformationWindows*>(event);
         CaretAssert(textEvent);
-        
         textEvent->setEventProcessed();
         
-        updateInformationDisplayWidget();
+        doUpdate = true;
     }
-    else {
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiUpdateEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiUpdateEvent);
+        uiUpdateEvent->setEventProcessed();
+        
+        doUpdate = true;
+    }
+    
+    if (doUpdate) {
+        updateInformationDisplayWidget();
     }
 }
 

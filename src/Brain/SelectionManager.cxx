@@ -38,7 +38,6 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventIdentificationSymbolRemoval.h"
 
 #define __SELECTION_MANAGER_DECLARE__
 #include "SelectionManager.h"
@@ -144,17 +143,8 @@ SelectionManager::~SelectionManager()
 void
 SelectionManager::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
-        EventIdentificationSymbolRemoval* removeIdEvent =
-        dynamic_cast<EventIdentificationSymbolRemoval*>(event);
-        CaretAssert(removeIdEvent);
-        
-        /*
-         * Remove last event since all ID symbols being removed
-         */
-        setLastSelectedItem(NULL);
-    }
 }
+
 /**
  * Filter selections to arbitrate between triangle/node
  * and to remove any selections behind another selection.

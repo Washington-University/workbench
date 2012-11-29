@@ -125,8 +125,8 @@ IdentificationManager::getIdentificationText() const
          iter != m_identifiedItems.end();
          iter++) {
         const IdentifiedItem* item = *iter;
-        if (text.isEmpty()) {
-            text += "<p>";
+        if (text.isEmpty() == false) {
+            text += "<P></P>";
         }
         text += item->getText();
     }
@@ -244,6 +244,33 @@ IdentificationManager::removeAllIdentifiedItems()
     m_identifiedItems.clear();
     
     m_mostRecentIdentifiedItem = NULL;
+}
+
+/**
+ * Remove all identified nodes.
+ */
+void
+IdentificationManager::removeAllIdentifiedNodes()
+{
+    std::list<IdentifiedItem*> itemsToKeep;
+    
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
+         iter++) {
+        IdentifiedItem* item = *iter;
+        IdentifiedItemNode* nodeItem = dynamic_cast<IdentifiedItemNode*>(item);
+        if (nodeItem != NULL) {
+            if (m_mostRecentIdentifiedItem == nodeItem) {
+                m_mostRecentIdentifiedItem = NULL;
+            }
+            delete nodeItem;
+        }
+        else {
+            itemsToKeep.push_back(item);
+        }
+    }
+    
+    m_identifiedItems = itemsToKeep;
 }
 
 /**

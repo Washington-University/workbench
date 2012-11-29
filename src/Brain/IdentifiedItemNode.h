@@ -92,6 +92,8 @@ namespace caret {
     private:
         void copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj);
 
+        void initializeMembers();
+        
         // ADD_NEW_MEMBERS_HERE
         
         StructureEnum::Enum m_structure;

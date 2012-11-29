@@ -69,6 +69,8 @@ namespace caret {
         
         void removeAllIdentifiedItems();
         
+        void removeAllIdentifiedNodes();
+        
         bool isContralateralIdentificationEnabled() const;
         
         void setContralateralIdentificationEnabled(const bool enabled);

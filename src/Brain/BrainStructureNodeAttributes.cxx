@@ -75,49 +75,13 @@ BrainStructureNodeAttributes::toString() const
 void 
 BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
 {
-    if (numberOfNodes > 0) {
-        m_identificationType.resize(numberOfNodes);
-        this->setAllIdentificationNone();
-    }
-    else {
-        m_identificationType.clear();
-    }
-}
-
-void 
-BrainStructureNodeAttributes::setAllIdentificationNone()
-{
-    std::fill(m_identificationType.begin(),
-              m_identificationType.end(),
-              NodeIdentificationTypeEnum::NONE);
-}
-
-/**
- * Get the identification type for the given node.
- * @param nodeIndex
- *     Number of node.
- * @return The selected status of the node.
- */
-NodeIdentificationTypeEnum::Enum 
-BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeIndex) const
-{
-    CaretAssertVectorIndex(m_identificationType, nodeIndex);
-    return m_identificationType[nodeIndex];
-}
-
-/**
- * Set the identification type for the given node.
- * @param nodeIndex
- *     Number of node.
- * @param selectedStatus
- *    New selected status.
- */
-void 
-BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeIndex,
-                                                    const NodeIdentificationTypeEnum::Enum identificationType)
-{
-    CaretAssertVectorIndex(m_identificationType, nodeIndex);
-    m_identificationType[nodeIndex] = identificationType;    
+//    if (numberOfNodes > 0) {
+//        m_identificationType.resize(numberOfNodes);
+//        this->setAllIdentificationNone();
+//    }
+//    else {
+//        m_identificationType.clear();
+//    }
 }
 
 /**
@@ -140,24 +104,6 @@ BrainStructureNodeAttributes::saveToScene(const SceneAttributes* /*sceneAttribut
                                             "BrainStructureNodeAttributes",
                                             1);
     
-    SceneObjectMapIntegerKey* idObjectMap = new SceneObjectMapIntegerKey("m_identificationType",
-                                                                         SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE);
-    const int32_t numNodes = static_cast<int32_t>(m_identificationType.size());
-    for (int32_t i = 0; i < numNodes; i++) {
-        const NodeIdentificationTypeEnum::Enum idType= m_identificationType[i];
-        switch (idType) {
-            case NodeIdentificationTypeEnum::NONE:
-                break;
-            case NodeIdentificationTypeEnum::CONTRALATERAL:
-            case NodeIdentificationTypeEnum::NORMAL:
-                idObjectMap->addEnumeratedType<NodeIdentificationTypeEnum,NodeIdentificationTypeEnum::Enum>(i, idType);
-                break;
-        }
-    }
-    sceneClass->addChild(idObjectMap);
-
-    sceneClass->addInteger("numberOfNodes", 
-                           numNodes);
     
     return sceneClass;
 }
@@ -180,19 +126,6 @@ BrainStructureNodeAttributes::restoreFromScene(const SceneAttributes* /*sceneAtt
 {
     if (sceneClass == NULL) {
         return;
-    }
-    
-    setAllIdentificationNone();
-    
-    const int32_t numNodes = sceneClass->getIntegerValue("numberOfNodes", 0);
-    if (numNodes == static_cast<int32_t>(m_identificationType.size())) {
-        const SceneObjectMapIntegerKey* idObjectMap = sceneClass->getMapIntegerKey("m_identificationType");
-        const std::vector<int32_t> keys = idObjectMap->getKeys();
-        const int32_t numKeys = static_cast<int32_t>(keys.size());
-        for (int32_t i = 0; i < numKeys; i++) {
-            const int32_t nodeIndex = keys[i];
-            m_identificationType[nodeIndex] = idObjectMap->getEnumeratedTypeValue<NodeIdentificationTypeEnum,NodeIdentificationTypeEnum::Enum>(nodeIndex);
-        }
-    }
+    }    
 }
 

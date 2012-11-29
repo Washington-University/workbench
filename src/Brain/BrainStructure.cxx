@@ -37,8 +37,6 @@
 #include "CaretPreferences.h"
 #include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventIdentificationHighlightLocation.h"
-#include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventModelAdd.h"
@@ -965,118 +963,6 @@ BrainStructure::receiveEvent(Event* event)
         }
         
         dataFilesEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
-        EventIdentificationHighlightLocation* idLocationEvent =
-        dynamic_cast<EventIdentificationHighlightLocation*>(event);
-        CaretAssert(idLocationEvent);
-
-        //const bool contralateralIdEnabled = SessionManager::get()->getCaretPreferences()->isContralateralIdentificationEnabled();
-        IdentificationManager* idm = m_brain->getIdentificationManager();
-        const bool contralateralIdEnabled = idm->isContralateralIdentificationEnabled();
-        
-        NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
-        int32_t highlighNodeIndex = -1;
-        
-        BrainStructure* contralateralBrainStructure = NULL;
-        int32_t contralateralHighlightNodeIndex = -1;
-        Surface* contralateralSurface = NULL;
-        NodeIdentificationTypeEnum::Enum contralateralIdentificationType = NodeIdentificationTypeEnum::NONE;
-        
-        switch (idLocationEvent->getIdentificationType()) {
-            case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
-                if ((idLocationEvent->getSurfaceStructure() == getStructure()) 
-                    && (idLocationEvent->getSurfaceNumberOfNodes() == getNumberOfNodes())) { 
-                    highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                    identificationType = NodeIdentificationTypeEnum::NORMAL;
-                }
-                else if (contralateralIdEnabled) {
-                    if (getNumberOfNodes() == idLocationEvent->getSurfaceNumberOfNodes()) {
-                        if (StructureEnum::isCortexContralateral(getStructure(), 
-                                                                 idLocationEvent->getSurfaceStructure())) {
-                            highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                            identificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
-                        }
-                    }
-                }
-                break;
-            case EventIdentificationHighlightLocation::IDENTIFICATION_VOLUME:
-            {
-                const Surface* s = getVolumeInteractionSurface();
-                if (s != NULL) {
-                    const float* xyz = idLocationEvent->getXYZ();
-                    const float toleranceDistance = 10.0;
-                    int32_t nearestNodeIndex = s->closestNode(xyz, toleranceDistance);
-                    if (nearestNodeIndex >= 0) {
-                        highlighNodeIndex = nearestNodeIndex;
-                        identificationType = NodeIdentificationTypeEnum::NORMAL;
-                    }
-                    if (contralateralIdEnabled 
-                        && (highlighNodeIndex >= 0)) {
-                        const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(getStructure());
-                        if (contralateralStructure != StructureEnum::INVALID) {
-                            contralateralBrainStructure = m_brain->getBrainStructure(contralateralStructure,
-                                                                                        false);
-                            if (contralateralBrainStructure != NULL) {
-                                contralateralSurface = contralateralBrainStructure->getVolumeInteractionSurface();
-                                if (contralateralSurface != NULL) {
-                                    if (getNumberOfNodes() == contralateralSurface->getNumberOfNodes()) {
-                                        contralateralHighlightNodeIndex = highlighNodeIndex;
-                                        contralateralIdentificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-                break;
-        }
-        
-        SelectionManager* idManager = idLocationEvent->getSelectionManager();
-        if (highlighNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = getNodeAttributes();
-            nodeAtts->setIdentificationType(highlighNodeIndex,
-                                            identificationType);
-            idManager->addAdditionalSurfaceNodeIdentification(getVolumeInteractionSurface(), 
-                                                              highlighNodeIndex,
-                                                              (identificationType == NodeIdentificationTypeEnum::CONTRALATERAL));
-            idLocationEvent->setEventProcessed();
-        }
-        if (contralateralHighlightNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = contralateralBrainStructure->getNodeAttributes();
-            nodeAtts->setIdentificationType(contralateralHighlightNodeIndex,
-                                            contralateralIdentificationType);
-            idManager->addAdditionalSurfaceNodeIdentification(contralateralSurface, 
-                                                              contralateralHighlightNodeIndex,
-                                                              true);
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
-        EventIdentificationSymbolRemoval* idRemovalEvent =
-            dynamic_cast<EventIdentificationSymbolRemoval*>(event);
-        CaretAssert(idRemovalEvent);
-        
-        if (idRemovalEvent->isRemoveAllSurfaceSymbols()) {
-            m_nodeAttributes->setAllIdentificationNone();
-        }
-        else if (idRemovalEvent->isRemoveSurfaceNodeSymbol()) {
-            const StructureEnum::Enum idStructure = idRemovalEvent->getSurfaceStructure();
-            const int32_t idNodeNumber = idRemovalEvent->getSurfaceNodeNumber();
-            if (idStructure == m_structure) {
-                if (idNodeNumber < getNumberOfNodes()) {
-                    m_nodeAttributes->setIdentificationType(idNodeNumber,
-                                                                NodeIdentificationTypeEnum::NONE);
-                }
-            }
-            else if (m_structure == StructureEnum::getContralateralStructure(idStructure)) {
-                if (idNodeNumber < getNumberOfNodes()) {
-                    m_nodeAttributes->setIdentificationType(idNodeNumber,
-                                                                NodeIdentificationTypeEnum::NONE);
-                }
-            }
-        }
-        idRemovalEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_SURFACES_GET) {
         EventSurfacesGet* getSurfacesEvent =

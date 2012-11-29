@@ -59,6 +59,7 @@
 #include "FociFile.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
+#include "MathFunctions.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -1962,6 +1963,44 @@ Brain::getVolumeInteractionSurfaceFiles() const
                         surfaces.end());
     
     return surfaceFiles;
+}
+
+/**
+ * Get the volume interaction surface nearest the given coordinate and
+ * within the given tolerance.
+ *
+ * @param xyz
+ *     The coordinate.
+ * @param tolerance
+ *     The tolerance (if negative tolerance is ignored).
+ * @return
+ *     Nearest surface or NULL if nearest surface not within tolerance.
+ */
+Surface*
+Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+                                                      const float tolerance)
+{
+    Surface* nearestSurface = NULL;
+    float nearestDistance = ((tolerance > 0.0)
+                             ? tolerance
+                             : std::numeric_limits<float>::max());
+    
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        Surface* surface = m_brainStructures[i]->getVolumeInteractionSurface();
+        const int32_t nodeIndex = surface->closestNode(xyz,
+                                                tolerance);
+        if (nodeIndex >= 0) {
+            const float dist = MathFunctions::distanceSquared3D(xyz,
+                                                                surface->getCoordinate(nodeIndex));
+            if (dist < nearestDistance) {
+                nearestDistance = dist;
+                nearestSurface = surface;
+            }
+        }
+    }
+    
+    return nearestSurface;
 }
 
 /**

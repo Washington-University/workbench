@@ -66,19 +66,7 @@ using namespace caret;
 IdentifiedItemNode::IdentifiedItemNode()
 : IdentifiedItem()
 {
-    m_structure = StructureEnum::INVALID;
-    m_contralateralStructure = StructureEnum::INVALID;
-    m_surfaceNumberOfNodes = -1,
-    m_nodeIndex = -1;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
-    m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
-    m_sceneAssistant->add("m_surfaceNumberOfNodes", &m_surfaceNumberOfNodes);
-    m_sceneAssistant->add("m_nodeIndex", &m_nodeIndex);
-    m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
-    m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
-    m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
+    initializeMembers();
 }
 
 /**
@@ -103,19 +91,12 @@ IdentifiedItemNode::IdentifiedItemNode(const AString& text,
                                        const int32_t nodeIndex)
 : IdentifiedItem(text)
 {
+    initializeMembers();
+    
     m_structure = structure;
     m_contralateralStructure = contralateralStructure;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes,
     m_nodeIndex = nodeIndex;
-    
-    m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
-    m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
-    m_sceneAssistant->add("m_surfaceNumberOfNodes", &m_surfaceNumberOfNodes);
-    m_sceneAssistant->add("m_nodeIndex", &m_nodeIndex);
-    m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
-    m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
-    m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
 }
 
 /**
@@ -134,6 +115,7 @@ IdentifiedItemNode::~IdentifiedItemNode()
 IdentifiedItemNode::IdentifiedItemNode(const IdentifiedItemNode& obj)
 : IdentifiedItem(obj)
 {
+    initializeMembers();
     this->copyHelperIdentifiedItemNode(obj);
 }
 
@@ -176,6 +158,27 @@ IdentifiedItemNode::copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj)
     m_contralateralSymbolRGB[2] = obj.m_contralateralSymbolRGB[2];
     
     m_symbolSize = obj.m_symbolSize;
+}
+
+/**
+ * Initialize members of this class.
+ */
+void
+IdentifiedItemNode::initializeMembers()
+{
+    m_structure = StructureEnum::INVALID;
+    m_contralateralStructure = StructureEnum::INVALID;
+    m_surfaceNumberOfNodes = -1,
+    m_nodeIndex = -1;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
+    m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
+    m_sceneAssistant->add("m_surfaceNumberOfNodes", &m_surfaceNumberOfNodes);
+    m_sceneAssistant->add("m_nodeIndex", &m_nodeIndex);
+    m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
+    m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
+    m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
 }
 
 /**

@@ -33,7 +33,6 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
-#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderManager.h"
@@ -43,11 +42,13 @@
 #include "EventIdentificationHighlightLocation.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "IdentifiedItemNode.h"
+#include "IdentificationStringBuilder.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelYokingGroup.h"
 #include "MouseEvent.h"
@@ -183,9 +184,9 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     
     bool updateGraphicsFlag = false;
     bool updateInformationFlag = false;
+    std::vector<AString> ciftiLoadingInfo;
     
-    const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
-    
+    const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
     SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     if ((idSymbol->getSurface() != NULL)
         && (idSymbol->getNodeNumber() >= 0)) {
@@ -204,48 +205,55 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
         IdentifiedItem* identifiedItem = NULL;
         
         const BrowserTabContent* btc = NULL;
-        const AString identificationMessage = selectionManager->getIdentificationText(btc,
-                                                                          brain);
-        
-        AString ciftiRowColumnInformation;
-        
         SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
-        Surface* surface = idNode->getSurface();
-        const int32_t nodeIndex = idNode->getNodeNumber();
+        SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
         
-        if ((surface != NULL) &&
-            (nodeIndex >= 0)) {
+        /*
+         * If there is a voxel ID but no node ID, identify a 
+         * node near the voxel coordinate, if it is close by.
+         */
+        if (idNode->isValid() == false) {
+            if (idVoxel->isValid()) {
+                double doubleXYZ[3];
+                idVoxel->getModelXYZ(doubleXYZ);
+                const float voxelXYZ[3] = {
+                    doubleXYZ[0],
+                    doubleXYZ[1],
+                    doubleXYZ[2]
+                };
+                Surface* surface = brain->getVolumeInteractionSurfaceNearestCoordinate(voxelXYZ,
+                                                                                       3.0);
+                if (surface != NULL) {
+                    const int nodeIndex = surface->closestNode(voxelXYZ);
+                    if (nodeIndex >= 0) {
+                        idNode->reset();
+                        idNode->setBrain(brain);
+                        idNode->setSurface(surface);
+                        idNode->setNodeNumber(nodeIndex);
+                        idNode->setContralateral(false);
+                    }
+                }
+            }
+        }
+        const AString identificationMessage = selectionManager->getIdentificationText(btc,
+                                                                                      brain);
+        
+        bool issuedIdentificationLocationEvent = false;
+        if (idNode->isValid()) {
+            Surface* surface = idNode->getSurface();
+            const int32_t nodeIndex = idNode->getNodeNumber();
             try {
                 /*
                  * Save last selected node which may get used for foci creation.
                  */
                 selectionManager->setLastSelectedItem(idNode);
                 
-                AString nodeRowColInfo;
                 TimeLine timeLine;
-                connMan->loadDataForSurfaceNode(surface, nodeIndex, &nodeRowColInfo);
-                if (ciftiRowColumnInformation.isEmpty() == false) {
-                    if (ciftiRowColumnInformation.isEmpty() == false) {
-                        ciftiRowColumnInformation += "<br>";
-                    }
-                }
-                ciftiRowColumnInformation += spaces;
-                ciftiRowColumnInformation += nodeRowColInfo;
+                connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
                 
-                AString timeLineRowColInfo;
                 surface->getTimeLineInformation(nodeIndex,timeLine);
-                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, &timeLineRowColInfo);
+                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
                 updateGraphicsFlag = true;
-                
-                if (ciftiRowColumnInformation.isEmpty() == false) {
-                    if (ciftiRowColumnInformation.isEmpty() == false) {
-                        ciftiRowColumnInformation += "<br>";
-                    }
-                }
-                if (timeLineRowColInfo.isEmpty() == false) {
-                    ciftiRowColumnInformation += spaces;
-                    ciftiRowColumnInformation += timeLineRowColInfo;
-                }
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretAssert(brainStructure);
@@ -269,13 +277,17 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                                                                     StructureEnum::getContralateralStructure(surface->getStructure()),
                                                                     surface->getNumberOfNodes(),
                                                                     nodeIndex);
-                EventIdentificationHighlightLocation idLocation(selectionManager,
-                                                                brainStructure,
-                                                                brainStructure->getStructure(),
-                                                                nodeIndex,
-                                                                brainStructure->getNumberOfNodes(),
-                                                                xyz);
-                EventManager::get()->sendEvent(idLocation.getPointer());
+                if (issuedIdentificationLocationEvent == false) {
+                    EventIdentificationHighlightLocation idLocation(selectionManager,
+                                                                    brainStructure,
+                                                                    brainStructure->getStructure(),
+                                                                    nodeIndex,
+                                                                    brainStructure->getNumberOfNodes(),
+                                                                    xyz);
+                    EventManager::get()->sendEvent(idLocation.getPointer());
+                    issuedIdentificationLocationEvent = true;
+                }
+                
                 QList <TimeLine> tlV;
                 connMan->getSurfaceTimeLines(tlV);
                 if(tlV.size()!=0)
@@ -292,7 +304,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             }
         }
         
-        SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
         if (idVoxel->isValid()) {
             const VolumeFile* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
@@ -301,12 +312,15 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 float xyz[3];
                 volumeFile->indexToSpace(voxelIJK, xyz);
                 
-                EventIdentificationHighlightLocation idLocation(selectionManager,
-                                                                volumeFile,
-                                                                voxelIJK,
-                                                                xyz);
-                EventManager::get()->sendEvent(idLocation.getPointer());
-                                
+                if (issuedIdentificationLocationEvent == false) {
+                    EventIdentificationHighlightLocation idLocation(selectionManager,
+                                                                    volumeFile,
+                                                                    voxelIJK,
+                                                                    xyz);
+                    EventManager::get()->sendEvent(idLocation.getPointer());
+                    issuedIdentificationLocationEvent = true;
+                }
+                
                 /*
                  * Save last selected node which may get used for foci creation.
                  */
@@ -315,18 +329,8 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 updateGraphicsFlag = true;
                 
                 try {
-                    AString voxelRowColInfo;
                     connMan->loadDataForVoxelAtCoordinate(xyz,
-                                                          &voxelRowColInfo);
-                    if (ciftiRowColumnInformation.isEmpty() == false) {
-                        if (ciftiRowColumnInformation.isEmpty() == false) {
-                            ciftiRowColumnInformation += "<br>";
-                        }
-                    }
-                    if (voxelRowColInfo.isEmpty() == false) {
-                        ciftiRowColumnInformation += spaces;
-                        ciftiRowColumnInformation += voxelRowColInfo;
-                    }
+                                                          ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
@@ -334,16 +338,8 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                     cursor.showWaitCursor();
                 }
                 try {
-                    AString voxelTimeLineRowColInfo;
                     connMan->loadTimeLineForVoxelAtCoordinate(xyz,
-                                                              &voxelTimeLineRowColInfo);
-                    if (ciftiRowColumnInformation.isEmpty() == false) {
-                        if (ciftiRowColumnInformation.isEmpty() == false) {
-                            ciftiRowColumnInformation += "<br>";
-                        }
-                    }
-                    ciftiRowColumnInformation += spaces;
-                    ciftiRowColumnInformation += voxelTimeLineRowColInfo;
+                                                              ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
@@ -358,21 +354,44 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
+            }            
+        }
+        
+        if (identifiedItem == NULL) {
+            if (identificationMessage.isEmpty() == false) {
+                identifiedItem = new IdentifiedItem(identificationMessage);
             }
         }
         
-        if (ciftiRowColumnInformation.isEmpty() == false) {
-            ciftiRowColumnInformation.insert(0, "<p>CIFTI Rows loaded:<br>");
+        AString ciftiInfo;
+        if (ciftiLoadingInfo.empty() == false) {
+            IdentificationStringBuilder ciftiIdStringBuilder;
+            ciftiIdStringBuilder.addLine(false, "CIFTI Rows loaded", " ");
+            for (std::vector<AString>::iterator iter = ciftiLoadingInfo.begin();
+                 iter != ciftiLoadingInfo.end();
+                 iter++) {
+                ciftiIdStringBuilder.addLine(true, *iter);
+            }
+            
+            ciftiInfo = ciftiIdStringBuilder.toString();
+        }
+        if (ciftiInfo.isEmpty() == false) {
             if (identifiedItem != NULL) {
-                identifiedItem->appendText(ciftiRowColumnInformation);
+                identifiedItem->appendText(ciftiInfo);
             }
             else {
-                identifiedItem = new IdentifiedItem(ciftiRowColumnInformation);
+                identifiedItem = new IdentifiedItem(ciftiInfo);
             }
         }
+        
         if (identifiedItem != NULL) {
             identificationManager->addIdentifiedItem(identifiedItem);
-        }
+            updateInformationFlag = true;
+        }        
+    }
+    
+    if (updateInformationFlag) {
+        EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
     }
     
     if (updateGraphicsFlag) {
@@ -401,180 +420,6 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                       openGLWidget,
                                                       mouseEvent->getX(),
                                                       mouseEvent->getY());
-//    CursorDisplayScoped cursor;
-//    cursor.showWaitCursor();
-//    
-//    Brain* brain = GuiManager::get()->getBrain();
-//    ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
-//    
-//    SelectionManager* idManager =
-//        openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
-//    
-//    bool updateGraphicsFlag = false;
-//    
-//    const QString spaces("&nbsp;&nbsp;&nbsp;&nbsp;");
-//    
-//    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
-//    if ((idSymbol->getSurface() != NULL)
-//        && (idSymbol->getNodeNumber() >= 0)) {
-//        EventIdentificationSymbolRemoval idRemoval(idSymbol->getSurface()->getStructure(),
-//                                                   idSymbol->getNodeNumber());
-//        EventManager::get()->sendEvent(idRemoval.getPointer());
-//        updateGraphicsFlag = true;
-//    }
-//    else {
-//        AString ciftiRowColumnInformation;
-//        
-//        SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
-//        Surface* surface = idNode->getSurface();
-//        const int32_t nodeIndex = idNode->getNodeNumber();
-//
-//        if ((surface != NULL) &&
-//            (nodeIndex >= 0)) {
-//            try {
-//                AString nodeRowColInfo;
-//                TimeLine timeLine;
-//                connMan->loadDataForSurfaceNode(surface, nodeIndex, &nodeRowColInfo);
-//                if (ciftiRowColumnInformation.isEmpty() == false) {
-//                    if (ciftiRowColumnInformation.isEmpty() == false) {
-//                        ciftiRowColumnInformation += "<br>";
-//                    }
-//                }
-//                ciftiRowColumnInformation += spaces;
-//                ciftiRowColumnInformation += nodeRowColInfo;
-//
-//                AString timeLineRowColInfo;
-//                surface->getTimeLineInformation(nodeIndex,timeLine);
-//                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, &timeLineRowColInfo);
-//                updateGraphicsFlag = true;
-//                
-//                if (ciftiRowColumnInformation.isEmpty() == false) {
-//                    if (ciftiRowColumnInformation.isEmpty() == false) {
-//                        ciftiRowColumnInformation += "<br>";
-//                    }
-//                }
-//                ciftiRowColumnInformation += spaces;
-//                ciftiRowColumnInformation += timeLineRowColInfo;
-//                
-//                BrainStructure* brainStructure = surface->getBrainStructure();
-//                CaretAssert(brainStructure);
-//                
-//                float xyz[3];
-//                const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
-//                if (volumeInteractionSurface != NULL) {
-//                    volumeInteractionSurface->getCoordinate(nodeIndex,
-//                                                            xyz);
-//                }
-//                else {
-//                    CaretLogWarning("No surface/volume interaction surface for "
-//                                    + StructureEnum::toGuiName(brainStructure->getStructure()));
-//                    xyz[0] = -10000000.0;
-//                    xyz[1] = -10000000.0;
-//                    xyz[2] = -10000000.0;
-//                }
-//                EventIdentificationHighlightLocation idLocation(idManager,
-//                                                                brainStructure,
-//                                                                brainStructure->getStructure(),
-//                                                                nodeIndex,
-//                                                                brainStructure->getNumberOfNodes(),
-//                                                                xyz);
-//                EventManager::get()->sendEvent(idLocation.getPointer());                
-//                QList <TimeLine> tlV;
-//                connMan->getSurfaceTimeLines(tlV);
-//                if(tlV.size()!=0)
-//                {                    
-//                    GuiManager::get()->addTimeLines(tlV);                    
-//                }
-//                EventUpdateTimeCourseDialog e;
-//                EventManager::get()->sendEvent(e.getPointer());
-//            }
-//            catch (const DataFileException& e) {
-//                cursor.restoreCursor();
-//                QMessageBox::critical(openGLWidget, "", e.whatString());
-//                cursor.showWaitCursor();
-//            }
-//        }
-//        
-//        const SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
-//        if (idVoxel->isValid()) {
-//            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
-//            int64_t voxelIJK[3];
-//            idVoxel->getVoxelIJK(voxelIJK);
-//            if (volumeFile != NULL) {
-//                float xyz[3];
-//                volumeFile->indexToSpace(voxelIJK, xyz);
-//                
-//                EventIdentificationHighlightLocation idLocation(idManager,
-//                                                                volumeFile,
-//                                                                voxelIJK,
-//                                                                xyz);
-//                EventManager::get()->sendEvent(idLocation.getPointer());
-//                                
-//                updateGraphicsFlag = true;
-//                
-//                try {
-//                    AString voxelRowColInfo;
-//                    connMan->loadDataForVoxelAtCoordinate(xyz,
-//                                                          &voxelRowColInfo);
-//                    if (ciftiRowColumnInformation.isEmpty() == false) {
-//                        if (ciftiRowColumnInformation.isEmpty() == false) {
-//                            ciftiRowColumnInformation += "<br>";
-//                        }
-//                    }
-//                    ciftiRowColumnInformation += spaces;
-//                    ciftiRowColumnInformation += voxelRowColInfo;
-//                }
-//                catch (const DataFileException& e) {
-//                    cursor.restoreCursor();
-//                    QMessageBox::critical(openGLWidget, "", e.whatString());
-//                    cursor.showWaitCursor();
-//                }
-//                try {
-//                    AString voxelTimeLineRowColInfo;
-//                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
-//                                                              &voxelTimeLineRowColInfo);
-//                    if (ciftiRowColumnInformation.isEmpty() == false) {
-//                        if (ciftiRowColumnInformation.isEmpty() == false) {
-//                            ciftiRowColumnInformation += "<br>";
-//                        }
-//                    }
-//                    ciftiRowColumnInformation += spaces;
-//                    ciftiRowColumnInformation += voxelTimeLineRowColInfo;
-//                }
-//                catch (const DataFileException& e) {
-//                    cursor.restoreCursor();
-//                    QMessageBox::critical(openGLWidget, "", e.whatString());
-//                    cursor.showWaitCursor();
-//                }
-//                QList <TimeLine> tlV;
-//                connMan->getVolumeTimeLines(tlV);
-//                if(tlV.size()!=0)
-//                {
-//                    GuiManager::get()->addTimeLines(tlV);                    
-//                }
-//                EventUpdateTimeCourseDialog e;
-//                EventManager::get()->sendEvent(e.getPointer());
-//            }
-//        }
-//        
-//        if (ciftiRowColumnInformation.isEmpty() == false) {
-//            ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:<br>");
-//            EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation).getPointer());                    
-//        }
-//        
-//    }
-//    
-//    const BrowserTabContent* btc = NULL;
-//    const AString idMessage = idManager->getIdentificationText(btc,
-//                                                               brain);
-//    
-//    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
-//
-//    if (updateGraphicsFlag) {
-//        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-//    }
 }
 
 /**

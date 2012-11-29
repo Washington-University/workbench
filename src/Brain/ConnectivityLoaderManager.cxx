@@ -87,20 +87,17 @@ ConnectivityLoaderManager::~ConnectivityLoaderManager()
  * @param nodeIndex
  *    Index of the surface node.
  * @param rowColumnInformationOut
- *    If not NULL, the string will be contain information listing the 
- *    row/column that corresponds to the surface node.
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                                   const int32_t nodeIndex,
-                                                  AString* rowColumnInformationOut) throw (DataFileException)
+                                                  std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
-    
-    AString rowColText;
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
@@ -112,17 +109,11 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
             const int64_t rowIndex = clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
             haveData = true;
             
-            if ((rowColumnInformationOut != NULL)
-                && (rowIndex >= 0)) {
+            if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node 
                  */
-                if (rowColText.isEmpty() == false) {
-                    rowColText += "\n";
-                }
-                
-                rowColText += ("   "
-                               + clf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
                                + " nodeIndex="
                                + AString::number(nodeIndex)
                                + ", row index= "
@@ -132,10 +123,6 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
             m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
                                                         nodeIndex);
         }
-    }
-    
-    if (rowColumnInformationOut != NULL) {
-        *rowColumnInformationOut = rowColText;
     }
     
     /*
@@ -248,19 +235,17 @@ ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFil
  * @param xyz
  *     Coordinate of voxel.
  * @param rowColumnInformationOut
- *    If not NULL, the string will be contain information listing the 
- *    row/column that corresponds to the voxel.
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
 ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
-                                                        AString* rowColumnInformationOut) throw (DataFileException)
+                                                        std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
-    AString rowColText;
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
@@ -270,17 +255,11 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
             const int64_t rowIndex = clf->loadDataForVoxelAtCoordinate(xyz);
             haveData = true;
             m_denseDataLoadedForScene.setVolumeLoading(xyz);
-            if ((rowColumnInformationOut != NULL)
-                && (rowIndex >= 0)) {
+            if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node 
                  */
-                if (rowColText.isEmpty() == false) {
-                    rowColText += "\n";
-                }
-                
-                rowColText += ("   "
-                               + clf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
                                + " Voxel XYZ="
                                + AString::fromNumbers(xyz, 3, ",")
                                + ", row index= "
@@ -294,9 +273,6 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
-    if (rowColumnInformationOut != NULL) {
-        *rowColumnInformationOut = rowColText;
-    }
     return haveData;
 }
 
@@ -506,8 +482,7 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
  * @param timeLine
  *    Output timeline.
  * @param rowColumnInformationOut
- *    If not NULL, the string will be contain information listing the 
- *    row/column that corresponds to the surface node.
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
@@ -515,11 +490,9 @@ bool
 ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
                                                       const int32_t nodeIndex,
                                                       const TimeLine &timeLine,
-                                                      AString* rowColumnInformationOut) throw (DataFileException)
+                                                      std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     bool haveData = false;
-    
-    AString rowColText;
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
@@ -534,17 +507,11 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
             const int64_t rowIndex = clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
             
-            if ((rowColumnInformationOut != NULL)
-                && (rowIndex >= 0)) {
+            if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node 
                  */
-                if (rowColText.isEmpty() == false) {
-                    rowColText += "\n";
-                }
-                
-                rowColText += ("   "
-                               + clf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
                                + " nodeIndex="
                                + AString::number(nodeIndex)
                                + ", row index= "
@@ -558,10 +525,6 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
         //this->colorConnectivityData();
         //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //}
-    
-    if (rowColumnInformationOut != NULL) {
-        *rowColumnInformationOut = rowColText;
-    }
     
     return haveData;
 }
@@ -599,15 +562,15 @@ ConnectivityLoaderManager::hasNetworkFiles() const
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
 ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
-                                                            AString* rowColumnInformationOut) throw (DataFileException)
+                                                            std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
-    AString rowColText;
-    
     bool haveData = false;
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
@@ -622,17 +585,11 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
             const int64_t rowIndex = clf->loadTimeLineForVoxelAtCoordinate(xyz,tl);
             haveData = true;
             
-            if ((rowColumnInformationOut != NULL)
-                && (rowIndex >= 0)) {
+            if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node 
                  */
-                if (rowColText.isEmpty() == false) {
-                    rowColText += "\n";
-                }
-                
-                rowColText += ("   "
-                               + clf->getFileNameNoPath()
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
                                + " Voxel XYZ="
                                + AString::fromNumbers(xyz, 3, ",")
                                + ", row index= "
@@ -645,10 +602,6 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
         //this->colorConnectivityData();
         //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //}
-    
-    if (rowColumnInformationOut != NULL) {
-        *rowColumnInformationOut = rowColText;
-    }
     
     return haveData;
 }
@@ -870,8 +823,10 @@ ConnectivityLoaderManager::DenseDataLoaded::restoreFromScene(const SceneAttribut
                     if (numNodeIndices == 1) {
                         const int32_t nodeIndex = m_surfaceFileNodeIndices[0];
                         if (nodeIndex < surface->getNumberOfNodes()) {
+                            std::vector<AString> rowsColumnsLoaded;
                             connMan->loadDataForSurfaceNode(surface,
-                                                            nodeIndex);
+                                                            nodeIndex,
+                                                            rowsColumnsLoaded);
                         }
                     }
                 }
@@ -884,7 +839,11 @@ ConnectivityLoaderManager::DenseDataLoaded::restoreFromScene(const SceneAttribut
         }
             break;
         case MODE_VOXEL_XYZ:
-            connMan->loadDataForVoxelAtCoordinate(m_voxelXYZ);
+        {
+            std::vector<AString> rowsColumnsLoaded;
+            connMan->loadDataForVoxelAtCoordinate(m_voxelXYZ,
+                                                  rowsColumnsLoaded);
+        }
             break;
     }
 }

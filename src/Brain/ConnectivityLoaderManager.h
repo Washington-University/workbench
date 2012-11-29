@@ -49,7 +49,7 @@ namespace caret {
         
         bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
-                                    AString* rowColumnInformationOut = NULL) throw (DataFileException);
+                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         bool loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
@@ -59,7 +59,7 @@ namespace caret {
 
         
         bool loadDataForVoxelAtCoordinate(const float xyz[3],
-                                          AString* rowColumnInformationOut = NULL) throw (DataFileException);
+                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
 
         void reset();
         
@@ -77,10 +77,10 @@ namespace caret {
         bool loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
                                         const int32_t nodeIndex, 
                                         const TimeLine &timeLine,
-                                        AString* rowColumnInformationOut = NULL) throw (DataFileException);
+                                        std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         bool loadTimeLineForVoxelAtCoordinate(const float xyz[3],
-                                              AString* rowColumnInformationOut = NULL) throw (DataFileException);
+                                              std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         bool hasNetworkFiles() const;
         

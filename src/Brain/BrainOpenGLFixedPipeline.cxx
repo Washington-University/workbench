@@ -53,7 +53,6 @@
 #include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
-#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
@@ -83,6 +82,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
@@ -1628,15 +1628,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     CaretAssert(brainStructure);
     Brain* brain = brainStructure->getBrain();
     CaretAssert(brain);
+    const StructureEnum::Enum structure = surface->getStructure();
     
     const int numNodes = surface->getNumberOfNodes();
     
     const float* coordinates = surface->getCoordinate(0);
 
     IdentificationManager* idManager = brain->getIdentificationManager();
-    const CaretColorEnum::Enum idColor = idManager->getIdentificationSymbolColor();
-    const CaretColorEnum::Enum idContralateralColor = idManager->getIdentificationContralateralSymbolColor();
-    const float symbolSize = idManager->getIdentificationSymbolSize();
     
     SelectionItemSurfaceNodeIdentificationSymbol* symbolID = 
         m_brain->getSelectionManager()->getSurfaceNodeIdentificationSymbol();
@@ -1662,38 +1660,37 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             break;
     }
     
-    BrainStructureNodeAttributes* nodeAttributes = brainStructure->getNodeAttributes();
-    const float* symbolRGB = CaretColorEnum::toRGB(idColor);
-    const float* symbolContraRGB = CaretColorEnum::toRGB(idContralateralColor);
-    
+    const std::vector<IdentifiedItemNode> identifiedNodes = idManager->getNodeIdentifiedItemsForSurface(structure,
+                                                                                                        numNodes);
     uint8_t idRGB[4];
-    for (int32_t i = 0; i < numNodes; i++) {
-        if (nodeAttributes->getIdentificationType(i) != NodeIdentificationTypeEnum::NONE) {
-            if (isSelect) {
-                this->colorIdentification->addItem(idRGB, 
-                                                   SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
-                                                   i);
-                glColor3ubv(idRGB);
+    for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
+         iter != identifiedNodes.end();
+         iter++) {
+        const IdentifiedItemNode& nodeID = *iter;
+        
+        const int32_t nodeIndex = nodeID.getNodeIndex();
+        const float symbolSize = nodeID.getSymbolSize();
+        
+        if (isSelect) {
+            this->colorIdentification->addItem(idRGB,
+                                               SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
+                                               nodeIndex);
+            glColor3ubv(idRGB);
+        }
+        else {
+            if (structure == nodeID.getStructure()) {
+                glColor3fv(nodeID.getSymbolRGB());
             }
             else {
-                switch (nodeAttributes->getIdentificationType(i)) {
-                    case NodeIdentificationTypeEnum::CONTRALATERAL:
-                        glColor3fv(symbolContraRGB);
-                        break;
-                    case NodeIdentificationTypeEnum::NONE:
-                        break;
-                    case NodeIdentificationTypeEnum::NORMAL:
-                        glColor3fv(symbolRGB);
-                        break;
-                }
+                glColor3fv(nodeID.getContralateralSymbolRGB());
             }
-            
-            const int32_t i3 = i * 3;
-            glPushMatrix();
-            glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
-            this->drawSphere(symbolSize);
-            glPopMatrix();
         }
+        
+        const int32_t i3 = nodeIndex * 3;
+        glPushMatrix();
+        glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
+        this->drawSphere(symbolSize);
+        glPopMatrix();
     }
     
     if (isSelect) {

@@ -43,12 +43,10 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
-#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
-#include "EventIdentificationSymbolRemoval.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
 #include "EventUpdateInformationWindows.h"
@@ -994,11 +992,12 @@ BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
     if (idSymbol->isValid()) {
         Surface* surface = idSymbol->getSurface();
-        const int32_t nodeIndex = idSymbol->getNodeNumber();
-        BrainStructure* brainStructure = surface->getBrainStructure();
-        BrainStructureNodeAttributes* nodeAtts = brainStructure->getNodeAttributes();
-        nodeAtts->setIdentificationType(nodeIndex,
-                                        NodeIdentificationTypeEnum::NONE);
+        
+        IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+        idManager->removeIdentifiedNodeItem(surface->getStructure(),
+                                            surface->getNumberOfNodes(),
+                                            idSymbol->getNodeNumber());
+
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

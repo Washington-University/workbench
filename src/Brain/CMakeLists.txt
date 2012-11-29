@@ -76,7 +76,6 @@ EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
 EventDataFileRead.h
 EventIdentificationHighlightLocation.h
-EventIdentificationSymbolRemoval.h
 EventNodeDataFilesGet.h
 EventModelAdd.h
 EventModelDelete.h
@@ -106,7 +105,6 @@ ModelVolume.h
 ModelVolumeInterface.h
 ModelWholeBrain.h
 ModelYokingGroup.h
-NodeIdentificationTypeEnum.h
 Overlay.h
 OverlaySet.h
 SelectionItemDataTypeEnum.h
@@ -160,7 +158,6 @@ EventBrowserTabNew.cxx
 EventDataFileRead.cxx
 EventCaretMappableDataFilesGet.cxx
 EventIdentificationHighlightLocation.cxx
-EventIdentificationSymbolRemoval.cxx
 EventNodeDataFilesGet.cxx
 EventModelAdd.cxx
 EventModelDelete.cxx
@@ -189,7 +186,6 @@ ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
 ModelYokingGroup.cxx
-NodeIdentificationTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx
 SelectionItemDataTypeEnum.cxx

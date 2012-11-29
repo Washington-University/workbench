@@ -27,7 +27,6 @@
 
 
 #include "CaretObject.h"
-#include "NodeIdentificationTypeEnum.h"
 #include "SceneableInterface.h"
 
 namespace caret {
@@ -38,13 +37,6 @@ namespace caret {
         BrainStructureNodeAttributes();
         
         virtual ~BrainStructureNodeAttributes();
-        
-        NodeIdentificationTypeEnum::Enum getIdentificationType(const int32_t nodeIndex) const;
-        
-        void setIdentificationType(const int32_t nodeIndex,
-                                   const NodeIdentificationTypeEnum::Enum identificationType);
-        
-        void setAllIdentificationNone();
         
         void update(const int32_t numberOfNodes);
         
@@ -63,7 +55,6 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        std::vector<NodeIdentificationTypeEnum::Enum> m_identificationType;
     };
     
 #ifdef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
