@@ -22,6 +22,7 @@
  *
  */
 
+#include "FileInformation.h"
 #include "OperationSpecFileMerge.h"
 #include "OperationException.h"
 #include "SpecFile.h"
@@ -52,9 +53,9 @@ OperationParameters* OperationSpecFileMerge::getParameters()
 void OperationSpecFileMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString spec1Name = myParams->getString(1);
-    AString spec2Name = myParams->getString(2);
-    AString outSpecName = myParams->getString(3);
+    AString spec1Name = FileInformation(myParams->getString(1)).getFilePath();//since opening a spec file may change the current directory, we must convert all paths to absolute first
+    AString spec2Name = FileInformation(myParams->getString(2)).getFilePath();
+    AString outSpecName = FileInformation(myParams->getString(3)).getFilePath();
     SpecFile spec1, spec2;
     spec1.readFile(spec1Name);
     spec2.readFile(spec2Name);
