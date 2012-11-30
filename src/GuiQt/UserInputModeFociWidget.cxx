@@ -324,8 +324,7 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
         }
         
         if (nodeID != NULL) {
-            if (nodeID->isValid()
-                && (nodeID->isContralateral() == false)) {
+            if (nodeID->isValid()) {
                 const Surface* surface = nodeID->getSurface();
                 if (brain->isFileValid(surface)) {
                     CaretAssert(surface);

@@ -200,28 +200,26 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                     SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
                     SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
                     if (idNode->isValid()) {
-                        if (idNode->isContralateral() == false) {
-                            const Surface* surface = idNode->getSurface();
-                            CaretAssert(surface);
-                            const StructureEnum::Enum structure = surface->getStructure();
-                            const int32_t nodeIndex = idNode->getNodeNumber();
-                            
-                            const AString focusName = (StructureEnum::toGuiName(structure)
-                                                       + " Vertex "
-                                                       + AString::number(nodeIndex));
-                            const float* xyz = surface->getCoordinate(nodeIndex);
-                            
-                            const AString comment = ("Created from "
-                                                     + focusName);
-
-                            Focus* focus = new Focus();
-                            focus->setName(focusName);
-                            focus->getProjection(0)->setStereotaxicXYZ(xyz);
-                            focus->setComment(comment);
-                            FociPropertiesEditorDialog::createFocus(focus,
-                                                                    browserTabContent,
-                                                                    m_inputModeFociWidget);
-                        }
+                        const Surface* surface = idNode->getSurface();
+                        CaretAssert(surface);
+                        const StructureEnum::Enum structure = surface->getStructure();
+                        const int32_t nodeIndex = idNode->getNodeNumber();
+                        
+                        const AString focusName = (StructureEnum::toGuiName(structure)
+                                                   + " Vertex "
+                                                   + AString::number(nodeIndex));
+                        const float* xyz = surface->getCoordinate(nodeIndex);
+                        
+                        const AString comment = ("Created from "
+                                                 + focusName);
+                        
+                        Focus* focus = new Focus();
+                        focus->setName(focusName);
+                        focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                        focus->setComment(comment);
+                        FociPropertiesEditorDialog::createFocus(focus,
+                                                                browserTabContent,
+                                                                m_inputModeFociWidget);
                     }
                     else if (idVoxel->isValid()) {
                         const VolumeFile* vf = idVoxel->getVolumeFile();

@@ -90,16 +90,6 @@ namespace caret {
         
         void clearOtherSelectedItems(SelectionItem* selectedItem);
         
-        void addAdditionalSurfaceNodeIdentification(Surface* surface,
-                                                    const int32_t nodeIndex,
-                                                    bool isContralateralIdentification);
-        
-        int32_t getNumberOfAdditionalSurfaceNodeIdentifications() const;
-        
-        SelectionItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx);
-        
-        const SelectionItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx) const;
-        
         const SelectionItem* getLastSelectedItem() const;
         
         void setLastSelectedItem(const SelectionItem* lastItem);
@@ -142,8 +132,6 @@ namespace caret {
         IdentificationTextGenerator* m_idTextGenerator;
         
         SelectionItemVoxel* m_voxelIdentification;
-        
-        std::vector<SelectionItemSurfaceNode*> m_additionalSurfaceNodeIdentifications;
         
         /** Last selected item DOES NOT GET PUT IN m_allSelectionItems */
         SelectionItem* m_lastSelectedItem;

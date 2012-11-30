@@ -101,24 +101,6 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                             brain,
                                             surfaceID);
     
-    const int32_t numAdditionalSurfaceIdentifications = idManager->getNumberOfAdditionalSurfaceNodeIdentifications();
-    for (int32_t i = 0; i < numAdditionalSurfaceIdentifications; i++) {
-        /*
-         * Ignore additional identification if surface from same structure
-         */
-        if (surfaceID->isValid()) {
-            if (surfaceID->isContralateral() == false) {
-                if (surfaceID->getSurface()->getStructure() ==
-                    idManager->getAdditionalSurfaceNodeIdentification(i)->getSurface()->getStructure()) {
-                    continue;
-                }
-            }
-        }
-        this->generateSurfaceIdentificationText(idText, 
-                                                brain, 
-                                                idManager->getAdditionalSurfaceNodeIdentification(i));
-    }
-    
     this->generateSurfaceBorderIdentifcationText(idText,
                                                  idManager->getSurfaceBorderIdentification());
     
@@ -283,9 +265,6 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
         AString surfaceID;
-        if (idSurfaceNode->isContralateral()) {
-            surfaceID += "CONTRALATERAL ";
-        }
         surfaceID += ("VERTEX " + StructureEnum::toGuiName(surface->getStructure()));
         idText.addLine(false, surfaceID, nodeNumber, false);
         

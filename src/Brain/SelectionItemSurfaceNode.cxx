@@ -170,25 +170,25 @@ SelectionItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
     m_nodeNumber = nodeNumber;
 }
 
-/**
- * @return Is m_ a contralateral identification?
- */
-bool 
-SelectionItemSurfaceNode::isContralateral() const
-{
-    return m_contralateralFlag;
-}
-
-/**
- * Set contralateral identification status.
- * @param status
- *    New status.
- */
-void 
-SelectionItemSurfaceNode::setContralateral(const bool status)
-{
-    m_contralateralFlag = status;
-}
+///**
+// * @return Is m_ a contralateral identification?
+// */
+//bool 
+//SelectionItemSurfaceNode::isContralateral() const
+//{
+//    return m_contralateralFlag;
+//}
+//
+///**
+// * Set contralateral identification status.
+// * @param status
+// *    New status.
+// */
+//void 
+//SelectionItemSurfaceNode::setContralateral(const bool status)
+//{
+//    m_contralateralFlag = status;
+//}
 
 /**
  * Get a description of m_ object's content.

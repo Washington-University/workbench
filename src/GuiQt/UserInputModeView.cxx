@@ -230,7 +230,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                         idNode->setBrain(brain);
                         idNode->setSurface(surface);
                         idNode->setNodeNumber(nodeIndex);
-                        idNode->setContralateral(false);
                     }
                 }
             }
@@ -278,12 +277,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                                                                     surface->getNumberOfNodes(),
                                                                     nodeIndex);
                 if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(selectionManager,
-                                                                    brainStructure,
-                                                                    brainStructure->getStructure(),
-                                                                    nodeIndex,
-                                                                    brainStructure->getNumberOfNodes(),
-                                                                    xyz);
+                    EventIdentificationHighlightLocation idLocation(xyz);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }
@@ -313,10 +307,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 volumeFile->indexToSpace(voxelIJK, xyz);
                 
                 if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(selectionManager,
-                                                                    volumeFile,
-                                                                    voxelIJK,
-                                                                    xyz);
+                    EventIdentificationHighlightLocation idLocation(xyz);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
                 }

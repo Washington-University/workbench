@@ -55,10 +55,10 @@ namespace caret {
         
         void setNodeNumber(const int32_t nodeNumber);
         
-        bool isContralateral() const;
-        
-        void setContralateral(const bool status);
-        
+//        bool isContralateral() const;
+//        
+//        void setContralateral(const bool status);
+//        
         virtual void reset();
         
         virtual AString toString() const;

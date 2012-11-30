@@ -30,75 +30,22 @@
 
 namespace caret {
 
-    class BrainStructure;
-    class SelectionManager;
-    class VolumeFile;
-    
     /// Highlight location of an indentification
     class EventIdentificationHighlightLocation : public Event {
         
     public:
-        enum IdentificationType {
-            IDENTIFICATION_SURFACE,
-            IDENTIFICATION_VOLUME
-        };
+        EventIdentificationHighlightLocation(const float xyz[3]);
         
-        EventIdentificationHighlightLocation(SelectionManager* selectionManager,
-                                             BrainStructure* brainStructure,
-                                             const StructureEnum::Enum surfaceStructure,
-                                             const int32_t surfaceNodeNumber,
-                                             const int32_t surfaceNumberOfNodes,
-                                             const float xyz[3]);
-        
-        EventIdentificationHighlightLocation(SelectionManager* selectionManager,
-                                             const VolumeFile* volumeFile,
-                                             const int64_t volumeSliceIndices[3],
-                                             const float xyz[3]);
-                
         virtual ~EventIdentificationHighlightLocation();
         
-        const VolumeFile* getVolumeFile() const;
-        
-        BrainStructure* getSurfaceBrainStructure();
-        
-        StructureEnum::Enum getSurfaceStructure() const;
-        
-        int32_t getSurfaceNodeNumber() const;
-        
-        int32_t getSurfaceNumberOfNodes() const;
-        
         const float* getXYZ() const;
-        
-        const int64_t* getVolumeSliceIndices() const;
-        
-        IdentificationType getIdentificationType() const;
-        
-        SelectionManager* getSelectionManager();
         
     private:
         EventIdentificationHighlightLocation(const EventIdentificationHighlightLocation&);
         
         EventIdentificationHighlightLocation& operator=(const EventIdentificationHighlightLocation&);
         
-        void initializeMembers();
-        
-        SelectionManager* selectionManager;
-        
-        const VolumeFile* volumeFile;
-        
-        BrainStructure* brainStructure;
-        
-        StructureEnum::Enum surfaceStructure;
-        
-        int32_t surfaceNodeNumber;
-        
-        int32_t surfaceNumberOfNodes;
-        
-        int64_t volumeSliceIndices[3];
-        
         float xyz[3];
-        
-        IdentificationType identificationType;
     };
 
 } // namespace

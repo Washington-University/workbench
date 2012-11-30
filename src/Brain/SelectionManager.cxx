@@ -386,13 +386,6 @@ SelectionManager::reset()
         SelectionItem* item = *iter;
         item->reset();
     }
-    
-    for (std::vector<SelectionItemSurfaceNode*>::iterator iter = m_additionalSurfaceNodeIdentifications.begin();
-         iter != m_additionalSurfaceNodeIdentifications.end();
-         iter++) {
-        delete *iter;
-    }
-    m_additionalSurfaceNodeIdentifications.clear();
 }
 
 /**
@@ -520,67 +513,6 @@ SelectionManager::getVolumeFocusIdentification() const
 {
     return m_volumeFocusIdentification;
 }
-
-/**
- * Add an additional surface node identifications
- * typically made as a result of identification in a volume or
- * an contralateral identification.
- * @param surface
- *   Surface on which identification took place.
- * @param nodeIndex
- *   Index of surface node.
- * @param isContralateralIdentification
- *   True if contralateral identification.
- */
-void 
-SelectionManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
-                                                              const int32_t nodeIndex,
-                                                              bool isContralateralIdentification)
-{
-    if (surface != m_surfaceNodeIdentification->getSurface()) {
-        SelectionItemSurfaceNode* nodeID = new SelectionItemSurfaceNode();
-        nodeID->setSurface(surface);
-        nodeID->setNodeNumber(nodeIndex);
-        nodeID->setContralateral(isContralateralIdentification);
-        m_additionalSurfaceNodeIdentifications.push_back(nodeID);
-    }
-}
-
-/**
- * @return the number of additional surface node identifications
- * typically made as a result of identification in a volume or
- * an contralateral identification.
- */
-int32_t 
-SelectionManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
-{
-    return m_additionalSurfaceNodeIdentifications.size();
-}
-
-/**
- * Get an additional selected surface node.
- * @param indx
- *   Index of the identification information.
- */
-SelectionItemSurfaceNode* 
-SelectionManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
-{
-    CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
-    return m_additionalSurfaceNodeIdentifications[indx];
-}
-
-/**
- * Get an additional selected surface node.
- * @param indx
- *   Index of the identification information.
- */
-const SelectionItemSurfaceNode* 
-SelectionManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
-{
-    CaretAssertVectorIndex(m_additionalSurfaceNodeIdentifications, indx);
-    return m_additionalSurfaceNodeIdentifications[indx];
-}
-
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.
