@@ -962,6 +962,9 @@ SurfaceFile::getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const
     AString label = structure + ":[" + AString::fromNumbers(point,3,AString(", ")) + "]";
     for(int i = 0;i<3;i++) tl.point[i] = point[i];
     tl.label = label;
+    
+    tl.surfaceNumberOfNodes = getNumberOfNodes();
+    tl.structure = getStructure();
 }
 
 /**

@@ -39,6 +39,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ColorManager.h"
 #include "ConnectivityLoaderManager.h"
 #include "IdentifiedItemNode.h"
 #include "SceneClassAssistant.h"
@@ -167,16 +168,7 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
     QList<TimeLine> surfaceTimeLines;
     clm->getSurfaceTimeLines(surfaceTimeLines);
     
-//    for (QList<TimeLine>::iterator iter = surfaceTimeLines.begin();
-//         iter != surfaceTimeLines.end();
-//         iter++) {
-//        const TimeLine& tl = *iter;
-//        if (tl.structure == structure) {
-//            
-//        }
-//    }
-    
-    std::vector<IdentifiedItemNode> nodeItems;
+    std::vector<IdentifiedItemNode> nodeItemsOut;
     
     for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
@@ -200,13 +192,35 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
                         nodeID.setSymbolSize(m_identifcationSymbolSize);
                     }
                     
-                    nodeItems.push_back(nodeID);
+                    for (QList<TimeLine>::iterator iter = surfaceTimeLines.begin();
+                         iter != surfaceTimeLines.end();
+                         iter++) {
+                        const TimeLine& tl = *iter;
+                        if (tl.structure == structure) {
+                            if (tl.surfaceNumberOfNodes == surfaceNumberOfNodes) {
+                                if (tl.nodeid == nodeID.getNodeIndex()) {
+                                    Qt::GlobalColor qtColor = ColorManager().getColor(tl.colorID);
+                                    const int32_t colorInt = qtColor;
+                                    const int redByte = (colorInt & 0x00ff0000) >> 16;
+                                    const int greenByte = (colorInt & 0x0000ff00) >> 8;
+                                    const int blueByte = (colorInt & 0x000000ff);
+                                    const float rgb[3] = {
+                                        static_cast<float>(redByte) / 255.0,
+                                        static_cast<float>(greenByte) / 255.0,
+                                        static_cast<float>(blueByte) / 255.0
+                                    };
+                                    nodeID.setSymbolRGB(rgb);
+                                }
+                            }
+                        }
+                    }
+                    nodeItemsOut.push_back(nodeID);
                 }
             }
         }
     }
     
-    return nodeItems;
+    return nodeItemsOut;
 }
 
 /**

@@ -29,6 +29,7 @@
 #include "vector"
 #include "TimeLine.h"
 #include "ColorManager.h"
+#include "StructureEnum.h"
 #include "QVector"
 namespace caret {
 enum TimeLineType {
@@ -50,6 +51,8 @@ public:
     int64_t clmID; //the timelines number in the connectivity loader manager
     double timeStep;
     TimeLineType type;
+    int64_t surfaceNumberOfNodes;
+    StructureEnum::Enum structure;
     AString structureName;
     AString parcelName;
     AString borderName;

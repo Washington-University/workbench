@@ -27,6 +27,8 @@
 using namespace caret;
 TimeLine::TimeLine()
 {
+    structure = StructureEnum::INVALID;
+    surfaceNumberOfNodes = -1;
     colorID = -1;
     id = NULL;
     clmID = -1;
@@ -35,6 +37,8 @@ TimeLine::TimeLine()
 
 TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn, void *idIn)
 {
+    structure = StructureEnum::INVALID;
+    surfaceNumberOfNodes = -1;
     colorID = -1;
     nodeid = nodeidIn;
     for(int i=0;i<3;i++) point[i] = pointIn[i];
