@@ -58,6 +58,8 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
         
+        virtual bool isValid() const;
+        
         void appendText(const AString& text);
         
         void clearText();

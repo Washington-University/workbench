@@ -363,8 +363,6 @@ InformationDisplayWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "InformationDisplayWidget",
                                             1);
-    sceneClass->addString("m_informationText",
-                          m_informationText);
     
     return sceneClass;
 }
@@ -386,13 +384,8 @@ InformationDisplayWidget::restoreFromScene(const SceneAttributes* /*sceneAttribu
                                            const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
-        m_informationText = "";
+        return;
     }
-    else {
-        m_informationText = sceneClass->getStringValue("m_informationText");
-    }
-    
-    m_informationTextBrowser->setContentToHtml(m_informationText);
 }
 
 

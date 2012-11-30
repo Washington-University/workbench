@@ -107,12 +107,37 @@ IdentificationManager::~IdentificationManager()
  * @param item
  *    Identified item that is added.
  *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
+ *    If item is a node and contralateral identification is enabled, the contralateral
+ *    structure will be set in the node item.
  */
 void
 IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
 {
     CaretAssert(item);
+    
+    IdentifiedItemNode* nodeItem = dynamic_cast<IdentifiedItemNode*>(item);
+    if (nodeItem != NULL) {
+        if (m_contralateralIdentificationEnabled) {
+            const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(nodeItem->getStructure());
+            nodeItem->setContralateralStructure(contralateralStructure);
+        }
+    }
+    
+    addIdentifiedItemPrivate(item);
+}
+
+/**
+ * Add an identified item.
+ * @param item
+ *    Identified item that is added.
+ *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
+ */
+void
+IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item)
+{
+    CaretAssert(item);
     m_mostRecentIdentifiedItem = item;
+    
     m_identifiedItems.push_back(item);
 }
 
@@ -176,9 +201,15 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
         const IdentifiedItem* item = *iter;
         const IdentifiedItemNode* nodeItem = dynamic_cast<const IdentifiedItemNode*>(item);
         if (nodeItem != NULL) {
-            if ((nodeItem->getStructure() == structure)
-                || (nodeItem->getContralateralStructure() == structure)) {
-                if (nodeItem->getSurfaceNumberOfNodes() == surfaceNumberOfNodes) {
+            if (nodeItem->getSurfaceNumberOfNodes() == surfaceNumberOfNodes) {
+                bool useIt = false;
+                if (nodeItem->getStructure() == structure) {
+                    useIt = true;
+                }
+                else if (nodeItem->getContralateralStructure() == structure) {
+                    useIt = true;
+                }
+                if (useIt) {
                     IdentifiedItemNode nodeID(*nodeItem);
                     
                     const float* symbolRGB = CaretColorEnum::toRGB(m_identificationSymbolColor);
@@ -219,7 +250,7 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
             }
         }
     }
-    
+
     return nodeItemsOut;
 }
 
@@ -499,10 +530,22 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                 if (className == "IdentifiedItem") {
                     IdentifiedItem* item = new IdentifiedItem();
                     item->restoreFromScene(sceneAttributes, sc);
+                    if (item->isValid()) {
+                        addIdentifiedItemPrivate(item);
+                    }
+                    else {
+                        delete item;
+                    }
                 }
                 else if (className == "IdentifiedItemNode") {
                     IdentifiedItemNode* item = new IdentifiedItemNode();
                     item->restoreFromScene(sceneAttributes, sc);
+                    if (item->isValid()) {
+                        addIdentifiedItemPrivate(item);
+                    }
+                    else {
+                        delete item;
+                    }
                 }
                 else {
                     const AString msg = ("IdentifiedItem from scene is invalid.  "

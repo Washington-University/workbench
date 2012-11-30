@@ -947,7 +947,6 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItemNode(idMessage,
                                                         structure,
-                                                        StructureEnum::getContralateralStructure(structure),
                                                         surface->getNumberOfNodes(),
                                                         surfaceID->getNodeNumber()));
     

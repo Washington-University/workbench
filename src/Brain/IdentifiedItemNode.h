@@ -47,7 +47,6 @@ namespace caret {
         
         IdentifiedItemNode(const AString& text,
                            const StructureEnum::Enum structure,
-                           const StructureEnum::Enum contralateralStructure,
                            const int32_t surfaceNumberOfNodes,
                            const int32_t nodeIndex);
         
@@ -59,12 +58,16 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        virtual bool isValid() const;
+        
         AString getText() const;
         
         StructureEnum::Enum getStructure() const;
         
         StructureEnum::Enum getContralateralStructure() const;
         
+        void setContralateralStructure(const StructureEnum::Enum contralateralStructure);
+
         int32_t getSurfaceNumberOfNodes() const;
         
         int32_t getNodeIndex() const;

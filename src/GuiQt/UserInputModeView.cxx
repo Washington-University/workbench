@@ -273,7 +273,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 
                 identifiedItem = new IdentifiedItemNode(identificationMessage,
                                                                     surface->getStructure(),
-                                                                    StructureEnum::getContralateralStructure(surface->getStructure()),
                                                                     surface->getNumberOfNodes(),
                                                                     nodeIndex);
                 if (issuedIdentificationLocationEvent == false) {

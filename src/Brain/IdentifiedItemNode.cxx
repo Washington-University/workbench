@@ -86,7 +86,6 @@ IdentifiedItemNode::IdentifiedItemNode()
  */
 IdentifiedItemNode::IdentifiedItemNode(const AString& text,
                                        const StructureEnum::Enum structure,
-                                       const StructureEnum::Enum contralateralStructure,
                                        const int32_t surfaceNumberOfNodes,
                                        const int32_t nodeIndex)
 : IdentifiedItem(text)
@@ -94,7 +93,6 @@ IdentifiedItemNode::IdentifiedItemNode(const AString& text,
     initializeMembers();
     
     m_structure = structure;
-    m_contralateralStructure = contralateralStructure;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes,
     m_nodeIndex = nodeIndex;
 }
@@ -182,6 +180,26 @@ IdentifiedItemNode::initializeMembers()
 }
 
 /**
+ * @return Is this item valid?  Typically only used when restoring
+ * from scene.
+ */
+bool
+IdentifiedItemNode::isValid() const
+{
+    if (m_structure == StructureEnum::INVALID) {
+        return false;
+    }
+    if (m_surfaceNumberOfNodes <= 0) {
+        return false;
+    }
+    if (m_nodeIndex <= 0) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * @return The structure for the identified node.
  */
 StructureEnum::Enum
@@ -197,6 +215,17 @@ StructureEnum::Enum
 IdentifiedItemNode::getContralateralStructure() const
 {
     return m_contralateralStructure;
+}
+
+/**
+ * Set the contralateral structure.
+ * @param contralateralStructure
+ *   The contralateral structure.
+ */
+void
+IdentifiedItemNode::setContralateralStructure(const StructureEnum::Enum contralateralStructure)
+{
+    m_contralateralStructure = contralateralStructure;
 }
 
 /**

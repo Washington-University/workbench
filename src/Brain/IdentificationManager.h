@@ -112,6 +112,8 @@ namespace caret {
 
     private:
 
+        void addIdentifiedItemPrivate(IdentifiedItem* item);
+        
         // ADD_NEW_MEMBERS_HERE
 
         SceneClassAssistant* m_sceneAssistant;

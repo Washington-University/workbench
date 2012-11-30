@@ -125,6 +125,19 @@ IdentifiedItem::copyHelperIdentifiedItem(const IdentifiedItem& obj)
 }
 
 /**
+ * @return Is this item valid?  Typically only used when restoring
+ * from scene.
+ */
+bool
+IdentifiedItem::isValid() const
+{
+    if (m_text.isEmpty() == false) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Append text to this item's text.
  */
 void
