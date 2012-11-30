@@ -22,6 +22,7 @@
  *
  */
 
+#include "DataFile.h"
 #include "FileInformation.h"
 #include "OperationZipSceneFile.h"
 #include "OperationException.h"
@@ -37,6 +38,7 @@
 
 #include <QDir>
 
+#include <iostream>
 #include <set>
 
 using namespace caret;
@@ -91,12 +93,13 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         myBaseDir += "/";//so, add the trailing slash to the path
     }
     AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
-    if (!sceneFilePath.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
-    {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
-        sceneFilePath += "/";//so, add the trailing slash to the path
+    if (!sceneFilePath.endsWith('/'))
+    {
+        sceneFilePath += "/";
     }
     if (!sceneFilePath.startsWith(myBaseDir))
     {
+        throw OperationException("scene file lies outside the base directory");
     }
     set<AString> allFiles;
     SceneFile sceneFile;
@@ -136,6 +139,11 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
             int numNames = (int)tempNames.size();
             for (int k = 0; k < numNames; ++k)
             {
+                if (DataFile::isFileOnNetwork(tempNames[k]))
+                {
+                    cout << "skipping network file '" << tempNames[k] << "'" << endl;
+                    continue;
+                }
                 AString thisName = QDir::cleanPath(tempNames[k]);
                 if (allFiles.insert(thisName).second)
                 {
@@ -159,6 +167,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
                                  + zipFileName
                                  + "\" for writing.");
     }
+    static const char *myUnits[9] = {" B", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
     for (set<AString>::iterator iter = allFiles.begin(); iter != allFiles.end(); ++iter)
     {
         AString dataFileName = *iter;
@@ -167,6 +176,21 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         if (!dataFileIn.open(QFile::ReadOnly)) {
             throw OperationException("Unable to open \"" + dataFileName + "\" for reading: " + dataFileIn.errorString());
         }
+        int64_t fileSize = (float)dataFileIn.size() * 10;//fixed point, 1 decimal place
+        int unit = 0;
+        int64_t divisor = 1;
+        while (unit < 8 && fileSize / divisor > 9998)//don't let there be 4 digits to the left of decimal point
+        {
+            ++unit;
+            divisor *= 1024;//don't round until we decide on a divisor
+        }
+        int fixedpt = (fileSize + divisor / 2) / divisor;
+        int ipart = fixedpt / 10;
+        int fpart = fixedpt % 10;
+        cout << ipart;
+        if (unit > 0) cout << "." << fpart;
+        cout << myUnits[unit] << "     \t" << unzippedDataFileName;
+        cout.flush();//don't endl until it finishes
         
         QuaZipNewInfo zipNewInfo(unzippedDataFileName,
                                  dataFileName);
@@ -189,6 +213,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         
         dataFileIn.close();
         dataFileOut.close();
+        cout << endl;
     }
     zipFile.close();
 }

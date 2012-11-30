@@ -22,6 +22,7 @@
  *
  */
 
+#include "DataFile.h"
 #include "FileInformation.h"
 #include "OperationZipSpecFile.h"
 #include "OperationException.h"
@@ -33,6 +34,8 @@
 //for cleanPath
 #include <QDir>
 
+//to print file sizes as it makes the zip
+#include <iostream>
 #include <vector>
 
 using namespace caret;
@@ -70,8 +73,8 @@ OperationParameters* OperationZipSpecFile::getParameters()
 void OperationZipSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString zipFileName = FileInformation(myParams->getString(1)).getFilePath();//we need an absolute path, because opening a spec file may change the current directory
-    AString specFileName = FileInformation(myParams->getString(2)).getFilePath();//get absolute path for spec file also, so we don't try to resolve its relative location
+    AString zipFileName = FileInformation(myParams->getString(1)).getFilePath();
+    AString specFileName = FileInformation(myParams->getString(2)).getFilePath();
     AString outputSubDirectory = myParams->getString(3);
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
     AString myBaseDir;
@@ -125,6 +128,13 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     const int32_t numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
+        if (DataFile::isFileOnNetwork(dataFileName))
+        {
+            cout << "skipping network file '" << dataFileName << "'" << endl;
+            allDataFileNames.erase(allDataFileNames.begin() + i);//remove it from the list
+            --i;//decrement i in order not to skip anything
+            continue;
+        }
         FileInformation tempInfo(dataFileName);
         if (tempInfo.isRelative())
         {
@@ -165,6 +175,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      * Compress each of the files and add them to the zip file
      */
     AString errorMessage;
+    static const char *myUnits[9] = {" B", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
         AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
@@ -176,6 +187,21 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
                                    + dataFileIn.errorString();
             break;
         }
+        int64_t fileSize = (float)dataFileIn.size() * 10;//fixed point, 1 decimal place
+        int unit = 0;
+        int64_t divisor = 1;
+        while (unit < 8 && fileSize / divisor > 9998)//don't let there be 4 digits to the left of decimal point
+        {
+            ++unit;
+            divisor *= 1024;//don't round until we decide on a divisor
+        }
+        int fixedpt = (fileSize + divisor / 2) / divisor;
+        int ipart = fixedpt / 10;
+        int fpart = fixedpt % 10;
+        cout << ipart;
+        if (unit > 0) cout << "." << fpart;
+        cout << myUnits[unit] << "     \t" << unzippedDataFileName;
+        cout.flush();//don't endl until it finishes
         
         QuaZipNewInfo zipNewInfo(unzippedDataFileName,
                                  dataFileName);
@@ -202,6 +228,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         
         dataFileIn.close();
         dataFileOut.close();
+        cout << endl;
     }
     
     /*
