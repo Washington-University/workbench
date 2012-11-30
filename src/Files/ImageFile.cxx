@@ -494,6 +494,8 @@ ImageFile::readFile(const AString& filename) throw (DataFileException)
 {
    clear();
    
+    checkFileReadability(filename);
+    
    if (filename.isEmpty()) {
       throw DataFileException(filename + "Filename for reading is isEmpty");   
    }
@@ -734,9 +736,8 @@ ImageFile::compareFileForUnitTesting(const DataFile* dataFile,
 void 
 ImageFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    if (filename.isEmpty()) {
-        throw DataFileException(filename + " Filename for reading is isEmpty");   
-    }
+    checkFileWritability(filename);
+    
     this->setFileName(filename);
     
     AString errorMessage;

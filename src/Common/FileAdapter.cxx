@@ -122,7 +122,7 @@ FileAdapter::openQTextStreamForWritingFile(const AString& filename,
     if (fileInfo.exists()) {
         if (fileInfo.isWritable() == false) {
             errorMessageOut = (filename
-                               + " exists and does not have writable permission.");
+                               + " exists but does not have writable permission.");
             return NULL;
         }
     }

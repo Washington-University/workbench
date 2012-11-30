@@ -622,6 +622,8 @@ BorderFile::getFileVersionAsString()
 void 
 BorderFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     BorderFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
@@ -678,6 +680,8 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
 void 
 BorderFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     setFileName(filename);
     
     try {

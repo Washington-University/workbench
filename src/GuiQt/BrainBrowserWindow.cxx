@@ -826,29 +826,31 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
             errorMessages += e.whatString();
         }
         
-        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                       this);
-        if (sfd->exec() == QDialog::Accepted) {
-            CursorDisplayScoped cursor;
-            cursor.showWaitCursor();
-            
-            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                         &specFile);
-            
-            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-            
-            if (readSpecFileEvent.isError()) {
-                if (errorMessages.isEmpty() == false) {
-                    errorMessages += "\n";
+        if (errorMessages.isEmpty()) {
+            SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                           this);
+            if (sfd->exec() == QDialog::Accepted) {
+                CursorDisplayScoped cursor;
+                cursor.showWaitCursor();
+                
+                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                             &specFile);
+                
+                EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                
+                if (readSpecFileEvent.isError()) {
+                    if (errorMessages.isEmpty() == false) {
+                        errorMessages += "\n";
+                    }
+                    errorMessages += readSpecFileEvent.getErrorMessage();
                 }
-                errorMessages += readSpecFileEvent.getErrorMessage();
             }
+            
+            delete sfd;
+            sfd = NULL;
+            
+            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
         }
-        
-        delete sfd;
-        sfd = NULL;
-        
-        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
         
         if (errorMessages.isEmpty() == false) {
             QMessageBox::critical(this, 
@@ -1613,6 +1615,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 }
                 catch (const DataFileException& e) {
                     errorMessages += e.whatString();
+                    cursor.restoreCursor();
+                    QMessageBox::critical(this,
+                                          "ERROR",
+                                          errorMessages);
+                    return;
                 }
                 
                 switch (loadSpecFileMode) {

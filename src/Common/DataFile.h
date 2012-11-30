@@ -84,6 +84,10 @@ namespace caret {
         
         static bool isFileOnNetwork(const AString& filename);
         
+        void checkFileReadability(const AString& filename) throw (DataFileException);
+        
+        void checkFileWritability(const AString& filename) throw (DataFileException);
+        
     private:
         void copyHelperDataFile(const DataFile& df);
         

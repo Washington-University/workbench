@@ -513,6 +513,8 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
     AString absFileName = specInfo.getFilePath();
     this->setFileName(absFileName);
     
+    checkFileReadability(filename);
+    
     SpecFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
@@ -602,6 +604,8 @@ SpecFile::readFileFromString(const AString& string) throw (DataFileException)
 void 
 SpecFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     FileInformation specInfo(filename);
     AString absFileName = specInfo.getFilePath();
     this->setFileName(absFileName);

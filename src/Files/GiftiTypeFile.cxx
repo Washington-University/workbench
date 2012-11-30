@@ -145,6 +145,8 @@ GiftiTypeFile::isEmpty() const
 void 
 GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->setFileName(filename);
@@ -163,6 +165,7 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 void 
 GiftiTypeFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
     this->giftiFile->writeFile(filename);
     this->clearModified();
 }

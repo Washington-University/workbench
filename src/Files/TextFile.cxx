@@ -80,6 +80,8 @@ TextFile::isEmpty() const
 void 
 TextFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     QFile file(filename);
     if (file.open(QFile::ReadOnly) == false) {
         throw DataFileException("Unable to open \""
@@ -109,6 +111,8 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
 void 
 TextFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     QFile file(filename);
     if (file.open(QFile::WriteOnly) == false) {
         throw DataFileException("Unable to open \""

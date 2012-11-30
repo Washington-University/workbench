@@ -110,6 +110,8 @@ VolumeFile::~VolumeFile()
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     try {
         NiftiFile myNifti(true);
         this->setFileName(filename);
@@ -134,6 +136,8 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 void 
 VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     try {
         updateCaretExtension();
         NiftiFile myNifti(true);

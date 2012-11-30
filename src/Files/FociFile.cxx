@@ -516,6 +516,8 @@ FociFile::invalidateAllAssignedColors()
 void 
 FociFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     FociFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
@@ -572,6 +574,8 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
 void 
 FociFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     setFileName(filename);
     
     try {

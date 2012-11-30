@@ -431,6 +431,8 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
 {
     clear();
     
+    checkFileReadability(filename);
+    
     try {
         CiftiFile ciftiFile;
         ciftiFile.openFile(filename,

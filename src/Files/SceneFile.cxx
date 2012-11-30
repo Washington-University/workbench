@@ -322,6 +322,8 @@ SceneFile::getFileMetaData() const
 void 
 SceneFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     this->setFileName(filename);
     SceneFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
@@ -368,6 +370,8 @@ SceneFile::readFile(const AString& filename) throw (DataFileException)
 void 
 SceneFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     this->setFileName(filename);
     
     try {
