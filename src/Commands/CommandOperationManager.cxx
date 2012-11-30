@@ -83,6 +83,7 @@
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumeMath.h"
 #include "OperationVolumePalette.h"
+#include "OperationZipSceneFile.h"
 #include "OperationZipSpecFile.h"
 
 #include "CommandParser.h"
@@ -194,6 +195,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationZipSceneFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationZipSpecFile()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());
