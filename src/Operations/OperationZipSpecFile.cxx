@@ -122,7 +122,6 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      */
     AString missingDataFileNames;
     AString outsideBaseDirFiles;
-    AString nonRelativeNames;
     const int32_t numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
