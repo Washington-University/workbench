@@ -70,8 +70,8 @@ OperationParameters* OperationZipSpecFile::getParameters()
 void OperationZipSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString zipFileName = myParams->getString(1);
-    AString specFileName = myParams->getString(2);
+    AString zipFileName = FileInformation(myParams->getString(1)).getFilePath();//we need an absolute path, because opening a spec file may change the current directory
+    AString specFileName = FileInformation(myParams->getString(2)).getFilePath();//get absolute path for spec file also, so we don't try to resolve its relative location
     AString outputSubDirectory = myParams->getString(3);
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
     AString myBaseDir;
@@ -127,10 +127,8 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     for (int32_t i = 0; i < numberOfDataFiles; i++) {
         AString dataFileName = allDataFileNames[i];
         FileInformation tempInfo(dataFileName);
-        if (!tempInfo.isRelative())
+        if (tempInfo.isRelative())
         {
-            nonRelativeNames += dataFileName + "\n";
-        } else {
             dataFileName = specPath + dataFileName;
         }
         FileInformation dataFileInfo(dataFileName);
@@ -143,10 +141,6 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
             missingDataFileNames += absName + "\n";
         }
         allDataFileNames[i] = absName;//so we don't have to do this again
-    }
-    if (!nonRelativeNames.isEmpty())
-    {
-        throw OperationException("These data files have absolute names in the spec file, which would break when unzipped:\n" + nonRelativeNames);
     }
     if (!missingDataFileNames.isEmpty())
     {
