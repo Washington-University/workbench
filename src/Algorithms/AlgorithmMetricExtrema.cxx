@@ -644,7 +644,6 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
     {
         int numInitExtrema = (int)initExtrema[sign].size();
         vector<bool> removed(numInitExtrema, false);//track which extrema locations are dropped during consolidation - the one that isn't dropped in a merge has its node number changed
-        vector<vector<float> > distmatrix(numInitExtrema, vector<float>(numInitExtrema, -1.0f));
         vector<vector<int64_t> > heapIDmatrix(numInitExtrema, vector<int64_t>(numInitExtrema, -1));
         CaretMinHeap<pair<int, int>, float> myDistHeap;
         vector<float> dists;
@@ -663,12 +662,7 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
                 float tempf = scratchDist[initExtrema[sign][j].first];
                 if (tempf > -0.5f)
                 {
-                    distmatrix[i][j] = tempf;
-                    distmatrix[j][i] = tempf;
-                    cout << "push (" << i << ", " << j << "), " << tempf << "...";
-                    cout.flush();
                     int64_t tempID = myDistHeap.push(pair<int, int>(i, j), tempf);
-                    cout << tempID << endl;
                     heapIDmatrix[i][j] = tempID;
                     heapIDmatrix[j][i] = tempID;
                 }
@@ -685,8 +679,6 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
             int extr2 = toMerge.second;
             heapIDmatrix[extr1][extr2] = -1;
             heapIDmatrix[extr2][extr1] = -1;
-            distmatrix[extr1][extr2] = -1.0f;
-            distmatrix[extr2][extr1] = -1.0f;
             int weight1 = initExtrema[sign][extr1].second;
             int weight2 = initExtrema[sign][extr2].second;
             if (weight2 > weight1)//swap so weight1 is always bigger
@@ -708,7 +700,6 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
                     int64_t tempID = heapIDmatrix[extr2][j];
                     if (tempID != -1)
                     {
-                        cout << "remove " << tempID << endl;
                         myDistHeap.remove(tempID);
                         heapIDmatrix[extr2][j] = -1;
                         heapIDmatrix[j][extr2] = -1;
@@ -743,8 +734,6 @@ void AlgorithmMetricExtrema::consolidateStep(const SurfaceFile* mySurf, const fl
                     if (!removed[j])
                     {
                         float tempf = scratchDist[initExtrema[sign][j].first];
-                        distmatrix[extr1][j] = tempf;
-                        distmatrix[j][extr1] = tempf;
                         int64_t tempID = heapIDmatrix[extr1][j];
                         if (tempf > -0.5f)
                         {

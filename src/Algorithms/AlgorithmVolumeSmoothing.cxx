@@ -290,7 +290,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                 if (imin < 0) imin = 0;
                 if (imax > myDims[0]) imax = myDims[0];
                 float sum = 0.0f, weightsum = 0.0f;
-                int64_t baseInd = inVol->getIndex(0, j, k);
+                int64_t baseInd = inVol->getIndex(0, j, k, 0);//extra 0 on a default parameter is to prevent int->pointer vs int->int64 conversion ambiguity
                 int64_t curInd = baseInd + i;
                 for (int ikern = imin; ikern < imax; ++ikern)
                 {
@@ -383,7 +383,7 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
                     if (imin < 0) imin = 0;
                     if (imax > myDims[0]) imax = myDims[0];
                     float sum = 0.0f, weightsum = 0.0f;
-                    int64_t baseInd = inVol->getIndex(0, j, k);
+                    int64_t baseInd = inVol->getIndex(0, j, k, 0);
                     int64_t curInd = baseInd + i;
                     bool used = false;
                     for (int ikern = imin; ikern < imax; ++ikern)
@@ -515,7 +515,7 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
             if (imin < 0) imin = 0;
             if (imax > myDims[0]) imax = myDims[0];
             float sum = 0.0f, weightsum = 0.0f;
-            int64_t baseInd = inVol->getIndex(0, j, k);
+            int64_t baseInd = inVol->getIndex(0, j, k, 0);
             int64_t curInd = baseInd + i;
             for (int ikern = imin; ikern < imax; ++ikern)
             {

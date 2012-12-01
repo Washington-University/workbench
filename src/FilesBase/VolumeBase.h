@@ -228,7 +228,7 @@ namespace caret {
             }
         }
         
-        inline int64_t getIndex(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
+        inline int64_t getIndex(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
             return getIndex(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
