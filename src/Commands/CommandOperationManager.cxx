@@ -50,6 +50,7 @@
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
 #include "AlgorithmSurfaceMatch.h"
+#include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
@@ -162,6 +163,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
