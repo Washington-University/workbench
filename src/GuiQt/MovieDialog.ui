@@ -268,7 +268,7 @@
    <item>
     <widget class="QGroupBox" name="imageOptionsGroupBox_2">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Image Options</string>
@@ -278,6 +278,9 @@
        <widget class="QRadioButton" name="windowSizeRadioButton">
         <property name="text">
          <string>Size of Window</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -291,7 +294,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="windowsWidthSpinBox">
+         <widget class="QSpinBox" name="windowWidthSpinBox">
           <property name="minimum">
            <number>1</number>
           </property>

@@ -60,6 +60,7 @@ private:
 	int32_t dC;//change in Coronal slice
 	int32_t dA;//change in Axial slice
 
+    bool m_useCustomSize;
     int32_t imageX;
     int32_t imageY;
 

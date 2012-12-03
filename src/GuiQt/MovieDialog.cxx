@@ -124,6 +124,17 @@ void MovieDialog::on_animateButton_toggled(bool checked)
 
 void MovieDialog::on_recordButton_toggled(bool checked)
 {
+    if(checked)
+    {
+        m_useCustomSize = ui->customSizeRadioButton->isChecked();
+        imageX = 0;
+        imageY = 0;
+        if(m_useCustomSize)
+        {
+            imageX = ui->windowWidthSpinBox->value();
+            imageY = ui->windowHeightSpinBox->value();
+        }
+    }
     if(!checked&&(frame_number > 0))
     {
         //render frames....
@@ -134,9 +145,9 @@ void MovieDialog::on_recordButton_toggled(bool checked)
         AString tempDir = QDir::tempPath();
         if ( !fileName.isEmpty() )
         {
-            int32_t w = 0;
-            int32_t h = 0;
-            GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(w,h);
+            int32_t w = imageX;
+            int32_t h = imageY;
+            if(!(w&&h)) GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(w,h);
     
 
             unlink(fileName);
