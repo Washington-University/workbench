@@ -184,7 +184,7 @@
    <item>
     <widget class="QGroupBox" name="sliceControlGroupBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Slice Control</string>

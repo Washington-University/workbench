@@ -48,6 +48,11 @@
 #include <Matrix4x4.h>
 #include "Model.h"
 #include "WuQMessageBox.h"
+#include <ModelVolume.h>
+#include <VolumeSliceViewModeEnum.h>
+#include <VolumeSliceViewPlaneEnum.h>
+#include <VolumeSliceCoordinateSelection.h>
+#include <VolumeFile.h>
 
 using namespace caret;
 MovieDialog::MovieDialog(QWidget *parent) :
@@ -64,6 +69,16 @@ MovieDialog::MovieDialog(QWidget *parent) :
 
     imageX = 0;
     imageY = 0;
+
+	m_animationStarted = false;
+	m_volumeSliceIncrement = 0;
+	m_reverseVolumeSliceDirection = false;
+	m_PStart = 0;
+	m_CStart = 0;
+	m_AStart = 0;
+	m_PEnd = 0;
+	m_CEnd = 0;
+	m_AEnd = 0;
 }
 
 MovieDialog::~MovieDialog()
@@ -90,14 +105,15 @@ void MovieDialog::on_animateButton_toggled(bool checked)
     if(checked)
     {
         //this->renderMovieButton->setText("Stop");
-
+		this->m_animationStarted = true;
 
         while(this->ui->animateButton->isChecked())
         {            
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
             QCoreApplication::instance()->processEvents();
+			m_animationStarted = false;
         }
-
+		this->m_animationStarted = false;
     }
     /*else
     {        
@@ -266,6 +282,7 @@ MovieDialog::receiveEvent(Event* event)
 
         if(this->ui->animateButton->isChecked())
         {
+			this->processUpdateVolumeSlice();
 
             if(frameCountEnabled && frameCount)
             {                
@@ -273,7 +290,7 @@ MovieDialog::receiveEvent(Event* event)
                 {
                     if(frameCount <= rotate_frame_number)
                     {
-                        this->ui->animateButton->setChecked(false);
+                        //this->ui->animateButton->setChecked(false);
                         dx = dy = dz = 0.0;
                         return;
                     }
@@ -294,11 +311,189 @@ MovieDialog::receiveEvent(Event* event)
                 this->processRotateTransformation(dx, dy, dz);
             }
             rotate_frame_number++;
+			
         }
     }
 }
 
+int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret::VolumeSliceViewPlaneEnum::Enum &vpe,
+	                               const int32_t &sliceIndex)
+{
+	if(m_animationStarted)
+	{
+		m_volumeSliceIncrement = ui->sliceIncrementCountSpinBox->value();
+		m_reverseVolumeSliceDirection = ui->reverseSliceDirectionCheckBox->isChecked();
+		switch(vpe)
+		{
+			case VolumeSliceViewPlaneEnum::AXIAL:
+				m_AStart = sliceIndex;
+				m_AEnd = (dim[2]-1)<(m_AStart+m_volumeSliceIncrement)?(dim[2]-1):m_AStart+m_volumeSliceIncrement;
+				dA=1;
+				break;
+			case VolumeSliceViewPlaneEnum::CORONAL:
+				m_CStart = sliceIndex;
+				m_CEnd = (dim[1]-1)<(m_CStart+m_volumeSliceIncrement)?(dim[1]-1):m_CStart+m_volumeSliceIncrement;
+				dC=1;
+				break;
 
+			case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+				m_PStart = sliceIndex;
+				m_PEnd = (dim[0]-1)<(m_PStart+m_volumeSliceIncrement)?(dim[0]-1):m_PStart+m_volumeSliceIncrement;
+				dP=1;
+				break;
+			default:
+				break;
+		}
+		
+		
+	}
+	switch(vpe) {
+		case VolumeSliceViewPlaneEnum::AXIAL:
+			if(dA > 0 ) //the current increment is positive
+			{
+			    if((m_AEnd-sliceIndex) > 0) //there is still room to increment by one
+				{
+					return dA;
+				}
+				else if(m_reverseVolumeSliceDirection)
+				{
+					return dA = -dA;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+		    else if(dA < 0)
+			{
+				if((sliceIndex-m_AStart) > 0)
+				{
+					return dA;
+				}
+				else 
+				{
+					return dA = -dA;
+				}
+			}
+			
+			return dA;
+			
+			break;
+		case VolumeSliceViewPlaneEnum::CORONAL:
+			if(dC > 0 ) //the current increment is positive
+			{
+				if((m_CEnd-sliceIndex) > 0) //there is still room to increment by one
+				{
+					return dC;
+				}
+				else if(m_reverseVolumeSliceDirection)
+				{
+					return dC = -dC;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+			else if(dC < 0)
+			{
+				if((sliceIndex-m_CStart) > 0)
+				{
+					return dC;
+				}
+				else 
+				{
+					return dC = -dC;
+				}
+			}
+
+			return dC;
+			break;
+
+		case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+			if(dP > 0 ) //the current increment is positive
+			{
+				if((m_PEnd-sliceIndex) > 0) //there is still room to increment by one
+				{
+					return dP;
+				}
+				else if(m_reverseVolumeSliceDirection)
+				{
+					return dP = -dP;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+			else if(dP < 0)
+			{
+				if((sliceIndex-m_PStart) > 0)
+				{
+					return dP;
+				}
+				else 
+				{
+					return dP = -dP;
+				}
+			}
+			return dP;
+
+			break;
+		default:
+			break;
+	}
+
+	
+
+}
+
+void MovieDialog::processUpdateVolumeSlice()
+{
+	BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+	BrowserTabContent *btc = bw->getBrowserTabContent();
+	int32_t tabIndex = btc->getTabNumber();
+	ModelVolume* mv = btc->getDisplayedVolumeModel();
+	if(mv == NULL) 
+	{
+		return;
+	}
+
+	VolumeSliceViewModeEnum::Enum vme = mv->getSliceViewMode(tabIndex);
+	if(vme != VolumeSliceViewModeEnum::ORTHOGONAL)
+	{
+		return;
+	}
+
+
+	VolumeSliceCoordinateSelection* vscs = mv->getSelectedVolumeSlices(tabIndex);
+	VolumeFile* vf = mv->getUnderlayVolumeFile(tabIndex);
+	std::vector<int64_t> dim;
+	vf->getDimensions(dim);
+	VolumeSliceViewPlaneEnum::Enum vpe = mv->getSliceViewPlane(tabIndex);
+	
+	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
+	   vpe == VolumeSliceViewPlaneEnum::AXIAL)
+	{		
+		int64_t sliceIndex = vscs->getSliceIndexAxial(vf);
+		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::AXIAL,sliceIndex);
+		vscs->setSliceIndexAxial(vf,sliceIndex);
+	}
+	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
+	   vpe == VolumeSliceViewPlaneEnum::CORONAL)
+	{
+		int64_t sliceIndex = vscs->getSliceIndexCoronal(vf);
+		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::CORONAL,sliceIndex);
+		vscs->setSliceIndexCoronal(vf,sliceIndex);
+	}
+	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
+		vpe == VolumeSliceViewPlaneEnum::PARASAGITTAL)
+	{
+		int64_t sliceIndex = vscs->getSliceIndexParasagittal(vf);
+		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::PARASAGITTAL,sliceIndex);
+		vscs->setSliceIndexParasagittal(vf,sliceIndex);
+	}
+}
 
 void MovieDialog::captureFrame(AString filename)
 {

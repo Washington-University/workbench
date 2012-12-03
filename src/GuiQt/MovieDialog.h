@@ -1,13 +1,15 @@
-#ifndef MOVIEDIALOG_H
-#define MOVIEDIALOG_H
+#ifndef MOVIE_DIALOG_H
+#define MOVIE_DIALOG_H
 
 #include <QDialog>
+#include <VolumeSliceViewPlaneEnum.h>
 #include "Event.h"
 #include "EventListenerInterface.h"
 #include <stdint.h>
 
+
 namespace Ui {
-class MovieDialog;
+    class MovieDialog;
 }
 
 using namespace caret;
@@ -20,7 +22,10 @@ public:
     ~MovieDialog();
 
     void receiveEvent(Event* event);
-    
+
+	void processUpdateVolumeSlice();
+    int32_t getSliceDelta(const std::vector<int64_t> &dim, const caret::VolumeSliceViewPlaneEnum::Enum &vpe, const int32_t &sliceIndex);
+
 private slots:
     void on_closeButton_clicked();
 
@@ -49,11 +54,22 @@ private:
     bool frameCountEnabled;
     int frameCount;
     bool reverseDirection;
+	int32_t dP;//change in Parasagital slice
+	int32_t dC;//change in Coronal slice
+	int32_t dA;//change in Axial slice
 
     int32_t imageX;
     int32_t imageY;
 
-
+	bool m_animationStarted;
+	int32_t m_volumeSliceIncrement;
+	bool m_reverseVolumeSliceDirection;
+	int64_t m_AStart;
+	int64_t m_AEnd;
+	int64_t m_CStart;
+	int64_t m_CEnd;
+	int64_t m_PStart;
+	int64_t m_PEnd;
+	
 };
-
-#endif // MOVIEDIALOG_H
+#endif // MOVIE_DIALOG_H
