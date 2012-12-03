@@ -40,6 +40,7 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -47,6 +48,7 @@
 #include "ImageFile.h"
 #include <Matrix4x4.h>
 #include "Model.h"
+#include "SessionManager.h"
 #include "WuQMessageBox.h"
 #include <ModelVolume.h>
 #include <VolumeSliceViewModeEnum.h>
@@ -529,6 +531,14 @@ void MovieDialog::captureFrame(AString filename)
         WuQMessageBox::errorOk(this, 
             "Invalid window selected");
         return;
+    }
+
+    if (ui->cropImageCheckBox->isChecked()) {
+        const int marginSize = ui->marginSpinBox->value();
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        uint8_t backgroundColor[3];
+        prefs->getColorBackground(backgroundColor);
+        imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
     }
 
     std::vector<AString> imageFileExtensions;

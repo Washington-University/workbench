@@ -63,6 +63,8 @@ private:
     bool m_useCustomSize;
     int32_t imageX;
     int32_t imageY;
+    int32_t croppedImageX;
+    int32_t croppedImageY;
 
 	bool m_animationStarted;
 	int32_t m_volumeSliceIncrement;
