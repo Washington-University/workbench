@@ -63,7 +63,7 @@ MovieDialog::MovieDialog(QWidget *parent) :
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
 
-    browserWindowIndex = 0;
+    m_browserWindowIndex = 0;
     frame_number = 0;
     rotate_frame_number = 0;
 
@@ -136,7 +136,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
         {
             int32_t w = 0;
             int32_t h = 0;
-            GuiManager::get()->getBrowserWindowByWindowIndex(0)->getViewportSize(w,h);
+            GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(w,h);
     
 
             unlink(fileName);
@@ -175,7 +175,7 @@ void MovieDialog::on_cropImageCheckBox_toggled(bool checked)
 void MovieDialog::processRotateTransformation(const double dx, const double dy, const double dz)
 {
     BrowserTabContent* browserTabContent = 
-		GuiManager::get()->getBrowserTabContentForBrowserWindow(browserWindowIndex, true);
+		GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
 	if (browserTabContent == NULL) {
 		return;
 	}
@@ -450,7 +450,12 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 
 void MovieDialog::processUpdateVolumeSlice()
 {
-	BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+	BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    if(!bw)
+    {
+        CaretLogInfo("Invalid browser window index, " + AString::number(m_browserWindowIndex));
+        return;
+    }
 	BrowserTabContent *btc = bw->getBrowserTabContent();
 	int32_t tabIndex = btc->getTabNumber();
 	ModelVolume* mv = btc->getDisplayedVolumeModel();
@@ -497,11 +502,11 @@ void MovieDialog::processUpdateVolumeSlice()
 
 void MovieDialog::captureFrame(AString filename)
 {
-    const int browserWindowIndex = 0;
+    
 
     ImageFile imageFile;
     QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
+    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(m_browserWindowIndex,
         imageX,
         imageY,
         imageFile,
@@ -546,3 +551,8 @@ void MovieDialog::captureFrame(AString filename)
     }
 }
 
+
+void MovieDialog::on_workbenchWindowSpinBox_valueChanged(int arg1)
+{
+    m_browserWindowIndex = arg1-1;
+}

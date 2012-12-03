@@ -23,7 +23,7 @@
    <item>
     <widget class="QGroupBox" name="imageSourceGroupBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Image Source</string>
@@ -40,6 +40,9 @@
        <widget class="QSpinBox" name="workbenchWindowSpinBox">
         <property name="minimum">
          <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>10</number>
         </property>
        </widget>
       </item>

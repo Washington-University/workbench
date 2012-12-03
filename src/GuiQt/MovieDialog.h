@@ -35,6 +35,8 @@ private slots:
 
     void on_cropImageCheckBox_toggled(bool checked);
 
+    void on_workbenchWindowSpinBox_valueChanged(int arg1);
+
 private:
     Ui::MovieDialog *ui;
 
@@ -44,7 +46,7 @@ private:
         const double dy,
         const double dz);
 
-    int32_t browserWindowIndex;
+    int32_t m_browserWindowIndex;
 
     int frame_number;
     int rotate_frame_number;
@@ -69,7 +71,7 @@ private:
 	int64_t m_CStart;
 	int64_t m_CEnd;
 	int64_t m_PStart;
-	int64_t m_PEnd;
+	int64_t m_PEnd;   
 	
 };
 #endif // MOVIE_DIALOG_H
