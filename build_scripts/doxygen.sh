@@ -8,7 +8,8 @@
 #
 # File for capturing standard error
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/doxygen
+#BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/doxygen
+BUILD_ROOT_DIR=/mnt/myelin/caret7_documentation
 ERROR_FILE=${BUILD_ROOT_DIR}/result_doxygen.txt
 rm -f ${ERROR_FILE}
 
