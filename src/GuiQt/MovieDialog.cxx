@@ -457,7 +457,7 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 			break;
 	}
 
-	
+    return 0;	
 
 }
 
@@ -533,13 +533,15 @@ void MovieDialog::captureFrame(AString filename)
         return;
     }
 
-    if (ui->cropImageCheckBox->isChecked()) {
+    /*if (ui->cropImageCheckBox->isChecked()) {
         const int marginSize = ui->marginSpinBox->value();
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         uint8_t backgroundColor[3];
         prefs->getColorBackground(backgroundColor);
         imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
-    }
+        croppedImageX = imageFile.getAsQImage()->size().height();
+        croppedImageY = imageFile.getAsQImage()->size().width();
+    }*/
 
     std::vector<AString> imageFileExtensions;
     AString defaultFileExtension;
