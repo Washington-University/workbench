@@ -673,14 +673,54 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         /*
          * Set the default tab to whole brain, if present
          */
-        int32_t defaultTabIndex = 0;
+        int32_t surfaceTabIndex = -1;
+        int32_t montageTabIndex = -1;
+        int32_t wholeBrainTabIndex = -1;
+        int32_t volumeTabIndex = -1;
         for (int32_t i = 0; i < numTabs; i++) {
             BrowserTabContent* btc = getTabContentFromTab(i);
-            if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN) {
-                defaultTabIndex = i;
-                break;
+            switch (btc->getSelectedModelType()) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                    if (surfaceTabIndex < 0) {
+                        surfaceTabIndex = i;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                    if (montageTabIndex < 0) {
+                        montageTabIndex = i;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    if (volumeTabIndex < 0) {
+                        volumeTabIndex = i;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    if (wholeBrainTabIndex < 0) {
+                        wholeBrainTabIndex = i;
+                    }
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_YOKING:
+                    break;
             }
         }
+
+        int32_t defaultTabIndex = 0;
+        if (montageTabIndex >= 0) {
+            defaultTabIndex = montageTabIndex;
+        }
+        else if (surfaceTabIndex >= 0) {
+            defaultTabIndex = surfaceTabIndex;
+        }
+        else if (volumeTabIndex >= 0) {
+            defaultTabIndex = volumeTabIndex;
+        }
+        else if (wholeBrainTabIndex >= 0) {
+            defaultTabIndex = wholeBrainTabIndex;
+        }
+        
         this->tabBar->setCurrentIndex(defaultTabIndex);
     }
 }
