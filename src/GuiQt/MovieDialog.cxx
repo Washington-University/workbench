@@ -163,7 +163,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
             CaretLogInfo("Resizing image from " + AString::number(w) + AString(":") + AString::number(h) + AString(" to ") +
                          AString::number(imageXtemp) + AString(":") + AString::number(imageYtemp));
 
-            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video -vf crop=" + 
+            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -vf crop=" + 
                 AString::number(imageXtemp) + ":" +AString::number(imageYtemp) + ":" + AString(":0:0 ") + fileName);
             CaretLogFine("running " + command);
 
