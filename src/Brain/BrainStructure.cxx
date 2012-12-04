@@ -1103,11 +1103,14 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
     
     MetricFile* depthMetricFile = NULL;
     int32_t     depthMapIndex = -1;
+    MetricFile* depthNamedMetricFile = NULL;
     MetricFile* curvatureMetricFile = NULL;
     int32_t     curvatureMapIndex = -1;
-    MetricFile* shapeNamedMetricFile = NULL;
     MetricFile* curvatureNamedMetricFile = NULL;
-    MetricFile* depthNamedMetricFile = NULL;
+    MetricFile* shapeNamedMetricFile = NULL;
+    MetricFile* sulcMetricFile = NULL;
+    int32_t     sulcMapIndex = -1;
+    MetricFile* sulcNamedMetricFile = NULL;
     
     const int numFiles = m_metricFiles.size();
     for (int32_t i = 0; i < numFiles; i++) {
@@ -1116,7 +1119,13 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
         const int32_t numMaps = mf->getNumberOfMaps();
         for (int32_t j = 0; j < numMaps; j++) {
             const AString mapName = mf->getMapName(j).toLower();
-            if (mapName.contains("depth")) {
+            if (mapName.contains("sulc")) {
+                if (sulcMetricFile == NULL) {
+                    sulcMetricFile = mf;
+                    sulcMapIndex   = j;
+                }
+            }
+            else if (mapName.contains("depth")) {
                 if (depthMetricFile == NULL) {
                     depthMetricFile = mf;
                     depthMapIndex   = j;
@@ -1130,6 +1139,11 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
             }
         }
         
+        if (filename.contains("sulc")) {
+            if (numMaps > 0) {
+                sulcNamedMetricFile = mf;
+            }
+        }
         if (filename.contains("shape")) {
             if (numMaps > 0) {
                 shapeNamedMetricFile = mf;
@@ -1147,13 +1161,21 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
         }
     }
     
-    if (depthMetricFile != NULL) {
+    if (sulcMetricFile != NULL) {
+        shapeMetricFileOut = sulcMetricFile;
+        shapeMapIndexOut   = sulcMapIndex;
+    }
+    else if (depthMetricFile != NULL) {
         shapeMetricFileOut = depthMetricFile;
         shapeMapIndexOut   = depthMapIndex;
     }
     else if (curvatureMetricFile != NULL) {
         shapeMetricFileOut = curvatureMetricFile;
         shapeMapIndexOut   = curvatureMapIndex;
+    }
+    else if (sulcNamedMetricFile != NULL) {
+        shapeMetricFileOut = sulcNamedMetricFile;
+        shapeMapIndexOut   = 0;
     }
     else if (depthNamedMetricFile != NULL) {
         shapeMetricFileOut = depthNamedMetricFile;
