@@ -64,8 +64,8 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
         m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
         m_leftEnabled[i] = true;
         m_rightEnabled[i] = true;
-        m_firstSurfaceEnabled[i] = true;
-        m_secondSurfaceEnabled[i] = false;
+        m_firstSurfaceEnabled[i] = false;
+        m_secondSurfaceEnabled[i] = true;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_overlaySet[i] = new OverlaySet(this);
@@ -135,8 +135,8 @@ ModelSurfaceMontage::initializeSurfaces()
                                                                SurfaceTypeEnum::VERY_INFLATED);
         m_leftEnabled[i] = true;
         m_rightEnabled[i] = true;
-        m_firstSurfaceEnabled[i] = true;
-        m_secondSurfaceEnabled[i] = false;
+        m_firstSurfaceEnabled[i] = false;
+        m_secondSurfaceEnabled[i] = true;
     }
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
