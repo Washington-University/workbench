@@ -518,10 +518,10 @@ OverlaySet::initializeOverlays()
     /*
      * Find connectivity files giving preferense to dense over dense time series
      */
-    std::vector<ConnectivityLoaderFile*> connFiles;
-    if (brain != NULL) {
-        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
-    }
+//    std::vector<ConnectivityLoaderFile*> connFiles;
+//    if (brain != NULL) {
+//        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
+//    }
 //    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     
     
@@ -704,37 +704,48 @@ OverlaySet::initializeOverlays()
      */
     const int32_t numDisplayedOverlays = getNumberOfDisplayedOverlays();
     
-    std::deque<CaretMappableDataFile*> mapFiles;
-    std::deque<int32_t> mapFileIndices;
+    /* Limit overlay map files to maximum number of overlays */
+    numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size());
+    if (numOverlayMapFiles > numDisplayedOverlays) {
+        numOverlayMapFiles = numDisplayedOverlays;
+    }
 
     /*
-     * Find out how many overlay files may be used and add them
+     * Track overlay that were initialized
      */
-    const int32_t maxOverlayFiles = std::min((numDisplayedOverlays - numShapeFiles),
-                                             numOverlayMapFiles);
-    for (int32_t i = 0; i < maxOverlayFiles; i++) {
-        mapFiles.push_back(overlayMapFiles[i]);
-        mapFileIndices.push_back(overlayMapFileIndices[i]);
-    }
+    std::vector<bool> overlayInitializedFlag(numDisplayedOverlays,
+                                             false);
     
     /*
-     * Put in the shape files
+     * Load overlay map files into the overlays
      */
+    for (int32_t i = 0; i < numOverlayMapFiles; i++) {
+        getOverlay(i)->setSelectionData(overlayMapFiles[i],
+                                        overlayMapFileIndices[i]);
+        overlayInitializedFlag[i] = true;
+    }
+
+    /*
+     * Put in the shape files at the bottom
+     */
+    int32_t firstShapeOverlayIndex = (numDisplayedOverlays - numShapeFiles);
+    if (firstShapeOverlayIndex < 0) {
+        firstShapeOverlayIndex = 0;
+    }
     for (int32_t i = 0; i < numShapeFiles; i++) {
-        if (static_cast<int32_t>(mapFiles.size()) >= numDisplayedOverlays) {
-            break;
-        }
-        mapFiles.push_back(shapeMapFiles[i]);
-        mapFileIndices.push_back(shapeMapFileIndices[i]);
+        const int32_t overlayIndex = i + firstShapeOverlayIndex;
+        getOverlay(overlayIndex)->setSelectionData(shapeMapFiles[i],
+                                        shapeMapFileIndices[i]);
+        overlayInitializedFlag[overlayIndex] = true;
     }
     
     /*
-     * Set the overlays
+     * Disable overlays that were not initialized
      */
-    const int32_t numMapFiles = std::min(static_cast<int32_t>(mapFiles.size()), 
-                                         getNumberOfDisplayedOverlays());
-    for (int32_t i = 0; i < numMapFiles; i++) {
-        getOverlay(i)->setSelectionData(mapFiles[i], mapFileIndices[i]);
+    for (int32_t i = 0; i < numDisplayedOverlays; i++) {
+        if (overlayInitializedFlag[i] == false) {
+            getOverlay(i)->setEnabled(false);
+        }
     }
 }
 
