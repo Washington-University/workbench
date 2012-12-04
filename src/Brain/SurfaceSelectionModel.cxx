@@ -134,6 +134,61 @@ SurfaceSelectionModel::setSurface(Surface* surface)
 }
 
 /**
+ * Set the selected surface to a surface of any of the given types with
+ * first type having highest priority and last type having lowest priority.
+ *
+ * @param surfaceType
+ *    Highest priority type.
+ * @param surfaceType2
+ *    Second priority type.
+ * @param surfaceType3
+ *    Third priority type.
+ * @param surfaceType4
+ *    Fourth priority type.
+ * @param surfaceType5
+ *    Lowest priority type.
+ */
+void
+SurfaceSelectionModel::setSurfaceToType(const SurfaceTypeEnum::Enum surfaceType,
+                                        const SurfaceTypeEnum::Enum surfaceType2,
+                                        const SurfaceTypeEnum::Enum surfaceType3,
+                                        const SurfaceTypeEnum::Enum surfaceType4,
+                                        const SurfaceTypeEnum::Enum surfaceType5)
+{
+    std::vector<Surface*> surfaces = getAvailableSurfaces();
+
+    std::vector<SurfaceTypeEnum::Enum> surfaceTypes;
+    surfaceTypes.push_back(surfaceType);
+    if (surfaceType2 != SurfaceTypeEnum::UNKNOWN) {
+        surfaceTypes.push_back(surfaceType2);
+    }
+    if (surfaceType3 != SurfaceTypeEnum::UNKNOWN) {
+        surfaceTypes.push_back(surfaceType3);
+    }
+    if (surfaceType4 != SurfaceTypeEnum::UNKNOWN) {
+        surfaceTypes.push_back(surfaceType4);
+    }
+    if (surfaceType5 != SurfaceTypeEnum::UNKNOWN) {
+        surfaceTypes.push_back(surfaceType5);
+    }
+    
+    for (std::vector<SurfaceTypeEnum::Enum>::iterator typeIter = surfaceTypes.begin();
+         typeIter != surfaceTypes.end();
+         typeIter++) {
+        const SurfaceTypeEnum::Enum type = *typeIter;
+        for (std::vector<Surface*>::iterator surfaceIter = surfaces.begin();
+             surfaceIter != surfaces.end();
+             surfaceIter++) {
+            Surface* s = *surfaceIter;
+            if (s->getSurfaceType() == type) {
+                setSurface(s);
+                return;
+            }
+        }
+    }
+}
+
+/**
  * @return A vector containing surfaces available
  * for selection.
  */

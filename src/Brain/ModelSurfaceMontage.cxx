@@ -57,12 +57,18 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    initializeMembersModelSurfaceMontage();
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i] = new OverlaySet(this);
+        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_leftEnabled[i] = true;
+        m_rightEnabled[i] = true;
+        m_firstSurfaceEnabled[i] = true;
+        m_secondSurfaceEnabled[i] = false;
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        leftView(i);
+        m_overlaySet[i] = new OverlaySet(this);
     }
 }
 
@@ -94,17 +100,47 @@ ModelSurfaceMontage::receiveEvent(Event* /*event*/)
 }
 
 void
-ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
+ModelSurfaceMontage::initializeSurfaces()
 {
+    Surface* leftAnatSurface = NULL;
+    BrainStructure* leftBrainStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_LEFT,
+                                                                    false);
+    if (leftBrainStructure != NULL) {
+        leftAnatSurface = leftBrainStructure->getVolumeInteractionSurface();
+    }
+    
+    Surface* rightAnatSurface = NULL;
+    BrainStructure* rightBrainStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_RIGHT,
+                                                                    false);
+    if (rightBrainStructure != NULL) {
+        rightAnatSurface = rightBrainStructure->getVolumeInteractionSurface();
+    }
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_leftSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
+        if (leftAnatSurface != NULL) {
+            m_leftSurfaceSelectionModel[i]->setSurface(leftAnatSurface);
+        }
+        
+
+        m_leftSecondSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::INFLATED,
+                                                               SurfaceTypeEnum::VERY_INFLATED);
+        
+        m_rightSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
+        if (rightAnatSurface != NULL) {
+            m_rightSurfaceSelectionModel[i]->setSurface(rightAnatSurface);
+        }
+
+        m_rightSecondSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::INFLATED,
+                                                               SurfaceTypeEnum::VERY_INFLATED);
         m_leftEnabled[i] = true;
         m_rightEnabled[i] = true;
         m_firstSurfaceEnabled[i] = true;
         m_secondSurfaceEnabled[i] = false;
+    }
+
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        leftView(i);
     }
 }
 

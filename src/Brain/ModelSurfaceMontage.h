@@ -43,6 +43,8 @@ namespace caret {
         
         virtual ~ModelSurfaceMontage();
         
+        void initializeSurfaces();
+        
         virtual void resetView(const int32_t windowTabNumber);
         
         virtual void receiveEvent(Event* event);
@@ -111,8 +113,6 @@ namespace caret {
         
         ModelSurfaceMontage& operator=(const ModelSurfaceMontage&);
         
-        void initializeMembersModelSurfaceMontage();
-
         SurfaceSelectionModel* m_leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceSelectionModel* m_leftSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

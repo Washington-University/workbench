@@ -56,6 +56,12 @@ namespace caret {
         
         void setSurface(Surface* surface);
         
+        void setSurfaceToType(const SurfaceTypeEnum::Enum surfaceType,
+                              const SurfaceTypeEnum::Enum surfaceType2 = SurfaceTypeEnum::UNKNOWN,
+                              const SurfaceTypeEnum::Enum surfaceType3 = SurfaceTypeEnum::UNKNOWN,
+                              const SurfaceTypeEnum::Enum surfaceType4 = SurfaceTypeEnum::UNKNOWN,
+                              const SurfaceTypeEnum::Enum surfaceType5 = SurfaceTypeEnum::UNKNOWN);
+        
         std::vector<Surface*> getAvailableSurfaces() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

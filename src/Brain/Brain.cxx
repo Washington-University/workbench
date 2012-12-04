@@ -2370,6 +2370,17 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     m_paletteFile->clearModified();
     
     /*
+     * Reset the volume interaction surfaces since they can get set
+     * incorrectly when loading files
+     */
+    for (std::vector<BrainStructure*>::iterator bsi = m_brainStructures.begin();
+         bsi != m_brainStructures.end();
+         bsi++) {
+        BrainStructure* bs = *bsi;
+        bs->setVolumeInteractionSurface(NULL);
+    }
+    
+    /*
      * Initialize the overlay for ALL models
      */
     EventModelGetAll getAllModels;
@@ -2380,6 +2391,14 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
          iter++) {
         Model* mdc = *iter;
         mdc->initializeOverlays();
+        
+        /*
+         * Initialize the surfaces for montage
+         */
+        ModelSurfaceMontage* montageModel = dynamic_cast<ModelSurfaceMontage*>(mdc);
+        if (montageModel != NULL) {
+            montageModel->initializeSurfaces();
+        }
     }
     
     /*
