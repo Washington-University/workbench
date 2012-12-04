@@ -61,6 +61,7 @@ using namespace caret;
 /**
  * \class caret::FociProjectionDialog 
  * \brief Dialog for projection of foci.
+ * \ingroup GuiQt
  */
 
 /**
