@@ -44,6 +44,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "FileAdapter.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "Scene.h"
 #include "SceneFileSaxReader.h"
@@ -314,14 +315,16 @@ SceneFile::getFileMetaData() const
 
 /**
  * Read the scene file.
- * @param filename
+ * @param filenameIn
  *    Name of scene file.
  * @throws DataFileException
  *    If there is an error reading the file.
  */
 void 
-SceneFile::readFile(const AString& filename) throw (DataFileException)
+SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
 {
+    FileInformation fileInfo(filenameIn);
+    const AString filename = fileInfo.getFilePath();
     checkFileReadability(filename);
     
     this->setFileName(filename);
