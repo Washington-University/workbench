@@ -73,7 +73,7 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
-        void setDefaultScalingToFitWindow();
+        //void setDefaultScalingToFitWindow();
 
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,

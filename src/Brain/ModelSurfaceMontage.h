@@ -70,7 +70,7 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
-        void setDefaultScalingToFitWindow();
+        //void setDefaultScalingToFitWindow();
         
         bool isLeftEnabled(const int tabIndex) const;
         

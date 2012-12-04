@@ -5524,11 +5524,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     glGetIntegerv(GL_VIEWPORT, savedVP);
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
-    Surface* leftSurface = NULL;
-    Surface* rightSurface = NULL;
-    Surface* leftSecondSurface = NULL;
-    Surface* rightSecondSurface = NULL;
-
     
     std::vector<Surface*> rowOne;
     if (surfaceMontageModel->isFirstSurfaceEnabled(tabIndex)) {
@@ -6112,14 +6107,43 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                       ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4])
 {
+    const int32_t tabNumberIndex = browserTabContent->getTabNumber();
+    
+    /*
+     * Center using volume, if it is available
+     * Otherwise, see if surface is available, but a surface is offset
+     * from center so override the X-coordinate to zero.
+     */
+    float center[3] = { 0.0, 0.0, 0.0 };
+    VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
+    if (underlayVolumeFile != NULL) {
+        const BoundingBox volumeBoundingBox = underlayVolumeFile->getSpaceBoundingBox();
+        volumeBoundingBox.getCenter(center);
+    }
+    else {
+        Surface* leftSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_LEFT,
+                                                                       tabNumberIndex);
+        if (leftSurface != NULL) {
+            leftSurface->getBoundingBox()->getCenter(center);
+            center[0] = 0.0;
+        }
+        else {
+            Surface* rightSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                                                                            tabNumberIndex);
+            if (rightSurface != NULL) {
+                rightSurface->getBoundingBox()->getCenter(center);
+                center[0] = 0.0;
+            }
+        }
+    }
+    
     this->setViewportAndOrthographicProjection(viewport,
                                                Model::VIEWING_TRANSFORM_NORMAL);
-    this->applyViewingTransformations(wholeBrainController, 
+    this->applyViewingTransformations(wholeBrainController,
                                       this->windowTabIndex,
-                                      NULL,
+                                      center,
                                       Model::VIEWING_TRANSFORM_NORMAL);
     
-    const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
     
     /*
@@ -6190,7 +6214,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     /*
      * Determine volumes that are to be drawn  
      */
-    VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
+    //VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
     if (underlayVolumeFile != NULL) {
         std::vector<VolumeDrawInfo> volumeDrawInfo;
         this->setupVolumeDrawInfo(browserTabContent,

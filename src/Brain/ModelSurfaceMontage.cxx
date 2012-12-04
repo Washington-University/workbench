@@ -352,23 +352,23 @@ ModelSurfaceMontage::getNameForBrowserTab() const
  * Set the scaling so that the model fills the window.
  *
  */
-void
-ModelSurfaceMontage::setDefaultScalingToFitWindow()
-{
-    /*
-    BoundingBox bounds;
-    m_surface->getBounds(bounds);
-    
-    float bigY = std::max(std::abs(bounds.getMinY()), bounds.getMaxY());
-    float percentScreenY = BrainOpenGL::getModelViewingHalfWindowHeight() * 0.90f;
-    float scale = percentScreenY / bigY;
-    m_defaultModelScaling = scale;
-    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_setScaling(i, m_defaultModelScaling);
-    }
-    */
-}
+//void
+//ModelSurfaceMontage::setDefaultScalingToFitWindow()
+//{
+//    /*
+//    BoundingBox bounds;
+//    m_surface->getBounds(bounds);
+//    
+//    float bigY = std::max(std::abs(bounds.getMinY()), bounds.getMaxY());
+//    float percentScreenY = BrainOpenGL::getModelViewingHalfWindowHeight() * 0.90f;
+//    float scale = percentScreenY / bigY;
+//    m_defaultModelScaling = scale;
+//    
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        m_setScaling(i, m_defaultModelScaling);
+//    }
+//    */
+//}
 
 /**
  * Reset view.  For left and right hemispheres, the default
