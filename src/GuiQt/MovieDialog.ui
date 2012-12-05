@@ -340,7 +340,7 @@
    <item>
     <widget class="QGroupBox" name="imageOptionsGroupBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Image Options</string>
@@ -351,7 +351,7 @@
         <item>
          <widget class="QCheckBox" name="cropImageCheckBox">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>Automatically Crop Image</string>
@@ -365,7 +365,7 @@
         <item>
          <widget class="QLabel" name="marginLabel">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>Margin</string>
@@ -375,7 +375,7 @@
         <item>
          <widget class="QSpinBox" name="marginSpinBox">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="maximum">
            <number>1000</number>

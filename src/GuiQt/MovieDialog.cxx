@@ -147,9 +147,12 @@ void MovieDialog::on_recordButton_toggled(bool checked)
         AString tempDir = QDir::tempPath();
         if ( !fileName.isEmpty() )
         {
-            int32_t w = imageX;
-            int32_t h = imageY;
-            if(!(w&&h)) GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(w,h);
+            int crop[4];
+            crop[0] = imageX;
+            crop[1] = imageY;
+            crop[2] = 0;
+            crop[3] = 0;            
+            if(!(crop[0]&&crop[1])) GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(crop[0],crop[1]);
     
 
             unlink(fileName);
@@ -158,13 +161,20 @@ void MovieDialog::on_recordButton_toggled(bool checked)
 
             double frame_rate = 30.0/double(1 + this->ui->repeatFramesSpinBox->value());
 
-            int32_t imageXtemp = (w/2)*2;
-            int32_t imageYtemp = (h/2)*2;
-            CaretLogInfo("Resizing image from " + AString::number(w) + AString(":") + AString::number(h) + AString(" to ") +
-                         AString::number(imageXtemp) + AString(":") + AString::number(imageYtemp));
+            
+            if(ui->cropImageCheckBox->isChecked())
+            {                
+                this->getImageCrop(tempDir + "/movie0" + AString(".png"),crop);
+            }
+
+            crop[0] = (crop[0]/2)*2;
+            crop[1] = (crop[1]/2)*2;
+            CaretLogInfo("Resizing image from " + AString::number(imageX) + AString(":") + AString::number(imageY) + AString(" to ") +
+                         AString::number(crop[0]) + AString(":") + AString::number(crop[1]));
 
             AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -vf crop=" + 
-                AString::number(imageXtemp) + ":" +AString::number(imageYtemp) + ":" + AString(":0:0 ") + fileName);
+                AString::number(crop[0]) + ":" + AString::number(crop[1]) + ":" + 
+                AString::number(crop[2]) + ":" + AString::number(crop[3]) + " " + fileName);
             CaretLogFine("running " + command);
 
             system(command.toAscii().data());
@@ -178,6 +188,27 @@ void MovieDialog::on_recordButton_toggled(bool checked)
         }
         frame_number = 0;
     }
+}
+
+void MovieDialog::getImageCrop(AString fileName, int *cropOut)
+{
+    const int marginSize = this->ui->marginSpinBox->value();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t backgroundColor[3];
+    prefs->getColorBackground(backgroundColor);
+
+    ImageFile file;
+    file.readFile(fileName);
+
+    int leftTopRightBottom[4];
+    file.findImageObject(backgroundColor,leftTopRightBottom);
+
+    const int width = leftTopRightBottom[2] - leftTopRightBottom[0] + 1;
+    const int height = leftTopRightBottom[3] - leftTopRightBottom[1] + 1;
+    cropOut[0] = width + 2*marginSize;
+    cropOut[1] = height + 2*marginSize;
+    cropOut[2] = leftTopRightBottom[0]+marginSize;
+    cropOut[3] = leftTopRightBottom[1]+marginSize;
 }
 
 void MovieDialog::on_cropImageCheckBox_toggled(bool checked)
