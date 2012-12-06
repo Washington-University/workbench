@@ -33,8 +33,12 @@
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
 #include "DescriptiveStatistics.h"
+#include "PaletteFile.h"
+#include "VolumeFileVoxelColorizer.h"
 
 namespace caret {
+    
+    class VolumeFileVoxelColorizer;
     
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
@@ -62,6 +66,7 @@ namespace caret {
         
         bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
+        VolumeFileVoxelColorizer* m_voxelColorizer;
     public:
         
         enum InterpType
@@ -180,6 +185,33 @@ namespace caret {
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
 
         AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        void assignVoxelColorsForAllMaps(const PaletteFile* paletteFile);
+        
+        void assignVoxelColorsForMap(const int32_t mapIndex,
+                                     const PaletteFile* paletteFile);
+        
+        void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                         const int64_t sliceIndex,
+                                         float* rgbaOut) const;
+
+        void getVoxelColorInMap(const int64_t i,
+                                const int64_t j,
+                                const int64_t k,
+                                const int64_t mapIndex,
+                                float rgbaOut[4]) const;
+        
+        void clearVoxelColoringForMap(const int64_t mapIndex);
+        
+        void setVoxelColorInMap(const int64_t i,
+                                 const int64_t j,
+                                 const int64_t k,
+                                 const int64_t mapIndex,
+                                 const float rgba[4]);
+        
+    private:
+        friend class VolumeFileVoxelColorizer;
     };
 
 }

@@ -28,9 +28,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "CaretLogger.h"
 #include "Palette.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
+#include "VolumeFileVoxelColorizer.h"
 
 using namespace caret;
 using namespace std;
@@ -40,12 +42,14 @@ const float VolumeFile::INVALID_INTERP_VALUE = 0.0f;//we may want NaN or somethi
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
 }
 
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
 }
@@ -53,6 +57,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
 }
@@ -106,6 +111,7 @@ void VolumeFile::setType(SubvolumeAttributes::VolumeType whatType)
 
 VolumeFile::~VolumeFile()
 {
+    delete m_voxelColorizer;
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
@@ -404,6 +410,14 @@ void VolumeFile::validateMembers()
             }
         }
     }
+    
+    /*
+     * Will handle colorization of voxel data.
+     */
+    if (m_voxelColorizer != NULL) {
+        delete m_voxelColorizer;
+    }
+    m_voxelColorizer = new VolumeFileVoxelColorizer(this);
 }
 
 /**
@@ -810,3 +824,184 @@ VolumeFile::getSpaceBoundingBox() const
     }
     return bb;
 }
+
+/**
+ * Assign colors for all maps in this volume file.
+ *
+ * @param paletteFile
+ *     File containing the palettes.
+ */
+void
+VolumeFile::assignVoxelColorsForAllMaps(const PaletteFile* paletteFile)
+{
+    CaretAssert(m_voxelColorizer);
+    
+    const int32_t numberOfMaps = getNumberOfMaps();
+    for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+        assignVoxelColorsForMap(iMap,
+                                paletteFile);
+//        const bool usesPalette = isMappedWithPalette();
+//        const PaletteColorMapping* pcm = (usesPalette
+//                                          ? getMapPaletteColorMapping(iMap)
+//                                          : NULL);
+//        const AString paletteName = (usesPalette
+//                                     ? pcm->getSelectedPaletteName()
+//                                     : "");
+//        const Palette* palette = (usesPalette
+//                                  ? paletteFile->getPaletteByName(paletteName)
+//                                  : NULL);
+//        if (usesPalette
+//            && (palette == NULL)) {
+//            CaretLogSevere("No palette named \""
+//                           + paletteName
+//                           + "\" found for coloring map index="
+//                           + AString::number(iMap)
+//                           + " in "
+//                           + getFileNameNoPath());
+//        }
+//        
+//        m_voxelColorizer->assignVoxelColorsForMapInBackground(iMap,
+//                                                              palette,
+//                                                              NULL,
+//                                                              0);
+    }
+}
+
+/**
+ * Assign colors for all maps in this volume file.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param paletteFile
+ *     File containing the palettes.
+ */
+void
+VolumeFile::assignVoxelColorsForMap(const int32_t mapIndex,
+                                    const PaletteFile* paletteFile)
+{
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
+    CaretAssert(m_voxelColorizer);
+    
+    const bool usesPalette = isMappedWithPalette();
+    const PaletteColorMapping* pcm = (usesPalette
+                                      ? getMapPaletteColorMapping(mapIndex)
+                                      : NULL);
+    const AString paletteName = (usesPalette
+                                 ? pcm->getSelectedPaletteName()
+                                 : "");
+    const Palette* palette = (usesPalette
+                              ? paletteFile->getPaletteByName(paletteName)
+                              : NULL);
+    if (usesPalette
+        && (palette == NULL)) {
+        CaretLogSevere("No palette named \""
+                       + paletteName
+                       + "\" found for coloring map index="
+                       + AString::number(mapIndex)
+                       + " in "
+                       + getFileNameNoPath());
+    }
+    
+    m_voxelColorizer->assignVoxelColorsForMapInBackground(mapIndex,
+                                                          palette,
+                                                          NULL,
+                                                          0);
+}
+
+/**
+ * Get the voxel RGBA coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    Plane for which colors are requested.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param rgbaOut
+ *    Contains colors upon exit.
+ */
+void
+VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                 const int64_t sliceIndex,
+                                 float* rgbaOut) const
+{
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+                                                  slicePlane,
+                                                  sliceIndex,
+                                                  rgbaOut);
+}
+
+/**
+ * Get the RGBA color components for voxel.
+ *
+ * @param i
+ *    Parasaggital index
+ * @param j
+ *    Coronal index
+ * @param k
+ *    Axial index
+ * @param mapIndex
+ *    Index of map.
+ * @param rgbaOut
+ *    Contains voxel coloring on exit.
+ */
+void
+VolumeFile::getVoxelColorInMap(const int64_t i,
+                        const int64_t j,
+                        const int64_t k,
+                        const int64_t mapIndex,
+                        float rgbaOut[4]) const
+{
+    CaretAssert(m_voxelColorizer);
+
+    m_voxelColorizer->getVoxelColorInMap(i,
+                                         j,
+                                         k,
+                                         mapIndex,
+                                         rgbaOut);
+}
+
+/**
+ * Clear the voxel coloring for the given map.
+ * @param mapIndex
+ *    Index of map.
+ */
+void
+VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
+{
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->clearVoxelColoringForMap(mapIndex);
+}
+
+/**
+ * Set the RGBA coloring for a voxel in a map.
+ * 
+ * @param i
+ *    Parasaggital index
+ * @param j
+ *    Coronal index
+ * @param k
+ *    Axial index
+ * @param mapIndex
+ *    Index of map.
+ * @param rgba
+ *    RGBA color components for voxel.
+ */
+void
+VolumeFile::setVoxelColorInMap(const int64_t i,
+                         const int64_t j,
+                         const int64_t k,
+                         const int64_t mapIndex,
+                         const float rgba[4])
+
+{
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);
+}
+
+

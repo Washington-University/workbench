@@ -78,6 +78,8 @@ TimeLine.h
 TextFile.h
 TopologyHelper.h
 VolumeFile.h
+VolumeFileVoxelColorizer.h
+VolumeSliceViewPlaneEnum.h
 
 BinaryFileReader.cxx
 Border.cxx
@@ -139,6 +141,8 @@ TextFile.cxx
 TimeLine.cxx
 TopologyHelper.cxx
 VolumeFile.cxx
+VolumeFileVoxelColorizer.cxx
+VolumeSliceViewPlaneEnum.cxx
 )
 
 

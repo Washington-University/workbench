@@ -125,7 +125,6 @@ SurfaceNodeColoring.h
 SurfaceSelectionModel.h
 VolumeSliceCoordinateSelection.h
 VolumeSliceViewModeEnum.h
-VolumeSliceViewPlaneEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
@@ -206,7 +205,6 @@ SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
 VolumeSliceCoordinateSelection.cxx
 VolumeSliceViewModeEnum.cxx
-VolumeSliceViewPlaneEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx

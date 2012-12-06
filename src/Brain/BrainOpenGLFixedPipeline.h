@@ -145,12 +145,12 @@ namespace caret {
                                             Plane* plane,
                                             FiberOrientationDisplayInfo& dispInfo);
         
-        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
-                            const float* scalarValues,
-                            const float* thresholdValues,
-                            const int32_t numberOfScalars,
-                            float* rgbaOut,
-                            const bool ignoreThresholding);
+//        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
+//                            const float* scalarValues,
+//                            const float* thresholdValues,
+//                            const int32_t numberOfScalars,
+//                            float* rgbaOut,
+//                            const bool ignoreThresholding);
 
         void drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent);

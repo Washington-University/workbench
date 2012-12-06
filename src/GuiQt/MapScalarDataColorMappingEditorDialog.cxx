@@ -57,6 +57,7 @@
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "PaletteEnums.h"
+#include "VolumeFile.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
 #include "WuQtUtilities.h"
@@ -1484,7 +1485,9 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
+    bool assignToAllMaps = false;
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
+        assignToAllMaps = true;
         const int numMaps = this->caretMappableDataFile->getNumberOfMaps();
         for (int32_t i = 0; i < numMaps; i++) {
             PaletteColorMapping* pcm = this->caretMappableDataFile->getMapPaletteColorMapping(i);
@@ -1496,6 +1499,18 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
     
     this->updateHistogramPlot();
     
+    VolumeFile* vf = dynamic_cast<VolumeFile*>(this->caretMappableDataFile);
+    if (vf != NULL) {
+        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        
+        if (assignToAllMaps) {
+            vf->assignVoxelColorsForAllMaps(paletteFile);
+        }
+        else {
+            vf->assignVoxelColorsForMap(this->mapFileIndex,
+                                        paletteFile);
+        }
+    }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

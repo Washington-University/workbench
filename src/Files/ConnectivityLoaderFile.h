@@ -251,6 +251,8 @@ namespace caret {
         
         void zeroizeData();
         
+        void loadDataIntoVolume();
+        
         LoaderType loaderType;
         
         MapToType mapToType;

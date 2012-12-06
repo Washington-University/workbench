@@ -39,6 +39,7 @@
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
+#include "PaletteFile.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
 
@@ -1016,6 +1017,7 @@ ConnectivityLoaderFile::loadFrame(const int frame) throw (DataFileException)
                 
                 if (this->ciftiInterface->getColumnFromFrame(this->data, frame)) {
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    loadDataIntoVolume();
                 }
                 else {
                     CaretLogSevere("FAILED to read column for frame " + AString::number(frame));
@@ -1089,6 +1091,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                                                              rowIndex)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
                     }
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
@@ -1222,6 +1225,7 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     }
                     
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    loadDataIntoVolume();
                 }
             }
             break;
@@ -1384,6 +1388,7 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
                     
                     
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    loadDataIntoVolume();
                 }
                 //throw DataFileException("Loading of average time-series data not supported.");
                 break;
@@ -1447,6 +1452,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                     if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz, rowIndex)) {
                         CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
                     }
                     else {
                         CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
@@ -1562,6 +1568,60 @@ ConnectivityLoaderFile::updateRGBAColoring(const Palette* palette,
                          + QString::number(statistics->getMostNegativeValue())
                          + " "
                          + QString::number(statistics->getMostPositiveValue()));
+    
+    
+    bool useColumnsFlag = false;
+    bool useRowsFlag = false;
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            useRowsFlag = true;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            useColumnsFlag = true;
+            break;
+    }
+    std::vector<CiftiVolumeMap> volumeMaps;
+    if (useColumnsFlag
+        && this->ciftiInterface->hasColumnVolumeData()) {
+        this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
+    }
+    if (useRowsFlag
+        && this->ciftiInterface->hasRowVolumeData()) {
+        this->ciftiInterface->getVolumeMapForRows(volumeMaps);
+    }
+    if (volumeMaps.empty() == false) {
+        /*
+         * Update colors in map.
+         */
+        VolumeFile* vf = getConnectivityVolumeFile();
+        if (vf != NULL) {
+            vf->clearVoxelColoringForMap(0);
+            
+            for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+                 iter != volumeMaps.end();
+                 iter++) {
+                const CiftiVolumeMap& vm = *iter;
+                const int64_t dataRGBAIndex = vm.m_ciftiIndex * 4;
+                const float* rgba = &this->dataRGBA[dataRGBAIndex];
+                vf->setVoxelColorInMap(vm.m_ijk[0],
+                                       vm.m_ijk[1],
+                                       vm.m_ijk[2],
+                                       0,
+                                       rgba);
+            }
+        }
+    }
 }
 
 /**
@@ -2005,6 +2065,12 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
                                               numComponents);
     }
     
+    return this->connectivityVolumeFile;
+}
+
+void
+ConnectivityLoaderFile::loadDataIntoVolume()
+{
     bool useColumnsFlag = false;
     bool useRowsFlag = false;
     switch (this->loaderType) {
@@ -2039,7 +2105,11 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     
     
     if (volumeMaps.empty() == false) {
-        this->connectivityVolumeFile->setValueAllVoxels(0.0);
+        /*
+         * Update colors and values in map.
+         */
+        VolumeFile* vf = getConnectivityVolumeFile();
+         vf->setValueAllVoxels(0.0);
         
         for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
              iter != volumeMaps.end();
@@ -2047,17 +2117,13 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             const CiftiVolumeMap& vm = *iter;
             
             CaretAssertArrayIndex(this->data, this->numberOfDataElements, vm.m_ciftiIndex);
-            this->connectivityVolumeFile->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
+             vf->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
         }
         
-        return this->connectivityVolumeFile;
     }
-    
-    return NULL;
 }
 
 /**
-
  * @return
  *   Is the time series graph enabled?
  */

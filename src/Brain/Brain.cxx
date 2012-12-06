@@ -804,6 +804,8 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
     }
     vf->clearModified();
     
+    vf->assignVoxelColorsForAllMaps(m_paletteFile);
+    
     m_volumeFiles.push_back(vf);
 }
 
@@ -2365,10 +2367,10 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
     
-    if (m_paletteFile != NULL) {
-        delete m_paletteFile;
-    }
-    m_paletteFile = new PaletteFile();
+//    if (m_paletteFile != NULL) {
+//        delete m_paletteFile;
+//    }
+//    m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
     
