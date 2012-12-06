@@ -357,6 +357,21 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                                           scalarValues, 
                                                           &normalizedValues[0], 
                                                           numberOfScalars);
+
+    /*
+     * Get color for normalized values of -1.0 and 1.0.
+     * Since there may be a large number of values that are -1.0 or 1.0
+     * we can compute the color only once for these values and save time.
+     */
+    float rgbaPositiveOne[4], rgbaNegativeOne[4];
+    palette->getPaletteColor(1.0,
+                             interpolateFlag,
+                             rgbaPositiveOne);
+    const bool rgbaPositiveOneValid = (rgbaPositiveOne[3] > 0.0);
+    palette->getPaletteColor(-1.0,
+                             interpolateFlag,
+                             rgbaNegativeOne);
+    const bool rgbaNegativeOneValid = (rgbaNegativeOne[3] > 0.0);
     
     /*
      * Color all scalars.
@@ -393,12 +408,36 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                 continue;
             }
         }
-                
+        
+        const float normalValue = normalizedValues[i];
+        
+        /*
+         * RGBA colors have been mapped for extreme values
+         */
+        if (normalValue >= 1.0) {
+            if (rgbaPositiveOneValid) {
+                rgbaOut[i4]   = rgbaPositiveOne[0];
+                rgbaOut[i4+1] = rgbaPositiveOne[1];
+                rgbaOut[i4+2] = rgbaPositiveOne[2];
+                rgbaOut[i4+3] = rgbaPositiveOne[3];
+            }
+            continue;
+        }
+        if (normalValue <= -1.0) {
+            if (rgbaNegativeOneValid) {
+                rgbaOut[i4]   = rgbaNegativeOne[0];
+                rgbaOut[i4+1] = rgbaNegativeOne[1];
+                rgbaOut[i4+2] = rgbaNegativeOne[2];
+                rgbaOut[i4+3] = rgbaNegativeOne[3];
+            }
+            continue;
+        }
+        
         /*
          * Color scalar using palette
          */
         float rgba[4];
-        palette->getPaletteColor(normalizedValues[i],
+        palette->getPaletteColor(normalValue,
                                  interpolateFlag,
                                  rgba);
         if (rgba[3] > 0.0f) {
