@@ -494,13 +494,13 @@ GiftiDataArray::getNumberOfComponents() const
 /**
  * get data offset.
  */
-int64_t 
+/*int64_t 
 GiftiDataArray::getDataOffset(const int64_t nodeNum,
                                   const int64_t componentNum) const
 {
-   const int64_t off = nodeNum * dimensions[1] + componentNum;
+   const int64_t off = nodeNum * dimensions[1] + componentNum;//TSC: this is WRONG! (assumes 2 dimensions, assumes a particular index order) fix it before uncommenting
    return off;
-}
+}//*/
 
 
 /**
@@ -603,6 +603,7 @@ GiftiDataArray::readFromText(const AString text,
    dataType = dataTypeForReading;
    encoding = encodingForReading;
    endian   = dataEndianForReading;
+   arraySubscriptingOrder = arraySubscriptingOrderForReading;
    setDimensions(dimensionsForReading);
    if (dimensionsForReading.size() == 0) {
       throw GiftiException("Data array has no dimensions.");
@@ -818,9 +819,9 @@ GiftiDataArray::readFromText(const AString text,
       //
       // Are array indices in opposite order
       //
-      if (arraySubscriptingOrderForReading != arraySubscriptingOrder) {
+      /*if (arraySubscriptingOrderForReading != arraySubscriptingOrder) {
          convertArrayIndexingOrder();
-      }
+      }//*/
    } // If NOT metadata only
    
    setModified();

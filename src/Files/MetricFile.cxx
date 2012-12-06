@@ -117,7 +117,42 @@ MetricFile::validateDataArraysAfterReading() throw (DataFileException)
             }
             gda->convertToDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
         }
-        this->columnDataPointers.push_back(gda->getDataPointerFloat());
+        int numDims = gda->getNumberOfDimensions();
+        std::vector<int64_t> dims = gda->getDimensions();
+        if (numDims == 1 || (numDims == 2 && dims[1] == 1))
+        {
+            this->columnDataPointers.push_back(gda->getDataPointerFloat());
+        } else {
+            if (numDims != 2)
+            {
+                throw DataFileException("Invalid number of dimensions in metric file '" + getFileName() + "': " + AString::number(numDims));
+            }
+            if (numberOfDataArrays != 1)
+            {
+                throw DataFileException("Two dimensional data arrays are not allowed in metric files with multiple data arrays");
+            }
+            std::vector<int64_t> newdims = dims;
+            newdims[1] = 1;
+            GiftiFile* newFile = new GiftiFile();//convert to multiple 1-d arrays on the fly
+            *(newFile->getMetaData()) = *(giftiFile->getMetaData());
+            int32_t indices[2], newindices[2] = {0, 0};
+            for (indices[1] = 0; indices[1] < dims[1]; ++indices[1])
+            {
+                GiftiDataArray* tempArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL,
+                                                            NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32,
+                                                            newdims,
+                                                            GiftiEncodingEnum::GZIP_BASE64_BINARY);
+                for (indices[0] = 0; indices[0] < dims[0]; ++indices[0])
+                {
+                    newindices[0] = indices[0];
+                    tempArray->setDataFloat32(newindices, gda->getDataFloat32(indices));
+                }
+                newFile->addDataArray(tempArray);
+                columnDataPointers.push_back(tempArray->getDataPointerFloat());
+            }
+            delete giftiFile;//delete old 2D file
+            giftiFile = newFile;//drop new 1D file in
+        }
     }
     
     if (isLabelData) {

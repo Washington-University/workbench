@@ -350,7 +350,7 @@ EventManager::sendEvent(Event* event)
             listener->receiveEvent(event);
             
             if (event->isError()) {
-                CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
+                CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString() + ": " + event->getErrorMessage());
                 break;
             }
         }
