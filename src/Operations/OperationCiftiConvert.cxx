@@ -146,7 +146,6 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
-        float* inputArray = dataArrayRef->getDataPointerFloat();
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
@@ -190,16 +189,24 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                     }
                     if (transpose->m_present)
                     {
-                        inputArray[i + j * numCols] = tempVal;
+                        int32_t indices[] = {j, i};
+                        dataArrayRef->setDataFloat32(indices, tempVal);
                     } else {
-                        inputArray[i * numCols + j] = tempVal;
+                        int32_t indices[] = {i, j};
+                        dataArrayRef->setDataFloat32(indices, tempVal);
                     }
                 }
             }
         }
+        vector<float> scratchRow(numCols);
         for (int i = 0; i < numRows; ++i)
         {
-            myOutFile->setRow(inputArray + (i * numCols), i);
+            for (int j = 0; j < numCols; ++j)
+            {
+                int32_t indices[] = {i, j};
+                scratchRow[j] = dataArrayRef->getDataFloat32(indices);
+            }
+            myOutFile->setRow(scratchRow.data(), i);
         }
     }
 }
