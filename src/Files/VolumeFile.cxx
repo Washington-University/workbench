@@ -38,6 +38,24 @@ using namespace caret;
 using namespace std;
 
 const float VolumeFile::INVALID_INTERP_VALUE = 0.0f;//we may want NaN or something more obvious
+bool VolumeFile::s_voxelColoringEnabled = true;
+
+/**
+ * Static method that sets the status of voxel coloring.  Coloring may take
+ * time and is almost never needed during command line operations (wb_command).
+ * 
+ * DO NOT CHANGE THIS VALUE if there are any instance of VolumeFile since
+ * the coloring object is created when a VolumeFile instance is created.
+ *
+ * @param enabled
+ *    New status for coloring.
+ */
+void
+VolumeFile::setVoxelColoringEnabled(const bool enabled)
+{
+    s_voxelColoringEnabled = enabled;
+}
+
 
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
@@ -111,7 +129,9 @@ void VolumeFile::setType(SubvolumeAttributes::VolumeType whatType)
 
 VolumeFile::~VolumeFile()
 {
-    delete m_voxelColorizer;
+    if (m_voxelColorizer != NULL) {
+        delete m_voxelColorizer;
+    }
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
@@ -417,7 +437,9 @@ void VolumeFile::validateMembers()
     if (m_voxelColorizer != NULL) {
         delete m_voxelColorizer;
     }
-    m_voxelColorizer = new VolumeFileVoxelColorizer(this);
+    if (s_voxelColoringEnabled) {
+        m_voxelColorizer = new VolumeFileVoxelColorizer(this);
+    }
 }
 
 /**
@@ -827,6 +849,7 @@ VolumeFile::getSpaceBoundingBox() const
 
 /**
  * Assign colors for all maps in this volume file.
+ * Does nothing if coloring is not enabled.
  *
  * @param paletteFile
  *     File containing the palettes.
@@ -834,6 +857,10 @@ VolumeFile::getSpaceBoundingBox() const
 void
 VolumeFile::assignVoxelColorsForAllMaps(const PaletteFile* paletteFile)
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
     CaretAssert(m_voxelColorizer);
     
     const int32_t numberOfMaps = getNumberOfMaps();
@@ -869,6 +896,7 @@ VolumeFile::assignVoxelColorsForAllMaps(const PaletteFile* paletteFile)
 
 /**
  * Assign colors for all maps in this volume file.
+ * Does nothing if coloring is not enabled.
  *
  * @param mapIndex
  *     Index of map.
@@ -879,6 +907,10 @@ void
 VolumeFile::assignVoxelColorsForMap(const int32_t mapIndex,
                                     const PaletteFile* paletteFile)
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_voxelColorizer);
     
@@ -910,6 +942,8 @@ VolumeFile::assignVoxelColorsForMap(const int32_t mapIndex,
 
 /**
  * Get the voxel RGBA coloring for a map.
+ * Does nothing if coloring is not enabled and output colors are undefined
+ * in this case.
  *
  * @param mapIndex
  *    Index of the map.
@@ -926,6 +960,10 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                  const int64_t sliceIndex,
                                  float* rgbaOut) const
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
     CaretAssert(m_voxelColorizer);
     
     m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
@@ -936,6 +974,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
 
 /**
  * Get the RGBA color components for voxel.
+ * Does nothing if coloring is not enabled and output colors are undefined
+ * in this case.
  *
  * @param i
  *    Parasaggital index
@@ -955,6 +995,10 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                         const int64_t mapIndex,
                         float rgbaOut[4]) const
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
     CaretAssert(m_voxelColorizer);
 
     m_voxelColorizer->getVoxelColorInMap(i,
@@ -966,12 +1010,17 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
 
 /**
  * Clear the voxel coloring for the given map.
+ * Does nothing if coloring is not enabled.
+ *
  * @param mapIndex
  *    Index of map.
  */
 void
 VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
     CaretAssert(m_voxelColorizer);
     
     m_voxelColorizer->clearVoxelColoringForMap(mapIndex);
@@ -979,7 +1028,8 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
 
 /**
  * Set the RGBA coloring for a voxel in a map.
- * 
+ * Does nothing if coloring is not enabled.
+ *
  * @param i
  *    Parasaggital index
  * @param j
@@ -999,6 +1049,9 @@ VolumeFile::setVoxelColorInMap(const int64_t i,
                          const float rgba[4])
 
 {
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
     CaretAssert(m_voxelColorizer);
     
     m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);

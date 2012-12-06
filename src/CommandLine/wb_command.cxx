@@ -34,6 +34,7 @@
 #include "ProgramParameters.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -78,6 +79,13 @@ int main(int argc, char* argv[]) {
          * Create the session manager.
          */
         SessionManager::createSessionManager();
+        
+        /*
+         * Disable volume voxel coloring since it can be a little slow
+         * and voxel coloring is not needed for any commands (at this
+         * time).
+         */
+        VolumeFile::setVoxelColoringEnabled(false);
         
         QCoreApplication myApp(argc, argv);//so that it doesn't need to link against gui
         

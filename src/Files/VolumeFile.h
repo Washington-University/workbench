@@ -66,6 +66,7 @@ namespace caret {
         
         bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
+        /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         VolumeFileVoxelColorizer* m_voxelColorizer;
     public:
         
@@ -76,6 +77,11 @@ namespace caret {
         };
         
         const static float INVALID_INTERP_VALUE;
+        
+        /** Enables coloring.  Coloring is almost always not needed for command line operations */
+        static bool s_voxelColoringEnabled;
+        
+        static void setVoxelColoringEnabled(const bool enabled);
         
         VolumeFile();
         VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
