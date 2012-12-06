@@ -58,8 +58,9 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
     ret->setHelpText(
-        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  Only one of -to-gifti-ext or -from-gifti-ext ") +
-        "may be specified."
+        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
+        "Only one of -to-gifti-ext or -from-gifti-ext may be specified.  " +
+        "The -transpose option is needed if the binary file is in column-major order."
     );
     return ret;
 }
