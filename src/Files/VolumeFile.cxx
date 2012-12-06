@@ -54,6 +54,10 @@ void
 VolumeFile::setVoxelColoringEnabled(const bool enabled)
 {
     s_voxelColoringEnabled = enabled;
+    
+    CaretLogConfig(AString(s_voxelColoringEnabled
+                              ? "Volume coloring is enabled."
+                           : "Volume coloring is disabled."));
 }
 
 
