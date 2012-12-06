@@ -148,6 +148,7 @@ MetricFile::validateDataArraysAfterReading() throw (DataFileException)
                     tempArray->setDataFloat32(newindices, gda->getDataFloat32(indices));
                 }
                 newFile->addDataArray(tempArray);
+                newFile->setDataArrayName(indices[1], "#" + AString::number(indices[1] + 1));
                 columnDataPointers.push_back(tempArray->getDataPointerFloat());
             }
             delete giftiFile;//delete old 2D file
