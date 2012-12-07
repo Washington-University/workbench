@@ -306,6 +306,8 @@ InformationDisplayWidget::showPropertiesDialog()
                                                        0.5,
                                                        100000.0,
                                                        0.5);
+    m_propertiesDialogSizeSpinBox->setDecimals(1);
+    m_propertiesDialogSizeSpinBox->setSuffix("mm");
     QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(controlInPropertiesDialogChanged()));
     
@@ -314,6 +316,8 @@ InformationDisplayWidget::showPropertiesDialog()
                                                                    0.5,
                                                                    100000.0,
                                                                    0.5);
+    m_propertiesDialogMostRecentSizeSpinBox->setDecimals(1);
+    m_propertiesDialogMostRecentSizeSpinBox->setSuffix("mm");
     QObject::connect(m_propertiesDialogMostRecentSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(controlInPropertiesDialogChanged()));
     

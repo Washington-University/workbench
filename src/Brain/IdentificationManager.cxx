@@ -66,10 +66,10 @@ IdentificationManager::IdentificationManager(Brain* brain)
     
     m_contralateralIdentificationEnabled = false;
     m_volumeIdentificationEnabled = true;
-    m_identificationSymbolColor = CaretColorEnum::GREEN;
-    m_identificationContralateralSymbolColor = CaretColorEnum::BLUE;
-    m_identifcationSymbolSize = 3.5;
-    m_identifcationMostRecentSymbolSize = m_identifcationSymbolSize * 2.0;
+    m_identificationSymbolColor = CaretColorEnum::WHITE;
+    m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
+    m_identifcationSymbolSize = 3.0;
+    m_identifcationMostRecentSymbolSize = 5.0;
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
