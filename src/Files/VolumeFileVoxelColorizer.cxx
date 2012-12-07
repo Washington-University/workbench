@@ -188,7 +188,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
             break;
     }
     
-    CaretLogSevere("Time to color map named \""
+    CaretLogFine("Time to color map named \""
                    + m_volumeFile->getMapName(mapIndex)
                    + " in volume file "
                    + m_volumeFile->getFileNameNoPath()

@@ -27,6 +27,7 @@
 #include <limits>
 
 #include <QRunnable>
+#include <QSemaphore>
 #include <QThreadPool>
 
 #define __NODE_AND_VOXEL_COLORING_DECLARE__
@@ -270,7 +271,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
  */
 class ColorScalarsRunnable : public QRunnable {
 public:
-    ColorScalarsRunnable(const FastStatistics* statistics,
+    ColorScalarsRunnable(QSemaphore* semaphore,
+                         const FastStatistics* statistics,
                          const PaletteColorMapping* paletteColorMapping,
                          const Palette* palette,
                          const float* scalarValues,
@@ -278,7 +280,8 @@ public:
                          const int32_t numberOfScalars,
                          uint8_t* rgbaOut,
                          const bool ignoreThresholding)
-    : m_statistics(statistics),
+    : m_semaphore(semaphore),
+    m_statistics(statistics),
     m_paletteColorMapping(paletteColorMapping),
     m_palette(palette),
     m_scalarValues(scalarValues),
@@ -287,7 +290,7 @@ public:
     m_rgbaOut(rgbaOut),
     m_ignoreThresholding(ignoreThresholding) { /* nothing else to do */ }
     
-    virtual ~ColorScalarsRunnable() { std::cout << "Coloring runnable done " << std::endl; }
+    virtual ~ColorScalarsRunnable() { /* nothing to delete */ }
         
     /**
      * Gets called to apply the coloring
@@ -301,8 +304,10 @@ public:
                                                       m_numberOfScalars,
                                                       m_rgbaOut,
                                                       m_ignoreThresholding);
+        m_semaphore->release(1);
     }
     
+    QSemaphore* m_semaphore;
     const FastStatistics* m_statistics;
     const PaletteColorMapping* m_paletteColorMapping;
     const Palette* m_palette;
@@ -348,7 +353,7 @@ NodeAndVoxelColoring::colorScalarsWithPaletteParallel(const FastStatistics* stat
                                               uint8_t* rgbaOut,
                                               const bool ignoreThresholding)
 {
-    const int32_t numThreads = 4;
+    const int32_t numThreads = QThread::idealThreadCount();
     std::vector<int32_t> startIndices;
     std::vector<int32_t> stopIndices;
     
@@ -363,38 +368,120 @@ NodeAndVoxelColoring::colorScalarsWithPaletteParallel(const FastStatistics* stat
         stopIndices.push_back(indx);
     }
     
-    QThreadPool threadPool;
-    std::cout << "Number-of-threads " << QThread::idealThreadCount() << std::endl;
+    /*
+     * Use a threadpool to run the coloring runnables.  The threadpool
+     * may reuse threads to avoid creating them.
+     */
+    QThreadPool* threadPool = QThreadPool::globalInstance();
+    
+    /*
+     * Use a semaphore so that the all coloring is finished before
+     * exiting this function.
+     *
+     * Create a semaphore with 0 resources.  As runnables finish, they
+     * will "release" a semaphore which will increase the number of resource
+     * in the semaphore by 1.  When all of the runnables have finished, 
+     * the number of resources will be the number of threads.  Just below
+     * the loop is a request to acquire "number of threads" resources. 
+     * This acquire request will then block until all of the threads 
+     * have finished.
+     */
+    QSemaphore semaphore(0);
     
     for (int32_t i = 0; i < numThreads; i++) {
         const int32_t startIndex = startIndices[i];
         const int32_t stopIndex  = stopIndices[i];
         const int32_t dataCount = stopIndex - startIndex;
         
-        std::cout << "Coloring: " << startIndex << ", " << stopIndex << " of " << dataCount << ", " << numberOfScalars << std::endl;
         const float* dataOffset = &scalarValues[startIndex];
         const float* thresholdOffset = &thresholdValues[startIndex];
         uint8_t* rgbaOffset = &rgbaOut[startIndex * 4];
         
         /*
-         * Create a runnable for coloring
+         * Create a runnable for coloring.
          */
-        ColorScalarsRunnable* csr = new ColorScalarsRunnable(statistics,
-                                paletteColorMapping,
-                                palette,
-                                dataOffset,
-                                thresholdOffset,
-                                dataCount,
-                                rgbaOffset,
-                                ignoreThresholding);
+        ColorScalarsRunnable* csr = new ColorScalarsRunnable(&semaphore,
+                                                             statistics,
+                                                             paletteColorMapping,
+                                                             palette,
+                                                             dataOffset,
+                                                             thresholdOffset,
+                                                             dataCount,
+                                                             rgbaOffset,
+                                                             ignoreThresholding);
+
+        /*
+         * The threadpool will delete the runnable when it is done.
+         */
         csr->setAutoDelete(true);
 
-        threadPool.start(csr,
+        threadPool->start(csr,
                          QThread::TimeCriticalPriority);
     }
-    
-    threadPool.waitForDone();
+
+    /*
+     * Trying to acquire all resources (equal to the number of threads)
+     * will block until all of the threads complete.
+     */
+    semaphore.acquire(numThreads);
 }
+//void
+//NodeAndVoxelColoring::colorScalarsWithPaletteParallel(const FastStatistics* statistics,
+//                                                      const PaletteColorMapping* paletteColorMapping,
+//                                                      const Palette* palette,
+//                                                      const float* scalarValues,
+//                                                      const float* thresholdValues,
+//                                                      const int32_t numberOfScalars,
+//                                                      uint8_t* rgbaOut,
+//                                                      const bool ignoreThresholding)
+//{
+//    const int32_t numThreads = 4;
+//    std::vector<int32_t> startIndices;
+//    std::vector<int32_t> stopIndices;
+//    
+//    const int32_t stepSize = numberOfScalars / numThreads;
+//    int32_t indx = 0;
+//    for (int32_t i = 0; i < numThreads; i++) {
+//        startIndices.push_back(indx);
+//        indx += stepSize;
+//        if (indx >= numberOfScalars) {
+//            indx = numberOfScalars;
+//        }
+//        stopIndices.push_back(indx);
+//    }
+//    
+//    QThreadPool threadPool;
+//    std::cout << "Number-of-threads " << QThread::idealThreadCount() << std::endl;
+//    
+//    for (int32_t i = 0; i < numThreads; i++) {
+//        const int32_t startIndex = startIndices[i];
+//        const int32_t stopIndex  = stopIndices[i];
+//        const int32_t dataCount = stopIndex - startIndex;
+//        
+//        std::cout << "Coloring: " << startIndex << ", " << stopIndex << " of " << dataCount << ", " << numberOfScalars << std::endl;
+//        const float* dataOffset = &scalarValues[startIndex];
+//        const float* thresholdOffset = &thresholdValues[startIndex];
+//        uint8_t* rgbaOffset = &rgbaOut[startIndex * 4];
+//        
+//        /*
+//         * Create a runnable for coloring
+//         */
+//        ColorScalarsRunnable* csr = new ColorScalarsRunnable(statistics,
+//                                                             paletteColorMapping,
+//                                                             palette,
+//                                                             dataOffset,
+//                                                             thresholdOffset,
+//                                                             dataCount,
+//                                                             rgbaOffset,
+//                                                             ignoreThresholding);
+//        csr->setAutoDelete(true);
+//        
+//        threadPool.start(csr,
+//                         QThread::TimeCriticalPriority);
+//    }
+//    
+//    threadPool.waitForDone();
+//}
 
 /**
  * Color scalars using a palette.
