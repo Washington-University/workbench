@@ -30,6 +30,7 @@
 #include "QFileDialog"
 #include "QMessageBox"
 #include "QPainter"
+#include "QVBoxLayout"
 #include "qwt_plot_renderer.h"
 
 #include "CaretLogger.h"
@@ -74,9 +75,15 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     QObject::connect(this->plot, SIGNAL(timeStartValueChanged(double)),
                     this, SLOT(plotTimeStartValueChanged(double)));
     QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
-                    this, SLOT(plotTimeEndValueChanged(double)));    
-    ui->verticalLayout_4->setContentsMargins(0,0,0,0);
-    ui->verticalLayout_4->insertWidget(0,plot,100);
+                    this, SLOT(plotTimeEndValueChanged(double)));
+    this->layout()->setContentsMargins(0,0,0,0);
+    //this->layout()->addWidget(plot);
+    QVBoxLayout *layout = (QVBoxLayout *)this->layout();
+    layout->insertWidget(0,plot,100);
+    
+
+    //ui->verticalLayout_4->setContentsMargins(0,0,0,0);
+    //ui->verticalLayout_4->insertWidget(0,plot,100);
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     double time = 0.0;    
     this->setAnimationStartTime(time);
