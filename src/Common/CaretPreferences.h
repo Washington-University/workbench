@@ -90,10 +90,6 @@ namespace caret {
         
         void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
         
-        bool isDataFileAddToSpecFileEnabled() const;
-        
-        void setDataFileAddToSpecFileEnabled(const bool enabled);
-        
         void setAnimationStartTime(const double &time);
         
         void getAnimationStartTime(double &time);
@@ -160,8 +156,6 @@ namespace caret {
         
         bool displayVolumeAxesCoordinates;
         
-        bool dataFileAddToSpecFileEnabled;
-        
         bool splashScreenEnabled;
         
         double animationStartTime;
@@ -176,7 +170,6 @@ namespace caret {
         static const AString NAME_AXES_COORDINATE;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
-        static const AString NAME_DATA_FILE_ADD_TO_SPEC_FILE;
 //        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_PREVIOUS_SPEC_FILES;
@@ -194,7 +187,6 @@ namespace caret {
     const AString CaretPreferences::NAME_AXES_COORDINATE     = "volumeAxesCoordinates";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
-    const AString CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE = "dataFileAddToSpecFile";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";

@@ -110,8 +110,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 {
     if (BrainBrowserWindow::s_firstWindowFlag) {
         BrainBrowserWindow::s_firstWindowFlag = false;
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        BrainBrowserWindow::s_previousOpenFileAddToSpecFileSelection = prefs->isDataFileAddToSpecFileEnabled();
     }
     
     m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
@@ -1294,7 +1292,7 @@ BrainBrowserWindow::processDataFileOpen()
                                           "will be added to the currently loaded Spec File.\n"
                                           "If there is not a valid Spec File loaded, you\n"
                                           "will be prompted to create or select a Spec File.");
-    addFileToSpecFileCheckBox->setChecked(s_previousOpenFileAddToSpecFileSelection);
+    addFileToSpecFileCheckBox->setChecked(false);
     QWidget* extraWidget = new QWidget();
     QVBoxLayout* extraLayout = new QVBoxLayout(extraWidget);
     extraLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
@@ -1340,7 +1338,7 @@ BrainBrowserWindow::processDataFileOpen()
                         
             AddDataFileToSpecFileMode addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_NO;
             if (isLoadingSpecFile) {
-                addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+                //addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
             }
             else {
                 if (addFileToSpecFileCheckBox->isChecked()) {
@@ -1376,7 +1374,6 @@ BrainBrowserWindow::processDataFileOpen()
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
-        s_previousOpenFileAddToSpecFileSelection = addFileToSpecFileCheckBox->isChecked();
     }
 }
 

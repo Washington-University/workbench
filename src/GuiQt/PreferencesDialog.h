@@ -61,14 +61,12 @@ namespace caret {
         void volumeAxesLabelsComboBoxToggled(bool value);
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
         
-        void dataFileAddToSpecFileComboBoxChanged(bool value);
         void splashScreenShowAtStartupComboBoxChanged(bool value);
         
         void animationStartChanged(double value);
         
     private:
         void addColorItems();
-        void addDataFileItems();
         void addLoggingItems();
         void addSplashItems();
         void addVolumeItems();
@@ -92,9 +90,6 @@ namespace caret {
         WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
         WuQTrueFalseComboBox* volumeAxesMontageCoordinatesComboBox;
-        
-        
-        WuQTrueFalseComboBox* dataFileAddToSpecFileComboBox;
         
         WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
         

@@ -85,7 +85,6 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     if (ManageLoadedFilesDialog::firstWindowFlag) {
         ManageLoadedFilesDialog::firstWindowFlag = false;
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        ManageLoadedFilesDialog::previousSaveFileAddToSpecFileSelection = prefs->isDataFileAddToSpecFileEnabled();
     }
     this->brain = brain;
     this->brain->determineDisplayedDataFiles();
@@ -216,7 +215,7 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                                                       "will be added to the currently loaded Spec File.\n"
                                                       "If there is not a valid Spec File loaded, you\n"
                                                       "will be prompted to create or select a Spec File.");
-    this->addSavedFilesToSpecFileCheckBox->setChecked(previousSaveFileAddToSpecFileSelection);
+    this->addSavedFilesToSpecFileCheckBox->setChecked(false);
     
     QWidget* bottomWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(bottomWidget);
@@ -263,9 +262,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
             return WuQDialogModal::RESULT_NONE;
         }
         
-        previousSaveFileAddToSpecFileSelection = this->addSavedFilesToSpecFileCheckBox->isChecked();
-        
-        bool addSavedFilesToSpecFileFlag = previousSaveFileAddToSpecFileSelection;
+        bool addSavedFilesToSpecFileFlag = this->addSavedFilesToSpecFileCheckBox->isChecked();
         if (addSavedFilesToSpecFileFlag) {
             const AString& specFileName = this->brain->getSpecFileName();
             FileInformation fileInfo(specFileName);
