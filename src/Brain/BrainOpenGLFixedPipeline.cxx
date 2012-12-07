@@ -4279,8 +4279,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
      * Use a vector for colors so no worries about memory being freed.
      */
     const int64_t numVoxels = numVoxelsX * numVoxelsY * numVoxelsZ;
-    std::vector<float> sliceRgbaVector(numVoxels * 4);
-    float* sliceRGBA = &sliceRgbaVector[0];
+    std::vector<uint8_t> sliceRgbaVector(numVoxels * 4);
+    uint8_t* sliceRGBA = &sliceRgbaVector[0];
     
     for (int64_t i = 0; i < numVoxelsX; i++) {
         for (int64_t j = 0; j < numVoxelsY; j++) {
@@ -4305,10 +4305,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                 }
                 
                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                sliceRGBA[sliceRgbaOffset]   = 0.0;
-                sliceRGBA[sliceRgbaOffset+1] = 0.0;
-                sliceRGBA[sliceRgbaOffset+2] = 0.0;
-                sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                sliceRGBA[sliceRgbaOffset]   = 0;
+                sliceRGBA[sliceRgbaOffset+1] = 0;
+                sliceRGBA[sliceRgbaOffset+2] = 0;
+                sliceRGBA[sliceRgbaOffset+3] = 255;
                 
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
@@ -4343,7 +4343,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
 //                                                                      &voxel,
 //                                                                      1,
 //                                                                      rgba);
-                        if (rgba[3] > 0.0) {
+                        if (rgba[3] > 0) {
                             bool useOpacity = false;
                             if (iVol > 0) {
                                 if (volInfo.opacity < 1.0) {
@@ -4358,13 +4358,13 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                                                                 + (sliceRGBA[sliceRgbaOffset+1] * oneMinuseOpacity));
                                 sliceRGBA[sliceRgbaOffset+2] = ((rgba[2] * volInfo.opacity)
                                                                 + (sliceRGBA[sliceRgbaOffset+2] * oneMinuseOpacity));
-                                sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                                sliceRGBA[sliceRgbaOffset+3] = 255;
                             }
                             else {
                                 sliceRGBA[sliceRgbaOffset]   = rgba[0];
                                 sliceRGBA[sliceRgbaOffset+1] = rgba[1];
                                 sliceRGBA[sliceRgbaOffset+2] = rgba[2];
-                                sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                                sliceRGBA[sliceRgbaOffset+3] = 255;
                             }
                         }
                         
@@ -4424,7 +4424,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             for (int64_t j = 0; j < numVoxelsY; j++) {
                                 const int32_t sliceRgbaOffset = (i + (j * numVoxelsX)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 y += voxelStepY;
                                 glVertex3f(x, y, z);
@@ -4453,7 +4453,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             for (int64_t k = 0; k < numVoxelsZ; k++) {
                                 const int32_t sliceRgbaOffset = (i + (k * numVoxelsX)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 z += voxelStepZ;
                                 glVertex3f(x, y, z);
@@ -4482,7 +4482,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             for (int64_t k = 0; k < numVoxelsZ; k++) {
                                 const int32_t sliceRgbaOffset = (j + (k * numVoxelsY)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 z += voxelStepZ;
                                 glVertex3f(x, y, z);
@@ -4534,7 +4534,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             else {
                                 const int32_t sliceRgbaOffset = (i + (j * numVoxelsX)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
@@ -4567,7 +4567,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             else {
                                 const int32_t sliceRgbaOffset = (i + (k * numVoxelsX)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
@@ -4600,7 +4600,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                             else {
                                 const int32_t sliceRgbaOffset = (j + (k * numVoxelsY)) * 4;
                                 CaretAssertVectorIndex(sliceRgbaVector, sliceRgbaOffset+3);
-                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
+                                glColor4ubv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x1, y2, z1);
