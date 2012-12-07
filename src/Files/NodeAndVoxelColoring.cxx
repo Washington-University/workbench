@@ -26,6 +26,9 @@
 #include <cmath>
 #include <limits>
 
+#include <QRunnable>
+#include <QThreadPool>
+
 #define __NODE_AND_VOXEL_COLORING_DECLARE__
 #include "NodeAndVoxelColoring.h"
 #undef __NODE_AND_VOXEL_COLORING_DECLARE__
@@ -260,6 +263,137 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
             }
         }
     }
+}
+
+/**
+ * Class for running coloring in threads.
+ */
+class ColorScalarsRunnable : public QRunnable {
+public:
+    ColorScalarsRunnable(const FastStatistics* statistics,
+                         const PaletteColorMapping* paletteColorMapping,
+                         const Palette* palette,
+                         const float* scalarValues,
+                         const float* thresholdValues,
+                         const int32_t numberOfScalars,
+                         uint8_t* rgbaOut,
+                         const bool ignoreThresholding)
+    : m_statistics(statistics),
+    m_paletteColorMapping(paletteColorMapping),
+    m_palette(palette),
+    m_scalarValues(scalarValues),
+    m_thresholdValues(thresholdValues),
+    m_numberOfScalars(numberOfScalars),
+    m_rgbaOut(rgbaOut),
+    m_ignoreThresholding(ignoreThresholding) { /* nothing else to do */ }
+    
+    virtual ~ColorScalarsRunnable() { std::cout << "Coloring runnable done " << std::endl; }
+        
+    /**
+     * Gets called to apply the coloring
+     */
+    void run() {
+        NodeAndVoxelColoring::colorScalarsWithPalette(m_statistics,
+                                                      m_paletteColorMapping,
+                                                      m_palette,
+                                                      m_scalarValues,
+                                                      m_thresholdValues,
+                                                      m_numberOfScalars,
+                                                      m_rgbaOut,
+                                                      m_ignoreThresholding);
+    }
+    
+    const FastStatistics* m_statistics;
+    const PaletteColorMapping* m_paletteColorMapping;
+    const Palette* m_palette;
+    const float* m_scalarValues;
+    const float* m_thresholdValues;
+    const int32_t m_numberOfScalars;
+    uint8_t* m_rgbaOut;
+    const bool m_ignoreThresholding;
+};
+
+/**
+ * Color scalars using a palette.
+ *
+ * @param statistics
+ *    Descriptive statistics for min/max values.
+ * @param paletteColorMapping
+ *    Specifies mapping of scalars to palette colors.
+ * @param palette
+ *    Color palette used to map scalars to colors.
+ * @param scalarValues
+ *    Scalars that are used to color the values.
+ *    Number of elements is 'numberOfScalars'.
+ * @param thresholdValues
+ *    Thresholds for inhibiting coloring.
+ *    Number of elements is 'numberOfScalars'.
+ * @param numberOfScalars
+ *    Number of scalars and thresholds.
+ * @param rgbaOut
+ *    RGBA Colors that are output.  The alpha
+ *    value will be negative if the scalar does
+ *    not receive any coloring.
+ *    Number of elements is 'numberOfScalars' * 4.
+ * @param ignoreThresholding
+ *    If true, skip all threshold testing
+ */
+void
+NodeAndVoxelColoring::colorScalarsWithPaletteParallel(const FastStatistics* statistics,
+                                              const PaletteColorMapping* paletteColorMapping,
+                                              const Palette* palette,
+                                              const float* scalarValues,
+                                              const float* thresholdValues,
+                                              const int32_t numberOfScalars,
+                                              uint8_t* rgbaOut,
+                                              const bool ignoreThresholding)
+{
+    const int32_t numThreads = 4;
+    std::vector<int32_t> startIndices;
+    std::vector<int32_t> stopIndices;
+    
+    const int32_t stepSize = numberOfScalars / numThreads;
+    int32_t indx = 0;
+    for (int32_t i = 0; i < numThreads; i++) {
+        startIndices.push_back(indx);
+        indx += stepSize;
+        if (indx >= numberOfScalars) {
+            indx = numberOfScalars;
+        }
+        stopIndices.push_back(indx);
+    }
+    
+    QThreadPool threadPool;
+    std::cout << "Number-of-threads " << QThread::idealThreadCount() << std::endl;
+    
+    for (int32_t i = 0; i < numThreads; i++) {
+        const int32_t startIndex = startIndices[i];
+        const int32_t stopIndex  = stopIndices[i];
+        const int32_t dataCount = stopIndex - startIndex;
+        
+        std::cout << "Coloring: " << startIndex << ", " << stopIndex << " of " << dataCount << ", " << numberOfScalars << std::endl;
+        const float* dataOffset = &scalarValues[startIndex];
+        const float* thresholdOffset = &thresholdValues[startIndex];
+        uint8_t* rgbaOffset = &rgbaOut[startIndex * 4];
+        
+        /*
+         * Create a runnable for coloring
+         */
+        ColorScalarsRunnable* csr = new ColorScalarsRunnable(statistics,
+                                paletteColorMapping,
+                                palette,
+                                dataOffset,
+                                thresholdOffset,
+                                dataCount,
+                                rgbaOffset,
+                                ignoreThresholding);
+        csr->setAutoDelete(true);
+
+        threadPool.start(csr,
+                         QThread::TimeCriticalPriority);
+    }
+    
+    threadPool.waitForDone();
 }
 
 /**
