@@ -962,7 +962,7 @@ void
 VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                  const int64_t sliceIndex,
-                                 float* rgbaOut) const
+                                 uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
         return;
@@ -997,7 +997,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                         const int64_t j,
                         const int64_t k,
                         const int64_t mapIndex,
-                        float rgbaOut[4]) const
+                        uint8_t rgbaOut[4]) const
 {
     if (s_voxelColoringEnabled == false) {
         return;

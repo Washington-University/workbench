@@ -55,6 +55,15 @@ namespace caret {
                                             float* rgbaOut,
                                             const bool ignoreThresholding = false);
         
+        static void colorScalarsWithPalette(const FastStatistics* statistics,
+                                            const PaletteColorMapping* paletteColorMapping,
+                                            const Palette* palette,
+                                            const float* scalars,
+                                            const float* scalarThresholds,
+                                            const int32_t numberOfScalars,
+                                            uint8_t* rgbaOut,
+                                            const bool ignoreThresholding = false);
+        
         static const float SMALL_POSITIVE;
         static const float SMALL_NEGATIVE;
         
@@ -62,6 +71,11 @@ namespace caret {
                                                const int32_t* labelIndices,
                                                const int32_t numberOfIndices,
                                                float* rgbv);
+        
+        static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                               const int32_t* labelIndices,
+                                               const int32_t numberOfIndices,
+                                               uint8_t* rgbv);
     private:
         NodeAndVoxelColoring();
         

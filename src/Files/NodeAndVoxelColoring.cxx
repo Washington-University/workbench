@@ -499,6 +499,67 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 }
 
 /**
+ * Color scalars using a palette.
+ *
+ * @param statistics
+ *    Descriptive statistics for min/max values.
+ * @param paletteColorMapping
+ *    Specifies mapping of scalars to palette colors.
+ * @param palette
+ *    Color palette used to map scalars to colors.
+ * @param scalarValues
+ *    Scalars that are used to color the values.
+ *    Number of elements is 'numberOfScalars'.
+ * @param thresholdValues
+ *    Thresholds for inhibiting coloring.
+ *    Number of elements is 'numberOfScalars'.
+ * @param numberOfScalars
+ *    Number of scalars and thresholds.
+ * @param rgbaOut
+ *    RGBA Colors that are output.  The alpha
+ *    value will be negative if the scalar does
+ *    not receive any coloring.
+ *    Number of elements is 'numberOfScalars' * 4.
+ * @param ignoreThresholding
+ *    If true, skip all threshold testing
+ */
+void
+NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
+                                              const PaletteColorMapping* paletteColorMapping,
+                                              const Palette* palette,
+                                              const float* scalarValues,
+                                              const float* thresholdValues,
+                                              const int32_t numberOfScalars,
+                                              uint8_t* rgbaOut,
+                                              const bool ignoreThresholding)
+{
+    if (numberOfScalars <= 0) {
+        return;
+    }
+    const int64_t numRGBA = numberOfScalars * 4;
+    std::vector<float> rgbaFloatVector(numRGBA);
+    float* rgbaFloat = &rgbaFloatVector[0];
+    
+    NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                            paletteColorMapping,
+                            palette,
+                            scalarValues,
+                            thresholdValues,
+                            numberOfScalars,
+                            rgbaFloat,
+                            ignoreThresholding);
+    
+    for (int64_t i = 0; i < numRGBA; i++) {
+        if (rgbaFloat[i] < 0.0) {
+            rgbaOut[i] = 0;
+        }
+        else {
+            rgbaOut[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
+        }
+    }
+}
+
+/**
  * Assign colors to label indices using a GIFTI label table.
  *
  * @param labelTabl
@@ -537,6 +598,46 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
                 rgbv[i4+2] = labelRGBA[2];
                 rgbv[i4+3] = 1.0;
             }
+        }
+    }
+}
+
+/**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param rgbv
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                                 const int32_t* labelIndices,
+                                                 const int32_t numberOfIndices,
+                                                 uint8_t* rgbv)
+{
+    if (numberOfIndices <= 0) {
+        return;
+    }
+    const int64_t numRGBA = numberOfIndices * 4;
+    std::vector<float> rgbaFloatVector(numRGBA);
+    float* rgbaFloat = &rgbaFloatVector[0];
+    
+    NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+                                                     labelIndices,
+                                                     numberOfIndices,
+                                                     rgbaFloat);
+    
+    for (int64_t i = 0; i < numRGBA; i++) {
+        if (rgbaFloat[i] < 0.0) {
+            rgbv[i] = 0;
+        }
+        else {
+            rgbv[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
         }
     }
 }

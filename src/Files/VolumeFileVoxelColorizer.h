@@ -63,13 +63,13 @@ namespace caret {
         void getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                     const int64_t sliceIndex,
-                                    float* rgbaOut) const;
+                                    uint8_t* rgbaOut) const;
         
         void getVoxelColorInMap(const int64_t i,
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
-                                float rgbaOut[4]) const;
+                                uint8_t rgbaOut[4]) const;
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
         
@@ -77,7 +77,7 @@ namespace caret {
                                  const int64_t j,
                                  const int64_t k,
                                  const int64_t mapIndex,
-                                 const float rgba[4]);
+                                 const float rgbaFloat[4]);
                 
         void invalidateColoring();
         
@@ -98,7 +98,7 @@ namespace caret {
         int64_t m_mapRGBACount;
         
         std::vector<bool> m_mapColoringValid;
-        std::vector<float*> m_mapRGBA;
+        std::vector<uint8_t*> m_mapRGBA;
     };
     
 #ifdef __VOLUME_FILE_VOXEL_COLORIZER_DECLARE__

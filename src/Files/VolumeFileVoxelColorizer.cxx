@@ -75,7 +75,7 @@ VolumeFileVoxelColorizer::VolumeFileVoxelColorizer(VolumeFile* volumeFile)
     m_mapRGBACount = m_voxelCountPerMap * 4;
     
     for (int64_t i = 0; i < m_mapCount; i++) {
-        m_mapRGBA.push_back(new float[m_mapRGBACount]);
+        m_mapRGBA.push_back(new uint8_t[m_mapRGBACount]);
         m_mapColoringValid.push_back(false);
     }
 }
@@ -86,7 +86,7 @@ VolumeFileVoxelColorizer::VolumeFileVoxelColorizer(VolumeFile* volumeFile)
 VolumeFileVoxelColorizer::~VolumeFileVoxelColorizer()
 {
     for (int64_t i = 0; i < m_mapCount; i++) {
-        delete m_mapRGBA[i];
+        delete[] m_mapRGBA[i];
     }
     m_mapRGBA.clear();
 }
@@ -252,7 +252,7 @@ void
 VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
-                                                      float* rgbaOut) const
+                                                      uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     CaretAssert(sliceIndex >= 0);
@@ -285,7 +285,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     /*
      * Pointer to maps RGBA values
      */
-    const float* mapRGBA = m_mapRGBA[mapIndex];
+    const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
     
     /*
      * Output RGBA values for slice
@@ -345,13 +345,13 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
                                const int64_t j,
                                const int64_t k,
                                const int64_t mapIndex,
-                               float rgbaOut[4]) const
+                               uint8_t rgbaOut[4]) const
 {
     /*
      * Pointer to maps RGBA values
      */
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-    const float* mapRGBA = m_mapRGBA[mapIndex];
+    const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
     int64_t rgbaOffset = m_volumeFile->getIndex(i,
                                         j,
                                         k,
@@ -373,7 +373,7 @@ void
 VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-    float* mapRGBA = m_mapRGBA[mapIndex];
+    uint8_t* mapRGBA = m_mapRGBA[mapIndex];
     
     for (int64_t i = 0; i < m_mapRGBACount; i++) {
         mapRGBA[i] = 0.0;
@@ -391,7 +391,7 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
  *    Axial index
  * @param mapIndex
  *    Index of map.
- * @param rgba
+ * @param rgbaFloat
  *    RGBA color components for voxel.
  */
 void
@@ -399,22 +399,22 @@ VolumeFileVoxelColorizer::setVoxelColorInMap(const int64_t i,
                                              const int64_t j,
                                              const int64_t k,
                                              const int64_t mapIndex,
-                                             const float rgba[4])
+                                             const float rgbaFloat[4])
 
 {
     /*
      * Pointer to maps RGBA values
      */
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-    float* mapRGBA = m_mapRGBA[mapIndex];
+    uint8_t* mapRGBA = m_mapRGBA[mapIndex];
     int64_t rgbaOffset = m_volumeFile->getIndex(i,
                                                 j,
                                                 k,
                                                 mapIndex);
     rgbaOffset *= 4;
     CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-    mapRGBA[rgbaOffset] = rgba[0];
-    mapRGBA[rgbaOffset+1] = rgba[1];
-    mapRGBA[rgbaOffset+2] = rgba[2];
-    mapRGBA[rgbaOffset+3] = rgba[3];
+    mapRGBA[rgbaOffset]   = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    mapRGBA[rgbaOffset+1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    mapRGBA[rgbaOffset+2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
 }
