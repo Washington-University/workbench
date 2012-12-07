@@ -811,7 +811,7 @@ WuQtUtilities::playSound(const QString& soundFileName)
 {
     const QString workbenchDir = SystemUtilities::getWorkbenchHome();
     const QString soundFilePath = (workbenchDir
-                                   + "/resources/sounds/"
+                                   + "/../resources/sounds/"
                                    + soundFileName);
     
     if (QFile::exists(soundFilePath)) {
