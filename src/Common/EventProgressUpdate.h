@@ -39,18 +39,42 @@ namespace caret {
    public:
       EventProgressUpdate(ProgressObject* myObject);
 
+      EventProgressUpdate(const int minimumProgressValue,
+                          const int maximumProgressValue,
+                          const int progressValue,
+                          const QString& progressMessage);
+       
       virtual ~EventProgressUpdate();
 
       bool m_textUpdate, m_amountUpdate, m_finished, m_starting;
 
       ProgressObject* m_whichObject;//idea is for progress elements to check whether their object emitted this event or not, if not, ignore
-
+       
+       bool isCancelled() const { return m_cancelled; }
+   
+       int getMinimumProgressValue() const { return m_minimumProgressValue; }
+       
+       int getMaximumProgressValue() const { return m_maximumProgressValue; }
+       
+       int getProgressValue() const { return m_progressValue; }
+       
+       QString getProgressMessage() const { return m_progressMessage; }
+       
+       void setCancelled() { m_cancelled = true; }
+       
    private:
       EventProgressUpdate();
       
       EventProgressUpdate(const EventProgressUpdate&);
 
       EventProgressUpdate& operator=(const EventProgressUpdate&);
+
+       const int m_minimumProgressValue;
+       const int m_maximumProgressValue;
+       const int m_progressValue;
+       const QString m_progressMessage;
+       
+       bool m_cancelled;
    };
 
 } // namespace

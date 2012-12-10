@@ -69,6 +69,7 @@
 #include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
+#include "ProgressReportingDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -834,7 +835,10 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
                 EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                              &specFile);
                 
-                EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                  this,
+                                                  specFile.getFileNameNoPath());
+                //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                 
                 if (readSpecFileEvent.isError()) {
                     if (errorMessages.isEmpty() == false) {
@@ -1637,7 +1641,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                                                      password);
                         }
                         
-                        EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                        ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                          this,
+                                                          specFile.getFileNameNoPath());
+                        //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                         
                         if (readSpecFileEvent.isError()) {
                             if (errorMessages.isEmpty() == false) {
@@ -1677,7 +1684,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                                                          password);
                             }
                             
-                            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                            ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                              this,
+                                                              specFile.getFileNameNoPath());
+                            //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                             
                             if (readSpecFileEvent.isError()) {
                                 if (errorMessages.isEmpty() == false) {

@@ -68,6 +68,7 @@ OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
+ProgressReportingDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SpecFileCreateAddToDialog.h
@@ -176,6 +177,7 @@ OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
+ProgressReportingDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SceneWindowGeometry.h
@@ -282,6 +284,7 @@ OverlayViewController.cxx
 PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
+ProgressReportingDialog.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneDialog.cxx
 SceneWindowGeometry.cxx

@@ -26,7 +26,12 @@
 
 using namespace caret;
 
-EventProgressUpdate::EventProgressUpdate(ProgressObject* myObject): Event(EventTypeEnum::EVENT_PROGRESS_UPDATE)
+EventProgressUpdate::EventProgressUpdate(ProgressObject* myObject): Event(EventTypeEnum::EVENT_PROGRESS_UPDATE),
+m_minimumProgressValue(0),
+m_maximumProgressValue(100),
+m_progressValue(0),
+m_progressMessage(""),
+m_cancelled(false)
 {
    m_amountUpdate = false;
    m_finished = false;
@@ -34,6 +39,21 @@ EventProgressUpdate::EventProgressUpdate(ProgressObject* myObject): Event(EventT
    m_starting = false;
    m_whichObject = myObject;
 }
+
+EventProgressUpdate::EventProgressUpdate(const int minimumProgressValue,
+                                         const int maximumProgressValue,
+                                         const int progressValue,
+                                         const QString& progressMessage)
+: Event(EventTypeEnum::EVENT_PROGRESS_UPDATE),
+m_minimumProgressValue(minimumProgressValue),
+m_maximumProgressValue(maximumProgressValue),
+m_progressValue(progressValue),
+m_progressMessage(progressMessage),
+m_cancelled(false)
+{
+    
+}
+
 
 EventProgressUpdate::~EventProgressUpdate()
 {

@@ -666,8 +666,10 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         Brain* brain = GuiManager::get()->getBrain();
         for (int32_t i = 0; i < numTabs; i++) {
             BrowserTabContent* btc = this->getTabContentFromTab(i);
-            btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
-                                                                                 true);
+            if (btc != NULL) {
+                btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain,
+                                                                                     true);
+            }
         }
         
         /*
@@ -679,31 +681,33 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         int32_t volumeTabIndex = -1;
         for (int32_t i = 0; i < numTabs; i++) {
             BrowserTabContent* btc = getTabContentFromTab(i);
-            switch (btc->getSelectedModelType()) {
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                    if (surfaceTabIndex < 0) {
-                        surfaceTabIndex = i;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                    if (montageTabIndex < 0) {
-                        montageTabIndex = i;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    if (volumeTabIndex < 0) {
-                        volumeTabIndex = i;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                    if (wholeBrainTabIndex < 0) {
-                        wholeBrainTabIndex = i;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_YOKING:
-                    break;
+            if (btc != NULL) {
+                switch (btc->getSelectedModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        if (surfaceTabIndex < 0) {
+                            surfaceTabIndex = i;
+                        }
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        if (montageTabIndex < 0) {
+                            montageTabIndex = i;
+                        }
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        if (volumeTabIndex < 0) {
+                            volumeTabIndex = i;
+                        }
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        if (wholeBrainTabIndex < 0) {
+                            wholeBrainTabIndex = i;
+                        }
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_YOKING:
+                        break;
+                }
             }
         }
 

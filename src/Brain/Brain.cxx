@@ -53,6 +53,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
+#include "EventProgressUpdate.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -2316,21 +2317,44 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     FileInformation fileInfo(sf->getFileName());
     setCurrentDirectory(fileInfo.getPathName());
     
+    const int32_t numberOfFilesToRead = sf->getNumberOfFilesSelected();
+    int32_t fileReadCounter = 0;
+    
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
         const SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
-            const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
-            if (fileInfo->isSelected()) {
-                const AString filename = fileInfo->getFileName();
-                const StructureEnum::Enum structure = fileInfo->getStructure();
+            const SpecFileDataFile* dataFileInfo = group->getFileInformation(iFile);
+            if (dataFileInfo->isSelected()) {
+                const AString filename = dataFileInfo->getFileName();
+                const StructureEnum::Enum structure = dataFileInfo->getStructure();
+
+                /*
+                 * Send event indicating progress of file reading
+                 */
+                FileInformation fileInfo(dataFileInfo->getFileName());
+                EventProgressUpdate progressUpdate(0,
+                                                   numberOfFilesToRead,
+                                                   fileReadCounter,
+                                                   ("Reading "
+                                                    + fileInfo.getFileName()));
+                EventManager::get()->sendEvent(progressUpdate.getPointer());
+                
+                /*
+                 * If user cancelled, reset brain and get out!
+                 */
+                if (progressUpdate.isCancelled()) {
+                    resetBrain();
+                    return;
+                }
+                
                 try {
-                    readDataFile(dataFileType, 
-                                       structure, 
-                                       filename,
-                                       false,
+                    readDataFile(dataFileType,
+                                 structure,
+                                 filename,
+                                 false,
                                  false);
                 }
                 catch (const DataFileException& e) {
@@ -2339,6 +2363,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                     }
                     errorMessage += e.whatString();
                 }
+                
+                fileReadCounter++;
             }
         }
     }
