@@ -225,7 +225,7 @@ void NiftiMatrix::readFile() throw (NiftiException)
         throw e;
     }
     catch (...) {
-        std::cout << "Exception reading matrix from file" << std::endl;
+        throw NiftiException("Exception reading matrix from file");
         //std::cout << file.FileError << std::endl;
     }
     //convert to floats
@@ -794,9 +794,10 @@ void NiftiMatrix::readVolume(VolumeBase &vol) throw (NiftiException)
     {
         try {
             readMatrixBytes(bytes,size,t*size);
-        }
-        catch (...) {
-            std::cout << "Exception reading matrix from file" << std::endl;            
+        } catch (NiftiException& e) {
+            throw e;
+        } catch (...) {
+            throw NiftiException("Exception reading matrix from file");
         }
         convertBytes(bytes, frame, size);
         
