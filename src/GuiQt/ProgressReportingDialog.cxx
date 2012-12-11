@@ -181,10 +181,10 @@ ProgressReportingWithSlots::receiveEvent(Event* event)
         EventProgressUpdate* progressEvent = dynamic_cast<EventProgressUpdate*>(event);
         CaretAssert(progressEvent);
         
-        setProgressRange(progressEvent->getMinimumProgressValue(),
-                         progressEvent->getMaximumProgressValue());
-        setProgressValue(progressEvent->getProgressValue());
-        setProgressMessage(progressEvent->getProgressMessage());
+        emit reportProgressRange(progressEvent->getMinimumProgressValue(),
+                                 progressEvent->getMaximumProgressValue());
+        emit reportProgressValue(progressEvent->getProgressValue());
+        emit reportProgressMessage(progressEvent->getProgressMessage());
         
         std::cout << "PROGRESS: "
         << progressEvent->getProgressValue()
@@ -218,11 +218,11 @@ void
 ProgressReportingWithSlots::setProgressRange(const int minimumProgress,
                                           const int maximumProgress)
 {
-//    /*
-//     * Don't let any other method in an instance of this
-//     * class execute until this method completes.
-//     */
-//    QMutexLocker locker(&m_synchronizeMutex);
+    /*
+     * Don't let any other method in an instance of this
+     * class execute until this method completes.
+     */
+    QMutexLocker locker(&m_synchronizeMutex);
     
     emit reportProgressRange(minimumProgress,
                              maximumProgress);
@@ -237,11 +237,11 @@ ProgressReportingWithSlots::setProgressRange(const int minimumProgress,
 void
 ProgressReportingWithSlots::setProgressValue(const int progressValue)
 {
-//    /*
-//     * Don't let any other method in an instance of this
-//     * class execute until this method completes.
-//     */
-//    QMutexLocker locker(&m_synchronizeMutex);
+    /*
+     * Don't let any other method in an instance of this
+     * class execute until this method completes.
+     */
+    QMutexLocker locker(&m_synchronizeMutex);
 
     emit reportProgressValue(progressValue);
 }
@@ -255,11 +255,11 @@ ProgressReportingWithSlots::setProgressValue(const int progressValue)
 void
 ProgressReportingWithSlots::setProgressMessage(const QString& progressMessage)
 {
-//    /*
-//     * Don't let any other method in an instance of this
-//     * class execute until this method completes.
-//     */
-//    QMutexLocker locker(&m_synchronizeMutex);
+    /*
+     * Don't let any other method in an instance of this
+     * class execute until this method completes.
+     */
+    QMutexLocker locker(&m_synchronizeMutex);
 
     emit reportProgressMessage(progressMessage);
 }
