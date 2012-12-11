@@ -1560,9 +1560,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
      * (4) All other files.
      */
     std::vector<AString> filenamesToLoad;
-    if (specFileName.isEmpty() == false) {
-        filenamesToLoad.push_back(specFileName);
-    }
+//    if (specFileName.isEmpty() == false) {
+//        filenamesToLoad.push_back(specFileName);
+//    }
     filenamesToLoad.insert(filenamesToLoad.end(),
                            volumeFileNames.begin(),
                            volumeFileNames.end());
@@ -1595,7 +1595,132 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     bool sceneFileWasLoaded = false;
     
     /*
-     * Load each file.
+     * Load spec file (before data files)
+     */
+    if (specFileName.isEmpty() == false) {
+        SpecFile specFile;
+        try {
+            specFile.readFile(specFileName);
+        }
+        catch (const DataFileException& e) {
+            errorMessages += e.whatString();
+            cursor.restoreCursor();
+            QMessageBox::critical(this,
+                                  "ERROR",
+                                  errorMessages);
+            return;
+        }
+        
+        switch (loadSpecFileMode) {
+            case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+            {
+                timer.reset(); // resets timer
+                specFileTimeStart = timer.getElapsedTimeSeconds();
+                
+                /*
+                 * Load all files listed in spec file
+                 */
+                specFile.setAllFilesSelected(true);
+                
+                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                             &specFile);
+                if (username.isEmpty() == false) {
+                    readSpecFileEvent.setUsernameAndPassword(username,
+                                                             password);
+                }
+                
+                ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                  this,
+                                                  specFile.getFileNameNoPath());
+                
+                if (readSpecFileEvent.isError()) {
+                    if (errorMessages.isEmpty() == false) {
+                        errorMessages += "\n";
+                    }
+                    errorMessages += readSpecFileEvent.getErrorMessage();
+                }
+                specFileTimeEnd = timer.getElapsedTimeSeconds();
+            }
+                break;
+            case LOAD_SPEC_FILE_WITH_DIALOG:
+            case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+            {
+                /*
+                 * Remove wait cursor
+                 */
+                cursor.restoreCursor();
+                
+                /*
+                 * Allow user to choose files listed in the spec file
+                 */
+                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                               this);
+                if (sfd->exec() == QDialog::Accepted) {
+                    /*
+                     * Redisplay wait cursor
+                     */
+                    cursor.showWaitCursor();
+                    
+                    timer.reset();
+                    specFileTimeStart = timer.getElapsedTimeSeconds();
+                    
+                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                 &specFile);
+                    if (username.isEmpty() == false) {
+                        readSpecFileEvent.setUsernameAndPassword(username,
+                                                                 password);
+                    }
+                    
+                    ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                      this,
+                                                      specFile.getFileNameNoPath());
+                    
+                    if (readSpecFileEvent.isError()) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
+                        }
+                        errorMessages += readSpecFileEvent.getErrorMessage();
+                    }
+                    specFileTimeEnd = timer.getElapsedTimeSeconds();
+                    
+                    createDefaultTabsFlag = true;
+                }
+                else {
+                    /*
+                     * Redisplay wait cursor
+                     */
+                    cursor.showWaitCursor();
+                }
+                
+                delete sfd;
+            }
+                break;
+        }
+        
+        sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
+    }
+    
+    /*
+     * Prepare to load any data files
+     */
+    bool addDataFileToSpecFile = false;
+    switch (addDataFileToSpecFileMode) {
+        case ADD_DATA_FILE_TO_SPEC_FILE_NO:
+            addDataFileToSpecFile = false;
+            break;
+        case ADD_DATA_FILE_TO_SPEC_FILE_YES:
+            addDataFileToSpecFile = true;
+            break;
+    }
+    EventDataFileRead loadFilesEvent(GuiManager::get()->getBrain(),
+                                    addDataFileToSpecFile);
+    if (username.isEmpty() == false) {
+        loadFilesEvent.setUsernameAndPassword(username,
+                                             password);
+    }
+    
+    /*
+     * Add data files to data file loading event (after loading spec file)
      */
     const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
     for (int32_t i = 0; i < numFilesToLoad; i++) {
@@ -1609,192 +1734,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         bool isValidType = false;
         DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
         if (isValidType) {
-            if (fileType == DataFileTypeEnum::SPECIFICATION) {
-                SpecFile specFile;
-                try {
-                    specFile.readFile(name);
-                }
-                catch (const DataFileException& e) {
-                    errorMessages += e.whatString();
-                    cursor.restoreCursor();
-                    QMessageBox::critical(this,
-                                          "ERROR",
-                                          errorMessages);
-                    return;
-                }
-                
-                switch (loadSpecFileMode) {
-                    case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
-                    {
-                        timer.reset(); // resets timer
-                        specFileTimeStart = timer.getElapsedTimeSeconds();
-                        
-                        /*
-                         * Load all files listed in spec file
-                         */
-                        specFile.setAllFilesSelected(true);
-                        
-                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                     &specFile);
-                        if (username.isEmpty() == false) {
-                            readSpecFileEvent.setUsernameAndPassword(username,
-                                                                     password);
-                        }
-                        
-                        ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                          this,
-                                                          specFile.getFileNameNoPath());
-                        //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                        
-                        if (readSpecFileEvent.isError()) {
-                            if (errorMessages.isEmpty() == false) {
-                                errorMessages += "\n";
-                            }
-                            errorMessages += readSpecFileEvent.getErrorMessage();
-                        }
-                        specFileTimeEnd = timer.getElapsedTimeSeconds();
-                    }
-                        break;
-                    case LOAD_SPEC_FILE_WITH_DIALOG:
-                    case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
-                    {
-                        /*
-                         * Remove wait cursor
-                         */
-                        cursor.restoreCursor();
-                        
-                        /*
-                         * Allow user to choose files listed in the spec file
-                         */
-                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                                       this);
-                        if (sfd->exec() == QDialog::Accepted) {
-                            /*
-                             * Redisplay wait cursor
-                             */
-                            cursor.showWaitCursor();
-                            
-                            timer.reset();
-                            specFileTimeStart = timer.getElapsedTimeSeconds();
-                            
-                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                         &specFile);
-                            if (username.isEmpty() == false) {
-                                readSpecFileEvent.setUsernameAndPassword(username,
-                                                                         password);
-                            }
-                            
-                            ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                              this,
-                                                              specFile.getFileNameNoPath());
-                            //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                            
-                            if (readSpecFileEvent.isError()) {
-                                if (errorMessages.isEmpty() == false) {
-                                    errorMessages += "\n";
-                                }
-                                errorMessages += readSpecFileEvent.getErrorMessage();
-                            }
-                            specFileTimeEnd = timer.getElapsedTimeSeconds();
-                            
-                            createDefaultTabsFlag = true;
-                        }
-                        else {
-                            /*
-                             * Redisplay wait cursor
-                             */
-                            cursor.showWaitCursor();
-                        }
-                        
-                        delete sfd;
-                    }
-                        break;
-                }
-                
-                sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
-            }
-            else {
-                bool addDataFileToSpecFile = false;
-                switch (addDataFileToSpecFileMode) {
-                    case ADD_DATA_FILE_TO_SPEC_FILE_NO:
-                        addDataFileToSpecFile = false;
-                        break;
-                    case ADD_DATA_FILE_TO_SPEC_FILE_YES:
-                        addDataFileToSpecFile = true;
-                        break;
-                }
-                
-                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                                fileType,
-                                                name,
-                                                addDataFileToSpecFile);
-                if (username.isEmpty() == false) {
-                    loadFileEvent.setUsernameAndPassword(username,
-                                                         password);
-                }
-                
-                EventManager::get()->sendEvent(loadFileEvent.getPointer());
-                
-                if (fileType == DataFileTypeEnum::SCENE) {
-                    sceneFileWasLoaded = true;
-                }
-                if (loadFileEvent.isError()) {
-                    AString loadErrorMessage = "";
-                    
-                    if (loadFileEvent.isErrorInvalidStructure()) {
-                        /*
-                         * Remove wait cursor
-                         */
-                        cursor.restoreCursor();
-                        
-                        WuQDataEntryDialog ded("Structure",
-                                               this);
-                        StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
-                        ded.setTextAtTop(("File \""
-                                          + FileInformation(name).getFileName()
-                                          + "\"\nhas missing or invalid structure, select it's structure."
-                                          "\nAfter loading, save file with File Menu->Save Manage Files"
-                                          "\nto prevent this error."),
-                                         false);
-                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-                            /*
-                             * Redisplay wait cursor
-                             */
-                            cursor.showWaitCursor();
-
-                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
-                                                                     ssc->getSelectedStructure(),
-                                                                     fileType,
-                                                                     name,
-                                                                     addDataFileToSpecFile);
-                            if (username.isEmpty() == false) {
-                                loadFileEventStructure.setUsernameAndPassword(username,
-                                                                              password);
-                            }
-                            
-                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
-                            if (loadFileEventStructure.isError()) {
-                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
-                            }
-                        }
-                        else {
-                            /*
-                             * Redisplay wait cursor
-                             */
-                            cursor.showWaitCursor();
-                        }
-                    }
-                    else {
-                        loadErrorMessage = loadFileEvent.getErrorMessage();
-                    }
-                    if (loadErrorMessage.isEmpty() == false) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
-                        }
-                        errorMessages += loadErrorMessage;
-                    }
-                }                    
-            }
+            loadFilesEvent.addDataFile(fileType,
+                                       name);
         }
         else {
             if (errorMessages.isEmpty() == false) {
@@ -1803,6 +1744,298 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
             errorMessages += ("Extension for " + name + " does not match a suppported file type");
         }
     }
+    
+    /*
+     * Now, load the data files
+     */
+    const int32_t numberOfValidFiles = loadFilesEvent.getNumberOfDataFilesToRead();
+    if (numberOfValidFiles > 0) {
+        ProgressReportingDialog::runEvent(&loadFilesEvent,
+                                          this,
+                                          "Loading Data Files");
+        errorMessages.appendWithNewLine(loadFilesEvent.getErrorMessage());
+        
+        /*
+         * Check for errors
+         */
+        for (int32_t i = 0; i < numberOfValidFiles; i++) {
+            const AString& dataFileName = loadFilesEvent.getDataFileName(i);
+            const DataFileTypeEnum::Enum dataFileType = loadFilesEvent.getDataFileType(i);
+            
+            const AString shortName = FileInformation(dataFileName).getFileName();
+            
+            if (loadFilesEvent.isFileErrorInvalidStructure(i)) {
+                
+                /*
+                 * Remove wait cursor
+                 */
+                cursor.restoreCursor();
+                
+                /*
+                 * Allow user to specify the structure
+                 */
+                WuQDataEntryDialog ded("Structure",
+                                       this);
+                StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
+                ded.setTextAtTop(("File \""
+                                  + shortName
+                                  + "\"\nhas missing or invalid structure, select it's structure."
+                                  "\nAfter loading, save file with File Menu->Save Manage Files"
+                                  "\nto prevent this error."),
+                                 false);
+                if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                    /*
+                     * Redisplay wait cursor
+                     */
+                    cursor.showWaitCursor();
+                    
+                    EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+                                                             addDataFileToSpecFile);
+                    loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
+                                                       dataFileType,
+                                                       dataFileName);
+                    if (username.isEmpty() == false) {
+                        loadFileEventStructure.setUsernameAndPassword(username,
+                                                                      password);
+                    }
+                    
+                    ProgressReportingDialog::runEvent(&loadFileEventStructure,
+                                                      this,
+                                                      ("Loading " + shortName));
+                    if (loadFileEventStructure.isError()) {
+                        errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
+                    }
+                }
+                else {
+                    errorMessages.appendWithNewLine("File \""
+                                                       + shortName
+                                                       + "\" not loaded due to invalid structure.");
+                    /*
+                     * Redisplay wait cursor
+                     */
+                    cursor.showWaitCursor();
+                }
+            }
+            else if (loadFilesEvent.isFileError(i) == false) {
+                if (dataFileType == DataFileTypeEnum::SCENE) {
+                    sceneFileWasLoaded = true;
+                }                
+            }
+        }
+    }
+    
+    
+    
+    
+//    /*
+//     * Load each file.
+//     */
+//    //const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
+//    for (int32_t i = 0; i < numFilesToLoad; i++) {
+//        AString name = filenamesToLoad[i];
+//        
+//        //FileInformation fileInfo(name);
+//        //if (fileInfo.isAbsolute()) {
+//        //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+//        //}
+//        
+//        bool isValidType = false;
+//        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+//        if (isValidType) {
+//            if (fileType == DataFileTypeEnum::SPECIFICATION) {
+//                SpecFile specFile;
+//                try {
+//                    specFile.readFile(name);
+//                }
+//                catch (const DataFileException& e) {
+//                    errorMessages += e.whatString();
+//                    cursor.restoreCursor();
+//                    QMessageBox::critical(this,
+//                                          "ERROR",
+//                                          errorMessages);
+//                    return;
+//                }
+//                
+//                switch (loadSpecFileMode) {
+//                    case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+//                    {
+//                        timer.reset(); // resets timer
+//                        specFileTimeStart = timer.getElapsedTimeSeconds();
+//                        
+//                        /*
+//                         * Load all files listed in spec file
+//                         */
+//                        specFile.setAllFilesSelected(true);
+//                        
+//                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                                     &specFile);
+//                        if (username.isEmpty() == false) {
+//                            readSpecFileEvent.setUsernameAndPassword(username,
+//                                                                     password);
+//                        }
+//                        
+//                        ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                          this,
+//                                                          specFile.getFileNameNoPath());
+//                        //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+//                        
+//                        if (readSpecFileEvent.isError()) {
+//                            if (errorMessages.isEmpty() == false) {
+//                                errorMessages += "\n";
+//                            }
+//                            errorMessages += readSpecFileEvent.getErrorMessage();
+//                        }
+//                        specFileTimeEnd = timer.getElapsedTimeSeconds();
+//                    }
+//                        break;
+//                    case LOAD_SPEC_FILE_WITH_DIALOG:
+//                    case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+//                    {
+//                        /*
+//                         * Remove wait cursor
+//                         */
+//                        cursor.restoreCursor();
+//                        
+//                        /*
+//                         * Allow user to choose files listed in the spec file
+//                         */
+//                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+//                                                                                       this);
+//                        if (sfd->exec() == QDialog::Accepted) {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                            
+//                            timer.reset();
+//                            specFileTimeStart = timer.getElapsedTimeSeconds();
+//                            
+//                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                                         &specFile);
+//                            if (username.isEmpty() == false) {
+//                                readSpecFileEvent.setUsernameAndPassword(username,
+//                                                                         password);
+//                            }
+//                            
+//                            ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                              this,
+//                                                              specFile.getFileNameNoPath());
+//                            //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+//                            
+//                            if (readSpecFileEvent.isError()) {
+//                                if (errorMessages.isEmpty() == false) {
+//                                    errorMessages += "\n";
+//                                }
+//                                errorMessages += readSpecFileEvent.getErrorMessage();
+//                            }
+//                            specFileTimeEnd = timer.getElapsedTimeSeconds();
+//                            
+//                            createDefaultTabsFlag = true;
+//                        }
+//                        else {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                        }
+//                        
+//                        delete sfd;
+//                    }
+//                        break;
+//                }
+//                
+//                sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
+//            }
+//            else {
+//                bool addDataFileToSpecFile = false;
+//                switch (addDataFileToSpecFileMode) {
+//                    case ADD_DATA_FILE_TO_SPEC_FILE_NO:
+//                        addDataFileToSpecFile = false;
+//                        break;
+//                    case ADD_DATA_FILE_TO_SPEC_FILE_YES:
+//                        addDataFileToSpecFile = true;
+//                        break;
+//                }
+//                
+//                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+//                                                addDataFileToSpecFile);
+//                loadFileEvent.addDataFile(fileType,
+//                                          name);
+//                if (username.isEmpty() == false) {
+//                    loadFileEvent.setUsernameAndPassword(username,
+//                                                         password);
+//                }
+//                
+//                EventManager::get()->sendEvent(loadFileEvent.getPointer());
+//                
+//                if (fileType == DataFileTypeEnum::SCENE) {
+//                    sceneFileWasLoaded = true;
+//                }
+//                if (loadFileEvent.isError()) {
+//                    AString loadErrorMessage = "";
+//                    
+//                    if (loadFileEvent.isFileErrorInvalidStructure(0)) {
+//                        /*
+//                         * Remove wait cursor
+//                         */
+//                        cursor.restoreCursor();
+//                        
+//                        WuQDataEntryDialog ded("Structure",
+//                                               this);
+//                        StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
+//                        ded.setTextAtTop(("File \""
+//                                          + FileInformation(name).getFileName()
+//                                          + "\"\nhas missing or invalid structure, select it's structure."
+//                                          "\nAfter loading, save file with File Menu->Save Manage Files"
+//                                          "\nto prevent this error."),
+//                                         false);
+//                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//
+//                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+//                                                                     addDataFileToSpecFile);
+//                            loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
+//                                                               fileType,
+//                                                               name);
+//                            if (username.isEmpty() == false) {
+//                                loadFileEventStructure.setUsernameAndPassword(username,
+//                                                                              password);
+//                            }
+//                            
+//                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
+//                            if (loadFileEventStructure.isError()) {
+//                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
+//                            }
+//                        }
+//                        else {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                        }
+//                    }
+//                    else {
+//                        loadErrorMessage = loadFileEvent.getErrorMessage();
+//                    }
+//                    if (loadErrorMessage.isEmpty() == false) {
+//                        if (errorMessages.isEmpty() == false) {
+//                            errorMessages += "\n";
+//                        }
+//                        errorMessages += loadErrorMessage;
+//                    }
+//                }                    
+//            }
+//        }
+//        else {
+//            if (errorMessages.isEmpty() == false) {
+//                errorMessages += "\n";
+//            }
+//            errorMessages += ("Extension for " + name + " does not match a suppported file type");
+//        }
+//    }
     
     const float specFileTime = specFileTimeEnd - specFileTimeStart;
     
@@ -1852,7 +2085,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         GuiManager::get()->processShowSceneDialog(this);
     }
 }
-
 
 /**
  * Called when open data file from spec file is selected.

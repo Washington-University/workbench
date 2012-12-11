@@ -53,6 +53,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ProgressReportingDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -172,14 +173,17 @@ CaretFileRemoteDialog::okButtonClicked()
                   CaretFileRemoteDialog::previousNetworkDataFileType)
         != connectivityDataFileTypes.end()) {
         EventDataFileRead readFileEvent(brain,
-                                        CaretFileRemoteDialog::previousNetworkDataFileType,
-                                        CaretFileRemoteDialog::previousNetworkFileName,
                                         false);
+        readFileEvent.addDataFile(CaretFileRemoteDialog::previousNetworkDataFileType,
+                                  CaretFileRemoteDialog::previousNetworkFileName);
         readFileEvent.setUsernameAndPassword(CaretFileRemoteDialog::previousNetworkUsername,
                                              CaretFileRemoteDialog::previousNetworkPassword);
         
         bool isError = false;
-        EventManager::get()->sendEvent(readFileEvent.getPointer());
+        //EventManager::get()->sendEvent(readFileEvent.getPointer());
+        ProgressReportingDialog::runEvent(&readFileEvent,
+                                          this,
+                                          "Loading Remote File");
         if (readFileEvent.isError()) {
             cursor.restoreCursor();
             WuQMessageBox::errorOk(this,

@@ -50,6 +50,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "ProgressReportingDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
@@ -727,12 +728,15 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
     StructureEnum::Enum structure = m_structureEnumComboBox->getSelectedStructure();
     if (isValidType) {
         EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                        structure,
-                                        fileType,
-                                        name,
                                         false);
+        loadFileEvent.addDataFile(structure,
+                                  fileType,
+                                  name);
         
-        EventManager::get()->sendEvent(loadFileEvent.getPointer());
+        //EventManager::get()->sendEvent(loadFileEvent.getPointer());
+        ProgressReportingDialog::runEvent(&loadFileEvent,
+                                          m_openFilePushButton,
+                                          "Loading File");
         
         if (loadFileEvent.isError()) {
             if (errorMessages.isEmpty() == false) {

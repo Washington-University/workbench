@@ -2118,22 +2118,46 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     CaretDataFile::setFileReadingUsernameAndPassword(readDataFileEvent->getUsername(),
                                                      readDataFileEvent->getPassword());
     
-    const AString filename = readDataFileEvent->getDataFileName();
-    const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
-    const StructureEnum::Enum structure = readDataFileEvent->getStructure();
-    const bool setFileModifiedStatus = readDataFileEvent->isFileToBeMarkedModified();
-    
-    try {
-        readDataFile(dataFileType,
-                           structure,
-                           filename,
-                     setFileModifiedStatus,
-                           readDataFileEvent->isAddDataFileToSpecFile());
+    AString eventErrorMessage;
+    const int32_t numberOfFilesToRead = readDataFileEvent->getNumberOfDataFilesToRead();
+    for (int32_t i = 0; i < numberOfFilesToRead; i++) {
+        const AString filename = readDataFileEvent->getDataFileName(i);
+        const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType(i);
+        const StructureEnum::Enum structure = readDataFileEvent->getStructure(i);
+        const bool setFileModifiedStatus = readDataFileEvent->isFileToBeMarkedModified(i);
+        
+        const AString shortName = FileInformation(filename).getFileName();
+        EventProgressUpdate progressEvent(0,
+                                          numberOfFilesToRead,
+                                          i,
+                                          ("Reading " + shortName));
+        EventManager::get()->sendEvent(progressEvent.getPointer());
+        if (progressEvent.isCancelled()) {
+            eventErrorMessage.appendWithNewLine("File reading cancelled.");
+            break;
+        }
+        
+        try {
+            readDataFile(dataFileType,
+                         structure,
+                         filename,
+                         setFileModifiedStatus,
+                         readDataFileEvent->isAddDataFileToSpecFile());
+        }
+        catch (const DataFileException& e) {
+            if (e.isErrorInvalidStructure()) {
+                readDataFileEvent->setFileErrorInvalidStructure(i,
+                                                                e.isErrorInvalidStructure());
+            }
+            else {
+                eventErrorMessage.appendWithNewLine(e.whatString());
+                readDataFileEvent->setFileErrorMessage(i,
+                                                       e.whatString());
+            }
+        }
     }
-    catch (const DataFileException& e) {
-        readDataFileEvent->setErrorMessage(e.whatString());
-        readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
-    }    
+    
+    readDataFileEvent->setErrorMessage(eventErrorMessage);
     
     CaretDataFile::setFileReadingUsernameAndPassword("",
                                                      "");
