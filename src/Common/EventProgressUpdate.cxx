@@ -54,6 +54,16 @@ m_cancelled(false)
     
 }
 
+EventProgressUpdate::EventProgressUpdate(const QString& progressMessage)
+: Event(EventTypeEnum::EVENT_PROGRESS_UPDATE),
+m_minimumProgressValue(-1),
+m_maximumProgressValue(-1),
+m_progressValue(-1),
+m_progressMessage(progressMessage),
+m_cancelled(false)
+{
+    
+}
 
 EventProgressUpdate::~EventProgressUpdate()
 {

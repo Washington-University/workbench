@@ -733,7 +733,6 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
                                   fileType,
                                   name);
         
-        //EventManager::get()->sendEvent(loadFileEvent.getPointer());
         ProgressReportingDialog::runEvent(&loadFileEvent,
                                           m_openFilePushButton,
                                           "Loading File");

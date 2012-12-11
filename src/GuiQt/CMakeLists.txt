@@ -69,6 +69,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 ProgressReportingDialog.h
+ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SpecFileCreateAddToDialog.h
@@ -178,6 +179,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 ProgressReportingDialog.h
+ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SceneWindowGeometry.h
@@ -285,6 +287,7 @@ PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 ProgressReportingDialog.cxx
+ProgressReportingWithSlots.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneDialog.cxx
 SceneWindowGeometry.cxx

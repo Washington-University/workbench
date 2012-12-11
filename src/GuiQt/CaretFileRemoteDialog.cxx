@@ -45,7 +45,6 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
-#include "CursorDisplayScoped.h"
 #include "DataFileTypeEnum.h"
 #include "EventDataFileRead.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -142,9 +141,6 @@ CaretFileRemoteDialog::~CaretFileRemoteDialog()
 void 
 CaretFileRemoteDialog::okButtonClicked()
 {
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-    
     const AString filename = m_urlLineEdit->text().trimmed();
     
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
@@ -180,16 +176,13 @@ CaretFileRemoteDialog::okButtonClicked()
                                              CaretFileRemoteDialog::previousNetworkPassword);
         
         bool isError = false;
-        //EventManager::get()->sendEvent(readFileEvent.getPointer());
         ProgressReportingDialog::runEvent(&readFileEvent,
                                           this,
                                           "Loading Remote File");
         if (readFileEvent.isError()) {
-            cursor.restoreCursor();
             WuQMessageBox::errorOk(this,
                                    readFileEvent.getErrorMessage());
             isError = true;
-            cursor.showWaitCursor();
         }
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -210,9 +203,6 @@ CaretFileRemoteDialog::okButtonClicked()
         std::vector<AString> files;
         files.push_back(filename);
         
-        if (dataFileType == DataFileTypeEnum::SPECIFICATION) {
-            cursor.restoreCursor();
-        }
         browserWindow->loadFilesFromNetwork(files,
                                             CaretFileRemoteDialog::previousNetworkUsername,
                                             CaretFileRemoteDialog::previousNetworkPassword);

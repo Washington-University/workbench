@@ -44,6 +44,8 @@ namespace caret {
                           const int progressValue,
                           const QString& progressMessage);
        
+      EventProgressUpdate(const QString& progressMessage);
+       
       virtual ~EventProgressUpdate();
 
       bool m_textUpdate, m_amountUpdate, m_finished, m_starting;

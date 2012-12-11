@@ -108,7 +108,8 @@ Event::getErrorMessage() const
  * to indicate that there was an error processing 
  * the event. 
  *
- * Calling this method will result in the error
+ * If the given error message is not empty,
+ * calling this method will result in the error
  * status being set and the event manager will not
  * send this event to any other receivers.
  *
@@ -118,8 +119,10 @@ Event::getErrorMessage() const
 void 
 Event::setErrorMessage(const AString& errorMessage) 
 {
-    this->errorMessage = errorMessage;
-    this->errorStatus = true;
+    if (errorMessage.isEmpty() == false) {
+        this->errorMessage = errorMessage;
+        this->errorStatus = true;
+    }
 }
 
 /**

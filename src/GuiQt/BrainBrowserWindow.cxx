@@ -829,16 +829,12 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
             SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
                                                                            this);
             if (sfd->exec() == QDialog::Accepted) {
-                CursorDisplayScoped cursor;
-                cursor.showWaitCursor();
-                
                 EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                              &specFile);
                 
                 ProgressReportingDialog::runEvent(&readSpecFileEvent,
                                                   this,
                                                   specFile.getFileNameNoPath());
-                //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                 
                 if (readSpecFileEvent.isError()) {
                     if (errorMessages.isEmpty() == false) {
@@ -1547,12 +1543,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     }
     
     /*
-     * Display the wait cursor
-     */
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-
-    /*
      * Load files in this order:
      * (1) Spec File - Limit to one.
      * (2) Volume File
@@ -1604,7 +1594,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         }
         catch (const DataFileException& e) {
             errorMessages += e.whatString();
-            cursor.restoreCursor();
             QMessageBox::critical(this,
                                   "ERROR",
                                   errorMessages);
@@ -1646,21 +1635,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
             case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
             {
                 /*
-                 * Remove wait cursor
-                 */
-                cursor.restoreCursor();
-                
-                /*
                  * Allow user to choose files listed in the spec file
                  */
                 SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
                                                                                this);
                 if (sfd->exec() == QDialog::Accepted) {
-                    /*
-                     * Redisplay wait cursor
-                     */
-                    cursor.showWaitCursor();
-                    
                     timer.reset();
                     specFileTimeStart = timer.getElapsedTimeSeconds();
                     
@@ -1684,12 +1663,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     specFileTimeEnd = timer.getElapsedTimeSeconds();
                     
                     createDefaultTabsFlag = true;
-                }
-                else {
-                    /*
-                     * Redisplay wait cursor
-                     */
-                    cursor.showWaitCursor();
                 }
                 
                 delete sfd;
@@ -1765,12 +1738,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
             const AString shortName = FileInformation(dataFileName).getFileName();
             
             if (loadFilesEvent.isFileErrorInvalidStructure(i)) {
-                
-                /*
-                 * Remove wait cursor
-                 */
-                cursor.restoreCursor();
-                
                 /*
                  * Allow user to specify the structure
                  */
@@ -1784,11 +1751,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                   "\nto prevent this error."),
                                  false);
                 if (ded.exec() == WuQDataEntryDialog::Accepted) {
-                    /*
-                     * Redisplay wait cursor
-                     */
-                    cursor.showWaitCursor();
-                    
                     EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
                                                              addDataFileToSpecFile);
                     loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
@@ -1810,10 +1772,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     errorMessages.appendWithNewLine("File \""
                                                        + shortName
                                                        + "\" not loaded due to invalid structure.");
-                    /*
-                     * Redisplay wait cursor
-                     */
-                    cursor.showWaitCursor();
                 }
             }
             else if (loadFilesEvent.isFileError(i) == false) {
@@ -2069,11 +2027,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                      + " seconds.\n  Time to create tabs was "
                      + AString::number(createTabsTime));
     }
-    
-    /*
-     * Remove wait cursor
-     */
-    cursor.restoreCursor();
     
     if (errorMessages.isEmpty() == false) {
         QMessageBox::critical(this, 

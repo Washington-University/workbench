@@ -85,6 +85,7 @@ Plane.h
 ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
+ProgressReportingInterface.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StructureEnum.h

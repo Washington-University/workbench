@@ -1,5 +1,5 @@
-#ifndef __PROGRESS_REPORTING_DIALOG_H__
-#define __PROGRESS_REPORTING_DIALOG_H__
+#ifndef __PROGRESS_REPORTING_WITH_SLOTS_H__
+#define __PROGRESS_REPORTING_WITH_SLOTS_H__
 
 /*LICENSE_START*/
 /*
@@ -34,71 +34,56 @@
  */
 /*LICENSE_END*/
 
-#include <QProgressDialog>
+#include <QMutex>
+#include <QObject>
 
-#include "EventListenerInterface.h"
-#include "ProgressReportingWithSlots.h"
+#include "ProgressReportingInterface.h"
 
 namespace caret {
 
-    class ProgressReportingFromEvent;
-    
-    class ProgressReportingDialog : public QProgressDialog {
-        
+    class ProgressReportingWithSlots : public QObject, public ProgressReportingInterface {
         Q_OBJECT
-
+        
     public:
-        static void run(QWidget* parent,
-                        const QString& title,
-                        QObject* receiver,
-                        const char* method);
-
-        static void runEvent(Event* event,
-                             QWidget* parent,
-                             const QString& title);
+        ProgressReportingWithSlots(QObject* parent);
+        
+        virtual ~ProgressReportingWithSlots();
+        
+        virtual void setProgressRange(const int minimumProgress,
+                              const int maximumProgress);
+        
+        virtual void setProgressValue(const int progressValue);
+        
+        virtual void setProgressMessage(const AString& progressMessage);
+        
+        virtual bool isCancelRequested() const;
+        
+        virtual void setCancelRequested();
+        
+    public slots:
+        void requestCancel();
         
     signals:
-        void startWithProgress(ProgressReportingInterface*);
+        void reportProgressRange(const int minimumProgress,
+                                 const int maximumProgress);
+        
+        void reportProgressValue(const int progressValue);
+        
+        void reportProgressMessage(const QString& progressMessage);
         
     private:
-        ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
-                                const QString& initialMessage,
-                                QWidget* parent);
-
-    public:
-        virtual ~ProgressReportingDialog();
-
-    private:
-        ProgressReportingDialog(const ProgressReportingDialog&);
-
-        ProgressReportingDialog& operator=(const ProgressReportingDialog&);
+        /**
+         * Ensures each method is synchronized meaning that each of
+         * the methods for updating complete blocks if any other
+         * methods are in progress.
+         */
+        mutable QMutex m_synchronizeMutex;
         
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
-        // ADD_NEW_MEMBERS_HERE
-
-        ProgressReportingInterface* m_progressReporter;
+        bool m_cancelled;
     };
-    
-    class ProgressReportingFromEvent : public ProgressReportingWithSlots, public EventListenerInterface {
-        Q_OBJECT
-        
-    public:
-        ProgressReportingFromEvent(QObject* parent);
-        
-        virtual ~ProgressReportingFromEvent();
-        
-        void receiveEvent(Event* event);
-        
-    };
-    
-#ifdef __PROGRESS_REPORTING_DIALOG_DECLARE__
+#ifdef __PROGRESS_REPORTING_WITH_SLOTS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __PROGRESS_REPORTING_DIALOG_DECLARE__
+#endif // __PROGRESS_REPORTING_WITH_SLOTS_DECLARE__
 
 } // namespace
-#endif  //__PROGRESS_REPORTING_DIALOG_H__
+#endif  //__PROGRESS_REPORTING_WITH_SLOTS_H__
