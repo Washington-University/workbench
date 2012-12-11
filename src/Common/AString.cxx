@@ -565,3 +565,16 @@ AString::toCharArray() const
     return s;
 }
 
+/**
+ * If this string is not empty append a newline. 
+ * Next, append the given string.
+ */
+void
+AString::appendWithNewLine(const AString& str)
+{
+    if (isEmpty() == false) {
+        append("\n");
+    }
+    append(str);
+}
+

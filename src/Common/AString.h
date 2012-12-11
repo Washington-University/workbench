@@ -96,6 +96,8 @@ namespace caret {
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
         
+        void appendWithNewLine(const AString& str);
+        
         static void toNumbers(const AString& s,
                               std::vector<float>& numbersOut);
         static void toNumbers(const AString& s,
