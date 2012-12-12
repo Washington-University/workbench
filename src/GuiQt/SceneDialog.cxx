@@ -59,6 +59,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ProgressReportingDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneFile.h"
@@ -759,6 +760,11 @@ SceneDialog::showSceneButtonClicked()
     }
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
+        ProgressReportingDialog progressDialog(("Restoring Scene " + scene->getName()),
+                                               "",
+                                               this);
+        progressDialog.setValue(0);
+        
         displayScenePrivate(sceneFile,
                             scene);
     }

@@ -42,6 +42,7 @@
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
 #include "EventModelYokingGroupGetAll.h"
+#include "EventProgressUpdate.h"
 #include "LogManager.h"
 #include "ModelWholeBrain.h"
 #include "ModelYokingGroup.h"
@@ -494,6 +495,18 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+
+    int32_t progressCounter = 0;
+    const int32_t PROGRESS_RESTORING_BRAIN = progressCounter++;
+    const int32_t PROGRESS_RESTORING_TABS = progressCounter++;
+    const int32_t PROGRESS_RESTORING_GUI = progressCounter++;
+    const int32_t PROGRESS_RESTORING_TOTAL = progressCounter++;
+    
+    EventProgressUpdate progressEvent(0,
+                                      PROGRESS_RESTORING_TOTAL,
+                                      PROGRESS_RESTORING_BRAIN,
+                                      "Restoring Brain");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -531,6 +544,12 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    progressEvent.setProgress(0,
+                              PROGRESS_RESTORING_TOTAL,
+                              PROGRESS_RESTORING_TABS,
+                              "Restoring Content of Browser Tabs");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    
     /*
      * Remove all tabs
      */
@@ -559,6 +578,13 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         CaretAssert(tabIndex >= 0);
         m_browserTabs[tabIndex] = tab;
     }
+    
+    progressEvent.setProgress(0,
+                              PROGRESS_RESTORING_TOTAL,
+                              PROGRESS_RESTORING_GUI,
+                              "Restoring Graphical User Interface");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    
 }
 
 

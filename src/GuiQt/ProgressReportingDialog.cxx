@@ -103,7 +103,7 @@ ProgressReportingDialog::ProgressReportingDialog(ProgressReportingWithSlots* pro
         setWindowTitle(title);
     }
     
-    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 1000;
+    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 0;
     setMinimumDuration(minimumTimeInMillisecondsBeforeDialogDisplayed);
     
     QObject::connect(progressReporter, SIGNAL(reportProgressRange(const int, const int)),
@@ -152,7 +152,7 @@ ProgressReportingDialog::ProgressReportingDialog(const AString& title,
         setWindowTitle(title);
     }
     
-    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 1000;
+    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 0;
     setMinimumDuration(minimumTimeInMillisecondsBeforeDialogDisplayed);
     
     QObject::connect(progressFromEvent, SIGNAL(reportProgressRange(const int, const int)),
@@ -206,6 +206,7 @@ ProgressReportingDialog::runEvent(Event* event,
                                 title,
                                 "",
                                 parent);
+    prd.setValue(0);
     
     EventManager::get()->sendEvent(event);
     
