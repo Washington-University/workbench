@@ -56,8 +56,9 @@ using namespace caret;
  * task executes.  As the task is running, it should send
  * EventProgressUpdate events indicating the progress of the processing.
  * If the user chooses to cancel the event, this dialog will indicate so
- * on the files EventProgressUpdate received after the Cancel button is
- * clicked.
+ * on the first EventProgressUpdate received after the Cancel button is
+ * clicked.  The task should query the ProgressReportingDialog::isCancelled()
+ * after each progress update is sent.
  *
  * Tasks may send the EventProgressUpdate event from other threads.  
  * When the event is received signals and slots are used to update 
@@ -66,6 +67,11 @@ using namespace caret;
  * to slots that are in a different thread.
  *
  * Use the static method "runEvent" to run an event with a progress dialog.
+ *
+ * For other cases, use the public constructor.  Create an instance of the
+ * progress dialog and then start the desired task.  The progress dialog
+ * will automatically close when the progress value equals the maximum
+ * progress value or when the progress dialog goes out of scope.
  */
 
 /**
@@ -83,41 +89,41 @@ using namespace caret;
  * @param f
  *    Window flags.
  */
-ProgressReportingDialog::ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
-                                                 const AString& title,
-                                                 const AString& initialMessage,
-                                                 QWidget* parent,
-                                                 Qt::WindowFlags f)
-: QProgressDialog(initialMessage,
-                  "Cancel",
-                  50,
-                  100,
-                  parent,
-                  f)
-{
-    CaretAssert(progressReporter);
-    m_progressReporter = progressReporter;
-    progressReporter->setParent(this);
-    
-    if (title.isEmpty() == false) {
-        setWindowTitle(title);
-    }
-    
-    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 0;
-    setMinimumDuration(minimumTimeInMillisecondsBeforeDialogDisplayed);
-    
-    QObject::connect(progressReporter, SIGNAL(reportProgressRange(const int, const int)),
-                     this, SLOT(setRange(int, int)));
-    
-    QObject::connect(progressReporter, SIGNAL(reportProgressValue(const int)),
-                     this, SLOT(setValue(int)));
-    
-    QObject::connect(progressReporter, SIGNAL(reportProgressMessage(const QString&)),
-                     this, SLOT(setLabelText(const QString&)));
-    
-    QObject::connect(this, SIGNAL(canceled()),
-                     progressReporter, SLOT(requestCancel()));
-}
+//ProgressReportingDialog::ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
+//                                                 const AString& title,
+//                                                 const AString& initialMessage,
+//                                                 QWidget* parent,
+//                                                 Qt::WindowFlags f)
+//: QProgressDialog(initialMessage,
+//                  "Cancel",
+//                  50,
+//                  100,
+//                  parent,
+//                  f)
+//{
+//    CaretAssert(progressReporter);
+//    m_progressReporter = progressReporter;
+//    progressReporter->setParent(this);
+//    
+//    if (title.isEmpty() == false) {
+//        setWindowTitle(title);
+//    }
+//    
+//    const int minimumTimeInMillisecondsBeforeDialogDisplayed = 0;
+//    setMinimumDuration(minimumTimeInMillisecondsBeforeDialogDisplayed);
+//    
+//    QObject::connect(progressReporter, SIGNAL(reportProgressRange(const int, const int)),
+//                     this, SLOT(setRange(int, int)));
+//    
+//    QObject::connect(progressReporter, SIGNAL(reportProgressValue(const int)),
+//                     this, SLOT(setValue(int)));
+//    
+//    QObject::connect(progressReporter, SIGNAL(reportProgressMessage(const QString&)),
+//                     this, SLOT(setLabelText(const QString&)));
+//    
+//    QObject::connect(this, SIGNAL(canceled()),
+//                     progressReporter, SLOT(requestCancel()));
+//}
 
 /**
  * Constructor.
@@ -198,10 +204,13 @@ ProgressReportingDialog::runEvent(Event* event,
                                   QWidget* parent,
                                   const AString& title)
 {
-    ProgressReportingFromEvent* progressReporterWithEvent = new ProgressReportingFromEvent(0);
-    
-    ProgressReportingDialog prd(progressReporterWithEvent,
-                                title,
+//    ProgressReportingFromEvent* progressReporterWithEvent = new ProgressReportingFromEvent(0);
+//    
+//    ProgressReportingDialog prd(progressReporterWithEvent,
+//                                title,
+//                                "",
+//                                parent);
+    ProgressReportingDialog prd(title,
                                 "",
                                 parent);
     prd.setValue(0);
@@ -333,7 +342,7 @@ ProgressReportingFromEvent::receiveEvent(Event* event)
             setProgressValue(progValue);
         }
         if (progMessage.isEmpty() == false) {
-            emit reportProgressMessage(progMessage);
+            setProgressMessage(progMessage);
         }
         
         if (isCancelRequested()) {

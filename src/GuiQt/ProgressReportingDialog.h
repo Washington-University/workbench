@@ -69,11 +69,11 @@ namespace caret {
 //        void startWithProgress(ProgressReportingInterface*);
         
     private:
-        ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
-                                const AString& title,
-                                const AString& initialMessage,
-                                QWidget* parent,
-                                Qt::WindowFlags f = 0);
+//        ProgressReportingDialog(ProgressReportingWithSlots* progressReporter,
+//                                const AString& title,
+//                                const AString& initialMessage,
+//                                QWidget* parent,
+//                                Qt::WindowFlags f = 0);
 
     public:
         virtual ~ProgressReportingDialog();
