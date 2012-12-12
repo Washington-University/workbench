@@ -45,6 +45,25 @@ m_cancelled(false)
    m_whichObject = myObject;
 }
 
+/**
+ * Default constructor.
+ *
+ * If this instance is not modified and sent to a progress dialog
+ * no updates will be made to the progress dialog.  However, if the
+ * user has cancelled the task, the cancel status will be set in
+ * this instance after returning from the dialog.
+ */
+EventProgressUpdate::EventProgressUpdate()
+: Event(EventTypeEnum::EVENT_PROGRESS_UPDATE),
+m_minimumProgressValue(-1),
+m_maximumProgressValue(-1),
+m_progressValue(-1),
+m_progressMessage(""),
+m_cancelled(false)
+{
+    /* nothing */
+}
+
 /*
  * Constructor for display of progress in a progress dialog.
  *

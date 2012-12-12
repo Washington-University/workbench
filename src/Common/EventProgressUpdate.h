@@ -37,8 +37,10 @@ namespace caret {
    class EventProgressUpdate : public Event {
 
    public:
-      EventProgressUpdate(ProgressObject* myObject);
+      EventProgressUpdate();
 
+      EventProgressUpdate(ProgressObject* myObject);
+       
       EventProgressUpdate(const int minimumProgressValue,
                           const int maximumProgressValue,
                           const int progressValue,
@@ -76,8 +78,6 @@ namespace caret {
        void setCancelled() { m_cancelled = true; }
        
    private:
-      EventProgressUpdate();
-      
       EventProgressUpdate(const EventProgressUpdate&);
 
       EventProgressUpdate& operator=(const EventProgressUpdate&);
