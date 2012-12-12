@@ -45,7 +45,6 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
-#include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
@@ -62,6 +61,7 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "Model.h"
+#include "ProgressReportingDialog.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -553,8 +553,10 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
     }
     
     try {
-        CursorDisplayScoped cursor;
-        cursor.showWaitCursor();
+        ProgressReportingDialog progressDialog("Connectivity Withing Parcel",
+                                               "",
+                                               this);
+        progressDialog.setValue(0);
         pc->connectivityLoaderManager->loadAverageDataForSurfaceNodes(pc->surface,
                                                                       nodeIndices);
     }
@@ -611,8 +613,10 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         }
         
         try {
-            CursorDisplayScoped cursor;
-            cursor.showWaitCursor();
+            ProgressReportingDialog progressDialog("Connectivity Withing Border",
+                                                    "",
+                                                    this);
+            progressDialog.setValue(0);
             ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
             connectivityLoaderManager->loadAverageDataForSurfaceNodes(surface,
                                                                           nodeIndices);
@@ -657,8 +661,10 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
     }
     
     try {
-        CursorDisplayScoped cursor;
-        cursor.showWaitCursor();
+        ProgressReportingDialog progressDialog("Data Series Withing Parcel",
+                                               "",
+                                               this);
+        progressDialog.setValue(0);
         TimeLine tl;
         for(int i=0;i<3;i++) tl.point[i] = 0.0;
         tl.parcelName = pc->labelName;       
@@ -726,8 +732,10 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
         }
         
         try {
-            CursorDisplayScoped cursor;
-            cursor.showWaitCursor();
+            ProgressReportingDialog progressDialog("Data Series Withing Border",
+                                                   "",
+                                                   this);
+            progressDialog.setValue(0);
             TimeLine tl;
             for(int i=0;i<3;i++) tl.point[i] = 0.0;
             tl.borderClassName = border->getClassName();

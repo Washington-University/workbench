@@ -54,7 +54,7 @@ namespace caret {
         
         virtual void setProgressValue(const int progressValue);
         
-        virtual void setProgressMessage(const AString& progressMessage);
+        virtual void setProgressMessage(const AString& message);
         
         virtual bool isCancelRequested() const;
         
@@ -64,11 +64,31 @@ namespace caret {
         void requestCancel();
         
     signals:
+        /*
+         * Emitted when the range of progress is updated.
+         * @param minimumProgress
+         *    New value for minimum.
+         * @param maximumProgress
+         *    New value for maximum.
+         */
         void reportProgressRange(const int minimumProgress,
                                  const int maximumProgress);
         
+        /**
+         * Emitted when the progress value is updated.
+         * @param progressValue
+         *    New value for progress.
+         */
         void reportProgressValue(const int progressValue);
         
+        /**
+         * Emitted when the progress message is updated.
+         * @param progressMessage
+         *    New value for progress message.
+         *
+         * NOTE: This must use a QString (not AString) since
+         * it connects to a Qt slot expecting a QString
+         */
         void reportProgressMessage(const QString& progressMessage);
         
     private:

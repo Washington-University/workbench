@@ -26,6 +26,11 @@
 
 using namespace caret;
 
+/**
+ * \class caret::EventProgressUpdate
+ * \brief Event for updating progress of a task in a progress dialog.
+ */
+
 EventProgressUpdate::EventProgressUpdate(ProgressObject* myObject): Event(EventTypeEnum::EVENT_PROGRESS_UPDATE),
 m_minimumProgressValue(0),
 m_maximumProgressValue(100),
@@ -40,6 +45,19 @@ m_cancelled(false)
    m_whichObject = myObject;
 }
 
+/*
+ * Constructor for display of progress in a progress dialog.
+ *
+ * @param minimumProgressValue
+ *    Minimum Progress.
+ * @param maximumProgressValue
+ *    Maximum progress.
+ * @param progressValue
+ *    Current progress (min <= current <= maximum)
+ * @param progressMessage
+ *    Message for display in progress dialog.
+ *
+ */
 EventProgressUpdate::EventProgressUpdate(const int minimumProgressValue,
                                          const int maximumProgressValue,
                                          const int progressValue,
@@ -65,6 +83,38 @@ m_cancelled(false)
     
 }
 
+/**
+ * Destructor.
+ */
 EventProgressUpdate::~EventProgressUpdate()
 {
 }
+
+/*
+ * Set values for display of progress in a progress dialog.  This method
+ * allows a progress event to be reused and avoid reallocation, particularly
+ * when updates are frequent.
+ *
+ * @param minimumProgressValue
+ *    Minimum Progress.
+ * @param maximumProgressValue
+ *    Maximum progress.
+ * @param progressValue
+ *    Current progress (min <= current <= maximum)
+ * @param progressMessage
+ *    Message for display in progress dialog.
+ *
+ */
+void
+EventProgressUpdate::setProgress(const int minimumProgressValue,
+                                         const int maximumProgressValue,
+                                         const int progressValue,
+                                         const QString& progressMessage)
+{
+    m_minimumProgressValue = minimumProgressValue;
+    m_maximumProgressValue = maximumProgressValue;
+    m_progressValue = progressValue;
+    m_progressMessage = progressMessage;
+}
+
+

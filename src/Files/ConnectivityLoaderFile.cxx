@@ -32,6 +32,7 @@
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
+#include "EventProgressUpdate.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "FastStatistics.h"
@@ -120,6 +121,8 @@ ConnectivityLoaderFile::clearData()
     this->allocateData(0);
 
     this->dataLoadingEnabled = true;
+    
+    this->progressUpdateInterval = 1;
 }
 
 /**
@@ -303,6 +306,11 @@ ConnectivityLoaderFile::setup(const AString& path,
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
+    }
+
+    this->progressUpdateInterval = 10;
+    if (this->ciftiXnatFile != NULL) {
+        this->progressUpdateInterval = 1;
     }
 }
 
@@ -1202,10 +1210,29 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     CaretLogFine("Reading rows for nodes "
                                  + AString::fromNumbers(nodeIndices, ","));
                     double countForAveraging = 0.0;
-                    
                     const int32_t numberOfNodeIndices = nodeIndices.size();
+                    
+                    bool userCancelled = false;
+                    EventProgressUpdate progressEvent(0,
+                                                      numberOfNodeIndices,
+                                                      0,
+                                                      "Starting");
+                    
                     for (int32_t i = 0; i < numberOfNodeIndices; i++) {
                         const int32_t nodeIndex = nodeIndices[i];
+                        
+                        if ((i % this->progressUpdateInterval) == 0) {
+                            progressEvent.setProgress(0,
+                                                      numberOfNodeIndices,
+                                                      i,
+                                                      "Loading data");
+                            EventManager::get()->sendEvent(progressEvent.getPointer());
+                            if (progressEvent.isCancelled()) {
+                                userCancelled = true;
+                                break;
+                            }
+                        }
+                        
                         if (this->ciftiInterface->getRowFromNode(rowData,
                                                                  nodeIndex,
                                                                  structure)) {
@@ -1220,12 +1247,17 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                         }
                     }
                     
-                    for (int32_t i = 0; i < num; i++) {
-                        this->data[i] = averageData[i] / countForAveraging;
+                    if (userCancelled) {
+                        zeroizeData();
                     }
-                    
-                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-                    loadDataIntoVolume();
+                    else {
+                        for (int32_t i = 0; i < num; i++) {
+                            this->data[i] = averageData[i] / countForAveraging;
+                        }
+                        
+                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
+                    }
                 }
             }
             break;
@@ -1350,8 +1382,26 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
                                  + AString::fromNumbers(nodeIndices, ","));
                     double countForAveraging = 0.0;
                     
+                    bool userCancelled = false;
+                    EventProgressUpdate progressEvent(0,
+                                                      numberOfNodeIndices,
+                                                      0,
+                                                      "Starting");
+                    
                     
                     for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        if ((i % this->progressUpdateInterval) == 0) {
+                            progressEvent.setProgress(0,
+                                                      numberOfNodeIndices,
+                                                      i,
+                                                      "Loading data");
+                            EventManager::get()->sendEvent(progressEvent.getPointer());
+                            if (progressEvent.isCancelled()) {
+                                userCancelled = true;
+                                break;
+                            }
+                        }
+                        
                         const int32_t nodeIndex = nodeIndices[i];
                         float *rowData = &(rowDataVectors.at(i).at(0));
                         if (!this->ciftiInterface->getRowFromNode(rowData,
@@ -1361,34 +1411,38 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
                         }
                     }
 
-                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
-                        for(int32_t j = 0;j < num; j++) {
-                            averageData[j] += rowDataVectors[i][j];
-                        }
-                        countForAveraging += 1.0;      
+                    if (userCancelled) {
+                        zeroizeData();
                     }
-                    
-                    
-                    if(this->timeSeriesGraphEnabled)
-                    {
-                        tl = timeLine;
-                        tl.x.clear();
-                        tl.y.clear();
-                        this->tl.x.reserve(num);
-                        this->tl.y.reserve(num);
-                        for(int64_t i = 0;i<num;i++)
+                    else {
+                        for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                            for(int32_t j = 0;j < num; j++) {
+                                averageData[j] += rowDataVectors[i][j];
+                            }
+                            countForAveraging += 1.0;
+                        }
+                        
+                        
+                        if(this->timeSeriesGraphEnabled)
                         {
-                            tl.x.push_back(i);
-                            tl.y.push_back(averageData[i] / countForAveraging);
+                            tl = timeLine;
+                            tl.x.clear();
+                            tl.y.clear();
+                            this->tl.x.reserve(num);
+                            this->tl.y.reserve(num);
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                tl.x.push_back(i);
+                                tl.y.push_back(averageData[i] / countForAveraging);
+                            }
+                            //double point[3] = {0.0,0.0,0.0};
+                            this->tl.nodeid = 0;
+                            this->tl.type = AVERAGE;
+                            
+                            this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                            loadDataIntoVolume();
                         }
-                        //double point[3] = {0.0,0.0,0.0};
-                        this->tl.nodeid = 0;
-                        this->tl.type = AVERAGE;
                     }
-                    
-                    
-                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-                    loadDataIntoVolume();
                 }
                 //throw DataFileException("Loading of average time-series data not supported.");
                 break;

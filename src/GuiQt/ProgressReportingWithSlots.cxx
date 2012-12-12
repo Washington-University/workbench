@@ -65,6 +65,7 @@ ProgressReportingInterface()
  */
 ProgressReportingWithSlots::~ProgressReportingWithSlots()
 {
+    std::cout << "DELETING ~ProgressReportingWithSlots" << std::endl;
 }
 
 /**

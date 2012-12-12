@@ -295,7 +295,9 @@ namespace caret {
         TimeLine tl;
 
         bool animationEnabled;
-                
+        
+        int32_t progressUpdateInterval;
+        
         AString uniqueID; // DO NOT COPY
         
         friend class CiftiFiberTrajectoryFile;

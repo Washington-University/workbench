@@ -48,20 +48,31 @@ namespace caret {
        
       virtual ~EventProgressUpdate();
 
+       void setProgress(const int minimumProgressValue,
+                           const int maximumProgressValue,
+                           const int progressValue,
+                           const QString& progressMessage);
+       
       bool m_textUpdate, m_amountUpdate, m_finished, m_starting;
 
       ProgressObject* m_whichObject;//idea is for progress elements to check whether their object emitted this event or not, if not, ignore
        
+       /** @return Did the user request cancellation of the task */
        bool isCancelled() const { return m_cancelled; }
    
+       /** @return Minimum progress value. */
        int getMinimumProgressValue() const { return m_minimumProgressValue; }
        
+       /** @return Maximum progress value */
        int getMaximumProgressValue() const { return m_maximumProgressValue; }
        
+       /** @return Current value of progress */
        int getProgressValue() const { return m_progressValue; }
        
+       /** @return Message displayed describing progress */
        QString getProgressMessage() const { return m_progressMessage; }
        
+       /** Request cancellation of the task */
        void setCancelled() { m_cancelled = true; }
        
    private:
@@ -71,10 +82,10 @@ namespace caret {
 
       EventProgressUpdate& operator=(const EventProgressUpdate&);
 
-       const int m_minimumProgressValue;
-       const int m_maximumProgressValue;
-       const int m_progressValue;
-       const QString m_progressMessage;
+        int m_minimumProgressValue;
+        int m_maximumProgressValue;
+        int m_progressValue;
+        QString m_progressMessage;
        
        bool m_cancelled;
    };
