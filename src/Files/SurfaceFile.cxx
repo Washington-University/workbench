@@ -305,6 +305,20 @@ const float* SurfaceFile::getCoordinateData() const
     return this->coordinatePointer;
 }
 
+void 
+SurfaceFile::setCoordinate(const int32_t nodeIndex,
+                           const float xyzIn[3])
+{
+    CaretAssert(this->coordinatePointer);
+    const int32_t offset = nodeIndex * 3;
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfNodes() * 3)));
+    this->coordinatePointer[offset] = xyzIn[0];
+    this->coordinatePointer[offset+1] = xyzIn[1];
+    this->coordinatePointer[offset+2] = xyzIn[2];
+    invalidateHelpers();
+    setModified();
+}
+
 /**
  * Get the number of triangles.
  *
@@ -770,20 +784,32 @@ CaretPointer<SignedDistanceHelper> SurfaceFile::getSignedDistanceHelper() const
 
 void SurfaceFile::invalidateHelpers()
 {
-    CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
-    CaretMutexLocker myLock2(&m_topoHelperMutex);
-    CaretMutexLocker myLock3(&m_locatorMutex);
-    CaretMutexLocker myLock4(&m_distHelperMutex);
-    m_topoHelperIndex = 0;
-    m_geoHelperIndex = 0;
-    m_distHelperIndex = 0;
-    m_topoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
-    m_geoHelpers.clear();
-    m_distHelpers.clear();//TODO: make signed distance not keep a pointer to the surface file
-    m_geoBase.grabNew(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
-    m_locator.grabNew(NULL);
-    m_topoBase.grabNew(NULL);
-    m_distBase.grabNew(NULL);
+    if (m_geoBase != NULL)
+    {
+        CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
+        m_geoHelperIndex = 0;
+        m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+        m_geoBase.grabNew(NULL);
+    }
+    if (m_topoBase != NULL)
+    {
+        CaretMutexLocker myLock2(&m_topoHelperMutex);
+        m_topoHelperIndex = 0;
+        m_topoHelpers.clear();
+        m_topoBase.grabNew(NULL);
+    }
+    if (m_distBase != NULL)
+    {
+        CaretMutexLocker myLock4(&m_distHelperMutex);
+        m_distHelperIndex = 0;
+        m_distHelpers.clear();
+        m_distBase.grabNew(NULL);
+    }
+    if (m_locator != NULL)
+    {
+        CaretMutexLocker myLock3(&m_locatorMutex);
+        m_locator.grabNew(NULL);
+    }
 }
 
 /**

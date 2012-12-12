@@ -49,6 +49,7 @@
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
+#include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeGradient.h"
@@ -162,6 +163,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));

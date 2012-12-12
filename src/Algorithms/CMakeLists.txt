@@ -41,6 +41,7 @@ AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
+AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeGradient.h
@@ -74,6 +75,7 @@ AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
+AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeGradient.cxx
