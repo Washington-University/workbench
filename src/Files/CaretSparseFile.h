@@ -74,7 +74,7 @@ namespace caret {
         
         void getFibersRowSparse(const int64_t& index, std::vector<int64_t>& indicesOut, std::vector<FiberFractions>& valuesOut);
 
-        ~CaretSparseFile();
+        virtual ~CaretSparseFile();
     };
     
     class CaretSparseFileWriter
