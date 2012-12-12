@@ -59,6 +59,12 @@ using namespace caret;
  * on the files EventProgressUpdate received after the Cancel button is
  * clicked.
  *
+ * Tasks may send the EventProgressUpdate event from other threads.  
+ * When the event is received signals and slots are used to update 
+ * the contents of the dialog instead of directly updating the dialog's
+ * content.  Qt's signals and slots mechanism supports signals connecting
+ * to slots that are in a different thread.
+ *
  * Use the static method "runEvent" to run an event with a progress dialog.
  */
 
