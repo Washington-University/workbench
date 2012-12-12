@@ -179,8 +179,6 @@ ProgressReportingDialog::~ProgressReportingDialog()
      * the dialog.
      */
     //delete m_progressReporter;
-    
-    std::cout << "DELETING PROGRESS DIALOG" << std::endl;
 }
 
 /**
@@ -337,16 +335,6 @@ ProgressReportingFromEvent::receiveEvent(Event* event)
         if (progMessage.isEmpty() == false) {
             emit reportProgressMessage(progMessage);
         }
-        
-        std::cout << "PROGRESS: "
-        << progressEvent->getProgressValue()
-        << " of ("
-        << progressEvent->getMinimumProgressValue()
-        << ","
-        << progressEvent->getMaximumProgressValue()
-        << "): "
-        << qPrintable(progressEvent->getProgressMessage())
-        << std::endl;
         
         if (isCancelRequested()) {
             progressEvent->setCancelled();
