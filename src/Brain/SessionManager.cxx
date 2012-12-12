@@ -538,7 +538,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     for (int32_t i = 0; i < numBrainClasses; i++) {
         const SceneClass* brainClass = brainArray->getClassAtIndex(i);
         if (i < static_cast<int32_t>(m_brains.size())) {
-            m_brains[i]->restoreFromScene(sceneAttributes, 
+            m_brains[i]->restoreFromScene(sceneAttributes,
                                           brainClass);
         }
         else {

@@ -109,4 +109,18 @@ EventProgressUpdate::setProgress(const int progressValue,
     m_progressMessage = progressMessage;
 }
 
+/*
+ * Update only the progress message in the progress dialog.
+ *
+ * @param progressMessage
+ *    Message for display in progress dialog.
+ *
+ */
+void
+EventProgressUpdate::setProgressMessage(const QString& progressMessage)
+{
+    m_progressMessage = progressMessage;
+}
+
+
 

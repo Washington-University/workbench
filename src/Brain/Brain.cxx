@@ -2512,6 +2512,12 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
 {
     CaretAssert(specFileToLoad);
     
+    EventProgressUpdate progressEvent(-1,
+                                      -1,
+                                      -1,
+                                      "Resetting brain");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    
     resetBrain(keepSceneFiles,
                      keepSpecFile);
     
@@ -2552,7 +2558,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
      * Apply spec file pulled from scene
      */
     m_isSpecFileBeingRead = true;
-    m_specFileName = specFileToLoad->getFileName();   
+    m_specFileName = specFileToLoad->getFileName();
     
     /*
      * Set current directory to directory containing scene file
@@ -2567,6 +2573,14 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    progressEvent.setProgressMessage("Loading data files");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrain(keepSceneFiles,
+                   keepSpecFile);
+        return;
+    }
+    
     const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
         SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroup(ig);
@@ -2577,6 +2591,16 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
             if (fileInfo->isSelected()) {
                 AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
+                
+                const QString msg = ("Loading "
+                                     + FileInformation(filename).getFileName());
+                progressEvent.setProgressMessage(msg);
+                EventManager::get()->sendEvent(progressEvent.getPointer());
+                if (progressEvent.isCancelled()) {
+                    resetBrain(keepSceneFiles,
+                               keepSpecFile);
+                    return;
+                }
                 
                 if (sceneFileOnNetwork) {
                     if (DataFile::isFileOnNetwork(filename) == false) {
@@ -2609,6 +2633,14 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
+    
+    progressEvent.setProgressMessage("Initializing Overlays");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrain(keepSceneFiles,
+                   keepSpecFile);
+        return;
+    }
     
     /*
      * Initialize the overlay for ALL models

@@ -47,6 +47,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditorShow.h"
+#include "EventModelGetAll.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -1289,90 +1290,99 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     SessionManager::get()->restoreFromScene(sceneAttributes, 
                                             sceneClass->getClass("m_sessionManager"));
-    
+
     /*
-     * Get open windows
+     * See if models available (user may have cancelled scene loading.
      */
-    std::list<BrainBrowserWindow*> availableWindows;
-    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
-    for (int32_t i = 0; i < numBrowserWindows; i++) {
-        if (m_brainBrowserWindows[i] != NULL) {
-            availableWindows.push_back(m_brainBrowserWindows[i]);
-        }
-    }
-    
-    /*
-     * Restore windows
-     */
-    const SceneClassArray* browserWindowArray = sceneClass->getClassArray("m_brainBrowserWindows");
-    if (browserWindowArray != NULL) {
-        const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numBrowserClasses; i++) {
-            const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
-            BrainBrowserWindow* bbw = NULL;
-            if (availableWindows.empty() == false) {
-                bbw = availableWindows.front();
-                availableWindows.pop_front();
-            }
-            else {
-                bbw = newBrainBrowserWindow(NULL, 
-                                            NULL,
-                                            false);
-            }
-            if (bbw != NULL) {
-                bbw->restoreFromScene(sceneAttributes, 
-                                      browserClass);
+    EventModelGetAll getAllModelsEvent;
+    EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
+    const bool haveModels = (getAllModelsEvent.getModels().empty() == false);
+
+    if (haveModels) {
+        /*
+         * Get open windows
+         */
+        std::list<BrainBrowserWindow*> availableWindows;
+        const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
+        for (int32_t i = 0; i < numBrowserWindows; i++) {
+            if (m_brainBrowserWindows[i] != NULL) {
+                availableWindows.push_back(m_brainBrowserWindows[i]);
             }
         }
-    }
-    
-    /*
-     * Close windows not needed
-     */
-//    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
-//         iter != availableWindows.end();
-//         iter++) {
-//        BrainBrowserWindow* bbw = *iter;
-//        bbw->close();
-//    }
-    
-    /*
-     * Restore information window
-     */
-    const SceneClass* infoWindowClass = sceneClass->getClass("m_informationDisplayDialog");
-    if (infoWindowClass != NULL) {
-        if (m_informationDisplayDialog == NULL) {
-            processShowInformationWindow();
+        
+        /*
+         * Restore windows
+         */
+        const SceneClassArray* browserWindowArray = sceneClass->getClassArray("m_brainBrowserWindows");
+        if (browserWindowArray != NULL) {
+            const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numBrowserClasses; i++) {
+                const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
+                BrainBrowserWindow* bbw = NULL;
+                if (availableWindows.empty() == false) {
+                    bbw = availableWindows.front();
+                    availableWindows.pop_front();
+                }
+                else {
+                    bbw = newBrainBrowserWindow(NULL,
+                                                NULL,
+                                                false);
+                }
+                if (bbw != NULL) {
+                    bbw->restoreFromScene(sceneAttributes,
+                                          browserClass);
+                }
+            }
         }
-        else if (m_informationDisplayDialog->isVisible() == false) {
-            processShowInformationWindow();
-        }
-        m_informationDisplayDialog->restoreFromScene(sceneAttributes,
-                                                     infoWindowClass);
-    }
-    else {
-        if (m_informationDisplayDialog != NULL) {
-            /*
-             * Will clear text
-             */
+        
+        /*
+         * Close windows not needed
+         */
+        //    for (std::list<BrainBrowserWindow*>::iterator iter = availableWindows.begin();
+        //         iter != availableWindows.end();
+        //         iter++) {
+        //        BrainBrowserWindow* bbw = *iter;
+        //        bbw->close();
+        //    }
+        
+        /*
+         * Restore information window
+         */
+        const SceneClass* infoWindowClass = sceneClass->getClass("m_informationDisplayDialog");
+        if (infoWindowClass != NULL) {
+            if (m_informationDisplayDialog == NULL) {
+                processShowInformationWindow();
+            }
+            else if (m_informationDisplayDialog->isVisible() == false) {
+                processShowInformationWindow();
+            }
             m_informationDisplayDialog->restoreFromScene(sceneAttributes,
-                                                         NULL);
+                                                         infoWindowClass);
         }
-    }
-    
-    /*
-     * Restore surface properties
-     */
-    const SceneClass* surfPropClass = sceneClass->getClass("m_surfacePropertiesEditorDialog");
-    if (surfPropClass != NULL) {
-        if (m_surfacePropertiesEditorDialog == NULL) {
-            processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+        else {
+            if (m_informationDisplayDialog != NULL) {
+                /*
+                 * Will clear text
+                 */
+                m_informationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                             NULL);
+            }
         }
-        else if (m_surfacePropertiesEditorDialog->isVisible() == false) {
-            processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+        
+        /*
+         * Restore surface properties
+         */
+        const SceneClass* surfPropClass = sceneClass->getClass("m_surfacePropertiesEditorDialog");
+        if (surfPropClass != NULL) {
+            if (m_surfacePropertiesEditorDialog == NULL) {
+                processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+            }
+            else if (m_surfacePropertiesEditorDialog->isVisible() == false) {
+                processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
+            }
+            m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
+                                                              surfPropClass);
         }
-        m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
-                                                          surfPropClass);
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
