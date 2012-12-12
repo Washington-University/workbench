@@ -81,6 +81,8 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     
     ret->createOptionalParameter(7, "-transpose", "transpose the input matrix");
     
+    ret->createOptionalParameter(8, "-make-symmetric", "transform half-square input into full matrix output");
+    
     AString myText = AString("NOTE: exactly one -row option and one -col option must be used.\n\n") +
         "If the input file does not have its indexes sorted in the correct ordering, this command may take longer than expected.  " +
         "Specifying -transpose will transpose the input matrix before trying to put its values into the cifti file, which is currently needed for at least matrix2 " +
@@ -107,6 +109,7 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     OptionalParameter* colVoxelOpt = myParams->getOptionalParameter(5);
     OptionalParameter* colSurfaceOpt = myParams->getOptionalParameter(6);
     bool transpose = myParams->getOptionalParameter(7)->m_present;
+    bool halfMatrix = myParams->getOptionalParameter(8)->m_present;
     if (rowVoxelOpt->m_present == rowSurfaceOpt->m_present)//if both false or both true, basically using equals as a quick hack for xnor
     {
         throw OperationException("you must specify exactly one of -row-voxels and -row-surface");
@@ -141,33 +144,85 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     SparseValue tempValue;
     vector<SparseValue> dotFileContents;
     int32_t rowSize = myXML.getNumberOfColumns(), colSize = myXML.getNumberOfRows();
+    if (halfMatrix && rowSize != colSize)
+    {
+        throw OperationException("-make-symmetric was specified, but the matrix is not square");
+    }
+    if (halfMatrix && transpose)
+    {
+        CaretLogInfo("-transpose is not needed with -make-symmetric");
+    }
+    int64_t numZeros = 0;
+    bool afterZero = false;
     if (transpose)
     {
         while (dotFile >> tempValue.index[1] >> tempValue.index[0] >> tempValue.value)//this is the only line that is different for transpose
         {
-            if (tempValue.index[0] < 1 || tempValue.index[0] >  rowSize ||
-                tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+            if (tempValue.value == 0.0f)
             {
-                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
-                    ", perhaps you need to use -transpose");
+                if (tempValue.index[0] != rowSize || tempValue.index[1] != colSize)
+                {
+                    throw OperationException("dimensions line in .dot file doesn't agree with provided row/column spaces");
+                }
+                ++numZeros;//ignore, we expect one line (last in file) to have this
+            } else {
+                if (tempValue.index[0] < 1 || tempValue.index[0] > rowSize ||
+                    tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+                {
+                    throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
+                        ", perhaps you need to remove -transpose");
+                }
+                if (numZeros != 0) afterZero = true;
+                tempValue.index[0] -= 1;//fix for 1-indexing
+                tempValue.index[1] -= 1;
+                dotFileContents.push_back(tempValue);
+                if (halfMatrix && tempValue.index[0] != tempValue.index[1])
+                {
+                    int32_t tempIndex = tempValue.index[0];
+                    tempValue.index[0] = tempValue.index[1];
+                    tempValue.index[1] = tempIndex;
+                    dotFileContents.push_back(tempValue);
+                }
             }
-            tempValue.index[0] -= 1;//fix for 1-indexing
-            tempValue.index[1] -= 1;
-            dotFileContents.push_back(tempValue);
         }
     } else {
         while (dotFile >> tempValue.index[0] >> tempValue.index[1] >> tempValue.value)
         {
-            if (tempValue.index[0] < 1 || tempValue.index[0] >  rowSize ||
-                tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+            if (tempValue.value == 0.0f)
             {
-                throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
-                    ", perhaps you need to use -transpose");
+                if (tempValue.index[0] != rowSize || tempValue.index[1] != colSize)
+                {
+                    throw OperationException("dimensions line in .dot file doesn't agree with provided row/column spaces");
+                }
+                ++numZeros;
+            } else {
+                if (tempValue.index[0] < 1 || tempValue.index[0] > rowSize ||
+                    tempValue.index[1] < 1 || tempValue.index[1] > colSize)
+                {
+                    throw OperationException("found invalid index pair in dot file: " + AString::number(tempValue.index[0]) + ", " + AString::number(tempValue.index[1]) +
+                        ", perhaps you need to use -transpose");
+                }
+                if (numZeros != 0) afterZero = true;
+                tempValue.index[0] -= 1;//fix for 1-indexing
+                tempValue.index[1] -= 1;
+                dotFileContents.push_back(tempValue);
+                if (halfMatrix && tempValue.index[0] != tempValue.index[1])
+                {
+                    int32_t tempIndex = tempValue.index[0];
+                    tempValue.index[0] = tempValue.index[1];
+                    tempValue.index[1] = tempIndex;
+                    dotFileContents.push_back(tempValue);
+                }
             }
-            tempValue.index[0] -= 1;//fix for 1-indexing
-            tempValue.index[1] -= 1;
-            dotFileContents.push_back(tempValue);
         }
+    }
+    if (numZeros != 1)
+    {
+        CaretLogWarning("found (and ignored) " + AString::number(numZeros) + " lines with zero for value, expected 1");
+    }
+    if (afterZero)
+    {
+        CaretLogWarning("found data lines after dimensionality line (which should be the last line of the file)");
     }
     bool sorted = true;
     int64_t numValues = (int64_t)dotFileContents.size();
@@ -176,18 +231,22 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         if (dotFileContents[i - 1].index[1] > dotFileContents[i].index[1])
         {
             sorted = false;
-            CaretLogInfo("dot file indexes are not correctly sorted, sorting them may take a minute or so...");
+            if (!halfMatrix)
+            {
+                CaretLogInfo("dot file indexes are not correctly sorted, sorting them may take a minute or so...");
+            }
             break;
         }
     }
     if (!sorted) sort(dotFileContents.begin(), dotFileContents.end());
-    if (!sorted)
+    if (!sorted && !halfMatrix)
     {
         CaretLogInfo("sorting finished");
     }
     myCiftiOut->setCiftiXML(myXML);
     int64_t cur = 0, end = (int64_t)dotFileContents.size();
     vector<float> scratchRow(myXML.getNumberOfColumns(), 0.0f);
+    vector<bool> checkDuplicate(myXML.getNumberOfColumns(), false);
     int64_t whichRow = 0;//set all rows, in case initial allocation doesn't give a zeroed matrix
     while (whichRow < myXML.getNumberOfRows())
     {
@@ -195,9 +254,51 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         while (next < end && dotFileContents[next].index[1] == whichRow) ++next;
         if (rowVoxelOpt->m_present)
         {
-            for (int64_t i = cur; i < next; ++i) scratchRow[rowReorderMap[dotFileContents[i].index[0]]] = dotFileContents[i].value;
+            for (int64_t i = cur; i < next; ++i)
+            {
+                int64_t outIndex = rowReorderMap[dotFileContents[i].index[0]];
+                if (checkDuplicate[outIndex])
+                {
+                    AString elemString;
+                    if (transpose)
+                    {
+                        elemString = AString::number(dotFileContents[i].index[1] + 1) + ", " + AString::number(dotFileContents[i].index[0] + 1);
+                    } else {
+                        elemString = AString::number(dotFileContents[i].index[0] + 1) + ", " + AString::number(dotFileContents[i].index[1] + 1);
+                    }
+                    if (halfMatrix)
+                    {
+                        throw OperationException("element specified more than once: " + elemString + ", perhaps you should not use -make-symmetric");
+                    } else {
+                        throw OperationException("duplicate element found: " + elemString);
+                    }
+                }
+                scratchRow[outIndex] = dotFileContents[i].value;
+                checkDuplicate[outIndex] = true;
+            }
         } else {
-            for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = dotFileContents[i].value;
+            for (int64_t i = cur; i < next; ++i)
+            {
+                int64_t outIndex = dotFileContents[i].index[0];
+                if (checkDuplicate[outIndex])
+                {
+                    AString elemString;
+                    if (transpose)
+                    {
+                        elemString = AString::number(dotFileContents[i].index[1] + 1) + ", " + AString::number(dotFileContents[i].index[0] + 1);
+                    } else {
+                        elemString = AString::number(dotFileContents[i].index[0] + 1) + ", " + AString::number(dotFileContents[i].index[1] + 1);
+                    }
+                    if (halfMatrix)
+                    {
+                        throw OperationException("element specified more than once: " + elemString + ", perhaps you should not use -make-symmetric");
+                    } else {
+                        throw OperationException("duplicate element found: " + elemString);
+                    }
+                }
+                scratchRow[outIndex] = dotFileContents[i].value;
+                checkDuplicate[outIndex] = true;
+            }
         }
         if (colVoxelOpt->m_present)
         {
@@ -207,9 +308,19 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
         }
         if (rowVoxelOpt->m_present)
         {
-            for (int64_t i = cur; i < next; ++i) scratchRow[rowReorderMap[dotFileContents[i].index[0]]] = 0.0f;
+            for (int64_t i = cur; i < next; ++i)
+            {
+                int64_t outIndex = rowReorderMap[dotFileContents[i].index[0]];
+                scratchRow[outIndex] = 0.0f;
+                checkDuplicate[outIndex] = false;
+            }
         } else {
-            for (int64_t i = cur; i < next; ++i) scratchRow[dotFileContents[i].index[0]] = 0.0f;
+            for (int64_t i = cur; i < next; ++i)
+            {
+                int64_t outIndex = dotFileContents[i].index[0];
+                scratchRow[outIndex] = 0.0f;
+                checkDuplicate[outIndex] = false;
+            }
         }
         cur = next;
         ++whichRow;
