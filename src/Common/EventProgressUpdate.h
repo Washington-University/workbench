@@ -48,10 +48,8 @@ namespace caret {
        
       virtual ~EventProgressUpdate();
 
-       void setProgress(const int minimumProgressValue,
-                           const int maximumProgressValue,
-                           const int progressValue,
-                           const QString& progressMessage);
+       void setProgress(const int progressValue,
+                        const QString& progressMessage);
        
       bool m_textUpdate, m_amountUpdate, m_finished, m_starting;
 

@@ -507,6 +507,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       PROGRESS_RESTORING_BRAIN,
                                       "Restoring Brain");
     EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }
+    
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -540,15 +545,16 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             Brain* brain = new Brain();
             brain->restoreFromScene(sceneAttributes, 
                                     brainClass);
-            m_brains.push_back(brain);
         }
     }
     
-    progressEvent.setProgress(0,
-                              PROGRESS_RESTORING_TOTAL,
-                              PROGRESS_RESTORING_TABS,
+    progressEvent.setProgress(PROGRESS_RESTORING_TABS,
                               "Restoring Content of Browser Tabs");
     EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }
     
     /*
      * Remove all tabs
@@ -579,12 +585,37 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_browserTabs[tabIndex] = tab;
     }
     
-    progressEvent.setProgress(0,
-                              PROGRESS_RESTORING_TOTAL,
-                              PROGRESS_RESTORING_GUI,
+    progressEvent.setProgress(PROGRESS_RESTORING_GUI,
                               "Restoring Graphical User Interface");
     EventManager::get()->sendEvent(progressEvent.getPointer());
-    
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }    
+}
+
+/**
+ * Reset the first brain and remove all other brains.
+ */
+void
+SessionManager::resetBrains(const bool keepSceneFiles)
+{
+    const int32_t numBrains = static_cast<int32_t>(m_brains.size());
+    for (int32_t i = 0; i < numBrains; i++) {
+        if (i > 0) {
+            delete m_brains[i];
+        }
+        else if (keepSceneFiles) {
+            m_brains[i]->resetBrainKeepSceneFiles();
+        }
+        else {
+            m_brains[i]->resetBrain();
+        }
+    }
+
+    if (numBrains > 1) {
+        m_brains.resize(1);
+    }
 }
 
 

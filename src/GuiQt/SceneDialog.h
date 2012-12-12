@@ -107,7 +107,8 @@ namespace caret {
         QWidget* createSceneShowOptionsWidget();
         
         void displayScenePrivate(SceneFile* sceneFile,
-                                 Scene* scene);
+                                 Scene* scene,
+                                 const bool showWaitCursor);
         
         bool checkForModifiedFiles();
         

@@ -78,6 +78,8 @@ namespace caret {
     private:
         void updateBrowserTabContents();
         
+        void resetBrains(const bool keepSceneFiles);
+        
         /** The session manager */
         static SessionManager* s_singletonSessionManager;
         

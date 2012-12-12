@@ -2118,8 +2118,14 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     CaretDataFile::setFileReadingUsernameAndPassword(readDataFileEvent->getUsername(),
                                                      readDataFileEvent->getPassword());
     
-    AString eventErrorMessage;
     const int32_t numberOfFilesToRead = readDataFileEvent->getNumberOfDataFilesToRead();
+    EventProgressUpdate progressEvent(0,
+                                      numberOfFilesToRead,
+                                      0,
+                                      "Starting to read data file(s)");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    
+    AString eventErrorMessage;
     for (int32_t i = 0; i < numberOfFilesToRead; i++) {
         const AString filename = readDataFileEvent->getDataFileName(i);
         const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType(i);
@@ -2127,10 +2133,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         const bool setFileModifiedStatus = readDataFileEvent->isFileToBeMarkedModified(i);
         
         const AString shortName = FileInformation(filename).getFileName();
-        EventProgressUpdate progressEvent(0,
-                                          numberOfFilesToRead,
-                                          i,
-                                          ("Reading " + shortName));
+        progressEvent.setProgress(i,
+                                  ("Reading " + shortName));
         EventManager::get()->sendEvent(progressEvent.getPointer());
         if (progressEvent.isCancelled()) {
             eventErrorMessage.appendWithNewLine("File reading cancelled.");
@@ -2344,6 +2348,12 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     const int32_t numberOfFilesToRead = sf->getNumberOfFilesSelected();
     int32_t fileReadCounter = 0;
     
+    EventProgressUpdate progressUpdate(0,
+                                       numberOfFilesToRead,
+                                       fileReadCounter,
+                                       "Starting to read selected files");
+    EventManager::get()->sendEvent(progressUpdate.getPointer());
+    
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
         const SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
@@ -2359,11 +2369,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                  * Send event indicating progress of file reading
                  */
                 FileInformation fileInfo(dataFileInfo->getFileName());
-                EventProgressUpdate progressUpdate(0,
-                                                   numberOfFilesToRead,
-                                                   fileReadCounter,
-                                                   ("Reading "
-                                                    + fileInfo.getFileName()));
+                progressUpdate.setProgress(fileReadCounter,
+                                           ("Reading "
+                                            + fileInfo.getFileName()));
                 EventManager::get()->sendEvent(progressUpdate.getPointer());
                 
                 /*

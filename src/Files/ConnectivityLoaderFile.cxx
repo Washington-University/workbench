@@ -1222,9 +1222,7 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                         const int32_t nodeIndex = nodeIndices[i];
                         
                         if ((i % this->progressUpdateInterval) == 0) {
-                            progressEvent.setProgress(0,
-                                                      numberOfNodeIndices,
-                                                      i,
+                            progressEvent.setProgress(i,
                                                       "Loading data");
                             EventManager::get()->sendEvent(progressEvent.getPointer());
                             if (progressEvent.isCancelled()) {
@@ -1391,9 +1389,7 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
                     
                     for (int32_t i = 0; i < numberOfNodeIndices; i++) {
                         if ((i % this->progressUpdateInterval) == 0) {
-                            progressEvent.setProgress(0,
-                                                      numberOfNodeIndices,
-                                                      i,
+                            progressEvent.setProgress(i,
                                                       "Loading data");
                             EventManager::get()->sendEvent(progressEvent.getPointer());
                             if (progressEvent.isCancelled()) {

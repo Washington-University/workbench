@@ -95,10 +95,6 @@ EventProgressUpdate::~EventProgressUpdate()
  * allows a progress event to be reused and avoid reallocation, particularly
  * when updates are frequent.
  *
- * @param minimumProgressValue
- *    Minimum Progress.
- * @param maximumProgressValue
- *    Maximum progress.
  * @param progressValue
  *    Current progress (min <= current <= maximum)
  * @param progressMessage
@@ -106,13 +102,9 @@ EventProgressUpdate::~EventProgressUpdate()
  *
  */
 void
-EventProgressUpdate::setProgress(const int minimumProgressValue,
-                                         const int maximumProgressValue,
-                                         const int progressValue,
-                                         const QString& progressMessage)
+EventProgressUpdate::setProgress(const int progressValue,
+                                 const QString& progressMessage)
 {
-    m_minimumProgressValue = minimumProgressValue;
-    m_maximumProgressValue = maximumProgressValue;
     m_progressValue = progressValue;
     m_progressMessage = progressMessage;
 }

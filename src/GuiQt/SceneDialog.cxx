@@ -766,7 +766,8 @@ SceneDialog::showSceneButtonClicked()
         progressDialog.setValue(0);
         
         displayScenePrivate(sceneFile,
-                            scene);
+                            scene,
+                            false);
     }
 }
 
@@ -782,7 +783,8 @@ SceneDialog::displayScene(SceneFile* sceneFile,
                           Scene* scene)
 {
     displayScenePrivate(sceneFile,
-                        scene);
+                        scene,
+                        true);
     loadSceneFileComboBox(sceneFile);
     loadSceneListWidget(scene);
 }
@@ -796,7 +798,8 @@ SceneDialog::displayScene(SceneFile* sceneFile,
  */
 void
 SceneDialog::displayScenePrivate(SceneFile* sceneFile,
-                                 Scene* scene)
+                                 Scene* scene,
+                                 const bool showWaitCursor)
 {
     CaretAssert(sceneFile);
     CaretAssert(scene);
@@ -814,7 +817,9 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
      * Show the wait cursor
      */
     CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
+    if (showWaitCursor) {
+        cursor.showWaitCursor();
+    }
     
     /*
      * Window restoration behavior
