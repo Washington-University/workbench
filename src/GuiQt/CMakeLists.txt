@@ -60,6 +60,7 @@ ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
+MacApplication.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MovieDialog.h
@@ -148,6 +149,7 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditorShow.h
+EventOperatingSystemRequestOpenDataFile.h
 EventUpdateAnimationStartTime.h
 EventUpdateInformationWindows.h
 EventUpdateTimeCourseDialog.h
@@ -168,6 +170,7 @@ ImageExportDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
+MacApplication.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
@@ -256,6 +259,7 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditorShow.cxx
+EventOperatingSystemRequestOpenDataFile.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateTimeCourseDialog.cxx
@@ -276,6 +280,7 @@ ImageExportDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
+MacApplication.cxx
 ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx

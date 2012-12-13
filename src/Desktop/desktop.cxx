@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "ApplicationInformation.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
@@ -45,6 +46,7 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "MacApplication.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
 #include "SplashScreen.h"
@@ -253,14 +255,19 @@ main(int argc, char* argv[])
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
         QApplication::setGraphicsSystem("raster");
-#endif //CARET_OS_MACOSX        
+        MacApplication app(argc, argv);
+#else //CARET_OS_MACOSX        
         QApplication app(argc, argv);
+#endif //CARET_OS_MACOSX
+        
+        ApplicationInformation applicationInformation;
+
         QApplication::addLibraryPath(
             QApplication::applicationDirPath()
             + QDir::separator()
             + "plugins");
-        QApplication::setApplicationName("Connectome Workbench");
-        QApplication::setApplicationVersion("0");
+        QApplication::setApplicationName(applicationInformation.getName());
+        QApplication::setApplicationVersion(applicationInformation.getVersion());
         QApplication::setOrganizationDomain("brainvis.wustl.edu");
         QApplication::setOrganizationName("Van Essen Lab");
         /*

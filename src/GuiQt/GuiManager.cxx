@@ -39,6 +39,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CursorManager.h"
 #include "EventBrowserTabGetAll.h"
@@ -48,6 +49,7 @@
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditorShow.h"
 #include "EventModelGetAll.h"
+#include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -130,6 +132,7 @@ GuiManager::GuiManager(QObject* parent)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
 }
 
 /**
@@ -326,19 +329,30 @@ GuiManager::getAllOpenBrainBrowserWindows() const
 }
 
 /**
- * @return Return an open browser window.  Returns NULL if there
- * are no open browser windows.
+ * @return Return the active browser window.  If no browser window is active,
+ * the browser window with the lowest index is returned.  If no browser
+ * window is open (which likely should never occur), NULL is returned.
+ *
+ * To verify that the returned window was the active window, call its
+ * "isActiveWindow()" method.
  */
 BrainBrowserWindow* 
-GuiManager::getOpenBrowserWindow() const
+GuiManager::getActiveBrowserWindow() const
 {
+    BrainBrowserWindow* firstWindowFound = NULL;
     int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
-        if (m_brainBrowserWindows[i] != NULL) {
-            return m_brainBrowserWindows[i];
+        BrainBrowserWindow* bbw = m_brainBrowserWindows[i];
+        if (bbw != NULL) {
+            if (firstWindowFound == NULL) {
+                firstWindowFound = bbw;
+            }
+            else if (bbw->isActiveWindow()) {
+                return bbw;
+            }
         }
     }    
-    return NULL;
+    return firstWindowFound;
 }
 
 
@@ -690,6 +704,28 @@ GuiManager::receiveEvent(Event* event)
                                                     mapEditor);
         }
         mapEditEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE) {
+        EventOperatingSystemRequestOpenDataFile* openFileEvent =
+        dynamic_cast<EventOperatingSystemRequestOpenDataFile*>(event);
+        CaretAssert(openFileEvent);
+        
+        BrainBrowserWindow* bbw = getActiveBrowserWindow();
+        std::cout << "Top Level Widget: " << qPrintable(bbw->objectName()) << std::endl;
+        std::cout << "   active: " << bbw->isActiveWindow() << std::endl;
+        if (bbw != NULL) {
+            std::vector<AString> filenamesVector;
+            filenamesVector.push_back(openFileEvent->getDataFileName());
+            bbw->loadFiles(filenamesVector,
+                           BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
+                           BrainBrowserWindow::ADD_DATA_FILE_TO_SPEC_FILE_NO,
+                           "",
+                           "");
+        }
+        else {
+            CaretAssert(0);
+            CaretLogSevere("No browser window open for loading file from operating system.");
+        }
     }
 }
 
@@ -1266,7 +1302,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Close all but one window
      */
-    BrainBrowserWindow* firstBrowserWindow = getOpenBrowserWindow();;
+    BrainBrowserWindow* firstBrowserWindow = getActiveBrowserWindow();;
     if (firstBrowserWindow != NULL) {
         closeAllOtherWindows(firstBrowserWindow);
     }

@@ -81,7 +81,7 @@ namespace caret {
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
         
-        BrainBrowserWindow* getOpenBrowserWindow() const;
+        BrainBrowserWindow* getActiveBrowserWindow() const;
         
         std::vector<BrainBrowserWindow*> getAllOpenBrainBrowserWindows() const;
         

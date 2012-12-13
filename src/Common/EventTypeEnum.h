@@ -84,6 +84,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET,
         /** model display yoking group controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
+        /** open file request from the operating system (Mac only) for now */
+        EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */

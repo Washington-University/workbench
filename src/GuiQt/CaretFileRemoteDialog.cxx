@@ -199,7 +199,7 @@ CaretFileRemoteDialog::okButtonClicked()
         }
     }
     else {
-        BrainBrowserWindow* browserWindow = GuiManager::get()->getOpenBrowserWindow();
+        BrainBrowserWindow* browserWindow = GuiManager::get()->getActiveBrowserWindow();
         std::vector<AString> files;
         files.push_back(filename);
         

@@ -124,6 +124,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     setWindowTitle(guiManager->applicationName() 
                          + " "
                          + AString::number(m_browserWindowIndex + 1));
+    setObjectName(windowTitle());
     
     m_openGLWidget = new BrainOpenGLWidget(this,
                                                browserWindowIndex);

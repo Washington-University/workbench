@@ -154,6 +154,10 @@ EventTypeEnum::initialize()
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
                                      "Get all model display YOKING GROUP controllers"));
 
+    enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
+                                     "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
+                                     "Operating system requests open data file (Mac only)"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

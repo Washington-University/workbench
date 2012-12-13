@@ -530,7 +530,7 @@ SpecFileDialog::userButtonPressed(QPushButton* userPushButton)
         
         writeUpdatedSpecFile(true);
         
-        GuiManager::get()->processShowSceneDialog(GuiManager::get()->getOpenBrowserWindow());
+        GuiManager::get()->processShowSceneDialog(GuiManager::get()->getActiveBrowserWindow());
         
         return RESULT_ACCEPT;
     }

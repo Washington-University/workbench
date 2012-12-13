@@ -43,6 +43,8 @@ m_cancelled(false)
    m_textUpdate = false;
    m_starting = false;
    m_whichObject = myObject;
+    
+    
 }
 
 /**
