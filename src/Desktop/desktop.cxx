@@ -394,6 +394,31 @@ main(int argc, char* argv[])
         GuiManager::createGuiManager();
         
         /*
+         * Letting the App process events will allow the message for a 
+         * double-clicked spec file in Mac OSX to get processed.
+         */
+        app.processEvents();
+        
+        /*
+         * Now that events have processed, see if there was a request for
+         * a data file to open
+         */
+        const AString dataFileNameFromOS = GuiManager::get()->getNameOfDataFileToOpenAfterStartup();
+        if (dataFileNameFromOS.isEmpty() == false) {
+            myState.fileList.push_back(dataFileNameFromOS);
+            showSelectionSplashScreen = false;
+            if (dataFileNameFromOS.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                haveSpec = true;
+                haveFiles = false;
+                myState.specLoadType = 0;
+            }
+            else {
+                haveSpec = false;
+                haveFiles = true;
+            }
+        }
+        
+        /*
          * Show file selection splash screen if enabled via user's preferences
          */
         if (showSelectionSplashScreen) {
@@ -428,6 +453,7 @@ main(int argc, char* argv[])
         splashScreen.close();
 
         BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+        
         
         if ((myState.windowSizeXY[0] > 0) && (myState.windowSizeXY[1] > 0))
         {

@@ -142,6 +142,9 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        AString getNameOfDataFileToOpenAfterStartup() const;
+
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();
@@ -214,6 +217,16 @@ namespace caret {
         std::vector<QWidget*> nonModalDialogs;
         
         QMap<void *,TimeCourseDialog *> timeCourseDialogs;
+        
+        /**
+         * If Workbench is started by double-clicking a data file in
+         * the Mac OSX Finder, this will contain the name of the data
+         * file.  When the event is received, Workbench has not yet
+         * created windows.  After creating the first Browser Window,
+         * the values of this string is requested, and if valid,
+         * the data file is opened.
+         */
+        AString m_nameOfDataFileToOpenAfterStartup;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__

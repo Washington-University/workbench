@@ -176,7 +176,7 @@ GuiManager::get()
 void 
 GuiManager::createGuiManager()
 {
-    CaretAssertMessage((GuiManager::singletonGuiManager == NULL), 
+    CaretAssertMessage((GuiManager::singletonGuiManager == NULL),
                        "GUI manager has already been created.");
     
     GuiManager::singletonGuiManager = new GuiManager();
@@ -347,7 +347,7 @@ GuiManager::getActiveBrowserWindow() const
             if (firstWindowFound == NULL) {
                 firstWindowFound = bbw;
             }
-            else if (bbw->isActiveWindow()) {
+            if (bbw->isActiveWindow()) {
                 return bbw;
             }
         }
@@ -711,8 +711,6 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(openFileEvent);
         
         BrainBrowserWindow* bbw = getActiveBrowserWindow();
-        std::cout << "Top Level Widget: " << qPrintable(bbw->objectName()) << std::endl;
-        std::cout << "   active: " << bbw->isActiveWindow() << std::endl;
         if (bbw != NULL) {
             std::vector<AString> filenamesVector;
             filenamesVector.push_back(openFileEvent->getDataFileName());
@@ -723,8 +721,13 @@ GuiManager::receiveEvent(Event* event)
                            "");
         }
         else {
-            CaretAssert(0);
-            CaretLogSevere("No browser window open for loading file from operating system.");
+            /*
+             * Browser window has not yet been created.
+             * After it is created, the file will be opened.
+             */
+            m_nameOfDataFileToOpenAfterStartup = openFileEvent->getDataFileName();
+            //CaretLogSevere("No browser window open for loading file from operating system.");
+            //CaretAssert(0);
         }
     }
 }
@@ -1433,5 +1436,16 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                     false);
 
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Get the name of the data file that may have been set
+ * if Workbench was started by double-clicking a file
+ * in the Mac OSX finder.
+ */
+AString
+GuiManager::getNameOfDataFileToOpenAfterStartup() const
+{
+    return m_nameOfDataFileToOpenAfterStartup;
 }
 
