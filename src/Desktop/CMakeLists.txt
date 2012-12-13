@@ -47,6 +47,17 @@ IF (APPLE)
       ${IMAGE_RCS_SRCS}
    )
 
+    #
+    # This is a customized Info.Plist for Mac so that a spec
+    # file can be opened using Finder
+    #
+    SET_TARGET_PROPERTIES(
+	${EXE_NAME}
+	PROPERTIES
+	MACOSX_BUNDLE_INFO_PLIST 
+	${CMAKE_SOURCE_DIR}/../mac_plist/MacOSXBundleInfo.plist.in
+    )
+	
 #   SET_TARGET_PROPERTIES(
 #       ${EXE_NAME}
 #       PROPERTIES
@@ -172,5 +183,6 @@ IF (APPLE)
         TARGET ${EXE_NAME}
         POST_BUILD
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/spec_file.icns
     )
 ENDIF (APPLE)
