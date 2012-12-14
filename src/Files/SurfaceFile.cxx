@@ -413,8 +413,10 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->triangleDataArray   = NULL;
     this->trianglePointer     = NULL;
     this->boundingBox         = NULL;
+    m_distHelperIndex = 0;
+    m_geoHelperIndex = 0;
+    m_topoHelperIndex = 0;
     m_normalsComputed = false;
-    invalidateHelpers();
 }
 
 /**
