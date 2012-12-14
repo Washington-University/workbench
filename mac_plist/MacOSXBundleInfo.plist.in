@@ -18,6 +18,26 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 		</dict>
+
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+			<string>border</string>
+			<string>foci</string>
+			<string>gii</string>
+			<string>nii</string>
+			<string>palette</string>
+			<string>scene</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>data_file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Workbench Data File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
 	</array>
 
 
