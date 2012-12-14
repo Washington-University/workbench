@@ -7,6 +7,7 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+			<string>scene</string>
 			<string>spec</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
@@ -27,7 +28,6 @@
 			<string>gii</string>
 			<string>nii</string>
 			<string>palette</string>
-			<string>scene</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>data_file.icns</string>
