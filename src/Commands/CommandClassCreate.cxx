@@ -58,6 +58,7 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "\n"
                         "Usage:  <class-name> \n"
                         "        [-copy] \n"
+                        "        [-event <event-type-enum>]"
                         "        [-no-parent] \n"
                         "        [-parent <parent-class-name>] \n"
                         "\n"
@@ -66,6 +67,16 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "    -copy\n"
                         "        Adds copy constructor and assignment operator\n"
                         "    \n"
+                        "    -event <event-type-enum>\n"
+                        "        When creating an Event subclass, using this\n"
+                        "        option will automatically set the parent\n"
+                        "        class to Event and place the given event\n"
+                        "        enumerated type value into the parameter\n"
+                        "        for the Event class constructor.\n"
+                        "        \n"
+                        "        For the <event-type-enum> there is no need\n"
+                        "        to prepend it with \"EventTypeEnum::\".\n"
+                        "        \n"
                         "    -no-parent\n"
                         "        Created class is not derived from any other\n"
                         "        class.  By default, the parent class is\n"
@@ -95,12 +106,20 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
 {
     const AString className = parameters.nextString("Class Name");
     AString derivedFromClassName = "CaretObject";
+    AString eventTypeEnumName;
     
     bool hasCopyAndAssignment = false;
     while (parameters.hasNext()) {
         const AString& param = parameters.nextString("Create Class Parameter");
         if (param == "-copy") {
             hasCopyAndAssignment = true;
+        }
+        else if (param == "-event") {
+            eventTypeEnumName = parameters.nextString("Event Type Enum Name");
+            if (eventTypeEnumName.contains("::") == false) {
+                eventTypeEnumName.insert(0,
+                                         "EventTypeEnum::");
+            }
         }
         else if (param == "-parent") {
             derivedFromClassName = parameters.nextString("Parent Class Name");
@@ -124,7 +143,14 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     if (className.isEmpty()) {
         throw CommandException("class name is empty.");
     }
+    
     AString errorMessage;
+    if (eventTypeEnumName.isEmpty() == false) {
+        derivedFromClassName = "Event";
+        if (className.startsWith("Event") == false) {
+            errorMessage += ("Event classes must being with \"Event\"\n");
+        }
+    }
     if (className[0].isUpper() == false) {
         errorMessage += "First letter of class name must be upper case.\n";
     }
@@ -161,6 +187,7 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     this->createImplementationFile(implementationFileName,
                                    className, 
                                    derivedFromClassName,
+                                   eventTypeEnumName,
                                    ifdefNameStaticDeclarations, 
                                    hasCopyAndAssignment);
 }
@@ -282,6 +309,10 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
  *    Name for file that is written.
  * @param className
  *    Name of class.
+ * @param derivedFromClassName
+ *    Name of parent class
+ * @param eventTypeEnumName
+ *    Name of event type enumerated type (if subclass of Event).
  * @param ifdefNameStaticDeclaration
  *    Name for "infdef" of static declarations.
  * @param hasCopyAndAssignment
@@ -291,6 +322,7 @@ void
 CommandClassCreate::createImplementationFile(const AString& outputFileName,
                                              const AString& className,
                                              const AString& derivedFromClassName,
+                                             const AString& eventTypeEnumName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const bool hasCopyAndAssignment)
 {
@@ -309,6 +341,10 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("#include \"" + className + ".h\"\n");
     t += ("#undef " + ifdefNameStaticDeclaration + "\n");
     t += ("\n");
+    if (eventTypeEnumName.isEmpty() == false) {
+        t += ("#include \"EventTypeEnum.h\"\n");
+        t += ("\n");
+    }
     t += ("using namespace caret;\n");
     t += ("\n");
     t += ("\n");
@@ -328,7 +364,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += (" */\n");
     t += ("" + className + "::" + className + "()\n");
     if (derivedFromClassName.isEmpty() == false) {
-        t += (": " + derivedFromClassName + "()\n");
+        t += (": " + derivedFromClassName + "("+ eventTypeEnumName + ")\n");
     }
     t += ("{\n");
     t += ("    \n");

@@ -67,6 +67,7 @@ namespace caret {
         void createImplementationFile(const AString& outputFileName,
                                       const AString& className,
                                       const AString& derivedFromClassName,
+                                      const AString& eventTypeEnumName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const bool hasCopyAndAssignment);
     };
