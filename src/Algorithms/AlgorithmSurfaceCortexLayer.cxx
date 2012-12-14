@@ -108,13 +108,12 @@ AlgorithmSurfaceCortexLayer::AlgorithmSurfaceCortexLayer(ProgressObject* myProgO
             float R0 = axisHat.cross(whiteCenter - whiteNeighbor).length();
             float RF = axisHat.cross(pialCenter - pialNeighbor).length();
             float Rd = RF - R0;
-            float h0 = axisHat.dot(whiteNeighbor - whiteCenter);
-            float hF = axisHat.dot(pialNeighbor - pialCenter);
+            float h0 = axisHat.dot(whiteCenter - whiteNeighbor);
+            float hF = axisHat.dot(pialCenter - pialNeighbor);
             float hd = hF - h0;
-            float d2 = axisHat.dot(pialNeighbor - whiteNeighbor);
-            float a = R0 * (d1 * R0 + 2 * d2 * R0 - 2 * h0 * Rd);//coefficient for t
-            float b = Rd * (d1 * R0 + 2 * d2 * R0 - h0 * Rd - hd * R0);//t^2
-            float c = Rd * Rd * (d1 + 2 * d2 - 2 * hd) / 3.0f;//t^3
+            float a = R0 * (3 * d1 * R0 + 2 * h0 * Rd - 2 * hd * R0);//coefficient for t
+            float b = Rd * (3 * d1 * R0 + h0 * Rd - hd * R0);//t^2
+            float c = d1 * Rd * Rd;//t^3
             float fullVol = a + b + c;//trivial to evaluate for t = 1, and t = 0 gives 0
             float target = fullVol * myVolFrac;
             float lowt = 0, lowval = 0, hight = 1, highval = fullVol;
