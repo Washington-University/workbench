@@ -100,6 +100,16 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
                 throw e;
             }
          }
+           else if (qName == "Spec_File") {
+               const AString msg = ("You are trying to read a Spec File from Caret5 "
+                                    "that is incompatible with Workbench.  Use the "
+                                    "program <b>wb_import</b> (included in the "
+                                    "Workbench distribution) to convert files from "
+                                    "Caret5 formats to Workbench formats");
+               XmlSaxParserException e(msg);
+               CaretLogThrowing(e);
+               throw e;
+           }
          else {
              const AString msg =
              "Root elements is "
