@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <QDir>
+
 #include "CaretAssertion.h"
 #include "CommandClassCreate.h"
 #include "FileInformation.h"
@@ -54,9 +56,11 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
     AString helpInfo = ("\n"
                         "Create class header (.h) and implementation (.cxx) files.\n"
                         "\n"
-                        "Usage:  <class-name> [-copy]\n"
-                        "                     [-no-parent]\n"
-                        "                     [-parent <parent-class-name>]\n"
+                        "Usage:  <class-name> \n"
+                        "        [-copy] \n"
+                        "        [-no-parent] \n"
+                        "        [-parent <parent-class-name>] \n"
+                        "\n"
                         "\n"
                         "Options: \n"
                         "    -copy\n"
@@ -290,6 +294,13 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const bool hasCopyAndAssignment)
 {
+    AString module;
+    FileInformation dirInfo(QDir::currentPath());
+    if (dirInfo.exists()) {
+        if (dirInfo.isDirectory()) {
+            module = dirInfo.getFileName();
+        }
+    }
     AString t;
     
     t += this->getCopyright();
@@ -305,6 +316,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("/**\n");
     t += (" * \\class caret::" + className + " \n");
     t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    if (module.isEmpty() == false) {
+        t += (" * \\ingroup " + module + "\n");
+    }
     t += (" *\n");
     t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
     t += (" */\n"); 
