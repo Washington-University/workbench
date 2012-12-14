@@ -84,8 +84,8 @@ SplashScreen::SplashScreen(QWidget* parent)
 
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
-//    if (WuQtUtilities::loadPixmap(":/splash_startup_image.png", pixmap)) {
-    if (WuQtUtilities::loadPixmap(":/splash_startup_turkey.png", pixmap)) {
+    if (WuQtUtilities::loadPixmap(":/splash_startup_image.png", pixmap)) {
+//    if (WuQtUtilities::loadPixmap(":/splash_startup_turkey.png", pixmap)) {
         imageLabel = new QLabel();
         imageLabel->setPixmap(pixmap);
         imageLabel->setAlignment(Qt::AlignCenter);
