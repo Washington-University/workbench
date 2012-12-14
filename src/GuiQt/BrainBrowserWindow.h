@@ -62,6 +62,9 @@ namespace caret {
         virtual ~BrainBrowserWindow();
         
         BrowserTabContent* getBrowserTabContent();
+
+        BrowserTabContent* getBrowserTabContent(int tabIndex);
+
         
         QMenu* createPopupMenu();
         

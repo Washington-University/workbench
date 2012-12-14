@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>560</height>
+    <height>567</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -268,7 +268,7 @@
    <item>
     <widget class="QGroupBox" name="interpolateSurfacesGroupBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Interpolate Surfaces</string>
@@ -277,14 +277,21 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QCheckBox" name="checkBox">
+         <widget class="QCheckBox" name="interpolateSurfaceCheckbox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="text">
            <string>Interpolate Surface To:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox"/>
+         <widget class="QComboBox" name="comboBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_8">
@@ -312,6 +319,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="interpolationStepsSpinBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="minimum">
            <number>1</number>
           </property>
@@ -493,6 +503,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stepButton">
+       <property name="text">
+        <string>Step</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="animateButton">

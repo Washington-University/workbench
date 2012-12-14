@@ -2530,6 +2530,19 @@ BrainBrowserWindow::getBrowserTabContent()
 }
 
 /**
+ * get browser tab content for tab with specified tab Index
+ * @param tabIndex
+ *   Desired tabIndex
+ * @return Return the active browser tab content in
+ * this browser window.
+*/
+BrowserTabContent*
+BrainBrowserWindow::getBrowserTabContent(int tabIndex)
+{
+    return m_toolbar->getTabContentFromTab(tabIndex);
+}
+
+/**
  * Returns a popup menu for the main window.
  * Overrides that in QMainWindow and prevents the 
  * default context menu from appearing.

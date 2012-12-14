@@ -319,6 +319,17 @@ SurfaceFile::setCoordinate(const int32_t nodeIndex,
     setModified();
 }
 
+void 
+SurfaceFile::setCoordinates(const float *coordinates, const int64_t coordCount)
+{
+    CaretAssert(this->coordinatePointer);
+    
+    CaretAssert(this->getNumberOfNodes() == coordCount);
+    memcpy(this->coordinatePointer,coordinates,12*coordCount);    
+    invalidateHelpers();
+    //setModified();
+}
+
 /**
  * Get the number of triangles.
  *

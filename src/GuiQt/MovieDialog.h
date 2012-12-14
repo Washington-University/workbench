@@ -13,6 +13,9 @@ namespace Ui {
 }
 
 using namespace caret;
+namespace caret { 
+    class Surface;
+}
 class MovieDialog : public QDialog, public EventListenerInterface
 {
     Q_OBJECT
@@ -24,6 +27,8 @@ public:
     void receiveEvent(Event* event);
 
 	void processUpdateVolumeSlice();
+
+    void processUpdateSurfaceInterpolation();
     
     int32_t getSliceDelta(const std::vector<int64_t> &dim, const caret::VolumeSliceViewPlaneEnum::Enum &vpe, const int32_t &sliceIndex);
 
@@ -39,6 +44,8 @@ private slots:
     void on_cropImageCheckBox_toggled(bool checked);
 
     void on_workbenchWindowSpinBox_valueChanged(int arg1);
+
+    void on_stepButton_clicked();
 
 private:
     Ui::MovieDialog *ui;
@@ -77,7 +84,21 @@ private:
 	int64_t m_CStart;
 	int64_t m_CEnd;
 	int64_t m_PStart;
-	int64_t m_PEnd;   
+	int64_t m_PEnd; 
+
+    bool m_interpolationEnabled;
+    int64_t m_interpolationSteps;
+    int64_t m_interpolationIndex;
+    bool m_isInterpolating;
+    std::vector<float> m_delta;
+    std::vector<float> m_surfaceCoords2Back;
+    float *coords;
+    int64_t coordsCount;
+    Surface *m_surface1;
+    Surface *m_surface2;
+    Surface *m_surface;
+
+    bool m_stepButtonPressed;
 	
 };
 #endif // MOVIE_DIALOG_H

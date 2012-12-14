@@ -44,11 +44,15 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include <Matrix4x4.h>
 #include "Model.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceSelector.h"
 #include "SessionManager.h"
+#include "Surface.h"
 #include "WuQMessageBox.h"
 #include <ModelVolume.h>
 #include <VolumeSliceViewModeEnum.h>
@@ -81,6 +85,7 @@ MovieDialog::MovieDialog(QWidget *parent) :
 	m_PEnd = 0;
 	m_CEnd = 0;
 	m_AEnd = 0;
+    m_interpolationIndex = 0;
 }
 
 MovieDialog::~MovieDialog()
@@ -94,6 +99,34 @@ void MovieDialog::on_closeButton_clicked()
     this->close();
 }
 
+
+void MovieDialog::on_stepButton_clicked()
+{
+    dx = this->ui->rotateXSpinBox->value();
+    dy = this->ui->rotateYSpinBox->value();
+    dz = this->ui->rotateZSpinBox->value();
+    frameCount = this->ui->rotateFrameCountSpinBox->value();
+    reverseDirection = this->ui->reverseDirectionCheckBox->isChecked();
+    frameCountEnabled = this->ui->rotateFrameCountSpinBox->value() ? true : false;
+
+    m_interpolationEnabled = this->ui->interpolateSurfaceCheckbox->isChecked();
+    m_interpolationSteps = this->ui->interpolationStepsSpinBox->value();
+    m_stepButtonPressed = true;
+    
+        //this->renderMovieButton->setText("Stop");
+        
+                   
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
+        QCoreApplication::instance()->processEvents();
+        
+        
+        
+    
+    if(!m_interpolationIndex)m_isInterpolating = true;    
+    m_stepButtonPressed = false;
+}
+
+
 void MovieDialog::on_animateButton_toggled(bool checked)
 {
 //    this->renderMovieButton->setChecked(status);
@@ -104,6 +137,10 @@ void MovieDialog::on_animateButton_toggled(bool checked)
     frameCount = this->ui->rotateFrameCountSpinBox->value();
     reverseDirection = this->ui->reverseDirectionCheckBox->isChecked();
     frameCountEnabled = this->ui->rotateFrameCountSpinBox->value() ? true : false;
+
+    m_interpolationEnabled = this->ui->interpolateSurfaceCheckbox->isChecked();
+    m_interpolationSteps = this->ui->interpolationStepsSpinBox->value();
+
     if(checked)
     {
         //this->renderMovieButton->setText("Stop");
@@ -117,10 +154,12 @@ void MovieDialog::on_animateButton_toggled(bool checked)
         }
 		this->m_animationStarted = false;
     }
-    /*else
+    else
     {        
-        this->renderMovieButton->setText("Play");
-    }*/
+        
+        //this->renderMovieButton->setText("Play");
+    }
+    if(!m_interpolationIndex)m_isInterpolating = true;
     rotate_frame_number = 0;
 }
 
@@ -324,9 +363,10 @@ MovieDialog::receiveEvent(Event* event)
             frame_number++;
         }
 
-        if(this->ui->animateButton->isChecked())
+        if(this->ui->animateButton->isChecked()||m_stepButtonPressed)
         {
 			this->processUpdateVolumeSlice();
+            this->processUpdateSurfaceInterpolation();
 
             if(frameCountEnabled && frameCount)
             {                
@@ -609,4 +649,93 @@ void MovieDialog::captureFrame(AString filename)
 void MovieDialog::on_workbenchWindowSpinBox_valueChanged(int arg1)
 {
     m_browserWindowIndex = arg1-1;
+}
+
+void MovieDialog::processUpdateSurfaceInterpolation()
+{
+
+    if(!m_interpolationEnabled||!m_isInterpolating) 
+        return;
+
+    BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    if(!bw)
+    {
+        CaretLogInfo("Invalid browser window index, " + AString::number(m_browserWindowIndex));
+        return;
+    }
+
+    BrowserTabContent *btc1 = bw->getBrowserTabContent(0);    
+    if(!btc1) return;
+    int32_t tabIndex1 = btc1->getTabNumber();
+    ModelSurface *ms1 = btc1->getDisplayedSurfaceModel();
+
+    BrowserTabContent *btc2 = bw->getBrowserTabContent(1);
+    if(!btc2) return;
+    int32_t tabIndex2 = btc2->getTabNumber();
+    ModelSurface *ms2 = btc2->getDisplayedSurfaceModel();
+    
+    if(!(ms1&&ms2)) return;
+
+    
+
+    if(m_interpolationIndex == 0)
+    {
+    
+        m_surface1 = ms1->getSurface();
+        m_surface2 = ms2->getSurface();
+
+        int32_t coordCount1 = m_surface1->getNumberOfNodes();
+        int32_t coordCount2 = m_surface2->getNumberOfNodes();
+        if(coordCount1 != coordCount2) return;
+
+        const float* coords1 = m_surface1->getCoordinateData();
+        const float* coords2 = m_surface2->getCoordinateData();
+        
+        m_surfaceCoords2Back.clear();
+        m_delta.clear();
+        for(int32_t i = 0;i<coordCount1;i++)
+        {
+            m_surfaceCoords2Back.push_back(coords2[i*3]);
+            m_surfaceCoords2Back.push_back(coords2[i*3+1]);
+            m_surfaceCoords2Back.push_back(coords2[i*3+2]);            
+            
+            m_delta.push_back((coords2[i*3]-coords1[i*3])/(double)m_interpolationSteps);
+            m_delta.push_back((coords2[i*3+1]-coords1[i*3+1])/(double)m_interpolationSteps);
+            m_delta.push_back((coords2[i*3+2]-coords1[i*3+2])/(double)m_interpolationSteps);
+        }
+        m_surface2->setCoordinates(coords1,coordCount1);
+        btc1->getSurfaceModelSelector()->setSelectedSurfaceController(btc2->getSurfaceModelSelector()->getSelectedSurfaceController());
+        btc1->getSurfaceModelSelector()->setSelectedStructure(btc2->getSurfaceModelSelector()->getSelectedStructure());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        coords = new float[3*coordCount1];
+        memcpy(coords,coords1,12*coordCount1);
+        coordsCount = coordCount1;
+    }
+
+    if(m_interpolationIndex <m_interpolationSteps)
+    {
+        for(int64_t i = 0;i<coordsCount*3;i++)
+        {
+            coords[i] += m_delta[i];
+        }
+        m_surface2->setCoordinates(coords,coordsCount);
+
+        m_interpolationIndex++;        
+    }
+    else
+    {
+        for(int64_t i = 0;i<coordsCount*3;i++)
+        {
+            coords[i] = m_surfaceCoords2Back[i];
+        }
+        m_surface2->setCoordinates(coords,coordsCount);        
+        m_isInterpolating = false;
+        m_interpolationIndex = 0;
+        if(!coords)
+        {
+            delete coords;
+            coords = NULL;
+            coordsCount = 0;
+        }
+    }
 }
