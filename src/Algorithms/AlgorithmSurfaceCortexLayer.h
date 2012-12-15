@@ -36,7 +36,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmSurfaceCortexLayer(ProgressObject* myProgObj, const SurfaceFile* myWhiteSurf, const SurfaceFile* myPialSurf, const float& myVolFrac, SurfaceFile* myOutSurf);
+        AlgorithmSurfaceCortexLayer(ProgressObject* myProgObj, const SurfaceFile* myWhiteSurf, const SurfaceFile* myPialSurf,
+                                    const float& myVolFrac, SurfaceFile* myOutSurf, MetricFile* myMetricOut = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
