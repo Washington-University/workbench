@@ -240,7 +240,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="sliceIncrementCountSpinBox"/>
+       <widget class="QSpinBox" name="sliceIncrementCountSpinBox">
+        <property name="minimum">
+         <number>-999</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="reverseSliceDirectionCheckBox">
@@ -503,13 +510,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="stepButton">
-       <property name="text">
-        <string>Step</string>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="animateButton">
