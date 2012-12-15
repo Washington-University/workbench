@@ -27,6 +27,7 @@ OperationCiftiMath.h
 OperationCiftiPalette.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
+OperationConvertMatrix4ToMatrix2.h
 OperationConvertMatrix4ToWorkbenchSparse.h
 OperationEstimateFiberBinghams.h
 OperationException.h
@@ -57,6 +58,7 @@ OperationCiftiMath.cxx
 OperationCiftiPalette.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
+OperationConvertMatrix4ToMatrix2.cxx
 OperationConvertMatrix4ToWorkbenchSparse.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
