@@ -160,6 +160,8 @@ namespace caret {
                                               const float* rgbaNodeColorComponents);
 
         void getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const;
+
+		void invalidateNormals();
         
     protected:
         /**

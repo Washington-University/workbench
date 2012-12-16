@@ -34,7 +34,7 @@ public:
 
     void getImageCrop(AString fileName, int *cropout);
     
-private slots:
+	private slots:
     void on_closeButton_clicked();
 
     void on_animateButton_toggled(bool checked);
@@ -45,7 +45,6 @@ private slots:
 
     void on_workbenchWindowSpinBox_valueChanged(int arg1);
 
-    void on_stepButton_clicked();
 
 private:
     Ui::MovieDialog *ui;
@@ -55,6 +54,8 @@ private:
     void processRotateTransformation(const double dx,
         const double dy,
         const double dz);
+
+	void CleanupInterpolation();
 
     int32_t m_browserWindowIndex;
 

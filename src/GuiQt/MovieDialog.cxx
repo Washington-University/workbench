@@ -100,31 +100,6 @@ void MovieDialog::on_closeButton_clicked()
 }
 
 
-void MovieDialog::on_stepButton_clicked()
-{
-    dx = this->ui->rotateXSpinBox->value();
-    dy = this->ui->rotateYSpinBox->value();
-    dz = this->ui->rotateZSpinBox->value();
-    frameCount = this->ui->rotateFrameCountSpinBox->value();
-    reverseDirection = this->ui->reverseDirectionCheckBox->isChecked();
-    frameCountEnabled = this->ui->rotateFrameCountSpinBox->value() ? true : false;
-
-    m_interpolationEnabled = this->ui->interpolateSurfaceCheckbox->isChecked();
-    m_interpolationSteps = this->ui->interpolationStepsSpinBox->value();
-    m_stepButtonPressed = true;
-    
-        //this->renderMovieButton->setText("Stop");
-        
-                   
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
-        QCoreApplication::instance()->processEvents();
-        
-        
-        
-    
-    if(!m_interpolationIndex)m_isInterpolating = true;    
-    m_stepButtonPressed = false;
-}
 
 
 void MovieDialog::on_animateButton_toggled(bool checked)
@@ -140,12 +115,12 @@ void MovieDialog::on_animateButton_toggled(bool checked)
 
     m_interpolationEnabled = this->ui->interpolateSurfaceCheckbox->isChecked();
     m_interpolationSteps = this->ui->interpolationStepsSpinBox->value();
-
+	
     if(checked)
     {
         //this->renderMovieButton->setText("Stop");
 		this->m_animationStarted = true;
-
+		this->m_isInterpolating = true;
         while(this->ui->animateButton->isChecked())
         {            
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
@@ -158,8 +133,9 @@ void MovieDialog::on_animateButton_toggled(bool checked)
     {        
         
         //this->renderMovieButton->setText("Play");
+		this->CleanupInterpolation();
     }
-    if(!m_interpolationIndex)m_isInterpolating = true;
+    
     rotate_frame_number = 0;
 }
 
@@ -690,7 +666,16 @@ void MovieDialog::processUpdateSurfaceInterpolation()
 
         const float* coords1 = m_surface1->getCoordinateData();
         const float* coords2 = m_surface2->getCoordinateData();
-        
+        float center1[3];
+		float center2[3];
+		float centerdelta[3];
+		m_surface1->getBoundingBox()->getCenter(center1);
+		m_surface2->getBoundingBox()->getCenter(center2);
+		for(int i = 0;i<3;i++)
+		{
+			centerdelta[i] = center2[i]-center1[i];
+		}
+
         m_surfaceCoords2Back.clear();
         m_delta.clear();
         for(int32_t i = 0;i<coordCount1;i++)
@@ -699,17 +684,26 @@ void MovieDialog::processUpdateSurfaceInterpolation()
             m_surfaceCoords2Back.push_back(coords2[i*3+1]);
             m_surfaceCoords2Back.push_back(coords2[i*3+2]);            
             
-            m_delta.push_back((coords2[i*3]-coords1[i*3])/(double)m_interpolationSteps);
-            m_delta.push_back((coords2[i*3+1]-coords1[i*3+1])/(double)m_interpolationSteps);
-            m_delta.push_back((coords2[i*3+2]-coords1[i*3+2])/(double)m_interpolationSteps);
+            m_delta.push_back((coords2[i*3]-coords1[i*3]-centerdelta[0])/(double)m_interpolationSteps);
+            m_delta.push_back((coords2[i*3+1]-coords1[i*3+1]-centerdelta[1])/(double)m_interpolationSteps);
+            m_delta.push_back((coords2[i*3+2]-coords1[i*3+2]-centerdelta[2])/(double)m_interpolationSteps);
         }
-        m_surface2->setCoordinates(coords1,coordCount1);
+
+		coords = new float[3*coordCount1];
+		memcpy(coords,coords1,12*coordCount1);
+		coordsCount = coordCount1;
+		for(int i = 0;i<coordsCount;i++)
+		{
+			coords[i*3] += centerdelta[0];
+			coords[i*3+1] += centerdelta[1];
+			coords[i*3+2] += centerdelta[2];
+		}
+        m_surface2->setCoordinates(coords,coordsCount);
+		m_surface2->invalidateNormals();
+		m_surface2->computeNormals();
         btc1->getSurfaceModelSelector()->setSelectedSurfaceController(btc2->getSurfaceModelSelector()->getSelectedSurfaceController());
         btc1->getSurfaceModelSelector()->setSelectedStructure(btc2->getSurfaceModelSelector()->getSelectedStructure());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        coords = new float[3*coordCount1];
-        memcpy(coords,coords1,12*coordCount1);
-        coordsCount = coordCount1;
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());        
     }
 
     if(m_interpolationIndex <m_interpolationSteps)
@@ -719,23 +713,33 @@ void MovieDialog::processUpdateSurfaceInterpolation()
             coords[i] += m_delta[i];
         }
         m_surface2->setCoordinates(coords,coordsCount);
-
+		m_surface2->invalidateNormals();
+		m_surface2->computeNormals();
         m_interpolationIndex++;        
     }
     else
     {
-        for(int64_t i = 0;i<coordsCount*3;i++)
-        {
-            coords[i] = m_surfaceCoords2Back[i];
-        }
-        m_surface2->setCoordinates(coords,coordsCount);        
-        m_isInterpolating = false;
-        m_interpolationIndex = 0;
-        if(!coords)
-        {
-            delete coords;
-            coords = NULL;
-            coordsCount = 0;
-        }
+        CleanupInterpolation();
     }
+}
+
+void MovieDialog::CleanupInterpolation()
+{
+	if(!m_interpolationEnabled||!m_isInterpolating) 
+		return;
+	for(int64_t i = 0;i<coordsCount*3;i++)
+	{
+		coords[i] = m_surfaceCoords2Back[i];
+	}
+	m_surface2->setCoordinates(coords,coordsCount);   
+	m_surface2->invalidateNormals();
+	m_surface2->computeNormals();
+	m_isInterpolating = false;
+	m_interpolationIndex = 0;
+	if(!coords)
+	{
+		delete coords;
+		coords = NULL;
+		coordsCount = 0;
+	}
 }

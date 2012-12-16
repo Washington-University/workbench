@@ -464,6 +464,11 @@ const float* SurfaceFile::getNormalData() const
     return normalVectors.data();
 }
 
+void
+SurfaceFile::invalidateNormals()
+{
+	m_normalsComputed = false;
+}
 /**
  * Compute surface normals.
  */
