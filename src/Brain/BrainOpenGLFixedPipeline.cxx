@@ -813,18 +813,22 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0);
     glFrontFace(GL_CCW);
-#ifndef GL_VERSION_1_3 
-    glEnable(GL_NORMALIZE);
-#else
-    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
-        glEnable(GL_RESCALE_NORMAL);
-    }
-    else {
-        glEnable(GL_NORMALIZE);
-    }
-#endif
-    /* JWH Linux Fiber Cone Coloring */
-    glEnable(GL_RESCALE_NORMAL);
+//#ifndef GL_VERSION_1_3 
+//    glEnable(GL_NORMALIZE);
+//#else
+//    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
+//        glEnable(GL_RESCALE_NORMAL);
+//    }
+//    else {
+//        glEnable(GL_NORMALIZE);
+//    }
+//#endif
+//    /* JWH Linux Fiber Cone Coloring */
+//#ifndef GL_VERSION_1_3
+//    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
+//        glEnable(GL_RESCALE_NORMAL);
+//    }
+//#endif 
     glEnable(GL_NORMALIZE);
     
     //
