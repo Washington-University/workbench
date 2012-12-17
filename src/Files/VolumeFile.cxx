@@ -940,8 +940,8 @@ VolumeFile::assignVoxelColorsForMap(const int32_t mapIndex,
     
     m_voxelColorizer->assignVoxelColorsForMapInBackground(mapIndex,
                                                           palette,
-                                                          NULL,
-                                                          0);
+                                                          this,
+                                                          mapIndex);
 }
 
 /**
