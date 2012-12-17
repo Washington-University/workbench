@@ -813,22 +813,16 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0);
     glFrontFace(GL_CCW);
-//#ifndef GL_VERSION_1_3 
-//    glEnable(GL_NORMALIZE);
-//#else
-//    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
-//        glEnable(GL_RESCALE_NORMAL);
-//    }
-//    else {
-//        glEnable(GL_NORMALIZE);
-//    }
-//#endif
-//    /* JWH Linux Fiber Cone Coloring */
-//#ifndef GL_VERSION_1_3
-//    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("1.3")) {
-//        glEnable(GL_RESCALE_NORMAL);
-//    }
-//#endif 
+    
+    /*
+     * As normal vectors are multiplied by transformation matrices, their 
+     * lengths may no longer be one and cause drawing errors.
+     * GL_NORMALIZE will rescale normal vectors to one to prevent this problem.
+     * GL_RESCALE_NORMAL was added in later versions of OpenGL and
+     * is reported to be more efficient.  However, GL_RESCALE_NORMAL 
+     * does not seem to work with OpenGL 4.2 on Linux, whereas GL_NORMALIZE
+     * seems to work on all operating systems and versions of OpenGL.
+     */    
     glEnable(GL_NORMALIZE);
     
     //
