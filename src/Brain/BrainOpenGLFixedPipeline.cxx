@@ -5505,6 +5505,8 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
             float alpha = 1.0;
             if (j < 3) {
                 alpha = fodi->fiberOpacities[j];
+                CaretAssertMessage(((alpha >= 0.0) && (alpha <= 1.0)),
+                                   ("Value=" + AString::number(alpha)));
                 if (alpha <= 0.0) {
                     continue;
                 }
@@ -5617,6 +5619,10 @@ BrainOpenGLFixedPipeline::drawOneFiberOrientation(const FiberOrientationDisplayI
                 }
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                    CaretAssert((fiber->m_directionUnitVectorRGB[0] >= 0.0) && (fiber->m_directionUnitVectorRGB[0] <= 1.0));
+                    CaretAssert((fiber->m_directionUnitVectorRGB[1] >= 0.0) && (fiber->m_directionUnitVectorRGB[1] <= 1.0));
+                    CaretAssert((fiber->m_directionUnitVectorRGB[2] >= 0.0) && (fiber->m_directionUnitVectorRGB[2] <= 1.0));
+                    CaretAssert((alpha >= 0.0) && (alpha <= 1.0));
                     glColor4f(fiber->m_directionUnitVectorRGB[0],
                               fiber->m_directionUnitVectorRGB[1],
                               fiber->m_directionUnitVectorRGB[2],
@@ -5835,6 +5841,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+    const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
     FiberOrientationDisplayInfo fiberOrientDispInfo;
     setFiberOrientationDisplayInfo(dpfo,
                                    displayGroup,
@@ -5842,6 +5849,20 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                                    &clippingBoundingBox,
                                    const_cast<Plane*>(plane),
                                    fiberOrientDispInfo);
+    
+    /*
+     * Fans use lighting but NOT on a volume slice
+     */
+    disableLighting();
+    switch (symbolType) {
+        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+            if (plane == NULL) {
+                enableLighting();
+            }
+            break;
+        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+            break;
+    }
     
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
@@ -5921,10 +5942,11 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
             }
             int32_t drawCount = 3;
             for (int32_t i = 0; i < 3; i++) {
-                if (fiberOpacities[0] > 1.0) {
-                    fiberOpacities[0] = 1.0;
+                if (fiberOpacities[i] > 1.0) {
+                    fiberOpacities[i] = 1.0;
                 }
-                else if (fiberOpacities[0] <= 0.0) {
+                else if (fiberOpacities[i] <= 0.0) {
+                    fiberOpacities[i] = 0.0;
                     drawCount--;
                 }
             }
