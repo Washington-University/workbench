@@ -54,11 +54,11 @@ AString OperationZipSpecFile::getShortDescription()
 OperationParameters* OperationZipSpecFile::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "zip-file", "the zip file that will be created");
+    ret->addStringParameter(1, "spec-file", "the specification file to add to zip file");
     
-    ret->addStringParameter(2, "spec-file", "the specification file to add to zip file");
+    ret->addStringParameter(2, "extract-dir", "the directory created when the zip file is unzipped");
     
-    ret->addStringParameter(3, "extract-dir", "the sub-directory created when the zip file is unzipped");
+    ret->addStringParameter(3, "zip-file", "out - the zip file that will be created");
     
     OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within");
     baseOpt->addStringParameter(1, "directory", "the directory that will become the root of the zipfile's directory structure");
@@ -73,9 +73,9 @@ OperationParameters* OperationZipSpecFile::getParameters()
 void OperationZipSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString zipFileName = FileInformation(myParams->getString(1)).getFilePath();
-    AString specFileName = FileInformation(myParams->getString(2)).getFilePath();
-    AString outputSubDirectory = myParams->getString(3);
+    AString specFileName = FileInformation(myParams->getString(1)).getFilePath();
+    AString outputSubDirectory = myParams->getString(2);
+    AString zipFileName = FileInformation(myParams->getString(3)).getFilePath();
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
     AString myBaseDir;
     if (baseOpt->m_present)
@@ -91,7 +91,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     }
 
     if (outputSubDirectory.isEmpty()) {
-        throw OperationException("Output Sub-Directory must contain characters");
+        throw OperationException("extract-dir must contain characters");
     }
     
     /*

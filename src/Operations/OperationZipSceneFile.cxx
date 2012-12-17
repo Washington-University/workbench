@@ -57,11 +57,11 @@ AString OperationZipSceneFile::getShortDescription()
 OperationParameters* OperationZipSceneFile::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "zip-file", "the zip file that will be created");
+    ret->addStringParameter(1, "scene-file", "the scene file to make the zip file from");
     
-    ret->addStringParameter(2, "scene-file", "the scene file to make the zip file from");
+    ret->addStringParameter(2, "extract-dir", "the directory created when the zip file is unzipped");
     
-    ret->addStringParameter(3, "sub-directory", "the sub-directory created when the zip file is unzipped");
+    ret->addStringParameter(3, "zip-file", "out - the zip file that will be created");
     
     OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within");
     baseOpt->addStringParameter(1, "directory", "the directory that will become the root of the zipfile's directory structure");
@@ -73,12 +73,12 @@ OperationParameters* OperationZipSceneFile::getParameters()
 void OperationZipSceneFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString zipFileName = myParams->getString(1);
-    AString sceneFileName = myParams->getString(2);
+    AString sceneFileName = myParams->getString(1);
+    AString outputSubDirectory = myParams->getString(2);
+    AString zipFileName = myParams->getString(3);
     FileInformation sceneFileInfo(sceneFileName);
-    AString outputSubDirectory = myParams->getString(3);
     if (outputSubDirectory.isEmpty()) {
-        throw OperationException("Output Sub-Directory must contain characters");
+        throw OperationException("extract-dir must contain characters");
     }
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
     AString myBaseDir;
