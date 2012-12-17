@@ -823,6 +823,9 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         glEnable(GL_NORMALIZE);
     }
 #endif
+    /* JWH Linux Fiber Cone Coloring */
+    glEnable(GL_RESCALE_NORMAL);
+    glEnable(GL_NORMALIZE);
     
     //
     // Avoid drawing backfacing polygons
