@@ -58,7 +58,7 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "\n"
                         "Usage:  <class-name> \n"
                         "        [-copy] \n"
-                        "        [-event <event-type-enum>]"
+                        "        [-event <event-type-enum>]\n"
                         "        [-no-parent] \n"
                         "        [-parent <parent-class-name>] \n"
                         "\n"
