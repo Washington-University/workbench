@@ -85,11 +85,7 @@ CiftiScalarFile::~CiftiScalarFile()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    const int32_t numMaps = getNumberOfMaps();
-    for (int32_t i = 0; i < numMaps; i++) {
-        delete m_mapData[i];
-    }
-    m_mapData.clear();
+    clearPrivate();
     
     delete m_metadata;
 }
@@ -112,11 +108,18 @@ CiftiScalarFile::clear()
 void
 CiftiScalarFile::clearPrivate()
 {
-    if (m_ciftiDiskFile != NULL) {
-        delete m_ciftiDiskFile;
-        m_ciftiDiskFile = NULL;
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        delete m_mapData[i];
     }
-    m_ciftiInterface = NULL;
+    m_mapData.clear();
+    
+    if (m_ciftiInterface != NULL) {
+        delete m_ciftiInterface;
+        m_ciftiInterface = NULL;
+    }
+    /* Note: m_ciftiInterface and m_ciftiDiskFile are the same pointer so do not double delete */
+    m_ciftiDiskFile = NULL;
     
     m_metadata->clear();
     
