@@ -134,6 +134,7 @@ void MovieDialog::on_animateButton_toggled(bool checked)
         
         //this->renderMovieButton->setText("Play");
 		this->CleanupInterpolation();
+		EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
     }
     
     rotate_frame_number = 0;
