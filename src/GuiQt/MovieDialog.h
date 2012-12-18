@@ -79,6 +79,7 @@ private:
 
 	bool m_animationStarted;
 	int32_t m_volumeSliceIncrement;
+    bool m_sliceIncrementIsNegative;
 	bool m_reverseVolumeSliceDirection;
 	int64_t m_AStart;
 	int64_t m_AEnd;
@@ -99,7 +100,7 @@ private:
     Surface *m_surface2;
     Surface *m_surface;
 
-    bool m_stepButtonPressed;
+
 	
 };
 #endif // MOVIE_DIALOG_H

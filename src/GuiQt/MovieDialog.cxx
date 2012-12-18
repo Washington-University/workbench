@@ -340,7 +340,7 @@ MovieDialog::receiveEvent(Event* event)
             frame_number++;
         }
 
-        if(this->ui->animateButton->isChecked()||m_stepButtonPressed)
+        if(this->ui->animateButton->isChecked())
         {
 			this->processUpdateVolumeSlice();
             this->processUpdateSurfaceInterpolation();
@@ -384,23 +384,52 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 	{
 		m_volumeSliceIncrement = ui->sliceIncrementCountSpinBox->value();
 		m_reverseVolumeSliceDirection = ui->reverseSliceDirectionCheckBox->isChecked();
-		switch(vpe)
+        m_sliceIncrementIsNegative = (m_volumeSliceIncrement != abs(m_volumeSliceIncrement));
+        
+        switch(vpe)
 		{
 			case VolumeSliceViewPlaneEnum::AXIAL:
-				m_AStart = sliceIndex;
-				m_AEnd = (dim[2]-1)<(m_AStart+m_volumeSliceIncrement)?(dim[2]-1):m_AStart+m_volumeSliceIncrement;
-				dA=1;
+                if(m_sliceIncrementIsNegative)
+                {                   
+                    m_AEnd = sliceIndex;
+                    m_AStart = 0>(m_AEnd+m_volumeSliceIncrement)?0:m_AEnd+m_volumeSliceIncrement;
+                    dA=-1;
+                }
+                else
+                {
+				    m_AStart = sliceIndex;
+    				m_AEnd = (dim[2]-1)<(m_AStart+m_volumeSliceIncrement)?(dim[2]-1):m_AStart+m_volumeSliceIncrement;
+    				dA=1;
+                }
 				break;
 			case VolumeSliceViewPlaneEnum::CORONAL:
-				m_CStart = sliceIndex;
-				m_CEnd = (dim[1]-1)<(m_CStart+m_volumeSliceIncrement)?(dim[1]-1):m_CStart+m_volumeSliceIncrement;
-				dC=1;
+                if(m_sliceIncrementIsNegative)
+                {
+                    m_CEnd = sliceIndex;
+                    m_CStart = 0>(m_CEnd+m_volumeSliceIncrement)?0:m_CEnd+m_volumeSliceIncrement;
+                    dC=-1;
+                }
+                else
+                {
+				    m_CStart = sliceIndex;
+				    m_CEnd = (dim[1]-1)<(m_CStart+m_volumeSliceIncrement)?(dim[1]-1):m_CStart+m_volumeSliceIncrement;
+				    dC=1;
+                }
 				break;
 
 			case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-				m_PStart = sliceIndex;
-				m_PEnd = (dim[0]-1)<(m_PStart+m_volumeSliceIncrement)?(dim[0]-1):m_PStart+m_volumeSliceIncrement;
-				dP=1;
+                if(m_sliceIncrementIsNegative)
+                {
+                    m_PEnd = sliceIndex;
+                    m_PStart = 0>(m_PEnd+m_volumeSliceIncrement)?0:m_PEnd+m_volumeSliceIncrement;
+                    dP=-1;
+                }
+                else
+                {
+				    m_PStart = sliceIndex;
+				    m_PEnd = (dim[0]-1)<(m_PStart+m_volumeSliceIncrement)?(dim[0]-1):m_PStart+m_volumeSliceIncrement;
+				    dP=1;
+                }
 				break;
 			default:
 				break;
@@ -431,10 +460,14 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 				{
 					return dA;
 				}
-				else 
+				else if(m_reverseVolumeSliceDirection) 
 				{
 					return dA = -dA;
 				}
+                else
+                {
+                    return 0;
+                }
 			}
 			
 			return dA;
@@ -462,10 +495,14 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 				{
 					return dC;
 				}
-				else 
+				else if(m_reverseVolumeSliceDirection) 
 				{
 					return dC = -dC;
 				}
+                else
+                {
+                    return 0;
+                }
 			}
 
 			return dC;
@@ -493,10 +530,14 @@ int32_t MovieDialog::getSliceDelta(const std::vector<int64_t> &dim, const caret:
 				{
 					return dP;
 				}
-				else 
+				else if(m_reverseVolumeSliceDirection) 
 				{
 					return dP = -dP;
-				}
+                }
+                else
+                {
+                    return 0;
+                }
 			}
 			return dP;
 
