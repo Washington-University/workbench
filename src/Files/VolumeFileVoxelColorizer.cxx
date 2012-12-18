@@ -416,5 +416,9 @@ VolumeFileVoxelColorizer::setVoxelColorInMap(const int64_t i,
     mapRGBA[rgbaOffset]   = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
     mapRGBA[rgbaOffset+1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
     mapRGBA[rgbaOffset+2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
-    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
+    float alpha = rgbaFloat[3];
+    if (alpha < 0.0) {
+        alpha = 0.0;
+    }
+    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(alpha * 255.0);
 }

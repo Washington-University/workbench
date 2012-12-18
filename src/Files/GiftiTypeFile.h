@@ -159,6 +159,9 @@ namespace caret {
         
         virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
         
+        
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                             const PaletteFile* paletteFile);
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

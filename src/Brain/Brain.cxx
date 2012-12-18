@@ -805,7 +805,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
     }
     vf->clearModified();
     
-    vf->assignVoxelColorsForAllMaps(m_paletteFile);
+    vf->updateScalarColoringForAllMaps(m_paletteFile);
     
     m_volumeFiles.push_back(vf);
 }

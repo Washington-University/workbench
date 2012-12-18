@@ -127,3 +127,20 @@ int32_t CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) 
     }
     return -1;
 }
+
+/**
+ * Update coloring for all maps.
+ *
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* paletteFile)
+{
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+        updateScalarColoringForMap(iMap,
+                             paletteFile);
+    }
+}
+

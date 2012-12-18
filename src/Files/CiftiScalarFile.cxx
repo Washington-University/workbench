@@ -711,6 +711,20 @@ CiftiScalarFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
 }
 
 /**
+ * Update coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+CiftiScalarFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
+                                       const PaletteFile* /*paletteFile*/)
+{
+}
+
+/**
  * Read the data file.
  *
  * @param filename

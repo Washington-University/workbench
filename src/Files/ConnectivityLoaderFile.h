@@ -219,6 +219,9 @@ namespace caret {
         ///get the map name for an index along a row
         AString getMapNameForRowIndex(const int& index) const;
         
+        
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                             const PaletteFile* paletteFile);
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
         ConnectivityLoaderFile& operator=(const ConnectivityLoaderFile&);

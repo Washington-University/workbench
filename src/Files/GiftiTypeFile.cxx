@@ -732,3 +732,18 @@ GiftiTypeFile::getMapIndexFromUniqueID(const AString& uniqueID) const
     return -1;
 }
 
+/**
+ * Update coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
+                                       const PaletteFile* /*paletteFile*/)
+{
+    /* no volumes in gifti */
+}
+

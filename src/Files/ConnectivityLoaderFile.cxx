@@ -1675,6 +1675,30 @@ ConnectivityLoaderFile::updateRGBAColoring(const Palette* palette,
 }
 
 /**
+ * Update coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+ConnectivityLoaderFile::updateScalarColoringForMap(const int32_t mapIndex,
+                                                const PaletteFile* paletteFile)
+{
+    const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(0);
+    
+    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+    Palette* palette = paletteFile->getPaletteByName(paletteName);
+    if (palette != NULL) {
+        updateRGBAColoring(palette, 0);
+    }
+    else {
+        CaretLogWarning("Palette missing for connectivity coloring: " + paletteName);
+    }
+}
+
+/**
  * Get connectivity value for a voxel at the given coordinate.
  * @param xyz
  *     Coordinate of voxel.

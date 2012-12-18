@@ -1499,18 +1499,16 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
     
     this->updateHistogramPlot();
     
-    VolumeFile* vf = dynamic_cast<VolumeFile*>(this->caretMappableDataFile);
-    if (vf != NULL) {
-        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        
-        if (assignToAllMaps) {
-            vf->assignVoxelColorsForAllMaps(paletteFile);
-        }
-        else {
-            vf->assignVoxelColorsForMap(this->mapFileIndex,
-                                        paletteFile);
-        }
+    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+    
+    if (assignToAllMaps) {
+        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
     }
+    else {
+        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
+                                                             paletteFile);
+    }
+    
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

@@ -139,6 +139,8 @@ namespace caret {
                                  const int32_t numberOfNodes,
                                  float& valueOut) const;
         
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                             const PaletteFile* paletteFile);
     private:
         CiftiScalarFile(const CiftiScalarFile&);
 

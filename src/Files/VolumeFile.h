@@ -192,9 +192,7 @@ namespace caret {
 
         AString getMapUniqueID(const int32_t mapIndex) const;
         
-        void assignVoxelColorsForAllMaps(const PaletteFile* paletteFile);
-        
-        void assignVoxelColorsForMap(const int32_t mapIndex,
+        void updateScalarColoringForMap(const int32_t mapIndex,
                                      const PaletteFile* paletteFile);
         
         void getVoxelColorsForSliceInMap(const int32_t mapIndex,
