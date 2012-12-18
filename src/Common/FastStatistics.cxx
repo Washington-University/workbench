@@ -57,6 +57,8 @@ void FastStatistics::reset()
     m_leastNeg = 0.0f;
     m_leastPos = 0.0f;
     m_mostPos = 0.0f;
+    m_min = 0.0f;
+    m_max = 0.0f;
 }
 
 void FastStatistics::update(const float* data, const int64_t& dataCount)
