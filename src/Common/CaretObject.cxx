@@ -138,9 +138,11 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
         for (CARET_OBJECT_TRACKER_MAP_ITERATOR iter = CaretObject::allocatedObjects.begin();
              iter != allocatedObjects.end();
              iter++) {
+            const unsigned long objectAddress = (long long)iter->first;
             const CaretObject* caretObject = iter->first;
             const CaretObjectInfo& caretObjectInfo = iter->second;
             std::cout << caretObject->toString().toStdString() << std::endl;
+            std::cout << "Address (hex)=" << std::hex << objectAddress << std::endl;
             if (showCallStack) {
                 std::cout << caretObjectInfo.m_backtrace.toSymbolString() << std::endl;
             }
