@@ -281,7 +281,8 @@ IdentificationManager::removeIdentifiedNodeItem(const StructureEnum::Enum struct
                 if ((node->getSurfaceNumberOfNodes() == surfaceNumberOfNodes)
                     && (node->getNodeIndex() == nodeIndex)) {
                     m_identifiedItems.erase(iter);
-                    break;
+                    delete item;
+                    return;
                 }
             }
         }
