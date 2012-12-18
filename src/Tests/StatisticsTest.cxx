@@ -50,6 +50,14 @@ void StatisticsTest::execute()
     FastStatistics myFastStats(myData, NUM_ELEMENTS);
     float exacttolerance = myFullStats.getPopulationStandardDeviation() * 0.000001f;
     float approxtolerance = myFullStats.getPopulationStandardDeviation() * 0.01f;
+    if (abs(myFullStats.getMinimumValue() - myFastStats.getMin()) > exacttolerance)
+    {
+        setFailed(AString("mismatch in min, full: ") + AString::number(myFullStats.getMinimumValue()) + ", fast: " + AString::number(myFastStats.getMin()));
+    }
+    if (abs(myFullStats.getMaximumValue() - myFastStats.getMax()) > exacttolerance)
+    {
+        setFailed(AString("mismatch in max, full: ") + AString::number(myFullStats.getMaximumValue()) + ", fast: " + AString::number(myFastStats.getMax()));
+    }
     if (abs(myFullStats.getMean() - myFastStats.getMean()) > exacttolerance)
     {
         setFailed(AString("mismatch in mean, full: ") + AString::number(myFullStats.getMean()) + ", fast: " + AString::number(myFastStats.getMean()));
