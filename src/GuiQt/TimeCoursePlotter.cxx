@@ -273,13 +273,13 @@ void TimeCoursePlotter::replot()
 {
     QwtPlot::replot();
     const QwtScaleDiv *sd = this->axisScaleDiv(QwtPlot::xBottom);
-    double bound = sd->lowerBound();
-    double ubound = sd->upperBound();
+    //double bound = sd->lowerBound();
+    //double ubound = sd->upperBound();
     emit this->timeStartValueChanged(sd->lowerBound());
     emit this->timeEndValueChanged(sd->upperBound()); 
     sd = this->axisScaleDiv(QwtPlot::yLeft);
-    bound = sd->lowerBound();
-    ubound = sd->upperBound();
+    //bound = sd->lowerBound();
+    //ubound = sd->upperBound();
     emit this->activityMinValueChanged(sd->lowerBound());
     emit this->activityMaxValueChanged(sd->upperBound());
     //this->axisMaxMajor

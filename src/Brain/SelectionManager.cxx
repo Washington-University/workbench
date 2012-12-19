@@ -141,7 +141,7 @@ SelectionManager::~SelectionManager()
  *   The event.
  */
 void
-SelectionManager::receiveEvent(Event* event)
+SelectionManager::receiveEvent(Event* /*event*/)
 {
 }
 

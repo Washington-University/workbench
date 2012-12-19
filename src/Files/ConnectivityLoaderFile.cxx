@@ -1683,7 +1683,7 @@ ConnectivityLoaderFile::updateRGBAColoring(const Palette* palette,
  *    Palette file containing palettes.
  */
 void
-ConnectivityLoaderFile::updateScalarColoringForMap(const int32_t mapIndex,
+ConnectivityLoaderFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
                                                 const PaletteFile* paletteFile)
 {
     const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(0);

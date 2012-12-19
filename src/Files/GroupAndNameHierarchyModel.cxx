@@ -327,7 +327,7 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
     }
 
     if (needToGenerateKeys) {
-        const int32_t ID_NOT_USED = 0;
+        //const int32_t ID_NOT_USED = 0;
         
         /*
          * Clear everything

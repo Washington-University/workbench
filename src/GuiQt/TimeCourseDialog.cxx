@@ -84,7 +84,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 
     //ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     //ui->verticalLayout_4->insertWidget(0,plot,100);
-    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    //CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     double time = 0.0;    
     this->setAnimationStartTime(time);
 }
@@ -348,7 +348,7 @@ void TimeCourseDialog::on_exportImageButton_clicked()
         delete image;*/
 
         const QRect imageRect = this->plot->rect();
-        const int dotsPerMeter = 3863;//85 DPI converted to meters
+        //const int dotsPerMeter = 3863;//85 DPI converted to meters
         QImage image( imageRect.size(), QImage::Format_ARGB32 );
         image.setDotsPerMeterX( float(QApplication::desktop()->physicalDpiX())/0.0254);//dotsPerMeter );
         image.setDotsPerMeterY( float(QApplication::desktop()->physicalDpiY())/0.0254);//dotsPerMeter );

@@ -268,7 +268,7 @@ IdentifiedItemNode::getContralateralSymbolRGB() const
 /**
  * @return  The size of the symbol.
  */
-const float
+float
 IdentifiedItemNode::getSymbolSize() const
 {
     return m_symbolSize;

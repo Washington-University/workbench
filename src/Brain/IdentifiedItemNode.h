@@ -76,7 +76,7 @@ namespace caret {
         
         const float* getContralateralSymbolRGB() const;
         
-        const float getSymbolSize() const;
+        float getSymbolSize() const;
         
         void setSymbolRGB(const float* rgb);
         

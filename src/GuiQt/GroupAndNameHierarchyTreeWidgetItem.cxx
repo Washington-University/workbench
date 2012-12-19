@@ -183,9 +183,9 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
 
     setText(TREE_COLUMN, text);
     
-    Qt::ItemFlags itemFlags = (Qt::ItemIsSelectable
+    /*Qt::ItemFlags itemFlags = (Qt::ItemIsSelectable
                               | Qt::ItemIsUserCheckable
-                              | Qt::ItemIsEnabled);
+                              | Qt::ItemIsEnabled);//*/
     if (m_hasChildren) {
     //    itemFlags |= Qt::ItemIsTristate;
     }

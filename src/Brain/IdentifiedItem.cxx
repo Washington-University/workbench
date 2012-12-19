@@ -88,7 +88,7 @@ IdentifiedItem::~IdentifiedItem()
  *    Object that is copied.
  */
 IdentifiedItem::IdentifiedItem(const IdentifiedItem& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface()
 {
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_text", &m_text);

@@ -73,7 +73,7 @@ BrainStructureNodeAttributes::toString() const
 }
 
 void 
-BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
+BrainStructureNodeAttributes::update(const int32_t /*numberOfNodes*/)
 {
 //    if (numberOfNodes > 0) {
 //        m_identificationType.resize(numberOfNodes);

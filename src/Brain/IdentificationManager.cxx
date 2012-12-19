@@ -229,7 +229,7 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
                         const TimeLine& tl = *iter;
                         if (tl.structure == structure) {
                             if (tl.surfaceNumberOfNodes == surfaceNumberOfNodes) {
-                                if (tl.nodeid == nodeID.getNodeIndex()) {
+                                if ((int32_t)tl.nodeid == nodeID.getNodeIndex()) {
                                     Qt::GlobalColor qtColor = ColorManager().getColor(tl.colorID);
                                     const int32_t colorInt = qtColor;
                                     const int redByte = (colorInt & 0x00ff0000) >> 16;

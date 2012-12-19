@@ -294,7 +294,7 @@ PreferencesDialog::addTimeCourseItems()
     this->animationStartDoubleSpinBox->setValue(time);    
     this->animationStartDoubleSpinBox->blockSignals(false);
 
-    /*this->addWidgetToLayout("Timecourse Animation Starts at: ", 
+    this->addWidgetToLayout("Timecourse Animation Starts at: ", 
                              this->animationStartDoubleSpinBox);*/
 }
 

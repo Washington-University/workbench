@@ -124,7 +124,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
     /*
      * Get access to threshold data
      */
-    float* thresholdDataPointer = NULL;
+    //float* thresholdDataPointer = NULL;
     bool ignoreThresholding = true;
     if (thresholdVolume != NULL) {
         int64_t threshI, threshJ, threshK, threshMapCount, threshNumberOfComponents;
@@ -146,7 +146,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
              * Can use same voxel counter per map since volumes are
              * identical dimensions;
              */
-            thresholdDataPointer = thresholdVolume->m_data + m_voxelCountPerMap;
+            //thresholdDataPointer = thresholdVolume->m_data + m_voxelCountPerMap;//TSC: this is unused, and can easily be an invalid pointer - commenting out for unused warning
             ignoreThresholding = false;
         }
     }

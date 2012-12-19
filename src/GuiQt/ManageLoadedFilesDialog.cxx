@@ -84,7 +84,7 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
 {
     if (ManageLoadedFilesDialog::firstWindowFlag) {
         ManageLoadedFilesDialog::firstWindowFlag = false;
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        //CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     }
     this->brain = brain;
     this->brain->determineDisplayedDataFiles();

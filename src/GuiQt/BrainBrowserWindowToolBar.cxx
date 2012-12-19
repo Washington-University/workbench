@@ -2601,7 +2601,7 @@ BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
  *    New status of check box.
  */
 void 
-BrainBrowserWindowToolBar::surfaceMontageCheckBoxSelected(bool status)
+BrainBrowserWindowToolBar::surfaceMontageCheckBoxSelected(bool /*status*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
