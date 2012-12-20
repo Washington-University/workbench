@@ -90,12 +90,15 @@ MovieDialog::MovieDialog(QWidget *parent) :
 
 MovieDialog::~MovieDialog()
 {
+    ui->animateButton->setChecked(false);    
     delete ui;
     EventManager::get()->removeAllEventsFromListener(this);
+
 }
 
 void MovieDialog::on_closeButton_clicked()
 {
+    ui->animateButton->setChecked(false);    
     this->close();
 }
 
