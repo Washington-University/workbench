@@ -108,7 +108,7 @@ void
 VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
                                                   const Palette* palette,
                                                   const VolumeFile* thresholdVolume,
-                                                  const int32_t thresholdVolumeMapIndex)
+                                                  const int32_t /*thresholdVolumeMapIndex*/)
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     

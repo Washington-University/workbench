@@ -174,13 +174,13 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
-        const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
+        /*const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
         const bool isLeftDragWithControlAndShiftKeyDown = (isLeftDrag
                                                            && mouseEvent->isControlAndShiftKeyDown());
         const bool isWheelWithControlAndShiftKeyDown = (isWheel
                                                         && mouseEvent->isControlAndShiftKeyDown());
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
-                                                  && mouseEvent->isShiftKeyDown());
+                                                  && mouseEvent->isShiftKeyDown());//*/
         bool doTransformation = false;
         bool doIdentification = false;
         

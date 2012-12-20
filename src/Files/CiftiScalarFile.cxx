@@ -515,10 +515,9 @@ CiftiScalarFile::isMappedWithLabelTable() const
  *    Returns NULL since this file does not support label tables.
  */
 GiftiLabelTable*
-CiftiScalarFile::getMapLabelTable(const int32_t mapIndex)
+CiftiScalarFile::getMapLabelTable(const int32_t /*mapIndex*/)
 {
-    CaretAssertVectorIndex(m_mapData,
-                           mapIndex);
+    //CaretAssertVectorIndex(m_mapData, mapIndex);
     return NULL;
 }
 
@@ -532,10 +531,9 @@ CiftiScalarFile::getMapLabelTable(const int32_t mapIndex)
  *    Returns NULL since this file does not support label tables.
  */
 const GiftiLabelTable*
-CiftiScalarFile::getMapLabelTable(const int32_t mapIndex) const
+CiftiScalarFile::getMapLabelTable(const int32_t /*mapIndex*/) const
 {
-    CaretAssertVectorIndex(m_mapData,
-                           mapIndex);
+    //CaretAssertVectorIndex(m_mapData, mapIndex);
     return NULL;
 }
 

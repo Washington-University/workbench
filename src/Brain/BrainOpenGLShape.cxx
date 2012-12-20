@@ -188,7 +188,7 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID)
         }
     }
 #else  // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL vertex buffer but vertex buffers not supported.");
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL vertex buffer #" + AString::number(bufferID) + " but vertex buffers not supported.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
 }
 
@@ -218,7 +218,7 @@ BrainOpenGLShape::releaseDisplayListInternal(const GLuint displayList)
         }
     }
 #else  // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL display list but display lists not supported.");
+    CaretLogSevere("PROGRAM ERROR: Releasing OpenGL display list #" + AString::number(displayList) + " but display lists not supported.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
 }
 

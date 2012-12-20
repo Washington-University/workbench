@@ -188,8 +188,7 @@ void
 SurfacePropertiesEditorDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
+        CaretAssert(dynamic_cast<EventUserInterfaceUpdate*>(event) != NULL);
         
         updateDialog();
     }

@@ -324,13 +324,11 @@ GroupAndNameHierarchyItem::getChildWithNameAndIdNumber(const AString& name,
 void
 GroupAndNameHierarchyItem::addChild(GroupAndNameHierarchyItem* child)
 {
-    const int32_t idNumber = child->getIdNumber();
-    const AString childName = child->getName();
-    CaretAssertMessage((getChildWithNameAndIdNumber(childName, idNumber) != NULL),
+    CaretAssertMessage((getChildWithNameAndIdNumber(child->getName(), child->getIdNumber()) != NULL),
                        ("Child with name="
-                        + childName
+                        + child->getName()
                         + ", idNumber="
-                        + AString::number(idNumber)
+                        + AString::number(child->getIdNumber())
                         + " already is in item named="
                         + getName()));
     

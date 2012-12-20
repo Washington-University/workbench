@@ -226,7 +226,7 @@ WuQTabWidget::setCurrentWidget(QWidget* widget)
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-WuQTabWidget::saveToScene(const SceneAttributes* sceneAttributes,
+WuQTabWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                            const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -257,7 +257,7 @@ WuQTabWidget::saveToScene(const SceneAttributes* sceneAttributes,
  *     saved and should be restored.
  */
 void
-WuQTabWidget::restoreFromScene(const SceneAttributes* sceneAttributes,
+WuQTabWidget::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                                 const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

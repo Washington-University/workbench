@@ -532,9 +532,8 @@ FiberTrajectorySelectionViewController::processSelectionChanges()
                        m_displayTrajectoriesCheckBox->isChecked());
     
     
-    const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
     const int32_t numberOfFiberTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    CaretAssert(numberOfFiberTrajFiles <= numberOfFileCheckBoxes);
+    CaretAssert(numberOfFiberTrajFiles <= static_cast<int32_t>(m_fileSelectionCheckBoxes.size()));
     for (int32_t iff = 0; iff < numberOfFiberTrajFiles; iff++) {
         CiftiFiberTrajectoryFile* cftf = brain->getConnectivityFiberTrajectoryFile(iff);
             cftf->setDisplayed(displayGroup,

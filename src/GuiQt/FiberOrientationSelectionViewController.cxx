@@ -483,9 +483,8 @@ FiberOrientationSelectionViewController::processSelectionChanges()
                        browserTabIndex,
                        m_displayFibersCheckBox->isChecked());
     
-    const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
-    CaretAssert(numberOfFiberOrientFiles <= numberOfFileCheckBoxes);
+    CaretAssert(numberOfFiberOrientFiles <= static_cast<int32_t>(m_fileSelectionCheckBoxes.size()));
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
         CiftiFiberOrientationFile* cfof = brain->getConnectivityFiberOrientationFile(iff);
         cfof->setDisplayed(displayGroup,

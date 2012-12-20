@@ -542,7 +542,7 @@ ConnectivityTimeSeriesViewController::frameSpinBoxValueChanged(int frame)
     if (this->connectivityLoaderFile != NULL) {
         //const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
         const int currentValue = this->connectivityLoaderFile->getSelectedFrame();
-        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();        
+        //CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();        
         
         //TODOJS: Remember to update frame label
         //NOTE!!

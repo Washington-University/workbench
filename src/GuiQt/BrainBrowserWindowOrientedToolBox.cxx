@@ -506,7 +506,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveFibers     = false;
         bool haveFoci       = false;
         bool haveLabels     = false;
-        bool haveOverlays   = false;
+        //bool haveOverlays   = false;
         bool haveSurfaces   = false;
         bool haveTraj       = false;
         bool haveVolumes    = false;
@@ -524,16 +524,16 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
                     haveDense = true;
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     haveDataSeries = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -547,15 +547,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::LABEL:
                     haveLabels = true;
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::METRIC:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::SCENE:
                     break;
@@ -567,7 +567,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::UNKNOWN:
                     break;
                 case DataFileTypeEnum::VOLUME:
-                    haveOverlays = true;
+                    //haveOverlays = true;
                     haveVolumes = true;
                     break;
             }
