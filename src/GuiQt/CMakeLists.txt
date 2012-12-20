@@ -43,7 +43,6 @@ ColorEditorWidget.h
 ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
-ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
@@ -136,7 +135,6 @@ ColorEditorWidget.h
 ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
-ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
@@ -166,7 +164,6 @@ GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
-ImageExportDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
@@ -247,7 +244,6 @@ ColorEditorWidget.cxx
 ConnectivityDenseViewController.cxx
 ConnectivityManagerViewController.cxx
 ConnectivityTimeSeriesViewController.cxx
-ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
@@ -276,7 +272,6 @@ GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx
-ImageExportDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
@@ -338,7 +333,6 @@ WuQtUtilities.cxx
 )
 
 SET(FORMS
-    ImageExportDialog.ui
     MovieDialog.ui
     TimeCourseDialog.ui)
 
