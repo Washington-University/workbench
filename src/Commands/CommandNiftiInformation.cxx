@@ -91,7 +91,17 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
         if(!QFile::exists(fileName)) throw CommandException("File "+fileName+" does not exist.");
         else if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) throw CommandException("File doesn't end with .nii extension, is this really a Nifti file?");
 
-        if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
+        bool validDataFileType = false;
+        const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(fileName,
+                                                                                  &validDataFileType);
+        bool isCiftiFile = false;
+        if (validDataFileType) {
+            if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+                isCiftiFile = true;
+            }
+        }
+        //if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
+        if (isCiftiFile)
         {
             CiftiFile cf(fileName, ON_DISK);
             if(printHeader) {
