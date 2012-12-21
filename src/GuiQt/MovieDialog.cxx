@@ -558,6 +558,7 @@ void MovieDialog::processUpdateVolumeSlice()
     if(!bw)
     {
         CaretLogInfo("Invalid browser window index, " + AString::number(m_browserWindowIndex));
+        ui->animateButton->setChecked(false);
         return;
     }
 	BrowserTabContent *btc = bw->getBrowserTabContent();
@@ -621,6 +622,7 @@ void MovieDialog::captureFrame(AString filename)
     if (valid == false) {
         WuQMessageBox::errorOk(this, 
             "Invalid window selected");
+        ui->recordButton->setChecked(false);
         return;
     }
 
@@ -681,6 +683,7 @@ void MovieDialog::processUpdateSurfaceInterpolation()
     if(!bw)
     {
         CaretLogInfo("Invalid browser window index, " + AString::number(m_browserWindowIndex));
+        ui->animateButton->setChecked(false);
         return;
     }
 
