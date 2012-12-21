@@ -30,6 +30,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class CiftiConnectivityMatrixDataFile;
     class CiftiScalarFile;
     class ConnectivityLoaderFile;
     class LabelFile;
@@ -56,24 +57,28 @@ namespace caret {
          * files are requested.  If NULL, then map data files
          * from all brain structures are requested. 
          */
-        const Surface* getSurface() const { return this->surface; }
+        const Surface* getSurface() const { return m_surface; }
+        
+        /** @return Returns the cifti connectivity matrix data files */
+        std::vector<CiftiConnectivityMatrixDataFile*> getCiftiConnectivityMatrixDataFiles() const { return m_ciftiConnectivityMatrixDataFiles; }
         
         /** @return Returns the connectivity loader files. */
-        std::vector<ConnectivityLoaderFile*> getConnectivityLoaderFiles() const { return this->connectivityLoaderFiles; }
+        std::vector<ConnectivityLoaderFile*> getConnectivityLoaderFiles() const { return m_connectivityLoaderFiles; }
         
-        std::vector<CiftiScalarFile*> getCiftiScalarFiles() const { return this->ciftiScalarFiles; }
+        /** @return the cifti scalar files */
+        std::vector<CiftiScalarFile*> getCiftiScalarFiles() const { return m_ciftiScalarFiles; }
         
         /** @return Returns the label files. */
-        std::vector<LabelFile*> getLabelFiles() const { return this->labelFiles; }
+        std::vector<LabelFile*> getLabelFiles() const { return m_labelFiles; }
         
         /** @return Returns the metric files. */
-        std::vector<MetricFile*> getMetricFiles() const { return this->metricFiles; }
+        std::vector<MetricFile*> getMetricFiles() const { return m_metricFiles; }
         
         /** @return Returns the rgba files. */
-        std::vector<RgbaFile*> getRgbaFiles() const { return this->rgbaFiles; }
+        std::vector<RgbaFile*> getRgbaFiles() const { return m_rgbaFiles; }
         
         /** @return Returns the volume files. */
-        std::vector<VolumeFile*> getVolumeFiles() const { return this->volumeFiles; }
+        std::vector<VolumeFile*> getVolumeFiles() const { return m_volumeFiles; }
         
         void getAllFiles(std::vector<CaretMappableDataFile*>& allFilesOut) const;
         
@@ -82,19 +87,21 @@ namespace caret {
         
         EventCaretMappableDataFilesGet& operator=(const EventCaretMappableDataFilesGet&);
         
-        const Surface* surface;
+        const Surface* m_surface;
         
-        std::vector<CiftiScalarFile*> ciftiScalarFiles;
+        std::vector<CiftiConnectivityMatrixDataFile*> m_ciftiConnectivityMatrixDataFiles;
+        
+        std::vector<CiftiScalarFile*> m_ciftiScalarFiles;
             
-        std::vector<ConnectivityLoaderFile*> connectivityLoaderFiles;
+        std::vector<ConnectivityLoaderFile*> m_connectivityLoaderFiles;
         
-        std::vector<LabelFile*> labelFiles;
+        std::vector<LabelFile*> m_labelFiles;
         
-        std::vector<MetricFile*> metricFiles;
+        std::vector<MetricFile*> m_metricFiles;
         
-        std::vector<RgbaFile*> rgbaFiles;
+        std::vector<RgbaFile*> m_rgbaFiles;
         
-        std::vector<VolumeFile*> volumeFiles;
+        std::vector<VolumeFile*> m_volumeFiles;
         
     };
 

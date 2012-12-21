@@ -33,6 +33,7 @@
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiScalarFile.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
@@ -290,6 +291,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                {
+                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                            selectedMapUniqueID,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     isColoringValid = this->assignCiftiScalarColoring(brainStructure,
                                                                  dynamic_cast<CiftiScalarFile*>(selectedMapFile),
@@ -306,6 +317,26 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                {
+                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                            selectedMapUniqueID,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                {
+                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                            selectedMapUniqueID,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;
@@ -737,6 +768,56 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         CaretLogSevere("Selected palette for metric is invalid: \"" + paletteName + "\"");
     }
     return true;
+}
+
+/**
+ * Assign cifti scalar coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiScalarFile
+ *    Cifti Scalar file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiConnectivityMatrixColoring(const BrainStructure* brainStructure,
+                                                           CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
+                                                           const AString& selectedMapUniqueID,
+                                                           const int32_t numberOfNodes,
+                                                           float* rgbv)
+{
+    const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+//    const PaletteColorMapping* paletteColorMapping = ciftiConnectivityMatrixFile->getMapPaletteColorMapping(mapIndex);
+//    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+//    const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
+    
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiConnectivityMatrixFile->getMapSurfaceNodeColoring(mapIndex,
+                                                           structure,
+                                                           rgbv,
+                                                           numberOfNodes);
+    return true;
+    
 }
 
 /**

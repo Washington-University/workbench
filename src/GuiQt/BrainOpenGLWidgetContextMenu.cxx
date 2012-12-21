@@ -44,6 +44,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "CiftiConnectivityMatrixDataFileManager.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"

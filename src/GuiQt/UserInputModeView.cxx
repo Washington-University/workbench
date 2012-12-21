@@ -35,6 +35,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "CiftiConnectivityMatrixDataFileManager.h"
 #include "ConnectivityLoaderManager.h"
 #include "CursorDisplayScoped.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -174,7 +175,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
-    
+    CiftiConnectivityMatrixDataFileManager* ciftiMan = brain->getCiftiConnectivityMatrixDataFileManager();
     IdentificationManager* identificationManager = brain->getIdentificationManager();
     
     SelectionManager* selectionManager =
@@ -249,6 +250,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 
                 TimeLine timeLine;
                 connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
+                ciftiMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
                 
                 surface->getTimeLineInformation(nodeIndex,timeLine);
                 connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
@@ -321,6 +323,8 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 try {
                     connMan->loadDataForVoxelAtCoordinate(xyz,
                                                           ciftiLoadingInfo);
+                    ciftiMan->loadDataForVoxelAtCoordinate(xyz,
+                                                           ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();

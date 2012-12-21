@@ -1125,6 +1125,12 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             invalid = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             checkShapeFile = true;
             break;

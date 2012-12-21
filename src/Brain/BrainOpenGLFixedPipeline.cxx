@@ -59,6 +59,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
+#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
@@ -2364,8 +2365,12 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                 if (mapFile->isVolumeMappable()) {
                     VolumeFile* vf = NULL;
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
+                    CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapFile);
                     if (connLoadFile != NULL) {
                         vf = connLoadFile->getConnectivityVolumeFile();  
+                    }
+                    else if (ciftiMatrixFile != NULL) {
+                        vf = ciftiMatrixFile->getMapVolume(mapIndex);
                     }
                     else {
                         vf = dynamic_cast<VolumeFile*>(mapFile);

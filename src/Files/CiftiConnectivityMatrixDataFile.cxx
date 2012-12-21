@@ -103,6 +103,8 @@ CiftiConnectivityMatrixDataFile::clearPrivate()
     }
     m_ciftiXML = NULL; // do not delete since it points to data that will be deleted
     m_mapContent.clear();
+    CaretPointer<MapContent> mc(new MapContent());
+    m_mapContent.push_back(mc);
 }
 
 /**
@@ -249,7 +251,8 @@ CiftiConnectivityMatrixDataFile::isVolumeMappable() const
 int32_t
 CiftiConnectivityMatrixDataFile::getNumberOfMaps() const
 {
-    return m_mapContent.size();
+    return 1;
+//    return m_mapContent.size();
 }
 
 /**
@@ -595,7 +598,8 @@ CiftiConnectivityMatrixDataFile::updateScalarColoringForMap(const int32_t mapInd
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    m_mapContent[mapIndex]->updateColoring(paletteFile);
+    m_mapContent[mapIndex]->updateColoring(mapIndex,
+                                           paletteFile);
 }
 
 /**
@@ -742,6 +746,132 @@ CiftiConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t mapInde
     }
     
     return rowIndex;
+}
+
+/**
+ * Get the index of a row when loading data for a voxel at a coordinate.
+ * @param mapIndex
+ *    Index of the map.
+ * @param xyz
+ *    Coordinate of the voxel.
+ * @return
+ *    Index of row corresponding to voxel or negative if no row in the
+ *    matrix corresponds to the voxel.
+ */
+int64_t
+CiftiConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
+                                                                const float xyz[3]) const
+{
+    int64_t rowIndex = -1;
+    
+    /*
+     * Get the mapping type
+     */
+    const IndicesMapToDataType rowMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_LOADING);
+    
+        bool isBrainModels = false;
+        bool isParcels     = false;
+        switch (rowMappingType) {
+            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+                isBrainModels = true;
+                break;
+            case CIFTI_INDEX_TYPE_FIBERS:
+                break;
+            case CIFTI_INDEX_TYPE_INVALID:
+                break;
+            case CIFTI_INDEX_TYPE_LABELS:
+                break;
+            case CIFTI_INDEX_TYPE_PARCELS:
+                isParcels = true;
+                break;
+            case CIFTI_INDEX_TYPE_SCALARS:
+                break;
+            case CIFTI_INDEX_TYPE_TIME_POINTS:
+                break;
+        }
+        
+        if (isBrainModels) {
+            rowIndex = m_ciftiXML->getRowIndexForVoxelCoordinate(xyz);
+        }
+        else if (isParcels) {
+            CaretAssertVectorIndex(m_mapContent,
+                                   mapIndex);
+            int64_t ijk[3];
+            if (m_mapContent[mapIndex]->voxelXYZToIJK(mapIndex, xyz, ijk)) {
+                rowIndex = m_ciftiXML->getColumnParcelForVoxel(ijk);
+            }
+        }
+        else {
+            CaretAssert(0);
+            CaretLogSevere("Invalid row mapping type for connectivity file "
+                           + DataFileTypeEnum::toName(getDataFileType()));
+        }
+    
+    return rowIndex;
+    
+}
+
+/**
+ * Get the index of a row when loading data for a voxel at a coordinate.
+ * @param mapIndex
+ *    Index of the map.
+ * @param xyz
+ *    Coordinate of the voxel.
+ * @return
+ *    Index of row corresponding to voxel or negative if no row in the
+ *    matrix corresponds to the voxel.
+ */
+int64_t
+CiftiConnectivityMatrixDataFile::getColumnIndexForVoxelWhenViewing(const int32_t mapIndex,
+                                                                   const float xyz[3]) const
+{
+    int64_t columnIndex = -1;
+    
+    /*
+     * Get the mapping type
+     */
+    const IndicesMapToDataType columnMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_VIEWING);
+    
+    bool isBrainModels = false;
+    bool isParcels     = false;
+    switch (columnMappingType) {
+        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+            isBrainModels = true;
+            break;
+        case CIFTI_INDEX_TYPE_FIBERS:
+            break;
+        case CIFTI_INDEX_TYPE_INVALID:
+            break;
+        case CIFTI_INDEX_TYPE_LABELS:
+            break;
+        case CIFTI_INDEX_TYPE_PARCELS:
+            isParcels = true;
+            break;
+        case CIFTI_INDEX_TYPE_SCALARS:
+            break;
+        case CIFTI_INDEX_TYPE_TIME_POINTS:
+            break;
+    }
+    
+    if (isBrainModels) {
+        columnIndex = m_ciftiXML->getColumnIndexForVoxelCoordinate(xyz);
+    }
+    else if (isParcels) {
+        CaretAssertVectorIndex(m_mapContent,
+                               mapIndex);
+        int64_t ijk[3];
+        if (m_mapContent[mapIndex]->voxelXYZToIJK(mapIndex, xyz, ijk)) {
+            columnIndex = m_ciftiXML->getRowParcelForVoxel(ijk);
+        }
+    }
+    else {
+        CaretAssert(0);
+        CaretLogSevere("Invalid row mapping type for connectivity file "
+                       + DataFileTypeEnum::toName(getDataFileType()));
+    }
+    
+    return columnIndex;
+    
 }
 
 /**
@@ -1072,7 +1202,64 @@ int64_t
 CiftiConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                               const float xyz[3]) throw (DataFileException)
 {
-    throw DataFileException("Voxel loading not implemented at this time");
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException("Connectivity matrix file named \""
+                                + getFileNameNoPath()
+                                + "\" of type\""
+                                + DataFileTypeEnum::toName(getDataFileType())
+                                + "\" does not have a file loaded.");
+    }
+    
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    MapContent* mapContent = m_mapContent[mapIndex];
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (mapContent->m_dataLoadingEnabled == false) {
+        return -1;
+    }
+    
+    int64_t rowIndex = -1;
+    
+    try {
+        bool dataWasLoaded = false;
+        
+        int64_t rowIndex = getRowIndexForVoxelWhenLoading(mapIndex,
+                                                          xyz);
+        
+        if (rowIndex >= 0) {
+            const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+            if (dataCount > 0) {
+                std::vector<float> dataVector(dataCount);
+                float* data = &dataVector[0];
+                
+                CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+                m_ciftiInterface->getRow(data, rowIndex);
+                mapContent->updateData(m_ciftiInterface,
+                                       mapIndex,
+                                       data,
+                                       dataCount);
+                CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+                
+                dataWasLoaded = true;
+            }
+        }
+        
+        if (dataWasLoaded == false) {
+            CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+    return rowIndex;
     
 //    if (this->ciftiInterface == NULL) {
 //        throw DataFileException("Connectivity Loader has not been initialized");
@@ -1167,7 +1354,9 @@ CiftiConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t m
  * @param ijkOut
  *     Voxel indices of value.
  * @param valueOut
- *     Output containing the node's value, value only if true returned.
+ *     Output containing the node's value, value only if true returned.0
+ * @param textOut
+ *     Text containing node value and for some types, the parcel.
  * @return
  *    true if a value was available for the voxel, else false.
  */
@@ -1175,9 +1364,60 @@ bool
 CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                                                      const float xyz[3],
                                             int64_t ijkOut[3],
-                                            float &valueOut) const
+                                                        float &valueOut,
+                                                        AString& textOut) const
 {
-    CaretAssert(0);
+    valueOut = 0.0;
+    textOut = "";
+    
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException("Connectivity matrix file named \""
+                                + getFileNameNoPath()
+                                + "\" of type\""
+                                + DataFileTypeEnum::toName(getDataFileType())
+                                + "\" does not have a file loaded.");
+    }
+    
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    const MapContent* mapContent = m_mapContent[mapIndex];
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (mapContent->m_dataLoadingEnabled == false) {
+        return -1;
+    }
+    
+    try {
+        int64_t columnIndex = getColumnIndexForVoxelWhenViewing(mapIndex,
+                                                                xyz);
+        
+        if ((columnIndex >= 0)
+            && (columnIndex < mapContent->m_dataCount)) {
+            valueOut = mapContent->m_data[columnIndex];
+            
+            textOut = AString::number(valueOut);
+            
+            std::vector<CiftiParcelElement> parcels;
+            m_ciftiXML->getParcelsForColumns(parcels);
+            textOut = AString::number(valueOut);
+            if (columnIndex < static_cast<int32_t>(parcels.size())) {
+                textOut += (" "
+                            + parcels[columnIndex].m_parcelName);
+            }
+            
+            return true;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
     return false;
 //    if (this->numberOfDataElements <= 0) {
 //        return false;
@@ -1267,90 +1507,68 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
  *     Number of nodes in the surface.
  * @param valueOut
  *     Output containing the node's value, value only if true returned.
+ * @param textOut
+ *     Text containing node value and for some types, the parcel.
  * @return
  *    true if a value was available for the node, else false.
  */
 bool
 CiftiConnectivityMatrixDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
-                                                     const StructureEnum::Enum structure,
-                                            const int nodeIndex,
-                                            const int32_t numberOfNodes,
-                                            float& valueOut) const
+                                                        const StructureEnum::Enum structure,
+                                                        const int nodeIndex,
+                                                        const int32_t numberOfNodes,
+                                                        float& valueOut,
+                                                        AString& textOut) const
 {
-    CaretAssert(0);
+    valueOut = 0.0;
+    textOut = "";
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException("Connectivity matrix file named \""
+                                + getFileNameNoPath()
+                                + "\" of type\""
+                                + DataFileTypeEnum::toName(getDataFileType())
+                                + "\" does not have a file loaded.");
+    }
+    
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    const MapContent* mapContent = m_mapContent[mapIndex];
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (mapContent->m_dataLoadingEnabled == false) {
+        return -1;
+    }
+
+    try {
+        int64_t columnIndex = getColumnIndexForNodeWhenViewing(structure,
+                                                               numberOfNodes,
+                                                               nodeIndex);
+        
+        if ((columnIndex >= 0)
+            && (columnIndex < mapContent->m_dataCount)) {
+            valueOut = mapContent->m_data[columnIndex];
+            
+            std::vector<CiftiParcelElement> parcels;
+            m_ciftiXML->getParcelsForColumns(parcels);
+            textOut = AString::number(valueOut);
+            if (columnIndex < static_cast<int32_t>(parcels.size())) {
+                textOut += (" "
+                            + parcels[columnIndex].m_parcelName);
+            }
+            return true;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+
     return false;
-//    if (this->numberOfDataElements <= 0) {
-//        return false;
-//    }
-//    
-//    bool validMapToType = false;
-//    switch (this->mapToType) {
-//        case MAP_TO_TYPE_INVALID:
-//            validMapToType = false;
-//            break;
-//        case MAP_TO_TYPE_BRAINORDINATES:
-//            validMapToType = true;
-//            break;
-//        case MAP_TO_TYPE_TIMEPOINTS:
-//            validMapToType = false;
-//            break;
-//    }
-//    if (validMapToType == false) {
-//        return false;
-//    }
-//    
-//    bool useColumnsFlag = false;
-//    bool useRowsFlag = false;
-//    switch (this->loaderType) {
-//        case LOADER_TYPE_INVALID:
-//            break;
-//        case LOADER_TYPE_DENSE:
-//            useRowsFlag = true;
-//            break;
-//        case LOADER_TYPE_DENSE_TIME_SERIES:
-//            useColumnsFlag = true;
-//            break;
-//        case LOADER_TYPE_FIBER_ORIENTATIONS:
-//            CaretAssert(0);
-//            break;
-//        case LOADER_TYPE_DENSE_LABELS:
-//            CaretAssert(0);
-//            break;
-//        case LOADER_TYPE_DENSE_SCALARS:
-//            useColumnsFlag = true;
-//            break;
-//    }
-//    
-//    std::vector<CiftiSurfaceMap> nodeMap;
-//    if (useColumnsFlag
-//        && this->ciftiInterface->hasColumnSurfaceData(structure)) {
-//        const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
-//        if (numberOfNodes != numCiftiNodes) {
-//            return false;
-//        }
-//        this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
-//    }
-//    if (useRowsFlag
-//        && this->ciftiInterface->hasRowSurfaceData(structure)) {
-//        const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-//        if (numberOfNodes != numCiftiNodes) {
-//            return false;
-//        }
-//        this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
-//    }
-//    
-//    if (nodeMap.empty() == false) {
-//        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
-//        for (int i = 0; i < numNodeMaps; i++) {
-//            if (nodeMap[i].m_surfaceNode == nodeIndex) {
-//                CaretAssertArrayIndex(this->data, this->numberOfDataElements, nodeMap[i].m_ciftiIndex);
-//                valueOut = this->data[nodeMap[i].m_ciftiIndex];
-//                return true;
-//            }
-//        }
-//    }
-//    
-//    return false;
 }
 
 /**
@@ -1401,8 +1619,8 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeColoring(const int32_t mapInde
                                                                        surfaceNumberOfNodes,
                                                                        i);
                 const int64_t surfaceRgbaOffset = i * 4;
-                if (columnIndex >= 0) {
-                    CaretAssert(columnIndex < mapContent->m_dataCount);
+                if ((columnIndex >= 0)
+                    && (columnIndex < mapContent->m_dataCount)) {
                     const int64_t rgbaOffset = columnIndex * 4;
                     surfaceRGBA[surfaceRgbaOffset]   = mapContent->m_rgba[rgbaOffset];
                     surfaceRGBA[surfaceRgbaOffset+1] = mapContent->m_rgba[rgbaOffset+1];
@@ -1425,99 +1643,6 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeColoring(const int32_t mapInde
     }
     
     return false;
-//    if (this->numberOfDataElements <= 0) {
-//        return false;
-//    }
-//    
-//    bool validMapToType = false;
-//    switch (this->mapToType) {
-//        case MAP_TO_TYPE_INVALID:
-//            validMapToType = false;
-//            break;
-//        case MAP_TO_TYPE_BRAINORDINATES:
-//            validMapToType = true;
-//            break;
-//        case MAP_TO_TYPE_TIMEPOINTS:
-//            validMapToType = false;
-//            break;
-//    }
-//    if (validMapToType == false) {
-//        return false;
-//    }
-//    
-//    bool useColumnsFlag = false;
-//    bool useRowsFlag = false;
-//    switch (this->loaderType) {
-//        case LOADER_TYPE_INVALID:
-//            break;
-//        case LOADER_TYPE_DENSE:
-//            useRowsFlag = true;
-//            break;
-//        case LOADER_TYPE_DENSE_TIME_SERIES:
-//            useColumnsFlag = true;
-//            break;
-//        case LOADER_TYPE_FIBER_ORIENTATIONS:
-//            CaretAssert(0);
-//            break;
-//        case LOADER_TYPE_DENSE_LABELS:
-//            CaretAssert(0);
-//            break;
-//        case LOADER_TYPE_DENSE_SCALARS:
-//            useColumnsFlag = true;
-//            break;
-//    }
-//    
-//    std::vector<CiftiSurfaceMap> nodeMap;
-//    if (useColumnsFlag
-//        && this->ciftiInterface->hasColumnSurfaceData(structure)) {
-//        const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
-//        if (numberOfNodes != numCiftiNodes) {
-//            CaretLogWarning("CIFTI file "
-//                            + this->getFileNameNoPath()
-//                            + " has "
-//                            + AString::number(numCiftiNodes)
-//                            + " but surface with structure "
-//                            + StructureEnum::toGuiName(structure)
-//                            + " contains "
-//                            + AString::number(numberOfNodes));
-//            return false;
-//        }
-//        this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
-//    }
-//    if (useRowsFlag
-//        && this->ciftiInterface->hasRowSurfaceData(structure)) {
-//        const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-//        if (numberOfNodes != numCiftiNodes) {
-//            CaretLogWarning("CIFTI file "
-//                            + this->getFileNameNoPath()
-//                            + " has "
-//                            + AString::number(numCiftiNodes)
-//                            + " but surface with structure "
-//                            + StructureEnum::toGuiName(structure)
-//                            + " contains "
-//                            + AString::number(numberOfNodes));
-//            return false;
-//        }
-//        this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
-//    }
-//    
-//    if (nodeMap.empty() == false) {
-//        std::fill(nodeRGBA, (nodeRGBA + (numberOfNodes * 4)), 0.0);
-//        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
-//        for (int i = 0; i < numNodeMaps; i++) {
-//            const int64_t node4 = nodeMap[i].m_surfaceNode * 4;
-//            const int64_t cifti4 = nodeMap[i].m_ciftiIndex * 4;
-//            CaretAssertArrayIndex(nodeRGBA, (numberOfNodes * 4), node4);
-//            CaretAssertArrayIndex(this->dataRGBA, (this->numberOfDataElements * 4), cifti4);
-//            nodeRGBA[node4]   = this->dataRGBA[cifti4];
-//            nodeRGBA[node4+1] = this->dataRGBA[cifti4+1];
-//            nodeRGBA[node4+2] = this->dataRGBA[cifti4+2];
-//            nodeRGBA[node4+3] = this->dataRGBA[cifti4+3];
-//        }
-//        return true;
-//    }
-//    
-//    return false;
 }
 
 /**
@@ -1610,11 +1735,13 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
      * Need access the CIFTI_XML.
      */
     const CiftiXML& ciftiXML = ciftiInterface->getCiftiXML();
-    *m_paletteColorMapping = *ciftiXML.getMapPalette(CIFTI_INDEX_VIEWING,
-                                                     mapIndex);
+    *m_paletteColorMapping = *ciftiXML.getFilePalette();
+//    *m_paletteColorMapping = *ciftiXML.getMapPalette(CIFTI_INDEX_VIEWING,
+//                                                     mapIndex);
     
-    const std::map<AString, AString>* metaDataMap = ciftiXML.getMapMetadata(CIFTI_INDEX_VIEWING,
-                                                                             mapIndex);
+    const std::map<AString, AString>* metaDataMap = ciftiXML.getFileMetaData();
+//    const std::map<AString, AString>* metaDataMap = ciftiXML.getMapMetadata(CIFTI_INDEX_VIEWING,
+//                                                                             mapIndex);
     m_metaData->clear();
     for (std::map<AString, AString>::const_iterator iter = metaDataMap->begin();
          iter != metaDataMap->end();
@@ -1625,117 +1752,49 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
 
     m_descriptiveStatistics->invalidateData();
     
+    
+    const IndicesMapToDataType mappingType = ciftiXML.getMappingType(CIFTI_INDEX_VIEWING);
+    
+    bool isBrainModels = false;
+    bool isParcels     = false;
+    switch (mappingType) {
+        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+            isBrainModels = true;
+            break;
+        case CIFTI_INDEX_TYPE_FIBERS:
+            break;
+        case CIFTI_INDEX_TYPE_INVALID:
+            break;
+        case CIFTI_INDEX_TYPE_LABELS:
+            break;
+        case CIFTI_INDEX_TYPE_PARCELS:
+            isParcels = true;
+            break;
+        case CIFTI_INDEX_TYPE_SCALARS:
+            break;
+        case CIFTI_INDEX_TYPE_TIME_POINTS:
+            break;
+    }
     /*
      * Is there volume data?
      */
     bool needVolumeFlag = false;
     m_ciftiToVolumeMapping.clear();
-    if (ciftiInterface->hasRowVolumeData()) {
-        /*
-         * Get mapping from CIFTI to voxels
-         */
-        ciftiInterface->getVolumeMapForRows(m_ciftiToVolumeMapping);
-        
-        if (m_ciftiToVolumeMapping.empty() == false) {
+    const bool haveRowVolumeData = true;  //ciftiInterface->hasRowVolumeData()
+    if (haveRowVolumeData) {
+        if (isBrainModels) {
             /*
-             * Get volume attributes and make sure orthogonal
+             * Get mapping from CIFTI to voxels
              */
-            VolumeFile::OrientTypes orientation[3];
-            int64_t dimensions[3];
-            float origin[3];
-            float spacing[3];
-            if (ciftiInterface->getVolumeAttributesForPlumb(orientation,
-                                                                  dimensions,
-                                                                  origin,
-                                                                  spacing)) {
+            ciftiInterface->getVolumeMapForRows(m_ciftiToVolumeMapping);
+            
+            if (m_ciftiToVolumeMapping.empty() == false) {
                 needVolumeFlag = true;
                 
-                bool createVolumeFlag = false;
-                if (m_volumeFile != NULL) {
-                    /*
-                     * Compare attributes of existing volume and
-                     * requested attributes to see if volume needs
-                     * to be recreated.
-                     */
-                    int64_t dimI, dimJ, dimK, dimTime, numComp;
-                    m_volumeFile->getDimensions(dimI, dimJ, dimK, dimTime, numComp);
-                    if ((dimI != dimensions[0])
-                        || (dimJ != dimensions[1])
-                        || (dimK != dimensions[2])) {
-                        createVolumeFlag = true;
-                    }
-                    else {
-                        float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
-                        m_volumeFile->indexToSpace(0, 0, 0, x0, y0, z0);
-                        m_volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-                        const float dx = x1 - x0;
-                        const float dy = y1 - y0;
-                        const float dz = z1 - z0;
-                        
-                        const float diffOrigin[3] = {
-                            std::fabs(x0 - origin[0]),
-                            std::fabs(y0 - origin[1]),
-                            std::fabs(z0 - origin[2])
-                        };
-                        
-                        const float diffSpacing[3] = {
-                            std::fabs(dx - spacing[0]),
-                            std::fabs(dy - spacing[1]),
-                            std::fabs(dz - spacing[2]),
-                        };
-                        
-                        const float maxDiff = 0.0001;
-                        if ((diffOrigin[0] > maxDiff)
-                            || (diffOrigin[1] > maxDiff)
-                            || (diffOrigin[2] > maxDiff)) {
-                            createVolumeFlag = true;
-                        }
-                        else if ((diffSpacing[0] > maxDiff)
-                                 || (diffSpacing[1] > maxDiff)
-                                 || (diffSpacing[2] > maxDiff)) {
-                            createVolumeFlag = true;
-                        }
-                    }
-                }
-                
                 /*
-                 * If needed, recreate the volume
+                 * Create the volume
                  */
-                if (createVolumeFlag) {
-                    std::vector<int64_t> dimensionsNew;
-                    dimensionsNew.push_back(dimensions[0]);
-                    dimensionsNew.push_back(dimensions[1]);
-                    dimensionsNew.push_back(dimensions[2]);
-                    
-                    std::vector<float> row1;
-                    row1.push_back(spacing[0]);
-                    row1.push_back(0.0);
-                    row1.push_back(0.0);
-                    row1.push_back(origin[0]);
-                    
-                    std::vector<float> row2;
-                    row2.push_back(0.0);
-                    row2.push_back(spacing[1]);
-                    row2.push_back(0.0);
-                    row2.push_back(origin[1]);
-                    
-                    std::vector<float> row3;
-                    row3.push_back(0.0);
-                    row3.push_back(0.0);
-                    row3.push_back(spacing[2]);
-                    row3.push_back(origin[2]);
-                    
-                    std::vector<std::vector<float> > indexToSpace;
-                    indexToSpace.push_back(row1);
-                    indexToSpace.push_back(row2);
-                    indexToSpace.push_back(row3);
-                    
-                    int64_t numComponents = 1;
-                    
-                    m_volumeFile.grabNew(new VolumeFile(dimensionsNew,
-                                                        indexToSpace,
-                                                        numComponents));
-                }
+                createVolume(ciftiInterface);
                 
                 /*
                  * Load data into the volume
@@ -1752,8 +1811,44 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
                     m_volumeFile->setValue(m_data[vm.m_ciftiIndex], vm.m_ijk);
                 }
             }
+            
         }
-        
+        else if (isParcels) {
+            std::vector<CiftiParcelElement> parcels;
+            ciftiXML.getParcelsForRows(parcels);
+
+            if (parcels.empty() == false) {
+                needVolumeFlag = true;
+                
+                /*
+                 * Create the volume
+                 */
+                createVolume(ciftiInterface);
+
+                /*
+                 * Load data into the volume
+                 */
+                const int64_t numParcels = static_cast<int64_t>(parcels.size());
+                for (int64_t iParcel = 0; iParcel < numParcels; iParcel++) {
+                    const CiftiParcelElement& cfp = parcels[iParcel];
+                    const int64_t numVoxelIndices = static_cast<int64_t>(cfp.m_voxelIndicesIJK.size());
+                    const int64_t numVoxels = (numVoxelIndices / 3);
+                    for (int64_t ivoxel = 0; ivoxel < numVoxels; ivoxel++) {
+                        const int64_t i3 = ivoxel * 3;
+                        const voxelIndexType i = cfp.m_voxelIndicesIJK[i3];
+                        const voxelIndexType j = cfp.m_voxelIndicesIJK[i3+1];
+                        const voxelIndexType k = cfp.m_voxelIndicesIJK[i3+2];
+                        
+                        CiftiVolumeMap cvm;
+                        cvm.m_ciftiIndex = iParcel;
+                        cvm.m_ijk[0] = i;
+                        cvm.m_ijk[1] = j;
+                        cvm.m_ijk[2] = k;
+                        m_ciftiToVolumeMapping.push_back(cvm);
+                    }
+                }
+            }
+        }
     }
     
     /*
@@ -1767,13 +1862,134 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
 }
 
 /**
+ * Create/Delete volume
+ *
+ * @param ciftiInterface
+ *    The CIFTI interface
+ * @param needVolumeFlag
+ *    True if volume needed, else false.
+ */
+void
+CiftiConnectivityMatrixDataFile::MapContent::createVolume(const CiftiInterface* ciftiInterface)
+{
+    /*
+     * Get volume attributes and make sure orthogonal
+     */
+    VolumeFile::OrientTypes orientation[3];
+    int64_t dimensions[3];
+    float origin[3];
+    float spacing[3];
+    if (ciftiInterface->getVolumeAttributesForPlumb(orientation,
+                                                    dimensions,
+                                                    origin,
+                                                    spacing)) {
+        bool createVolumeFlag = false;
+        
+        if (m_volumeFile == NULL) {
+            createVolumeFlag = true;
+        }
+        
+        if (m_volumeFile != NULL) {
+            /*
+             * Compare attributes of existing volume and
+             * requested attributes to see if volume needs
+             * to be recreated.
+             */
+            int64_t dimI, dimJ, dimK, dimTime, numComp;
+            m_volumeFile->getDimensions(dimI, dimJ, dimK, dimTime, numComp);
+            if ((dimI != dimensions[0])
+                || (dimJ != dimensions[1])
+                || (dimK != dimensions[2])) {
+                createVolumeFlag = true;
+            }
+            else {
+                float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
+                m_volumeFile->indexToSpace(0, 0, 0, x0, y0, z0);
+                m_volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+                const float dx = x1 - x0;
+                const float dy = y1 - y0;
+                const float dz = z1 - z0;
+                
+                const float diffOrigin[3] = {
+                    std::fabs(x0 - origin[0]),
+                    std::fabs(y0 - origin[1]),
+                    std::fabs(z0 - origin[2])
+                };
+                
+                const float diffSpacing[3] = {
+                    std::fabs(dx - spacing[0]),
+                    std::fabs(dy - spacing[1]),
+                    std::fabs(dz - spacing[2]),
+                };
+                
+                const float maxDiff = 0.0001;
+                if ((diffOrigin[0] > maxDiff)
+                    || (diffOrigin[1] > maxDiff)
+                    || (diffOrigin[2] > maxDiff)) {
+                    createVolumeFlag = true;
+                }
+                else if ((diffSpacing[0] > maxDiff)
+                         || (diffSpacing[1] > maxDiff)
+                         || (diffSpacing[2] > maxDiff)) {
+                    createVolumeFlag = true;
+                }
+            }
+        }
+        
+        /*
+         * If needed, recreate the volume
+         */
+        if (createVolumeFlag) {
+            std::vector<int64_t> dimensionsNew;
+            dimensionsNew.push_back(dimensions[0]);
+            dimensionsNew.push_back(dimensions[1]);
+            dimensionsNew.push_back(dimensions[2]);
+            
+            std::vector<float> row1;
+            row1.push_back(spacing[0]);
+            row1.push_back(0.0);
+            row1.push_back(0.0);
+            row1.push_back(origin[0]);
+            
+            std::vector<float> row2;
+            row2.push_back(0.0);
+            row2.push_back(spacing[1]);
+            row2.push_back(0.0);
+            row2.push_back(origin[1]);
+            
+            std::vector<float> row3;
+            row3.push_back(0.0);
+            row3.push_back(0.0);
+            row3.push_back(spacing[2]);
+            row3.push_back(origin[2]);
+            
+            std::vector<std::vector<float> > indexToSpace;
+            indexToSpace.push_back(row1);
+            indexToSpace.push_back(row2);
+            indexToSpace.push_back(row3);
+            
+            int64_t numComponents = 1;
+            
+            m_volumeFile.grabNew(new VolumeFile(dimensionsNew,
+                                                indexToSpace,
+                                                numComponents));
+        }
+        
+    }
+
+}
+
+/**
  * Update coloring for this map.
  *
+ * @param mapIndex
+ *    Index of map.
  * @param paletteFile
  *    File containing the palettes.
  */
 void
-CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const PaletteFile* paletteFile)
+CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapIndex,
+                                                            const PaletteFile* paletteFile)
 {
     const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
     const Palette* palette = paletteFile->getPaletteByName(paletteName);
@@ -1807,7 +2023,7 @@ CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const PaletteFile* p
          * Update colors in map.
          */
         CaretAssert(m_volumeFile);
-        m_volumeFile->clearVoxelColoringForMap(0);
+        m_volumeFile->clearVoxelColoringForMap(mapIndex);
         
         for (std::vector<CiftiVolumeMap>::const_iterator iter = m_ciftiToVolumeMapping.begin();
              iter != m_ciftiToVolumeMapping.end();
@@ -1818,11 +2034,42 @@ CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const PaletteFile* p
             m_volumeFile->setVoxelColorInMap(vm.m_ijk[0],
                                              vm.m_ijk[1],
                                              vm.m_ijk[2],
-                                             0,
+                                             mapIndex,
                                              rgba);
         }
     }
 }
+
+/**
+ * Convert the coordinate to a voxel index.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param xyz
+ *    The coordinate.
+ * @param ijkOut
+ *    The output voxel indices.
+ * @return true if voxel indices valid, else false.
+ */
+bool
+CiftiConnectivityMatrixDataFile::MapContent::voxelXYZToIJK(const int32_t mapIndex,
+                                                           const float xyz[3],
+                                                           int64_t ijkOut[3]) const
+{
+    if (m_volumeFile != NULL) {
+        int64_t ijk[10];
+        m_volumeFile->enclosingVoxel(xyz,
+                                     ijk);
+        if (m_volumeFile->indexValid(ijk)) {
+            ijkOut[0] = ijk[0];
+            ijkOut[1] = ijk[1];
+            ijkOut[2] = ijk[2];
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * @return Fast statistics for this map.

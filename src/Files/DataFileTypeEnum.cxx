@@ -146,6 +146,14 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "dlabel.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_PARCEL,
+                                        "CONNECTIVITY_DENSE_PARCEL",
+                                        "Connectivity - Dense Parcel",
+                                        "CONNECTIVITY",
+                                        false,
+                                        false,
+                                        "dpconn.nii"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SCALAR,
                                         "CONNECTIVITY_DENSE_SCALAR",
                                         "Connectivity - Dense Scalar",
@@ -177,6 +185,22 @@ DataFileTypeEnum::initialize()
                                         false,
                                         false,
                                         "trajTEMP.wbsparse"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL,
+                                        "CONNECTIVITY_PARCEL",
+                                        "Connectivity - Parcel",
+                                        "CONNECTIVITY",
+                                        false,
+                                        false,
+                                        "pconn.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_DENSE,
+                                        "CONNECTIVITY_PARCEL_DENSE",
+                                        "Connectivity - Parcel Dense",
+                                        "CONNECTIVITY",
+                                        false,
+                                        false,
+                                        "pdconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 

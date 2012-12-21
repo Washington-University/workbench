@@ -434,6 +434,9 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             isFileSavable = false;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            isFileSavable = false;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             isFileSavable = false;
             break;
@@ -444,6 +447,12 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
             isFileSavable = false;
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             isFileSavable = false;
             break;
         case DataFileTypeEnum::FOCI:

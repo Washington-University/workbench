@@ -143,13 +143,15 @@ namespace caret {
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
                                             const float xyz[3],
                                  int64_t ijkOut[3],
-                                 float &valueOut) const;
+                                            float &valueOut,
+                                            AString& textOut) const;
         
         virtual bool getMapSurfaceNodeValue(const int32_t mapIndex,
                                             const StructureEnum::Enum structure,
                                  const int nodeIndex,
                                  const int32_t numberOfNodes,
-                                 float& valueOut) const;
+                                 float& valueOut,
+                                            AString& textOut) const;
         
         virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
                                        const StructureEnum::Enum structure,
@@ -175,9 +177,15 @@ namespace caret {
                                               const int64_t surfaceNumberOfNodes,
                                                const int64_t nodeIndex) const;
         
+        int64_t getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
+                                               const float xyz[3]) const;
+        
         int64_t getColumnIndexForNodeWhenViewing(const StructureEnum::Enum structure,
                                                  const int64_t surfaceNumberOfNodes,
                                                const int64_t nodeIndex) const;
+        
+        int64_t getColumnIndexForVoxelWhenViewing(const int32_t mapIndex,
+                                               const float xyz[3]) const;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -193,8 +201,15 @@ namespace caret {
                             const float* data,
                             const int64_t dataCount);
 
-            void updateColoring(const PaletteFile* paletteFile);
+            void updateColoring(const int32_t mapIndex,
+                                const PaletteFile* paletteFile);
 
+            void createVolume(const CiftiInterface* ciftiInterface);
+            
+            bool voxelXYZToIJK(const int32_t mapIndex,
+                               const float xyz[3],
+                               int64_t ijkOut[3]) const;
+            
             const FastStatistics* getFastStatistics();
             
             /** connectivity data */

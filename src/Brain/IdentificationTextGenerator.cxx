@@ -32,6 +32,7 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CiftiScalarFile.h"
+#include "CiftiConnectivityMatrixDataFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
@@ -216,6 +217,30 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
             }
         }
 
+        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
+        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
+        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
+             connMatIter != allConnMatrixFiles.end();
+             connMatIter++) {
+            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
+            if (cmf->isEmpty() == false) {
+                const int numMaps = cmf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    float value = 0.0;
+                    int64_t cmfIJK[3];
+                    AString textValue;
+                    if (cmf->getMapVolumeVoxelValue(iMap,
+                                                    xyz,
+                                                    cmfIJK,
+                                                    value,
+                                                    textValue)) {
+                        AString boldText = cmf->getFileNameNoPath() + ":";
+                        idText.addLine(true, boldText, textValue);
+                    }
+                }
+            }
+        }
+        
         const int32_t numCiftiScalarFiles = brain->getNumberOfConnectivityDenseScalarFiles();
         for (int32_t i = 0; i < numCiftiScalarFiles; i++) {
             const CiftiScalarFile* csf = brain->getConnectivityDenseScalarFile(i);
@@ -298,6 +323,30 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
                     AString text = AString::number(value);
                     idText.addLine(true, boldText, text);
+                }
+            }
+        }
+        
+        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
+        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
+        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
+             connMatIter != allConnMatrixFiles.end();
+             connMatIter++) {
+            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
+            if (cmf->isEmpty() == false) {
+                const int numMaps = cmf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    float value = 0.0;
+                    AString textValue;
+                    if (cmf->getMapSurfaceNodeValue(iMap,
+                                                    surface->getStructure(),
+                                                    nodeNumber,
+                                                    surface->getNumberOfNodes(),
+                                                    value,
+                                                    textValue)) {
+                        AString boldText = cmf->getFileNameNoPath() + ":";
+                        idText.addLine(true, boldText, textValue);
+                    }
                 }
             }
         }

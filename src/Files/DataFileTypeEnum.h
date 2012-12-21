@@ -45,6 +45,8 @@ public:
         CONNECTIVITY_DENSE,
         /** Connectivity - Dense Label */
         CONNECTIVITY_DENSE_LABEL,
+        /** Connectivity - Dense Parcel */
+        CONNECTIVITY_DENSE_PARCEL,
         /** Connectivity - Dense Scalar */
         CONNECTIVITY_DENSE_SCALAR,
         /** Connectivity - Dense Time Series */
@@ -53,6 +55,10 @@ public:
         CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
         /** Connectivity - Fiber Trajectory TEMPORARY */
         CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
+        /** Connectivity - Parcel */
+        CONNECTIVITY_PARCEL,
+        /** Connectivity - Parcel Dense*/
+        CONNECTIVITY_PARCEL_DENSE,
         /** Foci */
         FOCI,
         /** Labels */

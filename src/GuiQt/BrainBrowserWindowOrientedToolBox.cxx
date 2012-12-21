@@ -529,6 +529,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     //haveOverlays = true;
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     //haveOverlays = true;
                     break;
@@ -541,6 +543,10 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     haveTraj = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
