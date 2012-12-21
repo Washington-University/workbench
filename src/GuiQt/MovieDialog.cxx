@@ -264,18 +264,17 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
                  */
                 Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                       Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(-dy);
-                rotationMatrixRightLatMedYoked->rotateY(-dx);
+                rotationMatrixRightLatMedYoked->rotateX(-dx);
+                rotationMatrixRightLatMedYoked->rotateY(-dy);
                 rotationMatrixRightLatMedYoked->rotateZ(-dz);
             }
-            else {
-                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+            else {               
                 
                 
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                       Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(dy);
-                rotationMatrix->rotateY(dx);
+                rotationMatrix->rotateX(-dx);
+                rotationMatrix->rotateY(dy);
                 rotationMatrix->rotateZ(dz);
                 
                 /*
@@ -283,8 +282,8 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
                  */
                 Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
-                rotationMatrixSurfMontLeftOpp->rotateY(dx);
+                rotationMatrixSurfMontLeftOpp->rotateX(-dx);
+                rotationMatrixSurfMontLeftOpp->rotateY(dy);
                 rotationMatrixSurfMontLeftOpp->rotateZ(dz);
                 
                 /*
@@ -292,8 +291,8 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
                  */
                 Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                rotationMatrixSurfMontRight->rotateX(dy); 
-                rotationMatrixSurfMontRight->rotateY(-dx);
+                rotationMatrixSurfMontRight->rotateX(dx); 
+                rotationMatrixSurfMontRight->rotateY(-dy);
                 rotationMatrixSurfMontRight->rotateZ(dz);
                 
                 /*
@@ -301,8 +300,8 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
                  */
                 Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                rotationMatrixSurfMontRightOpp->rotateX(dy);
-                rotationMatrixSurfMontRightOpp->rotateY(-dx);
+                rotationMatrixSurfMontRightOpp->rotateX(dx);
+                rotationMatrixSurfMontRightOpp->rotateY(-dy);
                 rotationMatrixSurfMontRightOpp->rotateZ(dz);
                 
                 /*
@@ -310,8 +309,8 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
                  */
                 Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                            Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dy);
-                rotationMatrixRightLatMedYoked->rotateY(-dx);
+                rotationMatrixRightLatMedYoked->rotateX(dx);
+                rotationMatrixRightLatMedYoked->rotateY(-dy);
                 rotationMatrixRightLatMedYoked->rotateZ(dz);
             }            
         }
