@@ -207,6 +207,15 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
     
     if (m_ciftiInterface != NULL) {
         m_ciftiXML = const_cast<CiftiXML*>(&m_ciftiInterface->getCiftiXML());
+        
+        const IndicesMapToDataType rowType = m_ciftiXML->getMappingType(CIFTI_INDEX_LOADING);
+        const IndicesMapToDataType colType = m_ciftiXML->getMappingType(CIFTI_INDEX_VIEWING);
+        const AString msg = ("CIFTI Connectivity File: " + getFileNameNoPath() + "\n"
+                             "Rows=" + AString::number(m_ciftiInterface->getNumberOfRows())
+                             + "Columns=" + AString::number(m_ciftiInterface->getNumberOfColumns())
+                             + "RowType=" + AString::number(rowType)
+                             + "ColType=" + AString::number(colType));
+        CaretLogSevere(msg);
     }
 }
 
