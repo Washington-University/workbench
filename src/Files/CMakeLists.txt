@@ -90,7 +90,6 @@ Border.cxx
 BorderException.cxx
 BorderFile.cxx
 BorderFileSaxReader.cxx
-DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
@@ -103,6 +102,7 @@ CiftiParcelFile.cxx
 CiftiParcelDenseFile.cxx
 CiftiScalarFile.cxx
 ConnectivityLoaderFile.cxx
+DataFileTypeEnum.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
