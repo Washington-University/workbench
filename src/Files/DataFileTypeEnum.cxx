@@ -666,7 +666,11 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
         for (std::vector<AString>::const_iterator extIter = extensions.begin();
              extIter != extensions.end();
              extIter++) {
-            if (filename.endsWith(*extIter)) {
+            /*
+             * Need to add "." to avoid ambiguous matching ("dconn.nii, pdconn.nii)
+             */
+            const AString extensionWithDot = ("." + *extIter);
+            if (filename.endsWith(extensionWithDot)) {
                 enumValue = d.enumValue;
                 validFlag = true;
                 break;
