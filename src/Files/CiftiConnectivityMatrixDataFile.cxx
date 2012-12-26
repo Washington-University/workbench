@@ -726,7 +726,7 @@ CiftiConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t mapInde
     try {
         bool dataWasLoaded = false;
         
-        int64_t rowIndex = getRowIndexForNodeWhenLoading(structure, surfaceNumberOfNodes, nodeIndex);
+        rowIndex = getRowIndexForNodeWhenLoading(structure, surfaceNumberOfNodes, nodeIndex);
         
         if (rowIndex >= 0) {
             const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
@@ -1032,7 +1032,105 @@ CiftiConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t
                                                                 const StructureEnum::Enum structure,
                                                        const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    throw DataFileException("Average loading not implemented at this time");
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException("Connectivity matrix file named \""
+                                + getFileNameNoPath()
+                                + "\" of type\""
+                                + DataFileTypeEnum::toName(getDataFileType())
+                                + "\" does not have a file loaded.");
+    }
+    
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    MapContent* mapContent = m_mapContent[mapIndex];
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (mapContent->m_dataLoadingEnabled == false) {
+        return;
+    }
+    
+    const int32_t numberOfNodeIndices = static_cast<int32_t>(nodeIndices.size());
+    if (numberOfNodeIndices <= 0) {
+        return;
+    }
+    
+    try {
+        bool dataWasLoaded = false;
+        
+        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+        if (dataCount > 0) {
+            /*
+             * Contains the average row
+             */
+            std::vector<float> dataAverageVector(dataCount, 0.0);
+            float* dataAverage = &dataAverageVector[0];
+            
+            /*
+             * Contains row for a node
+             */
+            std::vector<float> dataRowVector(dataCount, 0.0);
+            float* dataRow = &dataRowVector[0];
+            
+            int64_t rowSuccessCount = 0;
+            
+            /*
+             * Read rows for each node
+             */
+            for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                const int32_t nodeIndex = nodeIndices[i];
+                const int64_t rowIndex = getRowIndexForNodeWhenLoading(structure,
+                                                                       surfaceNumberOfNodes,
+                                                                       nodeIndex);
+                
+                if (rowIndex >= 0) {
+                    CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+                    m_ciftiInterface->getRow(dataRow, rowIndex);
+                    
+                    for (int64_t j = 0; j < dataCount; j++) {
+                        dataAverage[j] += dataRow[j];
+                    }
+                    rowSuccessCount++;
+                    
+                    CaretLogFine("Read row for node " + AString::fromNumbers(nodeIndices, ","));
+                }
+                else {
+                    CaretLogFine("Failed reading row for node " + AString::number(nodeIndex));
+                }
+            }
+            
+            if (rowSuccessCount > 0) {
+                /*
+                 * Average the data
+                 */
+                for (int64_t i = 0; i < dataCount; i++) {
+                    dataAverage[i] /= rowSuccessCount;
+                }
+                
+                /*
+                 * Update the viewed data
+                 */
+                mapContent->updateData(m_ciftiInterface,
+                                       mapIndex,
+                                       dataAverage,
+                                       dataCount);
+                
+                dataWasLoaded = true;
+            }
+        }
+        
+        if (dataWasLoaded == false) {
+            CaretLogFine("FAILED to read rows for node average" + AString::fromNumbers(nodeIndices, ","));
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
 //    if (this->ciftiInterface == NULL) {
 //        throw DataFileException("Connectivity Loader has not been initialized");
 //    }

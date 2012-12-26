@@ -45,6 +45,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class CiftiConnectivityMatrixDataFileManager;
     class ConnectivityLoaderManager;
     class SelectionManager;
     class LabelFile;
@@ -86,12 +87,16 @@ namespace caret {
 
         void identifyVoxelSelected();
         
-        void parcelConnectivityActionSelected(QAction* action);
+        void parcelCiftiConnectivityActionSelected(QAction* action);
 
+        void parcelConnectivityActionSelected(QAction* action);
+        
         void parcelTimeSeriesActionSelected(QAction* action);
         
-        void borderConnectivitySelected();
+        void borderCiftiConnectivitySelected();
 
+        void borderConnectivitySelected();
+        
         void borderTimeSeriesSelected();
         
     private:
@@ -103,7 +108,8 @@ namespace caret {
                                const QString& labelName,
                                Surface* surface,
                                const int32_t nodeNumber,
-                               ConnectivityLoaderManager* connectivityLoaderManager) {
+                               ConnectivityLoaderManager* connectivityLoaderManager,
+                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
                 this->labelFile = labelFile;
                 this->labelFileMapIndex = labelFileMapIndex;
                 this->labelKey = labelKey;
@@ -119,6 +125,7 @@ namespace caret {
             QString labelName;
             Surface* surface;
             int32_t nodeNumber;
+            CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
             ConnectivityLoaderManager* connectivityLoaderManager;
         };
         
