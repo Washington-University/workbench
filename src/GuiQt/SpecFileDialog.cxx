@@ -203,8 +203,10 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
         /*
          * Is this a connectivity group?
          */
+        const bool areAllConnectivityFilesInOneGroup = false;
         AString groupName;
-        if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+        if (areAllConnectivityFilesInOneGroup
+            && DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
             if (haveConnectivityFiles == false) {
                 haveConnectivityFiles = true;
                 m_specFile->getAllConnectivityFileTypes(dataFileInfoVector);
