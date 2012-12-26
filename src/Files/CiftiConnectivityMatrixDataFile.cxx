@@ -1399,7 +1399,7 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
      * Loading of data disabled?
      */
     if (mapContent->m_dataLoadingEnabled == false) {
-        return -1;
+        return false;
     }
     
     try {
@@ -1551,7 +1551,7 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
      * Loading of data disabled?
      */
     if (mapContent->m_dataLoadingEnabled == false) {
-        return -1;
+        return false;
     }
 
     try {
@@ -2073,6 +2073,7 @@ CiftiConnectivityMatrixDataFile::MapContent::voxelXYZToIJK(const int32_t mapInde
             ijkOut[0] = ijk[0];
             ijkOut[1] = ijk[1];
             ijkOut[2] = ijk[2];
+            return  true;
         }
     }
     
