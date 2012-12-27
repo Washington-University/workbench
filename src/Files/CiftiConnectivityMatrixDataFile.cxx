@@ -2223,7 +2223,7 @@ CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* /*sceneAttri
     
     const int32_t numMaps = getNumberOfMaps();
     if (numMaps > 0) {
-        bool mapEnabledArray[numMaps];
+        bool* mapEnabledArray = new bool[numMaps];
         for (int32_t i = 0; i < numMaps; i++) {
             mapEnabledArray[i] = m_mapContent[i]->m_dataLoadingEnabled;
         }
@@ -2231,6 +2231,7 @@ CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* /*sceneAttri
         sceneClass->addBooleanArray("mapEnabled",
                                     mapEnabledArray,
                                     numMaps);
+        delete[] mapEnabledArray;
     }
     
     return sceneClass;
