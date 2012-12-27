@@ -76,6 +76,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        bool hasNetworkFiles() const;
+        
     private:
         CiftiConnectivityMatrixDataFileManager(const CiftiConnectivityMatrixDataFileManager&);
 

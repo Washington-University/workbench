@@ -325,3 +325,34 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
 //                                               this);
 }
 
+/**
+ * @return True if there are enabled connectivity
+ * files that retrieve data from the network.
+ */
+bool
+CiftiConnectivityMatrixDataFileManager::hasNetworkFiles() const
+{
+    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    
+    
+    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        CiftiConnectivityMatrixDataFile* cmdf = *iter;
+        
+        if (cmdf->isEmpty() == false) {
+            if (DataFile::isFileOnNetwork(cmdf->getFileName())) {
+                const int32_t numMaps = cmdf->getNumberOfMaps();
+                for (int32_t i = 0; i < numMaps; i++) {
+                    if (cmdf->isMapDataLoadingEnabled(i)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+

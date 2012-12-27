@@ -390,6 +390,15 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         }
     }
     
+    if (ciftiConnectivityActions.empty() == false) {
+        this->addSeparator();
+        for (std::vector<QAction*>::iterator ciftiConnIter = ciftiConnectivityActions.begin();
+             ciftiConnIter != ciftiConnectivityActions.end();
+             ciftiConnIter++) {
+            this->addAction(*ciftiConnIter);
+        }
+    }
+    
     if (connectivityActions.empty() == false) {
         this->addSeparator();
         for (std::vector<QAction*>::iterator connIter = connectivityActions.begin();
@@ -598,7 +607,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
         return;
     }
     
-    if (this->warnIfNetworkNodeCountIsLarge(pc->connectivityLoaderManager,
+    if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
                                             nodeIndices) == false) {
         return;
     }
@@ -1166,6 +1175,40 @@ BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
+}
+/**
+ * If any enabled connectivity files retrieve data from the network
+ * and the number of nodes is large, warn the user since this will
+ * be a very slow operation.
+ *
+ * @param clm
+ *    The connectivity manager.
+ * @param nodeIndices
+ *    Indices of nodes that will have connectivity data retrieved.
+ * @return
+ *    true if process should continue, false if user cancels.
+ */
+bool
+BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
+                                                            const std::vector<int32_t>& nodeIndices)
+{
+    const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
+    if (numNodes < 200) {
+        return true;
+    }
+    
+    if (cmdf->hasNetworkFiles() == false) {
+        return true;
+    }
+    
+    const QString msg = ("There are "
+                         + QString::number(numNodes)
+                         + " vertices in the selected region.  Loading data for "
+                         + "this quantity of vertices may take a very long time.");
+    const bool result = WuQMessageBox::warningYesNo(this,
+                                                    "Do you want to continue?",
+                                                    msg);
+    return result;
 }
 
 

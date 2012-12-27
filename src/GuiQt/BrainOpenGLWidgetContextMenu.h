@@ -117,6 +117,7 @@ namespace caret {
                 this->surface = surface;
                 this->nodeNumber = nodeNumber;
                 this->connectivityLoaderManager = connectivityLoaderManager;
+                this->ciftiConnectivityManager = ciftiConnectivityManager;
             }
             
             LabelFile* labelFile;
@@ -136,6 +137,8 @@ namespace caret {
         ConnectivityLoaderManager* getConnectivityLoaderManager(Brain* brain);
         
         bool warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
+                                           const std::vector<int32_t>& nodeIndices);
+        bool warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
                                            const std::vector<int32_t>& nodeIndices);
         
         std::vector<ParcelConnectivity*> parcelConnectivities;
