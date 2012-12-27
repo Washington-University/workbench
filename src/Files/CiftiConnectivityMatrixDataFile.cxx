@@ -46,6 +46,7 @@
 #include "FastStatistics.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
+#include "SceneClass.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -2195,6 +2196,77 @@ CiftiConnectivityMatrixDataFile::MapContent::getFastStatistics()
     }
     
     return m_fastStatistics;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* sceneAttributes,
+                                                    const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "CiftiConnectivityMatrixDataFile",
+                                            1);
+    //    sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
+    //                                                               "m_denseDataLoadedForScene"));
+    
+    const int32_t numMaps = getNumberOfMaps();
+    if (numMaps > 0) {
+        bool mapEnabledArray[numMaps];
+        for (int32_t i = 0; i < numMaps; i++) {
+            mapEnabledArray[i] = m_mapContent[i]->m_dataLoadingEnabled;
+        }
+        
+        sceneClass->addBooleanArray("mapEnabled",
+                                    mapEnabledArray,
+                                    numMaps);
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+CiftiConnectivityMatrixDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                         const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const int32_t numMaps = getNumberOfMaps();
+    if (numMaps > 0) {
+        bool mapEnabledArray[numMaps];
+        
+        sceneClass->getBooleanArrayValue("mapEnabled",
+                                         mapEnabledArray,
+                                         numMaps);
+        
+        for (int32_t i = 0; i < numMaps; i++) {
+            m_mapContent[i]->m_dataLoadingEnabled = mapEnabledArray[i];
+        }
+    }
 }
 
 

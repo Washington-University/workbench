@@ -37,14 +37,18 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiXML.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class CiftiInterface;
     class VolumeFile;
     
-    class CiftiConnectivityMatrixDataFile : public CaretMappableDataFile {
-        
+    class CiftiConnectivityMatrixDataFile
+    : public CaretMappableDataFile,
+    public SceneableInterface
+    {
+    
     public:
         CiftiConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType);
         
@@ -159,6 +163,12 @@ namespace caret {
                                     const int32_t surfaceNumberOfNodes);
 
         virtual int32_t getSurfaceNumberOfNodesForLoading(const StructureEnum::Enum structure) const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
    private:
         CiftiConnectivityMatrixDataFile(const CiftiConnectivityMatrixDataFile&);

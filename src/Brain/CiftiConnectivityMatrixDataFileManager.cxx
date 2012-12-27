@@ -42,6 +42,7 @@
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -292,8 +293,22 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ConnectivityLoaderManager",
                                             1);
-//    sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
-//                                                               "m_denseDataLoadedForScene"));
+    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    
+    std::vector<SceneClass*> connectivityFilesVector;
+    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        CiftiConnectivityMatrixDataFile* cmdf = *iter;
+        
+        connectivityFilesVector.push_back(cmdf->saveToScene(sceneAttributes,
+                                                            cmdf->getFileNameNoPath()));
+    }
+    
+    SceneClassArray* ciftiFilesArray = new SceneClassArray("connectivityFiles",
+                                                        connectivityFilesVector);
+    sceneClass->addChild(ciftiFilesArray);
     
     return sceneClass;
 }
@@ -317,12 +332,27 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
     if (sceneClass == NULL) {
         return;
     }
+
+    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
-    const SceneClass* denseDataSceneClass = sceneClass->getClass("m_denseDataLoadedForScene");
-//    m_denseDataLoadedForScene.restoreFromScene(sceneAttributes,
-//                                               denseDataSceneClass,
-//                                               m_brain,
-//                                               this);
+    const SceneClassArray* ciftiFilesArray = sceneClass->getClassArray("connectivityFiles");
+    if (ciftiFilesArray != NULL) {
+        const int32_t numElements = ciftiFilesArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numElements; i++) {
+            const SceneClass* ciftiFileClass = ciftiFilesArray->getClassAtIndex(i);
+            
+            for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+                 iter != ciftiMatrixFiles.end();
+                 iter++) {
+                CiftiConnectivityMatrixDataFile* cmdf = *iter;
+                if (cmdf->getFileNameNoPath() == ciftiFileClass->getName()) {
+                    cmdf->restoreFromScene(sceneAttributes,
+                                           ciftiFileClass);
+                }
+            }
+        }
+    }
 }
 
 /**
