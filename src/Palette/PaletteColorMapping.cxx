@@ -128,6 +128,47 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->clearModified();
 }
 
+/**
+ * Equality operator.
+ * @param pcm
+ *    Palette color mapping compared to 'this' palette color mapping.
+ * @return
+ *    True if their members are the same.
+ */
+bool
+PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
+{
+    if ((this->autoScalePercentageNegativeMaximum == pcm.autoScalePercentageNegativeMaximum)
+        && (this->autoScalePercentageNegativeMinimum == pcm.autoScalePercentageNegativeMinimum)
+        && (this->autoScalePercentagePositiveMaximum == pcm.autoScalePercentagePositiveMaximum)
+        && (this->autoScalePercentagePositiveMinimum == pcm.autoScalePercentagePositiveMinimum)
+        && (this->displayNegativeDataFlag == pcm.displayNegativeDataFlag)
+        && (this->displayPositiveDataFlag == pcm.displayPositiveDataFlag)
+        && (this->displayZeroDataFlag     == pcm.displayZeroDataFlag)
+        && (this->interpolatePaletteFlag  == pcm.interpolatePaletteFlag)
+        && (this->scaleMode == pcm.scaleMode)
+        && (this->selectedPaletteName == pcm.selectedPaletteName)
+        && (this->userScaleNegativeMaximum == pcm.userScaleNegativeMaximum)
+        && (this->userScaleNegativeMinimum == pcm.userScaleNegativeMinimum)
+        && (this->userScalePositiveMaximum == pcm.userScalePositiveMaximum)
+        && (this->userScalePositiveMinimum == pcm.userScalePositiveMinimum)
+        && (this->thresholdType == pcm.thresholdType)
+        && (this->thresholdTest == pcm.thresholdTest)
+        && (this->thresholdNormalMinimum == pcm.thresholdNormalMinimum)
+        && (this->thresholdNormalMaximum == pcm.thresholdNormalMaximum)
+        && (this->thresholdMappedMinimum== pcm.thresholdMappedMinimum)
+        && (this->thresholdMappedMaximum == pcm.thresholdMappedMaximum)
+        && (this->thresholdMappedAverageAreaMinimum == pcm.thresholdMappedAverageAreaMinimum)
+        && (this->thresholdMappedAverageAreaMaximum == pcm.thresholdMappedAverageAreaMaximum)
+        && (this->thresholdDataName == pcm.thresholdDataName)
+        && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
 void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {

@@ -50,6 +50,8 @@ namespace caret {
         
         PaletteColorMapping& operator=(const PaletteColorMapping& o);
         
+        bool operator==(const PaletteColorMapping& pcm) const;
+        
         virtual ~PaletteColorMapping();
         
         void copy(const PaletteColorMapping& pcm);

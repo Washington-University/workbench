@@ -2399,7 +2399,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     if ((vdi.volumeFile == vf) 
                                         && (opacity >= 1.0)
                                         && (mapIndex == vdi.mapIndex)
-                                        && (palette == vdi.palette)) {
+                                        && (*paletteColorMapping == *vdi.paletteColorMapping)) {
                                         useIt = false;
                                     }
                                 }
@@ -2411,7 +2411,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     
                                         VolumeDrawInfo vdi(vf,
                                                            brain,
-                                                           palette,
                                                            paletteColorMapping,
                                                            statistics,
                                                            mapIndex,
@@ -2426,7 +2425,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         }
                         else {
                             VolumeDrawInfo vdi(vf,
-                                               NULL,
                                                NULL,
                                                NULL,
                                                NULL,
@@ -8227,7 +8225,6 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
  */
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                          Brain* brain,
-                                                         Palette* palette,
                                                          PaletteColorMapping* paletteColorMapping,
                                                          const FastStatistics* statistics,
                                                          const int32_t mapIndex,
@@ -8236,7 +8233,6 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
     this->volumeFile = volumeFile;
     this->brain = brain;
     this->volumeType = volumeFile->getType();
-    this->palette = palette;
     this->paletteColorMapping = paletteColorMapping;
     this->mapIndex = mapIndex;
     this->opacity    = opacity;

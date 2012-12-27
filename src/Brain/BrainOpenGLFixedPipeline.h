@@ -109,7 +109,6 @@ namespace caret {
         public:
             VolumeDrawInfo(VolumeFile* volumeFile,
                            Brain* brain,
-                           Palette* palette,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
                            const int32_t mapIndex,
@@ -117,7 +116,6 @@ namespace caret {
             Brain* brain;
             VolumeFile* volumeFile;
             SubvolumeAttributes::VolumeType volumeType;
-            Palette* palette;
             PaletteColorMapping* paletteColorMapping;
             const FastStatistics* statistics;
             int32_t mapIndex;
