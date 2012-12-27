@@ -2259,7 +2259,7 @@ CiftiConnectivityMatrixDataFile::restoreFromScene(const SceneAttributes* /*scene
     
     const int32_t numMaps = getNumberOfMaps();
     if (numMaps > 0) {
-        bool mapEnabledArray[numMaps];
+        bool* mapEnabledArray = new bool[numMaps];
         
         sceneClass->getBooleanArrayValue("mapEnabled",
                                          mapEnabledArray,
@@ -2268,6 +2268,8 @@ CiftiConnectivityMatrixDataFile::restoreFromScene(const SceneAttributes* /*scene
         for (int32_t i = 0; i < numMaps; i++) {
             m_mapContent[i]->m_dataLoadingEnabled = mapEnabledArray[i];
         }
+        
+        delete[] mapEnabledArray;
     }
 }
 
