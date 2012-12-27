@@ -126,6 +126,16 @@ IF (OPENMP_FOUND)
     SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
     #ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+    #
+    # Try to link static with Intel Compiler
+    #
+    IF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
+        MESSAGE(WARNING "Intel Compiler Being Used")
+        SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -openmp-link=static")
+        SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-intel")
+        ADD_DEFINITIONS("-static-intel")
+    ENDIF()
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
 ENDIF(OPENMP_FOUND)
