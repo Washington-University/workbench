@@ -215,7 +215,7 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
                              + "Columns=" + AString::number(m_ciftiInterface->getNumberOfColumns())
                              + "RowType=" + AString::number(rowType)
                              + "ColType=" + AString::number(colType));
-        CaretLogSevere(msg);
+        CaretLogFine(msg);
     }
 }
 
