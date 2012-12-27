@@ -231,9 +231,11 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
 void
 CiftiConnectivityMatrixDataFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Writing of "
+    throw DataFileException("Writing of file type "
                             + DataFileTypeEnum::toName(getDataFileType())
-                            + " not implemented");
+                            + " named "
+                            + filename
+                            + " is not implemented");
 }
 
 /**
@@ -807,7 +809,7 @@ CiftiConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t ma
             CaretAssertVectorIndex(m_mapContent,
                                    mapIndex);
             int64_t ijk[3];
-            if (m_mapContent[mapIndex]->voxelXYZToIJK(mapIndex, xyz, ijk)) {
+            if (m_mapContent[mapIndex]->voxelXYZToIJK(xyz, ijk)) {
                 rowIndex = m_ciftiXML->getColumnParcelForVoxel(ijk);
             }
         }
@@ -870,7 +872,7 @@ CiftiConnectivityMatrixDataFile::getColumnIndexForVoxelWhenViewing(const int32_t
         CaretAssertVectorIndex(m_mapContent,
                                mapIndex);
         int64_t ijk[3];
-        if (m_mapContent[mapIndex]->voxelXYZToIJK(mapIndex, xyz, ijk)) {
+        if (m_mapContent[mapIndex]->voxelXYZToIJK(xyz, ijk)) {
             columnIndex = m_ciftiXML->getRowParcelForVoxel(ijk);
         }
     }
@@ -1519,6 +1521,8 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                             + parcels[columnIndex].m_parcelName);
             }
             
+            mapContent->voxelXYZToIJK(xyz, ijkOut);
+            
             return true;
         }
     }
@@ -2151,8 +2155,6 @@ CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapInd
 /**
  * Convert the coordinate to a voxel index.
  *
- * @param mapIndex
- *    Index of map.
  * @param xyz
  *    The coordinate.
  * @param ijkOut
@@ -2160,8 +2162,7 @@ CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapInd
  * @return true if voxel indices valid, else false.
  */
 bool
-CiftiConnectivityMatrixDataFile::MapContent::voxelXYZToIJK(const int32_t mapIndex,
-                                                           const float xyz[3],
+CiftiConnectivityMatrixDataFile::MapContent::voxelXYZToIJK(const float xyz[3],
                                                            int64_t ijkOut[3]) const
 {
     if (m_volumeFile != NULL) {
@@ -2211,7 +2212,7 @@ CiftiConnectivityMatrixDataFile::MapContent::getFastStatistics()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* sceneAttributes,
+CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                                     const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
@@ -2248,7 +2249,7 @@ CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* sceneAttribu
  *     this interface.  May be NULL for some types of scenes.
  */
 void
-CiftiConnectivityMatrixDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
+CiftiConnectivityMatrixDataFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                                          const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

@@ -216,8 +216,7 @@ namespace caret {
 
             void createVolume(const CiftiInterface* ciftiInterface);
             
-            bool voxelXYZToIJK(const int32_t mapIndex,
-                               const float xyz[3],
+            bool voxelXYZToIJK(const float xyz[3],
                                int64_t ijkOut[3]) const;
             
             const FastStatistics* getFastStatistics();
