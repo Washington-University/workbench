@@ -171,10 +171,10 @@ AlgorithmSurfaceCortexLayer::AlgorithmSurfaceCortexLayer(ProgressObject* myProgO
                     float guess = (lowt * highdiff + hight * lowdiff) / (highdiff + lowdiff);//weighted average to get guess
                     float highcap = (lowt + 9 * hight) / 10.0f;//make guess lie in the middle 80%, to make sure it always moves nontrivially
                     float lowcap = (9 * lowt + hight) / 10.0f;
-                    if ((guess < lowcap) == (lowt < hight)) guess = lowcap;//in case positive t produces negative volume
-                    if ((guess > highcap) == (lowt < hight)) guess = highcap;
+                    if (guess < lowcap) guess = lowcap;
+                    if (guess > highcap) guess = highcap;
                     float guessval = guess * (c + guess * (b + guess * a));
-                    if ((guessval < target) == (lowt < hight))
+                    if ((guessval < target) == (lowval < highval))//in case positive t produces negative volume
                     {
                         lowt = guess;
                         lowval = guessval;
@@ -271,10 +271,10 @@ AlgorithmSurfaceCortexLayer::AlgorithmSurfaceCortexLayer(ProgressObject* myProgO
                 float guess = (lowt * highdiff + hight * lowdiff) / (highdiff + lowdiff);//weighted average to get guess
                 float highcap = (lowt + 9 * hight) / 10.0f;//make guess lie in the middle 80%, to make sure it always moves nontrivially
                 float lowcap = (9 * lowt + hight) / 10.0f;
-                if ((guess < lowcap) == (lowt < hight)) guess = lowcap;//in case positive t produces negative volume
-                if ((guess > highcap) == (lowt < hight)) guess = highcap;
+                if (guess < lowcap) guess = lowcap;
+                if (guess > highcap) guess = highcap;
                 float guessval = guess * (c + guess * (b + guess * a));
-                if ((guessval < target) == (lowt < hight))
+                if ((guessval < target) == (lowval < highval))//in case positive t produces negative volume
                 {
                     lowt = guess;
                     lowval = guessval;
