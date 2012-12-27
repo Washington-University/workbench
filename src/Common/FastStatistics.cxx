@@ -66,6 +66,7 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
     reset();
     CaretArray<float> positives(dataCount), negatives(dataCount);
     double sum = 0.0;//for numerical stability
+    bool first = true;//so min can be positive and max can be negative
     for (int64_t i = 0; i < dataCount; ++i)
     {
         if (data[i] != data[i])
@@ -102,9 +103,10 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
                 }
             }
         }
-        if (data[i] > m_max) m_max = data[i];
-        if (data[i] < m_min) m_min = data[i];
+        if (data[i] > m_max || first) m_max = data[i];
+        if (data[i] < m_min || first) m_min = data[i];
         sum += data[i];//use a two-pass method for stability, only do mean this pass
+        first = false;
     }
     int64_t totalGood = (m_negCount + m_zeroCount + m_posCount);
     m_mean = sum / totalGood;
