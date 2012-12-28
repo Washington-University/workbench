@@ -1819,7 +1819,7 @@ const map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, cons
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
     const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
-    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS || myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS && myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
     {
         return NULL;
     }
@@ -1837,7 +1837,7 @@ map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int&
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
     CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
-    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS || myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS && myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
     {
         return NULL;
     }
