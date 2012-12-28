@@ -42,6 +42,7 @@ OperationSpecFileMerge.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
+OperationSurfaceVertexAreas.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
@@ -73,6 +74,7 @@ OperationSpecFileMerge.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
+OperationSurfaceVertexAreas.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx

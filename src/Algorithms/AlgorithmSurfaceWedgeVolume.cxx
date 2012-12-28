@@ -28,6 +28,8 @@
 #include "SurfaceFile.h"
 #include "Vector3D.h"
 
+#include <vector>
+
 using namespace caret;
 using namespace std;
 
