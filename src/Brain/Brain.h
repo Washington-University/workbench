@@ -43,15 +43,16 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiBrainordinateFile;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDataFile;
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiDenseParcelFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
-    class CiftiLabelFile;
     class CiftiParcelFile;
     class CiftiParcelDenseFile;
-    class CiftiScalarFile;
     class ConnectivityLoaderFile;
     class ConnectivityLoaderManager;
     class DisplayProperties;
@@ -211,11 +212,13 @@ namespace caret {
         
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
-        CiftiLabelFile* getConnectivityDenseLabelFile(int32_t indx);
+        void getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const;
+
+        CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx);
         
-        const CiftiLabelFile* getConnectivityDenseLabelFile(int32_t indx) const;
+        const CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx) const;
         
-        void getConnectivityDenseLabelFiles(std::vector<CiftiLabelFile*>& connectivityDenseLabelFilesOut) const;
+        void getConnectivityDenseLabelFiles(std::vector<CiftiBrainordinateLabelFile*>& connectivityDenseLabelFilesOut) const;
         
         int32_t getNumberOfConnectivityDenseParcelFiles() const;
         
@@ -227,11 +230,11 @@ namespace caret {
         
         int32_t getNumberOfConnectivityDenseScalarFiles() const;
         
-        CiftiScalarFile* getConnectivityDenseScalarFile(int32_t indx);
+        CiftiBrainordinateScalarFile* getConnectivityDenseScalarFile(int32_t indx);
         
-        const CiftiScalarFile* getConnectivityDenseScalarFile(int32_t indx) const;
+        const CiftiBrainordinateScalarFile* getConnectivityDenseScalarFile(int32_t indx) const;
         
-        void getConnectivityDenseScalarFiles(std::vector<CiftiScalarFile*>& connectivityDenseScalarFilesOut) const;
+        void getConnectivityDenseScalarFiles(std::vector<CiftiBrainordinateScalarFile*>& connectivityDenseScalarFilesOut) const;
         
         int32_t getNumberOfConnectivityFiberOrientationFiles() const;
         
@@ -432,11 +435,11 @@ namespace caret {
         
         std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
         
-        std::vector<CiftiLabelFile*> m_connectivityDenseLabelFiles;
+        std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
         std::vector<CiftiDenseParcelFile*> m_connectivityDenseParcelFiles;
         
-        std::vector<CiftiScalarFile*> m_connectivityDenseScalarFiles;
+        std::vector<CiftiBrainordinateScalarFile*> m_connectivityDenseScalarFiles;
         
         std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
         

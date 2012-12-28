@@ -34,8 +34,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiConnectivityMatrixDataFile.h"
-#include "CiftiLabelFile.h"
-#include "CiftiScalarFile.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DisplayPropertiesLabels.h"
@@ -292,7 +292,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     isColoringValid = this->assignCiftiLabelColoring(brainStructure,
-                                                                      dynamic_cast<CiftiLabelFile*>(selectedMapFile),
+                                                                      dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
                                                                       selectedMapUniqueID,
                                                                       numNodes,
                                                                       overlayRGBV);
@@ -309,7 +309,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     isColoringValid = this->assignCiftiScalarColoring(brainStructure,
-                                                                 dynamic_cast<CiftiScalarFile*>(selectedMapFile),
+                                                                 dynamic_cast<CiftiBrainordinateScalarFile*>(selectedMapFile),
                                                                  selectedMapUniqueID,
                                                                  numNodes,
                                                                  overlayRGBV);
@@ -846,20 +846,20 @@ SurfaceNodeColoring::assignCiftiConnectivityMatrixColoring(const BrainStructure*
  */
 bool
 SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructure,
-                                          CiftiLabelFile* ciftiLabelFile,
+                                          CiftiBrainordinateLabelFile* ciftiLabelFile,
                                           const AString& ciftiMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
     Brain* brain = (Brain*)(brainStructure->getBrain());
-    std::vector<CiftiLabelFile*> allCiftiLabelFiles;
-    brain->getConnectivityDenseLabelFiles(allCiftiLabelFiles);
+    std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
+    brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
     
     int32_t mapIndex = -1;
-    for (std::vector<CiftiLabelFile*>::iterator iter = allCiftiLabelFiles.begin();
-         iter != allCiftiLabelFiles.end();
+    for (std::vector<CiftiBrainordinateLabelFile*>::iterator iter = allCiftiBrainordinateLabelFiles.begin();
+         iter != allCiftiBrainordinateLabelFiles.end();
          iter++) {
-        CiftiLabelFile* csf = *iter;
+        CiftiBrainordinateLabelFile* csf = *iter;
         if (csf == ciftiLabelFile) {
             mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
             if (mapIndex >= 0) {
@@ -879,14 +879,9 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructu
         rgbv[i*4+3] = 0.0;
     }
     
-    const PaletteColorMapping* paletteColorMapping = ciftiLabelFile->getMapPaletteColorMapping(mapIndex);
-    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
-
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiLabelFile->getSurfaceNodeColoring(structure,
-                                            mapIndex,
-                                            palette,
+    ciftiLabelFile->getMapSurfaceNodeColoring(mapIndex,
+                                              structure,
                                             rgbv,
                                             numberOfNodes);
     return true;
@@ -912,20 +907,20 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructu
  */
 bool
 SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStructure,
-                                               CiftiScalarFile* ciftiScalarFile,
+                                               CiftiBrainordinateScalarFile* ciftiScalarFile,
                                                const AString& ciftiMapUniqueID,
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
     Brain* brain = (Brain*)(brainStructure->getBrain());
-    std::vector<CiftiScalarFile*> allCiftiScalarFiles;
-    brain->getConnectivityDenseScalarFiles(allCiftiScalarFiles);
+    std::vector<CiftiBrainordinateScalarFile*> allCiftiBrainordinateScalarFiles;
+    brain->getConnectivityDenseScalarFiles(allCiftiBrainordinateScalarFiles);
     
     int32_t mapIndex = -1;
-    for (std::vector<CiftiScalarFile*>::iterator iter = allCiftiScalarFiles.begin();
-         iter != allCiftiScalarFiles.end();
+    for (std::vector<CiftiBrainordinateScalarFile*>::iterator iter = allCiftiBrainordinateScalarFiles.begin();
+         iter != allCiftiBrainordinateScalarFiles.end();
          iter++) {
-        CiftiScalarFile* csf = *iter;
+        CiftiBrainordinateScalarFile* csf = *iter;
         if (csf == ciftiScalarFile) {
             mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
             if (mapIndex >= 0) {
@@ -950,9 +945,8 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
     
     const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiScalarFile->getSurfaceNodeColoring(structure,
-                                            mapIndex,
-                                            palette,
+    ciftiScalarFile->getMapSurfaceNodeColoring(mapIndex,
+                                            structure,
                                             rgbv,
                                             numberOfNodes);
     return true;

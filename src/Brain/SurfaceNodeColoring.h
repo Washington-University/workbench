@@ -33,8 +33,8 @@ namespace caret {
     class BrainStructure;
     class BrowserTabContent;
     class CiftiConnectivityMatrixDataFile;
-    class CiftiLabelFile;
-    class CiftiScalarFile;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
     class ConnectivityLoaderFile;
     class DisplayPropertiesLabels;
     class Model;
@@ -95,13 +95,13 @@ namespace caret {
                                  float* rgbv);
 
         bool assignCiftiLabelColoring(const BrainStructure* brainStructure,
-                                  CiftiLabelFile* ciftiScalarFile,
+                                  CiftiBrainordinateLabelFile* ciftiScalarFile,
                                   const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
-                                       CiftiScalarFile* ciftiScalarFile,
+                                       CiftiBrainordinateScalarFile* ciftiScalarFile,
                                        const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);

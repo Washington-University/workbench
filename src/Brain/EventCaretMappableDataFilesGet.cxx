@@ -26,9 +26,9 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
-#include "CiftiLabelFile.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
-#include "CiftiScalarFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "LabelFile.h"
@@ -85,13 +85,13 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
         return;
     }
     
-    CiftiScalarFile* csf = dynamic_cast<CiftiScalarFile*>(mapDataFile);
+    CiftiBrainordinateScalarFile* csf = dynamic_cast<CiftiBrainordinateScalarFile*>(mapDataFile);
     if (csf != NULL) {
         m_ciftiScalarFiles.push_back(csf);
         return;
     }
     
-    CiftiLabelFile* clf = dynamic_cast<CiftiLabelFile*>(mapDataFile);
+    CiftiBrainordinateLabelFile* clf = dynamic_cast<CiftiBrainordinateLabelFile*>(mapDataFile);
     if (clf != NULL) {
         m_ciftiLabelFiles.push_back(clf);
         return;

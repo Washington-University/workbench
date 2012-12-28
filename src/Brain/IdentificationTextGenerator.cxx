@@ -31,7 +31,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
-#include "CiftiScalarFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
@@ -234,39 +234,43 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                                     cmfIJK,
                                                     value,
                                                     textValue)) {
-                        AString boldText = cmf->getFileNameNoPath() + ":";
+                        AString boldText = cmf->getFileNameNoPath();
                         idText.addLine(true, boldText, textValue);
                     }
                 }
             }
         }
         
-        const int32_t numCiftiScalarFiles = brain->getNumberOfConnectivityDenseScalarFiles();
-        for (int32_t i = 0; i < numCiftiScalarFiles; i++) {
-            const CiftiScalarFile* csf = brain->getConnectivityDenseScalarFile(i);
-            const int numMaps = csf->getNumberOfMaps();
-            for (int32_t j = 0; j < numMaps; j++) {
-                float value = 0;
-                int64_t scalarIJK[3];
-                if (csf->getVolumeVoxelValue(j,
-                                             xyz,
-                                             scalarIJK,
-                                             value)) {
-                    AString boldText = ("CONN SCALARS "
-                                        + csf->getFileNameNoPath());
-                    boldText += (" IJK ("
-                                 + AString::number(scalarIJK[0])
-                                 + ", "
-                                 + AString::number(scalarIJK[1])
-                                 + ", "
-                                 + AString::number(scalarIJK[2])
-                                 + ")  ");
-                    AString text = AString::number(value);
-                    idText.addLine(true, boldText, text);
+        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
+        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
+        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
+             connMatIter != allCiftiBrainordinatesFiles.end();
+             connMatIter++) {
+            const CiftiBrainordinateFile* cbf = *connMatIter;
+            if (cbf->isEmpty() == false) {
+                const int numMaps = cbf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    int64_t voxelIJK[3];
+                    if (cbf->getMapVolumeVoxelValue(iMap,
+                                                    xyz,
+                                                    voxelIJK,
+                                                    textValue)) {
+                        AString boldText = (cbf->getMapDataTypeName()
+                                            + " "
+                                            + cbf->getFileNameNoPath()
+                                            + " IJK ("
+                                            + AString::number(voxelIJK[0])
+                                            + ", "
+                                            + AString::number(voxelIJK[1])
+                                            + ", "
+                                            + AString::number(voxelIJK[2])
+                                            + ")  ");
+                        idText.addLine(true, boldText, textValue);                        
+                    }
                 }
             }
-        }
-        
+        }        
     }
     
     return idText.toString();
@@ -344,30 +348,31 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                                                     surface->getNumberOfNodes(),
                                                     value,
                                                     textValue)) {
-                        AString boldText = cmf->getFileNameNoPath() + ":";
+                        AString boldText = cmf->getFileNameNoPath();
                         idText.addLine(true, boldText, textValue);
                     }
                 }
             }
         }
         
-        const int32_t numCiftiScalarFiles = brain->getNumberOfConnectivityDenseScalarFiles();
-        for (int32_t i = 0; i < numCiftiScalarFiles; i++) {
-            const CiftiScalarFile* csf = brain->getConnectivityDenseScalarFile(i);
-            AString boldText = "CONN SCALARS " + csf->getFileNameNoPath() + ":";
-            AString text;
-            const int numMaps = csf->getNumberOfMaps();
-            for (int32_t j = 0; j < numMaps; j++) {
-                float value = 0;
-                if (csf->getSurfaceNodeValue(surface->getStructure(),
-                                             j,
-                                             nodeNumber,
-                                             surface->getNumberOfNodes(),
-                                             value)) {
-                    text += (" " + AString::number(value));
+        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
+        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
+        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
+             connMatIter != allCiftiBrainordinatesFiles.end();
+             connMatIter++) {
+            const CiftiBrainordinateFile* cbf = *connMatIter;
+            if (cbf->isEmpty() == false) {
+                const int numMaps = cbf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    if (cbf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
+                        AString boldText = (cbf->getMapDataTypeName()
+                                            + " "
+                                            + cbf->getFileNameNoPath());
+                        idText.addLine(true, boldText, textValue);
+                    }
                 }
             }
-            idText.addLine(true, boldText, text);
         }
         
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();

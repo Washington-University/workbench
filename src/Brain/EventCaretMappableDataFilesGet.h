@@ -31,8 +31,8 @@ namespace caret {
 
     class CaretMappableDataFile;
     class CiftiConnectivityMatrixDataFile;
-    class CiftiLabelFile;
-    class CiftiScalarFile;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
     class ConnectivityLoaderFile;
     class LabelFile;
     class MetricFile;
@@ -67,10 +67,10 @@ namespace caret {
         std::vector<ConnectivityLoaderFile*> getConnectivityLoaderFiles() const { return m_connectivityLoaderFiles; }
         
         /** @return the cifti scalar files */
-        std::vector<CiftiScalarFile*> getCiftiScalarFiles() const { return m_ciftiScalarFiles; }
+        std::vector<CiftiBrainordinateScalarFile*> getCiftiBrainordinateScalarFiles() const { return m_ciftiScalarFiles; }
         
         /** @return the cifti label files */
-        std::vector<CiftiLabelFile*> getCiftiLabelFiles() const { return m_ciftiLabelFiles; }
+        std::vector<CiftiBrainordinateLabelFile*> getCiftiBrainordinateLabelFiles() const { return m_ciftiLabelFiles; }
         
         /** @return Returns the label files. */
         std::vector<LabelFile*> getLabelFiles() const { return m_labelFiles; }
@@ -95,9 +95,9 @@ namespace caret {
         
         std::vector<CiftiConnectivityMatrixDataFile*> m_ciftiConnectivityMatrixDataFiles;
         
-        std::vector<CiftiScalarFile*> m_ciftiScalarFiles;
+        std::vector<CiftiBrainordinateScalarFile*> m_ciftiScalarFiles;
             
-        std::vector<CiftiLabelFile*> m_ciftiLabelFiles;
+        std::vector<CiftiBrainordinateLabelFile*> m_ciftiLabelFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityLoaderFiles;
         

@@ -35,13 +35,13 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
-#include "CiftiLabelFile.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiDenseParcelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiParcelFile.h"
 #include "CiftiParcelDenseFile.h"
-#include "CiftiScalarFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
@@ -347,10 +347,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseFiles.clear();
     
-    for (std::vector<CiftiLabelFile*>::iterator clfi = m_connectivityDenseLabelFiles.begin();
+    for (std::vector<CiftiBrainordinateLabelFile*>::iterator clfi = m_connectivityDenseLabelFiles.begin();
          clfi != m_connectivityDenseLabelFiles.end();
          clfi++) {
-        CiftiLabelFile* clf = *clfi;
+        CiftiBrainordinateLabelFile* clf = *clfi;
         delete clf;
     }
     m_connectivityDenseLabelFiles.clear();
@@ -363,10 +363,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseParcelFiles.clear();
     
-    for (std::vector<CiftiScalarFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
+    for (std::vector<CiftiBrainordinateScalarFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
          clfi != m_connectivityDenseScalarFiles.end();
          clfi++) {
-        CiftiScalarFile* clf = *clfi;
+        CiftiBrainordinateScalarFile* clf = *clfi;
         delete clf;
     }
     m_connectivityDenseScalarFiles.clear();
@@ -971,10 +971,11 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
 void
 Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException)
 {
-    CiftiLabelFile* file = new CiftiLabelFile();
+    CiftiBrainordinateLabelFile* file = new CiftiBrainordinateLabelFile();
     
     try {
         file->readFile(filename);
+        file->updateScalarColoringForAllMaps(m_paletteFile);
     }
     catch (const DataFileException& dfe) {
         delete file;
@@ -1021,7 +1022,7 @@ Brain::readConnectivityDenseParcelFile(const AString& filename) throw (DataFileE
 void
 Brain::readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException)
 {
-    CiftiScalarFile* clf = new CiftiScalarFile();
+    CiftiBrainordinateScalarFile* clf = new CiftiBrainordinateScalarFile();
     
     try {
         clf->readFile(filename);
@@ -1347,7 +1348,7 @@ Brain::getNumberOfConnectivityDenseLabelFiles() const
  *    Index of file.
  * @return Conectivity dense label file at index.
  */
-CiftiLabelFile*
+CiftiBrainordinateLabelFile*
 Brain::getConnectivityDenseLabelFile(int32_t indx)
 {
     CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
@@ -1360,7 +1361,7 @@ Brain::getConnectivityDenseLabelFile(int32_t indx)
  *    Index of file.
  * @return Conectivity dense label file at index.
  */
-const CiftiLabelFile*
+const CiftiBrainordinateLabelFile*
 Brain::getConnectivityDenseLabelFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
@@ -1373,10 +1374,29 @@ Brain::getConnectivityDenseLabelFile(int32_t indx) const
  *   Contains all connectivity dense labelfiles on exit.
  */
 void
-Brain::getConnectivityDenseLabelFiles(std::vector<CiftiLabelFile*>& connectivityDenseLabelFilesOut) const
+Brain::getConnectivityDenseLabelFiles(std::vector<CiftiBrainordinateLabelFile*>& connectivityDenseLabelFilesOut) const
 {
     connectivityDenseLabelFilesOut = m_connectivityDenseLabelFiles;
 }
+
+/**
+ * Get all of the CIFTI Brainordinate Files.
+ * @param allCiftiBrainordinateFilesOut
+ *    Contains all CIFTI Brainordinate files upon exit.
+ */
+void
+Brain::getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const
+{
+    allCiftiBrainordinateFilesOut.clear();
+    
+    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
+                                         m_connectivityDenseLabelFiles.begin(),
+                                         m_connectivityDenseLabelFiles.end());
+    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
+                                         m_connectivityDenseScalarFiles.begin(),
+                                         m_connectivityDenseScalarFiles.end());
+}
+
 
 /**
  * @return Number of cifti dense parcel files.
@@ -1439,7 +1459,7 @@ Brain::getNumberOfConnectivityDenseScalarFiles() const
  *    Index of file.
  * @return Conectivity dense scalar file at index.
  */
-CiftiScalarFile*
+CiftiBrainordinateScalarFile*
 Brain::getConnectivityDenseScalarFile(int32_t indx)
 {
     CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
@@ -1452,7 +1472,7 @@ Brain::getConnectivityDenseScalarFile(int32_t indx)
  *    Index of file.
  * @return Conectivity dense scalar file at index.
  */
-const CiftiScalarFile*
+const CiftiBrainordinateScalarFile*
 Brain::getConnectivityDenseScalarFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityDenseScalarFiles, indx);
@@ -1465,7 +1485,7 @@ Brain::getConnectivityDenseScalarFile(int32_t indx) const
  *   Contains all connectivity dense files on exit.
  */
 void
-Brain::getConnectivityDenseScalarFiles(std::vector<CiftiScalarFile*>& connectivityDenseScalarFilesOut) const
+Brain::getConnectivityDenseScalarFiles(std::vector<CiftiBrainordinateScalarFile*>& connectivityDenseScalarFilesOut) const
 {
     connectivityDenseScalarFilesOut = m_connectivityDenseScalarFiles;
 }
@@ -3039,7 +3059,7 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<CiftiLabelFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
+        for (std::vector<CiftiBrainordinateLabelFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
              icf != m_connectivityDenseLabelFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
@@ -3051,7 +3071,7 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<CiftiScalarFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
+        for (std::vector<CiftiBrainordinateScalarFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
              icf != m_connectivityDenseScalarFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
@@ -3483,11 +3503,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
 
-    std::vector<CiftiLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
+    std::vector<CiftiBrainordinateLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
                                                                             m_connectivityDenseLabelFiles.end(),
                                                                             caretDataFile);
     if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
-        CiftiLabelFile* connFile = *connLabelIterator;
+        CiftiBrainordinateLabelFile* connFile = *connLabelIterator;
         delete connFile;
         m_connectivityDenseLabelFiles.erase(connLabelIterator);
         wasRemoved = true;
@@ -3505,11 +3525,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
     
-    std::vector<CiftiScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
+    std::vector<CiftiBrainordinateScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
                                                                             m_connectivityDenseScalarFiles.end(),
                                                                             caretDataFile);
     if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
-        CiftiScalarFile* connFile = *connScalarIterator;
+        CiftiBrainordinateScalarFile* connFile = *connScalarIterator;
         delete connFile;
         m_connectivityDenseScalarFiles.erase(connScalarIterator);
         wasRemoved = true;
