@@ -43,6 +43,7 @@ AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
+AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeParcelResampling.h
@@ -77,6 +78,7 @@ AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
+AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeParcelResampling.cxx

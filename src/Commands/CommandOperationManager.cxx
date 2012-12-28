@@ -51,6 +51,7 @@
 #include "AlgorithmSignedDistanceToSurface.h"
 #include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmSurfaceMatch.h"
+#include "AlgorithmSurfaceWedgeVolume.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeParcelResampling.h"
@@ -166,6 +167,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
