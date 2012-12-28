@@ -35,6 +35,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiLabelFile.h"
 #include "CiftiDenseParcelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -346,10 +347,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = m_connectivityDenseLabelFiles.begin();
+    for (std::vector<CiftiLabelFile*>::iterator clfi = m_connectivityDenseLabelFiles.begin();
          clfi != m_connectivityDenseLabelFiles.end();
          clfi++) {
-        ConnectivityLoaderFile* clf = *clfi;
+        CiftiLabelFile* clf = *clfi;
         delete clf;
     }
     m_connectivityDenseLabelFiles.clear();
@@ -970,28 +971,17 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
 void
 Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException)
 {
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    CiftiLabelFile* file = new CiftiLabelFile();
     
     try {
-        if (DataFile::isFileOnNetwork(filename)) {
-            clf->setupNetworkFile(filename,
-                                  DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
-                                  CaretDataFile::getFileReadingUsername(),
-                                  CaretDataFile::getFileReadingPassword());
-        }
-        else {
-            clf->setupLocalFile(filename,
-                                DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL);
-        }
-        
-        validateConnectivityFile(clf);
+        file->readFile(filename);
     }
     catch (const DataFileException& dfe) {
-        delete clf;
+        delete file;
         throw dfe;
     }
     
-    m_connectivityDenseLabelFiles.push_back(clf);
+    m_connectivityDenseLabelFiles.push_back(file);
 }
 
 /**
@@ -1292,12 +1282,6 @@ Brain::getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile
                                        m_connectivityDenseFiles.begin(),
                                        m_connectivityDenseFiles.end());
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       m_connectivityDenseLabelFiles.begin(),
-                                       m_connectivityDenseLabelFiles.end());
-//    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-//                                       m_connectivityDenseScalarFiles.begin(),
-//                                       m_connectivityDenseScalarFiles.end());
-    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        m_connectivityTimeSeriesFiles.begin(),
                                        m_connectivityTimeSeriesFiles.end());
 }
@@ -1363,7 +1347,7 @@ Brain::getNumberOfConnectivityDenseLabelFiles() const
  *    Index of file.
  * @return Conectivity dense label file at index.
  */
-ConnectivityLoaderFile*
+CiftiLabelFile*
 Brain::getConnectivityDenseLabelFile(int32_t indx)
 {
     CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
@@ -1376,7 +1360,7 @@ Brain::getConnectivityDenseLabelFile(int32_t indx)
  *    Index of file.
  * @return Conectivity dense label file at index.
  */
-const ConnectivityLoaderFile*
+const CiftiLabelFile*
 Brain::getConnectivityDenseLabelFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityDenseLabelFiles, indx);
@@ -1389,7 +1373,7 @@ Brain::getConnectivityDenseLabelFile(int32_t indx) const
  *   Contains all connectivity dense labelfiles on exit.
  */
 void
-Brain::getConnectivityDenseLabelFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseLabelFilesOut) const
+Brain::getConnectivityDenseLabelFiles(std::vector<CiftiLabelFile*>& connectivityDenseLabelFilesOut) const
 {
     connectivityDenseLabelFilesOut = m_connectivityDenseLabelFiles;
 }
@@ -3055,7 +3039,7 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<ConnectivityLoaderFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
+        for (std::vector<CiftiLabelFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
              icf != m_connectivityDenseLabelFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
@@ -3499,11 +3483,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
 
-    std::vector<ConnectivityLoaderFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
+    std::vector<CiftiLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
                                                                             m_connectivityDenseLabelFiles.end(),
                                                                             caretDataFile);
     if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
-        ConnectivityLoaderFile* connFile = *connLabelIterator;
+        CiftiLabelFile* connFile = *connLabelIterator;
         delete connFile;
         m_connectivityDenseLabelFiles.erase(connLabelIterator);
         wasRemoved = true;

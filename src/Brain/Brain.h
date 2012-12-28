@@ -48,6 +48,7 @@ namespace caret {
     class CiftiDenseParcelFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiLabelFile;
     class CiftiParcelFile;
     class CiftiParcelDenseFile;
     class CiftiScalarFile;
@@ -210,11 +211,11 @@ namespace caret {
         
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
-        ConnectivityLoaderFile* getConnectivityDenseLabelFile(int32_t indx);
+        CiftiLabelFile* getConnectivityDenseLabelFile(int32_t indx);
         
-        const ConnectivityLoaderFile* getConnectivityDenseLabelFile(int32_t indx) const;
+        const CiftiLabelFile* getConnectivityDenseLabelFile(int32_t indx) const;
         
-        void getConnectivityDenseLabelFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseLabelFilesOut) const;
+        void getConnectivityDenseLabelFiles(std::vector<CiftiLabelFile*>& connectivityDenseLabelFilesOut) const;
         
         int32_t getNumberOfConnectivityDenseParcelFiles() const;
         
@@ -431,7 +432,7 @@ namespace caret {
         
         std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
         
-        std::vector<ConnectivityLoaderFile*> m_connectivityDenseLabelFiles;
+        std::vector<CiftiLabelFile*> m_connectivityDenseLabelFiles;
         
         std::vector<CiftiDenseParcelFile*> m_connectivityDenseParcelFiles;
         

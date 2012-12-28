@@ -82,6 +82,11 @@ namespace caret {
                                                float* rgbv);
         
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                               const float* labelIndices,
+                                               const int32_t numberOfIndices,
+                                               float* rgbv);
+        
+        static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const int32_t* labelIndices,
                                                const int32_t numberOfIndices,
                                                uint8_t* rgbv);

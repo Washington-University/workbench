@@ -31,6 +31,7 @@ CiftiConnectivityMatrixDataFile.h
 CiftiDenseParcelFile.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
+CiftiLabelFile.h
 CiftiParcelFile.h
 CiftiParcelDenseFile.h
 CiftiScalarFile.h
@@ -98,6 +99,7 @@ CiftiConnectivityMatrixDataFile.cxx
 CiftiDenseParcelFile.cxx
 CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
+CiftiLabelFile.cxx
 CiftiParcelFile.cxx
 CiftiParcelDenseFile.cxx
 CiftiScalarFile.cxx
