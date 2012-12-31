@@ -133,9 +133,7 @@ namespace caret {
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
 
         BrainOpenGLWidgetContextMenu& operator=(const BrainOpenGLWidgetContextMenu&);
-        
-        ConnectivityLoaderManager* getConnectivityLoaderManager(Brain* brain);
-        
+                
         bool warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
                                            const std::vector<int32_t>& nodeIndices);
         bool warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,

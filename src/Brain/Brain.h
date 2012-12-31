@@ -203,13 +203,13 @@ namespace caret {
         
         void getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
         
-        int32_t getNumberOfConnectivityDenseFiles() const;
+        int32_t getNumberOfConnectivityMatrixDenseFiles() const;
         
-        ConnectivityLoaderFile* getConnectivityDenseFile(int32_t indx);
+        CiftiConnectivityMatrixDenseFile* getConnectivityMatrixDenseFile(int32_t indx);
         
-        const ConnectivityLoaderFile* getConnectivityDenseFile(int32_t indx) const;
+        const CiftiConnectivityMatrixDenseFile* getConnectivityMatrixDenseFile(int32_t indx) const;
         
-        void getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const;
+        void getConnectivityMatrixDenseFiles(std::vector<CiftiConnectivityMatrixDenseFile*>& connectivityDenseFilesOut) const;
         
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
@@ -433,8 +433,6 @@ namespace caret {
         std::vector<SceneFile*> m_sceneFiles;
         
         PaletteFile* m_paletteFile;
-        
-        std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
         
         std::vector<CiftiConnectivityMatrixDenseFile*> m_connectivityMatrixDenseFiles;
         

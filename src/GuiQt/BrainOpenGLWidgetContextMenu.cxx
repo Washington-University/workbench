@@ -233,24 +233,12 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
             borderConnectivityActions.push_back(action);
         }
         
-        bool hasDenseConnectivity = brain->getNumberOfConnectivityDenseFiles() > 0 ? true : false;
         bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
         ConnectivityLoaderManager* clm = NULL;
-        if (hasDenseConnectivity || hasTimeSeries) {
+        if (hasTimeSeries) {
             clm = brain->getConnectivityLoaderManager();
         }        
         if (clm != NULL) {
-            if(hasDenseConnectivity)
-            {
-                const QString text = ("Show Connectivity for Nodes Inside Border "
-                                      + borderID->getBorder()->getName());
-                QAction* action = WuQtUtilities::createAction(text,
-                                                              "",
-                                                              this,
-                                                              this,
-                                                              SLOT(borderConnectivitySelected()));
-                borderConnectivityActions.push_back(action);
-            }
             if(hasTimeSeries)
             {
                 const QString text = ("Show Time Series for Nodes Inside Border "
@@ -293,9 +281,8 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
         
         ConnectivityLoaderManager* clm = NULL;
-        bool hasDenseConnectivity = brain->getNumberOfConnectivityDenseFiles() > 0 ? true : false;
         bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
-        if (hasDenseConnectivity || hasTimeSeries) {
+        if (hasTimeSeries) {
             clm = brain->getConnectivityLoaderManager();
         }    
     
@@ -356,16 +343,6 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                     }
                     
                     if (clm != NULL) {
-                        if (hasDenseConnectivity) {
-                            const AString actionName("Show Connectivity For Parcel "
-                                                     + giftiLabel->getName()
-                                                     + " in map "
-                                                     + mapName);
-                            QAction* action = connectivityActionGroup->addAction(actionName);
-                            action->setData(qVariantFromValue((void*)pc));
-                            connectivityActions.push_back(action);
-                        }
-
                         if (hasTimeSeries) {
                             const AString tsActionName("Show Time Series For Parcel "
                                                        + giftiLabel->getName()
@@ -553,25 +530,6 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                                                     SLOT(removeNodeIdentificationSymbolSelected())));
     }
 }
-
-
-/**
- * @param brain
- *   Brain containing connectivity loader manager.
- * @return connectivity loader manager if there are dense files or 
- * NULL if no dense files.
- */
-ConnectivityLoaderManager*
-BrainOpenGLWidgetContextMenu::getConnectivityLoaderManager(Brain* brain)
-{
-    if (brain->getNumberOfConnectivityDenseFiles()) {
-        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        return clm;
-    }
-    
-    return NULL;
-}
-
 
 /**
  * Destructor.

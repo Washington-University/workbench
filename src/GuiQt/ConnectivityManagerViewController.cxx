@@ -345,9 +345,9 @@ ConnectivityManagerViewController::updateManagerViewController()
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
         {
-            std::vector<ConnectivityLoaderFile*> files;
-            brain->getConnectivityDenseFiles(files);
-            this->updateForDenseFiles(files);
+            std::vector<CiftiConnectivityMatrixDataFile*> files;
+            brain->getAllCiftiConnectivityMatrixFiles(files);
+            this->updateForConnectivityMatrixFiles(files);
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
@@ -368,29 +368,29 @@ ConnectivityManagerViewController::updateManagerViewController()
  *    The connectivity files.
  */
 void 
-ConnectivityManagerViewController::updateForDenseFiles(const std::vector<ConnectivityLoaderFile*>& denseFiles)
+ConnectivityManagerViewController::updateForConnectivityMatrixFiles(const std::vector<CiftiConnectivityMatrixDataFile*>& connectivityMatrixFiles)
 {
     /*
      * Update, show (and possibly add) connectivity view controllers
      */
-    const int32_t numDenseFiles = static_cast<int32_t>(denseFiles.size());
+    const int32_t numDenseFiles = static_cast<int32_t>(connectivityMatrixFiles.size());
     for (int32_t i = 0; i < numDenseFiles; i++) {
-        if (i >= static_cast<int32_t>(this->denseViewControllers.size())) {
-            this->denseViewControllers.push_back(new ConnectivityDenseViewController(this->orientation,
+        if (i >= static_cast<int32_t>(this->connectivityMatrixViewControllers.size())) {
+            this->connectivityMatrixViewControllers.push_back(new ConnectivityDenseViewController(this->orientation,
                                                                            this->viewControllerGridLayout,
                                                                            this));            
         }
-        ConnectivityDenseViewController* cvc = this->denseViewControllers[i];
-        cvc->updateViewController(denseFiles[i]);
+        ConnectivityDenseViewController* cvc = this->connectivityMatrixViewControllers[i];
+        cvc->updateViewController(connectivityMatrixFiles[i]);
         cvc->setVisible(true);
     }
     
     /*
      * Hide view controllers not needed
      */
-    const int32_t numViewControllers = static_cast<int32_t>(this->denseViewControllers.size());
+    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityMatrixViewControllers.size());
     for (int32_t i = numDenseFiles; i < numViewControllers; i++) {
-        this->denseViewControllers[i]->setVisible(false);
+        this->connectivityMatrixViewControllers[i]->setVisible(false);
     }    
 }
 

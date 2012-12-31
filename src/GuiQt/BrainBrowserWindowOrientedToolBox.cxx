@@ -501,7 +501,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * Determine types of data this is loaded
          */
         bool haveBorders    = false;
-        bool haveDense      = false;
+        bool haveCiftiMatrix = false;
         bool haveDataSeries = false;
         bool haveFibers     = false;
         bool haveFoci       = false;
@@ -523,13 +523,14 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveBorders = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                    haveDense = true;
+                    haveCiftiMatrix = true;
                     //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    haveCiftiMatrix = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     //haveOverlays = true;
@@ -545,8 +546,10 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveTraj = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    haveCiftiMatrix = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                    haveCiftiMatrix = true;
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
@@ -618,7 +621,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * automatically selected.
          */
         //if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
-        if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveDense);
+        if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveCiftiMatrix);
         if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         

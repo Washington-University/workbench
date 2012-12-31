@@ -46,7 +46,7 @@ class QSpinBox;
 
 namespace caret {
 
-    class ConnectivityLoaderFile;
+    class CiftiConnectivityMatrixDataFile;
     class WuQGridLayoutGroup;
     
     class ConnectivityDenseViewController : public QObject {
@@ -60,7 +60,7 @@ namespace caret {
         
         virtual ~ConnectivityDenseViewController();
         
-        void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
+        void updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile);
         
         void setVisible(bool visible);
         
@@ -80,19 +80,19 @@ namespace caret {
         
         void updateViewController();
         
-        ConnectivityLoaderFile* connectivityLoaderFile;
+        CiftiConnectivityMatrixDataFile* m_ciftiConnectivityMatrixDataFile;
         
-        QCheckBox* enabledCheckBox;
+        QCheckBox* m_enabledCheckBox;
         
-        QLineEdit* fileNameLineEdit;
+        QLineEdit* m_fileNameLineEdit;
         
-        WuQGridLayoutGroup* gridLayoutGroup;
+        WuQGridLayoutGroup* m_gridLayoutGroup;
         
-        static std::set<ConnectivityDenseViewController*> allConnectivityDenseViewControllers;
+        static std::set<ConnectivityDenseViewController*> s_allConnectivityDenseViewControllers;
     };
     
 #ifdef __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
-    std::set<ConnectivityDenseViewController*> ConnectivityDenseViewController::allConnectivityDenseViewControllers;
+    std::set<ConnectivityDenseViewController*> ConnectivityDenseViewController::s_allConnectivityDenseViewControllers;
 #endif // __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

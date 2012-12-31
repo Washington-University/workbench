@@ -1500,13 +1500,6 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                            mapIndex);
     const MapContent* mapContent = m_mapContent[mapIndex];
     
-    /*
-     * Loading of data disabled?
-     */
-    if (mapContent->m_dataLoadingEnabled == false) {
-        return false;
-    }
-    
     try {
         int64_t columnIndex = getColumnIndexForVoxelWhenViewing(mapIndex,
                                                                 xyz);
@@ -1654,13 +1647,6 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                            mapIndex);
     const MapContent* mapContent = m_mapContent[mapIndex];
     
-    /*
-     * Loading of data disabled?
-     */
-    if (mapContent->m_dataLoadingEnabled == false) {
-        return false;
-    }
-
     try {
         int64_t columnIndex = getColumnIndexForNodeWhenViewing(structure,
                                                                numberOfNodes,
@@ -1720,13 +1706,6 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeColoring(const int32_t mapInde
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     MapContent* mapContent = m_mapContent[mapIndex];
-    
-    /*
-     * Loading of data disabled?
-     */
-    if (mapContent->m_dataLoadingEnabled == false) {
-        return false;
-    }
     
     try {
         if (m_ciftiXML->getSurfaceNumberOfNodes(CIFTI_INDEX_VIEWING, structure) == surfaceNumberOfNodes) {

@@ -55,6 +55,7 @@ class TimeCourseDialog;
 
 namespace caret {
 
+    class CiftiConnectivityMatrixDataFile;
     class ConnectivityLoaderFile;
     class ConnectivityTimeSeriesViewController;
     class ConnectivityDenseViewController;
@@ -86,7 +87,7 @@ namespace caret {
         
         void updateManagerViewController();
         
-        void updateForDenseFiles(const std::vector<ConnectivityLoaderFile*>& denseFiles);
+        void updateForConnectivityMatrixFiles(const std::vector<CiftiConnectivityMatrixDataFile*>& connectivityMatrixFiles);
         
         void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
 
@@ -104,7 +105,7 @@ namespace caret {
         
         QGridLayout* viewControllerGridLayout;
         
-        std::vector<ConnectivityDenseViewController*> denseViewControllers;
+        std::vector<ConnectivityDenseViewController*> connectivityMatrixViewControllers;
 
         std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
 

@@ -46,7 +46,7 @@
 #include <QToolButton>
 #include <QSpinBox>
 
-#include "ConnectivityLoaderFile.h"
+#include "CiftiConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -70,29 +70,29 @@ ConnectivityDenseViewController::ConnectivityDenseViewController(const Qt::Orien
                                                                    QObject* parent)
 : QObject(parent)
 {
-    this->connectivityLoaderFile = NULL;
+    m_ciftiConnectivityMatrixDataFile = NULL;
     
-    this->enabledCheckBox = new QCheckBox(" ");
-    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
+    m_enabledCheckBox = new QCheckBox(" ");
+    QObject::connect(m_enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
     
-    this->fileNameLineEdit = new QLineEdit("                 ");
-    this->fileNameLineEdit->setReadOnly(true);
+    m_fileNameLineEdit = new QLineEdit("                 ");
+    m_fileNameLineEdit->setReadOnly(true);
     
-    this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
+    m_gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
                                                    this);
     if (orientation == Qt::Horizontal) {
-        int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
+        int row = m_gridLayoutGroup->rowCount();
+        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
+        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
     }
     else {
-        int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
+        int row = m_gridLayoutGroup->rowCount();
+        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
+        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
     }
     
-    allConnectivityDenseViewControllers.insert(this);
+    s_allConnectivityDenseViewControllers.insert(this);
 }
 
 /**
@@ -100,7 +100,7 @@ ConnectivityDenseViewController::ConnectivityDenseViewController(const Qt::Orien
  */
 ConnectivityDenseViewController::~ConnectivityDenseViewController()
 {
-    allConnectivityDenseViewControllers.erase(this);
+    s_allConnectivityDenseViewControllers.erase(this);
 }
 
 /**
@@ -134,17 +134,17 @@ ConnectivityDenseViewController::createGridLayout(const Qt::Orientation /*orient
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityDenseViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
+ConnectivityDenseViewController::updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
 {
-    this->connectivityLoaderFile = connectivityLoaderFile;
-    if (this->connectivityLoaderFile != NULL) {
+    m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
+    if (m_ciftiConnectivityMatrixDataFile != NULL) {
         Qt::CheckState enabledState = Qt::Unchecked;
-        if (this->connectivityLoaderFile->isDataLoadingEnabled()) {
+        if (m_ciftiConnectivityMatrixDataFile->isMapDataLoadingEnabled(0)) {
             enabledState = Qt::Checked;
         }
-        this->enabledCheckBox->setCheckState(enabledState);
+        m_enabledCheckBox->setCheckState(enabledState);
         
-        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
+        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileName());
         
     }
 }
@@ -155,20 +155,20 @@ ConnectivityDenseViewController::updateViewController(ConnectivityLoaderFile* co
 void 
 ConnectivityDenseViewController::updateViewController()
 {
-    this->updateViewController(this->connectivityLoaderFile);    
+    updateViewController(m_ciftiConnectivityMatrixDataFile);    
 }
 
 /**
  * Called when enabled check box changes state.
  */
-void 
+void
 ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
-    if (this->connectivityLoaderFile != NULL) {
-        this->connectivityLoaderFile->setDataLoadingEnabled(selected);
-        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
-        this->updateOtherConnectivityDenseViewControllers();
+    if (m_ciftiConnectivityMatrixDataFile != NULL) {
+        m_ciftiConnectivityMatrixDataFile->setMapDataLoadingEnabled(0, selected);
+        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileNameNoPath());
+        updateOtherConnectivityDenseViewControllers();
     }
 }
 
@@ -178,7 +178,7 @@ ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
 void 
 ConnectivityDenseViewController::setVisible(bool visible)
 {
-    this->gridLayoutGroup->setVisible(visible);
+    m_gridLayoutGroup->setVisible(visible);
 }
 
 /**
@@ -187,7 +187,7 @@ ConnectivityDenseViewController::setVisible(bool visible)
 void 
 ConnectivityDenseViewController::updateUserInterfaceAndGraphicsWindow()
 {
-    this->updateOtherConnectivityDenseViewControllers();
+    updateOtherConnectivityDenseViewControllers();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -200,13 +200,13 @@ ConnectivityDenseViewController::updateUserInterfaceAndGraphicsWindow()
 void 
 ConnectivityDenseViewController::updateOtherConnectivityDenseViewControllers()
 {
-    if (this->connectivityLoaderFile != NULL) {
-        for (std::set<ConnectivityDenseViewController*>::iterator iter = allConnectivityDenseViewControllers.begin();
-             iter != allConnectivityDenseViewControllers.end();
+    if (m_ciftiConnectivityMatrixDataFile != NULL) {
+        for (std::set<ConnectivityDenseViewController*>::iterator iter = s_allConnectivityDenseViewControllers.begin();
+             iter != s_allConnectivityDenseViewControllers.end();
              iter++) {
             ConnectivityDenseViewController* clvc = *iter;
             if (clvc != this) {
-                if (clvc->connectivityLoaderFile == this->connectivityLoaderFile) {
+                if (clvc->m_ciftiConnectivityMatrixDataFile == m_ciftiConnectivityMatrixDataFile) {
                     clvc->updateViewController();
                 }
             }
