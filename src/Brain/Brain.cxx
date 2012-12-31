@@ -36,6 +36,7 @@
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiBrainordinateLabelFile.h"
+#include "CiftiConnectivityMatrixDenseFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -354,6 +355,14 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete clf;
     }
     m_connectivityDenseLabelFiles.clear();
+    
+    for (std::vector<CiftiConnectivityMatrixDenseFile*>::iterator clfi = m_connectivityMatrixDenseFiles.begin();
+         clfi != m_connectivityMatrixDenseFiles.end();
+         clfi++) {
+        CiftiConnectivityMatrixDenseFile* clf = *clfi;
+        delete clf;
+    }
+    m_connectivityMatrixDenseFiles.clear();
     
     for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator clfi = m_connectivityMatrixDenseParcelFiles.begin();
          clfi != m_connectivityMatrixDenseParcelFiles.end();
@@ -936,28 +945,45 @@ Brain::readFociFile(const AString& filename) throw (DataFileException)
 void 
 Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileException)
 {
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
-
-    try {
-        if (DataFile::isFileOnNetwork(filename)) {
-            clf->setupNetworkFile(filename,
-                                  DataFileTypeEnum::CONNECTIVITY_DENSE,
-                                  CaretDataFile::getFileReadingUsername(),
-                                  CaretDataFile::getFileReadingPassword());
+    const bool useConnLoader = false;
+    if (useConnLoader) {
+        ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+        
+        try {
+            if (DataFile::isFileOnNetwork(filename)) {
+                clf->setupNetworkFile(filename,
+                                      DataFileTypeEnum::CONNECTIVITY_DENSE,
+                                      CaretDataFile::getFileReadingUsername(),
+                                      CaretDataFile::getFileReadingPassword());
+            }
+            else {
+                clf->setupLocalFile(filename,
+                                    DataFileTypeEnum::CONNECTIVITY_DENSE);
+            }
+            
+            validateConnectivityFile(clf);
         }
-        else {
-            clf->setupLocalFile(filename, 
-                                DataFileTypeEnum::CONNECTIVITY_DENSE);
+        catch (const DataFileException& dfe) {
+            delete clf;
+            throw dfe;
         }
         
-        validateConnectivityFile(clf);
+        m_connectivityDenseFiles.push_back(clf);
     }
-    catch (const DataFileException& dfe) {
-        delete clf;
-        throw dfe;
+    else {
+        CiftiConnectivityMatrixDenseFile* cmdf = new CiftiConnectivityMatrixDenseFile();
+        
+        try {
+            cmdf->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            delete cmdf;
+            throw dfe;
+        }
+        
+        m_connectivityMatrixDenseFiles.push_back(cmdf);
     }
     
-    m_connectivityDenseFiles.push_back(clf);
 }
 
 /**
@@ -1684,6 +1710,10 @@ void
 Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const
 {
     allCiftiConnectivityMatrixFiles.clear();
+    
+    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
+                                           m_connectivityMatrixDenseFiles.begin(),
+                                           m_connectivityMatrixDenseFiles.end());
     
     allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
                                            m_connectivityMatrixDenseParcelFiles.begin(),
@@ -3059,6 +3089,12 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
+        for (std::vector<CiftiConnectivityMatrixDenseFile*>::iterator icf = m_connectivityMatrixDenseFiles.begin();
+             icf != m_connectivityMatrixDenseFiles.end();
+             icf++) {
+            dataFilesEvent->addFile(*icf);
+        }
+        
         for (std::vector<CiftiBrainordinateLabelFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
              icf != m_connectivityDenseLabelFiles.end();
              icf++) {
@@ -3287,6 +3323,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
                            m_connectivityDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityMatrixDenseFiles.begin(),
+                           m_connectivityMatrixDenseFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseLabelFiles.begin(),
                            m_connectivityDenseLabelFiles.end());
     
@@ -3510,6 +3550,17 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         CiftiBrainordinateLabelFile* connFile = *connLabelIterator;
         delete connFile;
         m_connectivityDenseLabelFiles.erase(connLabelIterator);
+        wasRemoved = true;
+        caretDataFile = NULL;
+    }
+    
+    std::vector<CiftiConnectivityMatrixDenseFile*>::iterator connDenseIterator = std::find(m_connectivityMatrixDenseFiles.begin(),
+                                                                                                       m_connectivityMatrixDenseFiles.end(),
+                                                                                                       caretDataFile);
+    if (connDenseIterator != m_connectivityMatrixDenseFiles.end()) {
+        CiftiConnectivityMatrixDenseFile* connFile = *connDenseIterator;
+        delete connFile;
+        m_connectivityMatrixDenseFiles.erase(connDenseIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }

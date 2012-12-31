@@ -31,6 +31,7 @@ CiftiBrainordinateFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
 CiftiConnectivityMatrixDataFile.h
+CiftiConnectivityMatrixDenseFile.h
 CiftiConnectivityMatrixDenseParcelFile.h
 CiftiConnectivityMatrixParcelFile.h
 CiftiConnectivityMatrixParcelDenseFile.h
@@ -100,6 +101,7 @@ CiftiBrainordinateFile.cxx
 CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx
 CiftiConnectivityMatrixDataFile.cxx
+CiftiConnectivityMatrixDenseFile.cxx
 CiftiConnectivityMatrixDenseParcelFile.cxx
 CiftiConnectivityMatrixParcelFile.cxx
 CiftiConnectivityMatrixParcelDenseFile.cxx

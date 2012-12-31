@@ -187,6 +187,10 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
             m_ciftiInterface.grabNew(ciftiXnat);
         }
         else {
+            /*
+             * Dense files is VERY large, so read data from the file
+             * only as needed.
+             */
             CiftiFile* ciftiFile = new CiftiFile();
             if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
                 ciftiFile->openFile(filename,

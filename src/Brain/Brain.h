@@ -48,6 +48,7 @@ namespace caret {
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDataFile;
     class CiftiConnectivityMatrixDataFileManager;
+    class CiftiConnectivityMatrixDenseFile;
     class CiftiConnectivityMatrixDenseParcelFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
@@ -434,6 +435,8 @@ namespace caret {
         PaletteFile* m_paletteFile;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityDenseFiles;
+        
+        std::vector<CiftiConnectivityMatrixDenseFile*> m_connectivityMatrixDenseFiles;
         
         std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
