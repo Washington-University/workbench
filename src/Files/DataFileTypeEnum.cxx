@@ -149,7 +149,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_PARCEL,
                                         "CONNECTIVITY_DENSE_PARCEL",
                                         "Connectivity - Dense Parcel",
-                                        "CONNECTIVITY",
+                                        "CIFTI DENSE PARCEL",
                                         false,
                                         false,
                                         "dpconn.nii"));
@@ -189,7 +189,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL,
                                         "CONNECTIVITY_PARCEL",
                                         "Connectivity - Parcel",
-                                        "CONNECTIVITY",
+                                        "CIFTI PARCEL",
                                         false,
                                         false,
                                         "pconn.nii"));
@@ -197,7 +197,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_DENSE,
                                         "CONNECTIVITY_PARCEL_DENSE",
                                         "Connectivity - Parcel Dense",
-                                        "CONNECTIVITY",
+                                        "CIFTI PARCEL DENSE",
                                         false,
                                         false,
                                         "pdconn.nii"));

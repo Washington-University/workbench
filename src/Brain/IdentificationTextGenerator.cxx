@@ -234,7 +234,9 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                                     cmfIJK,
                                                     value,
                                                     textValue)) {
-                        AString boldText = cmf->getFileNameNoPath();
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
+                                            + " "
+                                            + cmf->getFileNameNoPath());
                         idText.addLine(true, boldText, textValue);
                     }
                 }
@@ -256,7 +258,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                                     xyz,
                                                     voxelIJK,
                                                     textValue)) {
-                        AString boldText = (cbf->getMapDataTypeName()
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
                                             + " "
                                             + cbf->getFileNameNoPath()
                                             + " IJK ("
@@ -324,7 +326,9 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                                              nodeNumber,
                                              surface->getNumberOfNodes(),
                                              value)) {
-                    AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
+                    AString boldText = (clf->getCiftiTypeName().toUpper()
+                                        + " "
+                                        + clf->getFileNameNoPath());
                     AString text = AString::number(value);
                     idText.addLine(true, boldText, text);
                 }
@@ -348,7 +352,9 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                                                     surface->getNumberOfNodes(),
                                                     value,
                                                     textValue)) {
-                        AString boldText = cmf->getFileNameNoPath();
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
+                                            + " "
+                                            + cmf->getFileNameNoPath());
                         idText.addLine(true, boldText, textValue);
                     }
                 }
@@ -366,7 +372,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                 for (int32_t iMap = 0; iMap < numMaps; iMap++) {
                     AString textValue;
                     if (cbf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
-                        AString boldText = (cbf->getMapDataTypeName()
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
                                             + " "
                                             + cbf->getFileNameNoPath());
                         idText.addLine(true, boldText, textValue);
