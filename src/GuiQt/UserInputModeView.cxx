@@ -235,19 +235,16 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 }
             }
         }
-        const AString identificationMessage = selectionManager->getIdentificationText(btc,
-                                                                                      brain);
         
-        bool issuedIdentificationLocationEvent = false;
+        /*
+         * Load CIFTI NODE data prior to ID Message so that CIFTI
+         * data shown in identification text is correct for the
+         * node that was loaded.
+         */
         if (idNode->isValid()) {
             Surface* surface = idNode->getSurface();
             const int32_t nodeIndex = idNode->getNodeNumber();
             try {
-                /*
-                 * Save last selected node which may get used for foci creation.
-                 */
-                selectionManager->setLastSelectedItem(idNode);
-                
                 TimeLine timeLine;
                 connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
                 ciftiMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
@@ -255,33 +252,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 surface->getTimeLineInformation(nodeIndex,timeLine);
                 connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
                 updateGraphicsFlag = true;
-                
-                BrainStructure* brainStructure = surface->getBrainStructure();
-                CaretAssert(brainStructure);
-                
-                float xyz[3];
-                const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
-                if (volumeInteractionSurface != NULL) {
-                    volumeInteractionSurface->getCoordinate(nodeIndex,
-                                                            xyz);
-                }
-                else {
-                    CaretLogWarning("No surface/volume interaction surface for "
-                                    + StructureEnum::toGuiName(brainStructure->getStructure()));
-                    xyz[0] = -10000000.0;
-                    xyz[1] = -10000000.0;
-                    xyz[2] = -10000000.0;
-                }
-                
-                identifiedItem = new IdentifiedItemNode(identificationMessage,
-                                                                    surface->getStructure(),
-                                                                    surface->getNumberOfNodes(),
-                                                                    nodeIndex);
-                if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(xyz);
-                    EventManager::get()->sendEvent(idLocation.getPointer());
-                    issuedIdentificationLocationEvent = true;
-                }
                 
                 QList <TimeLine> tlV;
                 connMan->getSurfaceTimeLines(tlV);
@@ -299,6 +269,11 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             }
         }
         
+        /*
+         * Load CIFTI VOXEL data prior to ID Message so that CIFTI
+         * data shown in identification text is correct for the
+         * voxel that was loaded.
+         */
         if (idVoxel->isValid()) {
             const VolumeFile* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
@@ -306,17 +281,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
             if (volumeFile != NULL) {
                 float xyz[3];
                 volumeFile->indexToSpace(voxelIJK, xyz);
-                
-                if (issuedIdentificationLocationEvent == false) {
-                    EventIdentificationHighlightLocation idLocation(xyz);
-                    EventManager::get()->sendEvent(idLocation.getPointer());
-                    issuedIdentificationLocationEvent = true;
-                }
-                
-                /*
-                 * Save last selected node which may get used for foci creation.
-                 */
-                selectionManager->setLastSelectedItem(idVoxel);
                 
                 updateGraphicsFlag = true;
                 
@@ -348,7 +312,72 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
-            }            
+            }
+        }
+        /*
+         * Generate identification manager
+         */
+        const AString identificationMessage = selectionManager->getIdentificationText(btc,
+                                                                                      brain);
+        
+        bool issuedIdentificationLocationEvent = false;
+        if (idNode->isValid()) {
+            Surface* surface = idNode->getSurface();
+            const int32_t nodeIndex = idNode->getNodeNumber();
+            
+            /*
+             * Save last selected node which may get used for foci creation.
+             */
+            selectionManager->setLastSelectedItem(idNode);
+            
+            
+            BrainStructure* brainStructure = surface->getBrainStructure();
+            CaretAssert(brainStructure);
+            
+            float xyz[3];
+            const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
+            if (volumeInteractionSurface != NULL) {
+                volumeInteractionSurface->getCoordinate(nodeIndex,
+                                                        xyz);
+            }
+            else {
+                CaretLogWarning("No surface/volume interaction surface for "
+                                + StructureEnum::toGuiName(brainStructure->getStructure()));
+                xyz[0] = -10000000.0;
+                xyz[1] = -10000000.0;
+                xyz[2] = -10000000.0;
+            }
+            
+            identifiedItem = new IdentifiedItemNode(identificationMessage,
+                                                    surface->getStructure(),
+                                                    surface->getNumberOfNodes(),
+                                                    nodeIndex);
+            if (issuedIdentificationLocationEvent == false) {
+                EventIdentificationHighlightLocation idLocation(xyz);
+                EventManager::get()->sendEvent(idLocation.getPointer());
+                issuedIdentificationLocationEvent = true;
+            }
+        }
+        
+        if (idVoxel->isValid()) {
+            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
+            int64_t voxelIJK[3];
+            idVoxel->getVoxelIJK(voxelIJK);
+            if (volumeFile != NULL) {
+                float xyz[3];
+                volumeFile->indexToSpace(voxelIJK, xyz);
+                
+                if (issuedIdentificationLocationEvent == false) {
+                    EventIdentificationHighlightLocation idLocation(xyz);
+                    EventManager::get()->sendEvent(idLocation.getPointer());
+                    issuedIdentificationLocationEvent = true;
+                }
+                
+                /*
+                 * Save last selected node which may get used for foci creation.
+                 */
+                selectionManager->setLastSelectedItem(idVoxel);                
+            }
         }
         
         if (identifiedItem == NULL) {
