@@ -612,7 +612,7 @@ ConnectivityManagerViewController::processRotateTransformation(const double dx,
                 rotationMatrixRightLatMedYoked->rotateZ(-dz);
             }
             else {
-                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+                //ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
                 
                 
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
