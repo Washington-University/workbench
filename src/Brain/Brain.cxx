@@ -36,11 +36,11 @@
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiBrainordinateLabelFile.h"
-#include "CiftiDenseParcelFile.h"
+#include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
-#include "CiftiParcelFile.h"
-#include "CiftiParcelDenseFile.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiConnectivityMatrixParcelDenseFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
@@ -355,13 +355,13 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityDenseLabelFiles.clear();
     
-    for (std::vector<CiftiDenseParcelFile*>::iterator clfi = m_connectivityDenseParcelFiles.begin();
-         clfi != m_connectivityDenseParcelFiles.end();
+    for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator clfi = m_connectivityMatrixDenseParcelFiles.begin();
+         clfi != m_connectivityMatrixDenseParcelFiles.end();
          clfi++) {
-        CiftiDenseParcelFile* clf = *clfi;
+        CiftiConnectivityMatrixDenseParcelFile* clf = *clfi;
         delete clf;
     }
-    m_connectivityDenseParcelFiles.clear();
+    m_connectivityMatrixDenseParcelFiles.clear();
     
     for (std::vector<CiftiBrainordinateScalarFile*>::iterator clfi = m_connectivityDenseScalarFiles.begin();
          clfi != m_connectivityDenseScalarFiles.end();
@@ -388,21 +388,21 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_connectivityFiberTrajectoryFiles.clear();
     
 
-    for (std::vector<CiftiParcelFile*>::iterator clfi = m_connectivityParcelFiles.begin();
-         clfi != m_connectivityParcelFiles.end();
+    for (std::vector<CiftiConnectivityMatrixParcelFile*>::iterator clfi = m_connectivityMatrixParcelFiles.begin();
+         clfi != m_connectivityMatrixParcelFiles.end();
          clfi++) {
-        CiftiParcelFile* clf = *clfi;
+        CiftiConnectivityMatrixParcelFile* clf = *clfi;
         delete clf;
     }
-    m_connectivityParcelFiles.clear();
+    m_connectivityMatrixParcelFiles.clear();
     
-    for (std::vector<CiftiParcelDenseFile*>::iterator clfi = m_connectivityParcelDenseFiles.begin();
-         clfi != m_connectivityParcelDenseFiles.end();
+    for (std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator clfi = m_connectivityMatrixParcelDenseFiles.begin();
+         clfi != m_connectivityMatrixParcelDenseFiles.end();
          clfi++) {
-        CiftiParcelDenseFile* clf = *clfi;
+        CiftiConnectivityMatrixParcelDenseFile* clf = *clfi;
         delete clf;
     }
-    m_connectivityParcelDenseFiles.clear();
+    m_connectivityMatrixParcelDenseFiles.clear();
     
     
     for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = m_connectivityTimeSeriesFiles.begin();
@@ -994,9 +994,9 @@ Brain::readConnectivityDenseLabelFile(const AString& filename) throw (DataFileEx
  *    If reading failed.
  */
 void
-Brain::readConnectivityDenseParcelFile(const AString& filename) throw (DataFileException)
+Brain::readConnectivityMatrixDenseParcelFile(const AString& filename) throw (DataFileException)
 {
-    CiftiDenseParcelFile* file = new CiftiDenseParcelFile();
+    CiftiConnectivityMatrixDenseParcelFile* file = new CiftiConnectivityMatrixDenseParcelFile();
     
     try {
         file->readFile(filename);
@@ -1008,7 +1008,7 @@ Brain::readConnectivityDenseParcelFile(const AString& filename) throw (DataFileE
         throw dfe;
     }
     
-    m_connectivityDenseParcelFiles.push_back(file);
+    m_connectivityMatrixDenseParcelFiles.push_back(file);
 }
 
 /**
@@ -1119,9 +1119,9 @@ Brain::readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataF
  *    If reading failed.
  */
 void
-Brain::readConnectivityParcelFile(const AString& filename) throw (DataFileException)
+Brain::readConnectivityMatrixParcelFile(const AString& filename) throw (DataFileException)
 {
-    CiftiParcelFile* file = new CiftiParcelFile();
+    CiftiConnectivityMatrixParcelFile* file = new CiftiConnectivityMatrixParcelFile();
     
     try {
         file->readFile(filename);
@@ -1133,7 +1133,7 @@ Brain::readConnectivityParcelFile(const AString& filename) throw (DataFileExcept
         throw dfe;
     }
     
-    m_connectivityParcelFiles.push_back(file);
+    m_connectivityMatrixParcelFiles.push_back(file);
 }
 
 /**
@@ -1145,9 +1145,9 @@ Brain::readConnectivityParcelFile(const AString& filename) throw (DataFileExcept
  *    If reading failed.
  */
 void
-Brain::readConnectivityParcelDenseFile(const AString& filename) throw (DataFileException)
+Brain::readConnectivityMatrixParcelDenseFile(const AString& filename) throw (DataFileException)
 {
-    CiftiParcelDenseFile* file = new CiftiParcelDenseFile();
+    CiftiConnectivityMatrixParcelDenseFile* file = new CiftiConnectivityMatrixParcelDenseFile();
     
     try {
         file->readFile(filename);
@@ -1159,7 +1159,7 @@ Brain::readConnectivityParcelDenseFile(const AString& filename) throw (DataFileE
         throw dfe;
     }
     
-    m_connectivityParcelDenseFiles.push_back(file);
+    m_connectivityMatrixParcelDenseFiles.push_back(file);
 }
 
 /**
@@ -1402,9 +1402,9 @@ Brain::getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCi
  * @return Number of cifti dense parcel files.
  */
 int32_t
-Brain::getNumberOfConnectivityDenseParcelFiles() const
+Brain::getNumberOfConnectivityMatrixDenseParcelFiles() const
 {
-    return m_connectivityDenseParcelFiles.size();
+    return m_connectivityMatrixDenseParcelFiles.size();
 }
 
 /**
@@ -1413,11 +1413,11 @@ Brain::getNumberOfConnectivityDenseParcelFiles() const
  *    Index of file.
  * @return cifti dense parcel file at index.
  */
-CiftiDenseParcelFile*
-Brain::getConnectivityDenseParcelFile(int32_t indx)
+CiftiConnectivityMatrixDenseParcelFile*
+Brain::getConnectivityMatrixDenseParcelFile(int32_t indx)
 {
-    CaretAssertVectorIndex(m_connectivityDenseParcelFiles, indx);
-    return m_connectivityDenseParcelFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixDenseParcelFiles, indx);
+    return m_connectivityMatrixDenseParcelFiles[indx];
 }
 
 /**
@@ -1426,11 +1426,11 @@ Brain::getConnectivityDenseParcelFile(int32_t indx)
  *    Index of file.
  * @return cifti dense parcel file at index.
  */
-const CiftiDenseParcelFile*
-Brain::getConnectivityDenseParcelFile(int32_t indx) const
+const CiftiConnectivityMatrixDenseParcelFile*
+Brain::getConnectivityMatrixDenseParcelFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(m_connectivityDenseParcelFiles, indx);
-    return m_connectivityDenseParcelFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixDenseParcelFiles, indx);
+    return m_connectivityMatrixDenseParcelFiles[indx];
 }
 
 /**
@@ -1439,9 +1439,9 @@ Brain::getConnectivityDenseParcelFile(int32_t indx) const
  *   Contains all cifti dense parcel files on exit.
  */
 void
-Brain::getConnectivityDenseParcelFiles(std::vector<CiftiDenseParcelFile*>& connectivityDenseParcelFilesOut) const
+Brain::getConnectivityMatrixDenseParcelFiles(std::vector<CiftiConnectivityMatrixDenseParcelFile*>& connectivityDenseParcelFilesOut) const
 {
-    connectivityDenseParcelFilesOut = m_connectivityDenseParcelFiles;
+    connectivityDenseParcelFilesOut = m_connectivityMatrixDenseParcelFiles;
 }
 
 /**
@@ -1586,9 +1586,9 @@ Brain::getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*
  * @return Number of cifti parcel files.
  */
 int32_t
-Brain::getNumberOfConnectivityParcelFiles() const
+Brain::getNumberOfConnectivityMatrixParcelFiles() const
 {
-    return m_connectivityParcelFiles.size();
+    return m_connectivityMatrixParcelFiles.size();
 }
 
 /**
@@ -1597,11 +1597,11 @@ Brain::getNumberOfConnectivityParcelFiles() const
  *    Index of file.
  * @return cifti parcel file at index.
  */
-CiftiParcelFile*
-Brain::getConnectivityParcelFile(int32_t indx)
+CiftiConnectivityMatrixParcelFile*
+Brain::getConnectivityMatrixParcelFile(int32_t indx)
 {
-    CaretAssertVectorIndex(m_connectivityParcelFiles, indx);
-    return m_connectivityParcelFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixParcelFiles, indx);
+    return m_connectivityMatrixParcelFiles[indx];
 }
 
 /**
@@ -1610,11 +1610,11 @@ Brain::getConnectivityParcelFile(int32_t indx)
  *    Index of file.
  * @return cifti parcel file at index.
  */
-const CiftiParcelFile*
-Brain::getConnectivityParcelFile(int32_t indx) const
+const CiftiConnectivityMatrixParcelFile*
+Brain::getConnectivityMatrixParcelFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(m_connectivityParcelFiles, indx);
-    return m_connectivityParcelFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixParcelFiles, indx);
+    return m_connectivityMatrixParcelFiles[indx];
 }
 
 /**
@@ -1623,18 +1623,18 @@ Brain::getConnectivityParcelFile(int32_t indx) const
  *   Contains all cifti parcel files on exit.
  */
 void
-Brain::getConnectivityParcelFiles(std::vector<CiftiParcelFile*>& connectivityParcelFilesOut) const
+Brain::getConnectivityMatrixParcelFiles(std::vector<CiftiConnectivityMatrixParcelFile*>& connectivityParcelFilesOut) const
 {
-    connectivityParcelFilesOut = m_connectivityParcelFiles;
+    connectivityParcelFilesOut = m_connectivityMatrixParcelFiles;
 }
 
 /**
  * @return Number of cifti parcel dense files.
  */
 int32_t
-Brain::getNumberOfConnectivityParcelDenseFiles() const
+Brain::getNumberOfConnectivityMatrixParcelDenseFiles() const
 {
-    return m_connectivityParcelDenseFiles.size();
+    return m_connectivityMatrixParcelDenseFiles.size();
 }
 
 /**
@@ -1643,11 +1643,11 @@ Brain::getNumberOfConnectivityParcelDenseFiles() const
  *    Index of file.
  * @return cifti parcel dense file at index.
  */
-CiftiParcelDenseFile*
-Brain::getConnectivityParcelDenseFile(int32_t indx)
+CiftiConnectivityMatrixParcelDenseFile*
+Brain::getConnectivityMatrixParcelDenseFile(int32_t indx)
 {
-    CaretAssertVectorIndex(m_connectivityParcelDenseFiles, indx);
-    return m_connectivityParcelDenseFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixParcelDenseFiles, indx);
+    return m_connectivityMatrixParcelDenseFiles[indx];
 }
 
 /**
@@ -1656,11 +1656,11 @@ Brain::getConnectivityParcelDenseFile(int32_t indx)
  *    Index of file.
  * @return cifti parcel dense file at index.
  */
-const CiftiParcelDenseFile*
-Brain::getConnectivityParcelDenseFile(int32_t indx) const
+const CiftiConnectivityMatrixParcelDenseFile*
+Brain::getConnectivityMatrixParcelDenseFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(m_connectivityParcelDenseFiles, indx);
-    return m_connectivityParcelDenseFiles[indx];
+    CaretAssertVectorIndex(m_connectivityMatrixParcelDenseFiles, indx);
+    return m_connectivityMatrixParcelDenseFiles[indx];
 }
 
 /**
@@ -1669,9 +1669,9 @@ Brain::getConnectivityParcelDenseFile(int32_t indx) const
  *   Contains all cifti parcel dense files on exit.
  */
 void
-Brain::getConnectivityParcelDenseFiles(std::vector<CiftiParcelDenseFile*>& connectivityParcelDenseFilesOut) const
+Brain::getConnectivityMatrixParcelDenseFiles(std::vector<CiftiConnectivityMatrixParcelDenseFile*>& connectivityParcelDenseFilesOut) const
 {
-    connectivityParcelDenseFilesOut = m_connectivityParcelDenseFiles;
+    connectivityParcelDenseFilesOut = m_connectivityMatrixParcelDenseFiles;
 }
 
 /**
@@ -1686,17 +1686,17 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiConnectivityMatrixDat
     allCiftiConnectivityMatrixFiles.clear();
     
     allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityDenseParcelFiles.begin(),
-                                           m_connectivityDenseParcelFiles.end());
+                                           m_connectivityMatrixDenseParcelFiles.begin(),
+                                           m_connectivityMatrixDenseParcelFiles.end());
     
     
     allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityParcelFiles.begin(),
-                                           m_connectivityParcelFiles.end());
+                                           m_connectivityMatrixParcelFiles.begin(),
+                                           m_connectivityMatrixParcelFiles.end());
     
     allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityParcelDenseFiles.begin(),
-                                           m_connectivityParcelDenseFiles.end());
+                                           m_connectivityMatrixParcelDenseFiles.begin(),
+                                           m_connectivityMatrixParcelDenseFiles.end());
 }
 
 
@@ -2501,7 +2501,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 readConnectivityDenseLabelFile(dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                readConnectivityDenseParcelFile(dataFileName);
+                readConnectivityMatrixDenseParcelFile(dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 readConnectivityDenseScalarFile(dataFileName);
@@ -2516,10 +2516,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 readConnectivityFiberTrajectoryFile(dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                readConnectivityParcelFile(dataFileName);
+                readConnectivityMatrixParcelFile(dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                readConnectivityParcelDenseFile(dataFileName);
+                readConnectivityMatrixParcelDenseFile(dataFileName);
                 break;
             case DataFileTypeEnum::FOCI:
                 readFociFile(dataFileName);
@@ -3065,8 +3065,8 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<CiftiDenseParcelFile*>::iterator icf = m_connectivityDenseParcelFiles.begin();
-             icf != m_connectivityDenseParcelFiles.end();
+        for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator icf = m_connectivityMatrixDenseParcelFiles.begin();
+             icf != m_connectivityMatrixDenseParcelFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
         }
@@ -3077,14 +3077,14 @@ Brain::receiveEvent(Event* event)
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<CiftiParcelFile*>::iterator icf = m_connectivityParcelFiles.begin();
-             icf != m_connectivityParcelFiles.end();
+        for (std::vector<CiftiConnectivityMatrixParcelFile*>::iterator icf = m_connectivityMatrixParcelFiles.begin();
+             icf != m_connectivityMatrixParcelFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
         }
         
-        for (std::vector<CiftiParcelDenseFile*>::iterator icf = m_connectivityParcelDenseFiles.begin();
-             icf != m_connectivityParcelDenseFiles.end();
+        for (std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator icf = m_connectivityMatrixParcelDenseFiles.begin();
+             icf != m_connectivityMatrixParcelDenseFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
         }
@@ -3291,8 +3291,8 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
                            m_connectivityDenseLabelFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityDenseParcelFiles.begin(),
-                           m_connectivityDenseParcelFiles.end());
+                           m_connectivityMatrixDenseParcelFiles.begin(),
+                           m_connectivityMatrixDenseParcelFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseScalarFiles.begin(),
@@ -3307,12 +3307,12 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
                            m_connectivityFiberTrajectoryFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityParcelFiles.begin(),
-                           m_connectivityParcelFiles.end());
+                           m_connectivityMatrixParcelFiles.begin(),
+                           m_connectivityMatrixParcelFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityParcelDenseFiles.begin(),
-                           m_connectivityParcelDenseFiles.end());
+                           m_connectivityMatrixParcelDenseFiles.begin(),
+                           m_connectivityMatrixParcelDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityTimeSeriesFiles.begin(),
@@ -3514,13 +3514,13 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
     
-    std::vector<CiftiDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityDenseParcelFiles.begin(),
-                                                                                 m_connectivityDenseParcelFiles.end(),
+    std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityMatrixDenseParcelFiles.begin(),
+                                                                                 m_connectivityMatrixDenseParcelFiles.end(),
                                                                                  caretDataFile);
-    if (connDenseParcelIterator != m_connectivityDenseParcelFiles.end()) {
-        CiftiDenseParcelFile* connFile = *connDenseParcelIterator;
+    if (connDenseParcelIterator != m_connectivityMatrixDenseParcelFiles.end()) {
+        CiftiConnectivityMatrixDenseParcelFile* connFile = *connDenseParcelIterator;
         delete connFile;
-        m_connectivityDenseParcelFiles.erase(connDenseParcelIterator);
+        m_connectivityMatrixDenseParcelFiles.erase(connDenseParcelIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
@@ -3576,24 +3576,24 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
     
-    std::vector<CiftiParcelFile*>::iterator connParcelIterator = std::find(m_connectivityParcelFiles.begin(),
-                                                                                     m_connectivityParcelFiles.end(),
+    std::vector<CiftiConnectivityMatrixParcelFile*>::iterator connParcelIterator = std::find(m_connectivityMatrixParcelFiles.begin(),
+                                                                                     m_connectivityMatrixParcelFiles.end(),
                                                                                      caretDataFile);
-    if (connParcelIterator != m_connectivityParcelFiles.end()) {
-        CiftiParcelFile* connFile = *connParcelIterator;
+    if (connParcelIterator != m_connectivityMatrixParcelFiles.end()) {
+        CiftiConnectivityMatrixParcelFile* connFile = *connParcelIterator;
         delete connFile;
-        m_connectivityParcelFiles.erase(connParcelIterator);
+        m_connectivityMatrixParcelFiles.erase(connParcelIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }    
 
-    std::vector<CiftiParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityParcelDenseFiles.begin(),
-                                                                                     m_connectivityParcelDenseFiles.end(),
+    std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityMatrixParcelDenseFiles.begin(),
+                                                                                     m_connectivityMatrixParcelDenseFiles.end(),
                                                                                      caretDataFile);
-    if (connParcelDenseIterator != m_connectivityParcelDenseFiles.end()) {
-        CiftiParcelDenseFile* connFile = *connParcelDenseIterator;
+    if (connParcelDenseIterator != m_connectivityMatrixParcelDenseFiles.end()) {
+        CiftiConnectivityMatrixParcelDenseFile* connFile = *connParcelDenseIterator;
         delete connFile;
-        m_connectivityParcelDenseFiles.erase(connParcelDenseIterator);
+        m_connectivityMatrixParcelDenseFiles.erase(connParcelDenseIterator);
         wasRemoved = true;
         caretDataFile = NULL;
     }
@@ -3730,7 +3730,7 @@ Brain::getDisplayPropertiesFoci()
 /**
  * @return The foci display properties.
  */
-const DisplayPropertiesFoci* 
+const DisplayPropertiesFoci*
 Brain::getDisplayPropertiesFoci() const
 {
     return m_displayPropertiesFoci;

@@ -1,3 +1,5 @@
+#ifndef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_H__
+#define __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -32,37 +34,36 @@
  */
 /*LICENSE_END*/
 
-#define __CIFTI_PARCEL_FILE_DECLARE__
-#include "CiftiParcelFile.h"
-#undef __CIFTI_PARCEL_FILE_DECLARE__
 
-using namespace caret;
+#include "CiftiConnectivityMatrixDataFile.h"
 
+namespace caret {
 
+    class CiftiConnectivityMatrixParcelDenseFile : public CiftiConnectivityMatrixDataFile {
+        
+    public:
+        CiftiConnectivityMatrixParcelDenseFile();
+        
+        virtual ~CiftiConnectivityMatrixParcelDenseFile();
+        
+    private:
+        CiftiConnectivityMatrixParcelDenseFile(const CiftiConnectivityMatrixParcelDenseFile&);
+
+        CiftiConnectivityMatrixParcelDenseFile& operator=(const CiftiConnectivityMatrixParcelDenseFile&);
+        
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::CiftiParcelFile 
- * \brief Connectivity Parcel x Parcel File
- * \ingroup Files
- *
- * Contains connectivity matrix that measures connectivity from parcels
- * to parcels.
- */
+#ifdef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_DECLARE__
 
-/**
- * Constructor.
- */
-CiftiParcelFile::CiftiParcelFile()
-: CiftiConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL)
-{
-    
-}
-
-/**
- * Destructor.
- */
-CiftiParcelFile::~CiftiParcelFile()
-{
-    
-}
-
+} // namespace
+#endif  //__CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_H__

@@ -1,5 +1,5 @@
-#ifndef __CIFTI_PARCEL_FILE_H__
-#define __CIFTI_PARCEL_FILE_H__
+#ifndef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_H__
+#define __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -39,17 +39,17 @@
 
 namespace caret {
 
-    class CiftiParcelFile : public CiftiConnectivityMatrixDataFile {
+    class CiftiConnectivityMatrixParcelFile : public CiftiConnectivityMatrixDataFile {
         
     public:
-        CiftiParcelFile();
+        CiftiConnectivityMatrixParcelFile();
         
-        virtual ~CiftiParcelFile();
+        virtual ~CiftiConnectivityMatrixParcelFile();
         
     private:
-        CiftiParcelFile(const CiftiParcelFile&);
+        CiftiConnectivityMatrixParcelFile(const CiftiConnectivityMatrixParcelFile&);
 
-        CiftiParcelFile& operator=(const CiftiParcelFile&);
+        CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
         
     public:
 
@@ -61,9 +61,9 @@ namespace caret {
 
     };
     
-#ifdef __CIFTI_PARCEL_FILE_DECLARE__
+#ifdef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CIFTI_PARCEL_FILE_DECLARE__
+#endif // __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__
 
 } // namespace
-#endif  //__CIFTI_PARCEL_FILE_H__
+#endif  //__CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_H__

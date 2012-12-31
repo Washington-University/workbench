@@ -32,16 +32,16 @@
  */
 /*LICENSE_END*/
 
-#define __CIFTI_PARCEL_DENSE_FILE_DECLARE__
-#include "CiftiParcelDenseFile.h"
-#undef __CIFTI_PARCEL_DENSE_FILE_DECLARE__
+#define __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_DECLARE__
+#include "CiftiConnectivityMatrixParcelDenseFile.h"
+#undef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DENSE_FILE_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class caret::CiftiParcelDenseFile 
+ * \class caret::CiftiConnectivityMatrixParcelDenseFile 
  * \brief Connectivity Parcel x Dense File
  * \ingroup Files
  *
@@ -52,7 +52,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-CiftiParcelDenseFile::CiftiParcelDenseFile()
+CiftiConnectivityMatrixParcelDenseFile::CiftiConnectivityMatrixParcelDenseFile()
 : CiftiConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE)
 {
     
@@ -61,7 +61,7 @@ CiftiParcelDenseFile::CiftiParcelDenseFile()
 /**
  * Destructor.
  */
-CiftiParcelDenseFile::~CiftiParcelDenseFile()
+CiftiConnectivityMatrixParcelDenseFile::~CiftiConnectivityMatrixParcelDenseFile()
 {
     
 }

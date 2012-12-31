@@ -48,11 +48,11 @@ namespace caret {
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDataFile;
     class CiftiConnectivityMatrixDataFileManager;
-    class CiftiDenseParcelFile;
+    class CiftiConnectivityMatrixDenseParcelFile;
+    class CiftiConnectivityMatrixParcelFile;
+    class CiftiConnectivityMatrixParcelDenseFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
-    class CiftiParcelFile;
-    class CiftiParcelDenseFile;
     class ConnectivityLoaderFile;
     class ConnectivityLoaderManager;
     class DisplayProperties;
@@ -220,13 +220,13 @@ namespace caret {
         
         void getConnectivityDenseLabelFiles(std::vector<CiftiBrainordinateLabelFile*>& connectivityDenseLabelFilesOut) const;
         
-        int32_t getNumberOfConnectivityDenseParcelFiles() const;
+        int32_t getNumberOfConnectivityMatrixDenseParcelFiles() const;
         
-        CiftiDenseParcelFile* getConnectivityDenseParcelFile(int32_t indx);
+        CiftiConnectivityMatrixDenseParcelFile* getConnectivityMatrixDenseParcelFile(int32_t indx);
         
-        const CiftiDenseParcelFile* getConnectivityDenseParcelFile(int32_t indx) const;
+        const CiftiConnectivityMatrixDenseParcelFile* getConnectivityMatrixDenseParcelFile(int32_t indx) const;
         
-        void getConnectivityDenseParcelFiles(std::vector<CiftiDenseParcelFile*>& connectivityDenseParcelFilesOut) const;
+        void getConnectivityMatrixDenseParcelFiles(std::vector<CiftiConnectivityMatrixDenseParcelFile*>& connectivityDenseParcelFilesOut) const;
         
         int32_t getNumberOfConnectivityDenseScalarFiles() const;
         
@@ -252,21 +252,21 @@ namespace caret {
         
         void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
         
-        int32_t getNumberOfConnectivityParcelFiles() const;
+        int32_t getNumberOfConnectivityMatrixParcelFiles() const;
         
-        CiftiParcelFile* getConnectivityParcelFile(int32_t indx);
+        CiftiConnectivityMatrixParcelFile* getConnectivityMatrixParcelFile(int32_t indx);
         
-        const CiftiParcelFile* getConnectivityParcelFile(int32_t indx) const;
+        const CiftiConnectivityMatrixParcelFile* getConnectivityMatrixParcelFile(int32_t indx) const;
         
-        void getConnectivityParcelFiles(std::vector<CiftiParcelFile*>& connectivityParcelFilesOut) const;
+        void getConnectivityMatrixParcelFiles(std::vector<CiftiConnectivityMatrixParcelFile*>& connectivityParcelFilesOut) const;
 
-        int32_t getNumberOfConnectivityParcelDenseFiles() const;
+        int32_t getNumberOfConnectivityMatrixParcelDenseFiles() const;
         
-        CiftiParcelDenseFile* getConnectivityParcelDenseFile(int32_t indx);
+        CiftiConnectivityMatrixParcelDenseFile* getConnectivityMatrixParcelDenseFile(int32_t indx);
         
-        const CiftiParcelDenseFile* getConnectivityParcelDenseFile(int32_t indx) const;
+        const CiftiConnectivityMatrixParcelDenseFile* getConnectivityMatrixParcelDenseFile(int32_t indx) const;
         
-        void getConnectivityParcelDenseFiles(std::vector<CiftiParcelDenseFile*>& connectivityParcelDenseFilesOut) const;
+        void getConnectivityMatrixParcelDenseFiles(std::vector<CiftiConnectivityMatrixParcelDenseFile*>& connectivityParcelDenseFilesOut) const;
         
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
@@ -391,7 +391,7 @@ namespace caret {
         
         void readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityDenseParcelFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixDenseParcelFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException);
         
@@ -399,9 +399,9 @@ namespace caret {
         
         void readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityParcelFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixParcelFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityParcelDenseFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixParcelDenseFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
@@ -437,7 +437,7 @@ namespace caret {
         
         std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
-        std::vector<CiftiDenseParcelFile*> m_connectivityDenseParcelFiles;
+        std::vector<CiftiConnectivityMatrixDenseParcelFile*> m_connectivityMatrixDenseParcelFiles;
         
         std::vector<CiftiBrainordinateScalarFile*> m_connectivityDenseScalarFiles;
         
@@ -445,9 +445,9 @@ namespace caret {
         
         std::vector<CiftiFiberTrajectoryFile*> m_connectivityFiberTrajectoryFiles;
         
-        std::vector<CiftiParcelFile*> m_connectivityParcelFiles;
+        std::vector<CiftiConnectivityMatrixParcelFile*> m_connectivityMatrixParcelFiles;
         
-        std::vector<CiftiParcelDenseFile*> m_connectivityParcelDenseFiles;
+        std::vector<CiftiConnectivityMatrixParcelDenseFile*> m_connectivityMatrixParcelDenseFiles;
         
         std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
         
