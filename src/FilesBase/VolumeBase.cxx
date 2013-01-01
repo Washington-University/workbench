@@ -23,16 +23,18 @@
  */ 
 
 #include "VolumeBase.h"
+#include "DataFileException.h"
 #include "FloatMatrix.h"
-#include <algorithm>
-#include <cmath>
 #include "DescriptiveStatistics.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GiftiXmlElements.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
-#include "DataFileException.h"
+#include "Vector3D.h"
+
+#include <algorithm>
+#include <cmath>
 
 using namespace caret;
 using namespace std;
@@ -231,6 +233,176 @@ void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spac
     }
 }
 
+void VolumeBase::getOrientation(OrientTypes orientOut[3]) const
+{
+    Vector3D ivec;
+    Vector3D jvec;
+    Vector3D kvec;
+    ivec[0] = m_indexToSpace[0][0]; ivec[1] = m_indexToSpace[1][0]; ivec[2] = m_indexToSpace[2][0];
+    jvec[0] = m_indexToSpace[0][1]; jvec[1] = m_indexToSpace[1][1]; jvec[2] = m_indexToSpace[2][1];
+    kvec[0] = m_indexToSpace[0][2]; kvec[1] = m_indexToSpace[1][2]; kvec[2] = m_indexToSpace[2][2];
+    int next = 1, bestarray[3] = {0, 0, 0};
+    float bestVal = -1.0f;//make sure at least the first test trips true, if there is a zero spacing vector it will default to report LPI
+    for (int first = 0; first < 3; ++first)//brute force search for best fit - only 6 to try
+    {
+        int third = 3 - first - next;
+        float testVal = abs(ivec[first] * jvec[next] * kvec[third]);
+        if (testVal > bestVal)
+        {
+            bestVal = testVal;
+            bestarray[0] = first;
+            bestarray[1] = next;
+        }
+        testVal = abs(ivec[first] * jvec[third] * kvec[next]);
+        if (testVal > bestVal)
+        {
+            bestVal = testVal;
+            bestarray[0] = first;
+            bestarray[1] = third;
+        }
+        next = 0;
+    }
+    bestarray[2] = 3 - bestarray[0] - bestarray[1];
+    Vector3D spaceHats[3];//to translate into enums without casting
+    spaceHats[0] = ivec;
+    spaceHats[1] = jvec;
+    spaceHats[2] = kvec;
+    for (int i = 0; i < 3; ++i)
+    {
+        bool neg = (spaceHats[i][bestarray[i]] < 0.0f);
+        switch (bestarray[i])
+        {
+            case 0:
+                if (neg)
+                {
+                    orientOut[i] = RIGHT_TO_LEFT;
+                } else {
+                    orientOut[i] = LEFT_TO_RIGHT;
+                }
+                break;
+            case 1:
+                if (neg)
+                {
+                    orientOut[i] = ANTERIOR_TO_POSTERIOR;
+                } else {
+                    orientOut[i] = POSTERIOR_TO_ANTERIOR;
+                }
+                break;
+            case 2:
+                if (neg)
+                {
+                    orientOut[i] = SUPERIOR_TO_INFERIOR;
+                } else {
+                    orientOut[i] = INFERIOR_TO_SUPERIOR;
+                }
+                break;
+            default:
+                CaretAssert(0);
+        }
+    }
+}
+
+void VolumeBase::reorient(const OrientTypes newOrient[3])
+{
+    OrientTypes curOrient[3];
+    getOrientation(curOrient);
+    int curReverse[3];//for each spatial axis, which index currently goes that direction
+    bool curReverseNeg[3];
+    int doSomething = false;//check whether newOrient is any different
+    for (int i = 0; i < 3; ++i)
+    {
+        if (curOrient[i] != newOrient[i]) doSomething = true;
+        curReverse[curOrient[i] & 3] = i;//int values of the enum are crafted to make this work
+        curReverseNeg[curOrient[i] & 3] = ((curOrient[i] & 4) != 0);
+    }
+    if (!doSomething) return;
+    bool flip[3];
+    int fetchFrom[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        flip[i] = curReverseNeg[newOrient[i] & 3] != ((newOrient[i] & 4) != 0);
+        fetchFrom[i] = curReverse[newOrient[i] & 3];
+    }
+    int64_t rowSize = m_dimensions[0];
+    int64_t sliceSize = rowSize * m_dimensions[1];
+    int64_t frameSize = sliceSize * m_dimensions[2];
+    vector<float> scratchFrame(frameSize);
+    for (int c = 0; c < m_dimensions[4]; ++c)
+    {
+        for (int b = 0; b < m_dimensions[3]; ++b)
+        {
+            float* frameBase = m_data + getIndex(0, 0, 0, b, c);
+            for (int64_t i = 0; i < frameSize; ++i)
+            {
+                scratchFrame[i] = frameBase[i];
+            }
+            int64_t indices[3], oldIndices[3];
+            int64_t newInd = 0;
+            for (indices[2] = 0; indices[2] < m_dimensions[fetchFrom[2]]; ++indices[2])
+            {
+                if (flip[2])
+                {
+                    oldIndices[fetchFrom[2]] = m_dimensions[fetchFrom[2]] - indices[2] - 1;
+                } else {
+                    oldIndices[fetchFrom[2]] = indices[2];
+                }
+                for (indices[1] = 0; indices[1] < m_dimensions[fetchFrom[1]]; ++indices[1])
+                {
+                    if (flip[1])
+                    {
+                        oldIndices[fetchFrom[1]] = m_dimensions[fetchFrom[1]] - indices[1] - 1;
+                    } else {
+                        oldIndices[fetchFrom[1]] = indices[1];
+                    }
+                    for (indices[0] = 0; indices[0] < m_dimensions[fetchFrom[0]]; ++indices[0])
+                    {
+                        if (flip[0])
+                        {
+                            oldIndices[fetchFrom[0]] = m_dimensions[fetchFrom[0]] - indices[0] - 1;
+                        } else {
+                            oldIndices[fetchFrom[0]] = indices[0];
+                        }
+                        int64_t origInd = getIndex(oldIndices);
+                        frameBase[newInd] = scratchFrame[origInd];
+                        ++newInd;
+                    }
+                }
+            }
+        }
+    }
+    vector<vector<float> > oldSform = m_indexToSpace;//reorder and flip the sform
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (flip[j])
+            {
+                m_indexToSpace[i][j] = -oldSform[i][fetchFrom[j]];
+                m_indexToSpace[i][3] += oldSform[i][fetchFrom[j]] * (m_dimensions[fetchFrom[j]] - 1);
+            } else {
+                m_indexToSpace[i][j] = oldSform[i][fetchFrom[j]];
+            }
+        }
+    }//and now generate the inverse for spaceToIndex
+    m_indexToSpace.resize(4);//ensure row 4 exists
+    m_indexToSpace[3].resize(4);//give it the right length
+    m_indexToSpace[3][0] = 0.0f;//and overwrite it
+    m_indexToSpace[3][1] = 0.0f;
+    m_indexToSpace[3][2] = 0.0f;
+    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
+    FloatMatrix temp(m_indexToSpace);
+    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
+    m_spaceToIndex = temp2.getMatrix();
+    m_indexToSpace.resize(3);//reduce them both back to 3x4
+    m_spaceToIndex.resize(3);
+    int64_t newDims[3] = {m_dimensions[fetchFrom[0]], m_dimensions[fetchFrom[1]], m_dimensions[fetchFrom[2]]};
+    m_origDims[0] = (m_dimensions[0] = newDims[0]);//update m_origDims too
+    m_origDims[1] = (m_dimensions[1] = newDims[1]);
+    m_origDims[2] = (m_dimensions[2] = newDims[2]);
+    freeIndexing();//make new indexing
+    setupIndexing();
+}
+
 void VolumeBase::enclosingVoxel(const float* coordIn, int64_t* indexOut) const
 {
     enclosingVoxel(coordIn[0], coordIn[1], coordIn[2], indexOut[0], indexOut[1], indexOut[2]);
@@ -392,6 +564,16 @@ void VolumeBase::freeMemory()
         m_data = NULL;
     }
     m_dataSize = 0;
+    freeIndexing();
+    m_origDims.clear();
+    m_origDims.push_back(0);//give original dimensions 3 elements, just because
+    m_origDims.push_back(0);
+    m_origDims.push_back(0);
+    m_extensions.clear();
+}
+
+void VolumeBase::freeIndexing()
+{
     if (m_indexRef != NULL)
     {//assume the entire thing exists
         delete[] m_indexRef[0];//they were actually allocated as only 2 flat arrays
@@ -406,11 +588,6 @@ void VolumeBase::freeMemory()
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    m_origDims.clear();
-    m_origDims.push_back(0);//give original dimensions 3 elements, just because
-    m_origDims.push_back(0);
-    m_origDims.push_back(0);
-    m_extensions.clear();
 }
 
 void VolumeBase::setupIndexing()

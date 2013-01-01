@@ -72,18 +72,19 @@ namespace caret {
         int64_t* m_cMult;
         
         void freeMemory();
+        void freeIndexing();
         void setupIndexing();//sets up the magic
         bool m_ModifiedFlag;
         
     public:
         enum OrientTypes
         {
-            LEFT_TO_RIGHT,
-            RIGHT_TO_LEFT,
-            POSTERIOR_TO_ANTERIOR,
-            ANTERIOR_TO_POSTERIOR,
-            INFERIOR_TO_SUPERIOR,
-            SUPERIOR_TO_INFERIOR
+            LEFT_TO_RIGHT = 0,
+            RIGHT_TO_LEFT = 4,
+            POSTERIOR_TO_ANTERIOR = 1,
+            ANTERIOR_TO_POSTERIOR = 5,
+            INFERIOR_TO_SUPERIOR = 2,
+            SUPERIOR_TO_INFERIOR = 6
         };
         
         VolumeBase();
@@ -129,6 +130,12 @@ namespace caret {
 
         ///returns orientation, spacing, and center (spacing/center can be negative, spacing/center is LPI rearranged to ijk (first dimension uses first element), will assert false if isOblique is true)
         void getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const;
+        
+        ///get just orientation, even for non-plumb volumes
+        void getOrientation(OrientTypes orientOut[3]) const;
+        
+        ///reorient this volume
+        void reorient(const OrientTypes newOrient[3]);
 
         //not to worry, simple passthrough convenience functions like these get partially optimized to the main one by even -O1, and completely optimized together by -O2 or -O3
 

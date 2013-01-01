@@ -46,6 +46,7 @@ OperationSurfaceVertexAreas.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
+OperationVolumeReorient.h
 OperationZipSceneFile.h
 OperationZipSpecFile.h
 
@@ -78,6 +79,7 @@ OperationSurfaceVertexAreas.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx
+OperationVolumeReorient.cxx
 OperationZipSceneFile.cxx
 OperationZipSpecFile.cxx
 )
