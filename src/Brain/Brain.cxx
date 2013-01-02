@@ -3948,8 +3948,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
                                                                sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
-    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
-                                                  sceneClass->getClass("m_connectivityLoaderManager"));
 
     /*
      * Restore all models
@@ -3989,13 +3987,11 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-//    /*
-//     * Restore connectivity data
-//     */
-//    m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
-//                                                               sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
-//    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
-//                                                  sceneClass->getClass("m_connectivityLoaderManager"));
+    /*
+     * Restore connectivity data
+     */
+    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
+                                                  sceneClass->getClass("m_connectivityLoaderManager"));
 
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:

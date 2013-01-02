@@ -158,11 +158,11 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
             }
-            
-            m_brainordinateDataLoaded.setSurfaceLoading(surfaceFile,
-                                                        nodeIndex);
         }
     }
+    
+    m_brainordinateDataLoaded.setSurfaceLoading(surfaceFile,
+                                                nodeIndex);
     
     if (haveData) {
         //this->colorConnectivityData();
@@ -203,14 +203,14 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const Sur
                                                    nodeIndices);
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
-                m_brainordinateDataLoaded.setSurfaceAverageLoading(surfaceFile,
-                                                                   nodeIndices);
                 haveData = true;
         }
     }
     
+    m_brainordinateDataLoaded.setSurfaceAverageLoading(surfaceFile,
+                                                       nodeIndices);
+    
     if (haveData) {
-//        this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
@@ -247,7 +247,6 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
         cmf->updateScalarColoringForMap(mapIndex,
                                         paletteFile);
         haveData = true;
-        m_brainordinateDataLoaded.setVolumeLoading(xyz);
         if (rowIndex >= 0) {
             /*
              * Get row/column info for node
@@ -260,8 +259,9 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
         }
     }
     
+    m_brainordinateDataLoaded.setVolumeLoading(xyz);
+    
     if (haveData) {
-//        this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     

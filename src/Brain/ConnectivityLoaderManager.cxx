@@ -119,9 +119,6 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                                + ", row index= "
                                + AString::number(rowIndex));
             }
-            
-            m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
-                                                        nodeIndex);
         }
     }
     
@@ -144,6 +141,10 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                                                  nodeIndex);
         }
     }
+    
+    
+    m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
+                                                nodeIndex);
     
     if (haveData) {
         this->colorConnectivityData();
@@ -177,8 +178,6 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
         if (clf->isEmpty() == false) {
             if (clf->isDense()) {
                 clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
-                m_denseDataLoadedForScene.setSurfaceAverageLoading(surfaceFile,
-                                                                   nodeIndices);
                 haveData = true;
             }
             else if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
@@ -189,6 +188,8 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
         }
     }
     
+    m_denseDataLoadedForScene.setSurfaceAverageLoading(surfaceFile,
+                                                       nodeIndices);
     if (haveData) {
         this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -254,7 +255,6 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
         if (clf->isEmpty() == false) {
             const int64_t rowIndex = clf->loadDataForVoxelAtCoordinate(xyz);
             haveData = true;
-            m_denseDataLoadedForScene.setVolumeLoading(xyz);
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node 
@@ -272,6 +272,8 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
         this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
+    
+    m_denseDataLoadedForScene.setVolumeLoading(xyz);
     
     return haveData;
 }
