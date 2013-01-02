@@ -3942,6 +3942,16 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                                      sceneClass);
     
     /*
+     * Restore connectivity data
+     * Must be restored before models are restored for overlays to
+     * be restored correctly.
+     */
+    m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
+                                                               sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
+    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
+                                                  sceneClass->getClass("m_connectivityLoaderManager"));
+
+    /*
      * Restore all models
      */
     EventModelGetAll getAllModels;
@@ -3979,13 +3989,13 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    /*
-     * Restore connectivity data
-     */
-    m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
-                                                               sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
-    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
-                                                  sceneClass->getClass("m_connectivityLoaderManager"));
+//    /*
+//     * Restore connectivity data
+//     */
+//    m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
+//                                                               sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
+//    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
+//                                                  sceneClass->getClass("m_connectivityLoaderManager"));
 
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
