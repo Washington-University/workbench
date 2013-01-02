@@ -68,6 +68,13 @@ namespace caret {
         std::vector<Fiber*> m_fibers;
 
         /**
+         * Fiber orientations are drawn using blending (alpha values).  For
+         * blending to work correctly in OpenGL, items must be drawn in 
+         * "depth" order from furthest to nearest.
+         */
+        mutable float m_drawingDepth;
+        
+        /**
          * True if the fiber is valid, else false.
          */
         bool m_valid;

@@ -197,7 +197,10 @@ namespace caret {
         void addFiberOrientationForDrawing(const FiberOrientationDisplayInfo* fodi,
                                            const FiberOrientation* fiberOrientation);
         
-        void drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi);
+        void sortFiberOrientationsByDepth();
+        
+        void drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi,
+                                      const bool isSortFibers);
         
         void drawSurfaceFiberTrajectories();
         
@@ -394,7 +397,7 @@ namespace caret {
         /** Cone symbol */
         BrainOpenGLShapeCone* m_shapeCone;
         
-        std::list<const FiberOrientation*> m_fiberOrientationsForDrawing;
+        std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
         
         double inverseRotationMatrix[16];
         bool inverseRotationMatrixValid;

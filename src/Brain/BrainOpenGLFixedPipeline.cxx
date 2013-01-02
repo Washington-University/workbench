@@ -41,6 +41,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
+#include <algorithm>
 #include <limits>
 #include <cmath>
 
@@ -5455,7 +5456,8 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
         }
     }
     
-    drawAllFiberOrientations(&fiberOrientDispInfo);
+    drawAllFiberOrientations(&fiberOrientDispInfo,
+                             false);
     
     /*
      * Restore status of clipping planes enabled
@@ -5500,7 +5502,108 @@ BrainOpenGLFixedPipeline::addFiberOrientationForDrawing(const FiberOrientationDi
         return;
     }
     
-    m_fiberOrientationsForDrawing.push_back(fiberOrientation);
+    m_fiberOrientationsForDrawing.push_back(const_cast<FiberOrientation*>(fiberOrientation));
+}
+
+/*
+ * For comparison when sorting that results in furthest fibers drawn first.
+ */
+static bool
+fiberDepthCompare(FiberOrientation* &f1,
+                              FiberOrientation* &f2)
+{
+    return (f1->m_drawingDepth < f2->m_drawingDepth);
+}
+
+/**
+ * Sort the fiber orientations by depth.
+ */
+void
+BrainOpenGLFixedPipeline::sortFiberOrientationsByDepth()
+{
+    ElapsedTimer timer;
+    timer.start();
+    
+    /*
+     * Create transforms model coordinate to a screen coordinate.
+     */
+    GLdouble modelMatrixOpenGL[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrixOpenGL);
+    
+    GLdouble projectionMatrixOpenGL[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrixOpenGL);
+    
+//    GLint intViewportOpenGL[4];
+//    glGetIntegerv(GL_VIEWPORT, intViewportOpenGL);
+    
+    Matrix4x4 modelMatrix;
+    modelMatrix.setMatrixFromOpenGL(modelMatrixOpenGL);
+    
+    Matrix4x4 projectionMatrix;
+    projectionMatrix.setMatrixFromOpenGL(projectionMatrixOpenGL);
+    
+    Matrix4x4 modelToScreenMatrix;
+    modelToScreenMatrix.setMatrix(projectionMatrix);
+    modelToScreenMatrix.premultiply(modelMatrix);
+    
+    const float m0 = modelToScreenMatrix.getMatrixElement(2, 0);
+    const float m1 = modelToScreenMatrix.getMatrixElement(2, 1);
+    const float m2 = modelToScreenMatrix.getMatrixElement(2, 2);
+    const float m3 = modelToScreenMatrix.getMatrixElement(2, 3);
+    
+//    float xyz[3];
+    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
+         iter != m_fiberOrientationsForDrawing.end();
+         iter++) {
+        const FiberOrientation* fiberOrientation = *iter;
+        
+//        xyz[0] = fiberOrientation->m_xyz[0];
+//        xyz[1] = fiberOrientation->m_xyz[1];
+//        xyz[2] = fiberOrientation->m_xyz[2];
+//        modelToScreenMatrix.multiplyPoint3(xyz);
+//        const float screenDepth = ((xyz[2] + 1.0) / 2.0);
+        
+        const float rawDepth =(m0 * fiberOrientation->m_xyz[0]
+                            + m1 * fiberOrientation->m_xyz[1]
+                            + m2 * fiberOrientation->m_xyz[2]
+                            + m3);
+        const float screenDepth = ((rawDepth + 1.0) / 2.0);
+
+        fiberOrientation->m_drawingDepth = screenDepth;
+        
+//        double modelXYZ[3] = {
+//            fiberOrientation->m_xyz[0],
+//            fiberOrientation->m_xyz[1],
+//            fiberOrientation->m_xyz[2]
+//        };
+//        double windowPos[3];
+//        if (gluProject(modelXYZ[0],
+//                       modelXYZ[1],
+//                       modelXYZ[2],
+//                       modelMatrixOpenGL,
+//                       projectionMatrixOpenGL,
+//                       intViewportOpenGL,
+//                       &windowPos[0],
+//                       &windowPos[1],
+//                       &windowPos[2])) {
+//            
+//            const float diff = std::fabs(screenDepth - windowPos[2]);
+//            if (diff > 0.01) {
+//                std::cout << "ERROR: Zs: " << screenDepth << " x " << windowPos[2] << " " << qPrintable(AString::fromNumbers(xyz, 3, ",")) <<  std::endl;
+//            }
+//        }
+    }
+    
+    m_fiberOrientationsForDrawing.sort(fiberDepthCompare);
+    
+    CaretLogSevere("Time (ms) to compute depth of fibers and sort: "
+                   + AString::number(timer.getElapsedTimeMilliseconds()));
+//    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
+//         iter != m_fiberOrientationsForDrawing.end();
+//         iter++) {
+//        const FiberOrientation* fiberOrientation = *iter;
+//        std::cout << " " << fiberOrientation->m_drawingDepth;
+//    }
 }
 
 /**
@@ -5510,9 +5613,14 @@ BrainOpenGLFixedPipeline::addFiberOrientationForDrawing(const FiberOrientationDi
  *    Parameters controlling the drawing of fiber orientations. 
  */
 void
-BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi)
+BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi,
+                                                   const bool isSortFibers)
 {
-    for (std::list<const FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
+    if (isSortFibers) {
+        sortFiberOrientationsByDepth();
+    }
+    
+    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
          iter != m_fiberOrientationsForDrawing.end();
          iter++) {
         const FiberOrientation* fiberOrientation = *iter;
@@ -6245,7 +6353,8 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         }
     }
     
-    drawAllFiberOrientations(&fiberOrientDispInfo);
+    drawAllFiberOrientations(&fiberOrientDispInfo,
+                             true);
     
     glDisable(GL_BLEND);
     
