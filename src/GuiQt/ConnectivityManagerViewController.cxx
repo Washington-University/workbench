@@ -48,7 +48,7 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
-#include "ConnectivityDenseViewController.h"
+#include "CiftiConnectivityMatrixViewController.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -157,7 +157,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->viewControllerGridLayout = ConnectivityDenseViewController::createGridLayout(orientation);
+            this->viewControllerGridLayout = CiftiConnectivityMatrixViewController::createGridLayout(orientation);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
@@ -376,11 +376,11 @@ ConnectivityManagerViewController::updateForConnectivityMatrixFiles(const std::v
     const int32_t numDenseFiles = static_cast<int32_t>(connectivityMatrixFiles.size());
     for (int32_t i = 0; i < numDenseFiles; i++) {
         if (i >= static_cast<int32_t>(this->connectivityMatrixViewControllers.size())) {
-            this->connectivityMatrixViewControllers.push_back(new ConnectivityDenseViewController(this->orientation,
+            this->connectivityMatrixViewControllers.push_back(new CiftiConnectivityMatrixViewController(this->orientation,
                                                                            this->viewControllerGridLayout,
                                                                            this));            
         }
-        ConnectivityDenseViewController* cvc = this->connectivityMatrixViewControllers[i];
+        CiftiConnectivityMatrixViewController* cvc = this->connectivityMatrixViewControllers[i];
         cvc->updateViewController(connectivityMatrixFiles[i]);
         cvc->setVisible(true);
     }

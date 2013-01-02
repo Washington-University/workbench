@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
-#include "ConnectivityDenseViewController.h"
-#undef __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
+#define __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
+#include "CiftiConnectivityMatrixViewController.h"
+#undef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
 #include <QCheckBox>
@@ -58,14 +58,14 @@ using namespace caret;
 
     
 /**
- * \class caret::ConnectivityDenseViewController 
+ * \class caret::CiftiConnectivityMatrixViewController 
  * \brief View-Controller for one connectivity loader
  *
  */
 /**
  * Constructor.
  */
-ConnectivityDenseViewController::ConnectivityDenseViewController(const Qt::Orientation orientation,
+CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
                                                                    QGridLayout* gridLayout,
                                                                    QObject* parent)
 : QObject(parent)
@@ -92,15 +92,15 @@ ConnectivityDenseViewController::ConnectivityDenseViewController(const Qt::Orien
         m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
     }
     
-    s_allConnectivityDenseViewControllers.insert(this);
+    s_allCiftiConnectivityMatrixViewControllers.insert(this);
 }
 
 /**
  * Destructor.
  */
-ConnectivityDenseViewController::~ConnectivityDenseViewController()
+CiftiConnectivityMatrixViewController::~CiftiConnectivityMatrixViewController()
 {
-    s_allConnectivityDenseViewControllers.erase(this);
+    s_allCiftiConnectivityMatrixViewControllers.erase(this);
 }
 
 /**
@@ -111,7 +111,7 @@ ConnectivityDenseViewController::~ConnectivityDenseViewController()
  *    GridLayout setup for this view controller.
  */
 QGridLayout* 
-ConnectivityDenseViewController::createGridLayout(const Qt::Orientation /*orientation*/)
+CiftiConnectivityMatrixViewController::createGridLayout(const Qt::Orientation /*orientation*/)
 {
     QGridLayout* gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
@@ -134,7 +134,7 @@ ConnectivityDenseViewController::createGridLayout(const Qt::Orientation /*orient
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityDenseViewController::updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
+CiftiConnectivityMatrixViewController::updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
 {
     m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
     if (m_ciftiConnectivityMatrixDataFile != NULL) {
@@ -153,7 +153,7 @@ ConnectivityDenseViewController::updateViewController(CiftiConnectivityMatrixDat
  * Update the view controller.
  */
 void 
-ConnectivityDenseViewController::updateViewController()
+CiftiConnectivityMatrixViewController::updateViewController()
 {
     updateViewController(m_ciftiConnectivityMatrixDataFile);    
 }
@@ -162,13 +162,13 @@ ConnectivityDenseViewController::updateViewController()
  * Called when enabled check box changes state.
  */
 void
-ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
+CiftiConnectivityMatrixViewController::enabledCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
     if (m_ciftiConnectivityMatrixDataFile != NULL) {
         m_ciftiConnectivityMatrixDataFile->setMapDataLoadingEnabled(0, selected);
         m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileNameNoPath());
-        updateOtherConnectivityDenseViewControllers();
+        updateOtherCiftiConnectivityMatrixViewControllers();
     }
 }
 
@@ -176,7 +176,7 @@ ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
  * Set the visiblity of this overlay view controller.
  */
 void 
-ConnectivityDenseViewController::setVisible(bool visible)
+CiftiConnectivityMatrixViewController::setVisible(bool visible)
 {
     m_gridLayoutGroup->setVisible(visible);
 }
@@ -185,9 +185,9 @@ ConnectivityDenseViewController::setVisible(bool visible)
  * Update graphics and GUI after 
  */
 void 
-ConnectivityDenseViewController::updateUserInterfaceAndGraphicsWindow()
+CiftiConnectivityMatrixViewController::updateUserInterfaceAndGraphicsWindow()
 {
-    updateOtherConnectivityDenseViewControllers();
+    updateOtherCiftiConnectivityMatrixViewControllers();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -198,13 +198,13 @@ ConnectivityDenseViewController::updateUserInterfaceAndGraphicsWindow()
  * that contain the same connectivity file.
  */
 void 
-ConnectivityDenseViewController::updateOtherConnectivityDenseViewControllers()
+CiftiConnectivityMatrixViewController::updateOtherCiftiConnectivityMatrixViewControllers()
 {
     if (m_ciftiConnectivityMatrixDataFile != NULL) {
-        for (std::set<ConnectivityDenseViewController*>::iterator iter = s_allConnectivityDenseViewControllers.begin();
-             iter != s_allConnectivityDenseViewControllers.end();
+        for (std::set<CiftiConnectivityMatrixViewController*>::iterator iter = s_allCiftiConnectivityMatrixViewControllers.begin();
+             iter != s_allCiftiConnectivityMatrixViewControllers.end();
              iter++) {
-            ConnectivityDenseViewController* clvc = *iter;
+            CiftiConnectivityMatrixViewController* clvc = *iter;
             if (clvc != this) {
                 if (clvc->m_ciftiConnectivityMatrixDataFile == m_ciftiConnectivityMatrixDataFile) {
                     clvc->updateViewController();

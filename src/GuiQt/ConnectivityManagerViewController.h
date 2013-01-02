@@ -58,7 +58,7 @@ namespace caret {
     class CiftiConnectivityMatrixDataFile;
     class ConnectivityLoaderFile;
     class ConnectivityTimeSeriesViewController;
-    class ConnectivityDenseViewController;
+    class CiftiConnectivityMatrixViewController;
     class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
@@ -105,7 +105,7 @@ namespace caret {
         
         QGridLayout* viewControllerGridLayout;
         
-        std::vector<ConnectivityDenseViewController*> connectivityMatrixViewControllers;
+        std::vector<CiftiConnectivityMatrixViewController*> connectivityMatrixViewControllers;
 
         std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
 

@@ -39,8 +39,8 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
-ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 DisplayGroupEnumComboBox.h
@@ -131,8 +131,8 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
-ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 CursorDisplayScoped.h
@@ -240,8 +240,8 @@ CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
+CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx
-ConnectivityDenseViewController.cxx
 ConnectivityManagerViewController.cxx
 ConnectivityTimeSeriesViewController.cxx
 CursorDisplayScoped.cxx

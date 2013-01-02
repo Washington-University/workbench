@@ -1,5 +1,5 @@
-#ifndef __CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_
-#define __CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_
+#ifndef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER__H_
+#define __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -49,16 +49,16 @@ namespace caret {
     class CiftiConnectivityMatrixDataFile;
     class WuQGridLayoutGroup;
     
-    class ConnectivityDenseViewController : public QObject {
+    class CiftiConnectivityMatrixViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        ConnectivityDenseViewController(const Qt::Orientation orientation,
+        CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
                                          QGridLayout* gridLayout,
                                          QObject* parent);
         
-        virtual ~ConnectivityDenseViewController();
+        virtual ~CiftiConnectivityMatrixViewController();
         
         void updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile);
         
@@ -70,13 +70,13 @@ namespace caret {
         void enabledCheckBoxStateChanged(int);
 
     private:
-        ConnectivityDenseViewController(const ConnectivityDenseViewController&);
+        CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
-        ConnectivityDenseViewController& operator=(const ConnectivityDenseViewController&);
+        CiftiConnectivityMatrixViewController& operator=(const CiftiConnectivityMatrixViewController&);
         
         void updateUserInterfaceAndGraphicsWindow();
         
-        void updateOtherConnectivityDenseViewControllers();
+        void updateOtherCiftiConnectivityMatrixViewControllers();
         
         void updateViewController();
         
@@ -88,12 +88,12 @@ namespace caret {
         
         WuQGridLayoutGroup* m_gridLayoutGroup;
         
-        static std::set<ConnectivityDenseViewController*> s_allConnectivityDenseViewControllers;
+        static std::set<CiftiConnectivityMatrixViewController*> s_allCiftiConnectivityMatrixViewControllers;
     };
     
-#ifdef __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
-    std::set<ConnectivityDenseViewController*> ConnectivityDenseViewController::s_allConnectivityDenseViewControllers;
-#endif // __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
+#ifdef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
+    std::set<CiftiConnectivityMatrixViewController*> CiftiConnectivityMatrixViewController::s_allCiftiConnectivityMatrixViewControllers;
+#endif // __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_
+#endif  //__CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER__H_
