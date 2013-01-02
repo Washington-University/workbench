@@ -41,8 +41,11 @@
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "ScenePrimitiveArray.h"
+#include "Surface.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -156,8 +159,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
                                                   + AString::number(rowIndex));
             }
             
-//            m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
-//                                                        nodeIndex);
+            m_brainordinateDataLoaded.setSurfaceLoading(surfaceFile,
+                                                        nodeIndex);
         }
     }
     
@@ -200,8 +203,8 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const Sur
                                                    nodeIndices);
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
-//                m_denseDataLoadedForScene.setSurfaceAverageLoading(surfaceFile,
-//                                                                   nodeIndices);
+                m_brainordinateDataLoaded.setSurfaceAverageLoading(surfaceFile,
+                                                                   nodeIndices);
                 haveData = true;
         }
     }
@@ -244,7 +247,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
         cmf->updateScalarColoringForMap(mapIndex,
                                         paletteFile);
         haveData = true;
-//            m_denseDataLoadedForScene.setVolumeLoading(xyz);
+        m_brainordinateDataLoaded.setVolumeLoading(xyz);
         if (rowIndex >= 0) {
             /*
              * Get row/column info for node
@@ -271,7 +274,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
 void
 CiftiConnectivityMatrixDataFileManager::reset()
 {
-//    m_denseDataLoadedForScene.reset();
+    m_brainordinateDataLoaded.reset();
 }
 
 /**
@@ -291,8 +294,9 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
                                        const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ConnectivityLoaderManager",
+                                            "CiftiConnectivityMatrixDataFileManager",
                                             1);
+    
     std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
@@ -309,6 +313,9 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
     SceneClassArray* ciftiFilesArray = new SceneClassArray("connectivityFiles",
                                                         connectivityFilesVector);
     sceneClass->addChild(ciftiFilesArray);
+    
+    sceneClass->addClass(m_brainordinateDataLoaded.saveToScene(sceneAttributes,
+                                                               "m_brainordinateDataLoaded"));
     
     return sceneClass;
 }
@@ -332,7 +339,7 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
     if (sceneClass == NULL) {
         return;
     }
-
+    
     std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
@@ -353,6 +360,12 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
             }
         }
     }
+    
+    const SceneClass* brainordinateDataSceneClass = sceneClass->getClass("m_brainordinateDataLoaded");
+    m_brainordinateDataLoaded.restoreFromScene(sceneAttributes,
+                                               brainordinateDataSceneClass,
+                                               m_brain,
+                                               this);
 }
 
 /**
@@ -384,5 +397,245 @@ CiftiConnectivityMatrixDataFileManager::hasNetworkFiles() const
     }
     
     return false;
+}
+
+
+/*============================================================================*/
+/**
+ * \class caret::CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded
+ * \brief Holds information on last loaded connectivity data.
+ */
+
+/**
+ * Constructor.
+ */
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::BrainordinateDataLoaded()
+{
+    reset();
+}
+
+/**
+ * Destructor.
+ */
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::~BrainordinateDataLoaded()
+{
+    reset();
+}
+
+void
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::reset()
+{
+    m_mode = MODE_NONE;
+    m_surfaceFileName = "";
+    m_surfaceFileNodeIndices.clear();
+}
+
+/**
+ * Setup for single node dense connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndex
+ *     Index of node on the surface.
+ */
+void
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::setSurfaceLoading(const SurfaceFile* surfaceFile,
+                                                              const int32_t nodeIndex)
+{
+    reset();
+    m_mode = MODE_SURFACE_NODE;
+    m_surfaceFileName      = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices.push_back(nodeIndex);
+}
+
+/**
+ * Setup for multiple nodes average connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndices
+ *     Indices of node on the surface.
+ */
+void
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                                                     const std::vector<int32_t>& nodeIndices)
+{
+    reset();
+    m_mode = MODE_SURFACE_AVERAGE;
+    m_surfaceFileName        = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices = nodeIndices;
+}
+
+/**
+ * Setup for voxel loading at a coordinate.
+ * @param xyz
+ *     Coordinate at a voxel.
+ */
+void
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::setVolumeLoading(const float xyz[3])
+{
+    reset();
+    m_mode = MODE_VOXEL_XYZ;
+    m_voxelXYZ[0] = xyz[0];
+    m_voxelXYZ[1] = xyz[1];
+    m_voxelXYZ[2] = xyz[2];
+}
+
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                                                  const SceneClass* sceneClass,
+                                                                                  Brain* brain,
+                                                                                  CiftiConnectivityMatrixDataFileManager* ciftiMan)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_mode = MODE_NONE;
+    const AString modeName = sceneClass->getStringValue("m_mode");
+    if (modeName == "MODE_NONE") {
+        m_mode = MODE_NONE;
+    }
+    else if (modeName == "MODE_SURFACE_AVERAGE") {
+        m_mode = MODE_SURFACE_AVERAGE;
+    }
+    else if (modeName == "MODE_SURFACE_NODE") {
+        m_mode = MODE_SURFACE_NODE;
+    }
+    else if (modeName == "MODE_VOXEL_XYZ") {
+        m_mode = MODE_VOXEL_XYZ;
+    }
+    else {
+        sceneAttributes->addToErrorMessage("Unrecognized mode=" + modeName);
+        return;
+    }
+    
+    m_surfaceFileName      = sceneClass->getStringValue("m_surfaceFileName");
+    m_surfaceFileNodeIndices.clear();
+    const ScenePrimitiveArray* nodeIndicesArray = sceneClass->getPrimitiveArray("m_surfaceFileNodeIndices");
+    const int32_t numNodeIndices = nodeIndicesArray->getNumberOfArrayElements();
+    m_surfaceFileNodeIndices.reserve(numNodeIndices);
+    for (int32_t i = 0; i < numNodeIndices; i++) {
+        m_surfaceFileNodeIndices.push_back(nodeIndicesArray->integerValue(i));
+    }
+    sceneClass->getFloatArrayValue("m_voxelXYZ",
+                                   m_voxelXYZ,
+                                   3);
+    
+    switch (m_mode) {
+        case MODE_NONE:
+            break;
+        case MODE_SURFACE_AVERAGE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    ciftiMan->loadAverageDataForSurfaceNodes(surface,
+                                                            m_surfaceFileNodeIndices);
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_SURFACE_NODE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    if (numNodeIndices == 1) {
+                        const int32_t nodeIndex = m_surfaceFileNodeIndices[0];
+                        if (nodeIndex < surface->getNumberOfNodes()) {
+                            std::vector<AString> rowsColumnsLoaded;
+                            ciftiMan->loadDataForSurfaceNode(surface,
+                                                            nodeIndex,
+                                                            rowsColumnsLoaded);
+                        }
+                    }
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_VOXEL_XYZ:
+        {
+            std::vector<AString> rowsColumnsLoaded;
+            ciftiMan->loadDataForVoxelAtCoordinate(m_voxelXYZ,
+                                                  rowsColumnsLoaded);
+        }
+            break;
+    }
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+CiftiConnectivityMatrixDataFileManager::BrainordinateDataLoaded::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                                        const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainordinateDataLoaded",
+                                            1);
+    
+    AString modeName = "MODE_NONE";
+    switch (m_mode) {
+        case MODE_NONE:
+            modeName = "MODE_NONE";
+            break;
+        case MODE_SURFACE_AVERAGE:
+            modeName = "MODE_SURFACE_AVERAGE";
+            break;
+        case MODE_SURFACE_NODE:
+            modeName = "MODE_SURFACE_NODE";
+            break;
+        case MODE_VOXEL_XYZ:
+            modeName = "MODE_VOXEL_XYZ";
+            break;
+    }
+    
+    sceneClass->addString("m_mode",
+                          modeName);
+    sceneClass->addString("m_surfaceFileName",
+                          m_surfaceFileName);
+    sceneClass->addIntegerArray("m_surfaceFileNodeIndices",
+                                &m_surfaceFileNodeIndices[0],
+                                m_surfaceFileNodeIndices.size());
+    sceneClass->addFloatArray("m_voxelXYZ",
+                              m_voxelXYZ,
+                              3);
+    
+    return sceneClass;
 }
 

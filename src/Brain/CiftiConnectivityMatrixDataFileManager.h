@@ -91,10 +91,57 @@ namespace caret {
         
     private:
 
+        class BrainordinateDataLoaded {
+        public:
+            BrainordinateDataLoaded();
+            
+            ~BrainordinateDataLoaded();
+            
+            void reset();
+            
+            void setSurfaceLoading(const SurfaceFile* surfaceFile,
+                                   const int32_t nodeInde);
+            
+            void setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                          const std::vector<int32_t>& nodeIndices);
+            
+            void setVolumeLoading(const float xyz[3]);
+            
+            void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                  const SceneClass* sceneClass,
+                                  Brain* brain,
+                                  CiftiConnectivityMatrixDataFileManager* ciftiMan);
+            
+            SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                    const AString& instanceName);
+            
+        private:
+            enum Mode {
+                MODE_NONE,
+                MODE_SURFACE_AVERAGE,
+                MODE_SURFACE_NODE,
+                MODE_VOXEL_XYZ
+            };
+            
+            Mode m_mode;
+            
+            AString m_surfaceFileName;
+            
+            std::vector<int32_t> m_surfaceFileNodeIndices;
+            
+            float m_voxelXYZ[3];
+        };
+        
         // ADD_NEW_MEMBERS_HERE
         
         Brain* m_brain;
 
+        /**
+         * Holds information about last brainordinate for which
+         * cifti connectivity data was loaded.  This information is 
+         * then saved/restored during scene operations.
+         */
+        BrainordinateDataLoaded m_brainordinateDataLoaded;
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
