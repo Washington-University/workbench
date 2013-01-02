@@ -1138,167 +1138,6 @@ CiftiConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
-//    if (this->ciftiInterface == NULL) {
-//        throw DataFileException("Connectivity Loader has not been initialized");
-//    }
-//    
-//    /*
-//     * Allow loading of data disable?
-//     */
-//    if (this->dataLoadingEnabled == false) {
-//        return;
-//    }
-//    
-//    try {
-//        switch (this->loaderType) {
-//            case LOADER_TYPE_INVALID:
-//                break;
-//            case LOADER_TYPE_DENSE:
-//            {
-//                const int32_t num = this->ciftiInterface->getNumberOfColumns();
-//                if (num <= 0) {
-//                    throw DataFileException("No data in CIFTI file (0 columns)");
-//                }
-//                
-//                this->allocateData(num);
-//                // WB-174 this->zeroizeData();
-//                
-//                // JWH-Oct2if (this->ciftiInterface->hasRowSurfaceData(structure)) {
-//                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
-//                    
-//                    std::vector<double> averageVector(num, 0.0);
-//                    double* averageData = &averageVector[0];
-//                    std::vector<float> rowDataVector(num);
-//                    float* rowData = &rowDataVector[0];
-//                    
-//                    CaretLogFine("Reading rows for nodes "
-//                                 + AString::fromNumbers(nodeIndices, ","));
-//                    double countForAveraging = 0.0;
-//                    const int32_t numberOfNodeIndices = nodeIndices.size();
-//                    
-//                    bool userCancelled = false;
-//                    EventProgressUpdate progressEvent(0,
-//                                                      numberOfNodeIndices,
-//                                                      0,
-//                                                      "Starting");
-//                    
-//                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
-//                        const int32_t nodeIndex = nodeIndices[i];
-//                        
-//                        if ((i % this->progressUpdateInterval) == 0) {
-//                            progressEvent.setProgress(i,
-//                                                      "Loading data");
-//                            EventManager::get()->sendEvent(progressEvent.getPointer());
-//                            if (progressEvent.isCancelled()) {
-//                                userCancelled = true;
-//                                break;
-//                            }
-//                        }
-//                        
-//                        if (this->ciftiInterface->getRowFromNode(rowData,
-//                                                                 nodeIndex,
-//                                                                 structure)) {
-//                            
-//                            for (int32_t j = 0; j < num; j++) {
-//                                averageData[j] += rowData[j];
-//                            }
-//                            countForAveraging += 1.0;
-//                        }
-//                        else {
-//                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
-//                        }
-//                    }
-//                    
-//                    if (userCancelled) {
-//                        zeroizeData();
-//                    }
-//                    else {
-//                        for (int32_t i = 0; i < num; i++) {
-//                            this->data[i] = averageData[i] / countForAveraging;
-//                        }
-//                        
-//                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-//                        loadDataIntoVolume();
-//                    }
-//                }
-//            }
-//                break;
-//            case LOADER_TYPE_DENSE_TIME_SERIES:
-//                /*{
-//                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
-//                 if (num <= 0) {
-//                 throw DataFileException("No data in CIFTI file (0 columns)");
-//                 }
-//                 
-//                 if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
-//                 
-//                 std::vector<double> averageVector(num, 0.0);
-//                 double* averageData = &averageVector[0];
-//                 const int32_t numberOfNodeIndices = nodeIndices.size();
-//                 vector< vector<float> > rowDataVectors(numberOfNodeIndices, vector<float>(num,0.0));
-//                 
-//                 
-//                 CaretLogFine("Reading rows for nodes "
-//                 + AString::fromNumbers(nodeIndices, ","));
-//                 double countForAveraging = 0.0;
-//                 
-//                 
-//                 for (int32_t i = 0; i < numberOfNodeIndices; i++) {
-//                 const int32_t nodeIndex = nodeIndices[i];
-//                 float *rowData = &(rowDataVectors.at(i).at(0));
-//                 if (!this->ciftiInterface->getRowFromNode(rowData,
-//                 nodeIndex,
-//                 structure)) {
-//                 CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
-//                 }
-//                 }
-//                 
-//                 for (int32_t i = 0; i < numberOfNodeIndices; i++) {
-//                 for(int32_t j = 0;j < num; j++) {
-//                 averageData[j] += rowDataVectors[i][j];
-//                 }
-//                 countForAveraging += 1.0;
-//                 }
-//                 
-//                 
-//                 if(this->timeSeriesGraphEnabled)
-//                 {
-//                 tl.x.clear();
-//                 tl.y.clear();
-//                 this->tl.x.reserve(num);
-//                 this->tl.y.reserve(num);
-//                 for(int64_t i = 0;i<num;i++)
-//                 {
-//                 tl.x.push_back(i);
-//                 tl.y.push_back(averageData[i] / countForAveraging);
-//                 }
-//                 //double point[3] = {0.0,0.0,0.0};
-//                 this->tl.nodeid = 0;
-//                 this->tl.type = AVERAGE;
-//                 }
-//                 
-//                 
-//                 this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-//                 }
-//                 //throw DataFileException("Loading of average time-series data not supported.");
-//                 
-//                 }*/
-//                break;
-//            case LOADER_TYPE_FIBER_ORIENTATIONS:
-//                CaretAssert(0);
-//                break;
-//            case LOADER_TYPE_DENSE_LABELS:
-//                CaretAssert(0);
-//                break;
-//            case LOADER_TYPE_DENSE_SCALARS:
-//                CaretAssert(0);
-//                break;
-//        }
-//    }
-//    catch (CiftiFileException& e) {
-//        throw DataFileException(e.whatString());
-//    }
-//    
 }
 
 /**
@@ -1373,92 +1212,7 @@ CiftiConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t m
         throw DataFileException(e.whatString());
     }
     
-    return rowIndex;
-    
-//    if (this->ciftiInterface == NULL) {
-//        throw DataFileException("Connectivity Loader has not been initialized");
-//    }
-//    
-//    /*
-//     * Allow loading of data disable?
-//     */
-//    if (this->dataLoadingEnabled == false) {
-//        return -1;
-//    }
-//    
-//    int64_t rowIndex = -1;
-//    try {
-//        switch (this->loaderType) {
-//            case LOADER_TYPE_INVALID:
-//                break;
-//            case LOADER_TYPE_DENSE:
-//            {
-//                // WB-174  this->zeroizeData();
-//                
-//                const int32_t num = this->ciftiInterface->getNumberOfColumns();
-//                this->allocateData(num);
-//                
-//                // JWH-Oct2  if (this->ciftiInterface->hasRowVolumeData()) {
-//                if (this->ciftiInterface->hasColumnVolumeData()) { // JWH-Oct2
-//                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz, rowIndex)) {
-//                        CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
-//                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-//                        loadDataIntoVolume();
-//                    }
-//                    else {
-//                        CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
-//                    }
-//                }
-//            }
-//                break;
-//            case LOADER_TYPE_DENSE_TIME_SERIES:
-//            {
-//                /*this->zeroizeData();
-//                 
-//                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
-//                 this->allocateData(num);
-//                 
-//                 if (this->ciftiInterface->hasRowVolumeData()) {
-//                 if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data,xyz))
-//                 {
-//                 CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
-//                 this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
-//                 if(this->timeSeriesGraphEnabled)
-//                 {
-//                 tl.x.clear();
-//                 tl.y.clear();
-//                 for(int64_t i = 0;i<num;i++)
-//                 {
-//                 tl.x.push_back(i);
-//                 tl.y.push_back(this->data[i]);
-//                 }
-//                 double point[3] = {0.0,0.0,0.0};
-//                 //this->tl.nodeid = nodeIndex;
-//                 
-//                 }
-//                 }
-//                 else {
-//                 CaretLogFine("FAILED to read row for node " + AString::fromNumbers(xyz, 3, ","));
-//                 }
-//                 }*/
-//            }
-//                break;
-//            case LOADER_TYPE_FIBER_ORIENTATIONS:
-//                CaretAssert(0);
-//                break;
-//            case LOADER_TYPE_DENSE_LABELS:
-//                CaretAssert(0);
-//                break;
-//            case LOADER_TYPE_DENSE_SCALARS:
-//                CaretAssert(0);
-//                break;
-//        }
-//    }
-//    catch (CiftiFileException& e) {
-//        throw DataFileException(e.whatString());
-//    }
-//    
-//    return rowIndex;
+    return rowIndex;    
 }
 
 /**
@@ -1528,82 +1282,6 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
     }
     
     return false;
-//    if (this->numberOfDataElements <= 0) {
-//        return false;
-//    }
-//    
-//    if (this->connectivityVolumeFile != NULL) {
-//        int64_t vfIJK[3];
-//        this->connectivityVolumeFile->enclosingVoxel(xyz,
-//                                                     vfIJK);
-//        
-//        if (this->connectivityVolumeFile->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
-//            bool validMapToType = false;
-//            switch (this->mapToType) {
-//                case MAP_TO_TYPE_INVALID:
-//                    validMapToType = false;
-//                    break;
-//                case MAP_TO_TYPE_BRAINORDINATES:
-//                    validMapToType = true;
-//                    break;
-//                case MAP_TO_TYPE_TIMEPOINTS:
-//                    validMapToType = false;
-//                    break;
-//            }
-//            if (validMapToType == false) {
-//                return false;
-//            }
-//            
-//            bool useColumnsFlag = false;
-//            bool useRowsFlag = false;
-//            switch (this->loaderType) {
-//                case LOADER_TYPE_INVALID:
-//                    break;
-//                case LOADER_TYPE_DENSE:
-//                    useRowsFlag = true;
-//                    break;
-//                case LOADER_TYPE_DENSE_TIME_SERIES:
-//                    useColumnsFlag = true;
-//                    break;
-//                case LOADER_TYPE_FIBER_ORIENTATIONS:
-//                    CaretAssert(0);
-//                    break;
-//                case LOADER_TYPE_DENSE_LABELS:
-//                    CaretAssert(0);
-//                    break;
-//                case LOADER_TYPE_DENSE_SCALARS:
-//                    useColumnsFlag = true;
-//                    break;
-//            }
-//            
-//            std::vector<CiftiVolumeMap> volumeMap;
-//            if (useColumnsFlag
-//                && this->ciftiInterface->hasColumnVolumeData()) {
-//                this->ciftiInterface->getVolumeMapForColumns(volumeMap);
-//            }
-//            if (useRowsFlag
-//                && this->ciftiInterface->hasRowVolumeData()) {
-//                this->ciftiInterface->getVolumeMapForRows(volumeMap);
-//            }
-//            
-//            const int64_t numMaps = static_cast<int64_t>(volumeMap.size());
-//            for (int64_t i = 0; i < numMaps; i++) {
-//                if (volumeMap[i].m_ijk[0] == vfIJK[0]
-//                    && volumeMap[i].m_ijk[1] == vfIJK[1]
-//                    && volumeMap[i].m_ijk[2] == vfIJK[2]) {
-//                    CaretAssertArrayIndex(this->data, this->numberOfDataElements, volumeMap[i].m_ciftiIndex);
-//                    valueOut = this->data[volumeMap[i].m_ciftiIndex];
-//                    ijkOut[0] = vfIJK[0];
-//                    ijkOut[1] = vfIJK[1];
-//                    ijkOut[2] = vfIJK[2];
-//                    return true;
-//                }
-//            }
-//        }
-//        
-//    }
-//    
-//    return false;
 }
 
 /**
@@ -1831,12 +1509,8 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
      */
     const CiftiXML& ciftiXML = ciftiInterface->getCiftiXML();
     *m_paletteColorMapping = *ciftiXML.getFilePalette();
-//    *m_paletteColorMapping = *ciftiXML.getMapPalette(CIFTI_INDEX_VIEWING,
-//                                                     mapIndex);
     
     const std::map<AString, AString>* metaDataMap = ciftiXML.getFileMetaData();
-//    const std::map<AString, AString>* metaDataMap = ciftiXML.getMapMetadata(CIFTI_INDEX_VIEWING,
-//                                                                             mapIndex);
     m_metaData->clear();
     for (std::map<AString, AString>::const_iterator iter = metaDataMap->begin();
          iter != metaDataMap->end();
@@ -1870,6 +1544,7 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
         case CIFTI_INDEX_TYPE_TIME_POINTS:
             break;
     }
+    
     /*
      * Is there volume data?
      */
@@ -2201,8 +1876,6 @@ CiftiConnectivityMatrixDataFile::saveToScene(const SceneAttributes* /*sceneAttri
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "CiftiConnectivityMatrixDataFile",
                                             1);
-    //    sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
-    //                                                               "m_denseDataLoadedForScene"));
     
     const int32_t numMaps = getNumberOfMaps();
     if (numMaps > 0) {
