@@ -117,6 +117,18 @@ SessionManager::SessionManager()
  */
 SessionManager::~SessionManager()
 {
+    /*
+     * Delete browser tab content.  Workbench requests deletion of tab content
+     * as browser tabs are closed.  However, command line does not issue
+     * commands to delete tabs so this code will do so.
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        if (m_browserTabs[i] != NULL) {
+            delete m_browserTabs[i];
+            m_browserTabs[i] = NULL;
+        }
+    }
+    
     int32_t numberOfBrains = getNumberOfBrains();
     for (int32_t i = (numberOfBrains - 1); i >= 0; i--) {
         delete m_brains[i];
