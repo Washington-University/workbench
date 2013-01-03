@@ -59,6 +59,7 @@ Xml
 Common
 Quazip
 ${QT_LIBRARIES}
+${OSMESA_LIBRARY}
 ${ZLIB_LIBRARIES}
 ${LIBS})
 

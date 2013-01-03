@@ -160,6 +160,29 @@ IF(WIN32)
    ENDIF(MSVC)
 ENDIF(WIN32)
 
+#=============================================================================
+#
+# Test for offscreen mesa (optional library)
+#
+#SET(OSMESA_LIBRARY "")
+
+IF (EXISTS $ENV{OSMESA_DIR})
+    IF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
+        MESSAGE("Have Mesa Include Directory")
+        FIND_LIBRARY(OSMESA_LIBRARY
+                     NAMES libOSMesa.a libOSMesa.so OSMesa.lib OSMesa.dll
+                     PATHS $ENV{OSMESA_DIR}/lib)
+        MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY})
+        IF (EXISTS ${OSMESA_LIBRARY})
+            ADD_DEFINITIONS(-DHAVE_OSMESA)
+            MESSAGE("Offscreen Mesa Library was found")
+        ENDIF (EXISTS ${OSMESA_LIBRARY})
+    ENDIF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
+ENDIF (EXISTS $ENV{OSMESA_DIR})
+
+#=============================================================================
+
+
 #
 # All subdirectories that will be configured for building
 #

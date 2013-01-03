@@ -38,6 +38,7 @@ OperationMetricMath.h
 OperationMetricPalette.h
 OperationProbtrackXDotConvert.h
 OperationSetStructure.h
+OperationShowScene.h
 OperationSpecFileMerge.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
@@ -71,6 +72,7 @@ OperationMetricMath.cxx
 OperationMetricPalette.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetStructure.cxx
+OperationShowScene.cxx
 OperationSpecFileMerge.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
@@ -91,6 +93,7 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
+${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files

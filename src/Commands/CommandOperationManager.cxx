@@ -80,6 +80,7 @@
 #include "OperationMetricPalette.h"
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSetStructure.h"
+#include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceGeodesicROIs.h"
@@ -198,6 +199,9 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
+    if (OperationShowScene::isShowSceneCommandAvailable()) {
+        this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));
+    }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
