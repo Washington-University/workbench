@@ -5598,12 +5598,12 @@ BrainOpenGLFixedPipeline::sortFiberOrientationsByDepth()
     
     CaretLogSevere("Time (ms) to compute depth of fibers and sort: "
                    + AString::number(timer.getElapsedTimeMilliseconds()));
-    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
-         iter != m_fiberOrientationsForDrawing.end();
-         iter++) {
-        const FiberOrientation* fiberOrientation = *iter;
-        std::cout << " " << fiberOrientation->m_drawingDepth;
-    }
+//    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
+//         iter != m_fiberOrientationsForDrawing.end();
+//         iter++) {
+//        const FiberOrientation* fiberOrientation = *iter;
+//        std::cout << " " << fiberOrientation->m_drawingDepth;
+//    }
 }
 
 /**
