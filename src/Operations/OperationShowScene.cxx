@@ -45,6 +45,7 @@
 #include "SceneClass.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -132,6 +133,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
     }
     
+    /**
+     * Enable voxel coloring since it is defaulted off for commands
+     */
+    VolumeFile::setVoxelColoringEnabled(true);    
+    
     SceneAttributes sceneAttributes(SceneTypeEnum::SCENE_TYPE_FULL);
     
     const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
@@ -140,10 +146,16 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                + guiManagerClass->getName());
     }
     
-    SessionManager::get()->restoreFromScene(&sceneAttributes,
+    SessionManager* sessionManager = SessionManager::get();
+    sessionManager->restoreFromScene(&sceneAttributes,
                                             guiManagerClass->getClass("m_sessionManager"));
 
+    
+    if (sessionManager->getNumberOfBrains() <= 0) {
+        throw OperationException("Scene loading failure, SessionManager contains no Brains");
+    }
     Brain* brain = SessionManager::get()->getBrain(0);
+    
     
 #endif // HAVE_OSMESA
 }
