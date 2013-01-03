@@ -163,20 +163,42 @@ ENDIF(WIN32)
 #=============================================================================
 #
 # Test for offscreen mesa (optional library)
+# If found, set some variables.  Since, Mesa is only used for 
+# command line 
 #
-#SET(OSMESA_LIBRARY "")
+SET(OSMESA_DEFINITION "")
+SET(OSMESA_OFFSCREEN_LIBRARY "")
+SET(OSMESA_GL_LIBRARY "")
+SET(OSMESA_GLU_LIBRARY "")
+SET(OSMESA_INCLUDE_DIRECTORY "")
 
 IF (EXISTS $ENV{OSMESA_DIR})
     IF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
         MESSAGE("Have Mesa Include Directory")
-        FIND_LIBRARY(OSMESA_LIBRARY
+        FIND_LIBRARY(OSMESA_LIBRARY_FOUND
                      NAMES libOSMesa.a libOSMesa.so OSMesa.lib OSMesa.dll
                      PATHS $ENV{OSMESA_DIR}/lib)
+        FIND_LIBRARY(OSMESA_GL_LIBRARY_FOUND
+                     NAMES libGL.a libGL.so
+                     PATHS $ENV{OSMESA_DIR}/lib)
+        FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
+                     NAMES libGLU.a libGLU.so
+                     PATHS $ENV{OSMESA_DIR}/lib)
         MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY})
-        IF (EXISTS ${OSMESA_LIBRARY})
-            ADD_DEFINITIONS(-DHAVE_OSMESA)
+        IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
+            SET(OSMESA_DEFINITION -DHAVE_OSMESA)
+            SET(OSMESA_OFFSCREEN_LIBRARY ${OSMESA_LIBRARY_FOUND})
+            SET(OSMESA_GL_LIBRARY ${OSMESA_GL_LIBRARY_FOUND})
+            SET(OSMESA_GLU_LIBRARY ${OSMESA_GLU_LIBRARY_FOUND})
+            SET(OSMESA_INCLUDE_DIRECTORY $ENV{OSMESA_DIR}/include)
+
             MESSAGE("Offscreen Mesa Library was found")
-        ENDIF (EXISTS ${OSMESA_LIBRARY})
+            MESSAGE("   Definition: ${OSMESA_DEFINITION}")
+            MESSAGE("   Include:    ${OSMESA_INCLUDE_DIRECTORY}")
+            MESSAGE("   Libraries:  ${OSMESA_OFFSCREEN_LIBRARY}")
+            MESSAGE("   Libraries:  ${OSMESA_GL_LIBRARY}")
+            MESSAGE("   Libraries:  ${OSMESA_GLU_LIBRARY}")
+        ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
     ENDIF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
 ENDIF (EXISTS $ENV{OSMESA_DIR})
 

@@ -32,17 +32,27 @@
  */
 /*LICENSE_END*/
 
+#include <fstream>
+
+#ifdef HAVE_OSMESA
+#include <GL/osmesa.h>
+#endif // HAVE_OSMESA
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
 #include "Brain.h"
+#include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLViewportContent.h"
+#include "EventBrowserTabGet.h"
+#include "EventManager.h"
 #include "FileInformation.h"
-#include "ImageFile.h"
 #include "OperationShowScene.h"
 #include "OperationException.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "VolumeFile.h"
@@ -71,7 +81,7 @@ OperationShowScene::getCommandSwitch()
 AString
 OperationShowScene::getShortDescription()
 {
-    return "OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE";
+    return ("OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE");
 }
 
 /**
@@ -87,8 +97,20 @@ OperationShowScene::getParameters()
     ret->addStringParameter(2, "scene-name-or-number", "name or number (starting at one) of the scene in the scene file");
     
     ret->addStringParameter(3, "image-file-name", "output image file name");
+    
+    ret->addIntegerParameter(4, "image-width", "width of output image(s)");
 
-    AString helpText;
+    ret->addIntegerParameter(5, "image-height", "height of output image(s)");
+    
+    AString helpText("Render content of browser windows displayed in a scene "
+                     "into image file(s).  The image file name should be "
+                     "similar to \"capture.ppm\".  If there is only one image "
+                     "to render, the image name will not change.  If there is "
+                     "more than one image to render, an index will be inserted "
+                     "into the image name: \"capture_01.ppm\", \"capture_02.ppm\" "
+                     "etc.\n"
+                     "\n"
+                     "Images are written in PPM format.");
     
     ret->setHelpText(helpText);
     
@@ -110,6 +132,14 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     AString sceneFileName = FileInformation(myParams->getString(1)).getFilePath();
     AString sceneNameOrNumber = myParams->getString(2);
     AString imageFileName = FileInformation(myParams->getString(3)).getFilePath();
+    const int32_t imageWidth  = myParams->getInteger(4);
+    if (imageWidth < 0) {
+        throw OperationException("image width is invalid");
+    }
+    const int32_t imageHeight = myParams->getInteger(5);
+    if (imageHeight < 0) {
+        throw OperationException("image height is invalid");
+    }
     
     SceneFile sceneFile;
     sceneFile.readFile(sceneFileName);
@@ -133,6 +163,49 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
     }
     
+    //
+    // Create the Mesa Context
+    //
+    const int depthBits = 16;
+    const int stencilBits = 0;
+    const int accumBits = 0;
+    OSMesaContext mesaContext = OSMesaCreateContextExt(OSMESA_RGBA,
+                                                       depthBits,
+                                                       stencilBits,
+                                                       accumBits,
+                                                       NULL);
+    if (mesaContext == 0) {
+        std::cout << "Creating Mesa Context failed." << std::endl;
+        exit(-1);
+    }
+    
+    //
+    // Allocate image buffer
+    //
+    unsigned char* imageBuffer = new unsigned char[imageWidth * imageHeight * 4 *
+                                                   sizeof(unsigned char)];
+    if (imageBuffer == 0) {
+        std::cout << "Allocating image buffer failed." << std::endl;
+        exit(-1);
+    }
+    
+    //
+    // Assign buffer to Mesa Context and make current
+    //
+    if (OSMesaMakeCurrent(mesaContext,
+                          imageBuffer,
+                          GL_UNSIGNED_BYTE,
+                          imageWidth,
+                          imageHeight) == 0) {
+        std::cout << "Assigning buffer to context and make current failed." << std::endl;
+        exit(-1);
+    }
+    
+    /*
+     * Set the viewport
+     */
+    const int viewport[4] = { 0, 0, imageWidth, imageHeight };
+
     /**
      * Enable voxel coloring since it is defaulted off for commands
      */
@@ -156,8 +229,167 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     }
     Brain* brain = SessionManager::get()->getBrain(0);
     
+    /*
+     * Performs OpenGL Rendering
+     */
+    BrainOpenGLFixedPipeline brainOpenGL(NULL);
+    brainOpenGL.initializeOpenGL();
     
+    /*
+     * Restore windows
+     */
+    const SceneClassArray* browserWindowArray = guiManagerClass->getClassArray("m_brainBrowserWindows");
+    if (browserWindowArray != NULL) {
+        const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numBrowserClasses; i++) {
+            const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
+            
+            /*
+             * Restore toolbar
+             */
+            const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");
+            if (toolbarClass != NULL) {
+                /*
+                 * Index of selected browser tab (NOT the tabBar)
+                 */
+                const int32_t selectedTabIndex = toolbarClass->getIntegerValue("selectedTabIndex", -1);
+                std::cout << "Restoring tab: " << selectedTabIndex << " in window " << i << std::endl;
+
+                EventBrowserTabGet getTabContent(selectedTabIndex);
+                EventManager::get()->sendEvent(getTabContent.getPointer());
+                BrowserTabContent* tabContent = getTabContent.getBrowserTab();
+                if (tabContent == NULL) {
+                    throw OperationException("Failed to obtain tab number "
+                                             + AString::number(selectedTabIndex + 1)
+                                             + " for window "
+                                             + AString::number(i + 1));
+                }
+                
+                BrainOpenGLViewportContent content(viewport,
+                                                   viewport,
+                                                   brain,
+                                                   tabContent);
+                std::vector<BrainOpenGLViewportContent*> viewportContents;
+                viewportContents.push_back(&content);
+                
+                brainOpenGL.drawModels(viewportContents);
+                
+                const int32_t outputImageIndex = ((numBrowserClasses > 1)
+                                             ? i
+                                             : -1);
+                writeImagePPM(imageFileName,
+                              outputImageIndex,
+                              imageBuffer,
+                              imageWidth,
+                              imageHeight);
+            }
+        }
+    }
+    
+    /*
+     * Free image memory and Mesa context
+     */
+    delete[] imageBuffer;
+    OSMesaDestroyContext(mesaContext);
+    
+
 #endif // HAVE_OSMESA
+}
+
+void
+OperationShowScene::writeImagePPM(const AString& imageFileName,
+                                  const int32_t imageIndex,
+                                  const unsigned char* imageContent,
+                                  const int32_t imageWidth,
+                                  const int32_t imageHeight)
+{
+    /*
+     * text width and height of the image
+     */
+    QString widthString(QString::number(imageWidth));
+    QString heightString(QString::number(imageHeight));
+    
+    /*
+     * Allocate image buffer including space for header
+     */
+    const int32_t imageBufferSize = (imageWidth * imageHeight * 3) + 1000;
+    unsigned char* imageBuffer = new unsigned char[imageBufferSize];
+    
+    /*
+     * index to buffer
+     */
+    int bufferIndex = 0;
+    
+    /*
+     * Add "P6" to indicate binary PPM
+     */
+    imageBuffer[bufferIndex++] = 'P';
+    imageBuffer[bufferIndex++] = '6';
+    imageBuffer[bufferIndex++] = '\n';
+    
+    /*
+     * Add image width and height
+     */
+    for (int i = 0; i < widthString.length(); i++) {
+        imageBuffer[bufferIndex++] = widthString[i].toLatin1();
+    }
+    imageBuffer[bufferIndex++] = ' ';
+    for (int i = 0; i < heightString.length(); i++) {
+        imageBuffer[bufferIndex++] = heightString[i].toLatin1();
+    }
+    imageBuffer[bufferIndex++] = '\n';
+    
+    /*
+     * Add in max value of pixel
+     */
+    imageBuffer[bufferIndex++] = '2';
+    imageBuffer[bufferIndex++] = '5';
+    imageBuffer[bufferIndex++] = '5';
+    imageBuffer[bufferIndex++] = '\n';
+    
+    /*
+     * Add captured image content to the image buffer.
+     * Note that image format has origin at top and
+     * OpenGL has origin at bottom.
+     */
+    for (int32_t row = (imageHeight - 1); row >= 0; row--) {
+        for (int32_t col = 0; col < imageWidth; col++) {
+            const int32_t contentOffset = (((row * imageWidth) * 4)
+                                           + (col * 4));
+            imageBuffer[bufferIndex++] = imageContent[contentOffset];
+            imageBuffer[bufferIndex++] = imageContent[contentOffset+1];
+            imageBuffer[bufferIndex++] = imageContent[contentOffset+2];
+        }
+    }
+    
+    /*
+     * Create name of image
+     */
+    QString outputName(imageFileName);
+    if (imageIndex >= 0) {
+        const AString imageNumber = QString("_%1").arg((int)(imageIndex + 1),
+                                                  2, // width
+                                                  10, // base
+                                                  QChar('0')); // fill character
+        const int dotOffset = outputName.lastIndexOf(".");
+        if (dotOffset >= 0) {
+            outputName.insert(dotOffset,
+                              imageNumber);
+        }
+        else {
+            outputName += (imageNumber
+                           + ".ppm");
+        }
+    }
+    /*
+     * write the image data
+     */
+    std::ofstream ppmImageFile(outputName.toAscii().constData());
+    if (!ppmImageFile) {
+        throw OperationException("Error writing image " + outputName);
+    }
+    ppmImageFile.write((const char*)imageBuffer, bufferIndex);
+    ppmImageFile.close();
 }
 
 /**

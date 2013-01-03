@@ -48,6 +48,7 @@ using namespace caret;
 BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
 {
     this->textRenderer = textRenderer;
+    this->borderBeingDrawn = NULL;
 }
 
 /**
