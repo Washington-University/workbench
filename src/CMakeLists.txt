@@ -166,6 +166,7 @@ ENDIF(WIN32)
 # If found, set some variables.  Since, Mesa is only used for 
 # command line 
 #
+SET(OSMESA_FOUND FALSE)
 SET(OSMESA_DEFINITION "")
 SET(OSMESA_OFFSCREEN_LIBRARY "")
 SET(OSMESA_GL_LIBRARY "")
@@ -191,6 +192,7 @@ IF (EXISTS $ENV{OSMESA_DIR})
             SET(OSMESA_GL_LIBRARY ${OSMESA_GL_LIBRARY_FOUND})
             SET(OSMESA_GLU_LIBRARY ${OSMESA_GLU_LIBRARY_FOUND})
             SET(OSMESA_INCLUDE_DIRECTORY $ENV{OSMESA_DIR}/include)
+            SET(OSMESA_FOUND TRUE)
 
             MESSAGE("Offscreen Mesa Library was found")
             MESSAGE("   Definition: ${OSMESA_DEFINITION}")

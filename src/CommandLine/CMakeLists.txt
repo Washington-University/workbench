@@ -41,6 +41,8 @@ ENDIF (APPLE)
 
 #
 # Libraries that are linked
+# Note: OSMESA library variables will be empty and have no effect
+# if OSMESA is not available
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 Commands
