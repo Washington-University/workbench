@@ -37,7 +37,7 @@ namespace caret {
       const std::vector<float>& m_row;
       ConstFloatMatrixRowRef();//disallow default construction, this contains a reference
    public:
-      ConstFloatMatrixRowRef(ConstFloatMatrixRowRef& right);//copy constructor
+      ConstFloatMatrixRowRef(const ConstFloatMatrixRowRef& right);//copy constructor
       ConstFloatMatrixRowRef(const std::vector<float>& therow);
       const float& operator[](const int64_t& index);//access element
       friend class FloatMatrixRowRef;//so it can check if it points to the same row

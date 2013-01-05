@@ -303,7 +303,7 @@ const float& ConstFloatMatrixRowRef::operator[](const int64_t& index)
    return m_row[index];
 }
 
-ConstFloatMatrixRowRef::ConstFloatMatrixRowRef(ConstFloatMatrixRowRef& right) : m_row(right.m_row)
+ConstFloatMatrixRowRef::ConstFloatMatrixRowRef(const ConstFloatMatrixRowRef& right) : m_row(right.m_row)
 {
 }
 
