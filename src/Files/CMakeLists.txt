@@ -18,6 +18,7 @@ INCLUDE (${QT_USE_FILE})
 # Files Library
 #
 ADD_LIBRARY(Files
+AffineFile.h
 BinaryFileReader.h
 Border.h
 BorderException.h
@@ -88,6 +89,7 @@ VolumeFile.h
 VolumeFileVoxelColorizer.h
 VolumeSliceViewPlaneEnum.h
 
+AffineFile.cxx
 BinaryFileReader.cxx
 Border.cxx
 BorderException.cxx
