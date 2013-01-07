@@ -1009,7 +1009,7 @@ SceneClass::getObjectWithName(const AString& name) const
 void 
 SceneClass::logMissing(const AString& missingInfo) const
 {
-    CaretLogSevere(missingInfo);
+    CaretLogFine(missingInfo);
 }
 
 

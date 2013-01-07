@@ -5591,8 +5591,8 @@ BrainOpenGLFixedPipeline::sortFiberOrientationsByDepth()
     
     m_fiberOrientationsForDrawing.sort(fiberDepthCompare);
     
-    CaretLogSevere("Time (ms) to compute depth of fibers and sort: "
-                   + AString::number(timer.getElapsedTimeMilliseconds()));
+//    CaretLogSevere("Time (ms) to compute depth of fibers and sort: "
+//                   + AString::number(timer.getElapsedTimeMilliseconds()));
 //    for (std::list<FiberOrientation*>::const_iterator iter = m_fiberOrientationsForDrawing.begin();
 //         iter != m_fiberOrientationsForDrawing.end();
 //         iter++) {

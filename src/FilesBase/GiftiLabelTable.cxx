@@ -286,9 +286,10 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     
     if (key == 0)
     {
-        if (glIn->getName() != "???") {
-            CaretLogWarning("Label 0 overridden!");
-        }
+        issueLabelKeyZeroWarning(glIn->getName());
+//        if (glIn->getName() != "???") {
+//            CaretLogWarning("Label 0 overridden!");
+//        }
     }
     
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -673,7 +674,8 @@ GiftiLabelTable::setLabelName(
     if (key == 0)
     {
         if (name != "???") {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+//            CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -707,7 +709,8 @@ GiftiLabelTable::setLabel(
     {
         if (name != "???")
         {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+//            CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -753,7 +756,8 @@ GiftiLabelTable::setLabel(const int32_t key,
     {
         if (name != "???")
         {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+            //CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -1435,3 +1439,24 @@ bool GiftiLabelTable::matches(const GiftiLabelTable& rhs, const bool checkColors
     }
     return true;
 }
+
+/**
+ * Called when label key zero's name is changed.
+ * May result in a logger message is name is not a preferred name
+ * for the label with key zero.
+ *
+ * @param name
+ *    New name for label with key zero.
+ */
+void
+GiftiLabelTable::issueLabelKeyZeroWarning(const AString& name) const
+{
+    if ((name != "???")
+        && (name.toLower() != "unknown")) {
+        CaretLogFine("Label with key=0 overridden with name \""
+                        + name
+                        + "\".  This label is typically \"???\" or \"unknown\".");
+    }
+}
+
+

@@ -202,6 +202,8 @@ public:
     bool hasLabelsWithInvalidGroupNameHierarchy() const;
     
 private:
+    void issueLabelKeyZeroWarning(const AString& name) const;
+    
     /** The label table storage.  Use a TreeMap since label keys
  may be sparse.
 */

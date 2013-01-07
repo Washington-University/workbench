@@ -384,7 +384,7 @@ EventManager::sendEvent(Event* event)
             }
         }
         else {
-            CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
+            CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
         }
     }    
     
