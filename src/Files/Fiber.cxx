@@ -58,6 +58,8 @@ using namespace caret;
  */
 Fiber::Fiber(const float* pointerToData)
 {
+    m_opacityForDrawing = 0.0;
+    
     /*
      * Retrieve values from the file
      */

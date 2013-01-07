@@ -133,7 +133,6 @@ namespace caret {
             float magnitudeMultiplier;
             Plane* plane;
             FiberOrientationSymbolTypeEnum::Enum symbolType;
-            float fiberOpacities[3];
         };
         
         void setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
@@ -190,9 +189,6 @@ namespace caret {
         void drawSurfaceFiberOrientations();
         
         void drawFiberOrientations(const Plane* plane);
-        
-        void drawOneFiberOrientation(const FiberOrientationDisplayInfo* fodi,
-                                     const FiberOrientation* fiberOrientation);
         
         void addFiberOrientationForDrawing(const FiberOrientationDisplayInfo* fodi,
                                            const FiberOrientation* fiberOrientation);

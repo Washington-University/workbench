@@ -132,6 +132,12 @@ namespace caret {
          */
         QString m_invalidMessage;
         
+        /**
+         * Opacity of fiber drawing used by drawing code.
+         * This value IS NOT stored in the file.
+         */
+        float m_opacityForDrawing;
+        
         /** Number of elements per fiber in a fiber orientation's file */
         static const int32_t NUMBER_OF_ELEMENTS_PER_FIBER_IN_FILE;
     
