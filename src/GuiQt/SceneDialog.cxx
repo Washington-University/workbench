@@ -777,16 +777,20 @@ SceneDialog::showSceneButtonClicked()
  *     Scene file.
  * @param scene
  *     Scene that is displayed.
+ * @return
+ *     true if scene was displayed without error, else false.
  */
-void
+bool
 SceneDialog::displayScene(SceneFile* sceneFile,
                           Scene* scene)
 {
-    displayScenePrivate(sceneFile,
+    const bool isSuccessful = displayScenePrivate(sceneFile,
                         scene,
                         true);
     loadSceneFileComboBox(sceneFile);
     loadSceneListWidget(scene);
+    
+    return isSuccessful;
 }
 
 /**
@@ -795,8 +799,10 @@ SceneDialog::displayScene(SceneFile* sceneFile,
  *     Scene file.
  * @param scene
  *     Scene that is displayed.
+ * @return
+ *     true if scene was displayed without error, else false.
  */
-void
+bool
 SceneDialog::displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene,
                                  const bool showWaitCursor)
@@ -810,7 +816,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     if (guiManagerClass->getName() != "guiManager") {
         WuQMessageBox::errorOk(this,"Top level scene class should be guiManager but it is: "
                                + guiManagerClass->getName());
-        return;
+        return false;
     }
     
     /*
@@ -841,7 +847,10 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     if (sceneErrorMessage.isEmpty() == false) {
         WuQMessageBox::errorOk(this,
                                sceneErrorMessage);
+        return false;
     }
+    
+    return true;
 }
 
 

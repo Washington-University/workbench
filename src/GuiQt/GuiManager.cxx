@@ -901,6 +901,9 @@ GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
 
 /**
  * Show the scene dialog and load the given scene from the given scene file.
+ * If displaying the scene had an error, the scene dialog will remain open.
+ * Otherwise, the scene dialog is closed.
+ *
  * @param browserWindow
  *    Parent of scene dialog if it needs to be created.
  * @param sceneFile
@@ -914,8 +917,11 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                            Scene* scene)
 {
     processShowSceneDialog(browserWindow);
-    this->sceneDialog->displayScene(sceneFile,
+    const bool sceneWasDisplayed = this->sceneDialog->displayScene(sceneFile,
                                     scene);
+    if (sceneWasDisplayed) {
+        this->sceneDialog->close();
+    }
 }
 
 /**

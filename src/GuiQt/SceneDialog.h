@@ -61,7 +61,7 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        void displayScene(SceneFile* sceneFile,
+        bool displayScene(SceneFile* sceneFile,
                           Scene* scene);
         
     private:
@@ -106,7 +106,7 @@ namespace caret {
         QWidget* createSceneCreateOptionsWidget();
         QWidget* createSceneShowOptionsWidget();
         
-        void displayScenePrivate(SceneFile* sceneFile,
+        bool displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene,
                                  const bool showWaitCursor);
         
