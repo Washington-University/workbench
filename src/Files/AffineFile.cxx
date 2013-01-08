@@ -75,13 +75,17 @@ void AffineFile::write44(const FloatMatrix& out, const AString& filename)
     {
         throw DataFileException("error opening file '" + filename + "' for writing");
     }
+    affineFile.setf(ios::fixed, ios::floatfield);
+    affineFile.precision(10);//flirt appears to use 10, so do the same
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
             affineFile << out[i][j];
+            if (j < 3) affineFile << "  ";//double space like flirt
             if (!affineFile) throw DataFileException("error while writing file '" + filename + "'");
         }
+        affineFile << endl;
     }
 }
 
