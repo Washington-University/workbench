@@ -219,6 +219,7 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
             Scene* scene = sceneFile->getSceneAtIndex(i);
             
             QListWidgetItem* lwi = new QListWidgetItem(scene->getName());
+            lwi->setToolTip(WuQtUtilities::createWordWrappedToolTipText(scene->getDescription()));
             lwi->setData(Qt::UserRole,
                          qVariantFromValue(reinterpret_cast<quintptr>(scene)));
             
