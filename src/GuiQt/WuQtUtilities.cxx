@@ -37,6 +37,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSound>
+#include <QTextDocument>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -823,3 +824,53 @@ WuQtUtilities::playSound(const QString& soundFileName)
                        + "\" does not exist.");
     }
 }
+
+/**
+ * Create the text for a tooltip so that long lines are
+ * wrapped and the tooltip is not one giant line
+ * that is the width of the display.
+ *
+ * This is accomplished by placing the text into a
+ * QTextDocument and then retrieving the text with
+ * HTML formatting.
+ *
+ * @param tooltipText
+ *    Text for the tooltip.
+ * @return
+ *    Text reformatted for display in a tool tip.
+ */
+QString
+WuQtUtilities::createWordWrappedToolTipText(const QString& tooltipText)
+{
+    if (tooltipText.isEmpty()) {
+        return "";
+    }
+    
+    QTextDocument textDocument(tooltipText);
+    QString html = textDocument.toHtml();
+    return html;
+}
+
+
+/**
+ * Set the text for a tooltip so that long lines are
+ * wrapped and the tooltip is not one giant line
+ * that is the width of the display.
+ *
+ * This is accomplished by placing the text into a
+ * QTextDocument and then retrieving the text with
+ * HTML formatting.
+ *
+ * @param widget
+ *    Widget on which tooltip is set.
+ * @param tooltipText
+ *    Text for the widget's tooltip.
+ */
+void
+WuQtUtilities::setWordWrappedToolTip(QWidget* widget,
+                                     const QString& tooltipText)
+{
+    widget->setToolTip(createWordWrappedToolTipText(tooltipText));
+}
+
+

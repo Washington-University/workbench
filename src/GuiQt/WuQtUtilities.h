@@ -146,6 +146,11 @@ namespace caret {
         
         static void playSound(const QString& soundFileName);
         
+        static QString createWordWrappedToolTipText(const QString& tooltipText);
+        
+        static void setWordWrappedToolTip(QWidget* widget,
+                                          const QString& tooltipText);
+        
     private:
         WuQtUtilities();
         ~WuQtUtilities();
