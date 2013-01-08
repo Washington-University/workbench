@@ -33,11 +33,15 @@ namespace caret {
     class AffineFile
     {
         FloatMatrix m_matrix;
-        void read34(const AString& filename);//helper to read a simple text affine
+        static FloatMatrix read34(const AString& filename);//helper to read a simple text affine
+        static void write44(const FloatMatrix& out, const AString& filename);//helper for writing
+        void getFlirtInfo(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale) const;
     public:
         AffineFile();
         void readWorld(const AString& filename);//forward nifti coordinate transform
+        void writeWorld(const AString& filename);
         void readFlirt(const AString& filename, const AString& sourceName, const AString& targetName);//flirt convention matrix, requires source/target volumes
+        void writeFlirt(const AString& filename, const AString& sourceName, const AString& targetName) const;
         const FloatMatrix& getMatrix() { return m_matrix; }
         void setMatrix(const FloatMatrix& matrix);//needs to do sanity checking, so don't inline
     };

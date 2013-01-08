@@ -50,137 +50,124 @@ void AffineFile::setMatrix(const FloatMatrix& matrix)
     m_matrix[2] = matrix[2];
 }
 
-void AffineFile::read34(const AString& filename)
+FloatMatrix AffineFile::read34(const AString& filename)
 {
     FileInformation affineInfo(filename);
     if (!affineInfo.exists()) throw DataFileException("affine file '" + filename + "' does not exist");
     fstream affineFile(filename.toLocal8Bit().constData(), fstream::in);
     if (!affineFile.good()) throw DataFileException("error opening file '" + filename + "' for reading");
-    m_matrix = FloatMatrix::identity(4);//to ensure the right size and the fourth 0 0 0 1 row
+    FloatMatrix ret = FloatMatrix::identity(4);//to ensure the right size and the fourth 0 0 0 1 row
     for (int i = 0; i < 3; ++i)//DO NOT read the fourth row from the file into the matrix
     {
         for (int j = 0; j < 4; ++j)
         {
-            affineFile >> m_matrix[i][j];
-            if (!affineFile)
-            {
-                m_matrix = FloatMatrix::identity(4);
-                throw DataFileException("error while reading file '" + filename + "'");
-            }
+            affineFile >> ret[i][j];
+            if (!affineFile) throw DataFileException("error while reading file '" + filename + "'");
+        }
+    }
+    return ret;
+}
+
+void AffineFile::write44(const FloatMatrix& out, const AString& filename)
+{
+    fstream affineFile(filename.toLocal8Bit().constData(), fstream::out);
+    if (!affineFile.good())
+    {
+        throw DataFileException("error opening file '" + filename + "' for writing");
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            affineFile << out[i][j];
+            if (!affineFile) throw DataFileException("error while writing file '" + filename + "'");
         }
     }
 }
 
 void AffineFile::readWorld(const AString& filename)
 {
-    read34(filename);//and that is it, no quirks
+    m_matrix = read34(filename);//and that is it, no quirks
+}
+
+void AffineFile::writeWorld(const AString& filename)
+{
+    write44(m_matrix, filename);//ditto
 }
 
 void AffineFile::readFlirt(const AString& filename, const AString& sourceName, const AString& targetName)
 {
-    read34(filename);
-    float sourcePixDim[3], targetPixDim[3];//don't look at me, blame analyze and flirt
-    vector<int64_t> sourceDims, targetDims;
-    vector<vector<float> > sourceSform, targetSform;
-    NiftiHeaderIO myIO;
-    myIO.readFile(sourceName);
-    switch (myIO.getNiftiVersion())
-    {
-        case 1:
-        {
-            Nifti1Header header1;
-            myIO.getHeader(header1);
-            header1.getSForm(sourceSform);
-            header1.getDimensions(sourceDims);
-            nifti_1_header mystruct1;
-            header1.getHeaderStruct(mystruct1);
-            sourcePixDim[0] = mystruct1.pixdim[1];//yes, that is really what they use, despite checking the SFORM/QFORM for flipping - ask them, not me
-            sourcePixDim[1] = mystruct1.pixdim[2];
-            sourcePixDim[2] = mystruct1.pixdim[3];
-            break;
-        }
-        case 2:
-        {
-            Nifti2Header header2;
-            myIO.getHeader(header2);
-            header2.getSForm(sourceSform);
-            header2.getDimensions(sourceDims);
-            nifti_2_header mystruct2;
-            header2.getHeaderStruct(mystruct2);
-            sourcePixDim[0] = mystruct2.pixdim[1];
-            sourcePixDim[1] = mystruct2.pixdim[2];
-            sourcePixDim[2] = mystruct2.pixdim[3];
-            break;
-        }
-        default:
-            throw DataFileException("AffineFile doesn't know how to handle nifti version " + AString::number(myIO.getNiftiVersion()));
-    }
-    myIO.readFile(targetName);
-    switch (myIO.getNiftiVersion())
-    {
-        case 1:
-        {
-            Nifti1Header header1;
-            myIO.getHeader(header1);
-            header1.getSForm(targetSform);
-            header1.getDimensions(targetDims);
-            nifti_1_header mystruct1;
-            header1.getHeaderStruct(mystruct1);
-            targetPixDim[0] = mystruct1.pixdim[1];
-            targetPixDim[1] = mystruct1.pixdim[2];
-            targetPixDim[2] = mystruct1.pixdim[3];
-            break;
-        }
-        case 2:
-        {
-            Nifti2Header header2;
-            myIO.getHeader(header2);
-            header2.getSForm(targetSform);
-            header2.getDimensions(targetDims);
-            nifti_2_header mystruct2;
-            header2.getHeaderStruct(mystruct2);
-            targetPixDim[0] = mystruct2.pixdim[1];
-            targetPixDim[1] = mystruct2.pixdim[2];
-            targetPixDim[2] = mystruct2.pixdim[3];
-            break;
-        }
-        default:
-            throw DataFileException("AffineFile doesn't know how to handle nifti version " + AString::number(myIO.getNiftiVersion()));
-    }
-    if (sourceDims.size() < 3 || targetDims.size() < 3) throw DataFileException("AffineFile needs nifti files with 3 or more dimensions to interpret a flirt affine");
-    float sourceDet = sourceSform[0][0] * sourceSform[1][1] * sourceSform[2][2] +
-                      sourceSform[0][1] * sourceSform[1][2] * sourceSform[2][0] +
-                      sourceSform[0][2] * sourceSform[1][0] * sourceSform[2][1] -
-                      sourceSform[0][2] * sourceSform[1][1] * sourceSform[2][0] -
-                      sourceSform[0][0] * sourceSform[1][2] * sourceSform[2][1] -
-                      sourceSform[0][1] * sourceSform[1][0] * sourceSform[2][2];//just write out the 3x3 determinant rather than packing it into a FloatMatrix first - and I haven't put a determinant function in yet
-    float targetDet = targetSform[0][0] * targetSform[1][1] * targetSform[2][2] +
-                      targetSform[0][1] * targetSform[1][2] * targetSform[2][0] +
-                      targetSform[0][2] * targetSform[1][0] * targetSform[2][1] -
-                      targetSform[0][2] * targetSform[1][1] * targetSform[2][0] -
-                      targetSform[0][0] * targetSform[1][2] * targetSform[2][1] -
-                      targetSform[0][1] * targetSform[1][0] * targetSform[2][2];//just write out the 3x3 determinant rather than packing it into a FloatMatrix first - and I haven't put a determinant function in yet
+    FloatMatrix flirtMat = read34(filename);
+    FloatMatrix sourceMat, sourceScale, targetMat, targetScale;
+    getFlirtInfo(sourceName, sourceMat, sourceScale);
+    getFlirtInfo(targetName, targetMat, targetScale);
     //via aff_conv : world = targmat * trgscale^-1 * input * srcscale * sourcemat^-1
-    FloatMatrix sourceScale = FloatMatrix::identity(4), targetScale = FloatMatrix::identity(4);
-    if (sourceDet > 0.0f)
+    m_matrix = targetMat * targetScale.inverse() * flirtMat * sourceScale * sourceMat.inverse();
+}
+
+void AffineFile::writeFlirt(const AString& filename, const AString& sourceName, const AString& targetName) const
+{
+    FloatMatrix sourceMat, sourceScale, targetMat, targetScale;
+    getFlirtInfo(sourceName, sourceMat, sourceScale);
+    getFlirtInfo(targetName, targetMat, targetScale);
+    FloatMatrix flirtMat = targetScale * targetMat.inverse() * m_matrix * sourceMat * sourceScale.inverse();
+    write44(flirtMat, filename);
+}
+
+void AffineFile::getFlirtInfo(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale) const
+{
+    float pixDim[3];//don't look at me, blame analyze and flirt
+    vector<int64_t> dimensions;
+    vector<vector<float> > sform;
+    NiftiHeaderIO myIO;
+    myIO.readFile(niftiName);
+    switch (myIO.getNiftiVersion())
     {
-        sourceScale[0][0] = -sourcePixDim[0];
-        sourceScale[0][3] = (sourceDims[0] - 1) * sourcePixDim[0];
-    } else {
-        sourceScale[0][0] = sourcePixDim[0];
+        case 1:
+        {
+            Nifti1Header header1;
+            myIO.getHeader(header1);
+            header1.getSForm(sform);
+            header1.getDimensions(dimensions);
+            nifti_1_header mystruct1;
+            header1.getHeaderStruct(mystruct1);
+            pixDim[0] = mystruct1.pixdim[1];//yes, that is really what they use, despite checking the SFORM/QFORM for flipping - ask them, not me
+            pixDim[1] = mystruct1.pixdim[2];
+            pixDim[2] = mystruct1.pixdim[3];
+            break;
+        }
+        case 2:
+        {
+            Nifti2Header header2;
+            myIO.getHeader(header2);
+            header2.getSForm(sform);
+            header2.getDimensions(dimensions);
+            nifti_2_header mystruct2;
+            header2.getHeaderStruct(mystruct2);
+            pixDim[0] = mystruct2.pixdim[1];
+            pixDim[1] = mystruct2.pixdim[2];
+            pixDim[2] = mystruct2.pixdim[3];
+            break;
+        }
+        default:
+            throw DataFileException("AffineFile doesn't know how to handle nifti version " + AString::number(myIO.getNiftiVersion()));
     }
-    sourceScale[1][1] = sourcePixDim[1];
-    sourceScale[2][2] = sourcePixDim[2];
-    if (targetDet > 0.0f)
+    if (dimensions.size() < 3) throw DataFileException("Nifti file '" + niftiName + "' has less than 3 dimensions, can't be used to interpret a flirt affine");
+    float determinant = sform[0][0] * sform[1][1] * sform[2][2] +
+                        sform[0][1] * sform[1][2] * sform[2][0] +
+                        sform[0][2] * sform[1][0] * sform[2][1] -
+                        sform[0][2] * sform[1][1] * sform[2][0] -
+                        sform[0][0] * sform[1][2] * sform[2][1] -
+                        sform[0][1] * sform[1][0] * sform[2][2];//just write out the 3x3 determinant rather than packing it into a FloatMatrix first - and I haven't put a determinant function in yet
+    outScale = FloatMatrix::identity(4);
+    if (determinant > 0.0f)
     {
-        targetScale[0][0] = -targetPixDim[0];
-        targetScale[0][3] = (sourceDims[0] - 1) * targetPixDim[0];
+        outScale[0][0] = -pixDim[0];
+        outScale[0][3] = (dimensions[0] - 1) * pixDim[0];
     } else {
-        targetScale[0][0] = targetPixDim[0];
+        outScale[0][0] = pixDim[0];
     }
-    targetScale[1][1] = targetPixDim[1];
-    targetScale[2][2] = targetPixDim[2];
-    FloatMatrix sourceMat(sourceSform), targetMat(targetSform);//NOTE: these are expected to return 4x4 matrices with the 0 0 0 1 row intact
-    FloatMatrix world = targetMat * targetScale.inverse() * m_matrix * sourceScale * sourceMat.inverse();//store it in another variable temporarily so we can debug easier
-    m_matrix = world;
+    outScale[1][1] = pixDim[1];
+    outScale[2][2] = pixDim[2];
+    outSform = FloatMatrix(sform);//NOTE: this is expected to return a 4x4 matrix with the 0 0 0 1 row intact
 }
