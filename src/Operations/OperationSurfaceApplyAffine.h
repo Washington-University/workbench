@@ -1,5 +1,5 @@
-#ifndef __OPERATION_CONVERT_AFFINE_H__
-#define __OPERATION_CONVERT_AFFINE_H__
+#ifndef __OPERATION_SURFACE_APPLY_AFFINE_H__
+#define __OPERATION_SURFACE_APPLY_AFFINE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,7 +29,7 @@
 
 namespace caret {
     
-    class OperationConvertAffine : public AbstractOperation
+    class OperationSurfaceApplyAffine : public AbstractOperation
     {
     public:
         static OperationParameters* getParameters();
@@ -38,8 +38,8 @@ namespace caret {
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<OperationConvertAffine> AutoOperationConvertAffine;
+    typedef TemplateAutoOperation<OperationSurfaceApplyAffine> AutoOperationSurfaceApplyAffine;
 
 }
 
-#endif //__OPERATION_CONVERT_AFFINE_H__
+#endif //__OPERATION_SURFACE_APPLY_AFFINE_H__

@@ -83,6 +83,7 @@
 #include "OperationSetStructure.h"
 #include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
+#include "OperationSurfaceApplyAffine.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
@@ -205,6 +206,7 @@ CommandOperationManager::CommandOperationManager()
         this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));
     }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceApplyAffine()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
