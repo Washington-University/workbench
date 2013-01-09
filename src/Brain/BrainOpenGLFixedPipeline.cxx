@@ -5445,6 +5445,10 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
                     continue;
                 }
                 
+                for (int32_t ifi = 0; ifi < fiberOrientation->m_numberOfFibers; ifi++) {
+                    fiberOrientation->m_fibers[ifi]->m_opacityForDrawing = 1.0;
+                }
+                
                 addFiberOrientationForDrawing(&fiberOrientDispInfo,
                                               fiberOrientation);
             }
