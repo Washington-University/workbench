@@ -53,9 +53,6 @@ ImageFile::ImageFile()
 ImageFile::ImageFile(const QImage& qimage)
    : DataFile()
 {
-    if (this->image != NULL) {
-        delete this->image;
-    }
     this->image = new QImage(qimage);
 }
       
