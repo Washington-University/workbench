@@ -378,6 +378,29 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     we->accept();
 }
 
+/*
+ * If there is a middle button and it is pressed with not keys depressed,
+ * set mouse action to left button with shift key down to perform
+ * panning in some mouse modes.
+ *
+ * @param button
+ *     Input/Output of mouse button that is used, may be modified.
+ * @param keyModifiers
+ *     Keys that are down, may be modified.
+ */
+void
+checkForMiddleMouseButton(Qt::MouseButton& button,
+                               Qt::KeyboardModifiers& keyModifiers)
+{
+    if (button == Qt::MiddleButton) {
+        if (keyModifiers == Qt::NoButton) {
+            button = Qt::LeftButton;
+            keyModifiers = Qt::ShiftModifier;
+        }
+    }
+    
+}
+
 /**
  * Receive mouse press events from Qt.
  * @param me
@@ -386,8 +409,11 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButton button = me->button();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    
+    checkForMiddleMouseButton(button,
+                              keyModifiers);
     
     this->isMousePressedNearToolBox = false;
     
@@ -446,9 +472,12 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButton button = me->button();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
 
+    checkForMiddleMouseButton(button,
+                              keyModifiers);
+    
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
         const int mouseY = this->windowHeight[this->windowIndex] - me->y();
@@ -603,8 +632,11 @@ BrainOpenGLWidget::performProjection(const int x,
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
+    Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    
+    checkForMiddleMouseButton(button,
+                              keyModifiers);
     
     if (button == Qt::NoButton) {
         if (me->buttons() == Qt::LeftButton) {
