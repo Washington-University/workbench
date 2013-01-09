@@ -389,21 +389,26 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
  *     Keys that are down, may be modified.
  */
 void
-checkForMiddleMouseButton(QMouseEvent* me,
+checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
                           Qt::MouseButton& button,
                           Qt::KeyboardModifiers& keyModifiers,
                           const bool isMouseMoving)
 {
     if (isMouseMoving) {
+        std::cout << "Moving, ";
         if (button == Qt::NoButton) {
-            if (me->button() == Qt::MiddleButton) {
+            std::cout << " NoButton, ";
+            if (mouseButtons == Qt::MiddleButton) {
+                std::cout << " Middle";
                 if (keyModifiers == Qt::NoButton) {
-                    std::cout << "Switching to left with shift key down" << std::endl;
-                    button = Qt::LeftButton;
+                    std::cout << "Switching to left with shift key down";
+                    mouseButtons = Qt::LeftButton;
+                    button = Qt::NoButton;
                     keyModifiers = Qt::ShiftModifier;
                 }
             }
         }
+        std::cout << std::endl;
     }
     else {
         if (button == Qt::MiddleButton) {
@@ -427,8 +432,9 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
     
-    checkForMiddleMouseButton(me,
+    checkForMiddleMouseButton(mouseButtons,
                               button,
                               keyModifiers,
                               false);
@@ -492,8 +498,9 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
 
-    checkForMiddleMouseButton(me,
+    checkForMiddleMouseButton(mouseButtons,
                               button,
                               keyModifiers,
                               false);
@@ -654,14 +661,15 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
     
-    checkForMiddleMouseButton(me,
+    checkForMiddleMouseButton(mouseButtons,
                               button,
                               keyModifiers,
                               true);
     
     if (button == Qt::NoButton) {
-        if (me->buttons() == Qt::LeftButton) {
+        if (mouseButtons == Qt::LeftButton) {
             const int mouseX = me->x();
             const int mouseY = this->windowHeight[this->windowIndex] - me->y();
             
