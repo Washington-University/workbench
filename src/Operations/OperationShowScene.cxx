@@ -32,11 +32,15 @@
  */
 /*LICENSE_END*/
 
+#include <cstdio>
 #include <fstream>
 
 #ifdef HAVE_OSMESA
 #include <GL/osmesa.h>
 #endif // HAVE_OSMESA
+
+#include <QImage>
+#include <QColor>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -47,6 +51,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"
+#include "ImageFile.h"
 #include "OperationShowScene.h"
 #include "OperationException.h"
 #include "Scene.h"
@@ -56,6 +61,8 @@
 #include "SceneFile.h"
 #include "SessionManager.h"
 #include "VolumeFile.h"
+
+#include "workbench_png.h"
 
 using namespace caret;
 
@@ -277,11 +284,24 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                 const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                              ? i
                                              : -1);
-                writeImagePPM(imageFileName,
-                              outputImageIndex,
-                              imageBuffer,
-                              imageWidth,
-                              imageHeight);
+                
+                if (imageFileName.endsWith(".ppm")) {
+                    writeImagePPM(imageFileName,
+                                  outputImageIndex,
+                                  imageBuffer,
+                                  imageWidth,
+                                  imageHeight);
+                }
+                else if (imageFileName.endsWith(".png")) {
+                    writeImagePNG(imageFileName,
+                                  outputImageIndex,
+                                  imageBuffer,
+                                  imageWidth,
+                                  imageHeight);
+                }
+                else {
+                    throw OperationException("Invalid image file extension");
+                }
             }
         }
     }
@@ -296,6 +316,20 @@ OperationShowScene::useParameters(OperationParameters* myParams,
 #endif // HAVE_OSMESA
 }
 
+/**
+ * Write the image data to a PPM Image File.
+ * 
+ * @param imageFileName
+ *     Name of image file.
+ * @param imageIndex
+ *     Index of image.
+ * @param imageContent
+ *     content of image.
+ * @param imageWidth
+ *     width of image.
+ * @param imageHeight
+ *     height of image.
+ */
 void
 OperationShowScene::writeImagePPM(const AString& imageFileName,
                                   const int32_t imageIndex,
@@ -381,6 +415,7 @@ OperationShowScene::writeImagePPM(const AString& imageFileName,
                            + ".ppm");
         }
     }
+    
     /*
      * write the image data
      */
@@ -390,6 +425,184 @@ OperationShowScene::writeImagePPM(const AString& imageFileName,
     }
     ppmImageFile.write((const char*)imageBuffer, bufferIndex);
     ppmImageFile.close();
+}
+
+/**
+ * Write the image data to a PNG Image File.
+ *
+ * @param imageFileName
+ *     Name of image file.
+ * @param imageIndex
+ *     Index of image.
+ * @param imageContent
+ *     content of image.
+ * @param imageWidth
+ *     width of image.
+ * @param imageHeight
+ *     height of image.
+ */
+void
+OperationShowScene::writeImagePNG(const AString& imageFileName,
+                                  const int32_t imageIndex,
+                                  const unsigned char* imageContent,
+                                  const int32_t imageWidth,
+                                  const int32_t imageHeight)
+{
+    /*
+     * Create name of image
+     */
+    QString outputName(imageFileName);
+    if (imageIndex >= 0) {
+        const AString imageNumber = QString("_%1").arg((int)(imageIndex + 1),
+                                                       2, // width
+                                                       10, // base
+                                                       QChar('0')); // fill character
+        const int dotOffset = outputName.lastIndexOf(".");
+        if (dotOffset >= 0) {
+            outputName.insert(dotOffset,
+                              imageNumber);
+        }
+        else {
+            outputName += (imageNumber
+                           + ".png");
+        }
+    }
+    
+    QImage image(imageWidth,
+                 imageHeight,
+                 QImage::Format_RGB32);
+    
+    const bool flip = true;
+    for (int y = 0; y < imageHeight; y++) {
+        int scanLineIndex = y;
+        if (flip) {
+            scanLineIndex = imageHeight -y -1;
+        }
+        QRgb* rgbScanLine = (QRgb*)image.scanLine(scanLineIndex);
+        
+        for (int x = 0; x < imageWidth; x++) {
+            const int32_t contentOffset = (((y * imageWidth) * 4)
+                                            + (x * 4));
+            const int red   = imageContent[contentOffset];
+            const int green = imageContent[contentOffset+1];
+            const int blue  = imageContent[contentOffset+2];
+            const int alpha = 255;
+            QColor color(red,
+                   green,
+                   blue,
+                   alpha);
+            
+            QRgb* pixel = &rgbScanLine[x];
+            *pixel = color.rgba();
+        }
+    }
+    
+    try {
+        ImageFile imageFile(image);
+        imageFile.writeFile(outputName);
+    }
+    catch (const DataFileException& dfe) {
+        throw OperationException(dfe);
+    }
+    
+//    OperationException operationException;
+//    bool writePngFailed = false;
+//    
+//    FILE* file = NULL;
+//    png_structp pngStruct = NULL;
+//    png_infop pngInfo = NULL;
+//    png_byte** rowPointers = NULL;
+//    
+//    try {
+//        file = fopen(qPrintable(outputName),
+//                     "w");
+//        
+//        if (file == NULL) {
+//            throw OperationException("Unable to open for writing: "
+//                                     + outputName);
+//        }
+//        
+//        pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+//                                                        NULL,
+//                                                        NULL,
+//                                                        NULL);
+//        if (pngStruct == NULL) {
+//            fclose(file);
+//            throw OperationException("Creating PNG structure failed.");
+//        }
+//        
+//        pngInfo = png_create_info_struct(pngStruct);
+//        if (pngInfo == NULL) {
+//            fclose(file);
+//            throw OperationException("Creating PNG structure failed.");
+//        }
+//        
+//        png_set_IHDR(pngStruct,
+//                     pngInfo,
+//                     imageWidth,
+//                     imageHeight,
+//                     8,  // bit depth
+//                     PNG_COLOR_TYPE_RGB,
+//                     PNG_INTERLACE_NONE,
+//                     PNG_COMPRESSION_TYPE_DEFAULT,
+//                     PNG_FILTER_TYPE_DEFAULT);
+//        
+//        rowPointers = (png_byte**)png_malloc(pngStruct,
+//                                 imageHeight * sizeof(png_byte *));
+//        for (int y = 0; y < imageHeight; y++) {
+//            rowPointers[y] = NULL;
+//        }
+//        
+//        
+//        for (int y = 0; y < imageHeight; y++) {
+//            png_byte* row = (png_byte*)png_malloc(pngStruct,
+//                                       (sizeof(uint8_t) * imageWidth * 3));
+//            rowPointers[y] = row;
+//            
+//            for (int x = 0; x < imageWidth; x++) {
+//                const int32_t contentOffset = (((y * imageWidth) * 4)
+//                                               + (x * 4));
+//                *row++ = imageContent[contentOffset];
+//                *row++ = imageContent[contentOffset+1];
+//                *row++ = imageContent[contentOffset+2];
+//            }
+//        }
+//        
+//        png_init_io(pngStruct,
+//                    file);
+//        png_set_rows(pngStruct,
+//                     pngInfo,
+//                     rowPointers);
+//        png_write_png(pngStruct,
+//                      pngInfo,
+//                      PNG_TRANSFORM_IDENTITY,
+//                      NULL);
+//        
+//    }
+//    catch (const OperationException& oe) {
+//        writePngFailed = true;
+//        operationException = oe;
+//    }
+//    
+//    if (rowPointers != NULL) {
+//        for (int y = 0; y < imageHeight; y++) {
+//            png_free(pngStruct,
+//                     rowPointers[y]);
+//        }
+//        png_free(pngStruct,
+//                 rowPointers);
+//    }
+//    
+//    png_destroy_write_struct(&pngStruct,
+//                             &pngInfo);
+//    
+//    if (file != NULL) {
+//        fclose(file);
+//    }
+//    
+//    if (writePngFailed) {
+//        throw operationException;
+//    }
 }
 
 /**

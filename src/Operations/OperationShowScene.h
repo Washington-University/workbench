@@ -54,6 +54,12 @@ namespace caret {
         static bool isShowSceneCommandAvailable();
         
     private:
+        static void writeImagePNG(const AString& imageFileName,
+                                  const int32_t imageIndex,
+                                  const unsigned char* imageContent,
+                                  const int32_t imageWidth,
+                                  const int32_t imageHeight);
+        
         static void writeImagePPM(const AString& imageFileName,
                                   const int32_t imageIndex,
                                   const unsigned char* imageContent,
