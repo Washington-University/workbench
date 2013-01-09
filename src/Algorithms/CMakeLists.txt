@@ -34,6 +34,7 @@ AlgorithmCiftiSmoothing.h
 AlgorithmCiftiTranspose.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
+AlgorithmFiberDotProducts.h
 AlgorithmLabelDilate.h
 AlgorithmMetricDilate.h
 AlgorithmMetricExtrema.h
@@ -69,6 +70,7 @@ AlgorithmCiftiSmoothing.cxx
 AlgorithmCiftiTranspose.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
+AlgorithmFiberDotProducts.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricExtrema.cxx

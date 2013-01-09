@@ -52,10 +52,10 @@ OperationParameters* OperationConvertAffine::getParameters()
     fromFlirt->addStringParameter(3, "target-volume", "the target volume used when generating the input affine");
     
     OptionalParameter* toWorld = ret->createOptionalParameter(3, "-to-world", "write output as a 'world' affine");
-    toWorld->addStringParameter(1, "output", "out - the output affine");//HACK: fake the output formatting, since we don't have a parameter for affine file (and can't make one due to multiple on-disk conventions)
+    toWorld->addStringParameter(1, "output", "output - the output affine");//HACK: fake the output formatting, since we don't have a parameter for affine file (hard to do due to multiple on-disk formats)
     
     ParameterComponent* toFlirt = ret->createRepeatableParameter(4, "-to-flirt", "write output as a flirt matrix");
-    toFlirt->addStringParameter(1, "output", "out - the output affine");
+    toFlirt->addStringParameter(1, "output", "output - the output affine");
     toFlirt->addStringParameter(2, "source-volume", "the volume you want to apply the transform to");
     toFlirt->addStringParameter(3, "target-volume", "the target space you want the transformed volume to match");
     

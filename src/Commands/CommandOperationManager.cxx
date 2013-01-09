@@ -43,6 +43,7 @@
 #include "AlgorithmCiftiSmoothing.h"
 #include "AlgorithmCiftiTranspose.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
+#include "AlgorithmFiberDotProducts.h"
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricExtrema.h"
@@ -164,6 +165,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiTranspose()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmFiberDotProducts()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
