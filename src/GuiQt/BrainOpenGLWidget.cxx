@@ -393,7 +393,9 @@ checkForMiddleMouseButton(Qt::MouseButton& button,
                                Qt::KeyboardModifiers& keyModifiers)
 {
     if (button == Qt::MiddleButton) {
+        std::cout << "Middle button down" << std::endl;
         if (keyModifiers == Qt::NoButton) {
+            std::cout << "Switching to left with shift key down" << std::endl;
             button = Qt::LeftButton;
             keyModifiers = Qt::ShiftModifier;
         }
