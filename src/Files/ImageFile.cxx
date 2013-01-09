@@ -55,7 +55,67 @@ ImageFile::ImageFile(const QImage& qimage)
 {
     this->image = new QImage(qimage);
 }
-      
+
+/**
+ * Constructs an image file from image data.
+ *
+ * @param imageDataRGBA
+ *     Image data unsigned bytes with one byte for each
+ *     red, green, blue, alpha.
+ * @param imageWidth
+ *     Width of image.
+ * @param imageHeight
+ *     Height of image.
+ * @param imageOrigin
+ *     Location of first pixel in the image data.
+ */
+ImageFile::ImageFile(const unsigned char* imageDataRGBA,
+          const int imageWidth,
+          const int imageHeight,
+          const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
+{
+    this->image = new QImage(imageWidth,
+                             imageHeight,
+                             QImage::Format_RGB32);
+    
+    bool isOriginAtTop = false;
+    switch (imageOrigin) {
+        case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+            isOriginAtTop = false;
+            break;
+        case IMAGE_DATA_ORIGIN_AT_TOP:
+            isOriginAtTop = true;
+            break;
+    }
+    
+    /*
+     * Documentation for QImage states that setPixel may be very costly
+     * and recommends using the scanLine() method to access pixel data.
+     */
+    for (int y = 0; y < imageHeight; y++) {
+        const int scanLineIndex = (isOriginAtTop
+                                   ? y
+                                   : imageHeight -y - 1);
+        QRgb* rgbScanLine = (QRgb*)this->image->scanLine(scanLineIndex);
+        
+        for (int x = 0; x < imageWidth; x++) {
+            const int32_t contentOffset = (((y * imageWidth) * 4)
+                                           + (x * 4));
+            const int red   = imageDataRGBA[contentOffset];
+            const int green = imageDataRGBA[contentOffset+1];
+            const int blue  = imageDataRGBA[contentOffset+2];
+            const int alpha  = imageDataRGBA[contentOffset+3];
+            QColor color(red,
+                         green,
+                         blue,
+                         alpha);
+            
+            QRgb* pixel = &rgbScanLine[x];
+            *pixel = color.rgba();
+        }
+    }
+}
+
 /**
  * Destructor.
  */
