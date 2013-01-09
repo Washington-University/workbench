@@ -30,6 +30,7 @@
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 
+#include <cmath>
 #include <vector>
 
 using namespace caret;
@@ -52,13 +53,15 @@ OperationParameters* AlgorithmFiberDotProducts::getParameters()
     
     ret->addCiftiParameter(2, "fiber-file", "the fiber orientation file");
     
-    ret->addMetricOutputParameter(3, "dot-metric", "the metric of dot products");
+    ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface node a fiber sample may be");
     
-    ret->addMetricOutputParameter(4, "f-metric", "a metric of the f values of the fiber distributions");
+    ret->addMetricOutputParameter(4, "dot-metric", "the metric of dot products");
+    
+    ret->addMetricOutputParameter(5, "f-metric", "a metric of the f values of the fiber distributions");
     
     ret->setHelpText(
-        AString("For each vertex, this command finds the closest fiber sample that is inside the surface, and computes the dot product of ") +
-        "the surface normal and the normalized mean direction of each fiber.  " +
+        AString("For each vertex, this command finds the closest fiber sample that is inside the surface, and computes the absolute value ") +
+        "of the dot product of the surface normal and the normalized mean direction of each fiber.  " +
         "Each fiber sample is output in a separate metric column."
     );
     return ret;
@@ -68,12 +71,13 @@ void AlgorithmFiberDotProducts::useParameters(OperationParameters* myParams, Pro
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
     CiftiFile* myFibers = myParams->getCifti(2);
-    MetricFile* myDotProdOut = myParams->getOutputMetric(3);
-    MetricFile* myFSampOut = myParams->getOutputMetric(4);
-    AlgorithmFiberDotProducts(myProgObj, mySurf, myFibers, myDotProdOut, myFSampOut);
+    float maxDist = (float)myParams->getDouble(3);
+    MetricFile* myDotProdOut = myParams->getOutputMetric(4);
+    MetricFile* myFSampOut = myParams->getOutputMetric(5);
+    AlgorithmFiberDotProducts(myProgObj, mySurf, myFibers, maxDist, myDotProdOut, myFSampOut);
 }
 
-AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, MetricFile* myDotProdOut, MetricFile* myFSampOut) : AbstractAlgorithm(myProgObj)
+AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, const float& maxDist, MetricFile* myDotProdOut, MetricFile* myFSampOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretPointer<SignedDistanceHelper> mySignedHelp = mySurf->getSignedDistanceHelper();
@@ -87,6 +91,8 @@ AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, 
     for (int64_t i = 0; i < numRows; ++i)
     {
         myFibers->getRow(rowScratch.data(), i);
+        int closeNode = mySurf->closestNode(rowScratch.data(), maxDist);
+        if (closeNode == -1) continue;//skip samples that aren't close to a surface node, for speed (signed distance is kinda slow)
         float signedDist = mySignedHelp->dist(rowScratch.data(), SignedDistanceHelper::EVEN_ODD);//the first 3 floats are xyz coords
         if (signedDist <= 0.0f)//test for inside surface
         {
@@ -126,7 +132,7 @@ AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, 
                 direction[0] = -sin(theta) * cos(phi);//NOTE: theta, phi are polar coordinates for a RADIOLOGICAL coordinate system, so flip x so that +x = right
                 direction[1] = sin(theta) * sin(phi);
                 direction[2] = cos(theta);
-                float dotProd = myNormal.dot(direction);
+                float dotProd = abs(myNormal.dot(direction));
                 myDotProdOut->setValue(i, j, dotProd);
                 myFSampOut->setValue(i, j, fmean);
             }
