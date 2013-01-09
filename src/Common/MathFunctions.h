@@ -94,6 +94,11 @@ public:
                     const float v2[],
                     float resultOut[]);
 
+    static void crossProduct(
+                             const double v1[],
+                             const double v2[],
+                             double resultOut[]);
+    
     static void normalizedCrossProduct(
                     const float x1[],
                                  const float x2[],
@@ -331,9 +336,14 @@ public:
     ///convert quaternion to rotation matrix
     static void quaternToMatrix(const float cijk[4], float matrix[3][3]);
     
+    ///convert quaternion to rotation matrix
+    static void quaternToMatrix(const double cijk[4], double matrix[3][3]);
+    
     ///try to convert 3x3 matrix to quaternion (return false if not a rotation matrix)
     static bool matrixToQuatern(const float matrix[3][3], float cijk[4]);
 
+    ///try to convert 3x3 matrix to quaternion (return false if not a rotation matrix)
+    static bool matrixToQuatern(const double matrix[3][3], double cijk[4]);
 };
 
 } // namespace

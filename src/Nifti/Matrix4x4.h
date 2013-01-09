@@ -78,6 +78,10 @@ public:
             const double sy,
             const double sz);
 
+    void getScale(double& scaleOutX,
+                  double& scaleOutY,
+                  double& scaleOutZ);
+    
     void rotateX(const double degrees);
 
     void rotateY(const double degrees);
@@ -94,6 +98,10 @@ public:
             const double y,
             const double z);
 
+    void getRotation(double& rotationOutX,
+                     double& rotationOutY,
+                     double& rotationOutZ) const;
+    
     void premultiply(const Matrix4x4& tm);
 
     void postmultiply(const Matrix4x4& tm);
@@ -178,6 +186,8 @@ private:
     
     double Determinant4x4(const double matrix[4][4]) const;
 
+    static double Determinant3x3(double A[3][3]);
+    
     double Determinant3(const double matrix[3][3]) const;
     
     static double Determinant3x3(double a1, double a2, double a3,
@@ -185,6 +195,25 @@ private:
                                  double c1, double c2, double c3);
     
     static double Determinant2x2(double a, double b, double c, double d);
+
+    static void Orthogonalize3x3(const double A[3][3], double B[3][3]);
+
+    static void SwapVectors3(double v1[3],
+                             double v2[3]);
+
+    static void SingularValueDecomposition3x3(const double A[3][3],
+                                              double U[3][3],
+                                              double w[3],
+                                              double VT[3][3]);
+    
+    static void Transpose3x3(const double A[3][3], double AT[3][3]);
+
+    static void Multiply3x3(const double A[3][3], const double B[3][3],
+                            double C[3][3]);
+
+    static void Diagonalize3x3(const double A[3][3], double w[3], double V[3][3]);
+
+    static int JacobiN(double **a, int n, double *w, double **v);
 
 protected:
     /**the 4x4 matrix */

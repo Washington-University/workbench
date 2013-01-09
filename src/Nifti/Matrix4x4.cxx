@@ -257,6 +257,514 @@ Matrix4x4::scale(
 }
 
 /**
+ * Get the scaling from the matrix.
+ * @param scaleOutX
+ *    X scaling output.
+ * @param scaleOutY
+ *    Y scaling output.
+ * @param scaleOutZ
+ *    Z scaling output.
+ */
+void
+Matrix4x4::getScale(double& scaleOutX,
+                    double& scaleOutY,
+                    double& scaleOutZ)
+{
+    double U[3][3], VT[3][3];
+    
+    for (int i = 0; i < 3; i++)
+    {
+        U[0][i] = matrix[0][i];
+        U[1][i] = matrix[1][i];
+        U[2][i] = matrix[2][i];
+    }
+    
+    double scale[3];
+    Matrix4x4::SingularValueDecomposition3x3(U, U, scale, VT);
+}
+
+//----------------------------------------------------------------------------
+// Perform singular value decomposition on the matrix A:
+//    A = U * W * VT
+// where U and VT are orthogonal W is diagonal (the diagonal elements
+// are returned in vector w).
+// The matrices U and VT will both have positive determinants.
+// The scale factors w are ordered according to how well the
+// corresponding eigenvectors (in VT) match the x, y and z axes
+// respectively.
+//
+// The singular value decomposition is used to decompose a linear
+// transformation into a rotation, followed by a scale, followed
+// by a second rotation.  The scale factors w will be negative if
+// the determinant of matrix A is negative.
+//
+// Contributed by David Gobbi (dgobbi@irus.rri.on.ca)
+void
+Matrix4x4::SingularValueDecomposition3x3(const double A[3][3],
+                                             double U[3][3], double w[3],
+                                             double VT[3][3])
+{
+    int i;
+    double B[3][3];
+    
+    // copy so that A can be used for U or VT without risk
+    for (i = 0; i < 3; i++)
+    {
+        B[0][i] = A[0][i];
+        B[1][i] = A[1][i];
+        B[2][i] = A[2][i];
+    }
+    
+    // temporarily flip if determinant is negative
+    double d = Determinant3x3(B);
+    if (d < 0)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            B[0][i] = -B[0][i];
+            B[1][i] = -B[1][i];
+            B[2][i] = -B[2][i];
+        }
+    }
+    
+    // orthogonalize, diagonalize, etc.
+    Orthogonalize3x3(B, U);
+    Transpose3x3(B, B);
+    Multiply3x3(B, U, VT);
+    Diagonalize3x3(VT, w, VT);
+    Multiply3x3(U, VT, U);
+    Transpose3x3(VT, VT);
+    
+    // re-create the flip
+    if (d < 0)
+    {
+        w[0] = -w[0];
+        w[1] = -w[1];
+        w[2] = -w[2];
+    }
+    
+    /* paranoia check: recombine to ensure that the SVD is correct
+     vtkMath::Transpose3x3(B, B);
+     
+     if (d < 0)
+     {
+     for (i = 0; i < 3; i++)
+     {
+     B[0][i] = -B[0][i];
+     B[1][i] = -B[1][i];
+     B[2][i] = -B[2][i];
+     }
+     }
+     
+     int j;
+     T2 maxerr = 0;
+     T2 tmp;
+     T2 M[3][3];
+     T2 W[3][3];
+     vtkMath::Identity3x3(W);
+     W[0][0] = w[0]; W[1][1] = w[1]; W[2][2] = w[2];
+     vtkMath::Identity3x3(M);
+     vtkMath::Multiply3x3(M, U, M);
+     vtkMath::Multiply3x3(M, W, M);
+     vtkMath::Multiply3x3(M, VT, M);
+     
+     for (i = 0; i < 3; i++)
+     {
+     for (j = 0; j < 3; j++)
+     {
+     if ((tmp = fabs(B[i][j] - M[i][j])) > maxerr)
+     {
+     maxerr = tmp;
+     }
+     }
+     }
+     
+     vtkGenericWarningMacro("SingularValueDecomposition max error = " << maxerr);
+     */
+}
+
+void
+Matrix4x4::Diagonalize3x3(const double A[3][3], double w[3], double V[3][3])
+{
+    int i,j,k,maxI;
+    double tmp, maxVal;
+    
+    // do the matrix[3][3] to **matrix conversion for Jacobi
+    double C[3][3];
+    double *ATemp[3],*VTemp[3];
+    for (i = 0; i < 3; i++)
+    {
+        C[i][0] = A[i][0];
+        C[i][1] = A[i][1];
+        C[i][2] = A[i][2];
+        ATemp[i] = C[i];
+        VTemp[i] = V[i];
+    }
+    
+    // diagonalize using Jacobi
+    Matrix4x4::JacobiN(ATemp,3,w,VTemp);
+    
+    // if all the eigenvalues are the same, return identity matrix
+    if (w[0] == w[1] && w[0] == w[2])
+    {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                V[i][j] = 0.0;
+            }
+        }
+        return;
+    }
+    
+    // transpose temporarily, it makes it easier to sort the eigenvectors
+    Transpose3x3(V,V);
+    
+    // if two eigenvalues are the same, re-orthogonalize to optimally line
+    // up the eigenvectors with the x, y, and z axes
+    for (i = 0; i < 3; i++)
+    {
+        if (w[(i+1)%3] == w[(i+2)%3]) // two eigenvalues are the same
+        {
+            // find maximum element of the independant eigenvector
+            maxVal = fabs(V[i][0]);
+            maxI = 0;
+            for (j = 1; j < 3; j++)
+            {
+                if (maxVal < (tmp = fabs(V[i][j])))
+                {
+                    maxVal = tmp;
+                    maxI = j;
+                }
+            }
+            // swap the eigenvector into its proper position
+            if (maxI != i)
+            {
+                tmp = w[maxI];
+                w[maxI] = w[i];
+                w[i] = tmp;
+                SwapVectors3(V[i],V[maxI]);
+            }
+            // maximum element of eigenvector should be positive
+            if (V[maxI][maxI] < 0)
+            {
+                V[maxI][0] = -V[maxI][0];
+                V[maxI][1] = -V[maxI][1];
+                V[maxI][2] = -V[maxI][2];
+            }
+            
+            // re-orthogonalize the other two eigenvectors
+            j = (maxI+1)%3;
+            k = (maxI+2)%3;
+            
+            V[j][0] = 0.0;
+            V[j][1] = 0.0;
+            V[j][2] = 0.0;
+            V[j][j] = 1.0;
+            MathFunctions::crossProduct(V[maxI],V[j],V[k]);
+            MathFunctions::normalizeVector(V[k]);
+            MathFunctions::crossProduct(V[k],V[maxI],V[j]);
+            
+            // transpose vectors back to columns
+            Transpose3x3(V,V);
+            return;
+        }
+    }
+    
+    // the three eigenvalues are different, just sort the eigenvectors
+    // to align them with the x, y, and z axes
+    
+    // find the vector with the largest x element, make that vector
+    // the first vector
+    maxVal = fabs(V[0][0]);
+    maxI = 0;
+    for (i = 1; i < 3; i++)
+    {
+        if (maxVal < (tmp = fabs(V[i][0])))
+        {
+            maxVal = tmp;
+            maxI = i;
+        }
+    }
+    // swap eigenvalue and eigenvector
+    if (maxI != 0)
+    {
+        tmp = w[maxI];
+        w[maxI] = w[0];
+        w[0] = tmp;
+        SwapVectors3(V[maxI],V[0]);
+    }
+    // do the same for the y element
+    if (fabs(V[1][1]) < fabs(V[2][1]))
+    {
+        tmp = w[2];
+        w[2] = w[1];
+        w[1] = tmp;
+        SwapVectors3(V[2],V[1]);
+    }
+    
+    // ensure that the sign of the eigenvectors is correct
+    for (i = 0; i < 2; i++)
+    {
+        if (V[i][i] < 0)
+        {
+            V[i][0] = -V[i][0];
+            V[i][1] = -V[i][1];
+            V[i][2] = -V[i][2];
+        }
+    }
+    // set sign of final eigenvector to ensure that determinant is positive
+    if (Determinant3x3(V) < 0)
+    {
+        V[2][0] = -V[2][0];
+        V[2][1] = -V[2][1];
+        V[2][2] = -V[2][2];
+    }
+    
+    // transpose the eigenvectors back again
+    Transpose3x3(V,V);
+}
+
+#define VTK_ROTATE(a,i,j,k,l) g=a[i][j];h=a[k][l];a[i][j]=g-s*(h+g*tau);\
+a[k][l]=h+s*(g-h*tau)
+
+// Jacobi iteration for the solution of eigenvectors/eigenvalues of a nxn
+// real symmetric matrix. Square nxn matrix a; size of matrix in n;
+// output eigenvalues in w; and output eigenvectors in v. Resulting
+// eigenvalues/vectors are sorted in decreasing order; eigenvectors are
+// normalized.
+int
+Matrix4x4::JacobiN(double **a, int n, double *w, double **v)
+{
+    const int VTK_MAX_ROTATIONS  = 20;
+    
+    int i, j, k, iq, ip, numPos;
+    double tresh, theta, tau, t, sm, s, h, g, c, tmp;
+    double bspace[4], zspace[4];
+    double *b = bspace;
+    double *z = zspace;
+    
+    // only allocate memory if the matrix is large
+    if (n > 4)
+    {
+        b = new double[n];
+        z = new double[n];
+    }
+    
+    // initialize
+    for (ip=0; ip<n; ip++)
+    {
+        for (iq=0; iq<n; iq++)
+        {
+            v[ip][iq] = 0.0;
+        }
+        v[ip][ip] = 1.0;
+    }
+    for (ip=0; ip<n; ip++)
+    {
+        b[ip] = w[ip] = a[ip][ip];
+        z[ip] = 0.0;
+    }
+    
+    // begin rotation sequence
+    for (i=0; i<VTK_MAX_ROTATIONS; i++)
+    {
+        sm = 0.0;
+        for (ip=0; ip<n-1; ip++)
+        {
+            for (iq=ip+1; iq<n; iq++)
+            {
+                sm += fabs(a[ip][iq]);
+            }
+        }
+        if (sm == 0.0)
+        {
+            break;
+        }
+        
+        if (i < 3)                                // first 3 sweeps
+        {
+            tresh = 0.2*sm/(n*n);
+        }
+        else
+        {
+            tresh = 0.0;
+        }
+        
+        for (ip=0; ip<n-1; ip++)
+        {
+            for (iq=ip+1; iq<n; iq++)
+            {
+                g = 100.0*fabs(a[ip][iq]);
+                
+                // after 4 sweeps
+                if (i > 3 && (fabs(w[ip])+g) == fabs(w[ip])
+                    && (fabs(w[iq])+g) == fabs(w[iq]))
+                {
+                    a[ip][iq] = 0.0;
+                }
+                else if (fabs(a[ip][iq]) > tresh)
+                {
+                    h = w[iq] - w[ip];
+                    if ( (fabs(h)+g) == fabs(h))
+                    {
+                        t = (a[ip][iq]) / h;
+                    }
+                    else
+                    {
+                        theta = 0.5*h / (a[ip][iq]);
+                        t = 1.0 / (fabs(theta)+sqrt(1.0+theta*theta));
+                        if (theta < 0.0)
+                        {
+                            t = -t;
+                        }
+                    }
+                    c = 1.0 / sqrt(1+t*t);
+                    s = t*c;
+                    tau = s/(1.0+c);
+                    h = t*a[ip][iq];
+                    z[ip] -= h;
+                    z[iq] += h;
+                    w[ip] -= h;
+                    w[iq] += h;
+                    a[ip][iq]=0.0;
+                    
+                    // ip already shifted left by 1 unit
+                    for (j = 0;j <= ip-1;j++)
+                    {
+                        VTK_ROTATE(a,j,ip,j,iq);
+                    }
+                    // ip and iq already shifted left by 1 unit
+                    for (j = ip+1;j <= iq-1;j++)
+                    {
+                        VTK_ROTATE(a,ip,j,j,iq);
+                    }
+                    // iq already shifted left by 1 unit
+                    for (j=iq+1; j<n; j++)
+                    {
+                        VTK_ROTATE(a,ip,j,iq,j);
+                    }
+                    for (j=0; j<n; j++)
+                    {
+                        VTK_ROTATE(v,j,ip,j,iq);
+                    }
+                }
+            }
+        }
+        
+        for (ip=0; ip<n; ip++)
+        {
+            b[ip] += z[ip];
+            w[ip] = b[ip];
+            z[ip] = 0.0;
+        }
+    }
+    
+    //// this is NEVER called
+    if ( i >= VTK_MAX_ROTATIONS )
+    {
+        CaretLogWarning("Matrix4x4::Jacobi: Error extracting eigenfunctions");
+        return 0;
+    }
+    
+    // sort eigenfunctions                 these changes do not affect accuracy
+    for (j=0; j<n-1; j++)                  // boundary incorrect
+    {
+        k = j;
+        tmp = w[k];
+        for (i=j+1; i<n; i++)                // boundary incorrect, shifted already
+        {
+            if (w[i] >= tmp)                   // why exchage if same?
+            {
+                k = i;
+                tmp = w[k];
+            }
+        }
+        if (k != j)
+        {
+            w[k] = w[j];
+            w[j] = tmp;
+            for (i=0; i<n; i++) 
+            {
+                tmp = v[i][j];
+                v[i][j] = v[i][k];
+                v[i][k] = tmp;
+            }
+        }
+    }
+    // insure eigenvector consistency (i.e., Jacobi can compute vectors that
+    // are negative of one another (.707,.707,0) and (-.707,-.707,0). This can
+    // reek havoc in hyperstreamline/other stuff. We will select the most
+    // positive eigenvector.
+    int ceil_half_n = (n >> 1) + (n & 1);
+    for (j=0; j<n; j++)
+    {
+        for (numPos=0, i=0; i<n; i++)
+        {
+            if ( v[i][j] >= 0.0 )
+            {
+                numPos++;
+            }
+        }
+        //    if ( numPos < ceil(double(n)/double(2.0)) )
+        if ( numPos < ceil_half_n)
+        {
+            for(i=0; i<n; i++)
+            {
+                v[i][j] *= -1.0;
+            }
+        }
+    }
+    
+    if (n > 4)
+    {
+        delete [] b;
+        delete [] z;
+    }
+    return 1;
+}
+#undef VTK_ROTATE
+
+void
+Matrix4x4::Multiply3x3(const double A[3][3], const double B[3][3],
+                       double C[3][3])
+{
+    double D[3][3];
+    
+    for (int i = 0; i < 3; i++)
+    {
+        D[0][i] = A[0][0]*B[0][i] + A[0][1]*B[1][i] + A[0][2]*B[2][i];
+        D[1][i] = A[1][0]*B[0][i] + A[1][1]*B[1][i] + A[1][2]*B[2][i];
+        D[2][i] = A[2][0]*B[0][i] + A[2][1]*B[1][i] + A[2][2]*B[2][i];
+    }
+    
+    for (int j = 0; j < 3; j++)
+    {
+        C[j][0] = D[j][0];
+        C[j][1] = D[j][1];
+        C[j][2] = D[j][2];
+    }
+}
+
+//----------------------------------------------------------------------------
+void
+Matrix4x4::Transpose3x3(const double A[3][3], double AT[3][3])
+{
+    double tmp;
+    tmp = A[1][0];
+    AT[1][0] = A[0][1];
+    AT[0][1] = tmp;
+    tmp = A[2][0];
+    AT[2][0] = A[0][2];
+    AT[0][2] = tmp;
+    tmp = A[2][1];
+    AT[2][1] = A[1][2];
+    AT[1][2] = tmp;
+    
+    AT[0][0] = A[0][0];
+    AT[1][1] = A[1][1];
+    AT[2][2] = A[2][2];
+}
+
+/**
  * Apply a rotation about the X-axis.  Rotates in the
  * screen's coordinate system.
  *
@@ -375,6 +883,240 @@ Matrix4x4::rotate(
     
     this->fixNumericalError();
     this->setModified();
+}
+
+/*
+ * From vktTransform::GetOrientation()
+ */
+void
+Matrix4x4::getRotation(double& rotationOutX,
+                       double& rotationOutY,
+                       double& rotationOutZ) const
+{
+#define VTK_AXIS_EPSILON 0.001
+    int i;
+    
+    // convenient access to matrix
+//    double (*matrix)[4] = amatrix->Element;
+    double ortho[3][3];
+    
+    for (i = 0; i < 3; i++)
+    {
+        ortho[0][i] = matrix[0][i];
+        ortho[1][i] = matrix[1][i];
+        ortho[2][i] = matrix[2][i];
+    }
+    if (Determinant3x3(ortho) < 0)
+    {
+        ortho[0][2] = -ortho[0][2];
+        ortho[1][2] = -ortho[1][2];
+        ortho[2][2] = -ortho[2][2];
+    }
+    
+    Matrix4x4::Orthogonalize3x3(ortho, ortho);
+    
+    // first rotate about y axis
+    double x2 = ortho[2][0];
+    double y2 = ortho[2][1];
+    double z2 = ortho[2][2];
+    
+    double x3 = ortho[1][0];
+    double y3 = ortho[1][1];
+    double z3 = ortho[1][2];
+    
+    double d1 = sqrt(x2*x2 + z2*z2);
+    
+    double cosTheta, sinTheta;
+    if (d1 < VTK_AXIS_EPSILON)
+    {
+        cosTheta = 1.0;
+        sinTheta = 0.0;
+    }
+    else
+    {
+        cosTheta = z2/d1;
+        sinTheta = x2/d1;
+    }
+    
+    double theta = std::atan2(sinTheta, cosTheta);
+    rotationOutY = - MathFunctions::toDegrees(theta );
+    
+    // now rotate about x axis
+    double d = std::sqrt(x2*x2 + y2*y2 + z2*z2);
+    
+    double sinPhi, cosPhi;
+    if (d < VTK_AXIS_EPSILON)
+    {
+        sinPhi = 0.0;
+        cosPhi = 1.0;
+    }
+    else if (d1 < VTK_AXIS_EPSILON)
+    {
+        sinPhi = y2/d;
+        cosPhi = z2/d;
+    }
+    else
+    {
+        sinPhi = y2/d;
+        cosPhi = (x2*x2 + z2*z2)/(d1*d);
+    }
+    
+    double phi = std::atan2(sinPhi, cosPhi);
+    rotationOutX = MathFunctions::toDegrees(phi);
+    
+    // finally, rotate about z
+    double x3p = x3*cosTheta - z3*sinTheta;
+    double y3p = - sinPhi*sinTheta*x3 + cosPhi*y3 - sinPhi*cosTheta*z3;
+    double d2 = std::sqrt(x3p*x3p + y3p*y3p);
+    
+    double cosAlpha, sinAlpha;
+    if (d2 < VTK_AXIS_EPSILON)
+    {
+        cosAlpha = 1.0;
+        sinAlpha = 0.0;
+    }
+    else 
+    {
+        cosAlpha = y3p/d2;
+        sinAlpha = x3p/d2;
+    }
+    
+    double alpha = std::atan2(sinAlpha, cosAlpha);
+    rotationOutZ = MathFunctions::toDegrees(alpha);
+    
+}
+
+void
+Matrix4x4::Orthogonalize3x3(const double A[3][3], double B[3][3])
+{
+    int i;
+    
+    // copy the matrix
+    for (i = 0; i < 3; i++)
+    {
+        B[0][i] = A[0][i];
+        B[1][i] = A[1][i];
+        B[2][i] = A[2][i];
+    }
+    
+    // Pivot the matrix to improve accuracy
+    double scale[3];
+    int index[3];
+    double tmp, largest;
+    
+    // Loop over rows to get implicit scaling information
+    for (i = 0; i < 3; i++)
+    {
+        largest = fabs(B[i][0]);
+        if ((tmp = fabs(B[i][1])) > largest)
+        {
+            largest = tmp;
+        }
+        if ((tmp = fabs(B[i][2])) > largest)
+        {
+            largest = tmp;
+        }
+        scale[i] = 1.0;
+        if (largest != 0)
+        {
+            scale[i] = double(1.0)/largest;
+        }
+    }
+    
+    // first column
+    index[0] = 0;
+    largest = scale[0]*fabs(B[0][0]);
+    if ((tmp = scale[1]*fabs(B[1][0])) >= largest)
+    {
+        largest = tmp;
+        index[0] = 1;
+    }
+    if ((tmp = scale[2]*fabs(B[2][0])) >= largest)
+    {
+        index[0] = 2;
+    }
+    if (index[0] != 0)
+    {
+        SwapVectors3(B[index[0]],B[0]);
+        scale[index[0]] = scale[0];
+    }
+    
+    // second column
+    index[1] = 1;
+    largest = scale[1]*fabs(B[1][1]);
+    if ((tmp = scale[2]*fabs(B[2][1])) >= largest)
+    {
+        index[1] = 2;
+        SwapVectors3(B[2],B[1]);
+    }
+    
+    // third column
+    index[2] = 2;
+    
+    // A quaternian can only describe a pure rotation, not
+    // a rotation with a flip, therefore the flip must be
+    // removed before the matrix is converted to a quaternion.
+    double d = Matrix4x4::Determinant3x3(B);
+    if (d < 0)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            B[0][i] = -B[0][i];
+            B[1][i] = -B[1][i];
+            B[2][i] = -B[2][i];
+        }
+    }
+    
+    // Do orthogonalization using a quaternion intermediate
+    // (this, essentially, does the orthogonalization via
+    // diagonalization of an appropriately constructed symmetric
+    // 4x4 matrix rather than by doing SVD of the 3x3 matrix)
+    double quat[4];
+    MathFunctions::matrixToQuatern(B,quat);
+    MathFunctions::quaternToMatrix(quat,B);
+    
+    // Put the flip back into the orthogonalized matrix.
+    if (d < 0)
+    {
+        for (i = 0; i < 3; i++)
+        {
+            B[0][i] = -B[0][i];
+            B[1][i] = -B[1][i];
+            B[2][i] = -B[2][i];
+        }
+    }
+    
+    // Undo the pivoting
+    if (index[1] != 1)
+    {
+        SwapVectors3(B[index[1]],B[1]);
+    }
+    if (index[0] != 0)
+    {
+        SwapVectors3(B[index[0]],B[0]);
+    }
+}
+
+/**
+ * Swap elements in vectors.
+ * @param v1
+ *    First vector.
+ * @param v2
+ *    Second vector.
+ */
+void
+Matrix4x4::SwapVectors3(double v1[3],
+                         double v2[3])
+{
+    double x[3] = { v1[0], v1[1], v1[2] };
+    
+    v1[0] = v2[0];
+    v1[1] = v2[1];
+    v1[2] = v2[2];
+    
+    v2[0] = x[0];
+    v2[1] = x[1];
+    v2[2] = x[2];
 }
 
 /**
@@ -1237,6 +1979,14 @@ Matrix4x4::Determinant3(const double matrixIn[3][3]) const
     //        System.out.println("Determinant: " + det);
     //    }
     return det;
+}
+
+double
+Matrix4x4::Determinant3x3(double A[3][3])
+{
+    return A[0][0] * A[1][1] * A[2][2] + A[1][0] * A[2][1] * A[0][2] +
+    A[2][0] * A[0][1] * A[1][2] - A[0][0] * A[2][1] * A[1][2] -
+    A[1][0] * A[0][1] * A[2][2] - A[2][0] * A[1][1] * A[0][2];
 }
 
 /**
