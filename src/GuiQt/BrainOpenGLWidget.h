@@ -108,6 +108,11 @@ namespace caret {
         BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
                                                            const int y);
         
+        void checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
+                                       Qt::MouseButton& button,
+                                       Qt::KeyboardModifiers& keyModifiers,
+                                       const bool isMouseMoving);
+        
         BrainOpenGL* openGL;
         
         //BrowserTabContent* browserTabContent;

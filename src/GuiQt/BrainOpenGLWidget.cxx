@@ -383,38 +383,35 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
  * set mouse action to left button with shift key down to perform
  * panning in some mouse modes.
  *
+ * @param mouseButtons
+ *     Button state when event was generated
  * @param button
- *     Input/Output of mouse button that is used, may be modified.
+ *     Button that caused the event.
  * @param keyModifiers
  *     Keys that are down, may be modified.
+ * @param isMouseMoving
+ *     True if mouse is moving, else false.
  */
 void
-checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
-                          Qt::MouseButton& button,
-                          Qt::KeyboardModifiers& keyModifiers,
-                          const bool isMouseMoving)
+BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
+                                             Qt::MouseButton& button,
+                                             Qt::KeyboardModifiers& keyModifiers,
+                                             const bool isMouseMoving)
 {
     if (isMouseMoving) {
-        std::cout << "Moving, ";
         if (button == Qt::NoButton) {
-            std::cout << " NoButton, ";
             if (mouseButtons == Qt::MiddleButton) {
-                std::cout << " Middle";
                 if (keyModifiers == Qt::NoButton) {
-                    std::cout << "Switching to left with shift key down";
                     mouseButtons = Qt::LeftButton;
                     button = Qt::NoButton;
                     keyModifiers = Qt::ShiftModifier;
                 }
             }
         }
-        std::cout << std::endl;
     }
     else {
         if (button == Qt::MiddleButton) {
-            std::cout << "Middle button down" << std::endl;
             if (keyModifiers == Qt::NoButton) {
-                std::cout << "Switching to left with shift key down" << std::endl;
                 button = Qt::LeftButton;
                 keyModifiers = Qt::ShiftModifier;
             }
