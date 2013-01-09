@@ -62,7 +62,7 @@
 #include "SessionManager.h"
 #include "VolumeFile.h"
 
-#include "workbench_png.h"
+//#include "workbench_png.h"
 
 using namespace caret;
 
