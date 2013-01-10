@@ -821,6 +821,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
         case MathFunctionEnum::MIN:
         case MathFunctionEnum::MAX:
             numArgs = 2;
+            break;
         case MathFunctionEnum::CLAMP:
             numArgs = 3;
             break;
