@@ -477,19 +477,29 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
          * Is this a mouse wheel event?
          */
         const bool isWheelEvent = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
-            
-        ModelVolume* modelVolumeController = dynamic_cast<ModelVolume*>(modelController);
-        if (modelVolumeController != NULL)
+        
+        /*
+         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
+         * so both will be non-NULL if it is a ModelVolume with or without yoking.
+         */
+        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
+        ModelVolume* modelVolume = NULL;
+        if (modelVolumeInterface != NULL) {
+            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
+        }
+        
+        if ((modelVolume != NULL)
+            && (modelVolumeInterface != NULL))
         {
             if (!isWheelEvent && mouseEvent->isShiftKeyDown())//shift left drag
             {
                 const float* t1 = modelController->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);       
                 float t2[] = { t1[0], t1[1], t1[2] };
-                VolumeFile* vf = modelVolumeController->getUnderlayVolumeFile(tabIndex);
+                VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
                 BoundingBox mybox = vf->getSpaceBoundingBox();
                 float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
                 float slowdown = 0.005f * cubesize / modelController->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
-                switch (modelVolumeController->getSliceViewPlane(tabIndex))
+                switch (modelVolumeInterface->getSliceViewPlane(tabIndex))
                 {
                     case VolumeSliceViewPlaneEnum::ALL:
                     {
