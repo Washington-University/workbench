@@ -95,6 +95,19 @@ SurfaceSelectionModel::SurfaceSelectionModel(const SurfaceTypeEnum::Enum surface
 }
 
 /**
+ * @return An instance for use in volume surface outline selection
+ * that lists surface types in a specific order based upon surface
+ * type.
+ */
+SurfaceSelectionModel*
+SurfaceSelectionModel::newInstanceForVolumeSurfaceOutline()
+{
+    SurfaceSelectionModel* ssm = new SurfaceSelectionModel();
+    ssm->m_mode = MODE_VOLULME_SURFACE_OUTLINE;
+    return ssm;
+}
+
+/**
  * Destructor.
  */
 SurfaceSelectionModel::~SurfaceSelectionModel()
@@ -233,6 +246,57 @@ SurfaceSelectionModel::getAvailableSurfaces() const
                 }
             }
         }
+        case MODE_VOLULME_SURFACE_OUTLINE:
+        {
+            std::vector<Surface*> anatomicalSurfaces;
+            std::vector<Surface*> reconstructionSurfaces;
+            std::vector<Surface*> inflatedSurfaces;
+            std::vector<Surface*> veryInflatedSurfaces;
+            std::vector<Surface*> otherSurfaces;
+            EventSurfacesGet getSurfacesEvent;
+            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
+            std::vector<Surface*> allSurfaces = getSurfacesEvent.getSurfaces();
+            for (std::vector<Surface*>::iterator iter = allSurfaces.begin();
+                 iter != allSurfaces.end();
+                 iter++) {
+                Surface* s = *iter;
+                const SurfaceTypeEnum::Enum surfaceType = s->getSurfaceType();
+                
+                switch (surfaceType) {
+                    case SurfaceTypeEnum::ANATOMICAL:
+                        anatomicalSurfaces.push_back(s);
+                        break;
+                    case SurfaceTypeEnum::RECONSTRUCTION:
+                        reconstructionSurfaces.push_back(s);
+                        break;
+                    case SurfaceTypeEnum::INFLATED:
+                        inflatedSurfaces.push_back(s);
+                        break;
+                    case SurfaceTypeEnum::VERY_INFLATED:
+                        veryInflatedSurfaces.push_back(s);
+                        break;
+                    default:
+                        otherSurfaces.push_back(s);
+                        break;
+                }
+            }
+            
+            surfaces.insert(surfaces.end(),
+                            anatomicalSurfaces.begin(),
+                            anatomicalSurfaces.end());
+            surfaces.insert(surfaces.end(),
+                            reconstructionSurfaces.begin(),
+                            reconstructionSurfaces.end());
+            surfaces.insert(surfaces.end(),
+                            inflatedSurfaces.begin(),
+                            inflatedSurfaces.end());
+            surfaces.insert(surfaces.end(),
+                            veryInflatedSurfaces.begin(),
+                            veryInflatedSurfaces.end());
+            surfaces.insert(surfaces.end(),
+                            otherSurfaces.begin(),
+                            otherSurfaces.end());
+        }
             break;
             
     }
@@ -266,6 +330,8 @@ SurfaceSelectionModel::updateSelection() const
                 case MODE_STRUCTURE:
                     break;
                 case MODE_SURFACE_TYPE:
+                    break;
+                case MODE_VOLULME_SURFACE_OUTLINE:
                     break;
             }
             

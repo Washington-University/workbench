@@ -51,7 +51,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
 {
     m_displayed = false;
     m_thickness = 5.0;
-    m_surfaceSelectionModel = new SurfaceSelectionModel(SurfaceTypeEnum::ANATOMICAL);
+    m_surfaceSelectionModel = SurfaceSelectionModel::newInstanceForVolumeSurfaceOutline();
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     
     m_sceneAssistant = new SceneClassAssistant();

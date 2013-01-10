@@ -48,6 +48,8 @@ namespace caret {
         
         SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType);
         
+        static SurfaceSelectionModel* newInstanceForVolumeSurfaceOutline();
+        
         virtual ~SurfaceSelectionModel();
         
         Surface* getSurface();
@@ -73,7 +75,8 @@ namespace caret {
         enum Mode {
             MODE_BRAIN_STRUCTURE,
             MODE_STRUCTURE,
-            MODE_SURFACE_TYPE
+            MODE_SURFACE_TYPE,
+            MODE_VOLULME_SURFACE_OUTLINE
         };
         
         SurfaceSelectionModel(const SurfaceSelectionModel&);
