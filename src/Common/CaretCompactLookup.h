@@ -45,8 +45,9 @@ namespace caret
         class iterator
         {
             CaretCompactLookup<T>& m_container;
-            std::size_t m_chunk, m_elem;
-            iterator(CaretCompactLookup<T>& container, std::size_t chunk, std::size_t elem) : m_container(container), m_chunk(chunk), m_elem(elem) { }
+            std::size_t m_chunk;
+            int64_t m_elem;
+            iterator(CaretCompactLookup<T>& container, std::size_t chunk, int64_t elem) : m_container(container), m_chunk(chunk), m_elem(elem) { }
         public:
             bool operator==(const iterator& rhs) const
             {
