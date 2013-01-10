@@ -374,6 +374,44 @@ Model::setTranslation(const int32_t windowTabNumberIn,
 }
 
 /**
+ * Get the transformations (translation, rotation, scaling) 
+ * in a string.
+ *
+ * @param  windowTabNumber  Window for which translation is requested
+ * @param  viewingTransformIndex
+ *    Index of the viewing transform.  There are several transform matrices
+ *    that are used for special viewing modes.
+ * @return
+ *    String containing the transformation values.
+ */
+AString
+Model::getTransformationsAsString(const int32_t windowTabNumber,
+                                  const ViewingTransformIndex viewingTransformIndex) const
+{
+    CaretAssertArrayIndex(m_translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumber);
+    CaretAssertArrayIndex(m_viewingRotationMatrix,
+                          VIEWING_TRANSFORM_COUNT,
+                          viewingTransformIndex);
+    
+    double rotX, rotY, rotZ;
+    m_viewingRotationMatrix[windowTabNumber][viewingTransformIndex].getRotation(rotX,
+                                                                                rotY,
+                                                                                rotZ);
+    AString txt = ("Translation: "
+                   + AString::fromNumbers(m_translation[windowTabNumber][viewingTransformIndex], 3, ",")
+                   + " Rotation: "
+                   + AString::number(rotX) + " "
+                   + AString::number(rotY) + " "
+                   + AString::number(rotZ)
+                   + " Scaling: "
+                   + AString::number(m_scaling[windowTabNumber]));
+    
+    return txt;
+}
+
+/**
  * get the scaling.
  *
  * @param  windowTabNumber  Window for which scaling is requested
@@ -737,11 +775,39 @@ Model::setTransformationsFromUserView(const int32_t windowTabNumber,
                           windowTabNumber);
     
 
-    userView.getTranslation(m_translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
+    float translation[3];
+    userView.getTranslation(translation);
+    const float tx = translation[0];
+    const float ty = translation[1];
+    const float tz = translation[2];
+
+    for (int i = 0; i < VIEWING_TRANSFORM_COUNT; i++) {
+        setTranslation(windowTabNumber, (ViewingTransformIndex)i, tx, ty, tz);
+        
+    }
+
     float m[4][4];
     userView.getRotation(m);
-    m_viewingRotationMatrix[windowTabNumber][0].setMatrix(m);
-    setScaling(windowTabNumber, userView.getScaling());
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setMatrix(m);
+    
+    double rx, ry, rz;
+    rotationMatrix.getRotation(rx, ry, rz);
+    const double rxT = -rx;
+    const double ryT = 180.0 - ry;
+    
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].setRotation(rx, ry, rz);
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].setRotation(rxT, ryT, rz);
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].setRotation(rx, ry, rz);
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].setRotation(rxT, ryT, rz);
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].setRotation(rxT, ryT, rz);
+
+    const float s = userView.getScaling();
+    setScaling(windowTabNumber, s);
+    
+    CaretLogFine("T: " + AString::number(tx) + " " + AString::number(ty) + " " + AString::number(tz) + " "
+                 + "R: " + AString::number(rx) + " " + AString::number(ry) + " " + AString::number(rz) + " "
+                 + "S: " + AString::number(s));
 }
 
 /**

@@ -125,6 +125,9 @@ namespace caret {
                             const float ty,
                             const float tz);
         
+        AString getTransformationsAsString(const int32_t windowTabNumber,
+                                           const ViewingTransformIndex viewingTransformIndex) const;
+        
         virtual float getScaling(const int32_t windowTabNumber) const;
         
         virtual void setScaling(const int32_t windowTabNumber,
