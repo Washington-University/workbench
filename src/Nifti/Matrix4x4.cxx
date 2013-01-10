@@ -886,7 +886,38 @@ Matrix4x4::rotate(
 }
 
 /*
+ * Set the rotation matrix using the given angles.
+ * WARNING: Any scaling or translation is will be removed!!!
+ *
+ * @rotationX
+ *    The X-rotation angle.
+ * @rotationY
+ *    The Y-rotation angle.
+ * @rotationZ
+ *    The Z-rotation angle.
+ */
+void
+Matrix4x4::setRotation(const double rotationX,
+                       const double rotationY,
+                       const double rotationZ)
+{
+    identity();
+    rotateY(rotationY);
+    rotateX(rotationX);
+    rotateZ(rotationZ);
+}
+
+/*
+ * Get the rotation angles from the matrix.
+ *
  * From vktTransform::GetOrientation()
+ *
+ * @rotationOutX
+ *    Output containing X-rotation from matrix.
+ * @rotationOutY
+ *    Output containing X-rotation from matrix.
+ * @rotationOutZ
+ *    Output containing X-rotation from matrix.
  */
 void
 Matrix4x4::getRotation(double& rotationOutX,

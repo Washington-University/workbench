@@ -102,6 +102,10 @@ public:
                      double& rotationOutY,
                      double& rotationOutZ) const;
     
+    void setRotation(const double rotationX,
+                     const double rotationY,
+                     const double rotationZ);
+    
     void premultiply(const Matrix4x4& tm);
 
     void postmultiply(const Matrix4x4& tm);
