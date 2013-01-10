@@ -3541,6 +3541,12 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
             }
         }
         else {
+//            std::cout << "Current View: " << std::endl;
+//            std::cout << "   Left:      " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_NORMAL) << std::endl;
+//            std::cout << "   Lat/Med:   " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED) << std::endl;
+//            std::cout << "   Left Opp:  " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE) << std::endl;
+//            std::cout << "   Right:     " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT) << std::endl;
+//            std::cout << "   Right Opp: " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE) << std::endl;
             const UserView* uv = prefs->getUserView(actionText);
             CaretAssert(uv);
             if (uv != NULL) {
