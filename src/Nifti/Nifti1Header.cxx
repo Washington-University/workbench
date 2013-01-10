@@ -347,7 +347,7 @@ void Nifti1Header::getSForm(std::vector<std::vector<float> >& sForm)
             sForm[1][3] = m_header.qoffset_y;
             sForm[2][3] = m_header.qoffset_z;
         } else {
-            CaretLogWarning("found quaternion with length greater than 1 in nifti2 header");
+            CaretLogWarning("found quaternion with length greater than 1 in nifti1 header");
             sForm[0][0] = m_header.pixdim[1];
             sForm[1][1] = m_header.pixdim[2];
             sForm[2][2] = m_header.pixdim[3];

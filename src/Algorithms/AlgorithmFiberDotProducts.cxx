@@ -53,16 +53,16 @@ OperationParameters* AlgorithmFiberDotProducts::getParameters()
     
     ret->addCiftiParameter(2, "fiber-file", "the fiber orientation file");
     
-    ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface node a fiber sample may be");
+    ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface node a fiber population may be");
     
     ret->addMetricOutputParameter(4, "dot-metric", "the metric of dot products");
     
     ret->addMetricOutputParameter(5, "f-metric", "a metric of the f values of the fiber distributions");
     
     ret->setHelpText(
-        AString("For each vertex, this command finds the closest fiber sample that is inside the surface, and computes the absolute value ") +
+        AString("For each vertex, this command finds the closest fiber population that is inside the surface, and computes the absolute value ") +
         "of the dot product of the surface normal and the normalized mean direction of each fiber.  " +
-        "Each fiber sample is output in a separate metric column."
+        "Each fiber population is output in a separate metric column."
     );
     return ret;
 }
@@ -112,7 +112,7 @@ AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, 
     for (int i = 0; i < numFibers; ++i)
     {
         myDotProdOut->setColumnName(i, "Fiber " + AString::number(i + 1) + " dot products");
-        myFSampOut->setColumnName(i, "Fiber " + AString::number(i + 1) + " mean f-samples");
+        myFSampOut->setColumnName(i, "Fiber " + AString::number(i + 1) + " population mean f");
     }
     const float* coordData = mySurf->getCoordinateData();
     for (int i = 0; i < numNodes; ++i)
