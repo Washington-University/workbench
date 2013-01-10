@@ -744,16 +744,24 @@ Model::ventralView(const int32_t windowTabNumberIn)
  *    View into which transformations are loaded.
  */
 void 
-Model::getTransformationsInUserView(const int32_t windowTabNumber,
+Model::getTransformationsInUserView(const int32_t windowTabNumberIn,
                                                      UserView& userView) const
 {
-    CaretAssertArrayIndex(m_scaling, 
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (m_isYokingController) {
+        windowTabNumber = 0;
+    }
+    
+    CaretAssertArrayIndex(m_scaling,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           windowTabNumber);
     
     userView.setTranslation(m_translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
     float m[4][4];
-    m_viewingRotationMatrix[windowTabNumber][0].getMatrix(m);
+    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].getMatrix(m);
     userView.setRotation(m);
     userView.setScaling(m_scaling[windowTabNumber]);
 }
@@ -767,13 +775,20 @@ Model::getTransformationsInUserView(const int32_t windowTabNumber,
  *    View into which transformations are retrieved.
  */
 void 
-Model::setTransformationsFromUserView(const int32_t windowTabNumber,
+Model::setTransformationsFromUserView(const int32_t windowTabNumberIn,
                                                        const UserView& userView)
 {
     CaretAssertArrayIndex(m_scaling, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          windowTabNumber);
-    
+                          windowTabNumberIn);
+
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (m_isYokingController) {
+        windowTabNumber = 0;
+    }
 
     float translation[3];
     userView.getTranslation(translation);
