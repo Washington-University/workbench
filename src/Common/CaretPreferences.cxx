@@ -685,19 +685,9 @@ CaretPreferences::readPreferences()
     }
     this->qSettings->endArray();
     
-    this->removeAllUserViews();
-    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
-    for (int i = 0; i < numUserViews; i++) {
-        this->qSettings->setArrayIndex(i);
-        const AString viewString = this->qSettings->value(AString::number(i)).toString();
-        UserView uv;
-        if (uv.setFromString(viewString)) {
-            this->userViews.push_back(new UserView(uv));
-        }        
-    }
-    this->qSettings->endArray();
-    
-    AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL, 
+    this->readUserViews(false);
+
+    AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL,
                                           LogLevelEnum::toName(LogLevelEnum::INFO)).toString();
     bool valid = false;
     LogLevelEnum::Enum logLevel = LogLevelEnum::fromName(levelName, &valid);
@@ -725,6 +715,30 @@ CaretPreferences::readPreferences()
 //                                                                   false);
     
 }
+
+/**
+ * Read the user views.  Since user's may created views and want to use them
+ * in multiple instance of workbench that are running, this method allows 
+ * the user view's to be read without affecting other preferences.
+ */
+void
+CaretPreferences::readUserViews(const bool performSync)
+{
+    this->qSettings->sync();
+    
+    this->removeAllUserViews();
+    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
+    for (int i = 0; i < numUserViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString viewString = this->qSettings->value(AString::number(i)).toString();
+        UserView uv;
+        if (uv.setFromString(viewString)) {
+            this->userViews.push_back(new UserView(uv));
+        }
+    }
+    this->qSettings->endArray();    
+}
+
 
 void CaretPreferences::getAnimationStartTime(double& time)
 {  

@@ -106,6 +106,8 @@ namespace caret {
         
         void setToolBoxType(const int32_t toolBoxType);
         
+        void readUserViews(const bool performSync = true);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 

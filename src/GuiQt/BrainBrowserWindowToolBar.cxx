@@ -3435,6 +3435,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
     this->orientationUserViewSelectToolButtonMenu->clear();
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->readUserViews();
     const std::vector<const UserView*> userViews = prefs->getAllUserViews();
     
     const int32_t numViews = static_cast<int32_t>(userViews.size());
