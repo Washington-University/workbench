@@ -59,13 +59,13 @@ namespace caret
             T& operator*()
             {
                 CaretAssert(m_chunk < m_container.m_chunks.size());
-                CaretAssert(m_elem < m_container.m_chunks[m_chunk].elements.size());
+                CaretAssert(m_elem >= 0 && m_elem < (int64_t)m_container.m_chunks[m_chunk].elements.size());
                 return m_container.m_chunks[m_chunk].elements[m_elem];
             }
             T* operator->()
             {
                 CaretAssert(m_chunk < m_container.m_chunks.size());
-                CaretAssert(m_elem < m_container.m_chunks[m_chunk].elements.size());
+                CaretAssert(m_elem >= 0 && m_elem < (int64_t)m_container.m_chunks[m_chunk].elements.size());
                 return &(m_container.m_chunks[m_chunk].elements[m_elem]);
             }
             friend class CaretCompactLookup<T>;
@@ -73,7 +73,8 @@ namespace caret
         class const_iterator
         {
             const CaretCompactLookup<T>& m_container;
-            std::size_t m_chunk, m_elem;
+            std::size_t m_chunk;
+            int64_t m_elem;
             const_iterator(const CaretCompactLookup<T>& container, std::size_t chunk, std::size_t elem) : m_container(container), m_chunk(chunk), m_elem(elem) { }
         public:
             bool operator==(const const_iterator& rhs) const
@@ -86,13 +87,13 @@ namespace caret
             const T& operator*()
             {
                 CaretAssert(m_chunk < m_container.m_chunks.size());
-                CaretAssert(m_elem < m_container.m_chunks[m_chunk].elements.size());
+                CaretAssert(m_elem >= 0 && m_elem < (int64_t)m_container.m_chunks[m_chunk].elements.size());
                 return m_container.m_chunks[m_chunk].elements[m_elem];
             }
             const T* operator->()
             {
                 CaretAssert(m_chunk < m_container.m_chunks.size());
-                CaretAssert(m_elem < m_container.m_chunks[m_chunk].elements.size());
+                CaretAssert(m_elem >= 0 && m_elem < (int64_t)m_container.m_chunks[m_chunk].elements.size());
                 return &(m_container.m_chunks[m_chunk].elements[m_elem]);
             }
             friend class CaretCompactLookup<T>;
