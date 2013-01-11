@@ -55,13 +55,17 @@ OperationParameters* AlgorithmFiberDotProducts::getParameters()
     
     ret->addDoubleParameter(3, "max-dist", "the maximum distance from any surface node a fiber population may be");
     
+    ret->addStringParameter(6, "direction", "test against surface for whether a fiber population should be used");
+    
     ret->addMetricOutputParameter(4, "dot-metric", "the metric of dot products");
     
     ret->addMetricOutputParameter(5, "f-metric", "a metric of the f values of the fiber distributions");
     
     ret->setHelpText(
-        AString("For each vertex, this command finds the closest fiber population that is inside the surface, and computes the absolute value ") +
-        "of the dot product of the surface normal and the normalized mean direction of each fiber.  " +
+        AString("For each vertex, this command finds the closest fiber population that satisfies the <direction> test, ") +
+        "and computes the absolute value of the dot product of the surface normal and the normalized mean direction of each fiber.  " +
+        "The <direction> test must be one of INSIDE, OUTSIDE, or ANY, which causes the command to only use fiber populations " +
+        "that are inside the surface, outside the surface, or to not care which direction it is from the surface.  " +
         "Each fiber population is output in a separate metric column."
     );
     return ret;
@@ -74,10 +78,22 @@ void AlgorithmFiberDotProducts::useParameters(OperationParameters* myParams, Pro
     float maxDist = (float)myParams->getDouble(3);
     MetricFile* myDotProdOut = myParams->getOutputMetric(4);
     MetricFile* myFSampOut = myParams->getOutputMetric(5);
-    AlgorithmFiberDotProducts(myProgObj, mySurf, myFibers, maxDist, myDotProdOut, myFSampOut);
+    AString direction = myParams->getString(6);
+    Direction myTest = INSIDE;
+    if (direction == "INSIDE")
+    {
+        myTest = INSIDE;
+    } else if (direction == "OUTSIDE") {
+        myTest = OUTSIDE;
+    } else if (direction == "ANY") {
+        myTest = ANY;
+    } else {
+        throw AlgorithmException("unrecognized direction test");
+    }
+    AlgorithmFiberDotProducts(myProgObj, mySurf, myFibers, maxDist, myTest, myDotProdOut, myFSampOut);
 }
 
-AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, const float& maxDist, MetricFile* myDotProdOut, MetricFile* myFSampOut) : AbstractAlgorithm(myProgObj)
+AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, const float& maxDist, const Direction& myTest, MetricFile* myDotProdOut, MetricFile* myFSampOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretPointer<SignedDistanceHelper> mySignedHelp = mySurf->getSignedDistanceHelper();
@@ -93,16 +109,24 @@ AlgorithmFiberDotProducts::AlgorithmFiberDotProducts(ProgressObject* myProgObj, 
         myFibers->getRow(rowScratch.data(), i);
         int closeNode = mySurf->closestNode(rowScratch.data(), maxDist);
         if (closeNode == -1) continue;//skip samples that aren't close to a surface node, for speed (signed distance is kinda slow)
-        float signedDist = mySignedHelp->dist(rowScratch.data(), SignedDistanceHelper::EVEN_ODD);//the first 3 floats are xyz coords
-        if (signedDist <= 0.0f)//test for inside surface
+        if (myTest == ANY)
         {
             coordsInside.push_back(rowScratch[0]);//add point to vector for locator
             coordsInside.push_back(rowScratch[1]);
             coordsInside.push_back(rowScratch[2]);
             coordIndices.push_back(i);//and save its cifti index
+        } else {
+            float signedDist = mySignedHelp->dist(rowScratch.data(), SignedDistanceHelper::EVEN_ODD);//the first 3 floats are xyz coords
+            if ((myTest == INSIDE) == (signedDist <= 0.0f))//test for inside/outside surface
+            {
+                coordsInside.push_back(rowScratch[0]);//add point to vector for locator
+                coordsInside.push_back(rowScratch[1]);
+                coordsInside.push_back(rowScratch[2]);
+                coordIndices.push_back(i);//and save its cifti index
+            }
         }
     }
-    if (coordIndices.size() == 0) throw AlgorithmException("no fiber samples are inside the surface");
+    if (coordIndices.size() == 0) throw AlgorithmException("no fiber samples passed the <max-dist> and <direction> tests");
     CaretPointLocator myLocator(coordsInside.data(), coordIndices.size());//build the locator
     int numNodes = mySurf->getNumberOfNodes();
     myDotProdOut->setNumberOfNodesAndColumns(numNodes, numFibers);

@@ -36,7 +36,13 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, const float& maxDist, MetricFile* myDotProdOut, MetricFile* myFSampOut);
+        enum Direction
+        {
+            INSIDE,
+            OUTSIDE,
+            ANY
+        };
+        AlgorithmFiberDotProducts(ProgressObject* myProgObj, const SurfaceFile* mySurf, const CiftiFile* myFibers, const float& maxDist, const Direction& myTest, MetricFile* myDotProdOut, MetricFile* myFSampOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
