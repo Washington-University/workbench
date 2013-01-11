@@ -45,6 +45,7 @@ AlgorithmSignedDistanceToSurface.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceWedgeVolume.h
+AlgorithmVolumeAffineResample.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeParcelResampling.h
@@ -81,6 +82,7 @@ AlgorithmSignedDistanceToSurface.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceWedgeVolume.cxx
+AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeParcelResampling.cxx

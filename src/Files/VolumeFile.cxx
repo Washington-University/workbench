@@ -33,6 +33,7 @@
 #include "FastStatistics.h"
 #include "Histogram.h"
 #include "VolumeFileVoxelColorizer.h"
+#include "VolumeSpline.h"
 
 using namespace caret;
 using namespace std;
@@ -178,25 +179,63 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
     }
 }
 
-float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component)
+float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);
 }
 
-float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component)
+float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     switch (interp)
     {
+        case CUBIC:
+        {
+            float indexSpace[3];
+            spaceToIndex(coordIn1, coordIn2, coordIn3, indexSpace);
+            int64_t ind1low = floor(indexSpace[0]);
+            int64_t ind2low = floor(indexSpace[1]);
+            int64_t ind3low = floor(indexSpace[2]);
+            int64_t ind1high = ind1low + 1;
+            int64_t ind2high = ind2low + 1;
+            int64_t ind3high = ind3low + 1;
+            if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
+            {
+                if (validOut != NULL) *validOut = false;
+                return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
+            }
+            int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+            {
+                CaretMutexLocker locked(&m_splineMutex);//so that things can use this function in parallel
+                if (!m_splinesValid)
+                {
+                    m_frameSplineValid.clear();
+                    m_frameSplines.clear();
+                    m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
+                }
+                if ((int64_t)m_frameSplineValid.size() != numFrames)
+                {
+                    m_frameSplineValid.resize(numFrames, false);
+                    m_frameSplines.resize(numFrames);
+                }
+                if (!m_frameSplineValid[whichFrame])
+                {
+                    m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
+                    m_frameSplineValid[whichFrame] = true;
+                }
+            }
+            if (validOut != NULL) *validOut = true;
+            return m_frameSplines[whichFrame].sample(indexSpace);
+        }
         case TRILINEAR:
         {
             float index1, index2, index3;
             spaceToIndex(coordIn1, coordIn2, coordIn3, index1, index2, index3);
-            int ind1low = floor(index1);
-            int ind2low = floor(index2);
-            int ind3low = floor(index3);
-            int ind1high = ind1low + 1;
-            int ind2high = ind2low + 1;
-            int ind3high = ind3low + 1;
+            int64_t ind1low = floor(index1);
+            int64_t ind2low = floor(index2);
+            int64_t ind3low = floor(index3);
+            int64_t ind1high = ind1low + 1;
+            int64_t ind2high = ind2low + 1;
+            int64_t ind3high = ind3low + 1;
             if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
             {
                 if (validOut != NULL) *validOut = false;
@@ -384,6 +423,7 @@ void VolumeFile::updateCaretExtension()
 
 void VolumeFile::validateMembers()
 {
+    m_splinesValid = false;
     int numMaps = getNumberOfMaps();
     m_brickAttributes.clear();//invalidate brick attributes first
     m_brickAttributes.resize(numMaps);//before resizing
@@ -455,6 +495,7 @@ VolumeFile::setModified()
     DataFile::setModified();//do we need to do both of these?
     VolumeBase::setModified();
     m_brickStatisticsValid = false;
+    m_splinesValid = false;
 }
 
 /**

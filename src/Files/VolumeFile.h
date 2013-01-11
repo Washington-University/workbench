@@ -28,6 +28,7 @@
 
 #include "VolumeBase.h"
 #include "CaretMappableDataFile.h"
+#include "CaretMutex.h"
 #include "CaretVolumeExtension.h"
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
@@ -39,6 +40,7 @@
 namespace caret {
     
     class VolumeFileVoxelColorizer;
+    class VolumeSpline;
     
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
@@ -68,12 +70,22 @@ namespace caret {
         
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         VolumeFileVoxelColorizer* m_voxelColorizer;
+        
+        mutable CaretMutex m_splineMutex;
+        
+        mutable bool m_splinesValid;
+        
+        mutable std::vector<bool> m_frameSplineValid;
+        
+        mutable std::vector<VolumeSpline> m_frameSplines;
+        
     public:
         
         enum InterpType
         {
             ENCLOSING_VOXEL,
-            TRILINEAR
+            TRILINEAR,
+            CUBIC
         };
         
         const static float INVALID_INTERP_VALUE;
@@ -97,9 +109,9 @@ namespace caret {
         
         SubvolumeAttributes::VolumeType getType() const;
 
-        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
+        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
 
-        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
+        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
 
         ///returns true if volume space matches in spatial dimensions and sform
         bool matchesVolumeSpace(const VolumeFile* right) const;

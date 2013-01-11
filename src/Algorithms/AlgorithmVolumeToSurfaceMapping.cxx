@@ -59,6 +59,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     
     ret->createOptionalParameter(5, "-enclosing", "use value of the enclosing voxel");
     
+    ret->createOptionalParameter(8, "-cubic", "use cubic splines");
+    
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
@@ -90,6 +92,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* trilinearOpt = myParams->getOptionalParameter(4);
     OptionalParameter* enclosingOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* cubicOpt = myParams->getOptionalParameter(8);
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
     int64_t mySubVol = -1;
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(7);
@@ -126,6 +129,15 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         haveMethod = true;
         myMethod = RIBBON_CONSTRAINED;
     }
+    if (cubicOpt->m_present)
+    {
+        if (haveMethod)
+        {
+            throw AlgorithmException("more than one mapping method specified");
+        }
+        haveMethod = true;
+        myMethod = CUBIC;
+    }
     if (!haveMethod)
     {
         throw AlgorithmException("no mapping method specified");
@@ -134,6 +146,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     {
         case TRILINEAR:
         case ENCLOSING_VOXEL:
+        case CUBIC:
             AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol);//in case we want to separate constructors rather than just having defaults
             break;
         case RIBBON_CONSTRAINED:
@@ -185,6 +198,53 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     myMetricOut->setStructure(mySurface->getStructure());
     switch (myMethod)
     {
+        case CUBIC:
+            {
+                CaretArray<float> myCaretArray(numNodes);
+                float* myArray = myCaretArray.getArray();
+                if (mySubVol == -1)
+                {
+                    for (int64_t i = 0; i < myVolDims[3]; ++i)
+                    {
+                        for (int64_t j = 0; j < myVolDims[4]; ++j)
+                        {
+                            AString metricLabel = myVolume->getMapName(i);
+                            if (myVolDims[4] != 1)
+                            {
+                                metricLabel += " component " + AString::number(j);
+                            }
+                            metricLabel += " cubic";
+                            int64_t thisCol = i * myVolDims[4] + j;
+                            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+                            for (int64_t node = 0; node < numNodes; ++node)
+                            {
+                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::CUBIC, NULL, i, j);
+                            }
+                            myMetricOut->setValuesForColumn(thisCol, myArray);
+                        }
+                    }
+                } else {
+                    for (int64_t j = 0; j < myVolDims[4]; ++j)
+                    {
+                        AString metricLabel = myVolume->getMapName(mySubVol);
+                        if (myVolDims[4] != 1)
+                        {
+                            metricLabel += " component " + AString::number(j);
+                        }
+                        metricLabel += " trilinear";
+                        int64_t thisCol = j;
+                        myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+                        for (int64_t node = 0; node < numNodes; ++node)
+                        {
+                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, mySubVol, j);
+                        }
+                        myMetricOut->setValuesForColumn(thisCol, myArray);
+                    }
+                }
+            }
+            break;
         case TRILINEAR:
             {
                 CaretArray<float> myCaretArray(numNodes);

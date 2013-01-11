@@ -88,6 +88,7 @@ TopologyHelper.h
 VolumeFile.h
 VolumeFileVoxelColorizer.h
 VolumeSliceViewPlaneEnum.h
+VolumeSpline.h
 
 AffineFile.cxx
 BinaryFileReader.cxx
@@ -159,6 +160,7 @@ TopologyHelper.cxx
 VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx
 VolumeSliceViewPlaneEnum.cxx
+VolumeSpline.cxx
 )
 
 

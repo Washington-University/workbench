@@ -262,7 +262,7 @@ namespace caret {
         
         bool isEmpty() const;
         
-};
+    };
 
 }
 
