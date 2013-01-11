@@ -50,10 +50,12 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class CursorManager;
+    class CustomViewDialog;
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
-    class MapScalarDataColorMappingEditorDialog;    
+    class MapScalarDataColorMappingEditorDialog;
+    class Model;
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -99,6 +101,8 @@ namespace caret {
         BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
                                                                 const bool allowInvalidBrowserWindowIndex);
         
+        Model* getModelInBrowserWindow(const int32_t browserWindowIndex);
+        
         void receiveEvent(Event* event);
 
         const CursorManager* getCursorManager() const;
@@ -110,6 +114,7 @@ namespace caret {
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         
+        void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
@@ -189,6 +194,8 @@ namespace caret {
         
         /* Editor for scalar color mapping. */
         std::set<MapScalarDataColorMappingEditorDialog*> scalarDataColorMappingEditors;
+        
+        CustomViewDialog* m_customViewDialog;
         
         ImageCaptureDialog* imageCaptureDialog;
 

@@ -70,8 +70,8 @@ namespace caret {
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
         
-        std::vector<const UserView*> getAllUserViews();
-        
+        std::vector<UserView*> getAllUserViews();
+
         const UserView* getUserView(const AString& viewName);
         
         void addUserView(const UserView& userView);

@@ -42,6 +42,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CursorManager.h"
+#include "CustomViewDialog.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -87,6 +88,7 @@ GuiManager::GuiManager(QObject* parent)
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
+    m_customViewDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
     m_informationDisplayDialog = NULL;
@@ -525,6 +527,26 @@ GuiManager::exitProgram(QWidget* parent)
     
     return okToExit;
 }
+
+/**
+ * Get the model displayed in the given browser window.
+ * @param browserWindowIndex
+ *    Index of browser window.
+ * @return
+ *    Model in the browser window.  May be NULL if no data loaded.
+ */
+Model*
+GuiManager::getModelInBrowserWindow(const int32_t browserWindowIndex)
+{
+    BrowserTabContent* browserTabContent = getBrowserTabContentForBrowserWindow(browserWindowIndex,
+                                                                                true);
+    Model* model = NULL;
+    if (browserTabContent != NULL) {
+        model = browserTabContent->getModelControllerForDisplay();
+    }
+    return model;
+}
+
 
 /**
  * Get the browser tab content in a browser window.
@@ -997,7 +1019,30 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 }
 
 /**
+ * Show the custom view dialog.
+ * @param browserWindow
+ *    Window on which dialog was requested.
+ */
+void
+GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_customViewDialog == NULL) {
+        m_customViewDialog = new CustomViewDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_customViewDialog);
+    }
+    
+    m_customViewDialog->updateDialog();
+    m_customViewDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
+    m_customViewDialog->setVisible(true);
+    m_customViewDialog->show();
+    m_customViewDialog->activateWindow();
+    
+}
+
+/**
  * Show the image capture window.
+ * @param browserWindow
+ *    Window on which dialog was requested.
  */
 void 
 GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
@@ -1015,6 +1060,8 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
 
 /**
  * Show the record movie window.
+ * @param browserWindow
+ *    Window on which dialog was requested.
  */
 void 
 GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
@@ -1034,6 +1081,8 @@ GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
 
 /**
  * Show the preferences window.
+ * @param browserWindow
+ *    Window on which dialog was requested.
  */
 void 
 GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)

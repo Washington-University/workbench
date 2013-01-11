@@ -27,7 +27,6 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
-AdjustViewDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -44,6 +43,7 @@ CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
+CustomViewDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
@@ -118,7 +118,6 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
-AdjustViewDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
@@ -140,6 +139,7 @@ ConnectivityTimeSeriesViewController.h
 CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
+CustomViewDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventBrowserWindowContentGet.h
@@ -228,7 +228,6 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
-AdjustViewDialog.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx
@@ -250,6 +249,7 @@ ConnectivityTimeSeriesViewController.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
+CustomViewDialog.cxx
 DisplayGroupEnumComboBox.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowCreateTabs.cxx

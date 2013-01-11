@@ -145,10 +145,10 @@ CaretPreferences::removeAllUserViews()
  * @return
  *    All of the user views.
  */
-std::vector<const UserView*> 
+std::vector<UserView*> 
 CaretPreferences::getAllUserViews()
 {
-    std::vector<const UserView*> viewsOut;
+    std::vector<UserView*> viewsOut;
     viewsOut.insert(viewsOut.end(),
                     this->userViews.begin(),
                     this->userViews.end());

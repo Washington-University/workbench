@@ -1372,13 +1372,13 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     
     
-    this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM", 
+    this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM",
                                                                                  "View from a Lateral/Medial perspective", 
                                                                                  this, 
                                                                                  this, 
                                                                                  SLOT(orientationLateralMedialToolButtonTriggered(bool)));
     
-    this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV", 
+    this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV",
                                                                                     "View from a Dorsal/Ventral perspective", 
                                                                                     this, 
                                                                                     this, 
@@ -1390,24 +1390,24 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                         this, 
                                                                                         SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
     
-    
-    this->orientationResetToolButtonAction = WuQtUtilities::createAction("Reset", 
+    this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT", //"Reset",
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
     
-    this->orientationUserViewSelectToolButtonMenu = new QMenu(this);
-    QObject::connect(this->orientationUserViewSelectToolButtonMenu, SIGNAL(aboutToShow()),
-                     this, SLOT(orientationUserViewSelectToolButtonMenuAboutToShow()));
-    QObject::connect(this->orientationUserViewSelectToolButtonMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(orientationUserViewSelectToolButtonMenuTriggered(QAction*)));
+    this->orientationCustomViewSelectToolButtonMenu = new QMenu(this);
+    QObject::connect(this->orientationCustomViewSelectToolButtonMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(orientationCustomViewSelectToolButtonMenuAboutToShow()));
+    QObject::connect(this->orientationCustomViewSelectToolButtonMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(orientationCustomViewSelectToolButtonMenuTriggered(QAction*)));
     
-    this->orientationUserViewSelectToolButtonAction = new QAction(this);
-    this->orientationUserViewSelectToolButtonAction->setText("User"); //"User Views");
-    this->orientationUserViewSelectToolButtonAction->setMenu(this->orientationUserViewSelectToolButtonMenu);
-    this->orientationUserViewSelectToolButtonAction->setToolTip("Select, add, and delete user-defined views");
-    this->orientationUserViewSelectToolButtonAction->setStatusTip("Select, add, and delete user-defined views");
+    this->orientationCustomViewSelectToolButtonAction = WuQtUtilities::createAction("Custom",
+                                                                                  "Select and edit custom views",
+                                                                                  this,
+                                                                                  this,
+                                                                                  SLOT(orientationCustomViewToolButtonTriggered()));
+    this->orientationCustomViewSelectToolButtonAction->setMenu(this->orientationCustomViewSelectToolButtonMenu);
 
 
     this->orientationLeftOrLateralToolButton = new QToolButton();
@@ -1437,19 +1437,18 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationAnteriorPosteriorToolButton = new QToolButton();
     this->orientationAnteriorPosteriorToolButton->setDefaultAction(this->orientationAnteriorPosteriorToolButtonAction);
     
+    WuQtUtilities::matchWidgetWidths(this->orientationLateralMedialToolButton,
+                                     this->orientationDorsalVentralToolButton,
+                                     this->orientationAnteriorPosteriorToolButton);
+    
     QToolButton* orientationResetToolButton = new QToolButton();
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
 
-    this->orientationUserViewSelectToolButton = new QToolButton();
-    this->orientationUserViewSelectToolButton->setDefaultAction(this->orientationUserViewSelectToolButtonAction);
-    
-    QVBoxLayout* userViewAndResetLayout = new QVBoxLayout();
-    userViewAndResetLayout->addStretch();
-    userViewAndResetLayout->addWidget(this->orientationUserViewSelectToolButton, 0, Qt::AlignLeft);
-    userViewAndResetLayout->addWidget(orientationResetToolButton, 0, Qt::AlignLeft);
-    userViewAndResetLayout->addStretch();
+    this->orientationCustomViewSelectToolButton = new QToolButton();
+    this->orientationCustomViewSelectToolButton->setDefaultAction(this->orientationCustomViewSelectToolButtonAction);
     
     QGridLayout* buttonGridLayout = new QGridLayout();
+    buttonGridLayout->setColumnStretch(3, 100);
     WuQtUtilities::setLayoutMargins(buttonGridLayout, 0, 0);
     buttonGridLayout->addWidget(this->orientationLeftOrLateralToolButton,      0, 0);
     buttonGridLayout->addWidget(this->orientationRightOrMedialToolButton,     0, 1);
@@ -1460,7 +1459,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     buttonGridLayout->addWidget(this->orientationLateralMedialToolButton, 0, 2);
     buttonGridLayout->addWidget(this->orientationDorsalVentralToolButton, 1, 2);
     buttonGridLayout->addWidget(this->orientationAnteriorPosteriorToolButton, 2, 2);
-    buttonGridLayout->addLayout(userViewAndResetLayout, 0, 3, 3, 1);
+    buttonGridLayout->addWidget(this->orientationCustomViewSelectToolButton, 3, 0, 1, 5);
+    buttonGridLayout->addWidget(orientationResetToolButton, 0, 4, 3, 1);
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
@@ -1475,8 +1475,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationWidgetGroup->add(this->orientationDorsalToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationVentralToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationResetToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonMenu);
+    this->orientationWidgetGroup->add(this->orientationCustomViewSelectToolButtonAction);
+    this->orientationWidgetGroup->add(this->orientationCustomViewSelectToolButtonMenu);
 
     QWidget* orientWidget = this->createToolWidget("Orientation", 
                                                    w, 
@@ -3430,35 +3430,46 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
  * Called when orientation user view menu is about to display.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
+BrainBrowserWindowToolBar::orientationCustomViewSelectToolButtonMenuAboutToShow()
 {
-    this->orientationUserViewSelectToolButtonMenu->clear();
+    this->orientationCustomViewSelectToolButtonMenu->clear();
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->readUserViews();
-    const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+    const std::vector<UserView*> userViews = prefs->getAllUserViews();
     
     const int32_t numViews = static_cast<int32_t>(userViews.size());
     for (int32_t i = 0; i < numViews; i++) {
         const QString viewName = userViews[i]->getName();
         QAction* viewAction = new QAction(viewName,
-                                          this->orientationUserViewSelectToolButtonMenu);
-        this->orientationUserViewSelectToolButtonMenu->addAction(viewAction);
+                                          this->orientationCustomViewSelectToolButtonMenu);
+        this->orientationCustomViewSelectToolButtonMenu->addAction(viewAction);
     }
     
     if (numViews > 0) {
-        this->orientationUserViewSelectToolButtonMenu->addSeparator();
+        this->orientationCustomViewSelectToolButtonMenu->addSeparator();
     }
-    this->orientationUserViewSelectToolButtonMenu->addAction("Add...");
-    QAction* editAction = this->orientationUserViewSelectToolButtonMenu->addAction("Delete...");
+    this->orientationCustomViewSelectToolButtonMenu->addAction("Add...");
+    QAction* editAction = this->orientationCustomViewSelectToolButtonMenu->addAction("Delete...");
     editAction->setEnabled(numViews > 0);
+}
+
+/**
+ * Called when orientation custom view button is pressed to show
+ * custom view dialog.
+ */
+void
+BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
+{
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+    GuiManager::get()->processShowCustomViewDialog(bbw);
 }
 
 /**
  * Called when orientation user view selection is made from the menu.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* action)
+BrainBrowserWindowToolBar::orientationCustomViewSelectToolButtonMenuTriggered(QAction* action)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
@@ -3472,7 +3483,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
             bool exitLoop = false;
             AString newViewName;
             while (exitLoop == false) {
-                newViewName = QInputDialog::getText(this->orientationUserViewSelectToolButtonMenu, 
+                newViewName = QInputDialog::getText(this->orientationCustomViewSelectToolButtonMenu, 
                                                      "", 
                                                      "Name of New View",
                                                      QLineEdit::Normal,
@@ -3480,7 +3491,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
                                                      &ok);
                 if (ok) {
                     bool overwriteFlag = false;
-                    const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+                    const std::vector<UserView*> userViews = prefs->getAllUserViews();
                     const int32_t numViews = static_cast<int32_t>(userViews.size());
                     if (numViews > 0) {
                         for (int32_t i = 0; i < numViews; i++) {
@@ -3494,7 +3505,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
                         const QString msg = ("View named \""
                                              + newViewName
                                              + "\" already exits.  Replace?");
-                        if (WuQMessageBox::warningYesNo(this->orientationUserViewSelectToolButtonMenu, 
+                        if (WuQMessageBox::warningYesNo(this->orientationCustomViewSelectToolButtonMenu,
                                                         msg)) {
                             exitLoop = true;
                         }
@@ -3517,11 +3528,11 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
             }
         }
         else if (actionText == "Delete...") {
-            const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+            const std::vector<UserView*> userViews = prefs->getAllUserViews();
             const int32_t numViews = static_cast<int32_t>(userViews.size());
             if (numViews > 0) {
                 WuQDataEntryDialog dialog("Edit Views",
-                                          this->orientationUserViewSelectToolButtonMenu,
+                                          this->orientationCustomViewSelectToolButtonMenu,
                                           (numViews > 10));
                 dialog.setTextAtTop("Unchecked views will be deleted", false);
                 std::vector<QCheckBox*> viewNameCheckBoxes;

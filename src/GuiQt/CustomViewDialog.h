@@ -1,5 +1,5 @@
-#ifndef __ADJUST_VIEW_DIALOG_H__
-#define __ADJUST_VIEW_DIALOG_H__
+#ifndef __CUSTOM_VIEW_DIALOG_H__
+#define __CUSTOM_VIEW_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -35,38 +35,62 @@
 /*LICENSE_END*/
 
 
-#include "WuQDialogModal.h"
+#include "WuQDialogNonModal.h"
 
 class QDoubleSpinBox;
+class QPushButton;
 
 namespace caret {
 
     class BrowserTabContent;
+    class UserView;
+    class WuQListWidget;
     
-    class AdjustViewDialog : public WuQDialogModal {
+    class CustomViewDialog : public WuQDialogNonModal {
         
         Q_OBJECT
 
     public:
-        AdjustViewDialog(BrowserTabContent* browserTabContent,
-                         QWidget* parent);
+        CustomViewDialog(QWidget* parent);
         
-        virtual ~AdjustViewDialog();
+        virtual ~CustomViewDialog();
+        
+        void updateDialog();
+        
+        void setBrowserWindowIndex(const int32_t browserWindowIndex);
         
     private:
-        AdjustViewDialog(const AdjustViewDialog&);
+        CustomViewDialog(const CustomViewDialog&);
 
-        AdjustViewDialog& operator=(const AdjustViewDialog&);
+        CustomViewDialog& operator=(const CustomViewDialog&);
+        
+    private slots:
+        void transformValueChanged();
+        
+        void addNewViewPushButtonClicked();
+        
+        void applyViewPushButtonClicked();
+        
+        void deleteViewPushButtonClicked();
+        
+        void replaceViewPushButtonClicked();
+        
+        void viewSelected();
+        
+        void viewWasDropped();
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void slotViewChanged();
-
     private:
 
+        QWidget* createViewsWidget();
+        
+        QWidget* createTransformsWidget();
+        
+        UserView* getSelectedUserView();
+        
         // ADD_NEW_MEMBERS_HERE
 
         /// x translate float spin box
@@ -86,16 +110,24 @@ namespace caret {
         
         /// z rotate float spin box
         QDoubleSpinBox* m_zRotateDoubleSpinBox;
-
+        
         /// scale float spin box
         QDoubleSpinBox* m_scaleDoubleSpinBox;
         
-        BrowserTabContent* m_browserTabContent;
+        QPushButton* m_addNewViewPushButton;
+        
+        QPushButton* m_deleteViewPushButton;
+        
+        QPushButton* m_replaceViewPushButton;
+        
+        QPushButton* m_applyViewPushButton;
+        
+        WuQListWidget* m_viewSelectionListWidget;
     };
     
-#ifdef __ADJUST_VIEW_DIALOG_DECLARE__
+#ifdef __CUSTOM_VIEW_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ADJUST_VIEW_DIALOG_DECLARE__
+#endif // __CUSTOM_VIEW_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__ADJUST_VIEW_DIALOG_H__
+#endif  //__CUSTOM_VIEW_DIALOG_H__
