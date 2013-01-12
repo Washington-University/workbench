@@ -168,7 +168,11 @@ float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float
     CubicSpline ispline = CubicSpline::bspline(fparti, lowedgei, highedgei);
     CubicSpline jspline = CubicSpline::bspline(fpartj, lowedgej, highedgej);
     CubicSpline kspline = CubicSpline::bspline(fpartk, lowedgek, highedgek);
-    vector<float> jtemp(4, 0.0f), ktemp(4, 0.0f);//the weights of the splines are zero for off-the edge values, but zero them anyway
+    float jtemp[4], ktemp[4];//the weights of the splines are zero for off-the edge values, but zero the data anyway
+    jtemp[0] = 0.0f;
+    jtemp[3] = 0.0f;
+    ktemp[0] = 0.0f;
+    ktemp[3] = 0.0f;
     if (lowedgei || lowedgej || lowedgek || highedgei || highedgej || highedgek)
     {//there is an edge nearby, use the generic version with more conditionals
         int jstart = lowedgej ? 1 : 0;
