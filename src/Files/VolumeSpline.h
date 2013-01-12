@@ -34,7 +34,8 @@ namespace caret {
     {
         int64_t m_dims[3];
         CaretArray<float> m_deconv;//don't do lazy deconvolution, it doesn't save much time, and takes more memory and slightly longer if you have to do the whole volume anyway
-        void deconvolve(float* data, float* scratch, const int64_t& length);//use CaretArray so that it doesn't reallocate like a vector on copy, and the data is static once computed
+        void deconvolve(float* data, const float* backsubs, const int64_t& length);//use CaretArray so that it doesn't reallocate like a vector on copy, and the data is static once computed
+        void predeconvolve(float* backsubs, const int64_t& length);//since the back substitution on the same size array uses the same coefficients, precompute them
     public:
         VolumeSpline();
         VolumeSpline(const float* frame, const int64_t framedims[3]);

@@ -47,25 +47,39 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
     m_dims[2] = framedims[2];
     m_deconv = CaretArray<float>(m_dims[0] * m_dims[1] * m_dims[2]);
     CaretArray<float> scratchArray(m_dims[0] * max(m_dims[1], m_dims[2])), deconvScratch(max(m_dims[0], max(m_dims[1], m_dims[2])));//allocate as much as we will need, even if we don't use it all yet
+    predeconvolve(deconvScratch, m_dims[0]);
     for (int k = 0; k < m_dims[2]; ++k)
     {
+        int64_t index = m_dims[0] * m_dims[1] * k;
+        int64_t index2 = 0;
         for (int j = 0; j < m_dims[1]; ++j)
         {
-            int64_t index = m_dims[0] * (j + m_dims[1] * k);
             for (int i = 0; i < m_dims[0]; ++i)
             {
-                scratchArray[i] = frame[index];
+                scratchArray[index2] = frame[index];
                 ++index;
+                ++index2;
             }
-            deconvolve(scratchArray, deconvScratch, m_dims[0]);
-            index = m_dims[0] * (j + m_dims[1] * k);
+        }
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int j = 0; j < m_dims[1]; ++j)
+        {
+            int64_t privIndex = j * m_dims[0];
+            deconvolve(scratchArray.getArray() + privIndex, deconvScratch, m_dims[0]);
+        }
+        index = m_dims[0] * m_dims[1] * k;
+        index2 = 0;
+        for (int j = 0; j < m_dims[1]; ++j)
+        {
             for (int i = 0; i < m_dims[0]; ++i)
             {
-                m_deconv[index] = scratchArray[i];
+                m_deconv[index] = scratchArray[index2];
                 ++index;
+                ++index2;
             }
         }
     }
+    predeconvolve(deconvScratch, m_dims[1]);
     for (int k = 0; k < m_dims[2]; ++k)
     {
         int64_t indexbase = k * m_dims[1] * m_dims[0];
@@ -98,6 +112,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
             }
         }
     }
+    predeconvolve(deconvScratch, m_dims[2]);
     for (int j = 0; j < m_dims[1]; ++j)//finally, use a similar strategy to do linear reads instead of widely interleaved reads for k-rows
     {
         int64_t indexbase = j * m_dims[0];
@@ -205,22 +220,29 @@ float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float
     }
 }
 
-void VolumeSpline::deconvolve(float* data, float* scratch, const int64_t& length)
+void VolumeSpline::deconvolve(float* data, const float* backsubs, const int64_t& length)
 {
     if (length < 1) return;
     const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;//the coefficients of a bspline at center and +/-1
     //forward pass simulating gaussian elimination on matrix of bspline kernels and data
     data[0] /= B;
-    scratch[0] = A / B;
     for (int i = 1; i < length; ++i)//the first row is handled slightly differently
     {
-        float div = B - A * scratch[i - 1];
-        data[i] -= A * data[i - 1];
-        scratch[i] = A / div;
-        data[i] /= div;
+        data[i] = (data[i] - A * data[i - 1]) / (B - A * backsubs[i - 1]);
     }//back substitution, making it gauss-jordan
     for (int i = length - 2; i >= 0; --i)//the last row doesn't need back-substitution
     {
-        data[i] -= scratch[i] * data[i + 1];
+        data[i] -= backsubs[i] * data[i + 1];
+    }
+}
+
+void VolumeSpline::predeconvolve(float* backsubs, const int64_t& length)
+{
+    if (length < 1) return;
+    const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;
+    backsubs[0] = A / B;
+    for (int i = 1; i < length; ++i)
+    {
+        backsubs[i] = A / (B - A * backsubs[i - 1]);
     }
 }
