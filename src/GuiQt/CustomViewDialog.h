@@ -58,8 +58,6 @@ namespace caret {
         
         void updateDialog();
         
-        void setBrowserWindowIndex(const int32_t browserWindowIndex);
-        
     private:
         CustomViewDialog(const CustomViewDialog&);
 

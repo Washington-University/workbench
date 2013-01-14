@@ -439,12 +439,6 @@ CustomViewDialog::updateViewPushButtonClicked()
     updateDialog();
 }
 
-void
-CustomViewDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
-{
-    
-}
-
 /**
  * @return The selected user view.  Returns NULL if no views.
  */
@@ -524,27 +518,13 @@ CustomViewDialog::addNewViewPushButtonClicked()
         }
     }
     if (ok && (newViewName.isEmpty() == false)) {
-        const int32_t windowIndex = 0;  // NEED TO DETERMINE WINDOWS
+        UserView uv;
+        uv.setName(newViewName);
+        prefs->addUserView(uv);
         
-        BrowserTabContent* btc = GuiManager::get()->getBrowserTabContentForBrowserWindow(windowIndex,
-                                                                                         true);
-        if (btc != NULL) {
-            Model* model = btc->getModelControllerForTransformation();
-            if (model != NULL) {
-                const int32_t tabIndex = btc->getTabNumber();
-
-                UserView uv;
-                model->getTransformationsInUserView(tabIndex,
-                                                  uv);
-                uv.setName(newViewName);
-                prefs->addUserView(uv);
-                
-                updateDialog();
-                selectViewByName(newViewName);
-            }
-        }        
+        updateDialog();
+        selectViewByName(newViewName);
     }
-    
 }
 
 /**

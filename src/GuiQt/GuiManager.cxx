@@ -1032,7 +1032,6 @@ GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
     }
     
     m_customViewDialog->updateDialog();
-    m_customViewDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     m_customViewDialog->setVisible(true);
     m_customViewDialog->show();
     m_customViewDialog->activateWindow();
