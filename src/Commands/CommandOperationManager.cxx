@@ -173,7 +173,11 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
+
+#ifdef VELAB_INTERNAL_RELEASE_ONLY
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
+#endif // VELAB_INTERNAL_RELEASE_ONLY
+
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
