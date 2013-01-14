@@ -36,6 +36,7 @@ OperationFociListCoords.h
 OperationLabelMask.h
 OperationMetricMask.h
 OperationMetricMath.h
+OperationMetricMerge.h
 OperationMetricPalette.h
 OperationProbtrackXDotConvert.h
 OperationSetStructure.h
@@ -72,6 +73,7 @@ OperationFociListCoords.cxx
 OperationLabelMask.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx
+OperationMetricMerge.cxx
 OperationMetricPalette.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetStructure.cxx

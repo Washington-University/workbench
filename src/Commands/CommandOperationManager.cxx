@@ -80,6 +80,7 @@
 #include "OperationLabelMask.h"
 #include "OperationMetricMask.h"
 #include "OperationMetricMath.h"
+#include "OperationMetricMerge.h"
 #include "OperationMetricPalette.h"
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSetStructure.h"
@@ -207,6 +208,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
