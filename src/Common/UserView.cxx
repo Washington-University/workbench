@@ -49,6 +49,23 @@ UserView::UserView()
 {
     this->name = "";
     
+    setToIdentity();
+}
+
+/**
+ * Destructor.
+ */
+UserView::~UserView()
+{
+    
+}
+
+/**
+ * Set the view to the identity matrix.
+ */
+void
+UserView::setToIdentity()
+{
     this->translation[0] = 0.0;
     this->translation[1] = 0.0;
     this->translation[2] = 0.0;
@@ -64,15 +81,7 @@ UserView::UserView()
         }
     }
     
-    this->scaling = 1.0;
-}
-
-/**
- * Destructor.
- */
-UserView::~UserView()
-{
-    
+    this->scaling = 1.0;    
 }
 
 /**

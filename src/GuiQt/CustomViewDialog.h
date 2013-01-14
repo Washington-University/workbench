@@ -42,6 +42,7 @@ class QPushButton;
 
 namespace caret {
 
+    class BrainBrowserWindow;
     class BrowserTabContent;
     class UserView;
     class WuQListWidget;
@@ -75,6 +76,10 @@ namespace caret {
         
         void replaceViewPushButtonClicked();
         
+        void setTransformationPushButtonClicked();
+        
+        void updateViewPushButtonClicked();
+        
         void viewSelected();
         
         void viewWasDropped();
@@ -90,6 +95,10 @@ namespace caret {
         QWidget* createTransformsWidget();
         
         UserView* getSelectedUserView();
+        
+        void selectViewByName(const AString& name);
+        
+        std::vector<BrainBrowserWindow*> getBrowserWindows();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -120,9 +129,15 @@ namespace caret {
         
         QPushButton* m_replaceViewPushButton;
         
+        QPushButton* m_updateViewPushButton;
+        
         QPushButton* m_applyViewPushButton;
         
+        QPushButton* m_setTransformationPushButton;
+        
         WuQListWidget* m_viewSelectionListWidget;
+
+        std::vector<BrainBrowserWindow*> m_previousAppliedToBrowserWindows;
     };
     
 #ifdef __CUSTOM_VIEW_DIALOG_DECLARE__
