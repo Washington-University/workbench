@@ -93,6 +93,7 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     {
         throw AlgorithmException("no files specified");
     }
+    CaretAssert(ciftiList.size() == indexList.size());
     CaretAssert(ciftiList[0] != NULL);
     CiftiXML baseXML = ciftiList[0]->getCiftiXML();
     int64_t rowSize = -1, maxRowSize = ciftiList[0]->getNumberOfColumns();
@@ -148,15 +149,27 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
         int64_t curInd = 0;
         for (int i = 0; i < (int)ciftiList.size(); ++i)
         {
-            int64_t mySize = ciftiList[i]->getNumberOfColumns();
-            const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
-            for (int64_t j = 0; j < mySize; ++j)
+            if (indexList[i] == -1)
             {
-                newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(j));
+                int64_t mySize = ciftiList[i]->getNumberOfColumns();
+                const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
+                for (int64_t j = 0; j < mySize; ++j)
+                {
+                    newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(j));
+                    if (isLabel)
+                    {
+                        newXML.setLabelTableForRowIndex(curInd, *(myXML.getLabelTableForRowIndex(j)));
+                    }
+                    curInd += 1;
+                }
+            } else {
+                const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
+                newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(indexList[i]));
                 if (isLabel)
                 {
-                    newXML.setLabelTableForRowIndex(curInd, *(myXML.getLabelTableForRowIndex(j)));
+                    newXML.setLabelTableForRowIndex(curInd, *(myXML.getLabelTableForRowIndex(indexList[i])));
                 }
+                curInd += 1;
             }
         }
     }
