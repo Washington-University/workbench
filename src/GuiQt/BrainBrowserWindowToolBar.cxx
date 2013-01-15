@@ -1402,10 +1402,10 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     QObject::connect(this->orientationCustomViewSelectToolButtonMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(orientationCustomViewSelectToolButtonMenuTriggered(QAction*)));
     
-    const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing views.\n"
-                                   "Pressing the arrow button will display a menu for selection of custom views.\n"
-                                   "Note that Custom views are stored in your Workbench's preferences and thus\n"
-                                   "will be availble in any concurrent or future launches of Workbench.");
+    const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
+                                   "Pressing the arrow button will display a menu for selection of custom orientations.\n"
+                                   "Note that custom orientations are stored in your Workbench's preferences and thus\n"
+                                   "will be availble in any concurrent or future instances of Workbench.");
     this->orientationCustomViewSelectToolButtonAction = WuQtUtilities::createAction("Custom",
                                                                                   customToolTip,
                                                                                   this,

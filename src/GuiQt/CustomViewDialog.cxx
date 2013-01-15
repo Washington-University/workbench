@@ -76,7 +76,7 @@ using namespace caret;
  * Constructor.
  */
 CustomViewDialog::CustomViewDialog(QWidget* parent)
-: WuQDialogNonModal("Custom View",
+: WuQDialogNonModal("Custom Orientation",
                     parent)
 {
     /*
@@ -87,7 +87,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     /*
      * View controls
      */
-    QLabel* viewLabel = new QLabel("Views:");
+    QLabel* viewLabel = new QLabel("Orientations:");
     
     /*
      * Add new view button
@@ -120,9 +120,9 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     /*
      * Update all views button
      */
-    const AString updateToolTipText = ("If Custom Views have been changed in another "
+    const AString updateToolTipText = ("If Custom Orientations have been changed in another "
                                        "concurrently running Workbench, pressing this "
-                                       "button will reload the Custom Views from the "
+                                       "button will reload the Custom Orientations from the "
                                        "user's preferences.");
     m_updateViewPushButton = new QPushButton("Update");
     WuQtUtilities::setWordWrappedToolTip(m_updateViewPushButton,
