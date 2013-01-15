@@ -29,9 +29,6 @@
 #include "CiftiFile.h"
 #include "FileInformation.h"
 
-#include <fstream>
-#include <string>
-
 using namespace caret;
 using namespace std;
 
@@ -49,44 +46,47 @@ OperationParameters* AlgorithmCiftiMerge::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addStringParameter(1, "cifti-list-file", "a text file containing a list of cifti filenames to concatenate");
+    ParameterComponent* ciftiOpt = ret->createRepeatableParameter(1, "-cifti", "specify an input cifti file");
+    ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to use columns from");
+    OptionalParameter* columnOpt = ciftiOpt->createOptionalParameter(2, "-column", "select a single column to use");
+    columnOpt->addIntegerParameter(1, "column", "the column number (starting from 1)");
     
     ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
     
     ret->setHelpText(
-        AString("Given a list of CIFTI files which have matching mappings along columns, and for which mappings along rows ") +
-        "are the same type, all either time points, scalars, or labels, this command concatenates them horizontally (rows become longer)."
+        AString("Given input CIFTI files which have matching mappings along columns, and for which mappings along rows ") +
+        "are the same type, all either time points, scalars, or labels, this command concatenates the specified columns horizontally (rows become longer).\n\n" +
+        "Example: wb_command -cifti-merge out.dtseries.nii -cifti first.dtseries.nii -column 1 -cifti second.dtseries.nii\n\n" +
+        "This example would take the first column from first.dtseries.nii and all colums from second.dtseries.nii, " +
+        "and write these columns to out.dtseries.nii"
     );
     return ret;
 }
 
 void AlgorithmCiftiMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    AString listFileName = myParams->getString(1);
+    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(1));
     CiftiFile* ciftiOut = myParams->getOutputCifti(2);
-    fstream textFile(listFileName.toLocal8Bit().constData(), fstream::in);
-    if (!textFile.good())
+    vector<const CiftiInterface*> ciftiList;
+    vector<int64_t> indexList;
+    int numCifti = (int)myInstances.size();
+    for (int i = 0; i < numCifti; ++i)
     {
-        throw AlgorithmException("error opening input file for reading");
-    }
-    vector<CaretPointer<CiftiFile> > ciftiFileList;//use this for memory management in case something throws
-    vector<const CiftiInterface*> ciftiList;//this is just so that it can pass them to the algorithm
-    string myline;
-    while (getline(textFile, myline))
-    {
-        if (myline == "") continue;
-        FileInformation ciftiFileInfo(myline.c_str());
-        if (!ciftiFileInfo.exists())
+        ciftiList.push_back(myInstances[i]->getCifti(1));
+        OptionalParameter* columnOpt = myInstances[i]->getOptionalParameter(2);
+        if (columnOpt->m_present)
         {
-            throw AlgorithmException(AString("file does not exist: ") + myline.c_str());
+            int64_t input = columnOpt->getInteger(1);
+            if (input < 1) throw AlgorithmException("cifti column indexes must be 1 or greater");
+            indexList.push_back(input - 1);
+        } else {
+            indexList.push_back(-1);
         }
-        ciftiFileList.push_back(CaretPointer<CiftiFile>(new CiftiFile(myline.c_str(), ON_DISK)));
-        ciftiList.push_back(ciftiFileList.back());
     }
-    AlgorithmCiftiMerge(myProgObj, ciftiList, ciftiOut);
+    AlgorithmCiftiMerge(myProgObj, ciftiList, indexList, ciftiOut);
 }
 
-AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, const vector<int64_t>& indexList, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (ciftiList.size() == 0)
@@ -95,15 +95,31 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     }
     CaretAssert(ciftiList[0] != NULL);
     CiftiXML baseXML = ciftiList[0]->getCiftiXML();
-    int64_t rowSize = ciftiList[0]->getNumberOfColumns();
+    int64_t rowSize = -1, maxRowSize = ciftiList[0]->getNumberOfColumns();
+    if (indexList[0] < -1) throw AlgorithmException("found invalid (less than -1) index in indexList in AlgorithmCiftiMerge");
+    if (indexList[0] == -1)
+    {
+        rowSize = ciftiList[0]->getNumberOfColumns();
+    } else {
+        if (indexList[0] >= ciftiList[0]->getNumberOfColumns()) throw AlgorithmException("index too large for input cifti #1");
+        rowSize = 1;
+    }
     for (int i = 1; i < (int)ciftiList.size(); ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        rowSize += ciftiList[i]->getNumberOfColumns();
         if (!baseXML.matchesForColumns(ciftiList[i]->getCiftiXML()) || baseXML.getRowMappingType() != ciftiList[i]->getCiftiXML().getRowMappingType())
         {
             throw AlgorithmException("cifti files do not match");
         }
+        if (indexList[i] < -1) throw AlgorithmException("found invalid (less than -1) index in indexList in AlgorithmCiftiMerge");
+        if (indexList[i] == -1)
+        {
+            rowSize += ciftiList[i]->getNumberOfColumns();
+        } else {
+            if (indexList[i] >= ciftiList[i]->getNumberOfColumns()) throw AlgorithmException("index too large for input cifti #" + AString::number(i + 1));
+            rowSize += 1;
+        }
+        if (maxRowSize < ciftiList[i]->getNumberOfColumns()) maxRowSize = ciftiList[i]->getNumberOfColumns();
     }
     CiftiXML newXML = baseXML;
     bool doLoop = true, isLabel = false;
@@ -145,15 +161,22 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
         }
     }
     ciftiOut->setCiftiXML(newXML);
-    vector<float> rowscratch(rowSize);
+    vector<float> rowscratch(rowSize), rowscratch2(maxRowSize);
     int64_t colSize = baseXML.getNumberOfRows();
     for (int64_t j = 0; j < colSize; ++j)
     {
         int64_t curoffset = 0;
         for (int i = 0; i < (int)ciftiList.size(); ++i)
         {
-            ciftiList[i]->getRow(rowscratch.data() + curoffset, j);
-            curoffset += ciftiList[i]->getNumberOfColumns();
+            if (indexList[i] == -1)
+            {
+                ciftiList[i]->getRow(rowscratch.data() + curoffset, j);
+                curoffset += ciftiList[i]->getNumberOfColumns();
+            } else {
+                ciftiList[i]->getRow(rowscratch2.data(), j);
+                rowscratch[curoffset] = rowscratch2[indexList[i]];
+                ++curoffset;
+            }
         }
         ciftiOut->setRow(rowscratch.data(), j);
     }
