@@ -156,6 +156,36 @@ CaretPreferences::getAllUserViews()
 }
 
 /**
+ * Set the user views to the given user views.  This class will take
+ * ownership of the user views and delete them when necessary.
+ *
+ * @param allUserViews
+ *     New user views.
+ */
+void
+CaretPreferences::setAllUserViews(std::vector<UserView*>& allUserViews)
+{
+    /*
+     * Remove any existing views that are not in the new vector of views
+     */
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        UserView* uv = *iter;
+        if (std::find(allUserViews.begin(),
+                      allUserViews.end(),
+                      uv) == allUserViews.end()) {
+            delete uv;
+        }
+    }
+    this->userViews.clear();
+    
+    this->userViews = allUserViews;
+    
+    this->writeUserViews();
+}
+
+/**
  * Get the user view with the specified name.
  * @param viewName
  *    Name of view.

@@ -87,7 +87,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     /*
      * View controls
      */
-    QLabel* viewLabel = new QLabel("Views");
+    QLabel* viewLabel = new QLabel("Views:");
     
     /*
      * Add new view button
@@ -145,6 +145,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
      * View selection list widget
      */
     m_viewSelectionListWidget = new WuQListWidget();
+    m_viewSelectionListWidget->setFixedHeight(140);
     
     QObject::connect(m_viewSelectionListWidget, SIGNAL(currentRowChanged(int)),
                      this, SLOT(viewSelected()));
@@ -158,7 +159,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
      * Transformations
      */
     
-    const int spinBoxWidth = 100;
+    const int spinBoxWidth = 80;
     
     /*
      * Column names
@@ -250,6 +251,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
      * Layout for view buttons
      */
     QVBoxLayout* transformButtonLayout = new QVBoxLayout();
+    transformButtonLayout->addStretch();
     transformButtonLayout->addWidget(m_setTransformationPushButton);
     transformButtonLayout->addStretch();
     
@@ -272,7 +274,7 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 4, 4);
     int row = 0;
-    gridLayout->addWidget(viewLabel, row, COLUMN_LABEL, Qt::AlignTop);
+    gridLayout->addWidget(viewLabel, row, COLUMN_LABEL, Qt::AlignLeft | Qt::AlignVCenter);
     gridLayout->addWidget(m_viewSelectionListWidget, row, 1, 1, 3);
     gridLayout->addLayout(sceneButtonLayout, row, COLUMN_BUTTON);
     row++;
@@ -350,7 +352,11 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     layout->addWidget(gridWidget);
     setCentralWidget(widget);
     
-    setAutoDefaultButtonProcessing(false);
+    /*
+     * No auto default button processing (Qt highlights button)
+     */
+    disableAutoDefaultForAllPushButtons();
+    
 }
 
 /**
@@ -663,7 +669,8 @@ CustomViewDialog::viewSelected()
 }
 
 /**
- * Called when user drags and drops a view in the list box.
+ * Called when user drags and drops a view in the list box
+ * to reorder the views.
  */
 void
 CustomViewDialog::viewWasDropped()
@@ -688,9 +695,11 @@ CustomViewDialog::viewWasDropped()
         /*
          * Update the order of the views in the preferences.
          */
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->setAllUserViews(newlyOrderedUserViews);
     }
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    updateDialog();
     viewSelected();
 }
 

@@ -72,6 +72,8 @@ namespace caret {
         
         std::vector<UserView*> getAllUserViews();
 
+        void setAllUserViews(std::vector<UserView*>& allUserViews);
+        
         const UserView* getUserView(const AString& viewName);
         
         void addUserView(const UserView& userView);
