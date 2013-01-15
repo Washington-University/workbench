@@ -1,5 +1,5 @@
-#ifndef __MATH_FUNCTION_ENUM__H_
-#define __MATH_FUNCTION_ENUM__H_
+#ifndef __REDUCTION_ENUM_H__
+#define __REDUCTION_ENUM_H__
 
 /*LICENSE_START*/
 /* 
@@ -35,9 +35,9 @@ namespace caret {
 /**
  * \brief Enumerated type for a structure in a brain.
  *
- * Enumerated types for math functions.
+ * Enumerated types for reduction operators.
  */
-class MathFunctionEnum {
+class ReductionEnum {
 
 public:
     /**
@@ -45,29 +45,16 @@ public:
      */
     enum Enum {
             INVALID,
-            SIN,
-            COS,
-            TAN,
-            ASIN,
-            ACOS,
-            ATAN,
-            ATAN2,
-            SINH,
-            COSH,
-            TANH,
-            LN,
-            EXP,
-            LOG,
-            SQRT,
-            ABS,
-            FLOOR,
-            CEIL,
-            MIN,
             MAX,
-            CLAMP
+            MIN,
+            SUM,
+            MEAN,
+            STDEV,
+            SAMPSTDEV,
+            VARIANCE
     };
 
-    ~MathFunctionEnum();
+    ~ReductionEnum();
 
     static AString toName(Enum enumValue);
     
@@ -78,14 +65,14 @@ public:
     static void getAllEnums(std::vector<Enum>& allEnums);
 
 private:
-    MathFunctionEnum(const Enum enumValue, 
+    ReductionEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& explanation);
 
-    static const MathFunctionEnum* findData(const Enum enumValue);
+    static const ReductionEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<MathFunctionEnum> enumData;
+    static std::vector<ReductionEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -103,10 +90,5 @@ private:
     AString explanation;
 };
 
-#ifdef __MATH_FUNCTION_ENUM_DECLARE__
-std::vector<MathFunctionEnum> MathFunctionEnum::enumData;
-bool MathFunctionEnum::initializedFlag = false;
-#endif // __MATH_FUNCTION_ENUM_DECLARE__
-
 } // namespace
-#endif  //__MATH_FUNCTION_ENUM__H_
+#endif  //__REDUCTION_ENUM_H__

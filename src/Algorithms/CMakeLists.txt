@@ -39,6 +39,7 @@ AlgorithmLabelDilate.h
 AlgorithmMetricDilate.h
 AlgorithmMetricExtrema.h
 AlgorithmMetricGradient.h
+AlgorithmMetricReduce.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
@@ -76,6 +77,7 @@ AlgorithmLabelDilate.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricExtrema.cxx
 AlgorithmMetricGradient.cxx
+AlgorithmMetricReduce.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx

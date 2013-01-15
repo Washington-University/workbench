@@ -86,6 +86,8 @@ ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
 ProgressReportingInterface.h
+ReductionEnum.h
+ReductionOperation.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StructureEnum.h
@@ -145,6 +147,8 @@ Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx
+ReductionEnum.cxx
+ReductionOperation.cxx
 SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StructureEnum.cxx

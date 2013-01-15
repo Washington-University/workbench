@@ -48,6 +48,7 @@
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricExtrema.h"
 #include "AlgorithmMetricGradient.h"
+#include "AlgorithmMetricReduce.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
 #include "AlgorithmSurfaceCortexLayer.h"
@@ -172,6 +173,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
 
