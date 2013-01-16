@@ -540,7 +540,7 @@ CiftiConnectivityMatrixDataFile::getMapPaletteColorMapping(const int32_t mapInde
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    return m_mapContent[mapIndex]->m_paletteColorMapping;
+    return m_mapContent[mapIndex]->m_ciftiFilePaletteColorMapping;
 }
 
 /**
@@ -557,7 +557,7 @@ CiftiConnectivityMatrixDataFile::getMapPaletteColorMapping(const int32_t mapInde
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    return m_mapContent[mapIndex]->m_paletteColorMapping;
+    return m_mapContent[mapIndex]->m_ciftiFilePaletteColorMapping;
 }
 
 /**
@@ -1452,7 +1452,7 @@ CiftiConnectivityMatrixDataFile::MapContent::MapContent()
     m_fastStatistics.grabNew(new FastStatistics());
     m_histogram.grabNew(new Histogram());
     m_metaData.grabNew(new GiftiMetaData());
-    m_paletteColorMapping.grabNew(new PaletteColorMapping());
+    m_ciftiFilePaletteColorMapping = NULL;
     
     m_dataLoadingEnabled = true;
     m_dataCount = 0;
@@ -1508,7 +1508,7 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
      * Need access the CIFTI_XML.
      */
     const CiftiXML& ciftiXML = ciftiInterface->getCiftiXML();
-    *m_paletteColorMapping = *ciftiXML.getFilePalette();
+    m_ciftiFilePaletteColorMapping = ciftiXML.getFilePalette();
     
     const std::map<AString, AString>* metaDataMap = ciftiXML.getFileMetaData();
     m_metaData->clear();
@@ -1761,7 +1761,7 @@ void
 CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapIndex,
                                                             const PaletteFile* paletteFile)
 {
-    const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
+    const AString paletteName = m_ciftiFilePaletteColorMapping->getSelectedPaletteName();
     const Palette* palette = paletteFile->getPaletteByName(paletteName);
     if (palette == NULL) {
         CaretLogWarning("Missing palette named \""
@@ -1773,7 +1773,7 @@ CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapInd
     }
     
     NodeAndVoxelColoring::colorScalarsWithPalette(getFastStatistics(),
-                                                  m_paletteColorMapping,
+                                                  m_ciftiFilePaletteColorMapping,
                                                   palette,
                                                   &m_data[0],
                                                   &m_data[0],

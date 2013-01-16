@@ -248,8 +248,8 @@ namespace caret {
             /** name of map */
             AString m_name;
             
-            /** palette color mapping for map */
-            CaretPointer<PaletteColorMapping> m_paletteColorMapping;
+            /** palette color mapping for map from CIFTI file - DO NOT DELETE!!! */
+            PaletteColorMapping* m_ciftiFilePaletteColorMapping;
             
             /** Maps CIFTI data into volume voxels */
             std::vector<CiftiVolumeMap> m_ciftiToVolumeMapping;
