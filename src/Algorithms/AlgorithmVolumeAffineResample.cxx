@@ -61,9 +61,8 @@ OperationParameters* AlgorithmVolumeAffineResample::getParameters()
     flirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Resample a volume file with an affine transformation.  The parameter <method> must be one of:\n\n") +
+        "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
     );
     return ret;
 }
@@ -139,6 +138,10 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
     {
         for (int64_t b = 0; b < numMaps; ++b)
         {
+            if (myMethod == VolumeFile::CUBIC)
+            {
+                inVol->validateSplines(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
+            }
 #pragma omp CARET_PARFOR schedule(dynamic)
             for (int64_t k = 0; k < outDims[2]; ++k)
             {

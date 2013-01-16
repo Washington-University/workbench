@@ -204,25 +204,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
             }
             int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
-            {
-                CaretMutexLocker locked(&m_splineMutex);//so that things can use this function in parallel
-                if (!m_splinesValid)
-                {
-                    m_frameSplineValid.clear();
-                    m_frameSplines.clear();
-                    m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
-                }
-                if ((int64_t)m_frameSplineValid.size() != numFrames)
-                {
-                    m_frameSplineValid.resize(numFrames, false);
-                    m_frameSplines.resize(numFrames);
-                }
-                if (!m_frameSplineValid[whichFrame])
-                {
-                    m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
-                    m_frameSplineValid[whichFrame] = true;
-                }
-            }
+            validateSplines(brickIndex, component);
             if (validOut != NULL) *validOut = true;
             return m_frameSplines[whichFrame].sample(indexSpace);
         }
@@ -277,6 +259,28 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     }
     if (validOut != NULL) *validOut = false;
     return INVALID_INTERP_VALUE;
+}
+
+void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t component) const
+{
+    int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+    CaretMutexLocker locked(&m_splineMutex);//prevent concurrent access to spline state
+    if (!m_splinesValid)
+    {
+        m_frameSplineValid.clear();
+        m_frameSplines.clear();
+        m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
+    }
+    if ((int64_t)m_frameSplineValid.size() != numFrames)
+    {
+        m_frameSplineValid.resize(numFrames, false);
+        m_frameSplines.resize(numFrames);
+    }
+    if (!m_frameSplineValid[whichFrame])
+    {
+        m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
+        m_frameSplineValid[whichFrame] = true;
+    }
 }
 
 bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
