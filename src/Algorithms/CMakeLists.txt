@@ -53,6 +53,7 @@ AlgorithmVolumeGradient.h
 AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelResamplingGeneric.h
 AlgorithmVolumeParcelSmoothing.h
+AlgorithmVolumeReduce.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 
@@ -92,6 +93,7 @@ AlgorithmVolumeGradient.cxx
 AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelResamplingGeneric.cxx
 AlgorithmVolumeParcelSmoothing.cxx
+AlgorithmVolumeReduce.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
 )

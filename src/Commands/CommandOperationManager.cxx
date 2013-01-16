@@ -61,6 +61,7 @@
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
 #include "AlgorithmVolumeParcelSmoothing.h"
+#include "AlgorithmVolumeReduce.h"
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
 
@@ -191,6 +192,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     
