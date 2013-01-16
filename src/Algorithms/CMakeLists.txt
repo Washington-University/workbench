@@ -28,6 +28,7 @@ AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
 AlgorithmCiftiParcellate.h
+AlgorithmCiftiReduce.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
@@ -66,6 +67,7 @@ AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
 AlgorithmCiftiParcellate.cxx
+AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx

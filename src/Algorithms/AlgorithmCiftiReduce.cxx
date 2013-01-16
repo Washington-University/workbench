@@ -1,0 +1,100 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "AlgorithmCiftiReduce.h"
+#include "AlgorithmException.h"
+#include "CiftiFile.h"
+#include "ReductionOperation.h"
+
+#include <vector>
+
+using namespace caret;
+using namespace std;
+
+AString AlgorithmCiftiReduce::getCommandSwitch()
+{
+    return "-cifti-reduce";
+}
+
+AString AlgorithmCiftiReduce::getShortDescription()
+{
+    return "PERFORM REDUCTION OPERATION ALONG CIFTI ROWS";
+}
+
+OperationParameters* AlgorithmCiftiReduce::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
+    ret->addCiftiParameter(1, "cifti-in", "the cifti file to reduce");
+    
+    ret->addStringParameter(2, "operation", "the reduction operator to use");
+    
+    ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
+    
+    ret->setHelpText(
+        AString("For each cifti row, takes the data along a row as a vector, and performs the specified reduction on it, putting the result ") +
+        "into the single output column in that row.  The reduction operators are as follows:\n\n" + ReductionOperation::getHelpInfo()
+    );
+    return ret;
+}
+
+void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    CiftiFile* ciftiIn = myParams->getCifti(1);
+    AString opString = myParams->getString(2);
+    CiftiFile* ciftiOut = myParams->getOutputCifti(3);
+    bool ok = false;
+    ReductionEnum::Enum myReduce = ReductionEnum::fromName(opString, &ok);
+    if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
+    AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut);
+}
+
+AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    int64_t numRows = ciftiIn->getNumberOfRows();
+    int64_t numCols = ciftiIn->getNumberOfColumns();
+    if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
+    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    myOutXML.resetRowsToScalars(1);
+    myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
+    ciftiOut->setCiftiXML(myOutXML);
+    vector<float> scratchRow(numCols), outCol(numRows);
+    for (int64_t i = 0; i < numRows; ++i)
+    {
+        ciftiIn->getRow(scratchRow.data(), i);
+        outCol[i] = ReductionOperation::reduce(scratchRow.data(), numCols, myReduce);
+    }
+    ciftiOut->setColumn(outCol.data(), 0);
+}
+
+float AlgorithmCiftiReduce::getAlgorithmInternalWeight()
+{
+    return 1.0f;//override this if needed, if the progress bar isn't smooth
+}
+
+float AlgorithmCiftiReduce::getSubAlgorithmWeight()
+{
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;
+}
