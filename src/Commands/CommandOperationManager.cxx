@@ -58,6 +58,7 @@
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeMerge.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
 #include "AlgorithmVolumeParcelSmoothing.h"
@@ -189,6 +190,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));

@@ -46,18 +46,18 @@ OperationParameters* AlgorithmCiftiMerge::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ParameterComponent* ciftiOpt = ret->createRepeatableParameter(1, "-cifti", "specify an input cifti file");
+    ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
+    
+    ParameterComponent* ciftiOpt = ret->createRepeatableParameter(2, "-cifti", "specify an input cifti file");
     ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to use columns from");
     OptionalParameter* columnOpt = ciftiOpt->createOptionalParameter(2, "-column", "select a single column to use");
     columnOpt->addIntegerParameter(1, "column", "the column number (starting from 1)");
-    
-    ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
     
     ret->setHelpText(
         AString("Given input CIFTI files which have matching mappings along columns, and for which mappings along rows ") +
         "are the same type, all either time points, scalars, or labels, this command concatenates the specified columns horizontally (rows become longer).\n\n" +
         "Example: wb_command -cifti-merge out.dtseries.nii -cifti first.dtseries.nii -column 1 -cifti second.dtseries.nii\n\n" +
-        "This example would take the first column from first.dtseries.nii and all colums from second.dtseries.nii, " +
+        "This example would take the first column from first.dtseries.nii and all columns from second.dtseries.nii, " +
         "and write these columns to out.dtseries.nii"
     );
     return ret;
@@ -65,8 +65,8 @@ OperationParameters* AlgorithmCiftiMerge::getParameters()
 
 void AlgorithmCiftiMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(1));
-    CiftiFile* ciftiOut = myParams->getOutputCifti(2);
+    CiftiFile* ciftiOut = myParams->getOutputCifti(1);
+    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(2));
     vector<const CiftiInterface*> ciftiList;
     vector<int64_t> indexList;
     int numCifti = (int)myInstances.size();

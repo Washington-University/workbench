@@ -50,6 +50,7 @@ AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeGradient.h
+AlgorithmVolumeMerge.h
 AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelResamplingGeneric.h
 AlgorithmVolumeParcelSmoothing.h
@@ -90,6 +91,7 @@ AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeGradient.cxx
+AlgorithmVolumeMerge.cxx
 AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelResamplingGeneric.cxx
 AlgorithmVolumeParcelSmoothing.cxx
