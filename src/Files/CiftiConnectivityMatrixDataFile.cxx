@@ -1761,6 +1761,14 @@ void
 CiftiConnectivityMatrixDataFile::MapContent::updateColoring(const int32_t mapIndex,
                                                             const PaletteFile* paletteFile)
 {
+    /*
+     * If selected as an overlay this method may get called even though
+     * data has not been loaded.
+     */
+    if (m_dataCount <= 0) {
+        return;
+    }
+    
     const AString paletteName = m_ciftiFilePaletteColorMapping->getSelectedPaletteName();
     const Palette* palette = paletteFile->getPaletteByName(paletteName);
     if (palette == NULL) {
