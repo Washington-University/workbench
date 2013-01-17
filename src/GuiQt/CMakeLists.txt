@@ -63,6 +63,8 @@ LabelSelectionViewController.h
 MacApplication.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
+MapSettingsEditorDialog.h
+MapSettingsPaletteColorMappingWidget.h
 MovieDialog.h
 OverlaySetViewController.h
 OverlayViewController.h
@@ -172,6 +174,8 @@ LabelSelectionViewController.h
 MacApplication.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
+MapSettingsEditorDialog.h
+MapSettingsPaletteColorMappingWidget.h
 MouseEvent.h
 MouseEventTypeEnum.h
 MovieDialog.h
@@ -281,6 +285,8 @@ LabelSelectionViewController.cxx
 MacApplication.cxx
 ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
+MapSettingsEditorDialog.cxx
+MapSettingsPaletteColorMappingWidget.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
 MovieDialog.cxx
