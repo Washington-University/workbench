@@ -163,8 +163,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
                                                            settingsIcon);
 
-    this->settingsAction = WuQtUtilities::createAction("S", 
-                                                          "Edit color mapping for this overlay", 
+    this->settingsAction = WuQtUtilities::createAction("S",
+                                                          "Edit settings for this map and overlay", 
                                                           this, 
                                                           this, 
                                                           SLOT(settingsActionTriggered()));
@@ -381,17 +381,10 @@ OverlayViewController::settingsActionTriggered()
     this->overlay->getSelectionData(mapFile, 
                                     mapIndex);
     if (mapFile != NULL) {
-        if (mapFile->isMappedWithPalette()) {
-            if (mapFile != NULL) {
-                EventMapScalarDataColorMappingEditorShow pcme(this->browserWindowIndex,
-                                                          mapFile,
-                                                          mapIndex);
-                EventManager::get()->sendEvent(pcme.getPointer());
-            }
-        }
-        else if (mapFile->isMappedWithLabelTable()) {
-            QMessageBox::information(this->enabledCheckBox, "", "File is not mapped with palette");
-        }
+        EventMapScalarDataColorMappingEditorShow pcme(this->browserWindowIndex,
+                                                      mapFile,
+                                                      mapIndex);
+        EventManager::get()->sendEvent(pcme.getPointer());
     }
 }
 
@@ -501,7 +494,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->constructionAction->setEnabled(haveFile);
     this->opacityDoubleSpinBox->setEnabled(haveFile);
     this->colorBarAction->setEnabled(dataIsMappedWithPalette);
-    this->settingsAction->setEnabled(dataIsMappedWithPalette);
+    this->settingsAction->setEnabled(true);
 }
 
 /**

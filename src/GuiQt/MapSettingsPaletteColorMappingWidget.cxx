@@ -39,9 +39,9 @@
 #include <QSlider>
 #include <QToolButton>
 
-#define __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
-#include "MapScalarDataColorMappingEditorDialog.h"
-#undef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#define __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
+#include "MapSettingsPaletteColorMappingWidget.h"
+#undef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
 
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
@@ -88,17 +88,14 @@ using namespace caret;
  * @param parent
  *    Parent widget on which this dialog is displayed.
  */
-MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWidget* parent)
-: WuQDialogNonModal("Scalar Data Color Mapping Editor",
-                    parent)
+MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidget* parent)
+: QWidget(parent)
 {
     /*
      * No context menu, it screws things up
      */
     this->setContextMenuPolicy(Qt::NoContextMenu);
     
-    this->setDeleteWhenClosed(false);
-
     this->isHistogramColored = true;
     
     this->caretMappableDataFile = NULL;
@@ -107,19 +104,12 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     this->paletteWidgetGroup = new WuQWidgetObjectGroup(this);
     this->thresholdWidgetGroup = new WuQWidgetObjectGroup(this);
     
-    /*
-     * No apply button
-     */
-    this->setApplyButtonText("");
-    
     this->paletteColorMapping = NULL;
     
     QWidget* histogramWidget = this->createHistogramSection();
     QWidget* histogramControlWidget = this->createHistogramControlSection();
     
     QWidget* dataOptionsWidget = this->createDataOptionsSection();
-    
-    QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
     QWidget* paletteWidget = this->createPaletteSection();
 
@@ -135,7 +125,6 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     QVBoxLayout* optionsLayout = new QVBoxLayout();
     optionsLayout->addWidget(dataOptionsWidget);
     optionsLayout->addStretch(10000);
-    optionsLayout->addWidget(windowOptionsWidget);
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
@@ -151,27 +140,27 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     rightLayout->addWidget(bottomRightWidget, 0);
     rightLayout->addStretch();
     
-    QWidget* w = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(w);
+    QHBoxLayout* layout = new QHBoxLayout(this);
     this->setLayoutMargins(layout);
     layout->addWidget(leftWidget, 0);
     layout->addWidget(rightWidget, 100);
     
-    this->setCentralWidget(w);
+    setSizePolicy(QSizePolicy::Fixed,
+                  QSizePolicy::Fixed);
 }
 
 /**
  * Destructor.
  */
-MapScalarDataColorMappingEditorDialog::~MapScalarDataColorMappingEditorDialog()
+MapSettingsPaletteColorMappingWidget::~MapSettingsPaletteColorMappingWidget()
 {
 }
 
 /**
- * May be called to update the dialog's content.
+ * May be called to update the widget's content.
  */
 void 
-MapScalarDataColorMappingEditorDialog::updateDialog()
+MapSettingsPaletteColorMappingWidget::updateWidget()
 {
     this->updateEditor(this->caretMappableDataFile, 
                        this->mapFileIndex);
@@ -181,7 +170,7 @@ MapScalarDataColorMappingEditorDialog::updateDialog()
  * Called when the threshold type is changed.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdTypeChanged(int indx)
+MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
 {
     PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(indx).toInt());
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
@@ -189,7 +178,7 @@ MapScalarDataColorMappingEditorDialog::thresholdTypeChanged(int indx)
     this->updateEditor(this->caretMappableDataFile, 
                        this->mapFileIndex);
     
-    this->apply();
+    this->applySelections();
 }
 
 /**
@@ -197,9 +186,9 @@ MapScalarDataColorMappingEditorDialog::thresholdTypeChanged(int indx)
  * the change requires and update to other controls.
  */
 void 
-MapScalarDataColorMappingEditorDialog::applyAndUpdate()
+MapSettingsPaletteColorMappingWidget::applyAndUpdate()
 {
-    this->apply();
+    this->applySelections();
     
     this->updateEditor(this->caretMappableDataFile, 
                        this->mapFileIndex);
@@ -212,7 +201,7 @@ MapScalarDataColorMappingEditorDialog::applyAndUpdate()
  *    New value.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdLowSpinBoxValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdLowSpinBoxValueChanged(double d)
 {
     if (d > this->thresholdHighSpinBox->value()) {
         this->thresholdHighSpinBox->blockSignals(true);
@@ -235,7 +224,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSpinBoxValueChanged(double d)
  *    New value.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdHighSpinBoxValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdHighSpinBoxValueChanged(double d)
 {
     if (d < this->thresholdLowSpinBox->value()) {
         this->thresholdLowSpinBox->blockSignals(true);
@@ -258,7 +247,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSpinBoxValueChanged(double d
  *    New value.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdLowSliderValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdLowSliderValueChanged(double d)
 {
     if (d > this->thresholdHighSlider->value()) {
         this->thresholdHighSlider->blockSignals(true);
@@ -281,7 +270,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSliderValueChanged(double d)
  *    New value.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double d)
 {
     if (d < this->thresholdLowSlider->value()) {
         this->thresholdLowSlider->blockSignals(true);
@@ -304,7 +293,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
  *   The threshold section.
  */
 QWidget* 
-MapScalarDataColorMappingEditorDialog::createThresholdSection()
+MapSettingsPaletteColorMappingWidget::createThresholdSection()
 {
     QLabel* thresholdTypeLabel = new QLabel("Type");
     std::vector<PaletteThresholdTypeEnum::Enum> thresholdTypes;
@@ -418,9 +407,9 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
  * Called when a histogram control is changed.
  */
 void 
-MapScalarDataColorMappingEditorDialog::histogramControlChanged()
+MapSettingsPaletteColorMappingWidget::histogramControlChanged()
 {
-    this->updateDialog();
+    this->updateWidget();
 }
 
 /**
@@ -428,7 +417,7 @@ MapScalarDataColorMappingEditorDialog::histogramControlChanged()
  * @return the statistics section widget.
  */
 QWidget* 
-MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
+MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
 {
     /*
      * Control section
@@ -504,7 +493,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
  *   The histogram section.
  */
 QWidget* 
-MapScalarDataColorMappingEditorDialog::createHistogramSection()
+MapSettingsPaletteColorMappingWidget::createHistogramSection()
 {
     this->thresholdPlot = new QwtPlot();
     this->thresholdPlot->plotLayout()->setAlignCanvasToScales(true);
@@ -551,7 +540,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramSection()
  * Called to reset the view of the histogram chart.
  */
 void 
-MapScalarDataColorMappingEditorDialog::histogramResetViewButtonClicked()
+MapSettingsPaletteColorMappingWidget::histogramResetViewButtonClicked()
 {
     this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom,true);
     this->thresholdPlot->setAxisAutoScale(QwtPlot::yLeft,true);
@@ -566,7 +555,7 @@ MapScalarDataColorMappingEditorDialog::histogramResetViewButtonClicked()
  *   The palette section.
  */
 QWidget* 
-MapScalarDataColorMappingEditorDialog::createPaletteSection()
+MapSettingsPaletteColorMappingWidget::createPaletteSection()
 {
     /*
      * Selection
@@ -576,7 +565,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                                           "Select palette for coloring map data");
     this->paletteWidgetGroup->add(this->paletteNameComboBox);
     QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     /*
      * Interpolate Colors
      */
@@ -585,7 +574,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                                           "Smooth colors for data between palette colors");
     this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
     QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
         
     QWidget* paletteSelectionWidget = new QWidget();
     QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionWidget);
@@ -633,7 +622,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMinimumSpinBox, 
@@ -644,7 +633,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMinimumSpinBox, 
@@ -655,7 +644,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentagePositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMaximumSpinBox, 
@@ -666,7 +655,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     /*
      * Fixed mapping
      */
@@ -680,7 +669,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
     this->scaleFixedNegativeMaximumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMinimumSpinBox, 
@@ -692,7 +681,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedNegativeMinimumSpinBox->setSingleStep(1.0);
     this->scaleFixedNegativeMinimumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMinimumSpinBox, 
@@ -704,7 +693,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedPositiveMinimumSpinBox->setSingleStep(1.0);
     this->scaleFixedPositiveMinimumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedPositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
     WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMaximumSpinBox, 
@@ -716,7 +705,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedPositiveMaximumSpinBox->setSingleStep(1.0);
     this->scaleFixedPositiveMaximumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedPositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     QWidget* colorMappingWidget = new QWidget();
     QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
@@ -745,15 +734,15 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->displayModePositiveCheckBox = new QCheckBox("Positive");
     this->paletteWidgetGroup->add(this->displayModePositiveCheckBox);
     QObject::connect(this->displayModePositiveCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     this->displayModeZeroCheckBox = new QCheckBox("Zero");
     this->paletteWidgetGroup->add(this->displayModeZeroCheckBox);
     QObject::connect(this->displayModeZeroCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     this->displayModeNegativeCheckBox = new QCheckBox("Negative");
     this->paletteWidgetGroup->add(this->displayModeNegativeCheckBox);
     QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
+                     this, SLOT(applySelections()));
     
     WuQtUtilities::setToolTipAndStatusTip(this->displayModePositiveCheckBox, 
                                           "Enable/Disable the display of positive data");
@@ -806,7 +795,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
  *    Index of map for palette that is edited.
  */
 void 
-MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caretMappableDataFile,
+MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretMappableDataFile,
                                          const int32_t mapIndexIn)
 {
     this->caretMappableDataFile = caretMappableDataFile;
@@ -976,7 +965,7 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
  *    Statistics for display in the histogram.
  */
 const DescriptiveStatistics* 
-MapScalarDataColorMappingEditorDialog::getDescriptiveStatisticsForHistogram(const DescriptiveStatistics* statisticsForAll) const
+MapSettingsPaletteColorMappingWidget::getDescriptiveStatisticsForHistogram(const DescriptiveStatistics* statisticsForAll) const
 {
     float mostPos  = 0.0;
     float leastPos = 0.0;
@@ -1049,7 +1038,7 @@ MapScalarDataColorMappingEditorDialog::getDescriptiveStatisticsForHistogram(cons
  *    Histogram.
  */
 const Histogram* 
-MapScalarDataColorMappingEditorDialog::getHistogram(const FastStatistics* statisticsForAll) const
+MapSettingsPaletteColorMappingWidget::getHistogram(const FastStatistics* statisticsForAll) const
 {
     float mostPos  = 0.0;
     float leastPos = 0.0;
@@ -1121,7 +1110,7 @@ MapScalarDataColorMappingEditorDialog::getHistogram(const FastStatistics* statis
  * Update the histogram plot.
  */
 void 
-MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
+MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
 {
     /*
      * Remove all previously attached items from the histogram plot.
@@ -1423,9 +1412,9 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
 }
 
 /**
- * Called when the apply button is pressed.
+ * Called to apply selections.
  */
-void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
+void MapSettingsPaletteColorMappingWidget::applySelections()
 {
     if (this->caretMappableDataFile == NULL) {
         return;
@@ -1514,39 +1503,14 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
 }
 
 /**
- * Called when close button pressed.
- */ 
-void
-MapScalarDataColorMappingEditorDialog::closeButtonPressed()
-{
-    /*
-     * Allow this dialog to be reused (checked means DO NOT reuse)
-     */
-    this->doNotReplaceCheckBox->setCheckState(Qt::Unchecked);
-    
-    WuQDialogNonModal::closeButtonPressed();
-}
-
-/**
  * Set the layout margins.
  * @param layout
  *   Layout for which margins are set.
  */
 void 
-MapScalarDataColorMappingEditorDialog::setLayoutMargins(QLayout* layout)
+MapSettingsPaletteColorMappingWidget::setLayoutMargins(QLayout* layout)
 {
     WuQtUtilities::setLayoutMargins(layout, 5, 3);
-}
-
-/**
- * @return Is the Do Not Replace selected.  If so, this instance of the
- * dialog should not be replaced.
- */
-bool 
-MapScalarDataColorMappingEditorDialog::isDoNotReplaceSelected() const
-{
-    const bool checked = (this->doNotReplaceCheckBox->checkState() == Qt::Checked);
-    return checked;
 }
 
 /**
@@ -1555,28 +1519,17 @@ MapScalarDataColorMappingEditorDialog::isDoNotReplaceSelected() const
  *    New state of checkbox.
  */
 void 
-MapScalarDataColorMappingEditorDialog::applyAllMapsCheckBoxStateChanged(int /*state*/)
+MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(int /*state*/)
 {
     //const bool checked = (state == Qt::Checked);
-    this->applyButtonPressed();
-}
-
-/**
- * Called when the state of the do not reply checkbox is changed.
- * @param state
- *    New state of checkbox.
- */
-void 
-MapScalarDataColorMappingEditorDialog::doNotReplaceCheckBoxStateChanged(int /*state*/)
-{
-//    const bool checked = (state == Qt::Checked);
+    this->applySelections();
 }
 
 /**
  * @return A widget containing the data options.
  */
 QWidget*
-MapScalarDataColorMappingEditorDialog::createDataOptionsSection()
+MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
 {
     this->applyAllMapsCheckBox = new QCheckBox("Apply to File");
     QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
@@ -1593,34 +1546,4 @@ MapScalarDataColorMappingEditorDialog::createDataOptionsSection()
     
     return optionsGroupBox;
 }
-
-/**
- * @return A widget containing the window options.
- */
-QWidget*
-MapScalarDataColorMappingEditorDialog::createWindowOptionsSection()
-{
-    this->doNotReplaceCheckBox = new QCheckBox("Do Not Replace");
-    this->doNotReplaceCheckBox->setToolTip("If checked: \n"
-                                           "   (1) this window remains displayed until it is\n"
-                                           "       closed.\n"
-                                           "   (2) if the user selects editing of another map's\n"
-                                           "       palette, it will not replace the content of\n"
-                                           "       this window.\n"
-                                           "If NOT checked:\n"
-                                           "   If the user selects editing of another map's \n"
-                                           "   palette, it will replace the content of this\n"
-                                           "   window.");
-    
-    QGroupBox* optionsGroupBox = new QGroupBox("Window Options");
-    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
-    this->setLayoutMargins(optionsLayout);
-    optionsLayout->addWidget(this->doNotReplaceCheckBox);
-    optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
-                                               QSizePolicy::Fixed));
-    
-    return optionsGroupBox;
-}
-
-
 

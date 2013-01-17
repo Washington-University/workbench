@@ -59,7 +59,7 @@
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
 #include "ManageLoadedFilesDialog.h"
-#include "MapScalarDataColorMappingEditorDialog.h"
+#include "MapSettingsEditorDialog.h"
 #include "MovieDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
@@ -692,11 +692,11 @@ GuiManager::receiveEvent(Event* event)
         CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
         const int mapIndex = mapEditEvent->getMapIndex();
         
-        MapScalarDataColorMappingEditorDialog* mapEditor = NULL;
-        for (std::set<MapScalarDataColorMappingEditorDialog*>::iterator mapEditorIter = scalarDataColorMappingEditors.begin();
-             mapEditorIter != scalarDataColorMappingEditors.end();
+        MapSettingsEditorDialog* mapEditor = NULL;
+        for (std::set<MapSettingsEditorDialog*>::iterator mapEditorIter = m_mappingSettingsEditors.begin();
+             mapEditorIter != m_mappingSettingsEditors.end();
              mapEditorIter++) {
-            MapScalarDataColorMappingEditorDialog* med = *mapEditorIter;
+            MapSettingsEditorDialog* med = *mapEditorIter;
             if (med->isDoNotReplaceSelected() == false) {
                 mapEditor = med;
                 break;
@@ -705,8 +705,8 @@ GuiManager::receiveEvent(Event* event)
         
         bool placeInDefaultLocation = false;
         if (mapEditor == NULL) {
-            mapEditor = new MapScalarDataColorMappingEditorDialog(browserWindow);
-            this->scalarDataColorMappingEditors.insert(mapEditor);
+            mapEditor = new MapSettingsEditorDialog(browserWindow);
+            m_mappingSettingsEditors.insert(mapEditor);
             this->nonModalDialogs.push_back(mapEditor);
             placeInDefaultLocation = true;
         }
@@ -716,8 +716,8 @@ GuiManager::receiveEvent(Event* event)
             }
         }
         
-        mapEditor->updateEditor(mapFile,
-                                mapIndex);
+        mapEditor->updateDialogContent(mapFile,
+                                       mapIndex);
         mapEditor->show();
         mapEditor->raise();
         mapEditor->activateWindow();

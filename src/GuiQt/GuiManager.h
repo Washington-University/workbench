@@ -54,7 +54,7 @@ namespace caret {
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
-    class MapScalarDataColorMappingEditorDialog;
+    class MapSettingsEditorDialog;
     class Model;
     class PreferencesDialog;
     class Scene;
@@ -192,8 +192,8 @@ namespace caret {
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
         
-        /* Editor for scalar color mapping. */
-        std::set<MapScalarDataColorMappingEditorDialog*> scalarDataColorMappingEditors;
+        /* Editor for map settings. */
+        std::set<MapSettingsEditorDialog*> m_mappingSettingsEditors;
         
         CustomViewDialog* m_customViewDialog;
         

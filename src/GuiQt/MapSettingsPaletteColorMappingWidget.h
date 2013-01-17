@@ -1,5 +1,5 @@
-#ifndef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_
-#define __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_
+#ifndef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_H_
+#define __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_H_
 
 /*LICENSE_START*/
 /* 
@@ -26,7 +26,7 @@
  */ 
 
 
-#include "WuQDialogNonModal.h"
+#include <QWidget>
 
 class QAbstractButton;
 class QCheckBox;
@@ -48,30 +48,23 @@ namespace caret {
     class WuQDoubleSlider;
     class WuQWidgetObjectGroup;
     
-    class MapScalarDataColorMappingEditorDialog : public WuQDialogNonModal {
+    class MapSettingsPaletteColorMappingWidget : public QWidget {
         Q_OBJECT
         
     public:
-        MapScalarDataColorMappingEditorDialog(QWidget* parent);
+        MapSettingsPaletteColorMappingWidget(QWidget* parent = 0);
         
         void updateEditor(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
                     
-        virtual ~MapScalarDataColorMappingEditorDialog();
+        virtual ~MapSettingsPaletteColorMappingWidget();
 
-        void updateDialog();
-        
-        bool isDoNotReplaceSelected() const;
-        
-    protected:
-        virtual void applyButtonPressed();
-        
-        virtual void closeButtonPressed();
+        void updateWidget();
         
     private:
-        MapScalarDataColorMappingEditorDialog(const MapScalarDataColorMappingEditorDialog&);
+        MapSettingsPaletteColorMappingWidget(const MapSettingsPaletteColorMappingWidget&);
 
-        MapScalarDataColorMappingEditorDialog& operator=(const MapScalarDataColorMappingEditorDialog&);
+        MapSettingsPaletteColorMappingWidget& operator=(const MapSettingsPaletteColorMappingWidget&);
         
     private slots:
         void thresholdLowSpinBoxValueChanged(double);
@@ -83,8 +76,8 @@ namespace caret {
         void histogramControlChanged();
         void histogramResetViewButtonClicked();
         void applyAndUpdate();
+        void applySelections();
         
-        void doNotReplaceCheckBoxStateChanged(int state);
         void applyAllMapsCheckBoxStateChanged(int state);
         
     private:
@@ -93,7 +86,6 @@ namespace caret {
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
         QWidget* createDataOptionsSection();
-        QWidget* createWindowOptionsSection();
         
         void updateHistogramPlot();
         
@@ -107,7 +99,6 @@ namespace caret {
         
         QComboBox* paletteNameComboBox;
         
-        QCheckBox* doNotReplaceCheckBox;
         QCheckBox* applyAllMapsCheckBox;
         
         QRadioButton* scaleAutoRadioButton;
@@ -165,9 +156,9 @@ namespace caret {
         WuQWidgetObjectGroup* thresholdWidgetGroup;
     };
     
-#ifdef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#ifdef __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#endif // __MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_
+#endif  //__MAP_SETTINGS_PALETTE_COLOR_MAPPING_WIDGET_H_
