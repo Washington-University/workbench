@@ -173,10 +173,14 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_enabled = true;
     m_paletteDisplayedFlag = false;
     
+    m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
+    m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
+                                                            &m_wholeBrainVoxelDrawingMode);
 }
 
 /**
@@ -222,7 +226,28 @@ Overlay::setOpacity(const float opacity)
     m_opacity = opacity;
 }
 
-AString 
+/**
+ * @return The voxel drawing mode for whole brain.
+ */
+WholeBrainVoxelDrawingMode::Enum
+Overlay::getWholeBrainVoxelDrawingMode() const
+{
+    return m_wholeBrainVoxelDrawingMode;
+}
+
+/**
+ * Set the voxel drawing mode for whole brain.
+ *
+ * @param wholeBrainVoxelDrawingMode
+ *    New mode.
+ */
+void
+Overlay::setWholeBrainVoxelDrawingMode(const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode)
+{
+    m_wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
+}
+
+AString
 Overlay::getName() const
 {
     return m_name;

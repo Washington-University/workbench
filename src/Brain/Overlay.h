@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
+#include "WholeBrainVoxelDrawingMode.h"
 
 namespace caret {
     class BrainStructure;
@@ -68,6 +69,10 @@ namespace caret {
         bool isEnabled() const;
         
         void setEnabled(const bool enabled);
+        
+        WholeBrainVoxelDrawingMode::Enum getWholeBrainVoxelDrawingMode() const;
+        
+        void setWholeBrainVoxelDrawingMode(const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode);
         
         void copyData(const Overlay* overlay);
         
@@ -139,6 +144,9 @@ namespace caret {
         
         /** Display palette in graphics window */
         bool m_paletteDisplayedFlag;
+        
+        /** Voxel drawing mode in Whole Brain View */
+        WholeBrainVoxelDrawingMode::Enum m_wholeBrainVoxelDrawingMode;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;

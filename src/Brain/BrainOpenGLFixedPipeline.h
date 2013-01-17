@@ -40,6 +40,8 @@
 #include "StructureEnum.h"
 #include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "WholeBrainVoxelDrawingMode.h"
+
 
 class QGLWidget;
 
@@ -48,6 +50,7 @@ namespace caret {
     class BoundingBox;
     class Brain;
     class BrainOpenGLShapeCone;
+    class BrainOpenGLShapeCube;
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -111,12 +114,14 @@ namespace caret {
                            Brain* brain,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
+                           const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                            const int32_t mapIndex,
                            const float opacity);
             Brain* brain;
             VolumeFile* volumeFile;
             SubvolumeAttributes::VolumeType volumeType;
             PaletteColorMapping* paletteColorMapping;
+            WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode;
             const FastStatistics* statistics;
             int32_t mapIndex;
             float opacity;
@@ -212,10 +217,12 @@ namespace caret {
         
         void drawVolumeAxesLabels(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int32_t viewport[4]);
+
+        void drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
-        void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       std::vector<VolumeDrawInfo>& volumeDrawInfo);
+                                       std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
         void drawVolumeOrthogonalSliceVolumeViewer(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
@@ -309,6 +316,8 @@ namespace caret {
         
         void drawSquare(const float size);
         
+        void drawCube(const double cubeSize);
+        
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
                                 const float baseRadiusScaling,
@@ -392,6 +401,9 @@ namespace caret {
         
         /** Cone symbol */
         BrainOpenGLShapeCone* m_shapeCone;
+        
+        /** Cube symbol */
+        BrainOpenGLShapeCube* m_shapeCube;
         
         std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
         

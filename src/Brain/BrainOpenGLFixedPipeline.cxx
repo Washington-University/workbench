@@ -52,6 +52,7 @@
 #include "Brain.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeSphere.h"
+#include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -140,6 +141,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->colorIdentification   = new IdentificationWithColor();
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
+    m_shapeCube   = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
 }
@@ -156,6 +158,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (m_shapeCone != NULL) {
         delete m_shapeCone;
         m_shapeCone = NULL;
+    }
+    if (m_shapeCube != NULL) {
+        delete m_shapeCube;
+        m_shapeCube = NULL;
     }
     if (this->surfaceNodeColoring != NULL) {
         delete this->surfaceNodeColoring;
@@ -857,6 +863,10 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     }
     if (m_shapeCone == NULL) {
         m_shapeCone = new BrainOpenGLShapeCone(8);
+    }
+    
+    if (m_shapeCube == NULL) {
+        m_shapeCube = new BrainOpenGLShapeCube(1.0);
     }
     
     if (this->initializedOpenGLFlag) {
@@ -2387,6 +2397,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             opacity = 1.0;
                         }
                         
+                        WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
+                        
                         if (vf->isMappedWithPalette()) {
                             PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
                             if (connLoadFile != NULL) {
@@ -2419,6 +2431,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                            brain,
                                                            paletteColorMapping,
                                                            statistics,
+                                                           wholeBrainVoxelDrawingMode,
                                                            mapIndex,
                                                            opacity);
                                         volumeDrawInfoOut.push_back(vdi);
@@ -2431,9 +2444,10 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         }
                         else {
                             VolumeDrawInfo vdi(vf,
+                                               brain,
                                                NULL,
                                                NULL,
-                                               NULL,
+                                               wholeBrainVoxelDrawingMode,
                                                mapIndex,
                                                opacity);
                             volumeDrawInfoOut.push_back(vdi);
@@ -4131,6 +4145,122 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
 //    glDisable(GL_BLEND);
 //}
 
+/**
+ * Draw volumes a voxel cubes for whole brain view.
+ *
+ * @param volumeDrawInfoIn
+ *    Describes volumes that are drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
+{
+    /*
+     * Filter volumes for drawing and only draw those volumes that
+     * are to be drawn as 3D Voxel Cubes.
+     */
+    std::vector<VolumeDrawInfo> volumeDrawInfo;
+    for (std::vector<VolumeDrawInfo>::iterator iter = volumeDrawInfoIn.begin();
+         iter != volumeDrawInfoIn.end();
+         iter++) {
+        bool useIt = false;
+        VolumeDrawInfo& vdi = *iter;
+        switch (vdi.wholeBrainVoxelDrawingMode) {
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+                useIt = true;
+                break;
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                break;
+        }
+        if (useIt) {
+            volumeDrawInfo.push_back(vdi);
+        }
+    }
+    
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
+    if (numberOfVolumesToDraw <= 0) {
+        return;
+    }
+    
+    SelectionItemVoxel* voxelID =
+    m_brain->getSelectionManager()->getVoxelIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    
+    /*
+     * Use lighting
+     */
+    this->enableLighting();
+    glEnable(GL_CULL_FACE);
+    glShadeModel(GL_SMOOTH);
+    
+    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
+        VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
+        const VolumeFile* volumeFile = volInfo.volumeFile;
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        
+        float originX, originY, originZ;
+        float x1, y1, z1;
+        float lastX, lastY, lastZ;
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
+        const float dx = x1 - originX;
+        const float dy = y1 - originY;
+        const float dz = z1 - originZ;
+        
+        uint8_t rgba[4];
+        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
+            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
+                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
+                    volumeFile->getVoxelColorInMap(iVoxel,
+                                                   jVoxel,
+                                                   kVoxel,
+                                                   volInfo.mapIndex,
+                                                   rgba);
+                    if (rgba[3] > 0) {
+                        if (volInfo.opacity < 1.0) {
+                            rgba[3] *= volInfo.opacity;
+                            if (rgba[3] > 255.0) {
+                                rgba[3] = 255.0;
+                            }
+                        }
+                        if (rgba[3] > 0) {
+                            glColor4ubv(rgba);
+                            const float x = iVoxel * dx + originX;
+                            const float y = jVoxel * dy + originY;
+                            const float z = kVoxel * dz + originZ;
+                            glPushMatrix();
+                            glTranslatef(x, y, z);
+                            drawCube(dx);
+                            glPopMatrix();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 /**
  * Draw a single volume orthogonal slice.
@@ -4142,11 +4272,36 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
  *    Describes volumes that are drawn.
  */
 void 
-BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
-                                                    std::vector<VolumeDrawInfo>& volumeDrawInfo)
+                                                    std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
 {
+    /*
+     * Filter volumes for drawing and only draw those volumes that
+     * are to be drawn as 2D volume slices.
+     */
+    std::vector<VolumeDrawInfo> volumeDrawInfo;
+    for (std::vector<VolumeDrawInfo>::iterator iter = volumeDrawInfoIn.begin();
+         iter != volumeDrawInfoIn.end();
+         iter++) {
+        bool useIt = false;
+        VolumeDrawInfo& vdi = *iter;
+        switch (vdi.wholeBrainVoxelDrawingMode) {
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+                break;
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                useIt = true;
+                break;
+        }
+        if (useIt) {
+            volumeDrawInfo.push_back(vdi);
+        }
+    }
+    
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
+    if (numberOfVolumesToDraw <= 0) {
+        return;
+    }
     
     SelectionItemVoxel* voxelID = 
     m_brain->getSelectionManager()->getVoxelIdentification();
@@ -6943,7 +7098,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
             const VolumeSliceCoordinateSelection* slices = 
             wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
             if (slices->isSliceAxialEnabled()) {
-                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
+                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::AXIAL,
                                                 slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
@@ -6954,7 +7109,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 volumeDrawInfo[0].volumeFile);
             }
             if (slices->isSliceCoronalEnabled()) {
-                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
+                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::CORONAL,
                                                 slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
@@ -6965,7 +7120,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 volumeDrawInfo[0].volumeFile);
             }
             if (slices->isSliceParasagittalEnabled()) {
-                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
@@ -6975,6 +7130,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
             }
+            
+            drawVolumeVoxelsAsCubesWholeBrain(volumeDrawInfo);
         }
     }
     if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
@@ -7316,6 +7473,9 @@ BrainOpenGLFixedPipeline::setSelectedItemScreenXYZ(SelectionItem* item,
 
 /**
  * Draw sphere.
+ *
+ * @param radius
+ *    Radius of the sphere.
  */
 void 
 BrainOpenGLFixedPipeline::drawSphere(const double radius)
@@ -7323,6 +7483,21 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
     glPushMatrix();
     glScaled(radius, radius, radius);
     m_shapeSphere->draw();
+    glPopMatrix();
+}
+
+/**
+ * Draw cube.
+ *
+ * @param cubeSize
+ *    Size of the cube (distance from one face to its opposite face).
+ */
+void
+BrainOpenGLFixedPipeline::drawCube(const double cubeSize)
+{
+    glPushMatrix();
+    glScaled(cubeSize, cubeSize, cubeSize);
+    m_shapeCube->draw();
     glPopMatrix();
 }
 
@@ -8341,6 +8516,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                          Brain* brain,
                                                          PaletteColorMapping* paletteColorMapping,
                                                          const FastStatistics* statistics,
+                                                         const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                                                          const int32_t mapIndex,
                                                          const float opacity) 
 : statistics(statistics) {
@@ -8348,6 +8524,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
     this->brain = brain;
     this->volumeType = volumeFile->getType();
     this->paletteColorMapping = paletteColorMapping;
+    this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
     this->mapIndex = mapIndex;
     this->opacity    = opacity;
 }
