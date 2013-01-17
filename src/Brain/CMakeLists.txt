@@ -130,6 +130,7 @@ VolumeSliceViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
+WholeBrainVoxelDrawingMode.h
 
 BorderDrawingTypeEnum.cxx
 Brain.cxx
@@ -212,6 +213,7 @@ VolumeSliceViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx
+WholeBrainVoxelDrawingMode.cxx
 ) 
 
 #
