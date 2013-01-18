@@ -4205,13 +4205,35 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             break;
     }
     
+    /*
+     * When selecting turn on lighting and shading since
+     * colors are used for identification.
+     */
+    if (isSelect) {
+        this->disableLighting();
+        glShadeModel(GL_FLAT);
+    }
+    else {
+        this->enableLighting();
+        glEnable(GL_CULL_FACE);
+        glShadeModel(GL_SMOOTH);
+    }
+    
+    glEnable(GL_CULL_FACE);
     
     /*
-     * Use lighting
+     * For identification, five items per voxel
+     * 1) volume index
+     * 2) map index
+     * 3) index I
+     * 4) index J
+     * 5) index K
      */
-    this->enableLighting();
-    glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
+    const int32_t idPerVoxelCount = 5;
+    std::vector<int32_t> identificationIndices;
+    if (isSelect) {
+        identificationIndices.reserve(10000 * idPerVoxelCount);
+    }
     
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
@@ -4250,14 +4272,36 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                             rgba[3] *= volInfo.opacity;
                         }
                         if (rgba[3] > 0) {
-                            glColor4ubv(rgba);
-                            const float x = iVoxel * dx + originX;
-                            const float y = jVoxel * dy + originY;
-                            const float z = kVoxel * dz + originZ;
-                            glPushMatrix();
-                            glTranslatef(x, y, z);
-                            drawCube(dx);
-                            glPopMatrix();
+                            if (isSelect) {
+                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+                                this->colorIdentification->addItem(rgba,
+                                                                   SelectionItemDataTypeEnum::VOXEL,
+                                                                   idIndex);
+                                identificationIndices.push_back(iVol);
+                                identificationIndices.push_back(volInfo.mapIndex);
+                                identificationIndices.push_back(iVoxel);
+                                identificationIndices.push_back(jVoxel);
+                                identificationIndices.push_back(kVoxel);
+
+                                glColor3ubv(rgba);
+                                const float x = iVoxel * dx + originX;
+                                const float y = jVoxel * dy + originY;
+                                const float z = kVoxel * dz + originZ;
+                                glPushMatrix();
+                                glTranslatef(x, y, z);
+                                drawCube(dx);
+                                glPopMatrix();
+                            }
+                            else {
+                                glColor4ubv(rgba);
+                                const float x = iVoxel * dx + originX;
+                                const float y = jVoxel * dy + originY;
+                                const float z = kVoxel * dz + originZ;
+                                glPushMatrix();
+                                glTranslatef(x, y, z);
+                                drawCube(dx);
+                                glPopMatrix();
+                            }
                         }
                     }
                 }
@@ -4265,6 +4309,43 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         }
     }
     
+    if (isSelect) {
+        int32_t identifiedItemIndex;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                         this->mouseX,
+                                         this->mouseY,
+                                         identifiedItemIndex,
+                                         depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
+            const int32_t volDrawInfoIndex = identificationIndices[idIndex];
+            CaretAssertVectorIndex(volumeDrawInfo, volDrawInfoIndex);
+            VolumeFile* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
+            //const int32_t mapIndex = identificationIndices[idIndex + 1];
+            const int64_t voxelIndices[3] = {
+                identificationIndices[idIndex + 2],
+                identificationIndices[idIndex + 3],
+                identificationIndices[idIndex + 4]
+            };
+            
+            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                voxelID->setVolumeFile(vf);
+                voxelID->setVoxelIJK(voxelIndices);
+                voxelID->setScreenDepth(depth);
+                
+                float voxelCoordinates[3];
+                vf->indexToSpace(voxelIndices,
+                                 voxelCoordinates);
+                
+                this->setSelectedItemScreenXYZ(voxelID,
+                                               voxelCoordinates);
+                CaretLogFine("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            }
+        }
+    }
+    
+    glShadeModel(GL_SMOOTH);
     glDisable(GL_BLEND);
 }
 
