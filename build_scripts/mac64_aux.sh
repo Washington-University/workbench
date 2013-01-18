@@ -14,7 +14,7 @@
 #
 # Go to correct directory
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/mac64
+BUILD_ROOT_DIR=/Users/caret/caret7_development/mac64
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
@@ -25,16 +25,12 @@ echo "BUILD_DIR: ${BUILD_DIR}"
 # Setup Environment
 #
 
-#for now we use caret5's lib dir
-#LIB_DIR=/Volumes/DS4600/caret_development/mac64
-#QTDIR=${LIB_DIR}/libraries/qt-software/qt-4.7.1-static-64bit
-
 #
 # Use Qt SDK
 #
 #QTDIR=/Users/caret/QtSDK/Desktop/Qt/474/gcc
 # has SSL linked
-QTDIR=/Volumes/DS4600/caret_development/mac64/libraries/qt-software/qt-4.8.0
+QTDIR=/opt/caret64_sdk/install/qt-4.8.3
 export QTDIR
 echo "QTDIR: ${QTDIR}"
 

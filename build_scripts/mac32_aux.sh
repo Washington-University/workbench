@@ -14,7 +14,7 @@
 #
 # Go to correct directory
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/mac32
+BUILD_ROOT_DIR=/Users/caret/caret7_development/mac32
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
