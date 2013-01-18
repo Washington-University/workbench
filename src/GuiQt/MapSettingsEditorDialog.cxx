@@ -84,6 +84,7 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
                       "Overlay");
     tabWidget->addTab(m_paletteColorMappingWidget,
                       "Palette");
+    tabWidget->setCurrentIndex(tabWidget->count() - 1);
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
