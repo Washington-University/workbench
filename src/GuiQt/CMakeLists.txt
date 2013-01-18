@@ -63,6 +63,7 @@ LabelSelectionViewController.h
 MacApplication.h
 ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
+MapSettingsOverlayWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MovieDialog.h
 OverlaySetViewController.h
@@ -149,7 +150,7 @@ EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
-EventMapScalarDataColorMappingEditorShow.h
+EventMapSettingsEditorDialogRequest.h
 EventOperatingSystemRequestOpenDataFile.h
 EventUpdateAnimationStartTime.h
 EventUpdateInformationWindows.h
@@ -173,6 +174,7 @@ LabelSelectionViewController.h
 MacApplication.h
 ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
+MapSettingsOverlayWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MouseEvent.h
 MouseEventTypeEnum.h
@@ -259,7 +261,7 @@ EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
-EventMapScalarDataColorMappingEditorShow.cxx
+EventMapSettingsEditorDialogRequest.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateInformationWindows.cxx
@@ -283,6 +285,7 @@ LabelSelectionViewController.cxx
 MacApplication.cxx
 ManageLoadedFilesDialog.cxx
 MapSettingsEditorDialog.cxx
+MapSettingsOverlayWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx

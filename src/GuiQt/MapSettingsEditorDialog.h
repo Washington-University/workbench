@@ -35,13 +35,9 @@ class QLayout;
 namespace caret {
     
     class CaretMappableDataFile;
+    class MapSettingsOverlayWidget;
     class MapSettingsPaletteColorMappingWidget;
-    class DescriptiveStatistics;
-    class FastStatistics;
-    class Histogram;
-    class PaletteColorMapping;
-    class WuQDoubleSlider;
-    class WuQWidgetObjectGroup;
+    class Overlay;
     
     class MapSettingsEditorDialog : public WuQDialogNonModal {
         Q_OBJECT
@@ -49,7 +45,8 @@ namespace caret {
     public:
         MapSettingsEditorDialog(QWidget* parent);
         
-        void updateDialogContent(CaretMappableDataFile* caretMappableDataFile,
+        void updateDialogContent(Overlay* overlay,
+                                 CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
         
         void updateDialog();
@@ -78,9 +75,13 @@ namespace caret {
         
         CaretMappableDataFile* m_caretMappableDataFile;
         
+        Overlay* m_overlay;
+        
         int32_t m_mapFileIndex;
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
+        
+        MapSettingsOverlayWidget* m_overlayWidget;
     };
     
 #ifdef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__

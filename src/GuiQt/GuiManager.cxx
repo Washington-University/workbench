@@ -48,7 +48,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventMapScalarDataColorMappingEditorShow.h"
+#include "EventMapSettingsEditorDialogRequest.h"
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -680,8 +680,8 @@ GuiManager::receiveEvent(Event* event)
         this->processUpdateTimeCourseDialogs();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW) {
-        EventMapScalarDataColorMappingEditorShow* mapEditEvent =
-        dynamic_cast<EventMapScalarDataColorMappingEditorShow*>(event);
+        EventMapSettingsEditorDialogRequest* mapEditEvent =
+        dynamic_cast<EventMapSettingsEditorDialogRequest*>(event);
         CaretAssert(mapEditEvent);
         
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
@@ -691,6 +691,7 @@ GuiManager::receiveEvent(Event* event)
         
         CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
         const int mapIndex = mapEditEvent->getMapIndex();
+        Overlay* overlay = mapEditEvent->getOverlay();
         
         MapSettingsEditorDialog* mapEditor = NULL;
         for (std::set<MapSettingsEditorDialog*>::iterator mapEditorIter = m_mappingSettingsEditors.begin();
@@ -716,7 +717,8 @@ GuiManager::receiveEvent(Event* event)
             }
         }
         
-        mapEditor->updateDialogContent(mapFile,
+        mapEditor->updateDialogContent(overlay,
+                                       mapFile,
                                        mapIndex);
         mapEditor->show();
         mapEditor->raise();

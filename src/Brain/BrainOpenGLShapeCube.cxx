@@ -164,7 +164,7 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
      * Bottom Face
      */
     addFace(cubeVertices,
-            rnb, rfb, lfb, lnb,
+            rnb, lnb, lfb, rfb,
             cubeNormals[normalIndexBottomFace]);
     
     /*
@@ -175,6 +175,19 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
             cubeNormals[normalIndexTopFace]);
     
     CaretAssert(m_coordinates.size() == m_normals.size());
+    
+    bool smoothCubesFlag = true;
+    if (smoothCubesFlag) {
+        const unsigned int numPoints = m_coordinates.size() / 3;
+        for (unsigned int i = 0; i < numPoints; i++) {
+            const unsigned int i3 = i * 3;
+            m_normals[i3] = m_coordinates[i3];
+            m_normals[i3+1] = m_coordinates[i3+1];
+            m_normals[i3+2] = m_coordinates[i3+2];
+            
+            MathFunctions::normalizeVector(&m_normals[i3]);
+        }
+    }
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -302,19 +315,20 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
 
-    m_coordinates.push_back(coordinates[v2][0]);
-    m_coordinates.push_back(coordinates[v2][1]);
-    m_coordinates.push_back(coordinates[v2][2]);
-    m_normals.push_back(normalVector[0]);
-    m_normals.push_back(normalVector[1]);
-    m_normals.push_back(normalVector[2]);
-    
     m_coordinates.push_back(coordinates[v4][0]);
     m_coordinates.push_back(coordinates[v4][1]);
     m_coordinates.push_back(coordinates[v4][2]);
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
+
+    m_coordinates.push_back(coordinates[v1][0]);
+    m_coordinates.push_back(coordinates[v1][1]);
+    m_coordinates.push_back(coordinates[v1][2]);
+    m_normals.push_back(normalVector[0]);
+    m_normals.push_back(normalVector[1]);
+    m_normals.push_back(normalVector[2]);
+    
 }
 
 /**
@@ -325,8 +339,6 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
 void
 BrainOpenGLShapeCube::drawShape(const BrainOpenGL::DrawMode drawMode)
 {
-    bool useOneTriangleStrip = true;
-    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {

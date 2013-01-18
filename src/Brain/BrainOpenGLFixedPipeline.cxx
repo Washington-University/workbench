@@ -4215,6 +4215,13 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
+        if (volInfo.opacity < 1.0) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        else {
+            glDisable(GL_BLEND);
+        }
         const VolumeFile* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -4241,9 +4248,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                     if (rgba[3] > 0) {
                         if (volInfo.opacity < 1.0) {
                             rgba[3] *= volInfo.opacity;
-                            if (rgba[3] > 255.0) {
-                                rgba[3] = 255.0;
-                            }
                         }
                         if (rgba[3] > 0) {
                             glColor4ubv(rgba);
@@ -4260,6 +4264,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             }
         }
     }
+    
+    glDisable(GL_BLEND);
 }
 
 /**

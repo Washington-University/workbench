@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include "EventMapScalarDataColorMappingEditorShow.h"
+#include "EventMapSettingsEditorDialogRequest.h"
 
 using namespace caret;
 
@@ -30,25 +30,29 @@ using namespace caret;
  * Constructor.
  * @param browserWindowIndex
  *    Index of browser window.
+ * @param overlay
+ *    Overlay for map editor.
  * @param mapFile
  *    Caret Mappable Data File.
  * @param mapIndex
  *    Map index in mapFile.
  */
-EventMapScalarDataColorMappingEditorShow::EventMapScalarDataColorMappingEditorShow(const int32_t browserWindowIndex,
+EventMapSettingsEditorDialogRequest::EventMapSettingsEditorDialogRequest(const int32_t browserWindowIndex,
+                                                                         Overlay* overlay,
                                                                CaretMappableDataFile* mapFile,
                                                                const int32_t mapIndex)
 : Event(EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW)
 {
-    this->browserWindowIndex = browserWindowIndex;
-    this->mapFile = mapFile;
-    this->mapIndex = mapIndex;
+    m_browserWindowIndex = browserWindowIndex;
+    m_overlay = overlay;
+    m_mapFile = mapFile;
+    m_mapIndex = mapIndex;
 }
 
 /*
  * Destructor.
  */
-EventMapScalarDataColorMappingEditorShow::~EventMapScalarDataColorMappingEditorShow()
+EventMapSettingsEditorDialogRequest::~EventMapSettingsEditorDialogRequest()
 {
     
 }

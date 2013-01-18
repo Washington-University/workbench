@@ -34,29 +34,12 @@
 #undef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 #include "CaretMappableDataFile.h"
-//#include "Brain.h"
-//#include "DescriptiveStatistics.h"
-//#include "EventGraphicsUpdateAllWindows.h"
-//#include "EventSurfaceColoringInvalidate.h"
-//#include "EventManager.h"
-//#include "FastStatistics.h"
-//#include "GuiManager.h"
-//#include "Histogram.h"
+#include "MapSettingsOverlayWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
-//#include "NodeAndVoxelColoring.h"
-//#include "Palette.h"
-//#include "PaletteColorMapping.h"
-//#include "PaletteFile.h"
-//#include "PaletteEnums.h"
-//#include "VolumeFile.h"
-//#include "WuQWidgetObjectGroup.h"
-//#include "WuQDoubleSlider.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::MapSettingsScalarDataEditorDialog 
  * \brief Dialog for editing scalar data map settings
@@ -72,7 +55,7 @@ using namespace caret;
  *    Parent widget on which this dialog is displayed.
  */
 MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
-: WuQDialogNonModal("Scalar Data Color Mapping Editor",
+: WuQDialogNonModal("Overlay and Map Settings",
                     parent)
 {
     /*
@@ -90,11 +73,15 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
      */
     this->setApplyButtonText("");
     
+    m_overlayWidget = new MapSettingsOverlayWidget();
+    
     m_paletteColorMappingWidget = new MapSettingsPaletteColorMappingWidget();
     
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
     QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(m_overlayWidget,
+                      "Overlay");
     tabWidget->addTab(m_paletteColorMappingWidget,
                       "Palette");
     
@@ -117,29 +104,40 @@ MapSettingsEditorDialog::~MapSettingsEditorDialog()
 /**
  * May be called to update the dialog's content.
  *
+ * @param overlay
+ *    Overlay for the dialog.
  * @param caretMappableDataFile
  *    Mappable file in dialog.
  * @param mapFileIndex
  *    Index of file in dialog.
  */
 void 
-MapSettingsEditorDialog::updateDialogContent(CaretMappableDataFile* caretMappableDataFile,
+MapSettingsEditorDialog::updateDialogContent(Overlay* overlay,
+                                             CaretMappableDataFile* caretMappableDataFile,
                                              const int32_t mapFileIndex)
 {
+    m_overlay = overlay;
     m_caretMappableDataFile = caretMappableDataFile;
     m_mapFileIndex = mapFileIndex;
     
-    bool enablePaletteMapping = false;
+    bool isPaletteValid = false;
     
     if (m_caretMappableDataFile != NULL) {
         if (caretMappableDataFile->isMappedWithPalette()) {
-            enablePaletteMapping = true;
+            isPaletteValid = true;
             m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
                                                       m_mapFileIndex);
         }
     }
   
-    m_paletteColorMappingWidget->setEnabled(enablePaletteMapping);
+    bool isOverlayValid = false;
+    if (m_overlay != NULL) {
+        m_overlayWidget->updateContent(m_overlay);
+        isOverlayValid = true;
+    }
+    
+    m_overlayWidget->setEnabled(isOverlayValid);
+    m_paletteColorMappingWidget->setEnabled(isPaletteValid);
 }
 
 /**
@@ -148,7 +146,8 @@ MapSettingsEditorDialog::updateDialogContent(CaretMappableDataFile* caretMappabl
 void
 MapSettingsEditorDialog::updateDialog()
 {
-    updateDialogContent(m_caretMappableDataFile,
+    updateDialogContent(m_overlay,
+                        m_caretMappableDataFile,
                         m_mapFileIndex);
 }
 

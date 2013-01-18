@@ -1,5 +1,5 @@
-#ifndef __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__
-#define __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__
+#ifndef __EVENT_MAP_SETTINGS_EDITOR_DIALOG_REQUEST_H__
+#define __EVENT_MAP_SETTINGS_EDITOR_DIALOG_REQUEST_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -31,47 +31,62 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class Overlay;
     
     /// Event for showing edit map scalar color mapping editor
-    class EventMapScalarDataColorMappingEditorShow : public Event {
+    class EventMapSettingsEditorDialogRequest : public Event {
         
     public:
-        EventMapScalarDataColorMappingEditorShow(const int32_t browserWindowIndex,
-                                       CaretMappableDataFile* mapFile,
-                                       const int32_t mapIndex);
+        EventMapSettingsEditorDialogRequest(const int32_t browserWindowIndex,
+                                            Overlay* overlay,
+                                            CaretMappableDataFile* mapFile,
+                                            const int32_t mapIndex);
         
-        virtual ~EventMapScalarDataColorMappingEditorShow();
+        virtual ~EventMapSettingsEditorDialogRequest();
         
         /**
          * @return Get the index of the browser window for palette being edited.
          */
-        int32_t getBrowserWindowIndex() const { return this->browserWindowIndex; }
+        int32_t getBrowserWindowIndex() const { return m_browserWindowIndex; }
         
         /**
          * @return Map file containing map whose color palette is edited
          */
-        CaretMappableDataFile* getCaretMappableDataFile() const { return this->mapFile; }
+        CaretMappableDataFile* getCaretMappableDataFile() const { return m_mapFile; }
         
         /** 
          * @return Index of map in the map file 
          */
-        int32_t getMapIndex() const { return this->mapIndex; }
+        int32_t getMapIndex() const { return m_mapIndex; }
+        
+        /**
+         * @return The overlay for the editor.
+         */
+        Overlay* getOverlay() { return m_overlay; }
+        
+        /**
+         * @return The overlay for the editor.
+         */
+        const Overlay* getOverlay() const { return m_overlay; }
         
     private:
-        EventMapScalarDataColorMappingEditorShow(const EventMapScalarDataColorMappingEditorShow&);
+        EventMapSettingsEditorDialogRequest(const EventMapSettingsEditorDialogRequest&);
         
-        EventMapScalarDataColorMappingEditorShow& operator=(const EventMapScalarDataColorMappingEditorShow&);
+        EventMapSettingsEditorDialogRequest& operator=(const EventMapSettingsEditorDialogRequest&);
         
         /** Map file containing map whose color palette is edited */
-        CaretMappableDataFile* mapFile;
+        CaretMappableDataFile* m_mapFile;
         
         /** Index of map in the map file */
-        int32_t mapIndex;
+        int32_t m_mapIndex;
         
         /** index of browser window for palette editing */
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
+        
+        /** Overlay for editor. */
+        Overlay* m_overlay;
     };
 
 } // namespace
 
-#endif // __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__
+#endif // __EVENT_MAP_SETTINGS_EDITOR_DIALOG_REQUEST_H__

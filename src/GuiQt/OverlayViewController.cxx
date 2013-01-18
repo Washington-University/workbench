@@ -51,7 +51,7 @@
 #include "CaretMappableDataFile.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventMapScalarDataColorMappingEditorShow.h"
+#include "EventMapSettingsEditorDialogRequest.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
@@ -381,9 +381,10 @@ OverlayViewController::settingsActionTriggered()
     this->overlay->getSelectionData(mapFile, 
                                     mapIndex);
     if (mapFile != NULL) {
-        EventMapScalarDataColorMappingEditorShow pcme(this->browserWindowIndex,
-                                                      mapFile,
-                                                      mapIndex);
+        EventMapSettingsEditorDialogRequest pcme(this->browserWindowIndex,
+                                                 this->overlay,
+                                                 mapFile,
+                                                 mapIndex);
         EventManager::get()->sendEvent(pcme.getPointer());
     }
 }
