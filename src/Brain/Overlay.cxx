@@ -34,6 +34,7 @@
 #include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
+#include "EventOverlayValidate.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
@@ -181,6 +182,9 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
                                                             &m_wholeBrainVoxelDrawingMode);
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_OVERLAY_VALIDATE);
 }
 
 /**
@@ -188,7 +192,25 @@ Overlay::initializeOverlay(Model* modelDisplayController,
  */
 Overlay::~Overlay()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     delete m_sceneAssistant;
+}
+
+/**
+ * Receives events that this object is listening for.
+ *
+ * @param event
+ *    An event.
+ */
+void
+Overlay::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_VALIDATE) {
+        EventOverlayValidate* eov = dynamic_cast<EventOverlayValidate*>(event);
+        CaretAssert(eov);
+        eov->testValidOverlay(this);
+    }
 }
 
 /**

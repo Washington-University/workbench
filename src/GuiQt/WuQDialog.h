@@ -29,6 +29,7 @@
 
 #include "AString.h"
 
+class QHBoxLayout;
 class QKeyEvent;
 class QMenu;
 class QVBoxLayout;
@@ -65,6 +66,8 @@ namespace caret  {
         void setAutoDefaultButtonProcessing(bool enabled);
         
         void disableAutoDefaultForAllPushButtons();
+        
+        void addWidgetToLeftOfButtons(QWidget* widget);
         
         static void beep();
         
@@ -104,6 +107,8 @@ namespace caret  {
         QVBoxLayout* userWidgetLayout;
         
         QDialogButtonBox* buttonBox;
+        
+        QHBoxLayout* m_layoutLeftOfButtonBox;
         
         bool autoDefaultProcessingEnabledFlag;
     };

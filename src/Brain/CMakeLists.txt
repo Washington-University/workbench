@@ -84,6 +84,7 @@ EventModelDelete.h
 EventModelGetAll.h
 EventModelSurfaceGet.h
 EventModelYokingGroupGetAll.h
+EventOverlayValidate.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
@@ -168,6 +169,7 @@ EventModelDelete.cxx
 EventModelGetAll.cxx
 EventModelSurfaceGet.cxx
 EventModelYokingGroupGetAll.cxx
+EventOverlayValidate.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx

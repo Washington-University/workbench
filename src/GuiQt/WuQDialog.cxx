@@ -75,15 +75,24 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                                     0,
                                     0);
     
+    m_layoutLeftOfButtonBox = new QHBoxLayout();
+    m_layoutLeftOfButtonBox->setContentsMargins(0, 0, 0, 0);
+    
     this->buttonBox = new QDialogButtonBox(Qt::Horizontal,
                                            this);
+    
+    QHBoxLayout* bottomLayout = new QHBoxLayout();
+    bottomLayout->addLayout(m_layoutLeftOfButtonBox,
+                            0);
+    bottomLayout->addWidget(this->buttonBox,
+                            1000);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(dialogLayout,
                                     0,
                                     0);
     dialogLayout->addLayout(this->userWidgetLayout);
-    dialogLayout->addWidget(this->buttonBox);
+    dialogLayout->addLayout(bottomLayout);
 }
               
 /**
@@ -91,6 +100,20 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
  */
 WuQDialog::~WuQDialog()
 {
+}
+
+/**
+ * Add a widget to the left of the buttons at the bottom of the dialog.
+ * More than one widget can be added and the first widget will be on 
+ * the left-most side.
+ * 
+ * @param widget
+ *    Widget to add.
+ */
+void
+WuQDialog::addWidgetToLeftOfButtons(QWidget* widget)
+{
+    m_layoutLeftOfButtonBox->addWidget(widget);
 }
 
 /**

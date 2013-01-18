@@ -689,8 +689,8 @@ GuiManager::receiveEvent(Event* event)
         BrainBrowserWindow* browserWindow = m_brainBrowserWindows[browserWindowIndex];
         CaretAssert(browserWindow);
         
-        CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
-        const int mapIndex = mapEditEvent->getMapIndex();
+//        CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
+//        const int mapIndex = mapEditEvent->getMapIndex();
         Overlay* overlay = mapEditEvent->getOverlay();
         
         MapSettingsEditorDialog* mapEditor = NULL;
@@ -717,9 +717,7 @@ GuiManager::receiveEvent(Event* event)
             }
         }
         
-        mapEditor->updateDialogContent(overlay,
-                                       mapFile,
-                                       mapIndex);
+        mapEditor->updateDialogContent(overlay);
         mapEditor->show();
         mapEditor->raise();
         mapEditor->activateWindow();

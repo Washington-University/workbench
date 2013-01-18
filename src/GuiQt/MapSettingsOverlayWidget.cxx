@@ -70,6 +70,7 @@ MapSettingsOverlayWidget::MapSettingsOverlayWidget(QWidget* parent)
                      this, SLOT(applySelections()));
     
     QGroupBox* wholeBrainGroupBox = new QGroupBox("Whole Brain");
+    wholeBrainGroupBox->setFlat(true);
     QGridLayout* wholeBrainGridLayout = new QGridLayout(wholeBrainGroupBox);
     wholeBrainGridLayout->addWidget(wholeBrainVoxelDrawingModeLabel, 0, 0);
     wholeBrainGridLayout->addWidget(m_wholeBrainVoxelDrawingModeComboBox->getWidget(), 0, 1);

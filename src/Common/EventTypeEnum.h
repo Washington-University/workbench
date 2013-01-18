@@ -88,6 +88,8 @@ public:
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
+        /** Validate that overlay is valid (it exists). */
+        EVENT_OVERLAY_VALIDATE,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Get surfaces */

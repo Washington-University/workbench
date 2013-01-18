@@ -158,6 +158,10 @@ EventTypeEnum::initialize()
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
                                      "Operating system requests open data file (Mac only)"));
     
+    enumData.push_back(EventTypeEnum(EVENT_OVERLAY_VALIDATE,
+                                     "EVENT_OVERLAY_VALIDATE",
+                                     "Validate an overlay for validity (it exists)"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

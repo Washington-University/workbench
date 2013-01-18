@@ -27,6 +27,7 @@
 
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "WholeBrainVoxelDrawingMode.h"
 
@@ -41,7 +42,7 @@ namespace caret {
     class ModelYokingGroup;
     class SceneClassAssistant;
     
-    class Overlay : public CaretObject, public SceneableInterface {
+    class Overlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         Overlay(BrainStructure* brainStructure);
@@ -55,6 +56,8 @@ namespace caret {
         Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~Overlay();
+        
+        virtual void receiveEvent(Event* event);
         
         float getOpacity() const;
         

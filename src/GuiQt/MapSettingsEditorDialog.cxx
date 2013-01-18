@@ -25,6 +25,7 @@
 
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QFocusEvent>
 #include <QGroupBox>
 #include <QLabel>
 #include <QTabWidget>
@@ -34,8 +35,11 @@
 #undef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 #include "CaretMappableDataFile.h"
+#include "EventManager.h"
+#include "EventOverlayValidate.h"
 #include "MapSettingsOverlayWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
+#include "Overlay.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -66,12 +70,14 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     this->setDeleteWhenClosed(false);
 
     m_caretMappableDataFile = NULL;
-    m_mapFileIndex = -1;
+    m_mapIndex = -1;
     
     /*
      * No apply button
      */
     this->setApplyButtonText("");
+    
+    QWidget* mapNameWidget = createMapFileAndNameSection();
     
     m_overlayWidget = new MapSettingsOverlayWidget();
     
@@ -80,6 +86,12 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
     QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(new QWidget(),
+                      "Labels");
+    tabWidget->setTabEnabled(tabWidget->count() - 1, false);
+    tabWidget->addTab(new QWidget(),
+                      "Metadata");
+    tabWidget->setTabEnabled(tabWidget->count() - 1, false);
     tabWidget->addTab(m_overlayWidget,
                       "Overlay");
     tabWidget->addTab(m_paletteColorMappingWidget,
@@ -89,10 +101,12 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     this->setLayoutMargins(layout);
+    layout->addWidget(mapNameWidget);
     layout->addWidget(tabWidget);
-    layout->addWidget(windowOptionsWidget);
+    //layout->addWidget(windowOptionsWidget);
 
     this->setCentralWidget(w);
+    this->addWidgetToLeftOfButtons(windowOptionsWidget);
 }
 
 /**
@@ -102,43 +116,93 @@ MapSettingsEditorDialog::~MapSettingsEditorDialog()
 {
 }
 
+QWidget*
+MapSettingsEditorDialog::createMapFileAndNameSection()
+{
+    QLabel* mapFileNameLabel = new QLabel("Map File: ");
+    m_selectedMapFileNameLabel = new QLabel("");
+    QLabel* mapNameLabel = new QLabel("Map Name: ");
+    m_selectedMapNameLabel = new QLabel("");
+    
+    QGroupBox* groupBox = new QGroupBox();
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
+    gridLayout->addWidget(mapFileNameLabel, 0, 0);
+    gridLayout->addWidget(m_selectedMapFileNameLabel, 0, 1, Qt::AlignLeft);
+    gridLayout->addWidget(mapNameLabel, 1, 0);
+    gridLayout->addWidget(m_selectedMapNameLabel, 1, 1, Qt::AlignLeft);
+    
+    return groupBox;
+}
+
+/**
+ * Called for focus events.  Since this dialog stores a pointer
+ * to the overlay, we need to be aware that the overlay's parameters
+ * may change or the overlay may even be deleted.  So, when
+ * this dialog gains focus, validate the overlay and then update
+ * the dialog.
+ *
+ * @param event
+ *     The focus event.
+ */
+void
+MapSettingsEditorDialog::focusInEvent(QFocusEvent* event)
+{
+    updateDialog();
+}
+
 /**
  * May be called to update the dialog's content.
  *
  * @param overlay
  *    Overlay for the dialog.
- * @param caretMappableDataFile
- *    Mappable file in dialog.
- * @param mapFileIndex
- *    Index of file in dialog.
  */
 void 
-MapSettingsEditorDialog::updateDialogContent(Overlay* overlay,
-                                             CaretMappableDataFile* caretMappableDataFile,
-                                             const int32_t mapFileIndex)
+MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
 {
     m_overlay = overlay;
-    m_caretMappableDataFile = caretMappableDataFile;
-    m_mapFileIndex = mapFileIndex;
+//    m_caretMappableDataFile = caretMappableDataFile;
+//    m_mapFileIndex = mapFileIndex;
+    
+    m_caretMappableDataFile = NULL;
+    m_mapIndex = -1;
+    if (m_overlay != NULL) {
+        overlay->getSelectionData(m_caretMappableDataFile, m_mapIndex);
+    }
     
     bool isPaletteValid = false;
     
     if (m_caretMappableDataFile != NULL) {
-        if (caretMappableDataFile->isMappedWithPalette()) {
+        if (m_caretMappableDataFile->isMappedWithPalette()) {
             isPaletteValid = true;
             m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
-                                                      m_mapFileIndex);
+                                                      m_mapIndex);
         }
     }
   
+    QString mapFileName = "";
+    QString mapName = "";
+    
     bool isOverlayValid = false;
     if (m_overlay != NULL) {
         m_overlayWidget->updateContent(m_overlay);
         isOverlayValid = true;
+        
+        if (m_caretMappableDataFile != NULL) {
+            mapFileName = m_caretMappableDataFile->getFileNameNoPath();
+            if (m_mapIndex >= 0) {
+                mapName = m_caretMappableDataFile->getMapName(m_mapIndex);
+            }
+        }
     }
     
     m_overlayWidget->setEnabled(isOverlayValid);
     m_paletteColorMappingWidget->setEnabled(isPaletteValid);
+    
+    m_selectedMapFileNameLabel->setText(mapFileName);
+    m_selectedMapNameLabel->setText(mapName);
 }
 
 /**
@@ -147,9 +211,20 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay,
 void
 MapSettingsEditorDialog::updateDialog()
 {
-    updateDialogContent(m_overlay,
-                        m_caretMappableDataFile,
-                        m_mapFileIndex);
+    /*
+     * Validate overlay to prevent crash
+     */
+    EventOverlayValidate validateOverlayEvent(m_overlay);
+    EventManager::get()->sendEvent(validateOverlayEvent.getPointer());
+    if (validateOverlayEvent.isValidOverlay() == false) {
+        m_overlay = NULL;
+    }
+    
+    updateDialogContent(m_overlay);
+    
+    if (m_overlay == NULL) {
+        close();
+    }
 }
 
 
@@ -217,15 +292,14 @@ MapSettingsEditorDialog::createWindowOptionsSection()
                                            "   If the user selects editing of another map's \n"
                                            "   palette, it will replace the content of this\n"
                                            "   window.");
-    
-    QGroupBox* optionsGroupBox = new QGroupBox("Window Options");
-    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
+    QWidget* optionsWidget = new QWidget();
+    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsWidget);
     this->setLayoutMargins(optionsLayout);
     optionsLayout->addWidget(m_doNotReplaceCheckBox);
-    optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
-                                               QSizePolicy::Fixed));
+    optionsWidget->setSizePolicy(QSizePolicy::Fixed,
+                                 QSizePolicy::Fixed);
     
-    return optionsGroupBox;
+    return optionsWidget;
 }
 
 

@@ -29,6 +29,7 @@
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
+class QLabel;
 class QLayout;
 
 
@@ -45,9 +46,7 @@ namespace caret {
     public:
         MapSettingsEditorDialog(QWidget* parent);
         
-        void updateDialogContent(Overlay* overlay,
-                                 CaretMappableDataFile* caretMappableDataFile,
-                                 const int32_t mapIndex);
+        void updateDialogContent(Overlay* overlay);
         
         void updateDialog();
         
@@ -57,6 +56,8 @@ namespace caret {
         
     protected:
         virtual void closeButtonPressed();
+        
+        virtual void focusInEvent(QFocusEvent* event);
         
     private:
         MapSettingsEditorDialog(const MapSettingsEditorDialog&);
@@ -69,6 +70,8 @@ namespace caret {
     private:
         QWidget* createWindowOptionsSection();
         
+        QWidget* createMapFileAndNameSection();
+        
         void setLayoutMargins(QLayout* layout);
         
         QCheckBox* m_doNotReplaceCheckBox;
@@ -77,15 +80,19 @@ namespace caret {
         
         Overlay* m_overlay;
         
-        int32_t m_mapFileIndex;
+        int32_t m_mapIndex;
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
         
         MapSettingsOverlayWidget* m_overlayWidget;
+        
+        QLabel* m_selectedMapFileNameLabel;
+        
+        QLabel* m_selectedMapNameLabel;
+
     };
     
 #ifdef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 } // namespace
