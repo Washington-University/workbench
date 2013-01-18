@@ -318,6 +318,10 @@ namespace caret {
         
         void drawCube(const double cubeSize);
         
+        void drawCuboid(const double sizeX,
+                        const double sizeY,
+                        const double sizeZ);
+        
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
                                 const float baseRadiusScaling,

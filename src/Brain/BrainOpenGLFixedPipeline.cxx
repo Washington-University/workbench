@@ -4284,24 +4284,18 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                 identificationIndices.push_back(kVoxel);
 
                                 glColor3ubv(rgba);
-                                const float x = iVoxel * dx + originX;
-                                const float y = jVoxel * dy + originY;
-                                const float z = kVoxel * dz + originZ;
-                                glPushMatrix();
-                                glTranslatef(x, y, z);
-                                drawCube(dx);
-                                glPopMatrix();
                             }
                             else {
                                 glColor4ubv(rgba);
-                                const float x = iVoxel * dx + originX;
-                                const float y = jVoxel * dy + originY;
-                                const float z = kVoxel * dz + originZ;
-                                glPushMatrix();
-                                glTranslatef(x, y, z);
-                                drawCube(dx);
-                                glPopMatrix();
                             }
+                            
+                            const float x = iVoxel * dx + originX;
+                            const float y = jVoxel * dy + originY;
+                            const float z = kVoxel * dz + originZ;
+                            glPushMatrix();
+                            glTranslatef(x, y, z);
+                            drawCuboid(dx, dy, dz);
+                            glPopMatrix();
                         }
                     }
                 }
@@ -7584,6 +7578,27 @@ BrainOpenGLFixedPipeline::drawCube(const double cubeSize)
 {
     glPushMatrix();
     glScaled(cubeSize, cubeSize, cubeSize);
+    m_shapeCube->draw();
+    glPopMatrix();
+}
+
+/**
+ * Draw a cuboid (3D Box)
+ *
+ * @param sizeX
+ *    X-Size of the cube (distance from -X face to its +X face).
+ * @param sizeY
+ *    Y-Size of the cube (distance from -Y face to its +Y face).
+ * @param sizeZ
+ *    Z-Size of the cube (distance from -Z face to its +X face).
+ */
+void
+BrainOpenGLFixedPipeline::drawCuboid(const double sizeX,
+                                     const double sizeY,
+                                     const double sizeZ)
+{
+    glPushMatrix();
+    glScaled(sizeX, sizeY, sizeZ);
     m_shapeCube->draw();
     glPopMatrix();
 }
