@@ -322,6 +322,12 @@ namespace caret {
                         const double sizeY,
                         const double sizeZ);
         
+        void drawRoundedCube(const double cubeSize);
+        
+        void drawRoundedCuboid(const double sizeX,
+                        const double sizeY,
+                        const double sizeZ);
+        
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
                                 const float baseRadiusScaling,
@@ -408,6 +414,9 @@ namespace caret {
         
         /** Cube symbol */
         BrainOpenGLShapeCube* m_shapeCube;
+        
+        /** Rounded Cube symbol */
+        BrainOpenGLShapeCube* m_shapeCubeRounded;
         
         std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
         

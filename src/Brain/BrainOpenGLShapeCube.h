@@ -43,7 +43,18 @@ namespace caret {
     class BrainOpenGLShapeCube : public BrainOpenGLShape {
         
     public:
-        BrainOpenGLShapeCube(const float cubeSize);
+        /**
+         * Type of cube
+         */
+        enum CUBE_TYPE {
+            /** Normal vectors orthogonal to faces */
+            NORMAL,
+            /** Normal vectors run though vertices which smooths corners */
+            ROUNDED
+        };
+        
+        BrainOpenGLShapeCube(const float cubeSize,
+                             const CUBE_TYPE cubeType);
         
         virtual ~BrainOpenGLShapeCube();
         
@@ -73,6 +84,7 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         const float m_cubeSize;
+        const CUBE_TYPE m_cubeType;
         
         GLuint m_vertexBufferID;
         GLuint m_normalBufferID;

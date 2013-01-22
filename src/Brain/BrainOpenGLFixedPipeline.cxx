@@ -142,6 +142,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
     m_shapeCube   = NULL;
+    m_shapeCubeRounded = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
     m_brain = NULL;
 }
@@ -162,6 +163,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (m_shapeCube != NULL) {
         delete m_shapeCube;
         m_shapeCube = NULL;
+    }
+    if (m_shapeCubeRounded != NULL) {
+        delete m_shapeCubeRounded;
+        m_shapeCubeRounded = NULL;
     }
     if (this->surfaceNodeColoring != NULL) {
         delete this->surfaceNodeColoring;
@@ -866,7 +871,12 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     }
     
     if (m_shapeCube == NULL) {
-        m_shapeCube = new BrainOpenGLShapeCube(1.0);
+        m_shapeCube = new BrainOpenGLShapeCube(1.0,
+                                               BrainOpenGLShapeCube::NORMAL);
+    }
+    if (m_shapeCubeRounded == NULL) {
+        m_shapeCubeRounded = new BrainOpenGLShapeCube(1.0,
+                                                      BrainOpenGLShapeCube::ROUNDED);
     }
     
     if (this->initializedOpenGLFlag) {
@@ -4166,6 +4176,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         VolumeDrawInfo& vdi = *iter;
         switch (vdi.wholeBrainVoxelDrawingMode) {
             case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
                 useIt = true;
                 break;
             case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
@@ -4294,7 +4305,16 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                             const float z = kVoxel * dz + originZ;
                             glPushMatrix();
                             glTranslatef(x, y, z);
-                            drawCuboid(dx, dy, dz);
+                            switch (volInfo.wholeBrainVoxelDrawingMode) {
+                                case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+                                    drawCuboid(dx, dy, dz);
+                                    break;
+                                case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
+                                    drawRoundedCuboid(dx, dy, dz);
+                                    break;
+                                case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                                    break;
+                            }
                             glPopMatrix();
                         }
                     }
@@ -4369,6 +4389,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
         VolumeDrawInfo& vdi = *iter;
         switch (vdi.wholeBrainVoxelDrawingMode) {
             case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
                 break;
             case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
                 useIt = true;
@@ -7606,6 +7627,42 @@ BrainOpenGLFixedPipeline::drawCuboid(const double sizeX,
     glPushMatrix();
     glScaled(sizeX, sizeY, sizeZ);
     m_shapeCube->draw();
+    glPopMatrix();
+}
+
+/**
+ * Draw cube.
+ *
+ * @param cubeSize
+ *    Size of the cube (distance from one face to its opposite face).
+ */
+void
+BrainOpenGLFixedPipeline::drawRoundedCube(const double cubeSize)
+{
+    glPushMatrix();
+    glScaled(cubeSize, cubeSize, cubeSize);
+    m_shapeCubeRounded->draw();
+    glPopMatrix();
+}
+
+/**
+ * Draw a cuboid (3D Box)
+ *
+ * @param sizeX
+ *    X-Size of the cube (distance from -X face to its +X face).
+ * @param sizeY
+ *    Y-Size of the cube (distance from -Y face to its +Y face).
+ * @param sizeZ
+ *    Z-Size of the cube (distance from -Z face to its +X face).
+ */
+void
+BrainOpenGLFixedPipeline::drawRoundedCuboid(const double sizeX,
+                                     const double sizeY,
+                                     const double sizeZ)
+{
+    glPushMatrix();
+    glScaled(sizeX, sizeY, sizeZ);
+    m_shapeCubeRounded->draw();
     glPopMatrix();
 }
 

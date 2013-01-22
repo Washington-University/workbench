@@ -56,10 +56,14 @@ using namespace caret;
  *
  * @param cubeSize
  *    Size of cube from one face to the opposite face.
+ * @param cubeType
+ *    Type of cube.
  */
-BrainOpenGLShapeCube::BrainOpenGLShapeCube(const float cubeSize)
+BrainOpenGLShapeCube::BrainOpenGLShapeCube(const float cubeSize,
+                                           const CUBE_TYPE cubeType)
 : BrainOpenGLShape(),
-  m_cubeSize(cubeSize)
+  m_cubeSize(cubeSize),
+  m_cubeType(cubeType)
 {
     m_displayList    = 0;
     m_vertexBufferID = 0;
@@ -175,18 +179,23 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
             cubeNormals[normalIndexTopFace]);
     
     CaretAssert(m_coordinates.size() == m_normals.size());
-    
-    bool smoothCubesFlag = false;
-    if (smoothCubesFlag) {
-        const unsigned int numPoints = m_coordinates.size() / 3;
-        for (unsigned int i = 0; i < numPoints; i++) {
-            const unsigned int i3 = i * 3;
-            m_normals[i3] = m_coordinates[i3];
-            m_normals[i3+1] = m_coordinates[i3+1];
-            m_normals[i3+2] = m_coordinates[i3+2];
-            
-            MathFunctions::normalizeVector(&m_normals[i3]);
+   
+    switch (m_cubeType) {
+        case NORMAL:
+            break;
+        case ROUNDED:
+        {
+            const unsigned int numPoints = m_coordinates.size() / 3;
+            for (unsigned int i = 0; i < numPoints; i++) {
+                const unsigned int i3 = i * 3;
+                m_normals[i3] = m_coordinates[i3];
+                m_normals[i3+1] = m_coordinates[i3+1];
+                m_normals[i3+2] = m_coordinates[i3+2];
+                
+                MathFunctions::normalizeVector(&m_normals[i3]);
+            }
         }
+            break;
     }
     
     switch (drawMode) {

@@ -50,6 +50,8 @@ public:
     enum Enum {
         /** In Whole Brain, view volume data as 3D cubes */
         DRAW_VOXELS_AS_THREE_D_CUBES,
+        /** In Whole Brain, view volume data as Rounded 3D cubes */
+        DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES,
         /** In Whole Brain, view volume data on slices */
         DRAW_VOXELS_ON_TWO_D_SLICES
     };

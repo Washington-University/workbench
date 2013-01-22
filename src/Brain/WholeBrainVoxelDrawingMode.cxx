@@ -90,6 +90,10 @@ WholeBrainVoxelDrawingMode::initialize()
                                     "DRAW_VOXELS_AS_THREE_D_CUBES", 
                                     "Draw Voxels as Cubes (3D)"));
     
+    enumData.push_back(WholeBrainVoxelDrawingMode(DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES,
+                                                  "DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES",
+                                                  "Draw Voxels as Rounded Cubes (3D)"));
+    
     enumData.push_back(WholeBrainVoxelDrawingMode(DRAW_VOXELS_ON_TWO_D_SLICES,
                                     "DRAW_VOXELS_ON_TWO_D_SLICES", 
                                     "Draw Voxels on Slices (2D)"));
