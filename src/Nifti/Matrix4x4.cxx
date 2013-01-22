@@ -281,6 +281,10 @@ Matrix4x4::getScale(double& scaleOutX,
     
     double scale[3];
     Matrix4x4::SingularValueDecomposition3x3(U, U, scale, VT);
+
+    scaleOutX = scale[0];
+    scaleOutY = scale[1];
+    scaleOutZ = scale[2];
 }
 
 //----------------------------------------------------------------------------

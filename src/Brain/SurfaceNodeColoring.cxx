@@ -950,9 +950,9 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
         rgbv[i*4+3] = 0.0;
     }
     
-    const PaletteColorMapping* paletteColorMapping = ciftiScalarFile->getMapPaletteColorMapping(mapIndex);
-    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
+    //const PaletteColorMapping* paletteColorMapping = ciftiScalarFile->getMapPaletteColorMapping(mapIndex);
+    //const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+    //const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
     
     const StructureEnum::Enum structure = brainStructure->getStructure();
     ciftiScalarFile->getMapSurfaceNodeColoring(mapIndex,

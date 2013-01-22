@@ -754,7 +754,9 @@ CaretPreferences::readPreferences()
 void
 CaretPreferences::readUserViews(const bool performSync)
 {
-    this->qSettings->sync();
+    if (performSync) {
+        this->qSettings->sync();
+    }
     
     this->removeAllUserViews();
     const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
