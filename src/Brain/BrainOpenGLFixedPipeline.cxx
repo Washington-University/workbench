@@ -7176,7 +7176,15 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                   brain,
                                   volumeDrawInfo);
         if (volumeDrawInfo.empty() == false) {
-            const VolumeSliceCoordinateSelection* slices = 
+            /*
+             * Voxels as 3D
+             */
+            drawVolumeVoxelsAsCubesWholeBrain(volumeDrawInfo);
+            
+            /*
+             * Voxels as 2D on slices
+             */
+            const VolumeSliceCoordinateSelection* slices =
             wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
             if (slices->isSliceAxialEnabled()) {
                 this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::AXIAL,
@@ -7211,8 +7219,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
             }
-            
-            drawVolumeVoxelsAsCubesWholeBrain(volumeDrawInfo);
         }
     }
     if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
