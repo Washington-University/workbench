@@ -176,7 +176,7 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
     
     CaretAssert(m_coordinates.size() == m_normals.size());
     
-    bool smoothCubesFlag = true;
+    bool smoothCubesFlag = false;
     if (smoothCubesFlag) {
         const unsigned int numPoints = m_coordinates.size() / 3;
         for (unsigned int i = 0; i < numPoints; i++) {
