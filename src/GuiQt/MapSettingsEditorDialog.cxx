@@ -37,7 +37,7 @@
 #include "CaretMappableDataFile.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
-#include "MapSettingsOverlayWidget.h"
+#include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
 #include "Overlay.h"
 #include "WuQtUtilities.h"
@@ -79,7 +79,7 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     QWidget* mapNameWidget = createMapFileAndNameSection();
     
-    m_overlayWidget = new MapSettingsOverlayWidget();
+    m_layerWidget = new MapSettingsLayerWidget();
     
     m_paletteColorMappingWidget = new MapSettingsPaletteColorMappingWidget();
     
@@ -89,11 +89,14 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     tabWidget->addTab(new QWidget(),
                       "Labels");
     tabWidget->setTabEnabled(tabWidget->count() - 1, false);
+
+    tabWidget->addTab(m_layerWidget,
+                      "Layer");
+    
     tabWidget->addTab(new QWidget(),
                       "Metadata");
     tabWidget->setTabEnabled(tabWidget->count() - 1, false);
-    tabWidget->addTab(m_overlayWidget,
-                      "Overlay");
+    
     tabWidget->addTab(m_paletteColorMappingWidget,
                       "Palette");
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
@@ -187,7 +190,7 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
     
     bool isOverlayValid = false;
     if (m_overlay != NULL) {
-        m_overlayWidget->updateContent(m_overlay);
+        m_layerWidget->updateContent(m_overlay);
         isOverlayValid = true;
         
         if (m_caretMappableDataFile != NULL) {
@@ -198,7 +201,7 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
         }
     }
     
-    m_overlayWidget->setEnabled(isOverlayValid);
+    m_layerWidget->setEnabled(isOverlayValid);
     m_paletteColorMappingWidget->setEnabled(isPaletteValid);
     
     m_selectedMapFileNameLabel->setText(mapFileName);

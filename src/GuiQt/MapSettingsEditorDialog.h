@@ -36,7 +36,7 @@ class QLayout;
 namespace caret {
     
     class CaretMappableDataFile;
-    class MapSettingsOverlayWidget;
+    class MapSettingsLayerWidget;
     class MapSettingsPaletteColorMappingWidget;
     class Overlay;
     
@@ -84,7 +84,7 @@ namespace caret {
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
         
-        MapSettingsOverlayWidget* m_overlayWidget;
+        MapSettingsLayerWidget* m_layerWidget;
         
         QLabel* m_selectedMapFileNameLabel;
         
