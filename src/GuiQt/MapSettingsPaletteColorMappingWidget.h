@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include <stdint.h> // needed by windows
 #include <QWidget>
 
 class QAbstractButton;
