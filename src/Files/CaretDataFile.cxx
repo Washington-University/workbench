@@ -44,16 +44,17 @@ using namespace caret;
 CaretDataFile::CaretDataFile(const DataFileTypeEnum::Enum dataFileType)
 : DataFile()
 {
-    this->dataFileType = dataFileType;
+    m_dataFileType = dataFileType;
+    m_displayedInGuiFlag = false;
     
-    AString name = (DataFileTypeEnum::toName(this->dataFileType).toLower()
+    AString name = (DataFileTypeEnum::toName(m_dataFileType).toLower()
                     + "_file_"
-                    + AString::number( CaretDataFile::defaultFileNameCounter)
+                    + AString::number(s_defaultFileNameCounter)
                     + "."
-                    + DataFileTypeEnum::toFileExtension(this->dataFileType));
-    CaretDataFile::defaultFileNameCounter++;
+                    + DataFileTypeEnum::toFileExtension(m_dataFileType));
+    s_defaultFileNameCounter++;
     
-    this->setFileName(name);
+    setFileName(name);
 }
 
 /**
@@ -70,7 +71,7 @@ CaretDataFile::~CaretDataFile()
 DataFileTypeEnum::Enum 
 CaretDataFile::getDataFileType() const
 {
-    return this->dataFileType; 
+    return m_dataFileType; 
 }
 
 /**
@@ -84,7 +85,7 @@ CaretDataFile::getDataFileType() const
 void 
 CaretDataFile::setDataFileType(const DataFileTypeEnum::Enum dataFileType)
 {
-    this->dataFileType = dataFileType;
+    m_dataFileType = dataFileType;
 }
 
 /**
@@ -95,7 +96,7 @@ CaretDataFile::setDataFileType(const DataFileTypeEnum::Enum dataFileType)
 CaretDataFile::CaretDataFile(const CaretDataFile& cdf)
 : DataFile(cdf)
 {
-    this->copyDataCaretDataFile(cdf);
+    copyDataCaretDataFile(cdf);
 }
 
 /**
@@ -107,7 +108,7 @@ CaretDataFile&
 CaretDataFile::operator=(const CaretDataFile& cdf)
 {
     if (this != &cdf) {
-        this->copyDataCaretDataFile(cdf);
+        copyDataCaretDataFile(cdf);
     }
     return *this;
 }
@@ -120,6 +121,68 @@ CaretDataFile::operator=(const CaretDataFile& cdf)
 void 
 CaretDataFile::copyDataCaretDataFile(const CaretDataFile& cdf)
 {
-    this->dataFileType = cdf.dataFileType;
+    m_dataFileType = cdf.m_dataFileType;
 }
+
+/**
+ * @return Is this file displayed in the graphical user-interface?
+ *
+ * Note: Before calling this method, Brain::determineDisplayedDataFiles()
+ * must be called.  It will set the displayed status for all 
+ * files that is owns.
+ */
+bool 
+CaretDataFile::isDisplayedInGUI() const
+{
+    return m_displayedInGuiFlag;
+}
+
+/**
+ * Set the displayed in graphical user-interface status.
+ * @param displayedInGUI
+ *    New status of displayed in GUI.
+ *
+ * Note: This method is called by Brain::determineDisplayedDataFiles().
+ */
+void 
+CaretDataFile::setDisplayedInGUI(const bool displayedInGUI)
+{
+    m_displayedInGuiFlag = displayedInGUI;
+}
+
+/**
+ * Set the username and password for reading files, typically from
+ * a database or website.
+ *
+ * @param username
+ *     Account's username.
+ * @param password
+ *     Account's password.
+ */
+void
+CaretDataFile::setFileReadingUsernameAndPassword(const AString& username,
+                                                 const AString& password)
+{
+    s_fileReadingUsername = username;
+    s_fileReadingPassword = password;
+}
+
+/**
+ * @return The username for file reading from database or website.
+ */
+AString
+CaretDataFile::getFileReadingUsername()
+{
+    return s_fileReadingUsername;
+}
+
+/**
+ * @return The password for file reading from database or website.
+ */
+AString
+CaretDataFile::getFileReadingPassword()
+{
+    return s_fileReadingPassword;
+}
+
 

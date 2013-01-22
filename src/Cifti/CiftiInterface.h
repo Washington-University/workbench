@@ -39,6 +39,13 @@ namespace caret
         bool checkRowIndex(int64_t index) const;
         bool checkColumnIndex(int64_t index) const;
     public:
+        ///simple enum for interaction between various cifti methods
+        enum CiftiDirection
+        {
+            ALONG_ROW,
+            ALONG_COLUMN
+        };
+
         ///get a row
         virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
         
@@ -51,14 +58,14 @@ namespace caret
         ///get column size
         virtual int64_t getNumberOfRows() const = 0;
 
-        ///get the XML data
-        void getCiftiXML(CiftiXML &xml) const { xml = m_xml; }
-        
         ///get a reference to the XML data
         const CiftiXML& getCiftiXML() const { return m_xml; }
         
         ///get a row by surface and node - returns false if not found in mapping
         bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure) const;
+        
+        ///get a row by surface and node - returns false if not found in mapping
+        bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure, int64_t& rowIndexOut) const;
         
         ///get a column by surface and node - returns false if not found in mapping
         bool getColumnFromNode(float* columnOut, const int64_t node, const StructureEnum::Enum structure) const;
@@ -66,20 +73,26 @@ namespace caret
         ///get a row by voxel index - returns false if not found in mapping
         bool getRowFromVoxel(float* rowOut, const int64_t* ijk) const;
         
-        ///get a row by voxel index - returns false if not found in mapping
+        ///get a column by voxel index - returns false if not found in mapping
         bool getColumnFromVoxel(float* columnOut, const int64_t* ijk) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
         bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
+        bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz, int64_t& rowIndexOut) const;
+        
+        ///get a column by voxel coordinate - returns false if not found in mapping
         bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz) const;
         
         ///get a row by timepoint
         bool getRowFromTimepoint(float* rowOut, const float seconds) const;
         
-        ///get a row by timepoint
+        ///get a column by timepoint
         bool getColumnFromTimepoint(float* columnOut, const float seconds) const;
+        
+        ///get a column by frame
+        bool getColumnFromFrame(float* columnOut, const int frame) const;
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
@@ -128,7 +141,15 @@ namespace caret
         
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const
         { return m_xml.hasColumnSurfaceData(structure); }
-        
+
+        ///get the map name for an index along a column
+        AString getMapNameForColumnIndex(const int& index) const
+        { return m_xml.getMapNameForColumnIndex(index); }
+
+        ///get the map name for an index along a row
+        AString getMapNameForRowIndex(const int& index) const
+        { return m_xml.getMapNameForRowIndex(index); }
+
         virtual ~CiftiInterface();
 
     };

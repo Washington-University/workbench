@@ -84,7 +84,8 @@ namespace caret {
         {
             TRILINEAR,
             ENCLOSING_VOXEL,
-            RIBBON_CONSTRAINED
+            RIBBON_CONSTRAINED,
+            CUBIC
         };
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, VolumeFile* roiVol = NULL, int32_t subdivisions = 3);
         static OperationParameters* getParameters();

@@ -42,7 +42,13 @@ namespace caret {
             throw (CommandException,
                    ProgramParametersException);
             
-        AString getHelpInformation(const AString& /*programName*/) { return ""; };
+        AString getHelpInformation(const AString& /*programName*/);
+        
+        /** This String is used by the command that adds new members to a class */
+        static AString getNewMembersString() { return "// ADD_NEW_MEMBERS_HERE"; }
+        
+        /** This String is used by the command that adds new METHODS to a class */
+        static AString getNewMethodsString() { return "// ADD_NEW_METHODS_HERE"; }
         
     private:
         
@@ -61,6 +67,7 @@ namespace caret {
         void createImplementationFile(const AString& outputFileName,
                                       const AString& className,
                                       const AString& derivedFromClassName,
+                                      const AString& eventTypeEnumName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const bool hasCopyAndAssignment);
     };

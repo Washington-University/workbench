@@ -1,90 +1,105 @@
-#ifndef __IDENTIFICATION_MANAGER__H_
-#define __IDENTIFICATION_MANAGER__H_
+#ifndef __IDENTIFICATION_MANAGER_H__
+#define __IDENTIFICATION_MANAGER_H__
 
 /*LICENSE_START*/
-/* 
- *  Copyright 1995-2011 Washington University School of Medicine 
- * 
- *  http://brainmap.wustl.edu 
- * 
- *  This file is part of CARET. 
- * 
- *  CARET is free software; you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or 
- *  (at your option) any later version. 
- * 
- *  CARET is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- * 
- *  You should have received a copy of the GNU General Public License 
- *  along with CARET; if not, write to the Free Software 
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- * 
- */ 
+/*
+ * Copyright 2012 Washington University,
+ * All rights reserved.
+ *
+ * Connectome DB and Connectome Workbench are part of the integrated Connectome 
+ * Informatics Platform.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    * Redistributions of source code must retain the above copyright
+ *      notice, this list of conditions and the following disclaimer.
+ *    * Redistributions in binary form must reproduce the above copyright
+ *      notice, this list of conditions and the following disclaimer in the
+ *      documentation and/or other materials provided with the distribution.
+ *    * Neither the names of Washington University nor the
+ *      names of its contributors may be used to endorse or promote products
+ *      derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR  
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+/*LICENSE_END*/
 
-#include "CaretObject.h"
+#include <list>
+
+#include "CaretColorEnum.h"
+#include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 namespace caret {
+
     class Brain;
-    class BrowserTabContent;
-    class IdentificationItem;
-    class IdentificationItemBorderSurface;
-    class IdentificationItemSurfaceNode;
-    class IdentificationItemSurfaceNodeIdentificationSymbol;
-    class IdentificationItemSurfaceTriangle;
-    class IdentificationItemVoxel;
-    class IdentificationTextGenerator;
-    class Surface;
+    class IdentifiedItem;
+    class IdentifiedItemNode;
+    class SceneClassAssistant;
     
-    class IdentificationManager : public CaretObject {
+    class IdentificationManager : public SceneableInterface {
         
     public:
-        IdentificationManager();
+        IdentificationManager(Brain* brain);
         
         virtual ~IdentificationManager();
         
-        void reset();
+        void addIdentifiedItem(IdentifiedItem* item);
         
-        IdentificationItemBorderSurface* getSurfaceBorderIdentification();
+        AString getIdentificationText() const;
         
-        const IdentificationItemBorderSurface* getSurfaceBorderIdentification() const;
+        std::vector<IdentifiedItemNode> getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
+                                                                         const int32_t surfaceNumberOfNodes) const;
         
-        IdentificationItemSurfaceNode* getSurfaceNodeIdentification();
+        void removeIdentifiedNodeItem(const StructureEnum::Enum structure,
+                                      const int32_t surfaceNumberOfNodes,
+                                      const int32_t nodeIndex);
         
-        const IdentificationItemSurfaceNode* getSurfaceNodeIdentification() const;
+        void removeIdentificationText();
         
-        IdentificationItemSurfaceNodeIdentificationSymbol* getSurfaceNodeIdentificationSymbol();
+        void removeAllIdentifiedItems();
         
-        const IdentificationItemSurfaceNodeIdentificationSymbol* getSurfaceNodeIdentificationSymbol() const;
+        void removeAllIdentifiedNodes();
         
-        IdentificationItemSurfaceTriangle* getSurfaceTriangleIdentification();
+        bool isContralateralIdentificationEnabled() const;
         
-        const IdentificationItemSurfaceTriangle* getSurfaceTriangleIdentification() const;
+        void setContralateralIdentificationEnabled(const bool enabled);
         
-        const IdentificationItemVoxel* getVoxelIdentification() const;
+        bool isVolumeIdentificationEnabled() const;
         
-        IdentificationItemVoxel* getVoxelIdentification();
+        void setVolumeIdentificationEnabled(const bool enabled);
         
-        AString getIdentificationText(const BrowserTabContent* browserTabContent,
-                                      const Brain* brain) const;
+        float getIdentificationSymbolSize() const;
         
-        void filterSelections();
+        void setIdentificationSymbolSize(const float symbolSize);
         
-        void clearDistantSelections();
+        float getMostRecentIdentificationSymbolSize() const;
         
-        void addAdditionalSurfaceNodeIdentification(Surface* surface,
-                                                    const int32_t nodeIndex,
-                                                    bool isContralateralIdentification);
+        void setMostRecentIdentificationSymbolSize(const float symbolSize);
         
-        int32_t getNumberOfAdditionalSurfaceNodeIdentifications() const;
+        CaretColorEnum::Enum getIdentificationSymbolColor() const;
         
-        IdentificationItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx);
+        void setIdentificationSymbolColor(const CaretColorEnum::Enum color);
         
-        const IdentificationItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx) const;
+        CaretColorEnum::Enum getIdentificationContralateralSymbolColor() const;
         
+        void setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private:
         IdentificationManager(const IdentificationManager&);
@@ -92,36 +107,37 @@ namespace caret {
         IdentificationManager& operator=(const IdentificationManager&);
         
     public:
-        virtual AString toString() const;
-        
-    private:
-        IdentificationItem* getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const;
 
-        /** ALL items */
-        std::vector<IdentificationItem*> allIdentificationItems;
+        // ADD_NEW_METHODS_HERE
+
+    private:
+
+        void addIdentifiedItemPrivate(IdentifiedItem* item);
         
-        /** Layered items (foci, borders, etc.) */
-        std::vector<IdentificationItem*> layeredSelectedItems;
+        // ADD_NEW_MEMBERS_HERE
+
+        SceneClassAssistant* m_sceneAssistant;
         
-        /** Surface items (nodes, triangles) */
-        std::vector<IdentificationItem*> surfaceSelectedItems;
+        Brain* m_brain;
         
-        /** Volume items */
-        std::vector<IdentificationItem*> volumeSelectedItems;
+        std::list<IdentifiedItem*> m_identifiedItems;
         
-        IdentificationItemBorderSurface* surfaceBorderIdentification;
+        AString m_previousIdentifiedItemsText;
         
-        IdentificationItemSurfaceNode* surfaceNodeIdentification;
+        IdentifiedItem* m_mostRecentIdentifiedItem;
         
-        IdentificationItemSurfaceNodeIdentificationSymbol* surfaceNodeIdentificationSymbol;
+        bool m_contralateralIdentificationEnabled;
         
-        IdentificationItemSurfaceTriangle* surfaceTriangleIdentification;
+        bool m_volumeIdentificationEnabled;
         
-        IdentificationTextGenerator* idTextGenerator;
+        float m_identifcationSymbolSize;
         
-        IdentificationItemVoxel* voxelIdentification;
+        float m_identifcationMostRecentSymbolSize;
         
-        std::vector<IdentificationItemSurfaceNode*> additionalSurfaceNodeIdentifications;
+        CaretColorEnum::Enum m_identificationSymbolColor;
+        
+        CaretColorEnum::Enum m_identificationContralateralSymbolColor;
+        
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__
@@ -129,4 +145,4 @@ namespace caret {
 #endif // __IDENTIFICATION_MANAGER_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_MANAGER__H_
+#endif  //__IDENTIFICATION_MANAGER_H__

@@ -36,7 +36,6 @@ namespace caret
     template <typename T, typename K, typename C>
     class CaretHeapBase
     {
-    public:
         struct DataStruct
         {
             K m_key;
@@ -44,8 +43,6 @@ namespace caret
             int64_t m_index;
             DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
         };
-    protected:
-        CaretHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
         std::vector<DataStruct> m_datastore;
         std::vector<int64_t> m_heap;
         std::vector<int64_t> m_unusedStore;
@@ -56,6 +53,8 @@ namespace caret
         inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
+    protected:
+        CaretHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
     public:
         ///this heap is special, save the return value of push() and you can modify the key/data later (constant time for data, log(heapsize) time to change key)
         int64_t push(const T& data, const K& key);
@@ -68,6 +67,9 @@ namespace caret
         
         ///modify the key, and reheapify
         void changekey(const int64_t& dataIndex, K key);
+        
+        ///delete the element with the key, and reheapify
+        T remove(const int64_t& dataIndex, K* key = NULL);
         
         ///modify or just access the data - could be an operator[] but that would be kind of confusing
         T& data(const int64_t& dataIndex);
@@ -92,20 +94,19 @@ namespace caret
     template <typename T, typename K, typename C>
     class CaretSimpleHeapBase
     {
-    public:
         struct DataStruct
         {
             K m_key;
             T m_data;
             DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
         };
-    protected:
-        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
         std::vector<DataStruct> m_heap;
         //uses curiously recurring template pattern to use child class's comparison without virtual
         inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
+    protected:
+        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
     public:
         
         void push(const T& data, const K& key);
@@ -177,6 +178,7 @@ namespace caret
     void CaretHeapBase<T, K, C>::changekey(const int64_t& dataIndex, K key)
     {
         CaretAssertVectorIndex(m_datastore, dataIndex);
+        CaretAssert(m_datastore[dataIndex].m_index != -1);
         K oldkey = m_datastore[dataIndex].m_key;
         m_datastore[dataIndex].m_key = key;
         if (compare(oldkey, key))
@@ -188,16 +190,44 @@ namespace caret
     }
     
     template <typename T, typename K, typename C>
+    T CaretHeapBase<T, K, C>::remove(const int64_t& dataIndex, K* key)
+    {
+        CaretAssertVectorIndex(m_datastore, dataIndex);
+        CaretAssert(m_datastore[dataIndex].m_index != -1);
+        int64_t myHeapIndex = m_datastore[dataIndex].m_index;
+        T ret = m_datastore[dataIndex].m_data;
+        if (key != NULL) *key = m_datastore[dataIndex].m_key;
+        if (myHeapIndex < (int64_t)(m_heap.size() - 1))//don't try to do stuff other than removing it if it is the last element
+        {
+            K removedKey = m_datastore[dataIndex].m_key;
+            K newKey = m_datastore[m_heap.back()].m_key;
+            put(m_heap.back(), myHeapIndex);//replace the removed element's position with the last
+            m_heap.pop_back();
+            if (compare(removedKey, newKey))//and heapify it
+            {
+                heapify_down(myHeapIndex);
+            } else {
+                heapify_up(myHeapIndex);
+            }
+        } else {
+            m_heap.pop_back();
+        }
+        m_unusedStore.push_back(dataIndex);//mark the removed data location as unused
+        m_datastore[dataIndex].m_index = -1;
+        return ret;
+    }
+    
+    template <typename T, typename K, typename C>
     T& CaretHeapBase<T, K, C>::data(const int64_t& dataIndex)
     {
         CaretAssertVectorIndex(m_datastore, dataIndex);
+        CaretAssert(m_datastore[dataIndex].m_index != -1);
         return m_datastore[dataIndex].m_data;
     }
     
     template <typename T, typename K, typename C>
     void CaretHeapBase<T, K, C>::heapify_down(const int64_t& start)
     {
-        if (m_heap.size() == 0) return;
         CaretAssertVectorIndex(m_heap, start);
         int64_t cur = start, nextInd = (start << 1) + 1, mySize = (int64_t)m_heap.size();
         int64_t temp = m_heap[start];//save current data index, don't swap it around until we stop
@@ -222,7 +252,6 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretHeapBase<T, K, C>::heapify_up(const int64_t& start)
     {
-        if (m_heap.size() == 0) return;
         CaretAssertVectorIndex(m_heap, start);
         int64_t cur = start, nextInd = (start - 1) >> 1;
         int64_t temp = m_heap[start];
@@ -247,9 +276,15 @@ namespace caret
         T ret = m_datastore[m_heap[0]].m_data;
         if (key != NULL) *key = m_datastore[m_heap[0]].m_key;
         m_unusedStore.push_back(m_heap[0]);//should this try garbage collection?  currently, the T data will remain until overwritten...would require another level of indirection to fix
-        put(m_heap[m_heap.size() - 1], 0);
-        m_heap.pop_back();
-        heapify_down(0);
+        m_datastore[m_heap[0]].m_index = -1;
+        if (m_heap.size() > 1)
+        {
+            put(m_heap[m_heap.size() - 1], 0);
+            m_heap.pop_back();
+            heapify_down(0);
+        } else {
+            m_heap.pop_back();
+        }
         return ret;
     }
 
@@ -267,8 +302,8 @@ namespace caret
             dataLoc = m_datastore.size();
             m_datastore.push_back(DataStruct(key, data));
         }
+        m_datastore[dataLoc].m_index = (int64_t)m_heap.size();
         m_heap.push_back(dataLoc);
-        put(dataLoc, m_heap.size() - 1);
         heapify_up(m_heap.size() - 1);
         return dataLoc;
     }
@@ -285,7 +320,7 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretHeapBase<T, K, C>::reserve(int64_t expectedSize)
     {
-        CaretAssert(expectedSize > 0);
+        if (expectedSize <= 0) return;
         m_heap.reserve(expectedSize);
         m_datastore.reserve(expectedSize);
         m_unusedStore.reserve(expectedSize);//expect them to eventually pop() everything
@@ -322,7 +357,6 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretSimpleHeapBase<T, K, C>::heapify_down(const int64_t& start)
     {
-        if (m_heap.size() == 0) return;
         CaretAssertVectorIndex(m_heap, start);
         int64_t cur = start, nextInd = (start << 1) + 1, mySize = (int64_t)m_heap.size();
         DataStruct temp = m_heap[start];//save current data, don't swap it around until we stop
@@ -347,7 +381,6 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretSimpleHeapBase<T, K, C>::heapify_up(const int64_t& start)
     {
-        if (m_heap.size() == 0) return;
         CaretAssertVectorIndex(m_heap, start);
         int64_t cur = start, nextInd = (start - 1) >> 1;
         DataStruct temp = m_heap[start];
@@ -371,9 +404,14 @@ namespace caret
         CaretAssert(m_heap.size() > 0);
         T ret = m_heap[0].m_data;
         if (key != NULL) *key = m_heap[0].m_key;
-        m_heap[0] = m_heap[m_heap.size() - 1];
-        m_heap.pop_back();
-        heapify_down(0);
+        if (m_heap.size() > 1)
+        {
+            m_heap[0] = m_heap[m_heap.size() - 1];
+            m_heap.pop_back();
+            heapify_down(0);
+        } else {
+            m_heap.pop_back();
+        }
         return ret;
     }
 
@@ -387,7 +425,7 @@ namespace caret
     template <typename T, typename K, typename C>
     void CaretSimpleHeapBase<T, K, C>::reserve(int64_t expectedSize)
     {
-        CaretAssert(expectedSize > 0);
+        if (expectedSize <= 0) return;
         m_heap.reserve(expectedSize);
     }
     

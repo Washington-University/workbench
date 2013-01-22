@@ -34,18 +34,20 @@
 #include "AString.h"
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
-#include "EventListenerInterface.h"
+#include "DataFileTypeEnum.h"
+#include "SceneableInterface.h"
 
 class QAction;
 class QActionGroup;
+class QDockWidget;
 class QMenu;
 
 namespace caret {
-    class BrainBrowserSelectionToolBox;
     class BrainBrowserWindowToolBar;
-    class BrainBrowserWindowToolBox;
+    class BrainBrowserWindowOrientedToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
+    class SceneClassAssistant;
 
     
     /**
@@ -53,15 +55,16 @@ namespace caret {
      * brain models.  It may contain multiple tabs
      * with each tab displaying brain models.
      */ 
-    class BrainBrowserWindow : public QMainWindow, public EventListenerInterface  {
+    class BrainBrowserWindow : public QMainWindow, public SceneableInterface  {
         Q_OBJECT
         
     public:
         virtual ~BrainBrowserWindow();
         
-        void receiveEvent(Event* event);
-        
         BrowserTabContent* getBrowserTabContent();
+
+        BrowserTabContent* getBrowserTabContent(int tabIndex);
+
         
         QMenu* createPopupMenu();
         
@@ -78,36 +81,59 @@ namespace caret {
          * Mode for loading spec files
          */
         enum LoadSpecFileMode {
-            /** Do not show spec file dialog, just load all files listed in spec file */
-            LOAD_SPEC_FILE_CONTENTS,
+            /** Do not show spec file dialog, just load all files listed in spec file listed on command line at program startup */
+            LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
             /** Show spec file in spec file dialog for user selections */
-            LOAD_SPEC_FILE_WITH_DIALOG
+            LOAD_SPEC_FILE_WITH_DIALOG,
+            /** Show spec file in spec file dialog for user selections from spec file listed on command line at program startup */
+            LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE
         };
         
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
+        void loadSceneFromCommandLine(const AString& sceneFileName,
+                                      const AString& sceneNameOrNumber);
+        
+        void loadFilesFromNetwork(const std::vector<AString>& filenames,
+                                  const AString& username,
+                                  const AString& password);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+
+        void getViewportSize(int &w, int &h);
     protected:
         void closeEvent(QCloseEvent* event);
         
     private slots:        
-        void processDisplayControl();        
+        void processAboutWorkbench();
+        void processInformationDialog();
         void processNewWindow();
         void processNewTab();
+        void processDataFileLocationOpen();
         void processDataFileOpen();
         void processDataFileOpenFromSpecFile();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
+        void processRecordMovie();
         void processEditPreferences();
         void processCloseSpecFile();
         void processExitProgram();
         void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
-        void processMoveToolBoxToLeft();
-        void processMoveToolBoxToRight();
-        void processMoveToolBoxToTop();
-        void processMoveToolBoxToBottom();
-        void processMoveToolBoxToFloat();
+        
+        void processMoveOverlayToolBoxToLeft();
+        void processMoveOverlayToolBoxToBottom();
+        void processMoveOverlayToolBoxToFloat();
+        void processHideOverlayToolBox();
+        
+        void processMoveFeaturesToolBoxToRight();
+        void processMoveFeaturesToolBoxToFloat();
+        void processHideFeaturesToolBox();
         
         void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
         void processMoveSelectedTabToWindowMenuSelection(QAction*);
@@ -115,23 +141,51 @@ namespace caret {
         void processRecentSpecFileMenuAboutToBeDisplayed();
         void processRecentSpecFileMenuSelection(QAction*);
         
-        void shrinkToolbox();
+        void processShowOverlayToolBox(bool);
+        void processShowFeaturesToolBox(bool);
+        void processOverlayHorizontalToolBoxVisibilityChanged(bool);
+        void processOverlayVerticalToolBoxVisibilityChanged(bool);
         
         void processFileMenuAboutToShow();
+        void processDataMenuAboutToShow();
         void processViewMenuAboutToShow();
         
         void processSurfaceMenuInformation();
         void processSurfaceMenuVolumeInteraction();
         
+        void processConnectToAllenDataBase();
+        void processConnectToConnectomeDataBase();
+        
+        void processHcpWebsiteInBrowser();
+                
+        void processShowSceneDialog();
+        void processShowSurfacePropertiesDialog();
+        
+        void processGraphicsTiming();
+        
+        void processProjectFoci();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
-            bool isToolBoxDisplayed;
+            bool isFeaturesToolBoxDisplayed;
+            bool isOverlayToolBoxDisplayed;
             bool isToolBarDisplayed;
+        };
+        
+        enum AddDataFileToSpecFileMode {
+            ADD_DATA_FILE_TO_SPEC_FILE_YES,
+            ADD_DATA_FILE_TO_SPEC_FILE_NO
+        };
+        
+        enum CreateDefaultTabsMode {
+            CREATE_DEFAULT_TABS_YES,
+            CREATE_DEFAULT_TABS_NO
         };
         
         BrainBrowserWindow(const int browserWindowIndex,
                            BrowserTabContent* browserTabContent,
+                           const CreateDefaultTabsMode createDefaultTabsMode,
                            QWidget* parent = 0,
                            Qt::WindowFlags flags = 0);
         
@@ -140,7 +194,9 @@ namespace caret {
         
         void loadFiles(const std::vector<AString>& filenames,
                        const LoadSpecFileMode loadSpecFileMode,
-                       const bool commandLineFlag);
+                       const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
+                       const AString& username,
+                       const AString& password);
         
         void createActions();
         void createActionsUsedByToolBar();
@@ -148,14 +204,17 @@ namespace caret {
         
         QMenu* createMenuFile();
         QMenu* createMenuView();
-        QMenu* createMenuViewMoveToolBox();
+        QMenu* createMenuViewMoveOverlayToolBox();
+        QMenu* createMenuViewMoveFeaturesToolBox();
+        QMenu* createMenuConnect();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
         QMenu* createMenuVolume();
         QMenu* createMenuWindow();
         QMenu* createMenuHelp();
         
-        void moveToolBox(Qt::DockWidgetArea area);
+        void moveOverlayToolBox(Qt::DockWidgetArea area);
+        void moveFeaturesToolBox(Qt::DockWidgetArea area);
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
@@ -163,79 +222,119 @@ namespace caret {
         void openSpecFile(const AString& specFileName) throw (DataFileException);
         
         /** Index of this window */
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
         
-        BrainOpenGLWidget* openGLWidget;
+        BrainOpenGLWidget* m_openGLWidget;
         
-        BrainBrowserWindowToolBar* toolbar;
+        BrainBrowserWindowToolBar* m_toolbar;
         
-        BrainBrowserSelectionToolBox* selectionToolBox;
+        QAction* m_aboutWorkbenchAction;
         
-        QAction* newWindowAction;
+        QAction* m_newWindowAction;
         
-        QAction* newTabAction;
+        QAction* m_newTabAction;
         
-        QAction* openFileAction;
+        QAction* m_openFileAction;
         
-        QAction* openFileViaSpecFileAction;
+        QAction* m_openLocationAction;
         
-        QAction* manageFilesAction;
+        QAction* m_openFileViaSpecFileAction;
         
-        QAction* closeSpecFileAction;
+        QAction* m_manageFilesAction;
         
-        QAction* closeTabAction;
+        QAction* m_closeSpecFileAction;
         
-        QAction* closeWindowAction;
+        QAction* m_closeTabAction;
         
-        QAction* captureImageAction;
+        QAction* m_closeWindowAction;
         
-        QAction* preferencesAction;
+        QAction* m_captureImageAction;
+
+        QAction* m_recordMovieAction;
         
-        QAction* exitProgramAction;
+        QAction* m_preferencesAction;
         
-        QAction* showToolBarAction;
+        QAction* m_exitProgramAction;
         
-        QAction* displayControlAction;
+        QAction* m_showToolBarAction;
         
-        QActionGroup* viewScreenActionGroup;
-        QAction* viewScreenNormalAction;
-        QAction* viewScreenFullAction;
-        QAction* viewScreenMontageTabsAction;
-        QAction* viewScreenFullMontageTabsAction;        
+        QAction* m_showSceneDialogAction;
         
-        QAction* viewMenuShowToolBoxAction;
+        QActionGroup* m_viewScreenActionGroup;
+        QAction* m_viewScreenNormalAction;
+        QAction* m_viewScreenFullAction;
+        QAction* m_viewScreenMontageTabsAction;
+        QAction* m_viewScreenFullMontageTabsAction;        
         
-        QAction* nextTabAction;
+        QAction* m_nextTabAction;
         
-        QAction* previousTabAction;
+        QAction* m_previousTabAction;
         
-        QAction* renameSelectedTabAction;
+        QAction* m_renameSelectedTabAction;
         
-        QAction* moveTabsInWindowToNewWindowsAction;
+        QAction* m_moveTabsInWindowToNewWindowsAction;
         
-        QAction* moveTabsFromAllWindowsToOneWindowAction;
+        QAction* m_moveTabsFromAllWindowsToOneWindowAction;
         
-        QAction* bringAllToFrontAction;
+        QAction* m_bringAllToFrontAction;
         
-        QAction* helpOnlineAction;
+        QAction* m_informationDialogAction;
         
-        QAction* searchHelpOnlineAction;
+        QAction* m_connectToAllenDatabaseAction;
+        QAction* m_connectToConnectomeDatabaseAction;
+
+        QAction* m_helpHcpWebsiteAction;
+        QAction* m_helpOnlineAction;
+        QAction* m_helpSearchOnlineAction;
         
-        QMenu* moveSelectedTabToWindowMenu;
+        QAction* m_helpGraphicsTimingAction;
         
-        QMenu* recentSpecFileMenu;
+        QAction* m_overlayToolBoxAction;
         
-        BrainBrowserWindowToolBox* toolBox;
+        QAction* m_featuresToolBoxAction;
         
-        AString previousOpenFileNameFilter;
+        QAction* m_fociProjectAction;
         
-        BrainBrowserWindowScreenModeEnum::Enum screenMode;
+        QMenu* m_moveSelectedTabToWindowMenu;
         
-        WindowComponentStatus normalWindowComponentStatus;
+        QMenu* m_recentSpecFileMenu;
+        
+        BrainBrowserWindowOrientedToolBox* m_overlayHorizontalToolBox;
+        BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;
+        BrainBrowserWindowOrientedToolBox* m_overlayActiveToolBox;
+        BrainBrowserWindowOrientedToolBox* m_featuresToolBox;
+        
+        static AString s_previousOpenFileNameFilter;
+        static AString s_previousOpenFileDirectory;
+        
+        BrainBrowserWindowScreenModeEnum::Enum m_screenMode;
+        
+        WindowComponentStatus m_defaultWindowComponentStatus;
+        WindowComponentStatus m_normalWindowComponentStatus;
                 
+        static bool s_firstWindowFlag;
+        
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
+        
+        SceneClassAssistant* m_sceneAssistant;
+        
+        /** X position from scene file for first window */
+        static int32_t s_sceneFileFirstWindowX;
+
+        /** Y position from scene file for first window */
+        static int32_t s_sceneFileFirstWindowY;
+        
     };
+#ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
+    AString BrainBrowserWindow::s_previousOpenFileNameFilter;
+    AString BrainBrowserWindow::s_previousOpenFileDirectory;
+    bool BrainBrowserWindow::s_firstWindowFlag = true;
+    int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
+    int32_t BrainBrowserWindow::s_sceneFileFirstWindowY = -1;
+#endif // __BRAIN_BROWSER_WINDOW_DECLARE__
+    
 }
+
 #endif // __BRAIN_BROWSER_WINDOW_H__
 

@@ -25,10 +25,36 @@
 #ifndef __CARET_MUTEX_H__
 #define __CARET_MUTEX_H__
 
+#include "CaretOMP.h"
+
 #include <QMutex>
 
 namespace caret {
 
+//omp mutexes are faster than QMutex, especially without contention
+#ifdef CARET_OMP
+    class CaretMutex
+    {
+        omp_lock_t m_lock;
+        CaretMutex(const CaretMutex& rhs);//disallow copy, assign
+        CaretMutex& operator=(const CaretMutex& rhs);
+    public:
+        CaretMutex() { omp_init_lock(&m_lock); }
+        ~CaretMutex() { omp_destroy_lock(&m_lock); }
+        friend class CaretMutexLocker;
+    };
+    
+    class CaretMutexLocker
+    {
+        CaretMutex* m_mutex;
+        CaretMutexLocker();//disallow default construction, assign
+        CaretMutexLocker& operator=(const CaretMutexLocker& rhs);
+        public:
+        CaretMutexLocker(CaretMutex* mutex) { m_mutex = mutex; omp_set_lock(&(m_mutex->m_lock)); }
+        ~CaretMutexLocker() { omp_unset_lock(&(m_mutex->m_lock)); }
+    };
+#else
+//if we don't have openmp, fall back to CaretMutex
    class CaretMutex : public QMutex
    {
    public:
@@ -40,6 +66,8 @@ namespace caret {
    public:
       CaretMutexLocker(CaretMutex* theMutex);
    };
+   
+#endif
 
 }
 

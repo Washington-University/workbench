@@ -77,6 +77,23 @@ void CaretPointLocator::addPoint(Oct<LeafVector<Point> >* thisOct, const float p
 int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numCoords)
 {
     int32_t setNum = newIndex();
+    if (numCoords < 1) return setNum;
+    if (m_tree == NULL)
+    {
+        Vector3D minBox, maxBox;
+        minBox = maxBox = coordsIn;//hack - first triple
+        for (int32_t i = 1; i < numCoords; ++i)
+        {
+            int32_t i3 = i * 3;
+            if (coordsIn[i3] < minBox[0]) minBox[0] = coordsIn[i3];
+            if (coordsIn[i3 + 1] < minBox[1]) minBox[1] = coordsIn[i3 + 1];
+            if (coordsIn[i3 + 2] < minBox[2]) minBox[2] = coordsIn[i3 + 2];
+            if (coordsIn[i3] > maxBox[0]) maxBox[0] = coordsIn[i3];
+            if (coordsIn[i3 + 1] > maxBox[1]) maxBox[1] = coordsIn[i3 + 1];
+            if (coordsIn[i3 + 2] > maxBox[2]) maxBox[2] = coordsIn[i3 + 2];
+        }
+        m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
+    }
     for (int32_t i = 0; i < numCoords; ++i)
     {
         int32_t i3 = i * 3;
@@ -89,24 +106,28 @@ int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numC
 CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoords)
 {
     m_nextSetIndex = 0;
-    Vector3D minBox, maxBox;
-    minBox = maxBox = coordsIn;//hack - first triple
-    for (int32_t i = 1; i < numCoords; ++i)
+    m_tree = NULL;
+    if (numCoords >= 1)
     {
-        int32_t i3 = i * 3;
-        if (coordsIn[i3] < minBox[0]) minBox[0] = coordsIn[i3];
-        if (coordsIn[i3 + 1] < minBox[1]) minBox[1] = coordsIn[i3 + 1];
-        if (coordsIn[i3 + 2] < minBox[2]) minBox[2] = coordsIn[i3 + 2];
-        if (coordsIn[i3] > maxBox[0]) maxBox[0] = coordsIn[i3];
-        if (coordsIn[i3 + 1] > maxBox[1]) maxBox[1] = coordsIn[i3 + 1];
-        if (coordsIn[i3 + 2] > maxBox[2]) maxBox[2] = coordsIn[i3 + 2];
-    }
-    m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
-    int32_t setNum = newIndex();
-    for (int32_t i = 0; i < numCoords; ++i)
-    {
-        int32_t i3 = i * 3;
-        addPoint(m_tree, coordsIn + i3, i, setNum);
+        Vector3D minBox, maxBox;
+        minBox = maxBox = coordsIn;//hack - first triple
+        for (int32_t i = 1; i < numCoords; ++i)
+        {
+            int32_t i3 = i * 3;
+            if (coordsIn[i3] < minBox[0]) minBox[0] = coordsIn[i3];
+            if (coordsIn[i3 + 1] < minBox[1]) minBox[1] = coordsIn[i3 + 1];
+            if (coordsIn[i3 + 2] < minBox[2]) minBox[2] = coordsIn[i3 + 2];
+            if (coordsIn[i3] > maxBox[0]) maxBox[0] = coordsIn[i3];
+            if (coordsIn[i3 + 1] > maxBox[1]) maxBox[1] = coordsIn[i3 + 1];
+            if (coordsIn[i3 + 2] > maxBox[2]) maxBox[2] = coordsIn[i3 + 2];
+        }
+        m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
+        int32_t setNum = m_nextSetIndex;
+        for (int32_t i = 0; i < numCoords; ++i)
+        {
+            int32_t i3 = i * 3;
+            addPoint(m_tree, coordsIn + i3, i, setNum);
+        }
     }
 }
 
@@ -118,6 +139,7 @@ CaretPointLocator::CaretPointLocator(const float minBounds[3], const float maxBo
 
 int32_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* infoOut) const
 {
+    if (m_tree == NULL) return -1;
     CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
     bool first = true;
     float bestDist2 = -1.0f, bestDist = -1.0f, tempf, curDist = m_tree->distToPoint(target);
@@ -177,6 +199,7 @@ int32_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* info
 
 int32_t CaretPointLocator::closestPointLimited(const float target[3], float maxDist, LocatorInfo* infoOut) const
 {
+    if (m_tree == NULL) return -1;
     float curDist = m_tree->distToPoint(target);
     if (curDist > maxDist)
     {
@@ -264,6 +287,7 @@ void CaretPointLocator::removePointSet(int32_t whichSet)
 
 void CaretPointLocator::removeSetHelper(Oct<LeafVector<CaretPointLocator::Point> >* thisOct, int32_t thisSet)
 {
+    if (thisOct == NULL) return;
     if (thisOct->m_leaf)
     {
         vector<Point>& myVecRef = *(thisOct->m_data.m_vector);

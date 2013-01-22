@@ -38,13 +38,43 @@
 #include "EventListenerInterface.h"
 
 using namespace caret;
+/**
+ * \class  caret::EventManager
+ * \brief  The event manager.
+ *
+ * The event manager processes events
+ * from senders to receivers.
+ *
+ * Events are sent by calling this class' sendEvent()
+ * method.
+ *
+ * Objects that wish to receive events must (1) extend
+ * publicly EventListenerInterface, (2) implement
+ * EventListenerInterface's receiveEvent() method,
+ * (3) Call one of two methods in EventManger,
+ * addEventListener() or addProcessedEventListener() which
+ * are typically called from the object's constructor, and
+ * (4) call removeEventFromListener() or removeAllEventsFromListener
+ * to cease listening for events which is typciall called
+ * from the object's constructor.
+ *
+ * In most cases addEventListener() is used to request events.
+ * addProcessedEventListener() is used when an object wants
+ * to be notified of an event but not until after it has been
+ * processed by at least one other receiver.  For example,
+ * a event for a new window may be sent.  A receiver of the
+ * event will create the new window.  Other receivers may
+ * want to know AFTER the window has been created in which
+ * case these receivers will use addProcessedEventListener().
+ */
 
 /**
  * Constructor.
  */
 EventManager::EventManager()
 {
-    this->eventCounter = 0;
+    this->eventIssuedCounter = 0;
+    this->eventBlockingCounter.resize(EventTypeEnum::EVENT_COUNT, 0);
 }
 
 /**
@@ -82,6 +112,21 @@ EventManager::~EventManager()
         }
     }
     
+    /*
+     * Verify that all listeners were removed.
+     */ 
+    for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
+        EVENT_LISTENER_CONTAINER el = this->eventProcessedListeners[i];
+        if (el.empty() == false) {
+            EventTypeEnum::Enum enumValue = static_cast<EventTypeEnum::Enum>(i);
+            std::cout 
+            << "Not all listeners removed for processed event "
+            << EventTypeEnum::toName(enumValue)
+            << ", count is: "
+            << el.size()
+            << std::endl;
+        }
+    }
 }
 
 /**
@@ -147,6 +192,28 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
 }
 
 /**
+ * Add a listener for a specific event but only receive the
+ * event AFTER it has been processed.
+ *
+ * @param eventListener
+ *     Listener for an event.
+ * @param listenForEventType
+ *     Type of event that is wanted.
+ */
+void 
+EventManager::addProcessedEventListener(EventListenerInterface* eventListener,
+                               const EventTypeEnum::Enum listenForEventType)
+{
+    this->eventProcessedListeners[listenForEventType].push_back(eventListener);
+    
+    //std::cout << "Adding listener from class "
+    //<< typeid(*eventListener).name()
+    //<< " for "
+    //<< EventTypeEnum::toName(listenForEventType)
+    //<< std::endl;
+}
+
+/**
  * Stop listening for an event.
  *
  * @param eventListener
@@ -159,7 +226,6 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
                                   const EventTypeEnum::Enum listenForEventType)
 {
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
-    
     
     /*
      * Remove the listener by creating a new container
@@ -183,6 +249,34 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
     
     if (updatedListeners.size() != listeners.size()) {
         this->eventListeners[listenForEventType] = updatedListeners;
+    }
+    
+    
+    
+    EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[listenForEventType];
+    
+    /*
+     * Remove the listener by creating a new container
+     * of non-matching listeners.
+     */
+    EVENT_LISTENER_CONTAINER updatedProcessedListeners;
+    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
+         iter != processedListeners.end();
+         iter++) {
+        if (*iter == eventListener) {
+            //std::cout << "Removing listener from class "
+            //<< typeid(*eventListener).name()
+            //<< " for "
+            //<< EventTypeEnum::toName(listenForEventType)
+            //<< std::endl;            
+        }
+        else {
+            updatedProcessedListeners.push_back(*iter);
+        }
+    }
+    
+    if (updatedProcessedListeners.size() != processedListeners.size()) {
+        this->eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
     }
 }
 
@@ -208,53 +302,142 @@ EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 void 
 EventManager::sendEvent(Event* event)
 {   
-    /*
-     * Get listeners for event.
-     */
     EventTypeEnum::Enum eventType = event->getEventType();
-    EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
+    const AString eventNumberString = AString::number(this->eventIssuedCounter);
+    const AString eventMessagePrefix = ("Event "
+                                        + eventNumberString
+                                        + ": "
+                                        + event->toString() 
+                                        + " from thread: " 
+                                        + AString::number((uint64_t)QThread::currentThread())
+                                        + " ");
     
-    const AString eventNumberString = AString::number(this->eventCounter);
-    
-    AString msg = ("Sending event "
-                   + eventNumberString
-                   + ": "
-                   + event->toString() 
-                   + " from thread: " 
-                   + AString::number((uint64_t)QThread::currentThread()));
-    CaretLogFiner(msg);
-    //std::cout << msg << std::endl;
-    
-    /*
-     * Send event to each of the listeners.
-     */
-    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
-         iter != listeners.end();
-         iter++) {
-        EventListenerInterface* listener = *iter;
+    const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
+    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
+    if (this->eventBlockingCounter[eventTypeIndex] > 0) {
+        AString msg = (eventMessagePrefix
+                       + " is blocked.  Blocking counter="
+                       + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+        CaretLogFiner(msg);
+    }
+    else {
+        /*
+         * Get listeners for event.
+         */
+        EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
         
-        //std::cout << "Sending event from class "
-        //<< typeid(*listener).name()
-        //<< " for "
-        //<< EventTypeEnum::toName(eventType)
-        //<< std::endl;
+        const AString eventNumberString = AString::number(this->eventIssuedCounter);
+        
+        AString msg = (eventMessagePrefix + " SENT.");
+        CaretLogFiner(msg);
+        //std::cout << msg << std::endl;
+        
+        /*
+         * Send event to each of the listeners.
+         */
+        for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
+             iter != listeners.end();
+             iter++) {
+            EventListenerInterface* listener = *iter;
+            
+            //std::cout << "Sending event from class "
+            //<< typeid(*listener).name()
+            //<< " for "
+            //<< EventTypeEnum::toName(eventType)
+            //<< std::endl;
+            
+            
+            listener->receiveEvent(event);
+            
+            if (event->isError()) {
+                CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString() + ": " + event->getErrorMessage());
+                break;
+            }
+        }
+        
+        /*
+         * Verify event was processed.
+         */
+        if (event->getEventProcessCount() > 0) {
+            /*
+             * Send event to each of the PROCESSED listeners.
+             */
+            EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[eventType];
+            for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
+                 iter != processedListeners.end();
+                 iter++) {
+                EventListenerInterface* listener = *iter;
+                
+                //std::cout << "Sending event from class "
+                //<< typeid(*listener).name()
+                //<< " for "
+                //<< EventTypeEnum::toName(eventType)
+                //<< std::endl;
+                
+                
+                listener->receiveEvent(event);
+                
+                if (event->isError()) {
+                    CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
+                    break;
+                }
+            }
+        }
+        else {
+            CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
+        }
+    }    
+    
+    this->eventIssuedCounter++;
+}
 
-        
-        listener->receiveEvent(event);
-        
-        if (event->isError()) {
-            CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
-            break;
+/**
+ * Block an event.  A counter is used to track blocking of each
+ * event type.  Each time a request is made to block an event type,
+ * the counter is incremented for that event type.  When a request
+ * is made to un-block the event, the counter is decremented.  This
+ * allows multiple requests for blocking an event to come from 
+ * different sections of the source code.  Thus, anytime the
+ * blocking counter is greater than zero for an event, the event
+ * is blocked.
+ * 
+ * @param eventType
+ *    Type of event to block.
+ * @param blockStatus
+ *    Blocking status (true increments blocking counter,
+ *    false decrements blocking counter.
+ */
+void 
+EventManager::blockEvent(const EventTypeEnum::Enum eventType,
+                         const bool blockStatus)
+{
+    const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
+    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
+    
+    const AString eventName = EventTypeEnum::toName(eventType);
+    
+    if (blockStatus) {
+        this->eventBlockingCounter[eventTypeIndex]++;
+        CaretLogFiner("Blocking event "
+                      + eventName
+                      + " blocking counter is now "
+                      + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+    }
+    else {
+        if (this->eventBlockingCounter[eventTypeIndex] > 0) {
+            this->eventBlockingCounter[eventTypeIndex]--;
+            CaretLogFiner("Unblocking event "
+                          + eventName
+                          + " blocking counter is now "
+                          + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+        }
+        else {
+            const AString message("Trying to unblock event "
+                                  + eventName
+                                  + " but it is not blocked");
+            CaretAssertMessage(0, message);
+            CaretLogWarning(message);
         }
     }
-    
-    /*
-     * Verify event was processed.
-     */
-    if (event->getEventProcessCount() == 0) {
-        CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
-    }
-    
-    this->eventCounter++;
 }
 

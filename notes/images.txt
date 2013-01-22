@@ -1,0 +1,9 @@
+
+
+Use a PNG image and place the image in the directory src/Desktop/images directory.  In the same directory, edit the file resources.qrc and add the image.
+
+In the code, to load the image, use one of the "load" methods in WuQtUtilities.
+
+In the load methods, prefix the file name with ":/" which tells Qt that the image should be loaded from resources.
+
+Delete Desktop from your build directory, rerun cmake, and then build. This step must be done after images.qrc has been edited or touched.

@@ -29,6 +29,8 @@
 #include "Vector3D.h"
 #include "CaretMutex.h"
 #include "OctTree.h"
+#include "SignedDistanceHelper.h"
+
 #include <vector>
 
 namespace caret {
@@ -57,72 +59,14 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        enum WindingLogic
-        {
-            EVEN_ODD,
-            NEGATIVE,
-            NONZERO,
-            NORMALS
-        };
-        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 5.0f, float approxLim = 20.0f, int approxNeighborhood = 2, WindingLogic myWinding = EVEN_ODD);
+        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& exactLim = 5.0f,
+                                            const float& approxLim = 20.0f, const int& approxNeighborhood = 2, const SignedDistanceHelper::WindingLogic& myWinding = SignedDistanceHelper::EVEN_ODD);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
     
-    class TopologyHelper;
-    
-    class SignedDistToSurfIndexedBase
-    {
-        struct TriVector
-        {//specifically so we can cleanly deallocate the vector from non-leaf nodes when they split
-            std::vector<int32_t>* m_triList;
-            TriVector() { m_triList = new std::vector<int32_t>(); }
-            ~TriVector() { freeData(); }
-            void freeData()
-            {
-                if (m_triList != NULL)
-                {
-                    delete m_triList;
-                    m_triList = NULL;
-                }
-            }
-        };
-        static const int NUM_TRIS_TO_TEST = 50;//test for whether to split leaf at this number
-        static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
-        Oct<TriVector>* m_indexRoot;
-        SurfaceFile* m_surface;
-        CaretPointer<TopologyHelper> m_topoHelp;
-        SignedDistToSurfIndexedBase();
-        void addTriangle(Oct<TriVector>* thisOct, int32_t triangle, float minCoord[3], float maxCoord[3]);
-    public:
-        SignedDistToSurfIndexedBase(SurfaceFile* mySurf);
-        friend class SignedDistToSurfIndexed;
-    };
-    
-    class SignedDistToSurfIndexed
-    {
-        CaretPointer<TopologyHelper> m_topoHelp;
-        CaretMutex m_mutex;
-        CaretPointer<SignedDistToSurfIndexedBase> m_base;
-        CaretArray<int> m_triMarked;
-        CaretArray<int> m_triMarkChanged;
-        SignedDistToSurfIndexed();
-        struct ClosestPointInfo
-        {
-            int type;
-            int32_t node1, node2, triangle;
-            Vector3D tempPoint;
-        };
-        float unsignedDistToTri(float coord[3], int32_t triangle, ClosestPointInfo& myInfo);
-        int computeSign(float coord[3], ClosestPointInfo myInfo, AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding);
-        bool pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis);
-    public:
-        SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIndexedBase> myBase);
-        float dist(float coord[3], AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding);
-    };
-
     typedef TemplateAutoOperation<AlgorithmCreateSignedDistanceVolume> AutoAlgorithmCreateSignedDistanceVolume;
 
 }

@@ -144,8 +144,7 @@ GiftiLabelTable::append(const GiftiLabelTable& glt)
          iter != glt.labelsMap.end();
          iter++) {
         int32_t key = iter->first;
-        GiftiLabel* gl = new GiftiLabel(*iter->second);
-        int32_t newKey = this->addLabel(gl);
+        int32_t newKey = this->addLabel(iter->second);
         
         keyConverterMap.insert(std::make_pair(key, newKey));
     }
@@ -261,10 +260,16 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     
     /*
      * If no label with the name exists, get the key
-     * (which may be invalid) from the input label
+     * (which may be invalid) from the input label,
+     * and check that nothing uses that key
      */
     if (key < 0) {
-        key = glIn->getKey();
+        int32_t tempkey = glIn->getKey();
+        LABELS_MAP_ITERATOR iter = this->labelsMap.find(tempkey);
+        if (iter == labelsMap.end())
+        {
+            key = tempkey;
+        }
     }
     
     /*
@@ -281,9 +286,10 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     
     if (key == 0)
     {
-        if (glIn->getName() != "???") {
-            CaretLogWarning("Label 0 overridden!");
-        }
+        issueLabelKeyZeroWarning(glIn->getName());
+//        if (glIn->getName() != "???") {
+//            CaretLogWarning("Label 0 overridden!");
+//        }
     }
     
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -514,6 +520,27 @@ GiftiLabelTable::getLabel(const AString& labelName) const
 }
 
 /**
+ * Get a GIFTI Label from its name.
+ * @param labelName - Name of label that is sought.
+ * @return  Reference to label with name or null if no matching label.
+ *
+ */
+GiftiLabel*
+GiftiLabelTable::getLabel(const AString& labelName)
+{
+    LABELS_MAP newMap;
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        GiftiLabel* gl = iter->second;
+        if (gl->getName() == labelName) {
+            return gl;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Get the label whose name is the longest substring of "name" beginning
  * at the first character.
  *
@@ -525,7 +552,7 @@ const GiftiLabel*
 GiftiLabelTable::getLabelBestMatching(const AString& name) const
 {
     GiftiLabel* bestMatchingLabel = NULL;
-    size_t bestMatchLength = -1;
+    int32_t bestMatchLength = -1;
     
     LABELS_MAP newMap;
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
@@ -533,8 +560,8 @@ GiftiLabelTable::getLabelBestMatching(const AString& name) const
          iter++) {
         GiftiLabel* gl = iter->second;
         AString labelName = gl->getName();
-        if (name.toStdString().find(labelName.toStdString()) == 0) {
-            size_t len = labelName.length();
+        if (name.startsWith(labelName)) {
+            const int32_t len = labelName.length();
             if (len > bestMatchLength) {
                 bestMatchLength = len;
                 bestMatchingLabel = iter->second;
@@ -563,9 +590,26 @@ GiftiLabelTable::getLabel(const int32_t key) const
 }
 
 /**
+ * Get the GiftiLabel at the specified key.
+ *
+ * @param  key - Key of GiftiLabel entry.
+ * @return       The GiftiLabel at the specified key or null if the
+ *    there is not a label at the specified key.
+ */
+GiftiLabel*
+GiftiLabelTable::getLabel(const int32_t key)
+{
+    LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
+    if (iter != this->labelsMap.end()) {
+        return iter->second;
+    }
+    return NULL;
+}
+
+/**
  * Get the key for the unassigned label.
  * @return  Index of key for unassigned label.
- *  or -1 if not found.
+ *          A valid key will always be returned.
  *
  */
 int32_t
@@ -575,7 +619,14 @@ GiftiLabelTable::getUnassignedLabelKey() const
     if (gl != NULL) {
         return gl->getKey();
     }
-    return -1;
+
+    /*
+     * Remove 'constness' from this object so that the 
+     * label can be added.
+     */
+    GiftiLabelTable* glt = (GiftiLabelTable*)this;
+    const int32_t key = glt->addLabel("???", 0.0f, 0.0f, 0.0f, 0.0f);
+    return key;
 }
 
 /**
@@ -623,7 +674,8 @@ GiftiLabelTable::setLabelName(
     if (key == 0)
     {
         if (name != "???") {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+//            CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -657,7 +709,8 @@ GiftiLabelTable::setLabel(
     {
         if (name != "???")
         {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+//            CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -703,7 +756,8 @@ GiftiLabelTable::setLabel(const int32_t key,
     {
         if (name != "???")
         {
-            CaretLogWarning("Label 0 modified!");
+            issueLabelKeyZeroWarning(name);
+            //CaretLogWarning("Label 0 modified!");
         }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
@@ -877,6 +931,89 @@ GiftiLabelTable::resetLabelCounts()
 }
 
 /**
+ * @return Are there any labels that have an invalid group/name
+ * hierarchy settings.  This can be caused by changing the name
+ * of a label or its color.
+ */
+bool
+GiftiLabelTable::hasLabelsWithInvalidGroupNameHierarchy() const
+{
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        if (iter != this->labelsMap.end()) {
+            GiftiLabel* gl = iter->second;
+            if (gl->getGroupNameSelectionItem() == NULL) {
+                return true;
+                break;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Remove labels that have the 'count' attribute
+ * set to zero.
+ * Note the ??? label is not removed.
+ */
+void 
+GiftiLabelTable::removeLabelsWithZeroCounts()
+{
+    
+    const int32_t unknownKey = getUnassignedLabelKey();
+    
+    /**
+     * First, iterate through the map to find
+     * labels that have the 'count' attribute
+     * set to zero.  Delete the label and save 
+     * the key since one cannot erase the map
+     * element without confusing the iterator
+     * and causing a crash.
+     */
+    std::vector<int32_t> unusedkeys;
+    for (LABELS_MAP_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        const GiftiLabel* gl = iter->second;
+        if (gl->getCount() <= 0) {
+            /*
+             * Get key and save it.
+             */
+            const int32_t key = iter->first;
+            if (key != unknownKey) {
+                unusedkeys.push_back(key);
+                
+                /*
+                 * Delete the label.
+                 */
+                delete gl;
+                iter->second = NULL;
+            }
+        }
+    }
+
+    /*
+     * Now, remove all of the elements in the
+     * map for the keys that were found in the
+     * previous loop.
+     */
+    bool isLabelRemoved = false;
+    for (std::vector<int32_t>::iterator iter = unusedkeys.begin();
+         iter != unusedkeys.end();
+         iter++) {
+        const int32_t key = *iter;
+        this->labelsMap.erase(key);
+        isLabelRemoved = true;
+    }
+    
+    if (isLabelRemoved) {
+        this->setModified();
+    }
+}
+
+/**
  * Create labels for the keys with generated names and colors.
  * @param newKeys - Keys that need labels.
  *
@@ -1046,6 +1183,55 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
     }
 }
 
+void
+GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
+{
+    try {
+        //
+        // Write the label tag
+        //
+        xmlWriter.writeStartElement(GiftiXmlElements::TAG_LABEL_TABLE);
+        
+        //
+        // Write the labels
+        //
+        std::set<int32_t> keys = this->getKeys();
+        for (std::set<int32_t>::const_iterator iter = keys.begin();
+             iter != keys.end();
+             iter++) {
+            int key = *iter;
+            const GiftiLabel* label = this->getLabel(key);
+            
+            if (label != NULL) {
+                xmlWriter.writeStartElement(GiftiXmlElements::TAG_LABEL);
+                XmlAttributes attributes;
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_KEY,
+                                        AString::number(key));
+                
+                float* rgba = label->getColor();
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_RED,
+                                        AString::number(rgba[0]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN,
+                                        AString::number(rgba[1]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE,
+                                        AString::number(rgba[2]));
+                xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
+                                        AString::number(rgba[3]));
+                xmlWriter.writeCharacters(label->getName());
+                xmlWriter.writeEndElement();
+                delete[] rgba;
+            }
+        }
+        
+        //
+        // Write the closing label tag
+        //
+        xmlWriter.writeEndElement();
+    }
+    catch (XmlException& e) {
+        throw GiftiException(e);
+    }
+}
 
 /**
  * Convert to a string.
@@ -1110,6 +1296,49 @@ GiftiLabelTable::readFromXmlString(const AString& /*s*/)
             throw (GiftiException)
 {
     CaretAssertMessage(0, "Not implemented yet!");
+}
+
+void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
+{
+    clear();
+    if (!xml.isStartElement() || xml.name() != GiftiXmlElements::TAG_LABEL_TABLE)
+    {//TODO: try to recover instead of erroring?
+        xml.raiseError("tried to read GiftiLabelTable when current element is not " + GiftiXmlElements::TAG_LABEL_TABLE);
+        return;
+    }
+    while (xml.readNextStartElement() && !xml.atEnd())
+    {
+        if (xml.name() != GiftiXmlElements::TAG_LABEL)
+        {
+            xml.raiseError("unexpected element '" + xml.name().toString() + "' encountered in " + GiftiXmlElements::TAG_LABEL_TABLE);
+        }
+        int key;
+        float rgba[4];
+        QXmlStreamAttributes myAttrs = xml.attributes();
+        bool ok = false;
+        QString temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_KEY).toString();
+        key = temp.toInt(&ok);
+        if (!ok) xml.raiseError("key attribute missing or noninteger");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_RED).toString();
+        rgba[0] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("red attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN).toString();
+        rgba[1] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("green attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE).toString();
+        rgba[2] = temp.toFloat(&ok);
+        if (!ok) xml.raiseError("blue attribute missing or not a number");
+        temp = myAttrs.value(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA).toString();
+        if (temp == "")
+        {
+            rgba[3] = 1.0f;
+        } else {
+            rgba[3] = temp.toFloat(&ok);
+            if (!ok) xml.raiseError("alpha attribute not a number");
+        }
+        temp = xml.readElementText();
+        setLabel(key, temp, rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
 }
 
 /**
@@ -1188,4 +1417,46 @@ GiftiLabelTable::getKeys() const
     }
     return keys;
 }
+
+void GiftiLabelTable::getKeys(std::vector<int32_t>& keysOut) const
+{
+    keysOut.reserve(labelsMap.size());
+    for (std::map<int32_t,GiftiLabel*>::const_iterator iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        keysOut.push_back(iter->first);
+    }
+}
+
+bool GiftiLabelTable::matches(const GiftiLabelTable& rhs, const bool checkColors, const bool checkCoords) const
+{
+    if (labelsMap.size() != rhs.labelsMap.size()) return false;
+    for (LABELS_MAP::const_iterator iter = labelsMap.begin(); iter != labelsMap.end(); ++iter)
+    {
+        LABELS_MAP::const_iterator riter = rhs.labelsMap.find(iter->first);
+        if (riter == rhs.labelsMap.end()) return false;
+        if (!iter->second->matches(*(riter->second), checkColors, checkCoords)) return false;
+    }
+    return true;
+}
+
+/**
+ * Called when label key zero's name is changed.
+ * May result in a logger message is name is not a preferred name
+ * for the label with key zero.
+ *
+ * @param name
+ *    New name for label with key zero.
+ */
+void
+GiftiLabelTable::issueLabelKeyZeroWarning(const AString& name) const
+{
+    if ((name != "???")
+        && (name.toLower() != "unknown")) {
+        CaretLogFine("Label with key=0 overridden with name \""
+                        + name
+                        + "\".  This label is typically \"???\" or \"unknown\".");
+    }
+}
+
 

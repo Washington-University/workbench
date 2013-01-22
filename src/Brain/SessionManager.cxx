@@ -38,13 +38,19 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
-#include "EventModelDisplayControllerAdd.h"
-#include "EventModelDisplayControllerDelete.h"
-#include "EventModelDisplayControllerGetAll.h"
-#include "EventModelDisplayControllerYokingGroupGetAll.h"
+#include "EventModelAdd.h"
+#include "EventModelDelete.h"
+#include "EventModelGetAll.h"
+#include "EventModelYokingGroupGetAll.h"
+#include "EventProgressUpdate.h"
 #include "LogManager.h"
-#include "ModelDisplayControllerWholeBrain.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelWholeBrain.h"
+#include "ModelYokingGroup.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "VolumeSurfaceOutlineSetModel.h"
+
 
 using namespace caret;
 
@@ -55,39 +61,12 @@ using namespace caret;
 SessionManager::SessionManager()
 : CaretObject(), EventListenerInterface()
 {
-    this->caretPreferences = new CaretPreferences();
+    m_caretPreferences = new CaretPreferences();
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->browserTabs[i] = NULL;
+        m_browserTabs[i] = NULL;
     }
     
-    std::vector<YokingTypeEnum::Enum> yokingTypes;
-    YokingTypeEnum::getAllEnums(yokingTypes);
-    
-    const int32_t numberOfYokingGroupPerYokingType = 4;
-    const int32_t numberOfYokingTypes = static_cast<int32_t>(yokingTypes.size());
-    int32_t yokingGroupIndex = 0;
-    int32_t yokingNameIndex = 0;
-    for (int32_t i = 0; i < numberOfYokingTypes; i++) {
-        for (int32_t j = 0; j < numberOfYokingGroupPerYokingType; j++) {
-            AString yokingGroupName;
-            if (yokingTypes[i] != YokingTypeEnum::OFF) {
-                char letter = ('A' + (char)yokingNameIndex);
-                yokingGroupName += letter;
-                yokingGroupName += "-";
-                yokingNameIndex++;
-            }
-            yokingGroupName += YokingTypeEnum::toGuiName(yokingTypes[i]);
-            
-            this->yokingGroups.push_back(new ModelDisplayControllerYokingGroup(yokingGroupIndex,
-                                                                               yokingGroupName,
-                                                                               yokingTypes[i]));
-            yokingGroupIndex++;
-            if (yokingTypes[i] == YokingTypeEnum::OFF) {
-                break;
-            }
-        }
-    }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
@@ -99,7 +78,38 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL);
     
     Brain* brain = new Brain();
-    this->brains.push_back(brain);    
+    m_brains.push_back(brain);    
+
+    const int32_t numberOfSurfaceYokingGroups = 4;
+    int32_t letterIndex = 0;
+    for (int32_t i = 0; i < numberOfSurfaceYokingGroups; i++) {
+        const char letter = ('A' + (char)letterIndex);
+        letterIndex++;
+        const AString yokingGroupName = (AString(letter)
+                                         + "-Surface");
+        ModelYokingGroup* myg = new ModelYokingGroup(brain,
+                                                     ModelYokingGroup::YOKING_TYPE_SURFACE,
+                                                     yokingGroupName);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            myg->resetView(i);
+        }
+        m_yokingGroupModels.push_back(myg);
+    }
+    
+    const int32_t numberOfVolumeYokingGroups = 4;
+    for (int32_t i = 0; i < numberOfVolumeYokingGroups; i++) {
+        const char letter = ('A' + (char)letterIndex);
+        letterIndex++;
+        const AString yokingGroupName = (AString(letter)
+                                         + "-Volume");
+        ModelYokingGroup* myg = new ModelYokingGroup(brain,
+                                                     ModelYokingGroup::YOKING_TYPE_VOLUME,
+                                                     yokingGroupName);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            myg->dorsalView(i);
+        }
+        m_yokingGroupModels.push_back(myg);
+    }
 }
 
 /**
@@ -107,21 +117,33 @@ SessionManager::SessionManager()
  */
 SessionManager::~SessionManager()
 {
-    int32_t numberOfBrains = this->getNumberOfBrains();
-    for (int32_t i = (numberOfBrains - 1); i >= 0; i--) {
-        delete this->brains[i];
+    /*
+     * Delete browser tab content.  Workbench requests deletion of tab content
+     * as browser tabs are closed.  However, command line does not issue
+     * commands to delete tabs so this code will do so.
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        if (m_browserTabs[i] != NULL) {
+            delete m_browserTabs[i];
+            m_browserTabs[i] = NULL;
+        }
     }
-    this->brains.clear();
+    
+    int32_t numberOfBrains = getNumberOfBrains();
+    for (int32_t i = (numberOfBrains - 1); i >= 0; i--) {
+        delete m_brains[i];
+    }
+    m_brains.clear();
     
     EventManager::get()->removeAllEventsFromListener(this);
     
-    const int32_t numYokingGroups = static_cast<int32_t>(this->yokingGroups.size());
+    const int32_t numYokingGroups = static_cast<int32_t>(m_yokingGroupModels.size());
     for (int32_t i = 0; i < numYokingGroups; i++) {
-        delete this->yokingGroups[i];
-        this->yokingGroups[i] = NULL;
+        delete m_yokingGroupModels[i];
+        m_yokingGroupModels[i] = NULL;
     }
     
-    delete this->caretPreferences;
+    delete m_caretPreferences;
 }
 
 /**
@@ -132,7 +154,7 @@ SessionManager::~SessionManager()
 void 
 SessionManager::createSessionManager()
 {
-    CaretAssertMessage((SessionManager::singletonSessionManager == NULL), 
+    CaretAssertMessage((s_singletonSessionManager == NULL), 
                        "Session manager has already been created.");
 
     /*
@@ -148,7 +170,7 @@ SessionManager::createSessionManager()
     /*
      * Create session manager.
      */
-    SessionManager::singletonSessionManager = new SessionManager();
+    s_singletonSessionManager = new SessionManager();
 }
 
 /**
@@ -158,11 +180,11 @@ SessionManager::createSessionManager()
 void 
 SessionManager::deleteSessionManager()
 {
-    CaretAssertMessage((SessionManager::singletonSessionManager != NULL), 
+    CaretAssertMessage((s_singletonSessionManager != NULL), 
                        "Session manager does not exist, cannot delete it.");
     
-    delete SessionManager::singletonSessionManager;
-    SessionManager::singletonSessionManager = NULL;
+    delete s_singletonSessionManager;
+    s_singletonSessionManager = NULL;
     
     /*
      * Session manager must be deleted before the event
@@ -181,11 +203,11 @@ SessionManager::deleteSessionManager()
 SessionManager* 
 SessionManager::get()
 {
-    CaretAssertMessage(SessionManager::singletonSessionManager,
+    CaretAssertMessage(s_singletonSessionManager,
                        "Session manager was not created.\n"
                        "It must be created with SessionManager::createSessionManager().");
     
-    return SessionManager::singletonSessionManager;
+    return s_singletonSessionManager;
 }
 
 /**
@@ -216,7 +238,7 @@ SessionManager::addBrain(const bool /*shareDisplayPropertiesFlag*/)
 int32_t 
 SessionManager::getNumberOfBrains() const
 {
-    return this->brains.size();
+    return m_brains.size();
 }
 
 /**
@@ -232,9 +254,9 @@ SessionManager::getNumberOfBrains() const
 Brain* 
 SessionManager::getBrain(const int32_t brainIndex)
 {
-    CaretAssertVectorIndex(this->brains, brainIndex);
+    CaretAssertVectorIndex(m_brains, brainIndex);
     
-    return this->brains[brainIndex];
+    return m_brains[brainIndex];
 }
 
 /**
@@ -263,14 +285,19 @@ SessionManager::receiveEvent(Event* event)
         
         tabEvent->setEventProcessed();
         
+        bool createdTab = false;
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            if (this->browserTabs[i] == NULL) {
-                BrowserTabContent* tab = new BrowserTabContent(i, this->yokingGroups[0]);
-                tab->update(this->modelDisplayControllers);
-                this->browserTabs[i] = tab;
+            if (m_browserTabs[i] == NULL) {
+                BrowserTabContent* tab = new BrowserTabContent(i);
+                tab->update(m_modelDisplayControllers);
+                m_browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);
+                createdTab = true;
                 break;
             }
+        }
+        if (createdTab == false) {
+            tabEvent->setErrorMessage("Workbench is exhausted.  It cannot create any more tabs.");
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
@@ -282,9 +309,9 @@ SessionManager::receiveEvent(Event* event)
         BrowserTabContent* tab = tabEvent->getBrowserTab();
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            if (this->browserTabs[i] == tab) {
-                delete this->browserTabs[i];
-                this->browserTabs[i] = NULL;
+            if (m_browserTabs[i] == tab) {
+                delete m_browserTabs[i];
+                m_browserTabs[i] = NULL;
                 tabEvent->setEventProcessed();
                 break;
             }
@@ -298,9 +325,9 @@ SessionManager::receiveEvent(Event* event)
         tabEvent->setEventProcessed();
         
         const int32_t tabNumber = tabEvent->getTabNumber();
-        CaretAssertArrayIndex(this->browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabNumber);
+        CaretAssertArrayIndex(m_browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabNumber);
         
-        tabEvent->setBrowserTab(this->browserTabs[tabNumber]);
+        tabEvent->setBrowserTab(m_browserTabs[tabNumber]);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL) {
         EventBrowserTabGetAll* tabEvent =
@@ -310,62 +337,62 @@ SessionManager::receiveEvent(Event* event)
         tabEvent->setEventProcessed();
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            if (this->browserTabs[i] != NULL) {
-                tabEvent->addBrowserTab(this->browserTabs[i]);
+            if (m_browserTabs[i] != NULL) {
+                tabEvent->addBrowserTab(m_browserTabs[i]);
             }
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
-        EventModelDisplayControllerAdd* addModelsEvent =
-        dynamic_cast<EventModelDisplayControllerAdd*>(event);
+        EventModelAdd* addModelsEvent =
+        dynamic_cast<EventModelAdd*>(event);
         CaretAssert(addModelsEvent);
         
         addModelsEvent->setEventProcessed();
         
-        this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
+        m_modelDisplayControllers.push_back(addModelsEvent->getModel());
 
-        this->updateBrowserTabContents();
+        updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
-        EventModelDisplayControllerDelete* deleteModelsEvent =
-        dynamic_cast<EventModelDisplayControllerDelete*>(event);
+        EventModelDelete* deleteModelsEvent =
+        dynamic_cast<EventModelDelete*>(event);
         CaretAssert(deleteModelsEvent);
         
         deleteModelsEvent->setEventProcessed();
         
-        ModelDisplayController* model = deleteModelsEvent->getModelDisplayController();
+        Model* model = deleteModelsEvent->getModel();
         
-        std::vector<ModelDisplayController*>::iterator iter =
-        std::find(this->modelDisplayControllers.begin(),
-                  this->modelDisplayControllers.end(),
+        std::vector<Model*>::iterator iter =
+        std::find(m_modelDisplayControllers.begin(),
+                  m_modelDisplayControllers.end(),
                   model);
         
-        CaretAssertMessage(iter != this->modelDisplayControllers.end(),
+        CaretAssertMessage(iter != m_modelDisplayControllers.end(),
                            "Trying to delete non-existent model controller");
         
-        this->modelDisplayControllers.erase(iter);
+        m_modelDisplayControllers.erase(iter);
         
-        this->updateBrowserTabContents();
+        updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL) {
-        EventModelDisplayControllerGetAll* getModelsEvent =
-        dynamic_cast<EventModelDisplayControllerGetAll*>(event);
+        EventModelGetAll* getModelsEvent =
+        dynamic_cast<EventModelGetAll*>(event);
         CaretAssert(getModelsEvent);
         
         getModelsEvent->setEventProcessed();
         
-        getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
+        getModelsEvent->addModels(m_modelDisplayControllers);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL) {
-        EventModelDisplayControllerYokingGroupGetAll* getYokingEvent =
-            dynamic_cast<EventModelDisplayControllerYokingGroupGetAll*>(event);
+        EventModelYokingGroupGetAll* getYokingEvent =
+            dynamic_cast<EventModelYokingGroupGetAll*>(event);
         CaretAssert(getYokingEvent);
         
         getYokingEvent->setEventProcessed();
         
-        const int32_t numYokingGroups = static_cast<int32_t>(this->yokingGroups.size());
+        const int32_t numYokingGroups = static_cast<int32_t>(m_yokingGroupModels.size());
         for (int32_t i = 0; i < numYokingGroups; i++) {
-            getYokingEvent->addYokingGroup(this->yokingGroups[i]);
+            getYokingEvent->addYokingGroup(m_yokingGroupModels[i]);
         }
     }
 }
@@ -377,8 +404,8 @@ void
 SessionManager::updateBrowserTabContents()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        if (this->browserTabs[i] != NULL) {
-            this->browserTabs[i]->update(this->modelDisplayControllers);
+        if (m_browserTabs[i] != NULL) {
+            m_browserTabs[i]->update(m_modelDisplayControllers);
         }
     }
 }
@@ -389,7 +416,218 @@ SessionManager::updateBrowserTabContents()
 CaretPreferences* 
 SessionManager::getCaretPreferences()
 {
-    return this->caretPreferences;
+    return m_caretPreferences;
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
+                   const AString& instanceName)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "SessionManager",
+                                            1);
+    
+    /*
+     * Save brains
+     */
+    std::vector<SceneClass*> brainSceneClasses;
+    const int32_t numBrains = m_brains.size();
+    for (int32_t i = 0; i < numBrains; i++) {
+        brainSceneClasses.push_back(m_brains[i]->saveToScene(sceneAttributes, 
+                                                             "m_brains"));
+    }
+    sceneClass->addChild(new SceneClassArray("m_brains",
+                                             brainSceneClasses));
+    
+    /*
+     * Save browser tabs
+     */
+    std::vector<SceneClass*> browserTabSceneClasses;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        BrowserTabContent* btc = m_browserTabs[i];
+        if (btc != NULL) {
+            browserTabSceneClasses.push_back(btc->saveToScene(sceneAttributes, 
+                                                              "m_browserTabs"));
+        }
+    }
+    sceneClass->addChild(new SceneClassArray("m_browserTabs",
+                                             browserTabSceneClasses));
+    
+    /*
+     * Save yoking groups
+     */
+    std::vector<SceneClass*> yokingGroupClasses;
+    for (std::vector<ModelYokingGroup*>::iterator iter = m_yokingGroupModels.begin();
+         iter != m_yokingGroupModels.end();
+         iter++) {
+        ModelYokingGroup* myg = *iter;
+        yokingGroupClasses.push_back(myg->saveToScene(sceneAttributes, "m_yokingGroupModels"));
+    }
+    sceneClass->addChild(new SceneClassArray("m_yokingGroupModels",
+                                             yokingGroupClasses));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+
+    int32_t progressCounter = 0;
+    const int32_t PROGRESS_RESTORING_BRAIN = progressCounter++;
+    const int32_t PROGRESS_RESTORING_TABS = progressCounter++;
+    const int32_t PROGRESS_RESTORING_GUI = progressCounter++;
+    const int32_t PROGRESS_RESTORING_TOTAL = progressCounter++;
+    
+    EventProgressUpdate progressEvent(0,
+                                      PROGRESS_RESTORING_TOTAL,
+                                      PROGRESS_RESTORING_BRAIN,
+                                      "Restoring Brain");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }
+    
+    
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    const SceneClassArray* yokingGroupArray = sceneClass->getClassArray("m_yokingGroupModels");
+    if (yokingGroupArray != NULL) {
+        const int32_t numToRestore = std::min(yokingGroupArray->getNumberOfArrayElements(),
+                                              static_cast<int32_t>(m_yokingGroupModels.size()));
+        for (int32_t i = 0; i < numToRestore; i++) {
+            m_yokingGroupModels[i]->restoreFromScene(sceneAttributes, 
+                                                     yokingGroupArray->getClassAtIndex(i));
+        }
+    }
+    
+    /*
+     * Restore brains
+     */
+    const SceneClassArray* brainArray = sceneClass->getClassArray("m_brains");
+    const int32_t numBrainClasses = brainArray->getNumberOfArrayElements();
+    for (int32_t i = 0; i < numBrainClasses; i++) {
+        const SceneClass* brainClass = brainArray->getClassAtIndex(i);
+        if (i < static_cast<int32_t>(m_brains.size())) {
+            m_brains[i]->restoreFromScene(sceneAttributes,
+                                          brainClass);
+        }
+        else {
+            Brain* brain = new Brain();
+            brain->restoreFromScene(sceneAttributes, 
+                                    brainClass);
+        }
+    }
+    
+    progressEvent.setProgress(PROGRESS_RESTORING_TABS,
+                              "Restoring Content of Browser Tabs");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }
+    
+    /*
+     * Remove all tabs
+     */
+    for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+        if (m_browserTabs[iTab] != NULL) {
+            delete m_browserTabs[iTab];
+            m_browserTabs[iTab] = NULL;
+        }
+    }
+    
+    /*
+     * Restore tabs
+     */
+    const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
+    const int32_t numBrowserTabClasses = browserTabArray->getNumberOfArrayElements();
+    for (int32_t i = 0; i < numBrowserTabClasses; i++) {
+        const SceneClass* browserTabClass = browserTabArray->getClassAtIndex(i);
+        
+        BrowserTabContent* tab = new BrowserTabContent(i);
+        tab->update(m_modelDisplayControllers);
+        tab->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(m_brains[0], 
+                                                                             false);
+        tab->restoreFromScene(sceneAttributes, 
+                              browserTabClass);
+        const int32_t tabIndex = tab->getTabNumber();
+        CaretAssert(tabIndex >= 0);
+        m_browserTabs[tabIndex] = tab;
+    }
+    
+    progressEvent.setProgress(PROGRESS_RESTORING_GUI,
+                              "Restoring Graphical User Interface");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    if (progressEvent.isCancelled()) {
+        resetBrains(true);
+        return;
+    }    
+}
+
+/**
+ * Reset the first brain and remove all other brains.
+ */
+void
+SessionManager::resetBrains(const bool keepSceneFiles)
+{
+    const int32_t numBrains = static_cast<int32_t>(m_brains.size());
+    for (int32_t i = 0; i < numBrains; i++) {
+        if (i > 0) {
+            delete m_brains[i];
+        }
+        else if (keepSceneFiles) {
+            m_brains[i]->resetBrainKeepSceneFiles();
+        }
+        else {
+            m_brains[i]->resetBrain();
+        }
+    }
+
+    if (numBrains > 1) {
+        m_brains.resize(1);
+    }
 }
 
 

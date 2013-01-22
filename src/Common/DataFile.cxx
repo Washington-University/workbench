@@ -164,3 +164,98 @@ DataFile::isModified() const
 {
     return this->modifiedFlag;
 }
+
+/**
+ * Is the filename a path on the network (http:// etc)
+ * @param filename
+ *     Name of file.
+ * @return true if filename appears to be a network path.
+ */
+bool 
+DataFile::isFileOnNetwork(const AString& filename)
+{
+    if (filename.startsWith("http://")
+        || filename.startsWith("https://")) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * If the filename is local, make sure the file exists and
+ * its permissions allow the file to be read.
+ *
+ * @param filename
+ *    Name of file.
+ * @throws DataFileException
+ *    If there is a problem that will prevent the file from being read.
+ */
+void
+DataFile::checkFileReadability(const AString& filename) throw (DataFileException)
+{
+    if (filename.isEmpty()) {
+        throw DataFileException("Name of file for reading is empty.");
+    }
+    
+    if (isFileOnNetwork(filename)) {
+        return;
+    }
+    
+    FileInformation fileInfo(filename);
+    if (fileInfo.exists() == false) {
+        throw DataFileException("File named \""
+                                + filename
+                                + "\" does not exist.");
+    }
+    
+    if (fileInfo.isDirectory()) {
+        throw DataFileException("File named \""
+                                + filename
+                                + "\" is a directory, not a file.");
+    }
+    
+    if (fileInfo.isReadable() == false) {
+        throw DataFileException("File named \""
+                                + filename
+                                + "\" is not readable due its permissions.");
+    }
+}
+
+/**
+ * If the filename is local, see if the file exists and
+ * its permissions allow the file to be written.
+ *
+ * @param filename
+ *    Name of file.
+ * @throws DataFileException
+ *    If there is a problem that will prevent the file from being read.
+ */
+void
+DataFile::checkFileWritability(const AString& filename) throw (DataFileException)
+{
+    if (filename.isEmpty()) {
+        throw DataFileException("Name of file for writing is empty.");
+    }
+    
+    if (isFileOnNetwork(filename)) {
+        return;
+    }
+    
+    FileInformation fileInfo(filename);
+    if (fileInfo.exists()) {
+        if (fileInfo.isDirectory()) {
+            throw DataFileException("File named \""
+                                    + filename
+                                    + "\" is a directory, not a file.");
+        }
+        
+        
+        if (fileInfo.isWritable() == false) {
+            throw DataFileException("File named \""
+                                    + filename
+                                    + "\" exists is not writable due its permissions.");
+        }
+    }
+}
+

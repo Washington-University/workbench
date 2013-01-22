@@ -29,31 +29,61 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
-#include "ConnectivityLoaderManager.h"
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
+#include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
     
     class Border;
     class BorderFile;
+    class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiBrainordinateFile;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
+    class CiftiConnectivityMatrixDataFile;
+    class CiftiConnectivityMatrixDataFileManager;
+    class CiftiConnectivityMatrixDenseFile;
+    class CiftiConnectivityMatrixDenseParcelFile;
+    class CiftiConnectivityMatrixParcelFile;
+    class CiftiConnectivityMatrixParcelDenseFile;
+    class CiftiFiberOrientationFile;
+    class CiftiFiberTrajectoryFile;
+    class ConnectivityLoaderFile;
+    class ConnectivityLoaderManager;
     class DisplayProperties;
-    class DisplayPropertiesInformation;
+    class DisplayPropertiesBorders;
+    class DisplayPropertiesFiberOrientation;
+    class DisplayPropertiesFiberTrajectory;
+    class DisplayPropertiesFoci;
+    class DisplayPropertiesLabels;
+    class DisplayPropertiesSurface;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
+    class IdentificationManager;
+    class LabelFile;
+    class MetricFile;
+    class ModelSurfaceMontage;
+    class ModelVolume;
+    class ModelWholeBrain;
     class PaletteFile;
+    class RgbaFile;
+    class SceneClassAssistant;
+    class SceneFile;
+    class SelectionManager;
+    class Surface;
+    class SurfaceFile;
     class SurfaceProjectedItem;
     class SpecFile;
     class VolumeFile;
     
-    class Brain : public CaretObject, public EventListenerInterface {
+    class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
 
     public:
         Brain();
@@ -71,6 +101,8 @@ namespace caret {
         
         BrainStructure* getBrainStructure(const int32_t indx);
 
+        const BrainStructure* getBrainStructure(const int32_t indx) const;
+        
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
@@ -86,7 +118,9 @@ namespace caret {
             NEAREST_BORDER_TEST_MODE_ALL_POINTS,
             NEAREST_BORDER_TEST_MODE_ENDPOINTS
         };
-        bool findBorderNearestBorder(const SurfaceFile* surfaceFile,
+        bool findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t browserTabIndex,
+                                     const SurfaceFile* surfaceFile,
                                     const Border* border,
                                     const NearestBorderTestMode borderTestMode,
                                     const float maximumDistance,
@@ -98,7 +132,9 @@ namespace caret {
                                     int32_t& borderPointIndexOut,
                                     float& distanceToBorderPointOut) const;
                                     
-        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t browserTabIndex,
+                                  const SurfaceFile* surfaceFile,
                                  const float xyz[3],
                                  const float maximumDistance,
                                  BorderFile*& borderFileOut,
@@ -109,11 +145,41 @@ namespace caret {
                                  int32_t& borderPointIndexOut,
                                  float& distanceToBorderPointOut) const;
         
+        Surface* getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+                                                              const float tolerance);
+        
+        int32_t getNumberOfFociFiles() const;
+        
+        FociFile* getFociFile(const int32_t indx);
+        
+        const FociFile* getFociFile(const int32_t indx) const;
+        
+        FociFile* addFociFile();
+        
         PaletteFile* getPaletteFile();
         
         const PaletteFile* getPaletteFile() const;
 
-        SpecFile* getSpecFile();
+        SceneFile* addSceneFile();
+        
+        int32_t getNumberOfSceneFiles() const;
+        
+        SceneFile* getSceneFile(const int32_t indx);
+        
+        const SceneFile* getSceneFile(const int32_t indx) const;
+        
+        AString getSpecFileName() const;
+        
+        void setSpecFileName(const AString& specFileName);
+        
+        bool isSpecFileValid() const;
+        
+        Surface* getSurfaceWithName(const AString& surfaceFileName,
+                                    const bool useAbsolutePath);
+        
+        std::vector<const Surface*> getVolumeInteractionSurfaces() const;
+        
+        std::vector<const SurfaceFile*> getVolumeInteractionSurfaceFiles() const;
         
         int32_t getNumberOfVolumeFiles() const;
         
@@ -121,61 +187,228 @@ namespace caret {
         
         const VolumeFile* getVolumeFile(const int32_t volumeFileIndex) const;
         
-        void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
-        
         void resetBrain();
         
+        void resetBrainKeepSceneFiles();
+        
         void receiveEvent(Event* event);
+        
+        CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
+        
+        const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;
         
         ConnectivityLoaderManager* getConnectivityLoaderManager();
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
         
+        void getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
+        
+        int32_t getNumberOfConnectivityMatrixDenseFiles() const;
+        
+        CiftiConnectivityMatrixDenseFile* getConnectivityMatrixDenseFile(int32_t indx);
+        
+        const CiftiConnectivityMatrixDenseFile* getConnectivityMatrixDenseFile(int32_t indx) const;
+        
+        void getConnectivityMatrixDenseFiles(std::vector<CiftiConnectivityMatrixDenseFile*>& connectivityDenseFilesOut) const;
+        
+        int32_t getNumberOfConnectivityDenseLabelFiles() const;
+        
+        void getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const;
+
+        CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx);
+        
+        const CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx) const;
+        
+        void getConnectivityDenseLabelFiles(std::vector<CiftiBrainordinateLabelFile*>& connectivityDenseLabelFilesOut) const;
+        
+        int32_t getNumberOfConnectivityMatrixDenseParcelFiles() const;
+        
+        CiftiConnectivityMatrixDenseParcelFile* getConnectivityMatrixDenseParcelFile(int32_t indx);
+        
+        const CiftiConnectivityMatrixDenseParcelFile* getConnectivityMatrixDenseParcelFile(int32_t indx) const;
+        
+        void getConnectivityMatrixDenseParcelFiles(std::vector<CiftiConnectivityMatrixDenseParcelFile*>& connectivityDenseParcelFilesOut) const;
+        
+        int32_t getNumberOfConnectivityDenseScalarFiles() const;
+        
+        CiftiBrainordinateScalarFile* getConnectivityDenseScalarFile(int32_t indx);
+        
+        const CiftiBrainordinateScalarFile* getConnectivityDenseScalarFile(int32_t indx) const;
+        
+        void getConnectivityDenseScalarFiles(std::vector<CiftiBrainordinateScalarFile*>& connectivityDenseScalarFilesOut) const;
+        
+        int32_t getNumberOfConnectivityFiberOrientationFiles() const;
+        
+        CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx);
+        
+        const CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx) const;
+        
+        void getConnectivityFiberOrientationFiles(std::vector<CiftiFiberOrientationFile*>& connectivityFiberOrientationFilesOut) const;
+        
+        int32_t getNumberOfConnectivityFiberTrajectoryFiles() const;
+        
+        CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx);
+        
+        const CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx) const;
+        
+        void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
+        
+        int32_t getNumberOfConnectivityMatrixParcelFiles() const;
+        
+        CiftiConnectivityMatrixParcelFile* getConnectivityMatrixParcelFile(int32_t indx);
+        
+        const CiftiConnectivityMatrixParcelFile* getConnectivityMatrixParcelFile(int32_t indx) const;
+        
+        void getConnectivityMatrixParcelFiles(std::vector<CiftiConnectivityMatrixParcelFile*>& connectivityParcelFilesOut) const;
+
+        int32_t getNumberOfConnectivityMatrixParcelDenseFiles() const;
+        
+        CiftiConnectivityMatrixParcelDenseFile* getConnectivityMatrixParcelDenseFile(int32_t indx);
+        
+        const CiftiConnectivityMatrixParcelDenseFile* getConnectivityMatrixParcelDenseFile(int32_t indx) const;
+        
+        void getConnectivityMatrixParcelDenseFiles(std::vector<CiftiConnectivityMatrixParcelDenseFile*>& connectivityParcelDenseFilesOut) const;
+        
+        int32_t getNumberOfConnectivityTimeSeriesFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx) const;
+        
+        void getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const;
+        
+        void getAllCiftiConnectivityMatrixFiles(std::vector<CiftiConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const;
+        
         AString getCurrentDirectory() const;
         
         void setCurrentDirectory(const AString& currentDirectory);
         
-        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
         
-        void writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        bool isFileValid(const CaretDataFile* caretDataFile) const;
+
+        void determineDisplayedDataFiles();
+        
+        bool areFilesModified(const bool excludeConnectivityFiles,
+                              const bool excludeSceneFiles);
+        
+        void writeDataFile(CaretDataFile* caretDataFile,
+                           const bool isAddToSpecFile) throw (DataFileException);
         
         bool removeDataFile(CaretDataFile* caretDataFile);
+        
+        DisplayPropertiesBorders* getDisplayPropertiesBorders();
+        
+        const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
+        
+        DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation();
+        
+        const DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation() const;
+        
+        DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory();
+        
+        const DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory() const;
+        
+        DisplayPropertiesFoci* getDisplayPropertiesFoci();
+        
+        const DisplayPropertiesFoci* getDisplayPropertiesFoci() const;
         
         DisplayPropertiesVolume* getDisplayPropertiesVolume();
         
         const DisplayPropertiesVolume* getDisplayPropertiesVolume() const;
         
-        DisplayPropertiesInformation* getDisplayPropertiesInformation();
+        DisplayPropertiesSurface* getDisplayPropertiesSurface();
         
-        const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
+        const DisplayPropertiesSurface* getDisplayPropertiesSurface() const;
+        
+        
+        DisplayPropertiesLabels* getDisplayPropertiesLabels();
+        
+        const DisplayPropertiesLabels* getDisplayPropertiesLabels() const;
+        
+        void copyDisplayProperties(const int32_t sourceTabIndex,
+                                   const int32_t targetTabIndex);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+        IdentificationManager* getIdentificationManager();
+
+        SelectionManager* getSelectionManager();
         
     private:
+        enum ResetBrainKeepSceneFiles {
+            RESET_BRAIN_KEEP_SCENE_FILES_NO,
+            RESET_BRAIN_KEEP_SCENE_FILES_YES
+        };
+        
+        enum ResetBrainKeepSpecFile {
+            RESET_BRAIN_KEEP_SPEC_FILE_NO,
+            RESET_BRAIN_KEEP_SPEC_FILE_YES
+        };
+        
+        void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
+        
+        void loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
+                                   SpecFile* specFile,
+                          const ResetBrainKeepSceneFiles keepSceneFile,
+                          const ResetBrainKeepSpecFile keepSpecFile);
+        
+        void resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
+                        const ResetBrainKeepSpecFile keepSpecFile);
+        
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
-                          const AString& dataFileName) throw (DataFileException);
+                          const AString& dataFileName,
+                          const bool markDataFileAsModified,
+                          const bool addDataFileToSpecFile) throw (DataFileException);
         
-        void readLabelFile(const AString& filename,
-                           const StructureEnum::Enum structure) throw (DataFileException);
+        LabelFile* readLabelFile(const AString& filename,
+                                 const StructureEnum::Enum structure,
+                                 const bool markDataFileAsModified) throw (DataFileException);
         
-        void readMetricFile(const AString& filename,
-                            const StructureEnum::Enum structure) throw (DataFileException);
+        MetricFile* readMetricFile(const AString& filename,
+                                   const StructureEnum::Enum structure,
+                                   const bool markDataFileAsModified) throw (DataFileException);
         
-        void readRgbaFile(const AString& filename,
-                          const StructureEnum::Enum structure) throw (DataFileException);
+        RgbaFile* readRgbaFile(const AString& filename,
+                               const StructureEnum::Enum structure,
+                               const bool markDataFileAsModified) throw (DataFileException);
         
-        void readSurfaceFile(const AString& filename,
-                             const StructureEnum::Enum structure) throw (DataFileException);
+        Surface* readSurfaceFile(const AString& filename,
+                                 const StructureEnum::Enum structure,
+                                 const bool markDataFileAsModified) throw (DataFileException);
         
         void readVolumeFile(const AString& filename) throw (DataFileException);
                             
-        void readBorderProjectionFile(const AString& filename) throw (DataFileException);
+        void readBorderFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityFile(const AString& filename,
-                                  const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
+        void readConnectivityDenseFile(const AString& filename) throw (DataFileException);
         
-        void readFociProjectionFile(const AString& filename) throw (DataFileException);
+        void readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityMatrixDenseParcelFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityMatrixParcelFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityMatrixParcelDenseFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
+        
+        void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
+        
+        void readFociFile(const AString& filename) throw (DataFileException);
         
         void readPaletteFile(const AString& filename) throw (DataFileException);
         
@@ -183,45 +416,113 @@ namespace caret {
         
         AString updateFileNameForReading(const AString& filename);
         
+        AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
+        
         void updateVolumeSliceController();
         
         void updateWholeBrainController();
         
-        std::vector<BrainStructure*> brainStructures;
+        void updateSurfaceMontageController();
         
-        std::vector<BorderFile*> borderFiles;
+        std::vector<BrainStructure*> m_brainStructures;
         
-        PaletteFile* paletteFile;
+        std::vector<BorderFile*> m_borderFiles;
         
-        mutable AString currentDirectory;
+        std::vector<FociFile*> m_fociFiles;
         
-        SpecFile* specFile;
+        std::vector<SceneFile*> m_sceneFiles;
         
-        std::vector<VolumeFile*> volumeFiles;
+        PaletteFile* m_paletteFile;
         
-        ModelDisplayControllerVolume* volumeSliceController;
+        std::vector<CiftiConnectivityMatrixDenseFile*> m_connectivityMatrixDenseFiles;
         
-        ModelDisplayControllerWholeBrain* wholeBrainController;
+        std::vector<CiftiBrainordinateLabelFile*> m_connectivityDenseLabelFiles;
         
-        ConnectivityLoaderManager* connectivityLoaderManager;
+        std::vector<CiftiConnectivityMatrixDenseParcelFile*> m_connectivityMatrixDenseParcelFiles;
+        
+        std::vector<CiftiBrainordinateScalarFile*> m_connectivityDenseScalarFiles;
+        
+        std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
+        
+        std::vector<CiftiFiberTrajectoryFile*> m_connectivityFiberTrajectoryFiles;
+        
+        std::vector<CiftiConnectivityMatrixParcelFile*> m_connectivityMatrixParcelFiles;
+        
+        std::vector<CiftiConnectivityMatrixParcelDenseFile*> m_connectivityMatrixParcelDenseFiles;
+        
+        std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
+        
+        mutable AString m_currentDirectory;
+        
+        AString m_specFileName;
+        
+        std::vector<VolumeFile*> m_volumeFiles;
+        
+        ModelVolume* m_volumeSliceController;
+        
+        ModelWholeBrain* m_wholeBrainController;
+        
+        ModelSurfaceMontage* m_surfaceMontageController;
+        
+        ConnectivityLoaderManager* m_connectivityLoaderManager;
+        
+        CiftiConnectivityMatrixDataFileManager* m_ciftiConnectivityMatrixDataFileManager;
         
         /** contains all display properties */
-        std::vector<DisplayProperties*> displayProperties;
+        std::vector<DisplayProperties*> m_displayProperties;
         
         /**
          * Display properties for volume - DO NOT delete since this
-         * is also in the displayProperties vector.
+         * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesVolume* displayPropertiesVolume;
+        DisplayPropertiesVolume* m_displayPropertiesVolume;
         
         /**
-         * Display properties for information - DO NOT delete since this
-         * is also in the displayProperties vector.
+         * Display properties for surface - DO NOT delete since this
+         * is also in the displayProperties std::vector.
          */
-        DisplayPropertiesInformation* displayPropertiesInformation;
+        DisplayPropertiesSurface* m_displayPropertiesSurface;
+        
+        /**
+         * Display properties for labels - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesLabels* m_displayPropertiesLabels;
+        
+        /**
+         * Display properties for borders - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesBorders* m_displayPropertiesBorders;
+        
+        /**
+         * Display properties for fiber orientation - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFiberOrientation* m_displayPropertiesFiberOrientation;
+        
+        /**
+         * Display properties for fiber orientation - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFiberTrajectory* m_displayPropertiesFiberTrajectory;
+
+        /**
+         * Display properties for foci - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFoci* m_displayPropertiesFoci;
         
         /** true when a spec file is being read */
-        bool isSpecFileBeingRead;
+        bool m_isSpecFileBeingRead;
+        
+        SceneClassAssistant* m_sceneAssistant;
+        
+        /** Selection manager */
+        SelectionManager* m_selectionManager;
+        
+        /** Identification Manager */
+        IdentificationManager* m_identificationManager;
     };
 
 } // namespace

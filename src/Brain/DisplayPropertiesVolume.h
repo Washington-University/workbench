@@ -25,12 +25,11 @@
  * 
  */ 
 
-
 #include "DisplayProperties.h"
 
 namespace caret {
 
-    class VolumeSurfaceOutlineSelection;
+    class Surface;
     
     class DisplayPropertiesVolume : public DisplayProperties {
         
@@ -43,25 +42,23 @@ namespace caret {
         
         void update();
         
-        static const int32_t MAXIMUM_NUMBER_OF_SURFACE_OUTLINES;
+        virtual void copyDisplayProperties(const int32_t sourceTabIndex,
+                                           const int32_t targetTabIndex);
         
-        VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx);
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
         
-        const VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx) const;
-        
-        void selectSurfacesAfterSpecFileLoaded();
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private:
         DisplayPropertiesVolume(const DisplayPropertiesVolume&);
 
         DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
         
-    private:
-        std::vector<VolumeSurfaceOutlineSelection*> volumeSurfaceOutlineSelections;
     };
     
 #ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
-    const int32_t DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES = 10;
 #endif // __DISPLAY_PROPERTIES_VOLUME_DECLARE__
 
 } // namespace

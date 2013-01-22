@@ -121,4 +121,14 @@ SurfaceProjection::setProjectionSurfaceNumberOfNodes(const int projectionSurface
     this->projectionSurfaceNumberOfNodes = projectionSurfaceNumberOfNodes;
 }
 
+/**
+ * @return a string describing the projection 
+ */
+AString
+SurfaceProjection::toString() const
+{
+    return CaretObjectTracksModification::toString();
+}
+
+
 

@@ -343,6 +343,30 @@ AString::toNumbers(const AString& s,
 }
 
 /**
+ * Convert the string to a boolean value.
+ * These case insensitive values are considered true:
+ * true, t, 1, 1.0.  All others are considered false.
+ *
+ * @return 
+ *    Boolean value interpreted from contents of 
+ *    this string.
+ */
+bool 
+AString::toBool() const
+{
+    const AString s = this->toLower();
+    if ((s == "true")
+        || (s == "t") 
+        || (s == "1")
+        || (s == "1.0")) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
  * Convert the boolean value to a string.
  * @param b
  *    The boolean value.
@@ -507,7 +531,7 @@ AString::toCharArray() const
     QByteArray byteArray = this->toLocal8Bit();
     const int32_t numBytes = byteArray.length();
     if (numBytes > 0) {
-        char* charOut = new char[numBytes + 1];
+        char* charOut = new char[numBytes + 1];//are there any byteArrays that don't already come with a line terminator?
         
         int32_t lastAsciiChar = -1;
         for (int32_t i = 0; i < numBytes; i++) {
@@ -516,7 +540,11 @@ AString::toCharArray() const
                 charOut[i] = c;
                 lastAsciiChar = i;
             }
-            else {
+            else if((c == 0 || c == 10) && i == (numBytes-1)) {
+                charOut[i] = c;
+            }
+            else
+            {
                 charOut[i] = '_';
                 haveNonAsciiCharacters = true;
             }
@@ -535,5 +563,18 @@ AString::toCharArray() const
     char* s = new char[1];
     s[0] = 0;
     return s;
+}
+
+/**
+ * If this string is not empty append a newline. 
+ * Next, append the given string.
+ */
+void
+AString::appendWithNewLine(const AString& str)
+{
+    if (isEmpty() == false) {
+        append("\n");
+    }
+    append(str);
 }
 

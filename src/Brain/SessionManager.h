@@ -28,17 +28,18 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 
 namespace caret {
     
     class Brain;
     class BrowserTabContent;
     class CaretPreferences;
-    class ModelDisplayController;
-    class ModelDisplayControllerYokingGroup;
+    class Model;
+    class ModelYokingGroup;
     
     /// Manages a Caret session which contains 'global' brain data.
-    class SessionManager : public CaretObject, public EventListenerInterface {
+    class SessionManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         static void createSessionManager();
@@ -57,6 +58,11 @@ namespace caret {
         
         CaretPreferences* getCaretPreferences();
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         SessionManager();
         
@@ -72,27 +78,29 @@ namespace caret {
     private:
         void updateBrowserTabContents();
         
+        void resetBrains(const bool keepSceneFiles);
+        
         /** The session manager */
-        static SessionManager* singletonSessionManager;
+        static SessionManager* s_singletonSessionManager;
         
         /** The browser tabs */
-        BrowserTabContent* browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
+        BrowserTabContent* m_browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
         
         /** Holds valid model display controllers */
-        std::vector<ModelDisplayController*> modelDisplayControllers;
+        std::vector<Model*> m_modelDisplayControllers;
         
         /** Holds all loaded brains */
-        std::vector<Brain*> brains;
+        std::vector<Brain*> m_brains;
         
         /** Caret's preferences */
-        CaretPreferences* caretPreferences;
+        CaretPreferences* m_caretPreferences;
         
         /** Yoking Groups */
-        std::vector<ModelDisplayControllerYokingGroup*> yokingGroups;
+        std::vector<ModelYokingGroup*> m_yokingGroupModels;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__
-    SessionManager* SessionManager::singletonSessionManager = NULL;
+    SessionManager* SessionManager::s_singletonSessionManager = NULL;
     
 #endif // __SESSION_MANAGER_DECLARE__
 

@@ -36,6 +36,10 @@ CaretHttpManager* CaretHttpManager::m_singleton = NULL;
 
 CaretHttpManager::CaretHttpManager() : QObject()
 {
+    connect(&m_netMgr,
+        SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> & )),
+        this,
+        SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError> & )));
 }
 
 CaretHttpManager* CaretHttpManager::getHttpManager()
@@ -108,6 +112,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         }
         myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         myRequest.setUrl(myUrl);
+        CaretLogInfo("POST URL: " + myUrl.toString());
         myReply = myQNetMgr->post(myRequest, postData);
         break;
     case GET:
@@ -116,6 +121,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
+        CaretLogInfo("GET URL: " + myUrl.toString());
         myReply = myQNetMgr->get(myRequest);
         break;
     case HEAD:
@@ -124,6 +130,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
+        CaretLogInfo("HEAD URL: " + myUrl.toString());
         myReply = myQNetMgr->head(myRequest);
         break;
     default:
@@ -132,6 +139,10 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
     //QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
     QObject::connect(myReply, SIGNAL(finished()), &myLoop, SLOT(quit()));//this is safe, because nothing will hand this thread events except queued through this thread's event mechanism
+    /*QObject::connect(myReply,
+        SIGNAL(sslErrors(const QList<QSslError> & )),
+        CaretHttpManager::getHttpManager(),
+        SLOT(handleSslErrors(const QList<QSslError> & )));//*/
     myLoop.exec();//so, they can only be delivered after myLoop.exec() starts
     response.m_method = request.m_method;
     response.m_ok = false;
@@ -171,6 +182,17 @@ void CaretHttpManager::setAuthentication(const AString& url, const AString& user
     myAuth.m_user = user;
     myAuth.m_pass = password;
     myCaretMgr->m_authList.push_back(myAuth);
+}
+
+void CaretHttpManager::handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/)
+{
+    /*qDebug() << "handleSslErrors: ";
+    foreach (QSslError e, errors)
+    {
+        qDebug() << "ssl error: " << e;
+    }*/
+
+    reply->ignoreSslErrors();
 }
 
 /*void CaretHttpManager::authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator)

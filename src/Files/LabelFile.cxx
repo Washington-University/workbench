@@ -23,7 +23,8 @@
  */ 
 
 #include "CaretAssert.h"
-
+#include "CaretLogger.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
@@ -37,6 +38,7 @@ using namespace caret;
 LabelFile::LabelFile()
 : GiftiTypeFile(DataFileTypeEnum::LABEL)
 {
+    m_classNameHierarchy = NULL;
     this->initializeMembersLabelFile();
 }
 
@@ -49,6 +51,7 @@ LabelFile::LabelFile()
 LabelFile::LabelFile(const LabelFile& sf)
 : GiftiTypeFile(sf)
 {
+    m_classNameHierarchy = NULL;
     this->copyHelperLabelFile(sf);
 }
 
@@ -78,6 +81,7 @@ LabelFile::operator=(const LabelFile& sf)
 LabelFile::~LabelFile()
 {
     this->columnDataPointers.clear();
+    delete m_classNameHierarchy;
 }
 
 /**
@@ -88,6 +92,7 @@ LabelFile::clear()
 {
     GiftiTypeFile::clear();
     this->columnDataPointers.clear();
+    m_classNameHierarchy->clear();
 }
 
 /** 
@@ -109,6 +114,32 @@ LabelFile::getLabelTable() const
 }
 
 /**
+ * @return The class and name hierarchy.
+ */
+GroupAndNameHierarchyModel*
+LabelFile::getGroupAndNameHierarchyModel()
+{
+    m_classNameHierarchy->update(this,
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * @return The class and name hierarchy.
+ */
+const GroupAndNameHierarchyModel*
+LabelFile::getGroupAndNameHierarchyModel() const
+{
+    m_classNameHierarchy->update(const_cast<LabelFile*>(this),
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
  * Validate the contents of the file after it
  * has been read such as correct number of 
  * data arrays and proper data types/dimensions.
@@ -126,6 +157,16 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
         this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerInt());
     }
+    
+    m_classNameHierarchy->update(this,
+                                 true);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    m_classNameHierarchy->setAllSelected(true);
+    
+    CaretLogFiner("CLASS/NAME Table for : "
+                  + this->getFileNameNoPath()
+                  + "\n"
+                  + m_classNameHierarchy->toString());
 }
 
 /**
@@ -165,6 +206,11 @@ LabelFile::getNumberOfColumns() const
 void 
 LabelFile::initializeMembersLabelFile()
 {
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
+    }
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -176,6 +222,12 @@ LabelFile::initializeMembersLabelFile()
 void 
 LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
 {
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
+    }
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    
     this->validateDataArraysAfterReading();
 }
 
@@ -239,6 +291,34 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
     CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()), "Node Index out of range.");
     
     this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
+    this->setModified();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+}
+
+/**
+ * Get nodes in the given column with the given lable key.
+ * @param columnIndex
+ *    Index of column
+ * @param labelKey
+ *    Key of label that is desired.
+ * @param nodeIndicesOut
+ *    On exit, will contain indices of nodes that have the 
+ *    given label key in the given column.
+ */
+void 
+LabelFile::getNodeIndicesWithLabelKey(const int32_t columnIndex,
+                                const int32_t labelKey,
+                                std::vector<int32_t>& nodeIndicesOut) const
+{
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    nodeIndicesOut.clear();
+    nodeIndicesOut.reserve(numberOfNodes);
+    
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (this->getLabelKey(i, columnIndex) == labelKey) {
+            nodeIndicesOut.push_back(i);
+        }
+    }
 }
 
 /**
@@ -257,15 +337,89 @@ LabelFile::getLabelKeyPointerForColumn(const int32_t columnIndex) const
 
 void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
 {
-    giftiFile->clear();
+    giftiFile->clearAndKeepMetadata();
+    columnDataPointers.clear();
+
+    const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();
+    
     std::vector<int64_t> dimensions;
     dimensions.push_back(nodes);
     for (int32_t i = 0; i < columns; ++i)
     {
         giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_LABEL, NiftiDataTypeEnum::NIFTI_TYPE_INT32, dimensions, GiftiEncodingEnum::GZIP_BASE64_BINARY));
         columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerInt());
+        int32_t* ptr = giftiFile->getDataArray(i)->getDataPointerInt();
+        for (int32_t j = 0; j < nodes; j++) {
+            ptr[j] = unassignedKey;
+        }
     }
     setModified();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+}
+
+/**
+ * Add map(s) to this GIFTI file.
+ * @param numberOfNodes
+ *     Number of nodes.  If file is not empty, this value must
+ *     match the number of nodes that are in the file.
+ * @param numberOfMaps
+ *     Number of maps to add.
+ */
+void 
+LabelFile::addMaps(const int32_t numberOfNodes,
+                       const int32_t numberOfMaps) throw (DataFileException)
+{
+    if (numberOfNodes <= 0) {
+        throw DataFileException("When adding maps to "
+                                + this->getFileNameNoPath()
+                                + " the number of nodes must be greater than zero");
+    }
+    
+    if (this->getNumberOfNodes() > 0) {
+        if (numberOfNodes != this->getNumberOfNodes()) {
+            throw DataFileException("When adding maps to "
+                                    + this->getFileNameNoPath()
+                                    + " the requested number of nodes is "
+                                    + AString::number(numberOfNodes)
+                                    + " but the file contains "
+                                    + AString::number(this->getNumberOfNodes())
+                                    + " nodes.");
+        }
+    }
+    
+    if (numberOfMaps <= 0) {
+        throw DataFileException("When adding maps, the number of maps must be greater than zero.");
+    }
+    
+    const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();
+    
+    if ((this->getNumberOfNodes() > 0) 
+        && (this->getNumberOfMaps() > 0)) {
+        std::vector<int64_t> dimensions;
+        dimensions.push_back(numberOfNodes);
+        
+        for (int32_t i = 0; i < numberOfMaps; ++i)
+        {
+            this->giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_LABEL, 
+                                                             NiftiDataTypeEnum::NIFTI_TYPE_INT32, 
+                                                             dimensions, 
+                                                             GiftiEncodingEnum::GZIP_BASE64_BINARY));
+            const int32_t mapIndex = giftiFile->getNumberOfDataArrays() - 1;
+            this->columnDataPointers.push_back(giftiFile->getDataArray(mapIndex)->getDataPointerInt());
+            
+            int32_t* ptr = giftiFile->getDataArray(mapIndex)->getDataPointerInt();
+            for (int32_t j = 0; j < numberOfNodes; j++) {
+                ptr[j] = unassignedKey;
+            }
+        }
+    }
+    else {
+        this->setNumberOfNodesAndColumns(numberOfNodes, 
+                                         numberOfMaps);
+    }
+    
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    this->setModified();
 }
 
 void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* valuesIn)
@@ -277,5 +431,35 @@ void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* 
     {
         myColumn[i] = valuesIn[i];
     }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
+
+/**
+ * Return a vector containing the keys used in a map.  Each key is listed
+ * once and the keys will be in ascending order. 
+ * @param mapIndex
+ *   Index of map.
+ * @return
+ *   Vector containing the keys.
+ */
+std::vector<int32_t>
+LabelFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(this->columnDataPointers, mapIndex);
+    
+    std::set<int32_t> uniqueKeys;
+    const int32_t numNodes = getNumberOfNodes();
+    for (int32_t i = 0; i < numNodes; i++) {
+        const int32_t key = getLabelKey(i, mapIndex);
+        uniqueKeys.insert(key);
+    }
+    
+    std::vector<int32_t> keyVector;
+    keyVector.insert(keyVector.end(),
+                     uniqueKeys.begin(),
+                     uniqueKeys.end());
+    return keyVector;
+}
+
+

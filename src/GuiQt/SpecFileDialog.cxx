@@ -42,18 +42,21 @@
 #include "SpecFileDialog.h"
 #undef __SPEC_FILE_DIALOG_DECLARE__
 
+#include "CaretAssert.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
-
+#include "FileInformation.h"
 #include "GuiManager.h"
+#include "ProgressReportingDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "StructureEnum.h"
-#include "StructureSelectionControl.h"
+#include "StructureEnumComboBox.h"
+#include "WuQEventBlockingFilter.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -63,7 +66,7 @@ using namespace caret;
 
     
 /**
- * \class SpecFileDialog 
+ * \class caret::SpecFileDialog 
  * \brief Dialog for selection of files in a spec file.
  *
  * Presents a dialog that allows the user to select data
@@ -73,7 +76,7 @@ using namespace caret;
 
 /**
  * Create a new instance of the SpecFile Dialog for
- * loading a spec file.  Run the retured dialog
+ * loading a spec file.  Run the returned dialog
  * with 'exec()'.
  * @param specFile
  *    The spec file that will be loaded.
@@ -102,12 +105,19 @@ SpecFileDialog::createForLoadingSpecFile(SpecFile* specFile,
  * Dialog will be deleted automatically when it is closed.
  */
 void 
-SpecFileDialog::displayFastOpenDataFile(SpecFile* specFile,
+SpecFileDialog::displayFastOpenDataFile(const SpecFile* specFile,
                                             QWidget* parent)
 {
+    /*
+     * Spec file must be copied since the spec file is non-modal
+     * for this usage and some operations reference the spec file's
+     * content.
+     */
+    SpecFile* specFileCopy = new SpecFile(*specFile);
     SpecFileDialog* sfd = new SpecFileDialog(SpecFileDialog::MODE_FAST_OPEN,
-                                             specFile,
+                                             specFileCopy,
                                              parent);
+    sfd->m_specFileCopyThatIsDeletedWhenDialogDestroyed = specFileCopy;
     sfd->setDeleteWhenClosed(true);
     sfd->setVisible(true);
     sfd->show();
@@ -121,12 +131,22 @@ SpecFileDialog::displayFastOpenDataFile(SpecFile* specFile,
 SpecFileDialog::SpecFileDialog(const Mode mode,
                                SpecFile* specFile,
                                QWidget* parent)
-: WuQDialogModal("Spec File Data File Selection",
+: WuQDialogModal(("Spec File Data File Selection: " + specFile->getFileNameNoPath()),
                  parent)
 {
-    this->mode = mode;
+    m_specFileCopyThatIsDeletedWhenDialogDestroyed = NULL;
+    m_mode = mode;
     
-    this->specFile = specFile;
+    /*
+     * Mac wheel event causes unintentional selection of combo box
+     */
+    m_comboBoxWheelEventBlockingFilter = new WuQEventBlockingFilter(this);
+#ifdef CARET_OS_MACOSX
+    m_comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel, 
+                                                            true);
+#endif // CARET_OS_MACOSX
+    
+    m_specFile = specFile;
     QWidget* fileGroupWidget = new QWidget();
     QVBoxLayout* fileGroupLayout = new QVBoxLayout(fileGroupWidget);
     
@@ -162,18 +182,20 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
      * Get ALL of the connectivity file's in a single group
      */
     std::vector<SpecFileDataFile*> connectivityFiles;
-    this->specFile->getAllConnectivityFileTypes(connectivityFiles);
+    m_specFile->getAllConnectivityFileTypes(connectivityFiles);
     
     bool haveConnectivityFiles = false;
+    bool haveSceneFiles = false;
+    
     /*
      * Display each type of data file
      */
-    const int32_t numGroups = this->specFile->getNumberOfDataFileTypeGroups();
+    const int32_t numGroups = m_specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0 ; ig < numGroups; ig++) {
         /*
          * File type of group
          */
-        SpecFileDataFileTypeGroup* group = this->specFile->getDataFileTypeGroup(ig);
+        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         
         std::vector<SpecFileDataFile*> dataFileInfoVector;
@@ -181,11 +203,13 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
         /*
          * Is this a connectivity group?
          */
+        const bool areAllConnectivityFilesInOneGroup = false;
         AString groupName;
-        if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+        if (areAllConnectivityFilesInOneGroup
+            && DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
             if (haveConnectivityFiles == false) {
                 haveConnectivityFiles = true;
-                this->specFile->getAllConnectivityFileTypes(dataFileInfoVector);
+                m_specFile->getAllConnectivityFileTypes(dataFileInfoVector);
                 groupName = "Connectivity";
             }
         }
@@ -203,11 +227,11 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
         /*
          * Group has files?
          */
-        GuiSpecGroup* guiSpecGroup = this->createDataTypeGroup(dataFileType, 
+        GuiSpecGroup* guiSpecGroup = createDataTypeGroup(dataFileType, 
                                                                dataFileInfoVector,
                                                                groupName);
         if (guiSpecGroup != NULL) {
-            dataTypeGroups.push_back(guiSpecGroup);
+            m_dataTypeGroups.push_back(guiSpecGroup);
             fileGroupLayout->addWidget(guiSpecGroup->widget);
             
             /*
@@ -224,6 +248,10 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
             fileGroupToolBar->addWidget(groupToolButton);
             
             toolBarActionGroup->addAction(groupToolButtonAction);
+            
+            if (dataFileType == DataFileTypeEnum::SCENE) {
+                haveSceneFiles = true;
+            }
         }
     }
     
@@ -237,7 +265,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     /*
      * Select toolbar
      */
-    QToolBar* selectToolBar = this->createSelectToolBar();
+    QToolBar* selectToolBar = createSelectToolBar();
     
     /*
      * Toolbars in one widget with no spacing
@@ -252,10 +280,10 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
      * Options
      */
     QWidget* optionsWidget = NULL;
-    if (this->mode == MODE_FAST_OPEN) {
-        this->autoCloseFastOpenCheckBox = new QCheckBox("Auto Close");
-        this->autoCloseFastOpenCheckBox->setChecked(true);
-        WuQtUtilities::setToolTipAndStatusTip(this->autoCloseFastOpenCheckBox, 
+    if (m_mode == MODE_FAST_OPEN) {
+        m_autoCloseFastOpenCheckBox = new QCheckBox("Auto Close");
+        m_autoCloseFastOpenCheckBox->setChecked(true);
+        WuQtUtilities::setToolTipAndStatusTip(m_autoCloseFastOpenCheckBox, 
                                               "If checked, the dialog will be closed\n"
                                               "immediately after loading a file.");
         optionsWidget = new QWidget();
@@ -264,7 +292,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
 #ifdef CARET_OS_MACOSX
         optionsLayout->addStretch();
 #endif
-        optionsLayout->addWidget(this->autoCloseFastOpenCheckBox);
+        optionsLayout->addWidget(m_autoCloseFastOpenCheckBox);
 #ifndef CARET_OS_MACOSX
         optionsLayout->addStretch();
 #endif
@@ -273,23 +301,30 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     /*
      * Add contents to the dialog
      */
-    this->setTopBottomAndCentralWidgets(toolbarWidget,
+    setTopBottomAndCentralWidgets(toolbarWidget,
                                         fileGroupWidget,
                                         optionsWidget);
     
-    switch (this->mode) {
+    m_loadScenesPushButton = NULL;
+    switch (m_mode) {
         case MODE_FAST_OPEN:
             /*
              * Hide OK button.
              */
-            this->setOkButtonText("");
-            this->setCancelButtonText("Close");
+            setOkButtonText("");
+            setCancelButtonText("Close");
             break;
         case MODE_LOAD_SPEC:
             /*
              * Change OK button to Load
              */
-            this->setOkButtonText("Load");
+            setOkButtonText("Load");
+            
+            /*
+             * Load scenes push button
+             */
+            m_loadScenesPushButton = addUserPushButton("Load Scenes", QDialogButtonBox::AcceptRole);
+            m_loadScenesPushButton->setEnabled(haveSceneFiles);
             break;
     }
 }
@@ -299,9 +334,13 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
  */
 SpecFileDialog::~SpecFileDialog()
 {    
-    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     for (int32_t ig = 0; ig < numGroups; ig++) {
-        delete this->dataTypeGroups[ig];
+        delete m_dataTypeGroups[ig];
+    }
+    if (m_specFileCopyThatIsDeletedWhenDialogDestroyed != NULL) {
+        delete m_specFileCopyThatIsDeletedWhenDialogDestroyed;
+        m_specFileCopyThatIsDeletedWhenDialogDestroyed = NULL;
     }
 }
 
@@ -311,12 +350,12 @@ SpecFileDialog::~SpecFileDialog()
 QToolBar* 
 SpecFileDialog::createSelectToolBar()
 {
-    this->selectAllFilesToolButtonAction = WuQtUtilities::createAction("All", "Select all files", this);
-    this->selectNoneFilesToolButtonAction = WuQtUtilities::createAction("None", "Deselect all files", this);
+    m_selectAllFilesToolButtonAction = WuQtUtilities::createAction("All", "Select all files", this);
+    m_selectNoneFilesToolButtonAction = WuQtUtilities::createAction("None", "Deselect all files", this);
     
     QActionGroup* selectActionGroup = new QActionGroup(this);
-    selectActionGroup->addAction(this->selectAllFilesToolButtonAction);
-    selectActionGroup->addAction(this->selectNoneFilesToolButtonAction);
+    selectActionGroup->addAction(m_selectAllFilesToolButtonAction);
+    selectActionGroup->addAction(m_selectNoneFilesToolButtonAction);
     QObject::connect(selectActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(selectToolButtonTriggered(QAction*)));
     
@@ -324,8 +363,8 @@ SpecFileDialog::createSelectToolBar()
     
     QToolBar* toolbar = new QToolBar();
     toolbar->addWidget(selectLabel);
-    toolbar->addAction(this->selectAllFilesToolButtonAction);
-    toolbar->addAction(this->selectNoneFilesToolButtonAction);
+    toolbar->addAction(m_selectAllFilesToolButtonAction);
+    toolbar->addAction(m_selectNoneFilesToolButtonAction);
     
     return toolbar;
 }
@@ -333,17 +372,17 @@ SpecFileDialog::createSelectToolBar()
 void 
 SpecFileDialog::selectToolButtonTriggered(QAction* action)
 {
-    const bool status = (action == this->selectAllFilesToolButtonAction);
+    const bool status = (action == m_selectAllFilesToolButtonAction);
     
-    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     
     for (int32_t i = 0; i < numGroups; i++) {
-        GuiSpecGroup* gsg = this->dataTypeGroups[i];
+        GuiSpecGroup* gsg = m_dataTypeGroups[i];
         if (gsg->widget->isVisible()) {
             const int32_t numFiles = static_cast<int32_t>(gsg->dataFiles.size());
             for (int32_t i = 0; i < numFiles; i++) {
-                if (gsg->dataFiles[i]->dataFileInfo->isRemovedFromSpecFileWhenWritten() == false) {
-                    gsg->dataFiles[i]->selectionCheckBox->setChecked(status);
+                if (gsg->dataFiles[i]->m_dataFileInfo->isRemovedFromSpecFileWhenWritten() == false) {
+                    gsg->dataFiles[i]->m_selectionCheckBox->setChecked(status);
                 }
             }
         }
@@ -360,7 +399,7 @@ SpecFileDialog::toolBarButtonTriggered(QAction* action)
 {
     void* p = action->data().value<void*>();
     
-    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     
     GuiSpecGroup* selectedGroup = NULL;
     
@@ -369,7 +408,7 @@ SpecFileDialog::toolBarButtonTriggered(QAction* action)
     }
     
     for (int32_t i = 0; i < numGroups; i++) {
-        GuiSpecGroup* gsg = this->dataTypeGroups[i];
+        GuiSpecGroup* gsg = m_dataTypeGroups[i];
         bool showIt = true;
         if (selectedGroup != NULL) {
             if (gsg != selectedGroup) {
@@ -396,6 +435,12 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
                                     std::vector<SpecFileDataFile*>& dataFileInfoVector,
                                     const AString& groupName)
 {
+    AString specFilePath;
+    FileInformation specFileInfo(m_specFile->getFileName());
+    if (specFileInfo.isAbsolute()) {
+        specFilePath = specFileInfo.getPathName();
+    }
+    
     const int32_t numFiles = static_cast<int32_t>(dataFileInfoVector.size());
     if (numFiles <= 0) {
         return NULL;
@@ -414,6 +459,7 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
     
     QGroupBox* groupBox = new QGroupBox(groupName);
     QGridLayout* gridLayout = new QGridLayout(groupBox);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
     for (int32_t i = 0; i < NUMBER_OF_COLUMNS; i++) {
         gridLayout->setColumnStretch(i, 0);
     }
@@ -426,27 +472,33 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
         SpecFileDataFile* dataFileInfo = dataFileInfoVector[idf];
         
         GuiSpecDataFileInfo* dfi = new GuiSpecDataFileInfo(this,
+                                                           specFilePath,
                                                            dataFileInfo,
                                                            hasStructure);
                                                  
         const int iRow = gridLayout->rowCount();
-        gridLayout->addWidget(dfi->openFilePushButton, iRow, COLUMN_OPEN_BUTTON);
-        gridLayout->addWidget(dfi->selectionCheckBox, iRow, COLUMN_CHECKBOX);
-        gridLayout->addWidget(dfi->metadataToolButton, iRow, COLUMN_METADATA);
-        gridLayout->addWidget(dfi->removeToolButton, iRow, COLUMN_REMOVE);
-        gridLayout->addWidget(dfi->structureSelectionControl->getWidget(), iRow, COLUMN_STRUCTURE);
-        gridLayout->addWidget(dfi->nameLabel, iRow, COLUMN_NAME);
+        gridLayout->addWidget(dfi->m_openFilePushButton, iRow, COLUMN_OPEN_BUTTON);
+        gridLayout->addWidget(dfi->m_selectionCheckBox, iRow, COLUMN_CHECKBOX);
+        gridLayout->addWidget(dfi->m_metadataToolButton, iRow, COLUMN_METADATA);
+        gridLayout->addWidget(dfi->m_removeToolButton, iRow, COLUMN_REMOVE);
+        gridLayout->addWidget(dfi->m_structureEnumComboBox->getWidget(), iRow, COLUMN_STRUCTURE);
+        gridLayout->addWidget(dfi->m_nameLabel, iRow, COLUMN_NAME);
         
-        switch (this->mode) {
+        /*
+         * Do not let wheel alter the structure combo box
+         */
+        dfi->m_structureEnumComboBox->getWidget()->installEventFilter(m_comboBoxWheelEventBlockingFilter);
+        
+        switch (m_mode) {
             case MODE_FAST_OPEN:
-                dfi->selectionCheckBox->setVisible(false);
-                dfi->removeToolButton->setVisible(false);
-                dfi->structureSelectionControl->getWidget()->blockSignals(true); // do not allow spec to change
+                dfi->m_selectionCheckBox->setVisible(false);
+                dfi->m_removeToolButton->setVisible(false);
+                dfi->m_structureEnumComboBox->getWidget()->blockSignals(true); // do not allow spec to change
                 QObject::connect(dfi, SIGNAL(signalFileWasLoaded()),
                                  this, SLOT(fastOpenDataFileWasLoaded()));
                 break;
             case MODE_LOAD_SPEC:
-                dfi->openFilePushButton->setVisible(false);
+                dfi->m_openFilePushButton->setVisible(false);
                 break;
         }
         
@@ -459,34 +511,67 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
 }
 
 /**
+ * Called when a push button was added using addUserPushButton().
+ * Subclasses MUST override this if user push buttons were 
+ * added using addUserPushButton().
+ *
+ * @param userPushButton
+ *    User push button that was pressed.
+ * @return 
+ *    The result that indicates action that should be taken
+ *    as a result of the button being pressed.
+ */
+WuQDialogModal::ModalDialogUserButtonResult 
+SpecFileDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_loadScenesPushButton) {
+        /*
+         * Load all of the scene files but nothing else
+         */
+        m_specFile->setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
+        
+        writeUpdatedSpecFile(true);
+        
+        GuiManager::get()->processShowSceneDialog(GuiManager::get()->getActiveBrowserWindow());
+        
+        return RESULT_ACCEPT;
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return RESULT_NONE;    
+}
+
+/**
  * Called when user presses the OK button.
  */
 void 
-SpecFileDialog::okButtonPressed()
+SpecFileDialog::okButtonClicked()
 {
-    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    const int32_t numGroups = static_cast<int32_t>(m_dataTypeGroups.size());
     for (int32_t ig = 0; ig < numGroups; ig++) {
-        GuiSpecGroup* guiSpecGroup = this->dataTypeGroups[ig];
+        GuiSpecGroup* guiSpecGroup = m_dataTypeGroups[ig];
         const int32_t numFiles = static_cast<int32_t>(guiSpecGroup->dataFiles.size());
         for (int j = 0; j < numFiles; j++) {
             GuiSpecDataFileInfo* fileInfo = guiSpecGroup->dataFiles[j];
-            fileInfo->dataFileInfo->setSelected(fileInfo->selectionCheckBox->isChecked());
+            fileInfo->m_dataFileInfo->setSelected(fileInfo->m_selectionCheckBox->isChecked());
         }        
     }
 
-    this->writeUpdatedSpecFile(true);
+    writeUpdatedSpecFile(true);
    
-    WuQDialogModal::okButtonPressed();
+    WuQDialogModal::okButtonClicked();
 }
 
 /**
  * Called when user presses the Cancel button.
  */
 void 
-SpecFileDialog::cancelButtonPressed()
+SpecFileDialog::cancelButtonClicked()
 {
-    this->writeUpdatedSpecFile(true);
-    WuQDialogModal::cancelButtonPressed();
+    writeUpdatedSpecFile(true);
+    WuQDialogModal::cancelButtonClicked();
 }
 
 /**
@@ -495,7 +580,7 @@ SpecFileDialog::cancelButtonPressed()
 void 
 SpecFileDialog::writeUpdatedSpecFile(const bool confirmIt)
 {
-    if (this->specFile->hasBeenEdited() == false) {
+    if (m_specFile->hasBeenEdited() == false) {
         return;
     }
     
@@ -510,7 +595,7 @@ SpecFileDialog::writeUpdatedSpecFile(const bool confirmIt)
     
     if (writeIt) {
         try {
-            this->specFile->writeFile(specFile->getFileName());
+            m_specFile->writeFile(m_specFile->getFileName());
         }
         catch (const DataFileException& e) {
             WuQMessageBox::errorOk(this, e.whatString());
@@ -536,8 +621,8 @@ SpecFileDialog::toString() const
 void 
 SpecFileDialog::fastOpenDataFileWasLoaded()
 {
-    if (this->autoCloseFastOpenCheckBox->isChecked()) {
-        this->close(); 
+    if (m_autoCloseFastOpenCheckBox->isChecked()) {
+        close(); 
     }
 }
 
@@ -551,59 +636,77 @@ SpecFileDialog::fastOpenDataFileWasLoaded()
       If true, file is structure related.
  */
 GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
-                                   SpecFileDataFile* dataFileInfo,
-                                   const bool isStructureFile)
+                                         const AString& specFilePath,
+                                         SpecFileDataFile* dataFileInfo,
+                                         const bool isStructureFile)
 : QObject(parent)
 {
-    this->dataFileInfo = dataFileInfo;
+    m_dataFileInfo = dataFileInfo;
     
-    this->openFilePushButton = new QPushButton("Open");
-    this->openFilePushButton->setAutoDefault(false);
-    WuQtUtilities::setToolTipAndStatusTip(this->openFilePushButton,
+    m_openFilePushButton = new QPushButton("Open");
+    m_openFilePushButton->setAutoDefault(false);
+    WuQtUtilities::setToolTipAndStatusTip(m_openFilePushButton,
                                           "Pressing this button will open the data file.");
-    QObject::connect(this->openFilePushButton, SIGNAL(clicked()),
+    QObject::connect(m_openFilePushButton, SIGNAL(clicked()),
                      this, SLOT(openFilePushButtonClicked()));
     
-    this->selectionCheckBox = new QCheckBox("");
-    this->selectionCheckBox->setChecked(dataFileInfo->isSelected());
+    m_selectionCheckBox = new QCheckBox(" ");
+    m_selectionCheckBox->setChecked(dataFileInfo->isSelected());
     
-    this->metadataAction = WuQtUtilities::createAction("M",
+    m_metadataAction = WuQtUtilities::createAction("M",
                                                      "View the file's metadata",
                                                      this,
                                                      this,
                                                      SLOT(metadataActionTriggered()));
-    this->metadataToolButton = new QToolButton();
-    this->metadataToolButton->setDefaultAction(this->metadataAction);
+    m_metadataToolButton = new QToolButton();
+    m_metadataToolButton->setDefaultAction(m_metadataAction);
     
     
-    this->removeAction = WuQtUtilities::createAction("X",
+    m_removeAction = WuQtUtilities::createAction("X",
                                                      "Remove file from the spec file (does NOT delete file)",
                                                      this,
                                                      this,
                                                      SLOT(removeActionTriggered(bool)));
-    this->removeAction->setCheckable(true);
-    this->removeAction->setChecked(false);
-    this->removeToolButton = new QToolButton();
-    this->removeToolButton->setDefaultAction(this->removeAction);
+    m_removeAction->setCheckable(true);
+    m_removeAction->setChecked(false);
+    m_removeToolButton = new QToolButton();
+    m_removeToolButton->setDefaultAction(m_removeAction);
     
-    this->structureSelectionControl = new StructureSelectionControl();
-    this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
-    QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
+    m_structureEnumComboBox = new StructureEnumComboBox(this);
+    m_structureEnumComboBox->setSelectedStructure(dataFileInfo->getStructure());
+    QObject::connect(m_structureEnumComboBox, SIGNAL(structureSelected(const StructureEnum::Enum)),
                      this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));
     if (isStructureFile == false) {
-        this->structureSelectionControl->getWidget()->setVisible(false);
-        this->structureSelectionControl->getWidget()->blockSignals(true);
+        m_structureEnumComboBox->getWidget()->setVisible(false);
+        m_structureEnumComboBox->getWidget()->blockSignals(true);
     }
     
-    this->nameLabel = new QLabel(dataFileInfo->getFileName());
+    AString dataFileName = dataFileInfo->getFileName();
+    FileInformation fileInfo(dataFileName);
+    if (fileInfo.isAbsolute()) {
+        bool updatedName = false;
+        if (specFilePath.isEmpty() == false) {
+            if (fileInfo.getPathName() == specFilePath) {
+                dataFileName = fileInfo.getFileName();
+                updatedName = true;
+            }
+        }
+        if (updatedName == false) {
+            dataFileName = (fileInfo.getFileName()
+                            + " ("
+                            + fileInfo.getPathName()
+                            + ")");
+        }
+    }
+    m_nameLabel = new QLabel(dataFileName);
     
-    this->widgetGroup = new WuQWidgetObjectGroup(this);
-    this->widgetGroup->add(this->selectionCheckBox);
-    this->widgetGroup->add(this->metadataToolButton);
+    m_widgetGroup = new WuQWidgetObjectGroup(this);
+    m_widgetGroup->add(m_selectionCheckBox);
+    m_widgetGroup->add(m_metadataToolButton);
     if (isStructureFile) {
-        this->widgetGroup->add(this->structureSelectionControl->getWidget());
+        m_widgetGroup->add(m_structureEnumComboBox->getWidget());
     }
-    this->widgetGroup->add(this->nameLabel);
+    m_widgetGroup->add(m_nameLabel);
 }
 
 /**
@@ -621,17 +724,20 @@ void
 GuiSpecDataFileInfo::openFilePushButtonClicked()
 {
     AString errorMessages;
-    const AString name = this->dataFileInfo->getFileName();
+    const AString name = m_dataFileInfo->getFileName();
     bool isValidType = false;
     DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-    StructureEnum::Enum structure = this->structureSelectionControl->getSelectedStructure();
+    StructureEnum::Enum structure = m_structureEnumComboBox->getSelectedStructure();
     if (isValidType) {
         EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                        structure,
-                                        fileType,
-                                        name);
+                                        false);
+        loadFileEvent.addDataFile(structure,
+                                  fileType,
+                                  name);
         
-        EventManager::get()->sendEvent(loadFileEvent.getPointer());
+        ProgressReportingDialog::runEvent(&loadFileEvent,
+                                          m_openFilePushButton,
+                                          "Loading File");
         
         if (loadFileEvent.isError()) {
             if (errorMessages.isEmpty() == false) {
@@ -648,7 +754,7 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
     }
     
     if (errorMessages.isEmpty() == false) {
-        QMessageBox::critical(this->openFilePushButton, 
+        QMessageBox::critical(m_openFilePushButton, 
                               "ERROR", 
                               errorMessages);
     }
@@ -670,7 +776,7 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
 void 
 GuiSpecDataFileInfo::structureSelectionChanged(const StructureEnum::Enum structure)
 {
-    this->dataFileInfo->setStructure(structure);
+    m_dataFileInfo->setStructure(structure);
 }
 
 /**
@@ -679,7 +785,7 @@ GuiSpecDataFileInfo::structureSelectionChanged(const StructureEnum::Enum structu
 void 
 GuiSpecDataFileInfo::metadataActionTriggered()
 {
-    WuQMessageBox::informationOk(this->metadataToolButton, 
+    WuQMessageBox::informationOk(m_metadataToolButton, 
                                  "Editing/Viewing of metadata has not been implemented.");
 }
 
@@ -691,9 +797,9 @@ GuiSpecDataFileInfo::metadataActionTriggered()
 void GuiSpecDataFileInfo::removeActionTriggered(bool status)
 {
     const bool removeIt = status;
-    this->dataFileInfo->setRemovedFromSpecFileWhenWritten(removeIt);
+    m_dataFileInfo->setRemovedFromSpecFileWhenWritten(removeIt);
     if (removeIt) {
-        this->selectionCheckBox->setChecked(false);
+        m_selectionCheckBox->setChecked(false);
     }
-    this->widgetGroup->setDisabled(removeIt);
+    m_widgetGroup->setDisabled(removeIt);
 }

@@ -1,0 +1,115 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "OperationVolumeReorient.h"
+#include "OperationException.h"
+#include "VolumeFile.h"
+
+using namespace caret;
+using namespace std;
+
+AString OperationVolumeReorient::getCommandSwitch()
+{
+    return "-volume-reorient";
+}
+
+AString OperationVolumeReorient::getShortDescription()
+{
+    return "CHANGE VOXEL ORDER OF A VOLUME FILE";
+}
+
+OperationParameters* OperationVolumeReorient::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
+    ret->addVolumeParameter(1, "volume", "the volume to reorient");
+    ret->addStringParameter(2, "orient-string", "the desired orientation");
+    ret->addStringParameter(3, "volume-out", "out - the reoriented volume");//fake the "out" parameter formatting, because copying a volume file in memory is currently a problem
+    ret->setHelpText(
+        AString("Changes the voxel order and the header spacing/origin information such that the value of any spatial point is unchanged.  ") +
+        "Orientation strings look like 'LPI', which means first index is left to right, second is posterior to anterior, and third is inferior to superior.  " +
+        "The valid characters are:\n\nL      left to right\nR      right to left\nP      posterior to anterior\nA      anterior to posterior\nI      inferior to superior\nS      superior to inferior"
+    );
+    return ret;
+}
+
+void OperationVolumeReorient::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    VolumeFile* myVol = myParams->getVolume(1);
+    AString orientString = myParams->getString(2);
+    AString outName = myParams->getString(3);
+    if (orientString.length() < 3)
+    {
+        throw OperationException("orient-string must have 3 characters");
+    }
+    bool used[3] = {false, false, false};
+    VolumeBase::OrientTypes orient[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        char id = orientString[i].toAscii();
+        switch (id)
+        {
+            case 'L':
+            case 'l':
+                if (used[0]) throw OperationException("X axis (L, R) specified more than once");
+                used[0] = true;
+                orient[i] = VolumeBase::LEFT_TO_RIGHT;
+                break;
+            case 'R':
+            case 'r':
+                if (used[0]) throw OperationException("X axis (L, R) specified more than once");
+                used[0] = true;
+                orient[i] = VolumeBase::RIGHT_TO_LEFT;
+                break;
+            case 'P':
+            case 'p':
+                if (used[1]) throw OperationException("Y axis (P, A) specified more than once");
+                used[1] = true;
+                orient[i] = VolumeBase::POSTERIOR_TO_ANTERIOR;
+                break;
+            case 'A':
+            case 'a':
+                if (used[1]) throw OperationException("Y axis (P, A) specified more than once");
+                used[1] = true;
+                orient[i] = VolumeBase::ANTERIOR_TO_POSTERIOR;
+                break;
+            case 'I':
+            case 'i':
+                if (used[2]) throw OperationException("Z axis (I, S) specified more than once");
+                used[2] = true;
+                orient[i] = VolumeBase::INFERIOR_TO_SUPERIOR;
+                break;
+            case 'S':
+            case 's':
+                if (used[2]) throw OperationException("Z axis (I, S) specified more than once");
+                used[2] = true;
+                orient[i] = VolumeBase::SUPERIOR_TO_INFERIOR;
+                break;
+            default:
+                throw OperationException(AString("unrecognized character '") + id + "'");
+        }
+    }
+    myVol->reorient(orient);
+    myVol->writeFile(outName);
+}

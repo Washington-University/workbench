@@ -88,6 +88,8 @@ class GiftiFile : public DataFile {
       // Clear the gifti array data file.
       virtual void clear();
       
+      virtual void clearAndKeepMetadata();
+      
       // returns true if the file is isEmpty() (contains no data)
       virtual bool isEmpty() const;
       

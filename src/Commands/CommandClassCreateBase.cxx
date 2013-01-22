@@ -79,7 +79,7 @@ CommandClassCreateBase::getIfDefNames(const AString& classNameIn,
     }
     
     ifdefNameStaticDeclarationOut = ifndefNameOut + "_DECLARE__";
-    ifndefNameOut += "__H_";
+    ifndefNameOut += "_H__";
     
     
 }

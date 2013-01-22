@@ -52,6 +52,31 @@ CommandClassCreateEnum::~CommandClassCreateEnum()
     
 }
 
+AString 
+CommandClassCreateEnum::getHelpInformation(const AString& /*programName*/) 
+{
+    AString helpInfo = ("\n"
+                        "Create enumerated type header (.h) and implementation (.cxx) files.\n"
+                        "\n"
+                        "Usage:  <enum-class-name>\n"
+                        "        <number-of-values>\n"
+                        "        <auto-number>\n"
+                        "\n"
+                        "    enum-class-name\n"
+                        "        Name of the enumerated type.  Must end in \"Enum\"\n"
+                        "    \n"
+                        "    number-of-values\n"
+                        "        Number of values in the enumerated type.\n"
+                        "    \n"
+                        "    auto-number\n"
+                        "        Automatically generated integer codes corresponding\n"
+                        "        to the enumerated values.  Value for this parameter\n"
+                        "        are \"true\" and \"false\".\n"
+                        "    \n"
+                        );
+    return helpInfo; 
+}
+
 /**
  * Execute the operation.
  * 

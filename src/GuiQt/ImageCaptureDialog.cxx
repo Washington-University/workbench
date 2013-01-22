@@ -32,12 +32,12 @@
 #include <QClipboard>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QImageWriter>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSpinBox>
-#include <QImageWriter>
 
 #define __IMAGE_CAPTURE_DIALOG__H__DECLARE__
 #include "ImageCaptureDialog.h"
@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
@@ -52,13 +53,15 @@
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQMessageBox.h"
+#include "WuQTimedMessageDisplay.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
 
     
 /**
- * \class ImageCaptureDialog 
+ * \class caret::ImageCaptureDialog 
  * \brief Dialog for capturing images.
  *
  */
@@ -85,7 +88,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
      */
     QLabel* windowLabel = new QLabel("Workbench Window: ");
     this->windowSelectionSpinBox = new QSpinBox();
-    this->windowSelectionSpinBox->setRange(1, 1000000);
+    this->windowSelectionSpinBox->setRange(1,
+                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
     this->windowSelectionSpinBox->setSingleStep(1);
     this->windowSelectionSpinBox->setValue(parent->getBrowserWindowIndex() + 1);
     this->windowSelectionSpinBox->setFixedWidth(60);
@@ -157,7 +161,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->copyImageToClipboardCheckBox->setChecked(true);
     this->saveImageToFileCheckBox = new QCheckBox("Save to File: " );
     this->imageFileNameLineEdit = new QLineEdit();
-    this->imageFileNameLineEdit->setText("capture.png");
+    this->imageFileNameLineEdit->setText("untitled.png");
     QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
     QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
                      this, SLOT(selectImagePushButtonPressed()));
@@ -177,6 +181,14 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     layout->addWidget(imageDestinationGroupBox);
     
     this->setCentralWidget(w);
+    
+    /*
+     * Make apply button the default button.
+     */
+    QPushButton* applyButton = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+    CaretAssert(applyButton);
+    applyButton->setAutoDefault(true);
+    applyButton->setDefault(true);
 }
 
 /**
@@ -197,28 +209,55 @@ ImageCaptureDialog::updateDialog()
 }
 
 /**
+ * Set the selected browser window to the browser window with the
+ * given index.
+ * @param browserWindowIndex
+ *    Index of browser window.
+ */
+void
+ImageCaptureDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
+{
+    this->windowSelectionSpinBox->setValue(browserWindowIndex + 1);
+}
+
+
+/**
  * Called when choose file pushbutton is pressed.
  */
 void 
 ImageCaptureDialog::selectImagePushButtonPressed()
 {
-    QString filterText = "Image File (";
-    
-    QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
-    const int numFormats = imageFormats.count();
-    for (int i = 0; i < numFormats; i++) {        
-        QByteArray format = imageFormats.at(i);
-        if (i > 0) {
-            filterText += " ";
-        }
-        filterText.append(("*." + QString(format)));
+    QString defaultFileName = this->imageFileNameLineEdit->text().trimmed();
+    if (defaultFileName.isEmpty()) {
+        defaultFileName = "untitled.png";
     }
-    filterText += ")";
+    FileInformation fileInfo(this->imageFileNameLineEdit->text().trimmed());
+    if (fileInfo.isRelative()) {
+        FileInformation absFileInfo(GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                    this->imageFileNameLineEdit->text().trimmed());
+        defaultFileName = absFileInfo.getFilePath();
+    }
+    
+    std::vector<AString> imageFileFilters;
+    AString defaultFileFilter;
+    ImageFile::getImageFileFilters(imageFileFilters, 
+                                   defaultFileFilter);
+    QString filters;
+    for (std::vector<AString>::iterator filterIterator = imageFileFilters.begin();
+         filterIterator != imageFileFilters.end();
+         filterIterator++) {
+        if (filters.isEmpty() == false) {
+            filters += ";;";
+        }
+        
+        filters += *filterIterator;
+    }
+    
     AString name = CaretFileDialog::getSaveFileNameDialog(this,
                                                   "Choose File Name",
-                                                  GuiManager::get()->getBrain()->getCurrentDirectory(),
-                                                  filterText,
-                                                  &filterText);
+                                                  defaultFileName, //GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                                  filters,
+                                                  &defaultFileFilter);
     if (name.isEmpty() == false) {
         this->imageFileNameLineEdit->setText(name.trimmed());
     }
@@ -227,7 +266,8 @@ ImageCaptureDialog::selectImagePushButtonPressed()
 /**
  * Called when the apply button is pressed.
  */
-void ImageCaptureDialog::applyButtonPressed()
+void
+ImageCaptureDialog::applyButtonPressed()
 {
     const int browserWindowIndex = this->windowSelectionSpinBox->value() - 1;
     
@@ -257,19 +297,56 @@ void ImageCaptureDialog::applyButtonPressed()
         imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
     }
     
+    bool errorFlag = false;
+    
     if (this->copyImageToClipboardCheckBox->isChecked()) {
         QApplication::clipboard()->setImage(*imageFile.getAsQImage(), QClipboard::Clipboard);
     }
 
     if (this->saveImageToFileCheckBox->isChecked()) {
+        std::vector<AString> imageFileExtensions;
+        AString defaultFileExtension;
+        ImageFile::getImageFileExtensions(imageFileExtensions, 
+                                          defaultFileExtension);
+        
         AString filename = this->imageFileNameLineEdit->text().trimmed();
+        
+        bool validExtension = false;
+        for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
+             extensionIterator != imageFileExtensions.end();
+             extensionIterator++) {
+            if (filename.endsWith(*extensionIterator)) {
+                validExtension = true;
+            }
+        }
+        
+        if (validExtension == false) {
+            if (defaultFileExtension.isEmpty() == false) {
+                filename += ("." + defaultFileExtension);
+            }
+        }
+        
         try {
             imageFile.writeFile(filename);
         }
         catch (const DataFileException& /*e*/) {
             QString msg("Unable to save: " + filename);
             WuQMessageBox::errorOk(this, msg);
+            errorFlag = true;
         }
+    }
+    
+    if (errorFlag == false) {
+        /*
+         * Display over "Capture" (the renamed Apply) button.
+         */
+        QWidget* parent = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+        CaretAssert(parent);
+        
+        WuQtUtilities::playSound("sound_camera_shutter.wav");
+        WuQTimedMessageDisplay::show(parent,
+                                     2.0,
+                                     "Image captured");
     }
 }
 

@@ -115,8 +115,7 @@ namespace caret {
         int64_t getTotalNumberOfElements() const;
         
         // get data offset 
-        int64_t getDataOffset(const int64_t nodeNum,
-                              const int64_t componentNum) const;
+        //int64_t getDataOffset(const int64_t nodeNum, const int64_t componentNum) const;//TSC: implementation was wrong, commenting out for now
         
         // read a data array from text
         void readFromText(const AString text,
@@ -307,6 +306,10 @@ namespace caret {
                                         const bool includeZeroValues) const;
         
     protected:
+        
+        //validate the array
+        void validateArrayAfterReading();
+        
         // allocate data for this column
         virtual void allocateData();
         

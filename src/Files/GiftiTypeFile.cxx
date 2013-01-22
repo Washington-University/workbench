@@ -24,7 +24,6 @@
 
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
-#include "ElapsedTimer.h"
 #include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
@@ -67,8 +66,8 @@ GiftiTypeFile::~GiftiTypeFile()
 GiftiTypeFile::GiftiTypeFile(const GiftiTypeFile& gtf)
 : CaretMappableDataFile(gtf)
 {
-    this->copyHelperGiftiTypeFile(gtf);
-}
+    this->giftiFile = new GiftiFile(*gtf.giftiFile);//NOTE: while CONSTRUCTING, this has virtual type GiftiTypeFile*, NOT MetricFile*, or whatever
+}//so, validateDataArraysAfterReading will ABORT due to pure virtual
 
 /**
  * Assignment operator.
@@ -146,19 +145,12 @@ GiftiTypeFile::isEmpty() const
 void 
 GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
-    ElapsedTimer et;
-    et.start();
+    checkFileReadability(filename);
+    
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->setFileName(filename);
     this->clearModified();
-    
-    AString msg = ("Time to read " 
-                   + filename 
-                   + " was " 
-                   + AString::number(et.getElapsedTimeSeconds())
-                   + " seconds.");
-    CaretLogInfo(msg);
 }
 
 /**
@@ -173,6 +165,7 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 void 
 GiftiTypeFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
     this->giftiFile->writeFile(filename);
     this->clearModified();
 }
@@ -261,6 +254,23 @@ GiftiTypeFile::setStructure(const StructureEnum::Enum structure)
                       structureName);
     }
     
+}
+
+/**
+ * Add map(s) to this GIFTI file.
+ * @param numberOfNodes
+ *     Number of nodes.  If file is not empty, this value must
+ *     match the number of nodes that are in the file.
+ * @param numberOfMaps
+ *     Number of maps to add.
+ */
+void 
+GiftiTypeFile::addMaps(const int32_t /*numberOfNodes*/,
+                       const int32_t /*numberOfMaps*/) throw (DataFileException)
+{
+    throw DataFileException("This file, "
+                            + this->getFileNameNoPath()
+                            + " does not support adding additional maps");
 }
 
 /**
@@ -399,8 +409,15 @@ GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex)
     return gda->getPaletteColorMapping();
 }
 
-
-
+/**
+ * @return The palette color mapping for a data column.
+ */
+const PaletteColorMapping* 
+GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex) const
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(columnIndex);
+    return gda->getPaletteColorMapping();
+}
 
 /**
  * @return Is the data mappable to a surface?
@@ -713,5 +730,20 @@ GiftiTypeFile::getMapIndexFromUniqueID(const AString& uniqueID) const
     }
     
     return -1;
+}
+
+/**
+ * Update coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
+                                       const PaletteFile* /*paletteFile*/)
+{
+    /* no volumes in gifti */
 }
 

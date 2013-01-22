@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
 
@@ -35,14 +36,16 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLShape.h"
+#include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventModelDisplayControllerGetAll.h"
+#include "CursorManager.h"
+#include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -50,16 +53,16 @@
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "IdentificationManager.h"
-#include "IdentificationItemSurfaceTriangle.h"
-#include "IdentificationItemSurfaceNode.h"
+#include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
-#include "ModelDisplayController.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "Model.h"
+#include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
+#include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
 
 using namespace caret;
@@ -81,6 +84,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
+    this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
@@ -96,6 +100,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
+    makeCurrent();
+    
     this->clearDrawingViewportContents();
     
     if (this->textRenderer != NULL) {
@@ -109,6 +115,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     }
     delete this->userInputViewModeProcessor;
     delete this->userInputBordersModeProcessor;
+    delete this->userInputFociModeProcessor;
     this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
     
     delete this->borderBeingDrawn;
@@ -129,25 +136,56 @@ BrainOpenGLWidget::initializeGL()
     
     this->lastMouseX = 0;
     this->lastMouseY = 0;
+    this->isMousePressedNearToolBox = false;
 
     this->setFocusPolicy(Qt::StrongFocus);
     
     QGLFormat format = this->format();
     
-    AString msg = ("Accum: " + AString::fromBool(format.accum())
-                   + "\nAccum size: " + AString::number(format.accumBufferSize())
-                   + "\nAlpha: " + AString::fromBool(format.alpha())
-                   + "\nAlpha size: " + AString::number(format.alphaBufferSize())
-                   + "\nDepth: " + AString::fromBool(format.depth())
-                   + "\nDepth size: " + AString::number(format.depthBufferSize())
-                   + "\nRed size: " + AString::number(format.redBufferSize())
-                   + "\nGreen size: " + AString::number(format.greenBufferSize())
-                   + "\nBlue size: " + AString::number(format.blueBufferSize())
-                   + "\nDouble Buffer: " + AString::fromBool(format.doubleBuffer())
-                   + "\nRGBA: " + AString::fromBool(format.rgba())
-                   + "\nMajor Version: " + AString::number(format.majorVersion())
-                   + "\nMinor Version: " + AString::number(format.minorVersion()));
+    AString msg = ("OpenGL Context:"
+                   "\n   Accum: " + AString::fromBool(format.accum())
+                   + "\n   Accum size: " + AString::number(format.accumBufferSize())
+                   + "\n   Alpha: " + AString::fromBool(format.alpha())
+                   + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
+                   + "\n   Depth: " + AString::fromBool(format.depth())
+                   + "\n   Depth size: " + AString::number(format.depthBufferSize())
+                   + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
+                   + "\n   Red size: " + AString::number(format.redBufferSize())
+                   + "\n   Green size: " + AString::number(format.greenBufferSize())
+                   + "\n   Blue size: " + AString::number(format.blueBufferSize())
+                   + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
+                   + "\n   RGBA: " + AString::fromBool(format.rgba())
+                   + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
+                   + "\n   Samples size: " + AString::number(format.samples())
+                   + "\n   Stencil: " + AString::fromBool(format.stencil())
+                   + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
+                   + "\n   Swap Interval: " + AString::number(format.swapInterval())
+                   + "\n   Stereo: " + AString::fromBool(format.stereo())
+                   + "\n   Major Version: " + AString::number(format.majorVersion())
+                   + "\n   Minor Version: " + AString::number(format.minorVersion()));
+            
+    msg += ("\n\n" + BrainOpenGL::getOpenGLInformation());
+
     CaretLogConfig(msg);
+    
+    if (s_openGLVersionInformation.isEmpty()) {
+        s_openGLVersionInformation = msg;
+    }
+    
+    if (s_defaultGLFormatInitialized == false) {
+        CaretLogSevere("PROGRAM ERROR: The default QGLFormat has not been set.\n"
+                       "Need to call BrainOpenGLWidget::initializeDefaultGLFormat() prior to "
+                       "instantiating an instance of this class.");
+    }
+}
+
+/**
+ * @return Information about OpenGL.
+ */
+QString
+BrainOpenGLWidget::getOpenGLInformation()
+{
+    return s_openGLVersionInformation;
 }
 
 /**
@@ -158,6 +196,13 @@ BrainOpenGLWidget::resizeGL(int w, int h)
 {
     this->windowWidth[this->windowIndex] = w;
     this->windowHeight[this->windowIndex] = h;
+}
+
+void
+BrainOpenGLWidget::getViewPortSize(int &w, int &h)
+{
+    w = this->windowWidth[this->windowIndex];
+    h = this->windowHeight[this->windowIndex];
 }
 
 /**
@@ -188,9 +233,17 @@ BrainOpenGLWidget::clearDrawingViewportContents()
 void 
 BrainOpenGLWidget::paintGL()
 {
+    /*
+     * Set the cursor to that requested by the user input processor
+     */
+    CursorEnum::Enum cursor = this->selectedUserInputProcessor->getCursor();
+    
+    GuiManager::get()->getCursorManager()->setCursorForWidget(this,
+                                                              cursor);
+    
     this->clearDrawingViewportContents();
     
-    int viewport[4] = {
+    int windowViewport[4] = {
         0,
         0,
         this->windowWidth[this->windowIndex],
@@ -206,7 +259,9 @@ BrainOpenGLWidget::paintGL()
     
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(viewport,
+        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
+                                                                        windowViewport,
+                                                                        GuiManager::get()->getBrain(),
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
     }
@@ -236,13 +291,17 @@ BrainOpenGLWidget::paintGL()
             vpX = 0;
             for (int32_t j = 0; j < numCols; j++) {
                 if (iModel < numToDraw) {
-                    viewport[0] = vpX;
-                    viewport[1] = vpY;
-                    viewport[2] = vpWidth;
-                    viewport[3] = vpHeight;
+                    const int modelViewport[4] = {
+                        vpX,
+                        vpY,
+                        vpWidth,
+                        vpHeight
+                    };
                     BrainOpenGLViewportContent* vc = 
-                       new BrainOpenGLViewportContent(viewport,
-                                                   getModelEvent.getTabContentToDraw(iModel));
+                       new BrainOpenGLViewportContent(modelViewport,
+                                                      modelViewport,
+                                                      GuiManager::get()->getBrain(),
+                                                      getModelEvent.getTabContentToDraw(iModel));
                     this->drawingViewportContents.push_back(vc);
                 }
                 iModel++;
@@ -262,6 +321,37 @@ BrainOpenGLWidget::paintGL()
 }
 
 /**
+ * Receive Content Menu events from Qt.
+ * @param contextMenuEvent
+ *    The context menu event.
+ */
+void 
+BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
+{
+    const int x = contextMenuEvent->x();
+    const int y1 = contextMenuEvent->y();
+    const int y = this->height() - y1;
+    
+    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(x, y);
+    if (viewportContent == NULL) {
+        return;
+    }
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
+    if (tabContent == NULL) {
+        return;
+    }
+    
+    SelectionManager* idManager = this->performIdentification(x,
+                                                                   y,
+                                                                   false);
+    
+    BrainOpenGLWidgetContextMenu contextMenu(idManager,
+                                             tabContent,
+                                             this);
+    contextMenu.exec(contextMenuEvent->globalPos());
+}
+
+/**
  * Receive Mouse Wheel events from Qt.
  * @param we
  *   The wheel event.
@@ -276,7 +366,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     int delta = we->delta();
     delta = MathFunctions::limitRange(delta, -2, 2);
     
-    MouseEvent mouseEvent(MouseEventTypeEnum::WHEEL_MOVED,
+    MouseEvent mouseEvent(this->windowIndex,
+                          MouseEventTypeEnum::WHEEL_MOVED,
                           keyModifiers,
                           wheelX,
                           wheelY,
@@ -287,6 +378,47 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     we->accept();
 }
 
+/*
+ * If there is a middle button and it is pressed with not keys depressed,
+ * set mouse action to left button with shift key down to perform
+ * panning in some mouse modes.
+ *
+ * @param mouseButtons
+ *     Button state when event was generated
+ * @param button
+ *     Button that caused the event.
+ * @param keyModifiers
+ *     Keys that are down, may be modified.
+ * @param isMouseMoving
+ *     True if mouse is moving, else false.
+ */
+void
+BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
+                                             Qt::MouseButton& button,
+                                             Qt::KeyboardModifiers& keyModifiers,
+                                             const bool isMouseMoving)
+{
+    if (isMouseMoving) {
+        if (button == Qt::NoButton) {
+            if (mouseButtons == Qt::MiddleButton) {
+                if (keyModifiers == Qt::NoButton) {
+                    mouseButtons = Qt::LeftButton;
+                    button = Qt::NoButton;
+                    keyModifiers = Qt::ShiftModifier;
+                }
+            }
+        }
+    }
+    else {
+        if (button == Qt::MiddleButton) {
+            if (keyModifiers == Qt::NoButton) {
+                button = Qt::LeftButton;
+                keyModifiers = Qt::ShiftModifier;
+            }
+        }
+    }
+}
+
 /**
  * Receive mouse press events from Qt.
  * @param me
@@ -295,8 +427,16 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButton button = me->button();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
+    
+    checkForMiddleMouseButton(mouseButtons,
+                              button,
+                              keyModifiers,
+                              false);
+    
+    this->isMousePressedNearToolBox = false;
     
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
@@ -305,7 +445,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
         
-        MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_PRESSED,
+        MouseEvent mouseEvent(this->windowIndex,
+                              MouseEventTypeEnum::LEFT_PRESSED,
                               keyModifiers,
                               mouseX,
                               mouseY,
@@ -320,6 +461,21 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mouseMovementMaximumX = mouseX;
         this->mouseMovementMinimumY = mouseY;
         this->mouseMovementMaximumY = mouseY;
+        
+        /*
+         * The user may intend to increase the size of a toolbox
+         * but instead misses the edge of the toolbox when trying
+         * to drag the toolbox and make it larger.  So, indicate
+         * when the user is very close to the edge of the graphics
+         * window.
+         */
+        const int nearToolBoxDistance = 5;
+        if ((mouseX < nearToolBoxDistance) 
+            || (mouseX > (this->windowWidth[this->windowIndex] - 5))
+            || (mouseY < nearToolBoxDistance) 
+            || (mouseY > (this->windowHeight[this->windowIndex] - 5))) {
+            this->isMousePressedNearToolBox = true;
+        }
     }
     else {
         this->mousePressX = -10000;
@@ -337,9 +493,15 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButton button = me->button();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
 
+    checkForMiddleMouseButton(mouseButtons,
+                              button,
+                              keyModifiers,
+                              false);
+    
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
         const int mouseY = this->windowHeight[this->windowIndex] - me->y();
@@ -356,7 +518,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 
         if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
             && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
-            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_CLICKED,
+            MouseEvent mouseEvent(this->windowIndex,
+                                  MouseEventTypeEnum::LEFT_CLICKED,
                                   keyModifiers,
                                   mouseX,
                                   mouseY,
@@ -365,7 +528,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             this->processMouseEvent(&mouseEvent);
         }
         else {
-            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_RELEASED,
+            MouseEvent mouseEvent(this->windowIndex,
+                                  MouseEventTypeEnum::LEFT_RELEASED,
                                   keyModifiers,
                                   mouseX,
                                   mouseY,
@@ -377,6 +541,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     
     this->mousePressX = -10000;
     this->mousePressY = -10000;
+    this->isMousePressedNearToolBox = false;
     
     me->accept();
 }
@@ -396,7 +561,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
     const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
     for (int32_t i = 0; i < num; i++) {
         int viewport[4];
-        this->drawingViewportContents[i]->getViewport(viewport);
+        this->drawingViewportContents[i]->getModelViewport(viewport);
         if ((x >= viewport[0])
             && (x < (viewport[0] + viewport[2]))
             && (y >= viewport[1])
@@ -415,21 +580,29 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
  *    X-coordinate for identification.
  * @param y
  *    Y-coordinate for identification.
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    selected.  If this parameter is false, the node will be
+ *    selected.
  * @return
- *    IdentificationManager providing identification information.
+ *    SelectionManager providing identification information.
  */
-IdentificationManager* 
+SelectionManager* 
 BrainOpenGLWidget::performIdentification(const int x,
-                                         const int y)
+                                         const int y,
+                                         const bool applySelectionBackgroundFiltering)
 {
     BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
 
     this->makeCurrent();
     CaretLogFine("Performing selection");
-    IdentificationManager* idManager = this->openGL->getIdentificationManager();
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
-    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
-    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
+//    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
+//    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
     
     if (idViewport != NULL) {
         /*
@@ -442,7 +615,8 @@ BrainOpenGLWidget::performIdentification(const int x,
          */
         this->openGL->selectModel(idViewport, 
                                   x, 
-                                  y);
+                                  y,
+                                  applySelectionBackgroundFiltering);
     }
     return idManager;
 }
@@ -482,11 +656,17 @@ BrainOpenGLWidget::performProjection(const int x,
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
-    const Qt::MouseButton button = me->button();
+    Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::MouseButtons mouseButtons = me->buttons();
+    
+    checkForMiddleMouseButton(mouseButtons,
+                              button,
+                              keyModifiers,
+                              true);
     
     if (button == Qt::NoButton) {
-        if (me->buttons() == Qt::LeftButton) {
+        if (mouseButtons == Qt::LeftButton) {
             const int mouseX = me->x();
             const int mouseY = this->windowHeight[this->windowIndex] - me->y();
             
@@ -502,8 +682,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             
             if ((absDX > 0) 
                 || (absDY > 0)) { 
-                
-                MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_DRAGGED,
+                MouseEvent mouseEvent(this->windowIndex,
+                                      MouseEventTypeEnum::LEFT_DRAGGED,
                                       keyModifiers,
                                       mouseX,
                                       mouseY,
@@ -534,37 +714,32 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
     
     if (mouseEvent->isValid()) {        
         /*
-         * Use location of mouse press so that the model
-         * being manipulated does not change if mouse moves
-         * out of its viewport without releasing the mouse
-         * button.
+         * Ignore mouse movement near edge of graphics
          */
-        BrainOpenGLViewportContent* viewportContent = NULL;
-        
-        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
-            viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
-                                                           mouseEvent->getY());
-        }
-        else {
-            viewportContent = this->getViewportContentAtXY(this->mousePressX, 
-                                                           this->mousePressY);
-        }
-        
-        if (viewportContent != NULL) {
-            BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-            if (browserTabContent != NULL) {
-                this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
-                                                                    browserTabContent,
-                                                                    this);
-                
-                if (mouseEvent->isUserInterfaceUpdateRequested()) {
-                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                }
-                if (mouseEvent->isGraphicsUpdateOneWindowRequested()) {
-                    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
-                }
-                if (mouseEvent->isGraphicsUpdateAllWindowsRequested()) {
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        if (this->isMousePressedNearToolBox == false) {
+            /*
+             * Use location of mouse press so that the model
+             * being manipulated does not change if mouse moves
+             * out of its viewport without releasing the mouse
+             * button.
+             */
+            BrainOpenGLViewportContent* viewportContent = NULL;
+            
+            if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
+                viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
+                                                               mouseEvent->getY());
+            }
+            else {
+                viewportContent = this->getViewportContentAtXY(this->mousePressX, 
+                                                               this->mousePressY);
+            }
+            
+            if (viewportContent != NULL) {
+                BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
+                                                                        viewportContent,
+                                                                        this);
                 }
             }
         }
@@ -620,15 +795,12 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             if (numItemsToDraw > 0) {
                 for (int32_t i = 0; i < numItemsToDraw; i++) {
                     BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
-                    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
-                    if (mdc != NULL) {
-                        ModelDisplayControllerYokingGroup* mdcyg = btc->getBrowserTabYoking()->getSelectedYokingGroup();
-                        if (mdcyg != NULL) {
-                            const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
-                            if (yokingType != YokingTypeEnum::OFF) {
-                                needUpdate = true;
-                                break;
-                            }
+                    if (btc != NULL) {
+                        Model* mdc = btc->getModelControllerForDisplay();
+                        ModelYokingGroup* myg = btc->getSelectedYokingGroupForModel(mdc);
+                        if (myg != NULL) {
+                            needUpdate = true;
+                            break;
                         }
                     }
                 }
@@ -655,6 +827,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                         break;
                     case UserInputReceiverInterface::BORDERS:
                         newUserInputProcessor = this->userInputBordersModeProcessor;
+                        break;
+                    case UserInputReceiverInterface::FOCI:
+                        newUserInputProcessor = this->userInputFociModeProcessor;
                         break;
                     case UserInputReceiverInterface::VIEW:
                         newUserInputProcessor = this->userInputViewModeProcessor;
@@ -696,12 +871,51 @@ BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
 {
     const int oldSizeX = this->windowWidth[this->windowIndex];
     const int oldSizeY = this->windowHeight[this->windowIndex];
-
+    
+    /*
+     * Force immediate mode since problems with display lists
+     * in image capture.
+     */
+    BrainOpenGLShape::setImmediateModeOverride(true);
+    
     QPixmap pixmap = this->renderPixmap(imageSizeX,
                                         imageSizeY);
     QImage image = pixmap.toImage();
+    BrainOpenGLShape::setImmediateModeOverride(false);
     
     this->resizeGL(oldSizeX, oldSizeY);
     
     return image;
 }
+
+/**
+ * Initialize the OpenGL format.  This must be called
+ * prior to initializing an instance of this class so
+ * that the OpenGL is setup properly.
+ */
+void
+BrainOpenGLWidget::initializeDefaultGLFormat()
+{
+    QGLFormat glfmt;
+    glfmt.setAccum(false);
+    glfmt.setAlpha(true);
+    glfmt.setAlphaBufferSize(8);
+    glfmt.setDepth(true);
+    glfmt.setDepthBufferSize(24);
+    glfmt.setDirectRendering(true);
+    glfmt.setDoubleBuffer(true);
+    glfmt.setOverlay(false);
+    glfmt.setSampleBuffers(false);
+    glfmt.setStencil(false);
+    glfmt.setStereo(false);
+    
+    glfmt.setRgba(true);
+    glfmt.setRedBufferSize(8);
+    glfmt.setGreenBufferSize(8);
+    glfmt.setBlueBufferSize(8);
+    QGLFormat::setDefaultFormat(glfmt);
+    
+    s_defaultGLFormatInitialized = true;
+}
+
+

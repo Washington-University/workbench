@@ -450,6 +450,7 @@ DescriptiveStatistics::update(const float* valuesIn,
             m_standardDeviationSample = sqrt(numerator / (m_validCount - 1));
         }
     }
+    delete[] sortedValues;
 }
 
 /**

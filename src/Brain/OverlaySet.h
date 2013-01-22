@@ -28,25 +28,34 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "Overlay.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
+    class BrainStructure;
     class BrowserTabContent;
-    class ModelDisplayController;
+    class LabelFile;
+    class Model;
+    class SceneClassAssistant;
+    class Surface;
     class VolumeFile;
     
-    class OverlaySet : public CaretObject {
+    class OverlaySet : public CaretObject, public SceneableInterface {
         
     public:
-        OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        OverlaySet(BrainStructure* brainStructure);
         
-        OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume);
+        OverlaySet(ModelVolume* modelDisplayControllerVolume);
         
-        OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
+        OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain);
         
-        OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
+        OverlaySet(ModelYokingGroup* modelDisplayControllerYokingGroup);
+        
+        OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~OverlaySet();
+        
+        void copyOverlaySet(const OverlaySet* overlaySet);
         
         Overlay* getPrimaryOverlay();
         
@@ -60,7 +69,13 @@ namespace caret {
         
         void addDisplayedOverlay();
         
+        void setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays);
+        
         int32_t getNumberOfDisplayedOverlays() const;
+        
+        void insertOverlayAbove(const int32_t overlayIndex);
+        
+        void insertOverlayBelow(const int32_t overlayIndex);
         
         void removeDisplayedOverlay(const int32_t overlayIndex);
         
@@ -72,21 +87,35 @@ namespace caret {
         
         void initializeOverlays();
         
+        void getLabelFilesForSurface(const Surface* surface,
+                                     std::vector<LabelFile*>& labelFilesOut,
+                                     std::vector<int32_t>& labelMapIndicesOut);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     public:
         virtual AString toString() const;
         
     private:
-        void initializeOverlaySet(ModelDisplayController* modelDisplayController);
+        void initializeOverlaySet(Model* modelDisplayController,
+                                  BrainStructure* brainStructure);
 
         OverlaySet(const OverlaySet&);
         
         OverlaySet& operator=(const OverlaySet&);
         
-        Overlay* overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        Overlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
-        ModelDisplayController* modelDisplayController;
+        Model* m_modelDisplayController;
         
-        int32_t numberOfDisplayedOverlays;
+        BrainStructure* m_brainStructure;
+        
+        int32_t m_numberOfDisplayedOverlays;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __OVERLAY_SET_DECLARE__

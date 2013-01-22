@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #define __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
 #include "GiftiLabelTableEditor.h"
 #undef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
@@ -46,12 +48,18 @@
 #include <QVBoxLayout>
 #include <QToolButton>
 
+#include "BorderFile.h"
 #include "CaretAssert.h"
 #include "ColorEditorWidget.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "FociFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -62,70 +70,155 @@ using namespace caret;
  * \brief Dialog for editing a GIFTI lable table.
  *
  */
+
 /**
  * Constructor.
+ *
+ * @param giftiLabelTable
+ *    Label table being edited.
+ * @param dialogTitle
+ *    Title for the dialog.
+ * @param parent
+ *    Parent on which this dialog is displayed.
  */
-GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
+GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
                                              const AString& dialogTitle,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
-    CaretAssert(giftiLableTable);
-    this->giftiLableTable = giftiLableTable;
-    this->undoGiftiLabel = NULL;
+    initializeDialog(giftiLabelTable);
+}
+
+/**
+ * \class caret::GiftiLabelTableEditor
+ * \brief Dialog for editing a GIFTI lable table.
+ *
+ */
+
+/**
+ * Constructor.
+ *
+ * @param fociFile
+ *    Foci file whose color table being edited.  As colors are edited,
+ *    the assigned foci will have their color validity invalidated.
+ * @param giftiLabelTable
+ *    Label table being edited.
+ * @param dialogTitle
+ *    Title for the dialog.
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ */
+GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
+                                             GiftiLabelTable* giftiLableTable,
+                                             const AString& dialogTitle,
+                                             QWidget* parent)
+: WuQDialogModal(dialogTitle,
+                 parent)
+{
+    CaretAssert(fociFile);
+    initializeDialog(giftiLableTable);
+    m_fociFile = fociFile;
+}
+
+/**
+ * Constructor.
+ *
+ * @param borderFile
+ *    Border file whose color table being edited.  As colors are edited,
+ *    the assigned borders will have their color validity invalidated.
+ * @param giftiLabelTable
+ *    Label table being edited.
+ * @param dialogTitle
+ *    Title for the dialog.
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ */
+GiftiLabelTableEditor::GiftiLabelTableEditor(BorderFile* borderFile,
+                                             GiftiLabelTable* giftiLableTable,
+                                             const AString& dialogTitle,
+                                             QWidget* parent)
+: WuQDialogModal(dialogTitle,
+                 parent)
+{
+    CaretAssert(borderFile);
+    initializeDialog(giftiLableTable);
+    m_borderFile = borderFile;
+}
+
+/**
+ * Destructor.
+ */
+GiftiLabelTableEditor::~GiftiLabelTableEditor()
+{
+    if (m_undoGiftiLabel != NULL) {
+        delete m_undoGiftiLabel;
+        m_undoGiftiLabel = NULL;
+    }
+}
+
+void
+GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable)
+{
+    m_borderFile = NULL;
+    m_fociFile = NULL;
+    
+    CaretAssert(giftiLabelTable);
+    m_giftiLableTable = giftiLabelTable;
+    m_undoGiftiLabel = NULL;
     
     /*
      * List widget for editing labels.
      */
-    this->labelSelectionListWidget = new QListWidget();
-    QObject::connect(this->labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
+    m_labelSelectionListWidget = new QListWidget();
+    m_labelSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
+    QObject::connect(m_labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
                      this, SLOT(listWidgetLabelSelected(int)));
     
     /*
      * New color button.
      */
     QPushButton* newPushButton = WuQtUtilities::createPushButton("New",
-                                                       "Create a new entry",
-                                                       this,
-                                                       SLOT(newButtonClicked()));
+                                                                 "Create a new entry",
+                                                                 this,
+                                                                 SLOT(newButtonClicked()));
     
     /*
      * Undo Edit button.
      */
     QPushButton* undoPushButton = WuQtUtilities::createPushButton("Undo Edit",
-                                                  "Create a new entry",
-                                                  this,
-                                                  SLOT(undoButtonClicked()));
+                                                                  "Create a new entry",
+                                                                  this,
+                                                                  SLOT(undoButtonClicked()));
     
     /*
      * Delete button.
      */
     QPushButton* deletePushButton = WuQtUtilities::createPushButton("Delete",
-                                                       "Delete the selected entry",
-                                                       this,
-                                                       SLOT(deleteButtonClicked()));
+                                                                    "Delete the selected entry",
+                                                                    this,
+                                                                    SLOT(deleteButtonClicked()));
     
     /*
      * Color editor widget
      */
-    this->colorEditorWidget = new ColorEditorWidget();
-    QObject::connect(this->colorEditorWidget, SIGNAL(colorChanged(const float*)),
+    m_colorEditorWidget = new ColorEditorWidget();
+    QObject::connect(m_colorEditorWidget, SIGNAL(colorChanged(const float*)),
                      this, SLOT(colorEditorColorChanged(const float*)));
     
     /*
      * Label name line edit
      */
     QLabel* nameLabel = new QLabel("Name: ");
-    this->labelNameLineEdit = new QLineEdit();
-    QObject::connect(this->labelNameLineEdit, SIGNAL(textEdited(const QString&)),
+    m_labelNameLineEdit = new QLineEdit();
+    QObject::connect(m_labelNameLineEdit, SIGNAL(textEdited(const QString&)),
                      this, SLOT(labelNameLineEditTextEdited(const QString&)));
-    WuQtUtilities::setToolTipAndStatusTip(this->labelNameLineEdit, 
+    WuQtUtilities::setToolTipAndStatusTip(m_labelNameLineEdit,
                                           "Edit the name");
     QHBoxLayout* nameLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(nameLayout, 2, 2);
     nameLayout->addWidget(nameLabel, 0);
-    nameLayout->addWidget(this->labelNameLineEdit, 100);
+    nameLayout->addWidget(m_labelNameLineEdit, 100);
     
     /*
      * Layout for buttons
@@ -143,30 +236,30 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2);
-    layout->addWidget(this->labelSelectionListWidget);
+    layout->addWidget(m_labelSelectionListWidget);
     layout->addLayout(buttonsLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(nameLayout);
-    layout->addWidget(this->colorEditorWidget);
+    layout->addWidget(m_colorEditorWidget);
     
-    this->setCentralWidget(widget);
+    setCentralWidget(widget);
     
-    this->loadLabels();
+    m_editingGroup = new WuQWidgetObjectGroup(this);
+    m_editingGroup->add(undoPushButton);
+    m_editingGroup->add(deletePushButton);
+    m_editingGroup->add(nameLabel);
+    m_editingGroup->add(m_labelNameLineEdit);
+    m_editingGroup->add(m_colorEditorWidget);
     
-    this->setOkButtonText("Close");
-    this->setCancelButtonText("");
-    this->setAutoDefaultButtonProcessing(false);
-}
-
-/**
- * Destructor.
- */
-GiftiLabelTableEditor::~GiftiLabelTableEditor()
-{
-    if (this->undoGiftiLabel != NULL) {
-        delete this->undoGiftiLabel;
-        this->undoGiftiLabel = NULL;
-    }
+    loadLabels("", false);
+    
+    setOkButtonText("Close");
+    setCancelButtonText("");
+    
+    /*
+     * No auto default button processing (Qt highlights button)
+     */
+    disableAutoDefaultForAllPushButtons();    
 }
 
 /**
@@ -177,15 +270,15 @@ GiftiLabelTableEditor::~GiftiLabelTableEditor()
 void 
 GiftiLabelTableEditor::labelNameLineEditTextEdited(const QString& text)
 {
-    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    QListWidgetItem* selectedItem = m_labelSelectionListWidget->currentItem();
     if (selectedItem != NULL) {
         selectedItem->setText(text);
     }
-    GiftiLabel* gl = this->getSelectedLabel();
+    GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
         gl->setName(text);
     }
-    this->lastSelectedLabelName = text;
+    m_lastSelectedLabelName = text;
 }
 
 /**
@@ -195,7 +288,7 @@ GiftiLabelTableEditor::labelNameLineEditTextEdited(const QString& text)
 AString 
 GiftiLabelTableEditor::getLastSelectedLabelName() const
 {
-    return this->lastSelectedLabelName;
+    return m_lastSelectedLabelName;
 }
 
 /**
@@ -206,10 +299,10 @@ GiftiLabelTableEditor::getLastSelectedLabelName() const
 void 
 GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
 {
-    QList<QListWidgetItem*> itemsWithLabelName = this->labelSelectionListWidget->findItems(labelName,
+    QList<QListWidgetItem*> itemsWithLabelName = m_labelSelectionListWidget->findItems(labelName,
                                                                                            Qt::MatchExactly);
     if (itemsWithLabelName.empty() == false) {
-        this->labelSelectionListWidget->setCurrentItem(itemsWithLabelName.at(0));
+        m_labelSelectionListWidget->setCurrentItem(itemsWithLabelName.at(0));
     }
 }
 
@@ -221,25 +314,35 @@ GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
 void 
 GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
 {
-    if (this->undoGiftiLabel != NULL) {
-        delete this->undoGiftiLabel;
-        this->undoGiftiLabel = NULL;
+    if (m_undoGiftiLabel != NULL) {
+        delete m_undoGiftiLabel;
+        m_undoGiftiLabel = NULL;
     }
     
-    GiftiLabel* gl = this->getSelectedLabel();
+    bool isEditingAllowed = false;
+    GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
+        const bool isUnassignedLabel = (gl->getKey() == m_giftiLableTable->getUnassignedLabelKey());
         float rgba[4];
         gl->getColor(rgba);
-        this->colorEditorWidget->setColor(rgba);
-        this->labelNameLineEdit->setText(gl->getName());
+        m_colorEditorWidget->setColor(rgba);
+        m_labelNameLineEdit->setText(gl->getName());
         
-        this->lastSelectedLabelName = gl->getName();
+        m_lastSelectedLabelName = gl->getName();
         
-        this->undoGiftiLabel = new GiftiLabel(*gl);
+        if (isUnassignedLabel) {
+            m_undoGiftiLabel = NULL;
+        }
+        else {
+            m_undoGiftiLabel = new GiftiLabel(*gl);
+            isEditingAllowed = true;
+        }
     }
     else {
-        this->lastSelectedLabelName = "";
+        m_lastSelectedLabelName = "";
     }
+    
+    m_editingGroup->setEnabled(isEditingAllowed);
 }
 
 /**
@@ -250,13 +353,19 @@ GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
 void 
 GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
 {
-    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    QListWidgetItem* selectedItem = m_labelSelectionListWidget->currentItem();
     if (selectedItem != NULL) {
-        this->setWidgetItemIconColor(selectedItem, rgba);
+        setWidgetItemIconColor(selectedItem, rgba);
     }
-    GiftiLabel* gl = this->getSelectedLabel();
+    GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
-        gl->setColor(rgba);
+        gl->setColor(rgba);        
+        if (m_fociFile != NULL) {
+            m_fociFile->invalidateAllAssignedColors();
+        }
+        if (m_borderFile != NULL) {
+            m_borderFile->invalidateAllAssignedColors();
+        }
     }
 }
 
@@ -272,62 +381,62 @@ void
 GiftiLabelTableEditor::loadLabels(const AString& selectedName,
                                   const bool usePreviouslySelectedIndex)
 {
-    this->labelSelectionListWidget->blockSignals(true);
+    m_labelSelectionListWidget->blockSignals(true);
     
     int32_t previousSelectedIndex = -1;
     if (usePreviouslySelectedIndex) {
-        previousSelectedIndex = this->labelSelectionListWidget->currentRow();
+        previousSelectedIndex = m_labelSelectionListWidget->currentRow();
     }
     int32_t selectedKey = -1;
-    GiftiLabel* selectedLabel = this->getSelectedLabel();
+    GiftiLabel* selectedLabel = getSelectedLabel();
     if (selectedLabel != NULL) {
         selectedKey = selectedLabel->getKey();
     }
     if (selectedName.isEmpty() == false) {
-        selectedKey = this->giftiLableTable->getLabelKeyFromName(selectedName);
+        selectedKey = m_giftiLableTable->getLabelKeyFromName(selectedName);
     }
     
-    this->labelSelectionListWidget->clear();
+    m_labelSelectionListWidget->clear();
     int defaultIndex = -1;
     
-    std::vector<int32_t> keys = this->giftiLableTable->getLabelKeysSortedByName();
+    std::vector<int32_t> keys = m_giftiLableTable->getLabelKeysSortedByName();
     for (std::vector<int32_t>::iterator keyIterator = keys.begin();
          keyIterator != keys.end();
          keyIterator++) {
         const int32_t key = *keyIterator;
-        const GiftiLabel* gl = this->giftiLableTable->getLabel(key);
+        const GiftiLabel* gl = m_giftiLableTable->getLabel(key);
         float rgba[4];
         gl->getColor(rgba);
         
         QListWidgetItem* colorItem = new QListWidgetItem(gl->getName());
-        this->setWidgetItemIconColor(colorItem, rgba);
+        setWidgetItemIconColor(colorItem, rgba);
         
         colorItem->setData(Qt::UserRole, 
                            qVariantFromValue((void*)gl));
-        this->labelSelectionListWidget->addItem(colorItem);
+        m_labelSelectionListWidget->addItem(colorItem);
         
         if (selectedKey == key) {
-            defaultIndex = this->labelSelectionListWidget->count() - 1;
+            defaultIndex = m_labelSelectionListWidget->count() - 1;
         }
     }
     
     if (usePreviouslySelectedIndex) {
         defaultIndex = previousSelectedIndex;
-        if (defaultIndex >= this->labelSelectionListWidget->count()) {
+        if (defaultIndex >= m_labelSelectionListWidget->count()) {
             defaultIndex--;
         }
     }
     
     if (defaultIndex < 0) {
-        if (this->labelSelectionListWidget->count() > 0) {
+        if (m_labelSelectionListWidget->count() > 0) {
             defaultIndex = 0;
         }
     }
     
-    this->labelSelectionListWidget->blockSignals(false);
+    m_labelSelectionListWidget->blockSignals(false);
     
-    if (defaultIndex >= 0) {
-        this->labelSelectionListWidget->setCurrentRow(defaultIndex);
+    if (defaultIndex >= 0) {        
+        m_labelSelectionListWidget->setCurrentRow(defaultIndex);
     }
 }
 
@@ -363,7 +472,7 @@ GiftiLabelTableEditor::getSelectedLabel()
 {
     GiftiLabel* gl = NULL;
     
-    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    QListWidgetItem* selectedItem = m_labelSelectionListWidget->currentItem();
     if (selectedItem != NULL) {
         void* pointer = selectedItem->data(Qt::UserRole).value<void*>();
         gl = (GiftiLabel*)pointer;
@@ -385,7 +494,7 @@ GiftiLabelTableEditor::newButtonClicked()
     AString name = "NewName_";
     for (int i = 1; i < 10000; i++) {
         const AString testName = name + QString::number(i);
-        if (this->giftiLableTable->getLabel(testName) == NULL) {
+        if (m_giftiLableTable->getLabel(testName) == NULL) {
             name = testName;
             break;
         }
@@ -395,18 +504,18 @@ GiftiLabelTableEditor::newButtonClicked()
     float green = 0.0;
     float blue  = 0.0;
     float alpha = 1.0;
-    this->giftiLableTable->addLabel(name,
+    m_giftiLableTable->addLabel(name,
                                     red,
                                     green,
                                     blue,
                                     alpha);
     
-    this->loadLabels(name);
+    loadLabels(name, false);
     
-    this->labelNameLineEdit->selectAll();
-//    this->labelNameLineEdit->grabKeyboard();
-//    this->labelNameLineEdit->grabMouse();
-    this->labelNameLineEdit->setFocus();
+    m_labelNameLineEdit->selectAll();
+//    m_labelNameLineEdit->grabKeyboard();
+//    m_labelNameLineEdit->grabMouse();
+    m_labelNameLineEdit->setFocus();
 }
 
 /**
@@ -415,12 +524,12 @@ GiftiLabelTableEditor::newButtonClicked()
 void 
 GiftiLabelTableEditor::undoButtonClicked()
 {
-    if (this->undoGiftiLabel != NULL) {
-        labelNameLineEditTextEdited(this->undoGiftiLabel->getName());
+    if (m_undoGiftiLabel != NULL) {
+        labelNameLineEditTextEdited(m_undoGiftiLabel->getName());
         float rgba[4];
-        this->undoGiftiLabel->getColor(rgba);
-        this->colorEditorColorChanged(rgba);
-        this->listWidgetLabelSelected(-1);
+        m_undoGiftiLabel->getColor(rgba);
+        colorEditorColorChanged(rgba);
+        listWidgetLabelSelected(-1);
     }
 }
 
@@ -430,13 +539,22 @@ GiftiLabelTableEditor::undoButtonClicked()
 void 
 GiftiLabelTableEditor::deleteButtonClicked()
 {
-    GiftiLabel* gl = this->getSelectedLabel();
+    GiftiLabel* gl = getSelectedLabel();
     if (gl != NULL) {
         if (WuQMessageBox::warningOkCancel(this,
                                            "Delete " + gl->getName())) {
-            this->giftiLableTable->deleteLabel(gl);
-            this->loadLabels("", true);
+            m_giftiLableTable->deleteLabel(gl);
+            loadLabels("", true);
         }
     }
-    
 }
+
+void
+GiftiLabelTableEditor::okButtonClicked()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+    WuQDialogModal::okButtonClicked();
+}
+

@@ -26,6 +26,9 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiConnectivityMatrixDataFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "LabelFile.h"
@@ -40,7 +43,7 @@ using namespace caret;
  */
 EventCaretMappableDataFilesGet::EventCaretMappableDataFilesGet()
 : Event(EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET),
-  surface(NULL)
+  m_surface(NULL)
 {
 }
 
@@ -51,7 +54,7 @@ EventCaretMappableDataFilesGet::EventCaretMappableDataFilesGet()
  */
 EventCaretMappableDataFilesGet::EventCaretMappableDataFilesGet(const Surface* surfaceIn)
 : Event(EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET),
-  surface(surfaceIn)
+  m_surface(surfaceIn)
 {
 }
 
@@ -76,32 +79,51 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
         return;
     }
     
-    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(mapDataFile);
-    if (clf != NULL) {
-        this->connectivityLoaderFiles.push_back(clf);
+    CiftiConnectivityMatrixDataFile* cmdf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapDataFile);
+    if (cmdf != NULL) {
+        m_ciftiConnectivityMatrixDataFiles.push_back(cmdf);
         return;
     }
+    
+    CiftiBrainordinateScalarFile* csf = dynamic_cast<CiftiBrainordinateScalarFile*>(mapDataFile);
+    if (csf != NULL) {
+        m_ciftiScalarFiles.push_back(csf);
+        return;
+    }
+    
+    CiftiBrainordinateLabelFile* clf = dynamic_cast<CiftiBrainordinateLabelFile*>(mapDataFile);
+    if (clf != NULL) {
+        m_ciftiLabelFiles.push_back(clf);
+        return;
+    }
+    
+    ConnectivityLoaderFile* connFile = dynamic_cast<ConnectivityLoaderFile*>(mapDataFile);
+    if (connFile != NULL) {
+        m_connectivityLoaderFiles.push_back(connFile);
+        return;
+    }
+    
     LabelFile* lf = dynamic_cast<LabelFile*>(mapDataFile);
     if (lf != NULL) {
-        this->labelFiles.push_back(lf);
+        m_labelFiles.push_back(lf);
         return;
     }
     
     MetricFile* mf = dynamic_cast<MetricFile*>(mapDataFile);
     if (mf != NULL) {
-        this->metricFiles.push_back(mf);
+        m_metricFiles.push_back(mf);
         return;
     }
 
     RgbaFile* rf = dynamic_cast<RgbaFile*>(mapDataFile);
     if (rf != NULL) {
-        this->rgbaFiles.push_back(rf);
+        m_rgbaFiles.push_back(rf);
         return;
     }
     
     VolumeFile* vf = dynamic_cast<VolumeFile*>(mapDataFile);
     if (vf != NULL) {
-        this->volumeFiles.push_back(vf);
+        m_volumeFiles.push_back(vf);
         return;
     }
     
@@ -112,28 +134,40 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
 }
 
 /** 
- * @return Returns all map data files.
+ * Get all map data files.
+ *
+ * @param allFilesOut
+ *    All map data files output.
  */
 void 
 EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>& allFilesOut) const
 {
     allFilesOut.clear();
     
+    allFilesOut.insert(allFilesOut.end(),
+                       m_ciftiConnectivityMatrixDataFiles.begin(),
+                       m_ciftiConnectivityMatrixDataFiles.end());
+    allFilesOut.insert(allFilesOut.end(),
+                       m_ciftiLabelFiles.begin(),
+                       m_ciftiLabelFiles.end());
+    allFilesOut.insert(allFilesOut.end(),
+                       m_ciftiScalarFiles.begin(),
+                       m_ciftiScalarFiles.end());
+    allFilesOut.insert(allFilesOut.end(),
+                       m_connectivityLoaderFiles.begin(),
+                       m_connectivityLoaderFiles.end());
+    allFilesOut.insert(allFilesOut.end(),
+                       m_labelFiles.begin(), 
+                       m_labelFiles.end());
     allFilesOut.insert(allFilesOut.end(), 
-                       this->connectivityLoaderFiles.begin(), 
-                       this->connectivityLoaderFiles.end());
+                       m_metricFiles.begin(), 
+                       m_metricFiles.end());
     allFilesOut.insert(allFilesOut.end(), 
-                       this->labelFiles.begin(), 
-                       this->labelFiles.end());
+                       m_rgbaFiles.begin(), 
+                       m_rgbaFiles.end());
     allFilesOut.insert(allFilesOut.end(), 
-                       this->metricFiles.begin(), 
-                       this->metricFiles.end());
-    allFilesOut.insert(allFilesOut.end(), 
-                       this->rgbaFiles.begin(), 
-                       this->rgbaFiles.end());
-    allFilesOut.insert(allFilesOut.end(), 
-                       this->volumeFiles.begin(), 
-                       this->volumeFiles.end());
+                       m_volumeFiles.begin(), 
+                       m_volumeFiles.end());
 }
 
 

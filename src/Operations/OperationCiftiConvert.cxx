@@ -58,8 +58,9 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
     ret->setHelpText(
-        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  Only one of -to-gifti-ext or -from-gifti-ext ") +
-        "may be specified."
+        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
+        "Only one of -to-gifti-ext or -from-gifti-ext may be specified.  " +
+        "The -transpose option is needed if the binary file is in column-major order."
     );
     return ret;
 }
@@ -85,8 +86,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
         NiftiIntentEnum::Enum myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE;
-        CiftiXML myXML;
-        myInFile->getCiftiXML(myXML);
+        const CiftiXML& myXML = myInFile->getCiftiXML();
         if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS ||
             myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
         {
@@ -144,9 +144,9 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             myXML.setColumnNumberOfTimepoints(numRows);
         }
+        if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
-        float* inputArray = dataArrayRef->getDataPointerFloat();
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
@@ -190,16 +190,24 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                     }
                     if (transpose->m_present)
                     {
-                        inputArray[i + j * numCols] = tempVal;
+                        int32_t indices[] = {j, i};
+                        dataArrayRef->setDataFloat32(indices, tempVal);
                     } else {
-                        inputArray[i * numCols + j] = tempVal;
+                        int32_t indices[] = {i, j};
+                        dataArrayRef->setDataFloat32(indices, tempVal);
                     }
                 }
             }
         }
+        vector<float> scratchRow(numCols);
         for (int i = 0; i < numRows; ++i)
         {
-            myOutFile->setRow(inputArray + (i * numCols), i);
+            for (int j = 0; j < numCols; ++j)
+            {
+                int32_t indices[] = {i, j};
+                scratchRow[j] = dataArrayRef->getDataFloat32(indices);
+            }
+            myOutFile->setRow(scratchRow.data(), i);
         }
     }
 }

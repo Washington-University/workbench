@@ -28,24 +28,51 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "CaretLogger.h"
 #include "Palette.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
+#include "VolumeFileVoxelColorizer.h"
+#include "VolumeSpline.h"
 
 using namespace caret;
 using namespace std;
 
 const float VolumeFile::INVALID_INTERP_VALUE = 0.0f;//we may want NaN or something more obvious
+bool VolumeFile::s_voxelColoringEnabled = true;
+
+/**
+ * Static method that sets the status of voxel coloring.  Coloring may take
+ * time and is almost never needed during command line operations (wb_command).
+ * 
+ * DO NOT CHANGE THIS VALUE if there are any instance of VolumeFile since
+ * the coloring object is created when a VolumeFile instance is created.
+ *
+ * @param enabled
+ *    New status for coloring.
+ */
+void
+VolumeFile::setVoxelColoringEnabled(const bool enabled)
+{
+    s_voxelColoringEnabled = enabled;
+    
+    CaretLogConfig(AString(s_voxelColoringEnabled
+                              ? "Volume coloring is enabled."
+                           : "Volume coloring is disabled."));
+}
+
 
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
 }
 
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
 }
@@ -53,6 +80,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
 }
@@ -106,19 +134,25 @@ void VolumeFile::setType(SubvolumeAttributes::VolumeType whatType)
 
 VolumeFile::~VolumeFile()
 {
+    if (m_voxelColorizer != NULL) {
+        delete m_voxelColorizer;
+    }
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     try {
-        NiftiFile myNifti;
+        NiftiFile myNifti(true);
         this->setFileName(filename);
         myNifti.readVolumeFile(*this, filename);
         parseExtensions();
         clearModified();
-    }
-    catch (const CaretException& e) {
+    } catch (const CaretException& e) {
         throw DataFileException(e);
+    } catch (...) {
+        throw DataFileException("unknown error while trying to open volume file " + filename);
     }
 }
 
@@ -133,9 +167,11 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 void 
 VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    checkFileWritability(filename);
+    
     try {
         updateCaretExtension();
-        NiftiFile myNifti;
+        NiftiFile myNifti(true);
         myNifti.writeVolumeFile(*this, filename);
     }
     catch (const CaretException& e) {
@@ -143,25 +179,45 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
     }
 }
 
-float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component)
+float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);
 }
 
-float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component)
+float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     switch (interp)
     {
+        case CUBIC:
+        {
+            float indexSpace[3];
+            spaceToIndex(coordIn1, coordIn2, coordIn3, indexSpace);
+            int64_t ind1low = floor(indexSpace[0]);
+            int64_t ind2low = floor(indexSpace[1]);
+            int64_t ind3low = floor(indexSpace[2]);
+            int64_t ind1high = ind1low + 1;
+            int64_t ind2high = ind2low + 1;
+            int64_t ind3high = ind3low + 1;
+            if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
+            {
+                if (validOut != NULL) *validOut = false;
+                return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
+            }
+            int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+            validateSplines(brickIndex, component);
+            if (validOut != NULL) *validOut = true;
+            return m_frameSplines[whichFrame].sample(indexSpace);
+        }
         case TRILINEAR:
         {
             float index1, index2, index3;
             spaceToIndex(coordIn1, coordIn2, coordIn3, index1, index2, index3);
-            int ind1low = floor(index1);
-            int ind2low = floor(index2);
-            int ind3low = floor(index3);
-            int ind1high = ind1low + 1;
-            int ind2high = ind2low + 1;
-            int ind3high = ind3low + 1;
+            int64_t ind1low = floor(index1);
+            int64_t ind2low = floor(index2);
+            int64_t ind3low = floor(index3);
+            int64_t ind1high = ind1low + 1;
+            int64_t ind2high = ind2low + 1;
+            int64_t ind3high = ind3low + 1;
             if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
             {
                 if (validOut != NULL) *validOut = false;
@@ -205,6 +261,28 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     return INVALID_INTERP_VALUE;
 }
 
+void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t component) const
+{
+    int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+    CaretMutexLocker locked(&m_splineMutex);//prevent concurrent access to spline state
+    if (!m_splinesValid)
+    {
+        m_frameSplineValid.clear();
+        m_frameSplines.clear();
+        m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
+    }
+    if ((int64_t)m_frameSplineValid.size() != numFrames)
+    {
+        m_frameSplineValid.resize(numFrames, false);
+        m_frameSplines.resize(numFrames);
+    }
+    if (!m_frameSplineValid[whichFrame])
+    {
+        m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
+        m_frameSplineValid[whichFrame] = true;
+    }
+}
+
 bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
 {
     for (int i = 0; i < 3; ++i)//only check the spatial dimensions
@@ -214,14 +292,41 @@ bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
             return false;
         }
     }
-    const float TOLER_RATIO = 1.0002f;//ratio a spacing element can mismatch by
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
             float leftelem = m_indexToSpace[i][j];
             float rightelem = right->m_indexToSpace[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (abs(leftelem / rightelem) > TOLER_RATIO || abs(rightelem / leftelem) > TOLER_RATIO)))
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<float> >& sform) const
+{
+    for (int i = 0; i < 3; ++i)//only check the spatial dimensions
+    {
+        if (m_dimensions[i] != dims[i])
+        {
+            return false;
+        }
+    }
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
+    CaretAssert(sform.size() >= 3);
+    for (int i = 0; i < 3; ++i)
+    {
+        CaretAssert(sform[i].size() >= 4);
+        for (int j = 0; j < 4; ++j)
+        {
+            float leftelem = m_indexToSpace[i][j];
+            float rightelem = sform[i][j];
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
             {
                 return false;
             }
@@ -322,6 +427,7 @@ void VolumeFile::updateCaretExtension()
 
 void VolumeFile::validateMembers()
 {
+    m_splinesValid = false;
     int numMaps = getNumberOfMaps();
     m_brickAttributes.clear();//invalidate brick attributes first
     m_brickAttributes.resize(numMaps);//before resizing
@@ -372,13 +478,73 @@ void VolumeFile::validateMembers()
             }
         }
     }
+    
+    /*
+     * Will handle colorization of voxel data.
+     */
+    if (m_voxelColorizer != NULL) {
+        delete m_voxelColorizer;
+    }
+    if (s_voxelColoringEnabled) {
+        m_voxelColorizer = new VolumeFileVoxelColorizer(this);
+    }
 }
 
-void VolumeFile::setModified()
+/**
+ * Set this file as modified.
+ */
+void
+VolumeFile::setModified()
 {
     DataFile::setModified();//do we need to do both of these?
     VolumeBase::setModified();
     m_brickStatisticsValid = false;
+    m_splinesValid = false;
+}
+
+/**
+ * Clear the modified status of this file.
+ */
+void
+VolumeFile::clearModified()
+{
+    CaretMappableDataFile::clearModified();
+    VolumeBase::clearModified();
+    if (isMappedWithPalette())
+    {
+        const int32_t numMaps = getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+            pcm->clearModified();
+        }
+    }
+}
+
+/**
+ * Return the modified status of this file.
+ */
+bool
+VolumeFile::isModified() const
+{
+    const int32_t numMaps = getNumberOfMaps();
+    if (isMappedWithPalette())
+    {
+        for (int32_t i = 0; i < numMaps; i++) {
+            const PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+            if (pcm->isModified()) {
+                return true;
+            }
+        }
+    }
+    
+    if (CaretMappableDataFile::isModified()) {
+        return true;
+    }
+    if (VolumeBase::isModified()) {
+        return true;
+    }
+    
+    return false;
 }
 
 
@@ -729,3 +895,215 @@ VolumeFile::getSpaceBoundingBox() const
     }
     return bb;
 }
+
+///**
+// * Assign colors for all maps in this volume file.
+// * Does nothing if coloring is not enabled.
+// *
+// * @param paletteFile
+// *     File containing the palettes.
+// */
+//void
+//VolumeFile::assignVoxelColorsForAllMaps(const PaletteFile* paletteFile)
+//{
+//    if (s_voxelColoringEnabled == false) {
+//        return;
+//    }
+//    
+//    CaretAssert(m_voxelColorizer);
+//    
+//    const int32_t numberOfMaps = getNumberOfMaps();
+//    for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+//        assignVoxelColorsForMap(iMap,
+//                                paletteFile);
+////        const bool usesPalette = isMappedWithPalette();
+////        const PaletteColorMapping* pcm = (usesPalette
+////                                          ? getMapPaletteColorMapping(iMap)
+////                                          : NULL);
+////        const AString paletteName = (usesPalette
+////                                     ? pcm->getSelectedPaletteName()
+////                                     : "");
+////        const Palette* palette = (usesPalette
+////                                  ? paletteFile->getPaletteByName(paletteName)
+////                                  : NULL);
+////        if (usesPalette
+////            && (palette == NULL)) {
+////            CaretLogSevere("No palette named \""
+////                           + paletteName
+////                           + "\" found for coloring map index="
+////                           + AString::number(iMap)
+////                           + " in "
+////                           + getFileNameNoPath());
+////        }
+////        
+////        m_voxelColorizer->assignVoxelColorsForMapInBackground(iMap,
+////                                                              palette,
+////                                                              NULL,
+////                                                              0);
+//    }
+//}
+
+/**
+ * Update coloring for a map.
+ * Does nothing if coloring is not enabled.
+ *
+ * @param mapIndex
+ *     Index of map.
+ * @param paletteFile
+ *     File containing the palettes.
+ */
+void
+VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
+                                    const PaletteFile* paletteFile)
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
+    CaretAssert(m_voxelColorizer);
+    
+    const bool usesPalette = isMappedWithPalette();
+    const PaletteColorMapping* pcm = (usesPalette
+                                      ? getMapPaletteColorMapping(mapIndex)
+                                      : NULL);
+    const AString paletteName = (usesPalette
+                                 ? pcm->getSelectedPaletteName()
+                                 : "");
+    const Palette* palette = (usesPalette
+                              ? paletteFile->getPaletteByName(paletteName)
+                              : NULL);
+    if (usesPalette
+        && (palette == NULL)) {
+        CaretLogSevere("No palette named \""
+                       + paletteName
+                       + "\" found for coloring map index="
+                       + AString::number(mapIndex)
+                       + " in "
+                       + getFileNameNoPath());
+    }
+    
+    m_voxelColorizer->assignVoxelColorsForMapInBackground(mapIndex,
+                                                          palette,
+                                                          this,
+                                                          mapIndex);
+}
+
+/**
+ * Get the voxel RGBA coloring for a map.
+ * Does nothing if coloring is not enabled and output colors are undefined
+ * in this case.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    Plane for which colors are requested.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param rgbaOut
+ *    Contains colors upon exit.
+ */
+void
+VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                 const int64_t sliceIndex,
+                                 uint8_t* rgbaOut) const
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
+                                                  slicePlane,
+                                                  sliceIndex,
+                                                  rgbaOut);
+}
+
+/**
+ * Get the RGBA color components for voxel.
+ * Does nothing if coloring is not enabled and output colors are undefined
+ * in this case.
+ *
+ * @param i
+ *    Parasaggital index
+ * @param j
+ *    Coronal index
+ * @param k
+ *    Axial index
+ * @param mapIndex
+ *    Index of map.
+ * @param rgbaOut
+ *    Contains voxel coloring on exit.
+ */
+void
+VolumeFile::getVoxelColorInMap(const int64_t i,
+                        const int64_t j,
+                        const int64_t k,
+                        const int64_t mapIndex,
+                        uint8_t rgbaOut[4]) const
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
+    CaretAssert(m_voxelColorizer);
+
+    m_voxelColorizer->getVoxelColorInMap(i,
+                                         j,
+                                         k,
+                                         mapIndex,
+                                         rgbaOut);
+}
+
+/**
+ * Clear the voxel coloring for the given map.
+ * Does nothing if coloring is not enabled.
+ *
+ * @param mapIndex
+ *    Index of map.
+ */
+void
+VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->clearVoxelColoringForMap(mapIndex);
+}
+
+/**
+ * Set the RGBA coloring for a voxel in a map.
+ * Does nothing if coloring is not enabled.
+ *
+ * @param i
+ *    Parasaggital index
+ * @param j
+ *    Coronal index
+ * @param k
+ *    Axial index
+ * @param mapIndex
+ *    Index of map.
+ * @param rgba
+ *    RGBA color components for voxel.
+ */
+void
+VolumeFile::setVoxelColorInMap(const int64_t i,
+                         const int64_t j,
+                         const int64_t k,
+                         const int64_t mapIndex,
+                         const float rgba[4])
+
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    CaretAssert(m_voxelColorizer);
+    
+    m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);
+}
+
+

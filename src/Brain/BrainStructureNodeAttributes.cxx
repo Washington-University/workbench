@@ -30,6 +30,7 @@
 #undef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -72,109 +73,59 @@ BrainStructureNodeAttributes::toString() const
 }
 
 void 
-BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
+BrainStructureNodeAttributes::update(const int32_t /*numberOfNodes*/)
 {
-    if (numberOfNodes > 0) {
-        this->identificationType.resize(numberOfNodes);
-        this->identificationRGBA.resize(numberOfNodes * 4);
-        this->setAllIdentificationNone();
-    }
-    else {
-        this->identificationType.clear();
-        this->identificationRGBA.clear();
-    }
-}
-
-void 
-BrainStructureNodeAttributes::setAllIdentificationNone()
-{
-    std::fill(this->identificationType.begin(),
-              this->identificationType.end(),
-              NodeIdentificationTypeEnum::NONE);
+//    if (numberOfNodes > 0) {
+//        m_identificationType.resize(numberOfNodes);
+//        this->setAllIdentificationNone();
+//    }
+//    else {
+//        m_identificationType.clear();
+//    }
 }
 
 /**
- * Get the identification type for the given node.
- * @param nodeIndex
- *     Number of node.
- * @return The identified status of the node.
- */
-NodeIdentificationTypeEnum::Enum 
-BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeIndex) const
-{
-    CaretAssertVectorIndex(this->identificationType, nodeIndex);
-    return this->identificationType[nodeIndex];
-}
-
-/**
- * Set the identification type for the given node.
- * @param nodeIndex
- *     Number of node.
- * @param identifiedStatus
- *    New identified status.
- */
-void 
-BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeIndex,
-                                                    const NodeIdentificationTypeEnum::Enum identificationType)
-{
-    CaretAssertVectorIndex(this->identificationType, nodeIndex);
-    this->identificationType[nodeIndex] = identificationType;
-    
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    switch (identificationType) {
-        case NodeIdentificationTypeEnum::NONE:
-            break;
-        case NodeIdentificationTypeEnum::NORMAL:
-            this->identificationRGBA[rgbaIndex]   = 0.0;
-            this->identificationRGBA[rgbaIndex+1] = 1.0;
-            this->identificationRGBA[rgbaIndex+2] = 0.0;
-            this->identificationRGBA[rgbaIndex+3] = 1.0;
-            break;
-        case NodeIdentificationTypeEnum::CONTRALATERAL:
-            this->identificationRGBA[rgbaIndex]   = 0.0;
-            this->identificationRGBA[rgbaIndex+1] = 0.0;
-            this->identificationRGBA[rgbaIndex+2] = 1.0;
-            this->identificationRGBA[rgbaIndex+3] = 1.0;
-            break;
-    }
-}
-
-/**
- * Get the RGBA color for node's identification symbol.
- * @param nodeIndex
- *    Index of the node.
- * @return
- *    RGBA color for symbol.
- */
-const float* 
-BrainStructureNodeAttributes::getIdentificationRGBA(const int32_t nodeIndex) const
-{
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    return &this->identificationRGBA[rgbaIndex];
-}
-
-/**
- * Set the RGBA color for node's identification symbol.
- * NOTE: setIdentificationType() will set the color for the symbol
- * so this method must be called AFTER setIdentificationType() to
- * override the symbol's color.
+ * Create a scene for an instance of a class.
  *
- * @param nodeIndex
- *    Index of the node.
- * @param rgba
- *    RGB color for symbol.
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainStructureNodeAttributes::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainStructureNodeAttributes",
+                                            1);
+    
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
  */
 void 
-BrainStructureNodeAttributes::setIdentificationRGBA(const int32_t nodeIndex,
-                                                   const float rgba[3])
+BrainStructureNodeAttributes::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                               const SceneClass* sceneClass)
 {
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    this->identificationRGBA[rgbaIndex]   = rgba[0];
-    this->identificationRGBA[rgbaIndex+1] = rgba[1];
-    this->identificationRGBA[rgbaIndex+2] = rgba[2];
-    this->identificationRGBA[rgbaIndex+3] = rgba[3];
+    if (sceneClass == NULL) {
+        return;
+    }    
 }
 

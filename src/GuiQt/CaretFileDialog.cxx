@@ -80,7 +80,7 @@ HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourc
 
 
 /**
- * \class CaretFileDialog 
+ * \class caret::CaretFileDialog 
  * \brief Adds additional functionality over Qt's QFileDialog.
  */
 
@@ -267,6 +267,56 @@ CaretFileDialog::getSaveFileNameDialog(QWidget *parent,
         QStringList selectedFiles = cfd.selectedFiles();
         if (selectedFiles.size() > 0) {
             return selectedFiles[0];
+        }
+    }
+    
+    return QString();
+}
+
+/**
+ * Like QFileDialog::getSaveFileName() except that this
+ * NEVER uses the native file dialog thus providing 
+ * a consistent user-interface across platforms.
+ *
+ * The file filter will be from the given data file type.
+ * The returned file will contain a valid extension from the
+ * given data file type.
+ *
+ * @param dataFileType
+ *    Type of file being saved.
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param caption
+ *    Caption for dialog (if not provided a default caption is shown)
+ * @param dir
+ *    Directory show by dialog (Brain's current directory if empty string)
+ * @param options
+ *    Options (see QFileDialog).
+ * @return
+ *    Name of file selected or empty string if user cancelled.
+ */
+QString 
+CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                       QWidget *parent,
+                                       const QString &caption,
+                                       const QString &dir,
+                                       Options options)
+{
+    CaretFileDialog cfd(parent,
+                        caption,
+                        dir,
+                        DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    cfd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    cfd.setOptions(options);
+    cfd.setAcceptMode(QFileDialog::AcceptSave);
+    cfd.setFileMode(CaretFileDialog::AnyFile);
+    
+    if (cfd.exec() == CaretFileDialog::Accepted) {
+        QStringList selectedFiles = cfd.selectedFiles();
+        if (selectedFiles.size() > 0) {
+            AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0], 
+                                                                           dataFileType);
+            return filename;
         }
     }
     

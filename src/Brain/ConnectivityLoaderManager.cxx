@@ -32,15 +32,20 @@ using namespace caret;
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
-#include "DescriptiveStatistics.h"
-#include "EventCaretMappableDataFilesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
+#include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "ScenePrimitiveArray.h"
+#include "StructureEnum.h"
+#include "Surface.h"
 #include "SurfaceFile.h"
     
 /**
@@ -55,8 +60,9 @@ using namespace caret;
 ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 : CaretObject()
 {
-    this->brain = brain;
-    this->reset();    
+    m_brain = brain;
+
+    this->reset();
 
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
@@ -71,141 +77,7 @@ ConnectivityLoaderManager::~ConnectivityLoaderManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        delete *iter;
-    }
-    this->connectivityLoaderFiles.clear();
-}
-
-/**
- * @return Number of connectivity loader files.
- */
-int32_t 
-ConnectivityLoaderManager::getNumberOfConnectivityLoaderFiles() const
-{
-    return this->connectivityLoaderFiles.size();
-}
-
-/**
- * Get the connectivity loader file at the given index.
- * @param indx
- *    Index of file.
- * @return
- *    File at given index.
- *    loader has not been setup.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::getConnectivityLoaderFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    return this->connectivityLoaderFiles[indx];
-}
-
-/**
- * Get the connectivity loader file at the given index.
- * @param indx
- *    Index of file.
- * @return
- *    File at given index.
- *    loader has not been setup.
- */
-const ConnectivityLoaderFile* 
-ConnectivityLoaderManager::getConnectivityLoaderFile(const int32_t indx) const
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    return this->connectivityLoaderFiles[indx];
-}
-
-/**
- * Add a connectivity loader.
- * @return 
- *    Connectivity loader file that was created.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::addConnectivityLoaderFile(const AString& path,
-                                                     const DataFileTypeEnum::Enum connectivityFileType)  throw (DataFileException)
-{  
-    ConnectivityLoaderFile* newConnectivityLoaderFile = NULL;
-    const int32_t numLoaders = this->getNumberOfConnectivityLoaderFiles();
-    for (int32_t i = 0; i < numLoaders; i++) {
-        ConnectivityLoaderFile* clf = this->getConnectivityLoaderFile(i);
-        if (clf->isEmpty()) {
-            newConnectivityLoaderFile = clf;
-            break;
-        }
-    }
-    
-    if (newConnectivityLoaderFile == NULL) {
-        newConnectivityLoaderFile = this->addConnectivityLoaderFile();
-    }
-    newConnectivityLoaderFile->setupLocalFile(path, connectivityFileType);
-    if(newConnectivityLoaderFile->isDenseTimeSeries()&& !newConnectivityLoaderFile->isEmpty())
-    {
-        newConnectivityLoaderFile->loadTimePointAtTime(0.0);
-    }
-    return newConnectivityLoaderFile;
-}
-
-/**
- * Add a connectivity loader.
- * @return 
- *    Connectivity loader file that was created.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::addConnectivityLoaderFile()
-{
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
-    this->connectivityLoaderFiles.push_back(clf);
-    return clf;
-}
-
-/**
- * Remove the connectivity loader at the given index.
- * @param indx
- *    Index of connectivity loader for removal.
- */
-void 
-ConnectivityLoaderManager::removeConnectivityLoaderFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    
-    if (this->getNumberOfConnectivityLoaderFiles() <=
-        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
-        return;
-    }
-
-    delete this->connectivityLoaderFiles[indx];
-    this->connectivityLoaderFiles.erase(this->connectivityLoaderFiles.begin() + indx);
-    
-}
-
-/**
- * Remove the given connectivity loader.
- * Do not use the pointer after calling this method!!
- * @param clf
- *    Connectivity loader for removal.
- */
-void 
-ConnectivityLoaderManager::removeConnectivityLoaderFile(const ConnectivityLoaderFile* clf)
-{    
-    if (this->getNumberOfConnectivityLoaderFiles() <=
-        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
-        return;
-    }
-    
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        if (*iter == clf) {
-            delete clf;
-            this->connectivityLoaderFiles.erase(iter);
-            return;
-        }
-    }
-    CaretAssertMessage(0, "Trying to delete connectivity file that is not in the loader manager" 
-                       + clf->getFileName());
+    this->reset();
 }
 
 /**
@@ -214,23 +86,65 @@ ConnectivityLoaderManager::removeConnectivityLoaderFile(const ConnectivityLoader
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex) throw (DataFileException)
+                                                  const int32_t nodeIndex,
+                                                  std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
-        if (clf->isEmpty() == false) {
-            clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+        if ((clf->isEmpty() == false)
+            && clf->isDense()) {
+            const int64_t rowIndex = clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
             haveData = true;
+            
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node 
+                 */
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
+                               + " nodeIndex="
+                               + AString::number(nodeIndex)
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
         }
     }
+    
+    /*
+     * Load fiber trajectory data
+     */
+    const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+    if (numFiberFiles > 0) {
+        const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+        for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+            int32_t fiberFileIndex = iTrajFileIndex;
+            if (fiberFileIndex >= numFiberFiles) {
+                fiberFileIndex = 0;
+            }
+            
+            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+            CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
+            trajFile->loadDataForSurfaceNode(connFiberFile,
+                                                 surfaceFile->getStructure(),
+                                                 nodeIndex);
+        }
+    }
+    
+    
+    m_denseDataLoadedForScene.setSurfaceLoading(surfaceFile,
+                                                nodeIndex);
     
     if (haveData) {
         this->colorConnectivityData();
@@ -241,26 +155,41 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
 }
 
 /**
- * Load data for the voxel near the given coordinate.
- * @param xyz
- *     Coordinate of voxel.
+ * Load data for each of the given surface node indices and average the data.
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndices
+ *    Indices of the surface nodes.
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
-ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadDataForVoxelAtCoordinate(xyz);
-            haveData = true;
+            if (clf->isDense()) {
+                clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+                haveData = true;
+            }
+            else if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
+            {
+                //moved to loadaveragetimeseriesforsurfacenodes
+                //clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+            }
         }
     }
     
+    m_denseDataLoadedForScene.setSurfaceAverageLoading(surfaceFile,
+                                                       nodeIndices);
     if (haveData) {
         this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -269,39 +198,133 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) thro
     return haveData;
 }
 
+/**
+ * Load time series for each of the given surface node indices and average the data.
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndices
+ *    Indices of the surface nodes.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
+{
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    bool haveData = false;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {            
+            if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
+            {
+                clf->loadAverageTimeSeriesForSurfaceNodes(surfaceFile->getStructure(), nodeIndices, timeLine);
+            }
+        }
+    }
+
+    return haveData;
+}
+
+
+/**
+ * Load data for the voxel near the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
+                                                        std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+{
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    bool haveData = false;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {
+            const int64_t rowIndex = clf->loadDataForVoxelAtCoordinate(xyz);
+            haveData = true;
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node 
+                 */
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
+                               + " Voxel XYZ="
+                               + AString::fromNumbers(xyz, 3, ",")
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
+        }
+    }
+    
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+    
+    m_denseDataLoadedForScene.setVolumeLoading(xyz);
+    
+    return haveData;
+}
+
 void 
 ConnectivityLoaderManager::colorConnectivityData()
 {
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         
         if (clf->isEmpty() == false) {
-            const float* data = clf->getData();
-            float* dataRGBA = clf->getDataRGBA();
-            const int32_t dataSize = clf->getNumberOfDataElements();
-            const DescriptiveStatistics* statistics = clf->getMapStatistics(0);
             const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
             
             const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-            Palette* palette = this->brain->getPaletteFile()->getPaletteByName(paletteName);
+            Palette* palette = m_brain->getPaletteFile()->getPaletteByName(paletteName);
             if (palette != NULL) {
-                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
-                                                              paletteColorMapping, 
-                                                              palette, 
-                                                              data, 
-                                                              data, 
-                                                              dataSize, 
-                                                              dataRGBA);
-                
-                CaretLogFine("Connectivity Data Average/Min/Max: "
-                             + QString::number(statistics->getMean())
-                             + " "
-                             + QString::number(statistics->getMostNegativeValue())
-                             + " "
-                             + QString::number(statistics->getMostPositiveValue()));
-            }            
+                clf->updateRGBAColoring(palette, 0);
+            }
+//           
+//            
+//            
+//            
+//            const float* data = clf->getData();
+//            float* dataRGBA = clf->getDataRGBA();
+//            const int32_t dataSize = clf->getNumberOfDataElements();
+//            const FastStatistics* statistics = clf->getMapFastStatistics(0);
+//            const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
+//            
+//            const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+//            Palette* palette = m_brain->getPaletteFile()->getPaletteByName(paletteName);
+//            if (palette != NULL) {
+//                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+//                                                              paletteColorMapping, 
+//                                                              palette, 
+//                                                              data, 
+//                                                              data, 
+//                                                              dataSize, 
+//                                                              dataRGBA);
+//                
+//                CaretLogFine("Connectivity Data Average/Min/Max: "
+//                             + QString::number(statistics->getMean())
+//                             + " "
+//                             + QString::number(statistics->getMostNegativeValue())
+//                             + " "
+//                             + QString::number(statistics->getMostPositiveValue()));
+//            }            
         }
     }
 }
@@ -312,16 +335,7 @@ ConnectivityLoaderManager::colorConnectivityData()
 void 
 ConnectivityLoaderManager::reset()
 {
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        delete *iter;
-    }
-    this->connectivityLoaderFiles.clear();
-    
-    for (int32_t i = 0; i < ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS; i++) {
-        this->addConnectivityLoaderFile();
-    }
+    m_denseDataLoadedForScene.reset();
 }
 
 
@@ -334,23 +348,7 @@ ConnectivityLoaderManager::reset()
 void 
 ConnectivityLoaderManager::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
-        EventCaretMappableDataFilesGet* dataFilesEvent =
-        dynamic_cast<EventCaretMappableDataFilesGet*>(event);
-        CaretAssert(dataFilesEvent);
-        
-        for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-             iter != this->connectivityLoaderFiles.end();
-             iter++) {
-            ConnectivityLoaderFile* clf = *iter;
-            if (clf->isEmpty() == false) {
-                dataFilesEvent->addFile(*iter);
-            }
-        }
-        
-        dataFilesEvent->setEventProcessed();
-    } 
-    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
         EventSurfaceColoringInvalidate* colorEvent =
         dynamic_cast<EventSurfaceColoringInvalidate*>(event);
         CaretAssert(colorEvent);
@@ -384,13 +382,30 @@ ConnectivityLoaderManager::toString() const
  * @return
  *    true if data was loaded, else false.
  */
-bool 
+/*bool 
 ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
                                                const float seconds) throw (DataFileException)
 {
     bool haveData = false;
     if (clf->isEmpty() == false) {
         clf->loadTimePointAtTime(seconds);
+        haveData = true;
+    }
+
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+
+    return haveData;
+}*/
+
+bool ConnectivityLoaderManager::loadFrame(ConnectivityLoaderFile* clf,
+    const int frame) throw (DataFileException)
+{
+    bool haveData = false;
+    if (clf->isEmpty() == false) {
+        clf->loadFrame(frame);
         haveData = true;
     }
 
@@ -408,20 +423,26 @@ ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
 void
 ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
-    {
-        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    int indx = 0;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
         if(clf->isDenseTimeSeries() &&
            clf->isSurfaceMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
             TimeLine tl;            
             clf->getTimeLine(tl);
-            tl.clmID = i+1;
+            tl.clmID = indx+1;
             tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
             
         }
+        indx++;
     }
 
 }
@@ -432,19 +453,25 @@ ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 void
 ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
-    {
-        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    int indx = 0;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
         if(clf->isDenseTimeSeries() &&
            clf->isVolumeMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
             TimeLine tl;            
             clf->getTimeLine(tl);
-            tl.clmID = i+1;
+            tl.clmID = indx+1;
             tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
         }
+        indx++;
     }
 }
 
@@ -454,23 +481,47 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param timeLine
+ *    Output timeline.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
 ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex) throw (DataFileException)
+                                                      const int32_t nodeIndex,
+                                                      const TimeLine &timeLine,
+                                                      std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+            
+            const int64_t rowIndex = clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
+            
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node 
+                 */
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
+                               + " nodeIndex="
+                               + AString::number(nodeIndex)
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
         }
     }
+
     
     //if (haveData) {
         //this->colorConnectivityData();
@@ -481,24 +532,72 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
 }
 
 /**
+ * @return True if there are enabled connectivity
+ * files that retrieve data from the network.
+ */
+bool 
+ConnectivityLoaderManager::hasNetworkFiles() const
+{
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        
+        if (clf->isEmpty() == false) {
+            const AString filename = clf->getFileName();
+            if (filename.startsWith("http://")
+                || filename.startsWith("https://")) {
+                if (clf->isDataLoadingEnabled()) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false; 
+}
+
+/**
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
-ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
+                                                            std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    m_brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    TimeLine tl;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadTimeLineForVoxelAtCoordinate(xyz);
+            AString structure = StructureEnum::toGuiName(clf->getStructure());
+            tl.label = structure + ":[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
+            const int64_t rowIndex = clf->loadTimeLineForVoxelAtCoordinate(xyz,tl);
             haveData = true;
-        }
+            
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node 
+                 */
+                rowColumnInformationOut.push_back(clf->getFileNameNoPath()
+                               + " Voxel XYZ="
+                               + AString::fromNumbers(xyz, 3, ",")
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
+       }
     }
     
     //if (haveData) {
@@ -508,3 +607,296 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) 
     
     return haveData;
 }
+
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
+                                       const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ConnectivityLoaderManager",
+                                            1);
+    sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
+                                                               "m_denseDataLoadedForScene"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ConnectivityLoaderManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                            const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const SceneClass* denseDataSceneClass = sceneClass->getClass("m_denseDataLoadedForScene");
+    m_denseDataLoadedForScene.restoreFromScene(sceneAttributes,
+                                               denseDataSceneClass,
+                                               m_brain,
+                                               this);
+}
+
+/*============================================================================*/
+/**
+ * \class caret::ConnectivityLoaderManager::DenseDataLoaded
+ * \brief Holds information on last loaded connectivity data.
+ */
+
+/**
+ * Constructor.
+ */
+ConnectivityLoaderManager::DenseDataLoaded::DenseDataLoaded()
+{
+    reset();
+}
+
+/**
+ * Destructor.
+ */
+ConnectivityLoaderManager::DenseDataLoaded::~DenseDataLoaded()
+{
+    reset();
+}
+
+void
+ConnectivityLoaderManager::DenseDataLoaded::reset()
+{
+    m_mode = MODE_NONE;
+    m_surfaceFileName = "";
+    m_surfaceFileNodeIndices.clear();
+}
+
+/**
+ * Setup for single node dense connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndex
+ *     Index of node on the surface.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setSurfaceLoading(const SurfaceFile* surfaceFile,
+                                                              const int32_t nodeIndex)
+{
+    reset();
+    m_mode = MODE_SURFACE_NODE;
+    m_surfaceFileName      = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices.push_back(nodeIndex);
+}
+
+/**
+ * Setup for multiple nodes average connectivity data.
+ * @param surfaceFile
+ *     Surface file on which data was selected.
+ * @param nodeIndices
+ *     Indices of node on the surface.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                                                     const std::vector<int32_t>& nodeIndices)
+{
+    reset();
+    m_mode = MODE_SURFACE_AVERAGE;
+    m_surfaceFileName        = surfaceFile->getFileNameNoPath();
+    m_surfaceFileNodeIndices = nodeIndices;
+}
+
+/**
+ * Setup for voxel loading at a coordinate.
+ * @param xyz
+ *     Coordinate at a voxel.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::setVolumeLoading(const float xyz[3])
+{
+    reset();
+    m_mode = MODE_VOXEL_XYZ;
+    m_voxelXYZ[0] = xyz[0];
+    m_voxelXYZ[1] = xyz[1];
+    m_voxelXYZ[2] = xyz[2];
+}
+
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ConnectivityLoaderManager::DenseDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                                             const SceneClass* sceneClass,
+                                                             Brain* brain,
+                                                             ConnectivityLoaderManager* connMan)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_mode = MODE_NONE;
+    const AString modeName = sceneClass->getStringValue("m_mode");
+    if (modeName == "MODE_NONE") {
+        m_mode = MODE_NONE;
+    }
+    else if (modeName == "MODE_SURFACE_AVERAGE") {
+        m_mode = MODE_SURFACE_AVERAGE;
+    }
+    else if (modeName == "MODE_SURFACE_NODE") {
+        m_mode = MODE_SURFACE_NODE;
+    }
+    else if (modeName == "MODE_VOXEL_XYZ") {
+        m_mode = MODE_VOXEL_XYZ;
+    }
+    else {
+        sceneAttributes->addToErrorMessage("Unrecognized mode=" + modeName);
+        return;
+    }
+    
+    m_surfaceFileName      = sceneClass->getStringValue("m_surfaceFileName");
+    m_surfaceFileNodeIndices.clear();
+    const ScenePrimitiveArray* nodeIndicesArray = sceneClass->getPrimitiveArray("m_surfaceFileNodeIndices");
+    const int32_t numNodeIndices = nodeIndicesArray->getNumberOfArrayElements();
+    m_surfaceFileNodeIndices.reserve(numNodeIndices);
+    for (int32_t i = 0; i < numNodeIndices; i++) {
+        m_surfaceFileNodeIndices.push_back(nodeIndicesArray->integerValue(i));
+    }
+    sceneClass->getFloatArrayValue("m_voxelXYZ",
+                                   m_voxelXYZ,
+                                   3);
+    
+    switch (m_mode) {
+        case MODE_NONE:
+            break;
+        case MODE_SURFACE_AVERAGE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    connMan->loadAverageDataForSurfaceNodes(surface,
+                                                            m_surfaceFileNodeIndices);
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_SURFACE_NODE:
+        {
+            if ((m_surfaceFileName.isEmpty() == false)
+                && (numNodeIndices > 0)) {
+                Surface* surface = brain->getSurfaceWithName(m_surfaceFileName,
+                                                             false);
+                if (surface != NULL) {
+                    if (numNodeIndices == 1) {
+                        const int32_t nodeIndex = m_surfaceFileNodeIndices[0];
+                        if (nodeIndex < surface->getNumberOfNodes()) {
+                            std::vector<AString> rowsColumnsLoaded;
+                            connMan->loadDataForSurfaceNode(surface,
+                                                            nodeIndex,
+                                                            rowsColumnsLoaded);
+                        }
+                    }
+                }
+                else {
+                    sceneAttributes->addToErrorMessage("Surface named "
+                                                       + m_surfaceFileName
+                                                       + " is missing.");
+                }
+            }
+        }
+            break;
+        case MODE_VOXEL_XYZ:
+        {
+            std::vector<AString> rowsColumnsLoaded;
+            connMan->loadDataForVoxelAtCoordinate(m_voxelXYZ,
+                                                  rowsColumnsLoaded);
+        }
+            break;
+    }
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ConnectivityLoaderManager::DenseDataLoaded::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                                        const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "DenseDataLoaded",
+                                            1);
+    
+    AString modeName = "MODE_NONE";
+    switch (m_mode) {
+        case MODE_NONE:
+            modeName = "MODE_NONE";
+            break;
+        case MODE_SURFACE_AVERAGE:
+            modeName = "MODE_SURFACE_AVERAGE";
+            break;
+        case MODE_SURFACE_NODE:
+            modeName = "MODE_SURFACE_NODE";
+            break;
+        case MODE_VOXEL_XYZ:
+            modeName = "MODE_VOXEL_XYZ";
+            break;
+    }
+    
+    sceneClass->addString("m_mode",
+                          modeName);
+    sceneClass->addString("m_surfaceFileName",
+                          m_surfaceFileName);
+    sceneClass->addIntegerArray("m_surfaceFileNodeIndices",
+                                &m_surfaceFileNodeIndices[0],
+                                m_surfaceFileNodeIndices.size());
+    sceneClass->addFloatArray("m_voxelXYZ",
+                              m_voxelXYZ,
+                              3);
+    
+    return sceneClass;
+}
+

@@ -92,9 +92,9 @@ EventNodeDataFilesGet::addFile(GiftiTypeFile* nodeDataFile)
     }
     
     CaretAssertMessage(0, 
-                       "Unsupported node data file: " 
+                       "Unsupported vertex data file: " 
                        + AString(typeid(nodeDataFile).name()) 
-                       + "  New node data file added?");
+                       + "  New vertex data file added?");
 }
 
 /** 

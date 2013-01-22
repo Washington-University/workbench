@@ -54,18 +54,19 @@ namespace caret {
         void initializeMembersSurfaceProjectedItem();
         
     public:
-        void unprojectToStereotaxicXYZ(
-                                    const SurfaceFile& sf,
-                                    const bool isUnprojectedOntoSurface);
+        void unprojectToStereotaxicXYZ(const SurfaceFile& sf,
+                                       const bool isUnprojectedOntoSurface);
         
-        void unprojectToVolumeXYZ(
-                                  const SurfaceFile& sf,
+        void unprojectToVolumeXYZ(const SurfaceFile& sf,
                                   const bool isUnprojectedOntoSurface);
         
-        bool getProjectedPosition(
-                                  const SurfaceFile& sf,
+        bool getProjectedPosition(const SurfaceFile& sf,
                                   float xyzOut[3],
                                   const bool isUnprojectedOntoSurface) const;
+        
+        bool getProjectedPositionAboveSurface(const SurfaceFile& sf,
+                                              float xyzOut[3],
+                                              const float distanceAboveSurface) const;
         
         const float* getStereotaxicXYZ() const;
         
@@ -94,6 +95,8 @@ namespace caret {
         const SurfaceProjectionVanEssen* getVanEssenProjection() const;
         
         SurfaceProjectionVanEssen* getVanEssenProjection();
+        
+        bool hasValidProjection() const;
         
         void reset();
         
@@ -129,7 +132,6 @@ namespace caret {
         
         /** The Van Essen projection */
         SurfaceProjectionVanEssen* vanEssenProjection;
-        
     };
     
 #ifdef __SURFACE_PROJECTED_ITEM_DEFINE__

@@ -27,11 +27,8 @@
 #include "DisplayPropertiesVolume.h"
 #undef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
 
-#include "Brain.h"
-#include "CaretAssert.h"
-#include "SurfaceSelection.h"
-#include "VolumeSurfaceOutlineSelection.h"
-#include "BrainStructure.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
 
 using namespace caret;
     
@@ -49,21 +46,6 @@ using namespace caret;
 DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
 : DisplayProperties(brain)
 {
-    int32_t colorCounter = 0;
-    for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        VolumeSurfaceOutlineSelection* vsos = new VolumeSurfaceOutlineSelection();
-        bool validColor = false;
-        CaretColorEnum::Enum color = CaretColorEnum::fromIntegerCode(colorCounter,
-                                                                     &validColor);
-        if (validColor == false) {
-            colorCounter = 0;
-            color = CaretColorEnum::fromIntegerCode(colorCounter,
-                                                    &validColor);
-        }
-        vsos->setColor(color);
-        this->volumeSurfaceOutlineSelections.push_back(vsos);
-        colorCounter++;
-    }
 }
 
 /**
@@ -71,9 +53,6 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
  */
 DisplayPropertiesVolume::~DisplayPropertiesVolume()
 {
-    for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        delete this->volumeSurfaceOutlineSelections[i];
-    }
 }
 
 /**
@@ -94,56 +73,75 @@ DisplayPropertiesVolume::update()
     
 }
 
-/**
- * Get the volume surface outline at the given index.
- * @param indx
- *   Index of volume surface outline.
- * @return
- *   Volume surface outline.
- */
-VolumeSurfaceOutlineSelection* 
-DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
-    return this->volumeSurfaceOutlineSelections[indx];
-}
 
 /**
- * Get the volume surface outline at the given index.
- * @param indx
- *   Index of volume surface outline.
- * @return
- *   Volume surface outline.
+ * Copy the display properties from one tab to another.
+ * @param sourceTabIndex
+ *    Index of tab from which properties are copied.
+ * @param targetTabIndex
+ *    Index of tab to which properties are copied.
  */
-const VolumeSurfaceOutlineSelection* 
-DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx) const
-{
-    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
-    return this->volumeSurfaceOutlineSelections[indx];
-}
-
-/**
- * Set the default selected surfaces after a spec file is loaded.
- */ 
 void 
-DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded()
+DisplayPropertiesVolume::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
+                                                    const int32_t /*targetTabIndex*/)
 {
-    const int32_t numBrainStructures = this->getBrain()->getNumberOfBrainStructures();
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+DisplayPropertiesVolume::saveToScene(const SceneAttributes* sceneAttributes,
+                   const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "DisplayPropertiesVolume",
+                                            1);
     
-    const int32_t maxStructureIndex = std::min(numBrainStructures,
-                                      MAXIMUM_NUMBER_OF_SURFACE_OUTLINES);
-    for (int32_t i = 0; i < maxStructureIndex; i++) {
-        BrainStructure* brainStructure = this->getBrain()->getBrainStructure(i);
-        Surface* surface = brainStructure->getVolumeInteractionSurface();
-        if (surface != NULL) {
-            this->volumeSurfaceOutlineSelections[i]->getSurfaceSelection()->setSurface(surface);
-            this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::SURFACE);
-            this->volumeSurfaceOutlineSelections[i]->setThickness(5);
-        }
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
     }
     
-    for (int32_t i = maxStructureIndex; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::BLACK);
-        this->volumeSurfaceOutlineSelections[i]->setThickness(1);
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+DisplayPropertiesVolume::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
     }
+    
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
 }

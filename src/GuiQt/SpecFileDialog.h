@@ -43,7 +43,8 @@ namespace caret {
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
     class SpecFile;
-    class StructureSelectionControl;
+    class StructureEnumComboBox;
+    class WuQEventBlockingFilter;
     class WuQWidgetObjectGroup;
     
     class SpecFileDialog : public WuQDialogModal {
@@ -53,7 +54,7 @@ namespace caret {
         static SpecFileDialog* createForLoadingSpecFile(SpecFile* specFile,
                                                 QWidget* parent);
         
-        static void displayFastOpenDataFile(SpecFile* specFile,
+        static void displayFastOpenDataFile(const SpecFile* specFile,
                                                     QWidget* parent);
     private:
         enum Mode {
@@ -68,9 +69,11 @@ namespace caret {
         virtual ~SpecFileDialog();
 
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
-        virtual void cancelButtonPressed();
+        virtual void cancelButtonClicked();
+        
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
         
     private slots:
         void toolBarButtonTriggered(QAction*);
@@ -99,16 +102,22 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        SpecFile* specFile;
+        SpecFile* m_specFile;
         
-        QCheckBox* autoCloseFastOpenCheckBox;
+        QCheckBox* m_autoCloseFastOpenCheckBox;
         
-        Mode mode;
+        Mode m_mode;
         
-        std::vector<GuiSpecGroup*> dataTypeGroups;
+        std::vector<GuiSpecGroup*> m_dataTypeGroups;
         
-        QAction* selectAllFilesToolButtonAction;
-        QAction* selectNoneFilesToolButtonAction;
+        QAction* m_selectAllFilesToolButtonAction;
+        QAction* m_selectNoneFilesToolButtonAction;
+        
+        WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
+        
+        QPushButton* m_loadScenesPushButton;
+        
+        SpecFile* m_specFileCopyThatIsDeletedWhenDialogDestroyed;
         
         friend class GuiSpecDataFileInfo;
     };
@@ -118,6 +127,7 @@ namespace caret {
         Q_OBJECT
     public:
         GuiSpecDataFileInfo(QObject* parent,
+                            const AString& specFilePath,
                             SpecFileDataFile* dataFileInfo,
                             const bool isStructureFile);
 
@@ -136,16 +146,16 @@ namespace caret {
         GuiSpecDataFileInfo(const GuiSpecDataFileInfo&);
         GuiSpecDataFileInfo& operator=(const GuiSpecDataFileInfo&);
         
-        SpecFileDataFile* dataFileInfo;
-        QPushButton*      openFilePushButton;
-        QCheckBox*        selectionCheckBox;
-        QAction*          metadataAction;
-        QToolButton*      metadataToolButton;
-        QAction*          removeAction;
-        QToolButton*      removeToolButton;
-        StructureSelectionControl* structureSelectionControl;
-        QLabel*           nameLabel;
-        WuQWidgetObjectGroup* widgetGroup;
+        SpecFileDataFile* m_dataFileInfo;
+        QPushButton*      m_openFilePushButton;
+        QCheckBox*        m_selectionCheckBox;
+        QAction*          m_metadataAction;
+        QToolButton*      m_metadataToolButton;
+        QAction*          m_removeAction;
+        QToolButton*      m_removeToolButton;
+        StructureEnumComboBox* m_structureEnumComboBox;
+        QLabel*           m_nameLabel;
+        WuQWidgetObjectGroup* m_widgetGroup;
         
         friend class SpecFileDialog;
     };

@@ -27,12 +27,15 @@
 
 
 #include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
     class Brain;
+    class SceneClassAssistant;
     
-    class DisplayProperties : public CaretObject {
+    
+    class DisplayProperties : public CaretObject, public SceneableInterface {
         
     protected:
         DisplayProperties(Brain* brain);
@@ -55,6 +58,22 @@ namespace caret {
          */
         virtual void update() = 0;
 
+        /**
+         * Copy the display properties. 
+         *
+         * @param sourceTabIndex
+         *    Index of tab from which properties are copied.
+         * @param targetTabIndex
+         *    Index of tab to which properties are copied.
+         */
+        virtual void copyDisplayProperties(const int32_t sourceTabIndex,
+                                           const int32_t targetTabIndex) = 0;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName) = 0;
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass) = 0;
     private:
         DisplayProperties(const DisplayProperties&);
 
@@ -64,7 +83,9 @@ namespace caret {
         virtual AString toString() const;
         
     protected:
-        Brain* brain;
+        Brain* m_brain;
+        
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __DISPLAY_PROPERTIES_DECLARE__

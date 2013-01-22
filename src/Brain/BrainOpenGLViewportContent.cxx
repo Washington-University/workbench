@@ -39,17 +39,34 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param windowViewport
+ *    Viewport of WINDOW in which drawing takes place.
+ * @param modelViewport
+ *    Viewport for MODEL in which drawing takes place.
+ * @param brain
+ *    Brain that is the source of the data.
+ * @param browserTabContent
+ *    Tab's content that is being drawn.
  */
-BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int viewport[4],
+BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[4],
+                                                       const int modelViewport[4],
+                                                       Brain* brain,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
 {
-    this->viewport[0] = viewport[0];
-    this->viewport[1] = viewport[1];
-    this->viewport[2] = viewport[2];
-    this->viewport[3] = viewport[3];
+    m_windowViewport[0] = windowViewport[0];
+    m_windowViewport[1] = windowViewport[1];
+    m_windowViewport[2] = windowViewport[2];
+    m_windowViewport[3] = windowViewport[3];
     
-    this->browserTabContent = browserTabContent;
+    m_modelViewport[0] = modelViewport[0];
+    m_modelViewport[1] = modelViewport[1];
+    m_modelViewport[2] = modelViewport[2];
+    m_modelViewport[3] = modelViewport[3];
+    
+    m_brain = brain;
+    
+    m_browserTabContent = browserTabContent;
 }
 
 /**
@@ -61,17 +78,41 @@ BrainOpenGLViewportContent::~BrainOpenGLViewportContent()
 }
 
 /**
- * Get the viewport.
- * @param viewport
- *    Output into which viewport dimensions are loaded.
+ * Get the viewport for drawing the model.
+ * @param modelViewport
+ *    Output into which model viewport dimensions are loaded.
  */
 void
-BrainOpenGLViewportContent::getViewport(int viewport[4]) const
+BrainOpenGLViewportContent::getModelViewport(int modelViewport[4]) const
 {
-    viewport[0] = this->viewport[0];
-    viewport[1] = this->viewport[1];
-    viewport[2] = this->viewport[2];
-    viewport[3] = this->viewport[3];
+    modelViewport[0] = m_modelViewport[0];
+    modelViewport[1] = m_modelViewport[1];
+    modelViewport[2] = m_modelViewport[2];
+    modelViewport[3] = m_modelViewport[3];
+}
+
+/**
+ * @return Pointer to the viewport for drawing the model.
+ */
+const int*
+BrainOpenGLViewportContent::getModelViewport() const
+{
+    return m_modelViewport;
+}
+
+/**
+ * @return Pointer to the viewport for the window.
+ */
+const int*
+BrainOpenGLViewportContent::getWindowViewport() const
+{
+    return m_windowViewport;
+}
+
+Brain*
+BrainOpenGLViewportContent::getBrain()
+{
+    return m_brain;
 }
 
 /**
@@ -80,7 +121,7 @@ BrainOpenGLViewportContent::getViewport(int viewport[4]) const
 BrowserTabContent* 
 BrainOpenGLViewportContent::getBrowserTabContent()
 {
-    return this->browserTabContent;
+    return m_browserTabContent;
 }
 
 /**

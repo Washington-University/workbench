@@ -65,6 +65,17 @@ namespace caret {
          */
         virtual const GiftiMetaData* getFileMetaData() const = 0;
         
+        bool isDisplayedInGUI() const;
+        
+        void setDisplayedInGUI(const bool displayedInGUI);
+        
+        static void setFileReadingUsernameAndPassword(const AString& username,
+                                                      const AString& password);
+        
+        static AString getFileReadingUsername();
+        
+        static AString getFileReadingPassword();
+        
     protected:
         CaretDataFile(const CaretDataFile& cdf);
 
@@ -75,14 +86,22 @@ namespace caret {
     private:
         void copyDataCaretDataFile(const CaretDataFile& cdf);
         
-        DataFileTypeEnum::Enum dataFileType;
+        DataFileTypeEnum::Enum m_dataFileType;
+        
+        /** transient that is set to indicate that this file is displayed in the GUI */
+        bool m_displayedInGuiFlag;
         
         /** A counter that is used when creating default file names */
-        static int64_t defaultFileNameCounter;
+        static int64_t s_defaultFileNameCounter;
+        
+        static AString s_fileReadingUsername;
+        static AString s_fileReadingPassword;
     };
     
 #ifdef __CARET_DATA_FILE_DECLARE__
-    int64_t CaretDataFile::defaultFileNameCounter = 1;
+    int64_t CaretDataFile::s_defaultFileNameCounter = 1;
+    AString CaretDataFile::s_fileReadingUsername = "";
+    AString CaretDataFile::s_fileReadingPassword = "";
 #endif // __CARET_DATA_FILE_DECLARE__
 
 } // namespace

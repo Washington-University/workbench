@@ -72,6 +72,16 @@ namespace caret
             leastPositive = m_leastPos;
             mostPositive = m_mostPos;
         }
+
+        float getMostNegativeValue() const
+        {
+            return m_mostNeg;
+        }
+
+        float getMostPositiveValue() const
+        {
+            return m_mostPos;
+        }
         
         float getMin() const { return m_min; }
         

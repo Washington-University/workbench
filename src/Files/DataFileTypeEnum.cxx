@@ -47,6 +47,8 @@ using namespace caret;
  *    Name of enumberated value.
  * @param guiName
  *    Name displayed in the user-interface
+ * @param overlayTypeName
+ *    Name displayed in overlay type combo box
  * @param fileIsUsedWithOneStructure
  *    True if file is used with ONE structure (eg node file (surface, metric, etc).
  * @param fileIsOpenedWithDataFileDialog
@@ -61,6 +63,7 @@ using namespace caret;
 DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const AString& name,
                                    const AString& guiName,
+                                   const AString& overlayTypeName,
                                    const bool fileIsUsedWithOneStructure,
                                    const bool fileIsOpenedWithDataFileDialog,
                                    const AString& fileExtensionOne,
@@ -71,6 +74,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     this->integerCode = DataFileTypeEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
+    this->overlayTypeName = overlayTypeName;
     this->oneStructureFlag = fileIsUsedWithOneStructure;
     this->fileIsOpenedWithDataFileDialog = fileIsOpenedWithDataFileDialog;
     
@@ -121,6 +125,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(BORDER, 
                                         "BORDER", 
                                         "Border",
+                                        "BORDER",
                                         false,
                                         true,
                                         "border"));
@@ -128,20 +133,79 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE, 
                                         "CONNECTIVITY_DENSE", 
                                         "Connectivity - Dense",
+                                        "CONNECTIVITY",
                                         false,
                                         false,
                                         "dconn.nii"));
     
-    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES, 
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL,
+                                        "CONNECTIVITY_DENSE_LABEL",
+                                        "Connectivity - Dense Label",
+                                        "CIFTI LABELS",
+                                        false,
+                                        false,
+                                        "dlabel.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_PARCEL,
+                                        "CONNECTIVITY_DENSE_PARCEL",
+                                        "Connectivity - Dense Parcel",
+                                        "CIFTI DENSE PARCEL",
+                                        false,
+                                        false,
+                                        "dpconn.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SCALAR,
+                                        "CONNECTIVITY_DENSE_SCALAR",
+                                        "Connectivity - Dense Scalar",
+                                        "CIFTI SCALARS",
+                                        false,
+                                        false,
+                                        "dscalar.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES,
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
-                                        "Connectivity - Dense Time Series",
+                                        "Connectivity - Dense Data Series",
+                                        "DATA SERIES",
                                         false,
                                         false,
                                         "dtseries.nii"));
     
-    enumData.push_back(DataFileTypeEnum(FOCI, 
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+                                        "CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY",
+                                        "Connectivity - Fiber Orientations TEMPORARY",
+                                        "FIBER ORIENTATION TEMPORARY",
+                                        false,
+                                        false,
+                                        "fiberTEMP.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
+                                        "CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY",
+                                        "Connectivity - Fiber Trajectory TEMPORARY",
+                                        "FIBER TRAJECTORY TEMPORARY",
+                                        false,
+                                        false,
+                                        "trajTEMP.wbsparse"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL,
+                                        "CONNECTIVITY_PARCEL",
+                                        "Connectivity - Parcel",
+                                        "CIFTI PARCEL",
+                                        false,
+                                        false,
+                                        "pconn.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_DENSE,
+                                        "CONNECTIVITY_PARCEL_DENSE",
+                                        "Connectivity - Parcel Dense",
+                                        "CIFTI PARCEL DENSE",
+                                        false,
+                                        false,
+                                        "pdconn.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",
+                                        "FOCI",
                                         false,
                                         true,
                                         "foci"));
@@ -149,6 +213,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(LABEL, 
                                         "LABEL", 
                                         "Label",
+                                        "LABEL",
                                         true,
                                         true,
                                         "label.gii"));
@@ -156,6 +221,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(METRIC, 
                                         "METRIC", 
                                         "Metric",
+                                        "METRIC",
                                         true,
                                         true,
                                         "func.gii",
@@ -164,12 +230,14 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(PALETTE, 
                                         "PALETTE", 
                                         "Palette",
+                                        "PALETTE",
                                         false,
                                         true,
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
                                         "RGBA", 
+                                        "RGBA",
                                         "RGBA",
                                         true,
                                         true,
@@ -178,6 +246,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SCENE, 
                                         "SCENE", 
                                         "Scene",
+                                        "SCENE",
                                         false,
                                         true,
                                         "scene"));
@@ -185,6 +254,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
                                         "SPECIFICATION", 
                                         "Specification",
+                                        "SPECIFICATION",
                                         false,
                                         true,
                                         "spec"));
@@ -192,6 +262,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(SURFACE, 
                                         "SURFACE", 
                                         "Surface",
+                                        "SURFACE",
                                         true,
                                         true,
                                         "surf.gii"));    
@@ -199,6 +270,7 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(UNKNOWN, 
                                         "UNKNOWN", 
                                         "Unknown",
+                                        "UNKNOWN",
                                         false,
                                         false,
                                         "unknown"));
@@ -206,11 +278,11 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(VOLUME, 
                                         "VOLUME", 
                                         "Volume",
+                                        "VOLUME",
                                         false,
                                         true,
                                         "nii",
                                         "nii.gz"));
-    
 }
 
 /**
@@ -356,6 +428,59 @@ DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 }
 
 /**
+ * Get a Overlay Type Name representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+DataFileTypeEnum::toOverlayTypeName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->overlayTypeName;
+}
+
+/**
+ * Get an enumerated value corresponding to its overlay type name.
+ * @param s
+ *     Overlay Name of enumerated value.
+ * @param isValidOut
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return
+ *     Enumerated value.
+ */
+DataFileTypeEnum::Enum
+DataFileTypeEnum::fromOverlayTypeName(const AString& overlayTypeName, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue = UNKNOWN;
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const DataFileTypeEnum& d = *iter;
+        if (d.overlayTypeName == overlayTypeName) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("guiName \"" + overlayTypeName + "\" failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
+}
+
+/**
  * Get the integer code for a data type.
  *
  * @return
@@ -439,6 +564,62 @@ DataFileTypeEnum::isFileUsedWithOneStructure(const Enum enumValue)
 }
 
 /**
+ * @return All valid file extensions for the given enum value.
+ * @param enumValue
+ *     Enumerated type for file extensions.
+ */
+std::vector<AString> 
+DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->fileExtensions;
+}
+
+/**
+ * If the given filename does not contain a file extension that is valid
+ * for the given data file type, add the first valid file extension from
+ * the given data file type.
+ *
+ * @param filename
+ *    Name of file that may not have the correct file extension.
+ * @param enumValue
+ *    The data file type.
+ * @return
+ *    Input file name to which a file extension may have been added.
+ */
+AString 
+DataFileTypeEnum::addFileExtensionIfMissing(const AString& filenameIn,
+                                            const Enum enumValue)
+{   
+    AString filename = filenameIn;
+
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    
+    /*
+     * See if filename ends with any of the available extensions for the
+     * given data file type.
+     */
+    for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
+         iter != enumInstance->fileExtensions.end();
+         iter++) {
+        const AString ext = ("." + *iter);
+        if (filename.endsWith(ext)) {
+            return filename;
+        }
+    }
+    
+    /*
+     * Add default extension.
+     */
+    const AString defaultExtension = DataFileTypeEnum::toFileExtension(enumValue);
+    filename += ("." + defaultExtension);
+    
+    return filename;
+}
+
+/**
  * Get the primary file extension for the file type.
  * @param enumValue
  *    The data file type.
@@ -485,7 +666,11 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
         for (std::vector<AString>::const_iterator extIter = extensions.begin();
              extIter != extensions.end();
              extIter++) {
-            if (filename.endsWith(*extIter)) {
+            /*
+             * Need to add "." to avoid ambiguous matching ("dconn.nii, pdconn.nii)
+             */
+            const AString extensionWithDot = ("." + *extIter);
+            if (filename.endsWith(extensionWithDot)) {
                 enumValue = d.enumValue;
                 validFlag = true;
                 break;

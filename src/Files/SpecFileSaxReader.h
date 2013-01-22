@@ -108,6 +108,9 @@ namespace caret {
         
         /** value of File type attribute */
         AString fileAttributeTypeName;
+        
+        /** value of File selection status */
+        bool fileAttributeSelectionStatus;
     };
 
 } // namespace

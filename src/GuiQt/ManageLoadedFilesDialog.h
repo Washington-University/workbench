@@ -47,22 +47,22 @@ namespace caret {
         
     public:
         ManageLoadedFilesDialog(QWidget* parent,
-                                Brain* brain);
+                                Brain* brain,
+                                const bool isQuittingWorkbench);
         
         virtual ~ManageLoadedFilesDialog();
 
     protected:
-        virtual void userButtonPressed(QPushButton* userPushButton);        
+        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
         
     private:
         ManageLoadedFilesDialog(const ManageLoadedFilesDialog&);
 
         ManageLoadedFilesDialog& operator=(const ManageLoadedFilesDialog&);
         
-    public:
-    private:
         enum Column {
             COLUMN_SAVE_CHECKBOX,
+            COLUMN_DISPLAYED,
             COLUMN_MODIFIED,
             COLUMN_STRUCTURE,
             COLUMN_FILE_TYPE,
@@ -78,11 +78,18 @@ namespace caret {
         
         QPushButton* saveCheckedFilesPushButton;
         
+        QCheckBox* addSavedFilesToSpecFileCheckBox;
+        
         std::vector<ManageFileRow*> fileRows;
         
         Brain* brain;
         
+        bool isQuittingWorkbench;
+        
+        static bool firstWindowFlag;
+        
         friend class ManageFileRow;
+        
     };
     
     
@@ -91,7 +98,8 @@ namespace caret {
     private:
         ManageFileRow(ManageLoadedFilesDialog* parentWidget,
                       Brain* brain,
-                      CaretDataFile* caretDataFile);
+                      CaretDataFile* caretDataFile,
+                      const bool caretDataFileDisplayedFlag);
         
         ~ManageFileRow();
         
@@ -102,6 +110,7 @@ namespace caret {
         QCheckBox* saveCheckBox;
         QLabel* structureLabel;
         QLabel* fileTypeLabel;
+        QLabel* displayedLabel;
         QLabel* modifiedLabel;
         QToolButton* metaDataToolButton;
         QToolButton* removeFileToolButton;
@@ -113,7 +122,7 @@ namespace caret {
         
         Brain* brain;
         
-        void saveFile() throw (DataFileException);
+        void saveFile(const bool isAddToSpecFile) throw (DataFileException);
         
     private slots:
         void metaDataToolButtonPressed();
@@ -126,7 +135,7 @@ namespace caret {
     };
     
 #ifdef __MANAGE_LOADED_FILES_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool ManageLoadedFilesDialog::firstWindowFlag = true;
 #endif // __MANAGE_LOADED_FILES_DIALOG_DECLARE__
 
 } // namespace

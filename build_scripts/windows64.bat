@@ -17,7 +17,8 @@ REM
 REM Grab the latest Sources
 REM
 c:\cygwin\bin\git.exe reset --hard HEAD
-c:\cygwin\bin\git.exe pull -u
+c:\cygwin\bin\git.exe fetch
+c:\cygwin\bin\git.exe reset --hard origin/master
 
 REM
 REM Build caret
@@ -26,7 +27,7 @@ cd build_scripts/windows64
 %CMD% /c build.bat
 cd ..
 cd ..
-set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/caret/bin_windows64
+set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/workbench/bin_windows64
 
 echo "Copying Files"
 c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%

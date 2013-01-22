@@ -28,13 +28,16 @@
 #include <iosfwd>
 
 #include <QSize>
+#include <QString>
 
 class QAction;
 class QBoxLayout;
 class QDialog;
 class QIcon;
 class QKeySequence;
+class QLayout;
 class QObject;
+class QPixmap;
 class QPushButton;
 class QString;
 class QWidget;
@@ -102,7 +105,25 @@ namespace caret {
         static void moveWindowToSideOfParent(QWidget* parent,
                                              QWidget* window);
         
+        static void moveAndSizeWindow(QWidget* window,
+                                      const int32_t x,
+                                      const int32_t y,
+                                      const int32_t w,
+                                      const int32_t h,
+                                      int32_t* xywhOut);
+        
         static void matchWidgetHeights(QWidget* w1,
+                                       QWidget* w2,
+                                       QWidget* w3 = 0,
+                                       QWidget* w4 = 0,
+                                       QWidget* w5 = 0,
+                                       QWidget* w6 = 0,
+                                       QWidget* w7 = 0,
+                                       QWidget* w8 = 0,
+                                       QWidget* w9 = 0,
+                                       QWidget* w10 = 0);
+        
+        static void matchWidgetWidths(QWidget* w1,
                                        QWidget* w2,
                                        QWidget* w3 = 0,
                                        QWidget* w4 = 0,
@@ -120,6 +141,15 @@ namespace caret {
         static QSize getMinimumScreenSize();
         
         static bool isSmallDisplay();
+        
+        static QString getLayoutContentDescription(QLayout* layout);
+        
+        static void playSound(const QString& soundFileName);
+        
+        static QString createWordWrappedToolTipText(const QString& tooltipText);
+        
+        static void setWordWrappedToolTip(QWidget* widget,
+                                          const QString& tooltipText);
         
     private:
         WuQtUtilities();

@@ -130,6 +130,9 @@ namespace caret {
 
         /// Get distances to a restricted set of nodes - output vector is in the SAME ORDER and same size as the input vector ofInterest
         void getGeoToTheseNodes(const int32_t root, const std::vector<int32_t>& ofInterest, std::vector<float>& distsOut, bool smoothflag = true);
+        
+        ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
+        void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
     };
 
     inline void GeodesicHelperBase::crossProd(const float in1[3], const float in2[3], float out[3])

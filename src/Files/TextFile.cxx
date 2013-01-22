@@ -22,7 +22,8 @@
  * 
  */ 
 
-#include <fstream>
+#include <QFile>
+#include <QTextStream>
 
 #include "CaretLogger.h"
 #include "TextFile.h"
@@ -79,28 +80,19 @@ TextFile::isEmpty() const
 void 
 TextFile::readFile(const AString& filename) throw (DataFileException)
 {
-    CaretLogSevere("WARNING: TextFile::readFile() has not been tested");
-    this->clearModified();
+    checkFileReadability(filename);
     
-    char* name = filename.toCharArray();
-    std::ifstream inputStream(name, std::ifstream::in);
-    delete[] name;
-    
-    const int BUFFER_LENGTH = 4096;
-    char buffer[BUFFER_LENGTH];
-    
-    bool done = false;
-    while (done == false) {
-        inputStream.read(buffer, BUFFER_LENGTH);
-        int64_t numRead = inputStream.gcount();
-        
-        this->text.append(AString::fromAscii(buffer, numRead));
-        
-        if (inputStream.eof()) {
-            done = true;
-        }
+    QFile file(filename);
+    if (file.open(QFile::ReadOnly) == false) {
+        throw DataFileException("Unable to open \""
+                                + filename
+                                + " for reading.");
     }
-    inputStream.close();
+
+    QTextStream textStream(&file);
+    this->text = textStream.readAll();
+    
+    file.close();
     
     this->setFileName(filename);
     
@@ -119,18 +111,19 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
 void 
 TextFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    char* name = filename.toCharArray();
-    std::ofstream outputStream(name);
-    delete[] name;
-    if (!outputStream) {
-        throw DataFileException("Unable to open " + filename + " for writing.");
+    checkFileWritability(filename);
+    
+    QFile file(filename);
+    if (file.open(QFile::WriteOnly) == false) {
+        throw DataFileException("Unable to open \""
+                                + filename
+                                + " for writing.");
     }
     
-    const int64_t textLength = this->text.length();
+    QTextStream textStream(&file);
+    textStream << this->text;
     
-    outputStream.write(this->text, textLength);
-
-    outputStream.close();
+    file.close();
     
     this->setFileName(filename);
     

@@ -27,11 +27,12 @@
 
 
 #include "CaretDataFile.h"
+#include "DisplayGroupEnum.h"
 
 namespace caret {
 
     class Border;
-    class ClassAndNameHierarchySelection;
+    class GroupAndNameHierarchyModel;
     class GiftiLabelTable;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -69,14 +70,16 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
-        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
-                                 const float xyz[3],
-                                 const float maximumDistance,
-                                 Border*& borderOut,
-                                 int32_t& borderIndexOut,
-                                 SurfaceProjectedItem*& borderPointOut,
-                                 int32_t& borderPointIndexOut,
-                                 float& distanceToNearestPointOut) const;
+        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                  const int32_t browserTabIndex,
+                                  const SurfaceFile* surfaceFile,
+                                  const float xyz[3],
+                                  const float maximumDistance,
+                                  Border*& borderOut,
+                                  int32_t& borderIndexOut,
+                                  SurfaceProjectedItem*& borderPointOut,
+                                  int32_t& borderPointIndexOut,
+                                  float& distanceToNearestPointOut) const;
         
         void addBorder(Border* border);
         
@@ -84,9 +87,27 @@ namespace caret {
         
         void removeBorder(Border* border);
         
-        ClassAndNameHierarchySelection* getClassAndNameHierarchy();
+        bool isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t browserTabIndex,
+                               const Border* border);
         
-        static float getFileVersion();
+        GiftiLabelTable* getClassColorTable();
+        
+        const GiftiLabelTable* getClassColorTable() const;
+        
+        GiftiLabelTable* getNameColorTable();
+        
+        const GiftiLabelTable* getNameColorTable() const;
+        
+        void createNameAndClassColorTables(const GiftiLabelTable* oldColorTable);
+        
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
+        
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
+        
+        QStringList getAllBorderNamesSorted() const;
+        
+        static int32_t getFileVersion();
         
         static AString getFileVersionAsString();
         
@@ -96,30 +117,51 @@ namespace caret {
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
         
+        
+        /** XML Tag for Name Color Table */
+        static const AString XML_TAG_NAME_COLOR_TABLE;
+        
+        /** XML Tag for Class Color Table */
+        static const AString XML_TAG_CLASS_COLOR_TABLE;
+        
         virtual bool isModified() const;
         
         virtual void clearModified();
+        
+        void invalidateAllAssignedColors();
         
     private:
         void copyHelperBorderFile(const BorderFile& obj);
         
         void initializeBorderFile();
         
-        GiftiMetaData* metadata;
+        GiftiMetaData* m_metadata;
         
-        std::vector<Border*> borders;
+        std::vector<Border*> m_borders;
+        
+        /** Holds colors assigned to classes */
+        GiftiLabelTable* m_classColorTable;
+        
+        /** Holds colors assigned to names */
+        GiftiLabelTable* m_nameColorTable;
+        
+        /** Holds class and name hierarchy used for display selection */
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        bool m_forceUpdateOfGroupAndNameHierarchy;
         
         /** Version of this BorderFile */
-        static const float borderFileVersion;
-        
-        mutable ClassAndNameHierarchySelection* classNameHierarchy;
+        static const int32_t s_borderFileVersion;
     };
     
 #ifdef __BORDER_FILE_DECLARE__
     const AString BorderFile::XML_TAG_BORDER_FILE = "BorderFile";
     const AString BorderFile::XML_ATTRIBUTE_VERSION = "Version";
+    const AString BorderFile::XML_TAG_NAME_COLOR_TABLE = "BorderNameColorTable";
+    const AString BorderFile::XML_TAG_CLASS_COLOR_TABLE = "BorderClassColorTable";
     
-    const float BorderFile::borderFileVersion = 1.0;
+    const int32_t BorderFile::s_borderFileVersion = 2;
 #endif // __BORDER_FILE_DECLARE__
 
 } // namespace

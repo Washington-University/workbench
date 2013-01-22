@@ -26,6 +26,7 @@
  */
 
 #include "AbstractAlgorithm.h"
+#include "MetricSmoothingObject.h"
 #include "stdint.h"
 #include <vector>
 
@@ -34,30 +35,15 @@ namespace caret {
     class AlgorithmMetricSmoothing : public AbstractAlgorithm
     {
     public:
-        enum Method
-        {
-            GEO_GAUSS_AREA,
-            GEO_GAUSS
-        };
     private:
-        struct WeightList
-        {
-            std::vector<int32_t> m_nodes;
-            std::vector<float> m_weights;
-            float m_weightSum;
-        };
-        std::vector<WeightList> m_weightLists;
         AlgorithmMetricSmoothing();
-        void precomputeWeights(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi, Method myMethod);
-        void precomputeWeightsGeoGauss(const SurfaceFile* mySurf, double myKernel);
-        void precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi);
-        void precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, double myKernel);
-        void precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricSmoothing(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, const MetricFile* myRoi = NULL, bool fixZeros = false, int64_t columnNum = -1, Method myMethod = GEO_GAUSS_AREA);
+        AlgorithmMetricSmoothing(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const double myKernel,
+                                 MetricFile* myMetricOut, const MetricFile* myRoi = NULL, const bool fixZeros = false,
+                                 const int64_t columnNum = -1, const MetricSmoothingObject::Method myMethod = MetricSmoothingObject::GEO_GAUSS_AREA, const bool matchRoiColumns = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

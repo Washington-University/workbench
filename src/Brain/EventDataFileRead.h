@@ -34,49 +34,93 @@ namespace caret {
     class Brain;
     
     /**
-     * Event for reading a data file.
+     * Event for reading one or more data files.
      */
     class EventDataFileRead : public Event {
         
     public:
         EventDataFileRead(Brain* loadIntoBrain,
-                          const DataFileTypeEnum::Enum dataFileType,
-                          const AString& dataFileName);
-        
-        EventDataFileRead(Brain* loadIntoBrain,
-                          const StructureEnum::Enum structure,
-                          const DataFileTypeEnum::Enum dataFileType,
-                          const AString& dataFileName);
+                          const bool addDataFileToSpecFile);
         
         virtual ~EventDataFileRead();
         
-        AString getDataFileName() const;
+        void addDataFile(const DataFileTypeEnum::Enum dataFileType,
+                         const AString& dataFileName);
         
-        DataFileTypeEnum::Enum getDataFileType() const;
+        void addDataFile(const StructureEnum::Enum structure,
+                         const DataFileTypeEnum::Enum dataFileType,
+                         const AString& dataFileName);
+        
+        int32_t getNumberOfDataFilesToRead() const;
+        
+        AString getDataFileName(const int32_t dataFileIndex) const;
+        
+        DataFileTypeEnum::Enum getDataFileType(const int32_t dataFileIndex) const;
         
         Brain* getLoadIntoBrain();
         
-        StructureEnum::Enum getStructure() const;
+        StructureEnum::Enum getStructure(const int32_t dataFileIndex) const;
         
-        bool isErrorInvalidStructure() const;
+        AString getFileErrorMessage(const int32_t dataFileIndex) const;
         
-        void setErrorInvalidStructure(const bool status);
+        void setFileErrorMessage(const int32_t dataFileIndex,
+                                 const AString& errorMessage);
+        
+        bool isFileError(const int32_t dataFileIndex) const;
+        
+        bool isFileErrorInvalidStructure(const int32_t dataFileIndex) const;
+        
+        void setFileErrorInvalidStructure(const int32_t dataFileIndex,
+                                      const bool status);
+        
+        AString getUsername() const;
+        
+        AString getPassword() const;
+        
+        void setUsernameAndPassword(const AString& username,
+                                    const AString& password);
+        
+        bool isAddDataFileToSpecFile() const;
+        
+        bool isFileToBeMarkedModified(const int32_t dataFileIndex) const;
         
     private:
+        class FileData {
+        public:
+            FileData(const StructureEnum::Enum structure,
+                     const DataFileTypeEnum::Enum dataFileType,
+                     const AString& dataFileName,
+                     const bool markFileAsModified)
+            : m_structure(structure),
+            m_dataFileType(dataFileType),
+            m_dataFileName(dataFileName),
+            m_markFileAsModified(markFileAsModified) {
+                m_invalidStructureError = false;
+            }
+            
+            ~FileData() { }
+            
+            StructureEnum::Enum m_structure;
+            DataFileTypeEnum::Enum m_dataFileType;
+            AString m_dataFileName;
+            AString m_errorMessage;
+            bool m_markFileAsModified;
+            bool m_invalidStructureError;
+        };
+        
+        std::vector<FileData> m_dataFiles;
+        
         EventDataFileRead(const EventDataFileRead&);
         
         EventDataFileRead& operator=(const EventDataFileRead&);
         
         Brain* loadIntoBrain;
         
-        AString dataFileName;
+        AString username;
         
-        DataFileTypeEnum::Enum dataFileType;
+        AString password;
         
-        StructureEnum::Enum structure;
-        
-        bool errorInvalidStructure;
-        
+        bool addDataFileToSpecFile;
     };
 
 } // namespace

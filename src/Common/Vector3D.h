@@ -25,7 +25,6 @@
  *
  */
 
-#include "MathFunctions.h"
 #include "CaretAssert.h"
 
 namespace caret {
@@ -38,6 +37,7 @@ namespace caret {
         Vector3D cross(const Vector3D& right) const;
         Vector3D normal(float* origLength = NULL) const;
         float length() const;
+        float lengthsquared() const;
         //constructors
         Vector3D();
         Vector3D(const float* right);

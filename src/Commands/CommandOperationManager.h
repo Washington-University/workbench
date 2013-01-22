@@ -57,6 +57,8 @@ namespace caret {
 
         CommandOperationManager& operator=(const CommandOperationManager&);
 
+        void printAllCommands();
+        
     private:
         std::vector<CommandOperation*> commandOperations;
         

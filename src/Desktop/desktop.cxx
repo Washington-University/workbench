@@ -26,7 +26,7 @@
 
 #include <QApplication>
 #include <QDesktopWidget>
-#include <QGLFormat>
+#include <QLabel>
 #include <QGLPixelBuffer>
 #include <QSplashScreen>
 #include <QThread>
@@ -34,18 +34,25 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "ApplicationInformation.h"
+#include "BrainBrowserWindow.h"
+#include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "CaretCommandLine.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
+#include "MacApplication.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
+#include "SplashScreen.h"
 #include "SystemUtilities.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
-#include "FileInformation.h"
-#include "BrainBrowserWindow.h"
 
 static bool caretLoggerIsValid = false;
 
@@ -137,6 +144,12 @@ struct ProgramState
     vector<AString> fileList;
     int specLoadType;
     int windowSizeXY[2];
+    int windowPosXY[2];
+    bool showSplash;
+    
+    AString sceneFileName;
+    AString sceneNameOrNumber;
+    
     ProgramState();
 };
 
@@ -237,33 +250,50 @@ main(int argc, char* argv[])
         /*
         * Handle uncaught exceptions
         */
-        SystemUtilities::setHandlersForUnexpected();
+        SystemUtilities::setHandlersForUnexpected(argc, argv);
         
-        qInstallMsgHandler(messageHandlerForQt);
+        //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
+#ifdef CARET_OS_MACOSX
+        QApplication::setGraphicsSystem("raster");
+        MacApplication app(argc, argv);
+#else //CARET_OS_MACOSX        
         QApplication app(argc, argv);
-        QApplication::setApplicationName("Connectome Workbench");
-        QApplication::setApplicationVersion("0");
+#endif //CARET_OS_MACOSX
+        
+        ApplicationInformation applicationInformation;
+
+        QApplication::addLibraryPath(
+            QApplication::applicationDirPath()
+            + QDir::separator()
+            + "plugins");
+        QApplication::setApplicationName(applicationInformation.getName());
+        QApplication::setApplicationVersion(applicationInformation.getVersion());
         QApplication::setOrganizationDomain("brainvis.wustl.edu");
         QApplication::setOrganizationName("Van Essen Lab");
+        /*
+         * Override the system local to US - English
+         */
+        QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
         
         /*
         * Make sure OpenGL is available.
         */
-        if (!QGLFormat::hasOpenGL()) { 
-            qWarning( "This system has no OpenGL support. Exiting." );
+        if (QGLFormat::hasOpenGL() == false) {
+            QString msg = "This computer does not support OpenGL (3D graphics system).\n"
+            "You will need to install OpenGL to run Workbench.\n"
+            "Please see your system administrator.";
+            app.processEvents();
+            WuQMessageBox::errorOk(NULL,
+                                   msg);
+            app.processEvents();
+            
             return -1;
         }
             
         /*
         * Setup OpenGL
         */
-        QGLFormat glfmt;
-        glfmt.setRedBufferSize(8);
-        glfmt.setGreenBufferSize(8);
-        glfmt.setBlueBufferSize(8);
-        glfmt.setDoubleBuffer(true);
-        glfmt.setDirectRendering(true);
-        QGLFormat::setDefaultFormat(glfmt);
+        BrainOpenGLWidget::initializeDefaultGLFormat();
         
         
         /*
@@ -271,6 +301,7 @@ main(int argc, char* argv[])
         */
         SessionManager::createSessionManager();
         caretLoggerIsValid = true;
+        qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
 
 #ifdef NDEBUG
         CaretLogConfig("Compiled with debugging OFF");
@@ -282,14 +313,12 @@ main(int argc, char* argv[])
         * Parameters for the program.
         */
         ProgramParameters* parameters = new ProgramParameters(argc, argv);
+        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
 
         /*
         * Log the command parameters.
         */
-        CaretLogFine("Running: "
-                    + AString(argv[0])
-                    + " "
-                    + parameters->getAllParametersInString());
+        CaretLogFine("Running: " + caret_global_commandLine);
         
         //begin parsing command line
         ProgramState myState;
@@ -321,22 +350,96 @@ main(int argc, char* argv[])
         }//*/
         
         /*
+         * Enabled the desired splash screen based upon user preferences
+         * and command line options.  Do not show selection splash screen
+         * if there has listed files on the command line.
+         */ 
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        bool showSelectionSplashScreen = preferences->isSplashScreenEnabled();
+        if (myState.fileList.empty() == false) {
+            showSelectionSplashScreen = false;
+        }
+        if (myState.sceneFileName.isEmpty() == false) {
+            showSelectionSplashScreen = false;
+        }
+        bool showImageSplashScreen = (! showSelectionSplashScreen);
+        if (myState.showSplash == false) {
+            showSelectionSplashScreen = false;
+            showImageSplashScreen = false;
+        }
+        
+        /*
+         * DISABLE IMAGE SPLASH SCREEN
+         */
+        showImageSplashScreen = false;
+        
+        /*
         * Splash Screen
         */
         QPixmap splashPixmap;
         QSplashScreen splashScreen;
-        if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
-            splashScreen.setPixmap(splashPixmap);
-            splashScreen.showMessage("Starting Workbench...");
-            splashScreen.show();
-            app.processEvents();
-            SystemUtilities::sleepSeconds(2);
+        if (showImageSplashScreen) {
+            if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
+                splashScreen.setPixmap(splashPixmap);
+                splashScreen.showMessage("Starting Workbench...");
+                splashScreen.show();
+                app.processEvents();
+                SystemUtilities::sleepSeconds(2);
+            }
         }
         
         /*
-        * Create the GUI Manager.
-        */
+         * Create the GUI Manager.
+         */
         GuiManager::createGuiManager();
+        
+        /*
+         * Letting the App process events will allow the message for a 
+         * double-clicked spec file in Mac OSX to get processed.
+         */
+        app.processEvents();
+        
+        /*
+         * Now that events have processed, see if there was a request for
+         * a data file to open
+         */
+        const AString dataFileNameFromOS = GuiManager::get()->getNameOfDataFileToOpenAfterStartup();
+        if (dataFileNameFromOS.isEmpty() == false) {
+            myState.fileList.push_back(dataFileNameFromOS);
+            showSelectionSplashScreen = false;
+            if (dataFileNameFromOS.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                haveSpec = true;
+                haveFiles = false;
+                myState.specLoadType = 0;
+            }
+            else {
+                haveSpec = false;
+                haveFiles = true;
+            }
+        }
+        
+        /*
+         * Show file selection splash screen if enabled via user's preferences
+         */
+        if (showSelectionSplashScreen) {
+            /*
+             * Show selection splash screen.
+             * Need to process events since QApplication::exec() has not
+             * been called.
+             */
+            SplashScreen splashScreen(NULL);
+            app.processEvents();
+            if (splashScreen.exec()) {
+                const QString specFileName = splashScreen.getSelectedSpecFileName();
+                if (specFileName.isEmpty() == false) {
+                    myState.fileList.clear();
+                    myState.fileList.push_back(specFileName);
+                    myState.specLoadType = 0; // which means use BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE;
+                    haveSpec = true;
+                    haveFiles = false;
+                }
+            }
+        }
         
         /*
         * Create and display a main window.
@@ -351,10 +454,25 @@ main(int argc, char* argv[])
 
         BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
         
-        if ((myState.windowSizeXY[0] > 0) 
-            && (myState.windowSizeXY[1] > 0)) {
-            myWindow->setFixedSize(myState.windowSizeXY[0],
-                                   myState.windowSizeXY[1]);
+        
+        if ((myState.windowSizeXY[0] > 0) && (myState.windowSizeXY[1] > 0))
+        {
+            if (myState.windowPosXY[0] > 0 && myState.windowPosXY[1] > 0)
+            {
+                myWindow->setGeometry(myState.windowPosXY[0], myState.windowPosXY[1],
+                                      myState.windowSizeXY[0], myState.windowSizeXY[1]);
+            } else {
+                myWindow->setFixedSize(myState.windowSizeXY[0],
+                                       myState.windowSizeXY[1]);
+            }
+        } else {
+            if (myState.windowPosXY[0] > 0 && myState.windowPosXY[1] > 0)
+            {
+                myState.windowSizeXY[0] = myWindow->width();
+                myState.windowSizeXY[1] = myWindow->height();
+                myWindow->setGeometry(myState.windowPosXY[0], myState.windowPosXY[1],
+                                      myState.windowSizeXY[0], myState.windowSizeXY[1]);
+            }
         }
         
         //use command line
@@ -367,14 +485,19 @@ main(int argc, char* argv[])
             switch (myState.specLoadType)
             {
                 case 0://dialog
-                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);
+                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
                     break;
                 case 1://load all
-                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS);
+                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
                     break;
                 default:
                     CaretAssert(false);
             }
+        }
+        
+        if (myState.sceneFileName.isEmpty() == false) {
+            myWindow->loadSceneFromCommandLine(myState.sceneFileName,
+                                               myState.sceneNameOrNumber);
         }
         
         if (QGLPixelBuffer::hasOpenGLPbuffers()) {
@@ -385,6 +508,15 @@ main(int argc, char* argv[])
         }
         
         /*
+         * Log local (language, country)
+         */
+        QLocale sytemLocale = QLocale::system();
+        CaretLogConfig("Local Language="
+                       + QLocale::languageToString(sytemLocale.language())
+                       + " Country="
+                       + QLocale::countryToString(sytemLocale.country()));
+
+        /*
          * Resolution of screens
          */
         AString screenSizeText = "Screen Sizes: ";
@@ -392,14 +524,43 @@ main(int argc, char* argv[])
         const int numScreens = dw->screenCount();
         for (int i = 0; i < numScreens; i++) {
             const QRect rect = dw->screenGeometry(i);
+            const int x = rect.x();
+            const int y = rect.y();
             const int w = rect.width();
             const int h = rect.height();
-            screenSizeText += ("("
+            screenSizeText += ("(index="
+                               + AString::number(i)
+                               + ", x="
+                               + AString::number(x)
+                               + ", y="
+                               + AString::number(y)
+                               + ", w="
                                + AString::number(w)
-                               + ", "
+                               + ", h="
                                + AString::number(h)
                                + ")  ");
         }
+        screenSizeText += ("(Primary Screen="
+                           + AString::number(dw->primaryScreen())
+                           + ")   ");
+        if (dw->isVirtualDesktop()) {
+            screenSizeText += ("(Virtual Desktop=YES)   ");
+        }
+        else {
+            screenSizeText += ("(Virtual Desktop=NO)   ");
+        }
+        QWidget* screenWidget = dw->screen();
+        QRect screenWidgetRect = screenWidget->geometry();
+        screenSizeText += ("(Desktop: x="
+                           + AString::number(screenWidgetRect.x())
+                           + ", y="
+                           + AString::number(screenWidgetRect.y())
+                           + ", w="
+                           + AString::number(screenWidgetRect.width())
+                           + ", h="
+                           + AString::number(screenWidgetRect.height())
+                           + ")   ");
+        
         CaretLogConfig(screenSizeText);
         
         /*
@@ -448,6 +609,16 @@ void printHelp(const AString& progName)
     << "    -help" << endl
     << "        display this usage text" << endl
     << endl
+    << "    -no-splash" << endl
+    << "        disable all splash screens" << endl
+    << endl
+    << "    -scene-load <scene-file-name> <scene-name-or-number>" << endl
+    << "        load the specified scene file and display the scene " << endl
+    << "        in the file that matches by name or number.  Name" << endl
+    << "        takes precedence over number.  The scene numbers " << endl
+    << "        start at one." << endl
+    << "        " << endl
+    << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
     << "        the following styles should always be valid:" << endl
@@ -462,51 +633,105 @@ void printHelp(const AString& progName)
     << endl
     << "    -window-size  <X Y>" << endl
     << "        Set the size of the browser window" << endl
+    << endl
+    << "    -window-pos  <X Y>" << endl
+    << "        Set the position of the browser window" << endl
     << endl;
 }
 
 void parseCommandLine(const AString& progName, ProgramParameters* myParams, ProgramState& myState)
 {
-    while (myParams->hasNext())
-    {
-        AString thisParam = myParams->nextString("option");
-        if (thisParam[0] == '-')
+    bool hasFatalError = false;
+    
+    try {
+        while (myParams->hasNext())
         {
-            if (thisParam == "-style")
+            AString thisParam = myParams->nextString("option");
+            if (thisParam[0] == '-')
             {
-                myParams->nextString("style");//discard, QApplication handles this
-            } else if (thisParam == "-help") {
-                printHelp(progName);
-                exit(0);
-            } else if (thisParam == "-spec-load-all") {
-                myState.specLoadType = 1;
-            } else if (thisParam == "-window-size") {
-                if (myParams->hasNext()) {
-                    myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
-                }
-                else {
-                    cerr << "Missing X & Y sizes for window" << endl;
-                }
-                if (myParams->hasNext()) {
-                    myState.windowSizeXY[1] = myParams->nextInt("Window Size Y");
-                }
-                else {
-                    cerr << "Missing Y sizes for window" << endl;
+                if (thisParam == "-style")
+                {
+                    myParams->nextString("style");//discard, QApplication handles this
+                } else if (thisParam == "-help") {
+                    printHelp(progName);
+                    exit(0);
+                } else if (thisParam == "-no-splash") {
+                    myState.showSplash = false;
+                } else if (thisParam == "-scene-load") {
+                    if (myParams->hasNext()) {
+                        myState.sceneFileName = myParams->nextString("Scene File Name");
+                        if (myParams->hasNext()) {
+                            myState.sceneNameOrNumber = myParams->nextString("Scene Name or Number");
+                        }
+                        else {
+                            cerr << "Missing scene name/number for \"-scene\" option" << std::endl;
+                            hasFatalError = true;
+                        }
+                    }
+                    else {
+                        cerr << "Missing scene file name for \"-scene\" option" << std::endl;
+                        hasFatalError = true;
+                    }
+                } else if (thisParam == "-spec-load-all") {
+                    myState.specLoadType = 1;
+                } else if (thisParam == "-window-size") {
+                    if (myParams->hasNext()) {
+                        myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
+                    }
+                    else {
+                        cerr << "Missing X & Y sizes for window" << endl;
+                        hasFatalError = true;
+                    }
+                    if (myParams->hasNext()) {
+                        myState.windowSizeXY[1] = myParams->nextInt("Window Size Y");
+                    }
+                    else {
+                        cerr << "Missing Y sizes for window" << endl;
+                        hasFatalError = true;
+                    }
+                } else if (thisParam == "-window-pos") {
+                    if (myParams->hasNext()) {
+                        myState.windowPosXY[0] = myParams->nextInt("Window Position X");
+                    }
+                    else {
+                        cerr << "Missing X & Y position for window" << endl;
+                        hasFatalError = true;
+                    }
+                    if (myParams->hasNext()) {
+                        myState.windowPosXY[1] = myParams->nextInt("Window Position Y");
+                    }
+                    else {
+                        cerr << "Missing Y position for window" << endl;
+                        hasFatalError = true;
+                    }
+                } else {
+                    cerr << "unrecognized option \"" << thisParam << "\"" << endl;
+                    printHelp(progName);
+                    hasFatalError = true;
                 }
             } else {
-                cerr << "unrecognized option \"" << thisParam << "\"" << endl;
-                printHelp(progName);
-                exit(-1);
+                myState.fileList.push_back(thisParam);
             }
-        } else {
-            myState.fileList.push_back(thisParam);
         }
+    }
+    catch (const ProgramParametersException& e) {
+        cerr << e.whatString() << std::endl;
+        hasFatalError = true;
+    }
+    
+    if (hasFatalError) {
+        exit(-1);
     }
 }
 
 ProgramState::ProgramState()
 {
+    sceneFileName = "";
+    sceneNameOrNumber = "";
     specLoadType = 0;//0: use spec window, 1: all
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
+    windowPosXY[0] = -1;
+    windowPosXY[1] = -1;
+    showSplash = true;
 }

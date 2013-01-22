@@ -41,7 +41,7 @@
 using namespace caret;
 
 /**
- * \class WuQDialog 
+ * \class caret::WuQDialog 
  * \brief Base class for dialogs.
  *
  * A base class for dialogs.
@@ -75,15 +75,24 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                                     0,
                                     0);
     
+    m_layoutLeftOfButtonBox = new QHBoxLayout();
+    m_layoutLeftOfButtonBox->setContentsMargins(0, 0, 0, 0);
+    
     this->buttonBox = new QDialogButtonBox(Qt::Horizontal,
                                            this);
+    
+    QHBoxLayout* bottomLayout = new QHBoxLayout();
+    bottomLayout->addLayout(m_layoutLeftOfButtonBox,
+                            0);
+    bottomLayout->addWidget(this->buttonBox,
+                            1000);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(dialogLayout,
                                     0,
                                     0);
     dialogLayout->addLayout(this->userWidgetLayout);
-    dialogLayout->addWidget(this->buttonBox);
+    dialogLayout->addLayout(bottomLayout);
 }
               
 /**
@@ -91,6 +100,20 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
  */
 WuQDialog::~WuQDialog()
 {
+}
+
+/**
+ * Add a widget to the left of the buttons at the bottom of the dialog.
+ * More than one widget can be added and the first widget will be on 
+ * the left-most side.
+ * 
+ * @param widget
+ *    Widget to add.
+ */
+void
+WuQDialog::addWidgetToLeftOfButtons(QWidget* widget)
+{
+    m_layoutLeftOfButtonBox->addWidget(widget);
 }
 
 /**
@@ -380,6 +403,16 @@ WuQDialog::setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
                                                  QWidget* bottomWidget,
                                                  const bool allowInsertingIntoScrollArea)
 {
+    if (topWidget != NULL) {
+        m_userWidgets.append(topWidget);
+    }
+    if (centralWidget != NULL) {
+        m_userWidgets.append(centralWidget);
+    }
+    if (bottomWidget != NULL) {
+        m_userWidgets.append(bottomWidget);
+    }
+    
     if (allowInsertingIntoScrollArea == false) {
         if (topWidget != NULL) {
             this->userWidgetLayout->addWidget(topWidget);
@@ -478,41 +511,6 @@ WuQDialog::setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
 }
 
 /**
- * Adds a button to the dialog.  When the button is
- * pressed, userButtonPressed(QPushButton*) will be
- * called with the button that was created and returned
- * by this method.  The subclass of the dialog MUST
- * override userButtonPressed(QPushButton*).
- *
- * @param text
- *     Text for the pushbutton.
- * @return
- *     QPushButton that was created.
- */
-QPushButton* 
-WuQDialog::addUserPushButton(const AString& text)
-{
-    QPushButton* pushButton = this->buttonBox->addButton(text, QDialogButtonBox::ApplyRole);
-    return pushButton;
-}
-
-/**
- * Called when a push button was added using addUserPushButton().
- * Subclasses MUST override this if user push buttons were 
- * added using addUserPushButton().
- *
- * @param userPushButton
- *    User push button that was pressed.
- */
-void 
-WuQDialog::userButtonPressed(QPushButton* userPushButton)
-{
-    CaretAssertMessage(0, "Subclass MUST override WuQDialog::userButtonPressed to process button labeled \""
-                + userPushButton->text()
-                + "\"");
-}
-
-/**
  * Enable auto default button processing. 
  * Often it is very annoying so use this method
  * withe enable == false, to disable it.
@@ -525,5 +523,37 @@ WuQDialog::setAutoDefaultButtonProcessing(bool enabled)
 {
     this->autoDefaultProcessingEnabledFlag = enabled;
 }
+
+/**
+ * Disable the auto default property for ANY buttons
+ * in this dialog.  This method must be called after
+ * the subclass has added its widget(s) to the dialog.
+ */
+void 
+WuQDialog::disableAutoDefaultForAllPushButtons()
+{
+    /*
+     * Disable auto default for all push buttons
+     */
+    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegExp(".*"));
+    QListIterator<QPushButton*> allChildPushButtonsIterator(allChildPushButtons);
+    while (allChildPushButtonsIterator.hasNext()) {
+        QPushButton* pushButton = allChildPushButtonsIterator.next();
+        //std::cout << "Disabling auto default for pushbutton: " << qPrintable(pushButton->text()) << std::endl;
+        pushButton->setAutoDefault(false);
+        pushButton->setDefault(false);
+    }
+}
+
+/**
+ * Called when a help button has been added to the dialog.
+ * User must override this method when adding a help button.
+ */
+void 
+WuQDialog::helpButtonClicked()
+{
+    CaretAssertMessage(0, "Help button was added to dialog but WuQDialog::helpButtonClicked() was not overriden");
+}
+
 
 

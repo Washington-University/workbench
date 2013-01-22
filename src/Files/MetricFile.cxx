@@ -117,7 +117,43 @@ MetricFile::validateDataArraysAfterReading() throw (DataFileException)
             }
             gda->convertToDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
         }
-        this->columnDataPointers.push_back(gda->getDataPointerFloat());
+        int numDims = gda->getNumberOfDimensions();
+        std::vector<int64_t> dims = gda->getDimensions();
+        if (numDims == 1 || (numDims == 2 && dims[1] == 1))
+        {
+            this->columnDataPointers.push_back(gda->getDataPointerFloat());
+        } else {
+            if (numDims != 2)
+            {
+                throw DataFileException("Invalid number of dimensions in metric file '" + getFileName() + "': " + AString::number(numDims));
+            }
+            if (numberOfDataArrays != 1)
+            {
+                throw DataFileException("Two dimensional data arrays are not allowed in metric files with multiple data arrays");
+            }
+            std::vector<int64_t> newdims = dims;
+            newdims[1] = 1;
+            GiftiFile* newFile = new GiftiFile();//convert to multiple 1-d arrays on the fly
+            *(newFile->getMetaData()) = *(giftiFile->getMetaData());
+            int32_t indices[2], newindices[2] = {0, 0};
+            for (indices[1] = 0; indices[1] < dims[1]; ++indices[1])
+            {
+                GiftiDataArray* tempArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL,
+                                                            NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32,
+                                                            newdims,
+                                                            GiftiEncodingEnum::GZIP_BASE64_BINARY);
+                for (indices[0] = 0; indices[0] < dims[0]; ++indices[0])
+                {
+                    newindices[0] = indices[0];
+                    tempArray->setDataFloat32(newindices, gda->getDataFloat32(indices));
+                }
+                newFile->addDataArray(tempArray);
+                newFile->setDataArrayName(indices[1], "#" + AString::number(indices[1] + 1));
+                columnDataPointers.push_back(tempArray->getDataPointerFloat());
+            }
+            delete giftiFile;//delete old 2D file
+            giftiFile = newFile;//drop new 1D file in
+        }
     }
     
     if (isLabelData) {
@@ -229,7 +265,8 @@ MetricFile::getValuePointerForColumn(const int32_t columnIndex) const
 
 void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
 {
-    giftiFile->clear();
+    giftiFile->clearAndKeepMetadata();
+    columnDataPointers.clear();
     std::vector<int64_t> dimensions;
     dimensions.push_back(nodes);
     for (int32_t i = 0; i < columns; ++i)
@@ -238,6 +275,63 @@ void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
         columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerFloat());
     }
     setModified();
+}
+
+/**
+ * Add map(s) to this GIFTI file.
+ * @param numberOfNodes
+ *     Number of nodes.  If file is not empty, this value must
+ *     match the number of nodes that are in the file.
+ * @param numberOfMaps
+ *     Number of maps to add.
+ */
+void 
+MetricFile::addMaps(const int32_t numberOfNodes,
+                       const int32_t numberOfMaps) throw (DataFileException)
+{
+    if (numberOfNodes <= 0) {
+        throw DataFileException("When adding maps to "
+                                + this->getFileNameNoPath()
+                                + " the number of nodes must be greater than zero");
+    }
+    
+    if (this->getNumberOfNodes() > 0) {
+        if (numberOfNodes != this->getNumberOfNodes()) {
+            throw DataFileException("When adding maps to "
+                                    + this->getFileNameNoPath()
+                                    + " the requested number of nodes is "
+                                    + AString::number(numberOfNodes)
+                                    + " but the file contains "
+                                    + AString::number(this->getNumberOfNodes())
+                                    + " nodes.");
+        }
+    }
+    
+    if (numberOfMaps <= 0) {
+        throw DataFileException("When adding maps, the number of maps must be greater than zero.");
+    }
+    
+    if ((this->getNumberOfNodes() > 0) 
+        && (this->getNumberOfMaps() > 0)) {
+        std::vector<int64_t> dimensions;
+        dimensions.push_back(numberOfNodes);
+        
+        for (int32_t i = 0; i < numberOfMaps; ++i)
+        {
+            this->giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, 
+                                                             NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, 
+                                                             dimensions, 
+                                                             GiftiEncodingEnum::GZIP_BASE64_BINARY));
+            const int32_t mapIndex = giftiFile->getNumberOfDataArrays() - 1;
+            this->columnDataPointers.push_back(giftiFile->getDataArray(mapIndex)->getDataPointerFloat());
+        }
+    }
+    else {
+        this->setNumberOfNodesAndColumns(numberOfNodes, 
+                                         numberOfMaps);
+    }
+    
+    this->setModified();
 }
 
 void MetricFile::setValuesForColumn(const int32_t columnIndex, const float* valuesIn)

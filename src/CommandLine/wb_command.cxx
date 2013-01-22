@@ -25,30 +25,31 @@
 #include <QApplication>
 #include <iostream>
 
+#include "AString.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretCommandLine.h"
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
 
-static void runCommand(int argc, char* argv[]) {
+static int runCommand(int argc, char* argv[]) {
     
     ProgramParameters parameters(argc, argv);
-    
+    caret_global_commandLine = AString(argv[0]) + " " + parameters.getAllParametersInString();
     /*
      * Log the command parameters.
      */
-    CaretLogFine("Running: "
-                 + AString(argv[0])
-                 + " "
-                 + parameters.getAllParametersInString());
+    CaretLogFine("Running: " + caret_global_commandLine);
     
     CommandOperationManager* commandManager = NULL;
+    int ret = 0;
     try {
         commandManager = CommandOperationManager::getCommandOperationManager();
         
@@ -56,30 +57,39 @@ static void runCommand(int argc, char* argv[]) {
         
     }
     catch (CommandException& e) {
-        std::cout << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
+        std::cerr << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
+        ret = -1;
     }
     
     if (commandManager != NULL) {
         CommandOperationManager::deleteCommandOperationManager();
     }
+    return ret;
 }
 
 int main(int argc, char* argv[]) {
-
+    int result = 0;
     {
         /*
          * Handle uncaught exceptions
          */
-        SystemUtilities::setHandlersForUnexpected();
+        SystemUtilities::setHandlersForUnexpected(argc, argv);
         
         /*
          * Create the session manager.
          */
         SessionManager::createSessionManager();
         
+        /*
+         * Disable volume voxel coloring since it can be a little slow
+         * and voxel coloring is not needed for any commands (at this
+         * time).
+         */
+        VolumeFile::setVoxelColoringEnabled(false);
+        
         QCoreApplication myApp(argc, argv);//so that it doesn't need to link against gui
         
-        runCommand(argc, argv);
+        result = runCommand(argc, argv);
         
         /*
          * Delete the session manager.
@@ -92,5 +102,6 @@ int main(int argc, char* argv[]) {
      * See if any objects were not deleted.
      */
     CaretObject::printListOfObjectsNotDeleted(true);
+    return result;
 }
   

@@ -35,17 +35,19 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "CursorManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventToolBoxSelectionDisplay.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationManager.h"
-#include "ModelDisplayController.h"
-#include "ModelDisplayControllerSurface.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionManager.h"
+#include "Model.h"
+#include "ModelSurface.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
@@ -166,10 +168,11 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
  */
 void 
 UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
-                       BrowserTabContent* browserTabContent,
+                       BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget)
 {
-    ModelDisplayController* modelController = browserTabContent->getModelControllerForDisplay();
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
         //const int32_t tabIndex = browserTabContent->getTabNumber();
         //const float dx = mouseEvent->getDx();
@@ -177,20 +180,51 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const int mouseX = mouseEvent->getX();
         const int mouseY = mouseEvent->getY();
         
+        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_PRESSED) {
+            this->mousePressX = mouseX;
+            this->mousePressY = mouseY;
+        }
         const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
         const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
+        const bool isLeftDragWithControlAndShiftKeyDown = (isLeftDrag
+                                                           && mouseEvent->isControlAndShiftKeyDown());
+        const bool isWheelWithControlAndShiftKeyDown = (isWheel
+                                                        && mouseEvent->isControlAndShiftKeyDown());
+        const bool isLeftClickWithShiftKeyDown = (isLeftClick
+                                                  && mouseEvent->isShiftKeyDown());
         
         switch (this->mode) {
             case MODE_DRAW:
             {
-                if (this->borderToolsWidget->isDrawModeTransformSelected()) {
+                /*
+                 * Shift click is always FINISH
+                 */
+                if (isLeftClickWithShiftKeyDown) {
+                    this->borderToolsWidget->executeFinishOperation();
+                }
+                else if (this->borderToolsWidget->isDrawModeTransformSelected()) {                
                     if (isLeftDrag || isWheel) {
                         UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                          browserTabContent, 
-                                                                          openGLWidget);
+                                                                          viewportContent, 
+                                                                          openGLWidget,
+                                                                          this->mousePressX,
+                                                                          this->mousePressY);
                     }
+                }
+                else if (isLeftDragWithControlAndShiftKeyDown
+                         || isWheelWithControlAndShiftKeyDown) {
+                    /*
+                     * In drawing mode, but perform surface rotation
+                     * by setting no keys down
+                     */
+                    mouseEvent->setNoKeysDown();
+                    UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                      viewportContent, 
+                                                                      openGLWidget,
+                                                                      this->mousePressX,
+                                                                      this->mousePressY);
                 }
                 else {
                     switch (this->drawOperation) {
@@ -202,7 +236,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 this->drawPointAtMouseXY(openGLWidget,
                                                          mouseX,
                                                          mouseY);
-                                mouseEvent->setGraphicsUpdateOneWindowRequested();
+                                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
                             }
                             break;
                     }
@@ -214,42 +248,80 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 switch (this->editOperation) {
                     case EDIT_OPERATION_DELETE:  
                         if (isLeftClick) {
-                            IdentificationManager* idManager =
-                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
-                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            SelectionManager* idManager =
+                            openGLWidget->performIdentification(mouseEvent->getX(),
+                                                                mouseEvent->getY(),
+                                                                true);
+                            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
                                 borderFile->removeBorder(border);
-                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                this->updateAfterBordersChanged();
                             }
+                        }
+                        else if (isLeftDrag || isWheel) {
+                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                              viewportContent, 
+                                                                              openGLWidget,
+                                                                              this->mousePressX,
+                                                                              this->mousePressY);
                         }
                         break;
                     case EDIT_OPERATION_PROPERTIES:
                         if (isLeftClick) {
-                            IdentificationManager* idManager =
-                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
-                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            SelectionManager* idManager =
+                            openGLWidget->performIdentification(mouseEvent->getX(),
+                                                                mouseEvent->getY(),
+                                                                true);
+                            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
-                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
                                 std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
                                             BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
                                                                                                 border,
                                                                                                 openGLWidget));
                                 if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
-                                    mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                    this->updateAfterBordersChanged();
                                 }
                             }
+                        }
+                        else if (isLeftDrag || isWheel) {
+                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                              viewportContent, 
+                                                                              openGLWidget,
+                                                                              this->mousePressX,
+                                                                              this->mousePressY);
                         }
                         break;
                 }
             }
                 break;
-            case MODE_SELECT:
-            {
-            }
+            case MODE_ROI:
+                if (isLeftClick) {
+                    SelectionManager* idManager =
+                    openGLWidget->performIdentification(mouseEvent->getX(),
+                                                        mouseEvent->getY(),
+                                                        true);
+                    SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                    if (idBorder->isValid()) {
+                        Brain* brain = idBorder->getBrain();
+                        Surface* surface = idBorder->getSurface();
+                        //BorderFile* borderFile = idBorder->getBorderFile();
+                        Border* border = idBorder->getBorder();
+                        this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
+                                                                                         surface,
+                                                                                         border);
+                    }
+                }
+                else if (isLeftDrag || isWheel) {
+                    UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                      viewportContent, 
+                                                                      openGLWidget,
+                                                                      this->mousePressX,
+                                                                      this->mousePressY);
+                }
                 break;
         }
     }
@@ -263,23 +335,6 @@ void
 UserInputModeBorders::initialize()
 {
     this->borderToolsWidget->updateWidget();
-    this->showHideBorderSelectionToolBox();
-}
-
-void 
-UserInputModeBorders::showHideBorderSelectionToolBox()
-{
-    switch (this->mode) {
-        case MODE_DRAW:
-        case MODE_EDIT:
-            EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
-                                                                        EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
-            break;
-        case MODE_SELECT:
-            EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
-                                                                        EventToolBoxSelectionDisplay::DISPLAY_MODE_DISPLAY_BORDERS).getPointer());
-            break;
-    }
 }
 
 /**
@@ -289,8 +344,19 @@ UserInputModeBorders::showHideBorderSelectionToolBox()
 void 
 UserInputModeBorders::finish()
 {
-    EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
-                                                                EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
+}
+
+/**
+ * Update after borders changed.
+ */
+void 
+UserInputModeBorders::updateAfterBordersChanged()
+{
+    /*
+     * Need to update all graphics windows and all border controllers.
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
 /**
@@ -334,12 +400,11 @@ void
 UserInputModeBorders::setMode(const Mode mode)
 {
     if (this->mode != mode) {
+        this->mode = mode;
         this->borderBeingDrawnByOpenGL->clear();
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
     }
-    this->mode = mode;
     this->borderToolsWidget->updateWidget();
-    this->showHideBorderSelectionToolBox();
 }
 
 /**
@@ -361,6 +426,7 @@ UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 {
     this->drawOperation = drawOperation;
     this->borderToolsWidget->updateWidget();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -372,6 +438,7 @@ UserInputModeBorders::drawOperationFinish()
     this->borderBeingDrawnByOpenGL->clear();
 
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
 /**
@@ -412,5 +479,31 @@ void
 UserInputModeBorders::setEditOperation(const EditOperation editOperation)
 {
     this->editOperation = editOperation;
+}
+
+/**
+ * @return The cursor for display in the OpenGL widget.
+ */
+CursorEnum::Enum
+UserInputModeBorders::getCursor() const
+{
+
+    CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            if (this->borderToolsWidget->isDrawModeTransformSelected() == false) {
+                cursor = CursorEnum::CURSOR_DRAWING_PEN;
+            }
+            break;
+        case MODE_EDIT:
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            break;
+        case MODE_ROI:
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            break;
+    }
+            
+    return cursor;
 }
 

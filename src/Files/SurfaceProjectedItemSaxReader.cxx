@@ -173,6 +173,8 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                 if (isValid == false) {
                     CaretLogWarning("Invalid structure name: " 
                                     + text);
+                    throw XmlSaxParserException("Invalid structure name: " 
+                                                + text);
                 }
             }
             else if (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ) {
@@ -289,12 +291,12 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                 std::vector<float> data;
                 XmlUtilities::getArrayOfNumbersFromText(qName,
                                                         text,
-                                                        4,
+                                                        6,
                                                         data);
-                float va[2][2];
+                float va[2][3];
                 int32_t ctr = 0;
                 for (int32_t i = 0; i < 2; i++) {
-                    for (int32_t j = 0; j < 2; j++) {
+                    for (int32_t j = 0; j < 3; j++) {
                         va[i][j] = data[ctr];
                         ctr++;
                     }

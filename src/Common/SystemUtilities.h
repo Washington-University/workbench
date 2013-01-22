@@ -95,11 +95,13 @@ public:
                     const AString& otherPathIn,
                     const AString& myPathIn);
 
-    static void setHandlersForUnexpected();
+    static void setHandlersForUnexpected(int argc = 0, char** argv = NULL);
     
     static AString systemCurrentDirectory();
     
     static void sleepSeconds(const float numberOfSeconds);
+
+    static AString getWorkbenchHome();
 };
 
 } // namespace

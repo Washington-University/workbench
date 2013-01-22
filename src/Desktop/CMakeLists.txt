@@ -47,25 +47,48 @@ IF (APPLE)
       ${IMAGE_RCS_SRCS}
    )
 
+    #
+    # This is a customized Info.Plist for Mac so that a spec
+    # file can be opened using Finder
+    #
+    SET_TARGET_PROPERTIES(
+	${EXE_NAME}
+	PROPERTIES
+	MACOSX_BUNDLE_INFO_PLIST 
+	${CMAKE_SOURCE_DIR}/../mac_plist/MacOSXBundleInfo.plist.in
+    )
+	
 #   SET_TARGET_PROPERTIES(
 #       ${EXE_NAME}
 #       PROPERTIES
 #       RESOURCE
 #       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
 #   )
-ELSE (APPLE)
+ENDIF (APPLE)
+IF (WIN32)
    ADD_EXECUTABLE(${EXE_NAME}
       desktop.cxx
       ${IMAGE_RCS_SRCS}
+      ${CMAKE_SOURCE_DIR}/../icons/windows/workbench.rc
    )
-ENDIF (APPLE)
+ENDIF (WIN32)
+IF (NOT APPLE)
+    IF (UNIX)
+       ADD_EXECUTABLE(${EXE_NAME}
+          desktop.cxx
+          ${IMAGE_RCS_SRCS}
+       )
+    ENDIF (UNIX)
+ENDIF (NOT APPLE)
 
 #
 # Libraries that are linked
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
-Algorithms
 GuiQt
+Operations
+Algorithms
+OperationsBase
 Qwt
 Brain
 Files
@@ -74,8 +97,10 @@ Cifti
 Gifti
 Nifti
 FilesBase
+Scenes
 Xml
 Common
+Quazip
 ${QT_LIBRARIES}
 ${ZLIB_LIBRARIES}
 #${LIBS}
@@ -123,6 +148,7 @@ ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Qwt
+${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )
@@ -141,4 +167,23 @@ IF (APPLE)
             COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh ${EXE_NAME}
             ###COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_frameworks.sh ${EXE_NAME}
         )
+ENDIF (APPLE)
+
+IF (APPLE)
+    SET (MACOSX_BUNDLE_INFO_STRING Workbench Copyright 2012 )
+    SET (MACOSX_BUNDLE_ICON_FILE workbench.icns )
+    SET (MACOSX_BUNDLE_GUI_IDENTIFIER Workbench )
+    SET (MACOSX_BUNDLE_LONG_VERSION_STRING Workbench)
+    SET (MACOSX_BUNDLE_BUNDLE_NAME Workbench)
+    SET (MACOSX_BUNDLE_SHORT_VERSION_STRING 0.70)
+    SET (MACOSX_BUNDLE_BUNDLE_VERSION 0.70)
+    SET (MACOSX_BUNDLE_COPYRIGHT  2012 )
+
+    ADD_CUSTOM_COMMAND(
+        TARGET ${EXE_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/spec_file.icns
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/data_file.icns
+    )
 ENDIF (APPLE)

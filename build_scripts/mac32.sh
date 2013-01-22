@@ -12,7 +12,7 @@
 #
 # File for capturing standard error
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/mac32
+BUILD_ROOT_DIR=/Users/caret/caret7_development/mac32
 ERROR_FILE=${BUILD_ROOT_DIR}/result_build_mac32.txt
 rm -f ${ERROR_FILE}
 

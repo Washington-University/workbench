@@ -42,11 +42,12 @@ namespace caret {
     class BrainOpenGLWidgetTextRenderer;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class IdentificationManager;
-    class ModelDisplayController;
+    class SelectionManager;
+    class Model;
     class MouseEvent;
     class SurfaceProjectedItem;
     class UserInputModeBorders;
+    class UserInputModeFoci;
     class UserInputModeView;
     class UserInputReceiverInterface;
     
@@ -59,12 +60,13 @@ namespace caret {
         
         ~BrainOpenGLWidget();
         
-        //ModelDisplayController* getDisplayedModelController();
+        //Model* getDisplayedModelController();
         
         void receiveEvent(Event* event);
         
-        IdentificationManager* performIdentification(const int x,
-                                                     const int y);
+        SelectionManager* performIdentification(const int x,
+                                                     const int y,
+                                                     const bool applySelectionBackgroundFiltering);
         
         void performProjection(const int x,
                                const int y,
@@ -75,12 +77,20 @@ namespace caret {
         
         Border* getBorderBeingDrawn();
         
+        static void initializeDefaultGLFormat();
+        
+        static QString getOpenGLInformation();
+
+        void getViewPortSize(int &w, int &h);
+        
     protected:
         void initializeGL();
         
         void resizeGL(int w, int h);
         
         void paintGL();
+        
+        void contextMenuEvent(QContextMenuEvent* contextMenuEvent);
         
         void mouseMoveEvent(QMouseEvent* e);
         
@@ -98,6 +108,11 @@ namespace caret {
         BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
                                                            const int y);
         
+        void checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
+                                       Qt::MouseButton& button,
+                                       Qt::KeyboardModifiers& keyModifiers,
+                                       const bool isMouseMoving);
+        
         BrainOpenGL* openGL;
         
         //BrowserTabContent* browserTabContent;
@@ -106,7 +121,7 @@ namespace caret {
         
         //int32_t windowTabIndex;
         
-        //ModelDisplayController* modelController;
+        //Model* modelController;
         
         std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         
@@ -122,6 +137,7 @@ namespace caret {
         
         int mousePressX;
         int mousePressY;
+        bool isMousePressedNearToolBox;
         
         int lastMouseX;
         
@@ -132,12 +148,19 @@ namespace caret {
         UserInputReceiverInterface* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;
         UserInputModeBorders* userInputBordersModeProcessor;
+        UserInputModeFoci* userInputFociModeProcessor;
         
         Border* borderBeingDrawn;
+        
+        static bool s_defaultGLFormatInitialized;
+        
+        static QString s_openGLVersionInformation;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
     const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 2;
+    bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
+    QString BrainOpenGLWidget::s_openGLVersionInformation = "";
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace

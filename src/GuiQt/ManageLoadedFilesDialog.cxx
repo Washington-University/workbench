@@ -31,10 +31,17 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
+#include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "CaretFileDialog.h"
+#include "CursorDisplayScoped.h"
+#include "FileInformation.h"
+#include "SessionManager.h"
+#include "SpecFile.h"
+#include "SpecFileCreateAddToDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -44,6 +51,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <QToolButton>
 
 
@@ -52,7 +60,7 @@ using namespace caret;
 
     
 /**
- * \class ManageLoadedFilesDialog 
+ * \class caret::ManageLoadedFilesDialog 
  *
  * 
  * \brief Dialog for managing loaded files.
@@ -61,17 +69,37 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param parent
+ *     Parent widget on which this dialog is displayed.
+ * @param brain
+ *     The brain whose data files are checked for modification.
+ * @param isQuittingWorkbench
+ *     True if the user is exiting workbench.
  */
 ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
-                                                 Brain* brain)
+                                                 Brain* brain,
+                                                 const bool isQuittingWorkbench)
 : WuQDialogModal("Manage and Save Loaded Files",
                  parent)
 {
+    if (ManageLoadedFilesDialog::firstWindowFlag) {
+        ManageLoadedFilesDialog::firstWindowFlag = false;
+        //CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    }
     this->brain = brain;
+    this->brain->determineDisplayedDataFiles();
+    
+    this->isQuittingWorkbench = isQuittingWorkbench;
     
     this->setOkButtonText("");
     this->setCancelButtonText("Close");
-    this->saveCheckedFilesPushButton = this->addUserPushButton("Save Checked Files");
+    AString saveButtonText = "Save Checked Files";
+    if (this->isQuittingWorkbench) {
+        saveButtonText = "Save Checked Files and Quit Workbench";
+        this->setCancelButtonText("Cancel");
+    }
+    this->saveCheckedFilesPushButton = this->addUserPushButton(saveButtonText,
+                                                               QDialogButtonBox::AcceptRole);
     
     QWidget* filesWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(filesWidget);
@@ -86,19 +114,29 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     gridLayout->addWidget(new QLabel("File Type"),
                           gridRow,
                           COLUMN_FILE_TYPE);
-    gridLayout->addWidget(new QLabel("Mod"),
+    gridLayout->addWidget(new QLabel("Displayed"),
+                          gridRow,
+                          COLUMN_DISPLAYED);
+    gridLayout->addWidget(new QLabel("Modified"),
                           gridRow,
                           COLUMN_MODIFIED);
     gridLayout->addWidget(new QLabel("Metadata"),
                           gridRow,
                           COLUMN_METADATA);
-    gridLayout->addWidget(new QLabel("Remove\nFile"),
+    
+    QLabel* removeFileLabel = new QLabel("Remove\nFile");
+    removeFileLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(removeFileLabel,
                           gridRow,
                           COLUMN_REMOVE_BUTTON);
-    gridLayout->addWidget(new QLabel("Remove\nMap"),
+    QLabel* removeMapLabel = new QLabel("Remove\nMap");
+    removeMapLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(removeMapLabel,
                           gridRow,
                           COLUMN_REMOVE_MAP_BUTTON);
-    gridLayout->addWidget(new QLabel("Choose\nFile"),
+    QLabel* chooseFileLabel = new QLabel("Choose\nFile");
+    chooseFileLabel->setAlignment(Qt::AlignCenter);
+    gridLayout->addWidget(chooseFileLabel,
                           gridRow,
                           COLUMN_FILE_NAME_BUTTON);
     gridLayout->addWidget(new QLabel("File Name"),
@@ -115,9 +153,13 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     
     const int32_t numFiles = static_cast<int32_t>(caretDataFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
+        CaretDataFile* cdf = caretDataFiles[i];
+        const bool isDisplayed = cdf->isDisplayedInGUI();
+        
         ManageFileRow* fileRow = new ManageFileRow(this,
                                                    this->brain,
-                                                   caretDataFiles[i]);
+                                                   cdf,
+                                                   isDisplayed);
         this->fileRows.push_back(fileRow);
         
         gridRow = gridLayout->rowCount();
@@ -130,31 +172,59 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         gridLayout->addWidget(fileRow->fileTypeLabel,
                               gridRow,
                               COLUMN_FILE_TYPE);
+        gridLayout->addWidget(fileRow->displayedLabel,
+                              gridRow,
+                              COLUMN_DISPLAYED,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->modifiedLabel,
                               gridRow,
-                              COLUMN_MODIFIED);
+                              COLUMN_MODIFIED,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->metaDataToolButton,
                               gridRow,
-                              COLUMN_METADATA);
+                              COLUMN_METADATA,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->removeFileToolButton,
                               gridRow,
-                              COLUMN_REMOVE_BUTTON);
+                              COLUMN_REMOVE_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->removeMapToolButton,
                               gridRow,
-                              COLUMN_REMOVE_MAP_BUTTON);
+                              COLUMN_REMOVE_MAP_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->fileNameToolButton,
                               gridRow,
-                              COLUMN_FILE_NAME_BUTTON);
+                              COLUMN_FILE_NAME_BUTTON,
+                              Qt::AlignCenter);
         gridLayout->addWidget(fileRow->fileNameLineEdit,
                               gridRow,
                               COLUMN_FILE_NAME);
     }
 
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(filesWidget);
+    //QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
+    AString checkBoxText = "Add Saved Files to Spec File";
+    const AString specFileName = brain->getSpecFileName();
+    if (specFileName.isEmpty() == false) {
+        FileInformation fileInfo(specFileName);
+        if (fileInfo.exists()) {
+            checkBoxText += (": " + fileInfo.getFileName());
+        }
+    }
+    this->addSavedFilesToSpecFileCheckBox = new QCheckBox(checkBoxText);
+    this->addSavedFilesToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) saved\n"
+                                                      "will be added to the currently loaded Spec File.\n"
+                                                      "If there is not a valid Spec File loaded, you\n"
+                                                      "will be prompted to create or select a Spec File.");
+    this->addSavedFilesToSpecFileCheckBox->setChecked(false);
+    
+    QWidget* bottomWidget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(bottomWidget);
+    //layout->addWidget(horizLineWidget);
+    layout->addWidget(this->addSavedFilesToSpecFileCheckBox, 0, Qt::AlignLeft);
 
-    this->setCentralWidget(w);
+    this->setTopBottomAndCentralWidgets(NULL,
+                                        filesWidget,
+                                        bottomWidget);
 }
 
 /**
@@ -173,15 +243,53 @@ ManageLoadedFilesDialog::~ManageLoadedFilesDialog()
  * @param userPushButton
  *    User push button that was pressed.
  */
-void 
+WuQDialogModal::ModalDialogUserButtonResult 
 ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (this->saveCheckedFilesPushButton == userPushButton) {
+        bool isSavingFiles = false;
+        const int32_t numFiles = static_cast<int32_t>(this->fileRows.size());
+        for (int32_t i = 0; i < numFiles; i++) {
+            if (this->fileRows[i]->saveCheckBox->isChecked()) {
+                isSavingFiles = true;
+                break;
+            }
+        }
+        
+        if (isSavingFiles == false) {
+            WuQMessageBox::errorOk(this, 
+                                   "No files are selected for saving.");
+            return WuQDialogModal::RESULT_NONE;
+        }
+        
+        bool addSavedFilesToSpecFileFlag = this->addSavedFilesToSpecFileCheckBox->isChecked();
+        if (addSavedFilesToSpecFileFlag) {
+            const AString& specFileName = this->brain->getSpecFileName();
+            FileInformation fileInfo(specFileName);
+            if (fileInfo.exists() == false) {
+                SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
+                                                                    SpecFileCreateAddToDialog::MODE_SAVE,
+                                                                    this);
+                
+                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
+                    addSavedFilesToSpecFileFlag = createAddToSpecFileDialog.isAddToSpecFileSelected();
+                }
+                else {
+                    return WuQDialogModal::RESULT_NONE;
+                }
+            }
+        }
+        
+        /*
+         * Wait cursor
+         */
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
         AString msg;
         try {
-            const int32_t numFiles = static_cast<int32_t>(this->fileRows.size());
             for (int32_t i = 0; i < numFiles; i++) {
-                this->fileRows[i]->saveFile();
+                this->fileRows[i]->saveFile(this->addSavedFilesToSpecFileCheckBox->isChecked());
             }
         }
         catch (const DataFileException& e) {
@@ -192,7 +300,17 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         }
         
         if (msg.isEmpty() == false) {
+            cursor.restoreCursor();
             WuQMessageBox::errorOk(this, msg);
+            cursor.showWaitCursor();
+        }
+        else {
+            if (this->isQuittingWorkbench) {
+                /*
+                 * Close the dialog indicating success
+                 */
+                return WuQDialogModal::RESULT_ACCEPT;
+            }
         }
     }
     else {
@@ -200,6 +318,8 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
     }
     
     this->updateUserInterfaceAndGraphics();
+    
+    return WuQDialogModal::RESULT_NONE;
 }
 
 /**
@@ -208,6 +328,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 void 
 ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
 {
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -220,7 +341,9 @@ ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
  */
 ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
                              Brain* brain,
-                             CaretDataFile* caretDataFile)
+                             CaretDataFile* caretDataFile,
+                             const bool caretDataFileDisplayedFlag)
+: QObject(parentWidget)
 {
     this->brain = brain;
     this->parentWidget  = parentWidget;
@@ -236,6 +359,11 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     }
     
     this->fileTypeLabel = new QLabel(DataFileTypeEnum::toGuiName(caretDataFile->getDataFileType()));
+    
+    this->displayedLabel = new QLabel("   ");
+    if (caretDataFileDisplayedFlag) {
+        this->displayedLabel->setText("Yes");
+    }
     
     this->modifiedLabel = new QLabel("   ");
     if (this->caretDataFile->isModified()) {
@@ -288,12 +416,77 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->widgetGroup->add(this->saveCheckBox);
     this->widgetGroup->add(this->structureLabel);
     this->widgetGroup->add(this->fileTypeLabel);
+    this->widgetGroup->add(this->displayedLabel);
     this->widgetGroup->add(this->modifiedLabel);
     this->widgetGroup->add(this->metaDataToolButton);
     this->widgetGroup->add(this->removeFileToolButton);
     this->widgetGroup->add(this->removeMapToolButton);
     this->widgetGroup->add(this->fileNameToolButton);
     this->widgetGroup->add(this->fileNameLineEdit);
+    
+    bool isFileSavable = true;
+    switch (caretDataFile->getDataFileType()) {
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        default:
+            break;
+    }
+    
+    if (isFileSavable == false) {
+        this->saveCheckBox->setChecked(false);
+        this->saveCheckBox->setEnabled(false);
+        this->modifiedLabel->setText("   ");
+        removeMapAction->setEnabled(false);
+        fileNameAction->setEnabled(false);
+        this->fileNameLineEdit->setReadOnly(true);
+    }
 }
 
 /**
@@ -320,6 +513,7 @@ ManageFileRow::removeFileToolButtonPressed()
 {
     try {
         this->brain->removeDataFile(this->caretDataFile);
+        this->saveCheckBox->setChecked(false);
         this->widgetGroup->setEnabled(false);
         this->parentWidget->updateUserInterfaceAndGraphics();
     }
@@ -345,25 +539,31 @@ ManageFileRow::removeMapToolButtonPressed()
 void 
 ManageFileRow::fileNameToolButtonPressed()
 {
-    AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
-                                                      "Choose File",
-                                                      this->brain->getCurrentDirectory(),
-                                                      DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
+//    AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
+//                                                      "Choose File",
+//                                                      this->caretDataFile->getFileName(),
+//                                                      DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
+    AString filename = CaretFileDialog::getSaveFileNameDialog(this->caretDataFile->getDataFileType(),
+                                                              this->parentWidget,
+                                                              "Choose File",
+                                                              this->caretDataFile->getFileName());
     if (filename.isEmpty() == false) {
         this->fileNameLineEdit->setText(filename);
     }
+    this->parentWidget->updateUserInterfaceAndGraphics();
 }
 
 /**
  * Called to save the file
  */
 void 
-ManageFileRow::saveFile()  throw (DataFileException)
+ManageFileRow::saveFile(const bool isAddToSpecFile)  throw (DataFileException)
 {
     if (this->saveCheckBox->isChecked()) {
         AString name = this->fileNameLineEdit->text().trimmed();
         this->caretDataFile->setFileName(name);
-        this->brain->writeDataFile(this->caretDataFile);
+        this->brain->writeDataFile(this->caretDataFile,
+                                   isAddToSpecFile);
         this->modifiedLabel->setText("   ");
         this->saveCheckBox->setChecked(false);
         this->parentWidget->updateUserInterfaceAndGraphics();

@@ -54,8 +54,10 @@ public:
     
     void addAttribute(const AString& name, const std::vector<int64_t>& value, const AString& separator);
     
-   void addAttribute(const AString& name, const int64_t value);
+    void addAttribute(const AString& name, const int64_t value);
 
+    void addAttribute(const AString& name, const bool value);
+    
     void addAttribute(const AString& name, const float value);
 
     void addAttribute(const AString& name, const double value);
@@ -82,6 +84,9 @@ public:
     float getValueAsFloat(const AString& name, const float& defaultValue = 0.0f) const;
     
     float getValueAsFloatRequired(const AString& name) const;
+    
+    bool getValueAsBoolean(const AString& name,
+                           const bool defaultValue = false) const;
     
     int getIndex(const AString& name) const;
     

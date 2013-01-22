@@ -61,6 +61,8 @@ namespace caret {
         
         bool setFromString(const AString& s);
         
+        void setToIdentity();
+        
         bool operator<(const UserView& view) const;
         
     public:

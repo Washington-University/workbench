@@ -29,24 +29,29 @@
 
 #include <QAction>
 #include <QBoxLayout>
+#include <QDoubleSpinBox>
 #include <QToolBar>
 
 #include "Brain.h"
-#include "DisplayPropertiesInformation.h"
+#include "CaretAssert.h"
+#include "CaretColorEnumComboBox.h"
 #include "EventGraphicsUpdateAllWindows.h"
-#include "EventIdentificationSymbolRemoval.h"
-#include "EventInformationTextDisplay.h"
+#include "EventUserInterfaceUpdate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
+#include "IdentificationManager.h"
+#include "SceneClass.h"
 #include "WuQtUtilities.h"
+#include "WuQDataEntryDialog.h"
 
 using namespace caret;
 
 
     
 /**
- * \class InformationDisplayWidget 
+ * \class caret::InformationDisplayWidget 
  * \brief Controls and displays information.
  */
 
@@ -56,34 +61,53 @@ using namespace caret;
 InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
 : QWidget(parent)
 {
-    this->informationTextBrowser = new HyperLinkTextBrowser();
-    this->informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
+    m_propertiesDialogIdColorComboBox = NULL;
+    m_propertiesDialogIdContraColorComboBox = NULL;
+    m_propertiesDialogSizeSpinBox = NULL;
+    m_propertiesDialogMostRecentSizeSpinBox = NULL;
+    
+    m_informationTextBrowser = new HyperLinkTextBrowser();
+    m_informationTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
+    m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     QAction* clearAction = WuQtUtilities::createAction("Clear", 
                                                        "Clear contents of information display", 
                                                        this, 
                                                        this, 
                                                        SLOT(clearInformationText()));
 
-    this->contralateralIdentificationAction = WuQtUtilities::createAction("Contra ID", 
+    m_contralateralIdentificationAction = WuQtUtilities::createAction("Contra ID", 
                                                                           "Enable contralateral identification", 
                                                                           this, 
                                                                           this, 
                                                                           SLOT(contralateralIdentificationToggled(bool)));
-    this->contralateralIdentificationAction->setCheckable(true);
+    m_contralateralIdentificationAction->setCheckable(true);
     
     QAction* copyAction = WuQtUtilities::createAction("Copy", 
                                                       "Copy selection from information display", 
                                                       this, 
-                                                      this->informationTextBrowser, 
+                                                      m_informationTextBrowser, 
                                                       SLOT(copy()));
     
     QAction* removeIdSymbolAction = WuQtUtilities::createAction("RID", 
-                                                               "Remove ID symbols from ALL surfaces.", 
+                                                               "Remove ID symbols from ALL surfaces", 
                                                                this, 
                                                                this, 
                                                                SLOT(removeIdSymbols()));
     
-    QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
+    QAction* settingsAction = WuQtUtilities::createAction("Properties",
+                                                          "Displays dialog for changing ID symbol colors and size",
+                                                          this,
+                                                          this,
+                                                          SLOT(showPropertiesDialog()));
+    
+    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID", 
+                                                                        "Enable volume slice movement to selected brainordinate.", 
+                                                                        this, 
+                                                                        this, 
+                                                                        SLOT(volumeSliceIdentificationToggled(bool)));
+    m_volumeSliceIdentificationAction->setCheckable(true);
+    
+    QObject::connect(m_informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
     copyAction->setEnabled(false);
     
@@ -102,20 +126,36 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->setMovable(false);
     idToolBarRight->addAction(removeIdSymbolAction);
     idToolBarRight->addSeparator();
-    idToolBarRight->addAction(this->contralateralIdentificationAction);
+    idToolBarRight->addAction(m_contralateralIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(m_volumeSliceIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(idToolBarLeft);
-    layout->addWidget(this->informationTextBrowser);
+    layout->addWidget(m_informationTextBrowser);
     layout->addWidget(idToolBarRight);
     layout->setStretchFactor(idToolBarLeft, 0);
-    layout->setStretchFactor(this->informationTextBrowser, 100);
+    layout->setStretchFactor(m_informationTextBrowser, 100);
     layout->setStretchFactor(idToolBarRight, 0);
     
-    InformationDisplayWidget::allInformationDisplayWidgets.insert(this);
-    this->updateInformationDisplayWidget();
+    s_allInformationDisplayWidgets.insert(this);
+    
+    /*
+     * There may already be identification text, so try to display it.
+     */
+    updateInformationDisplayWidget();
+    
+    /*
+     * Use processed event listener since the text event
+     * is first processed by GuiManager which will create
+     * this dialog, if needed, and then display it.
+     */
+    EventManager::get()->addProcessedEventListener(this, 
+                                                   EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
 }
 
 /**
@@ -123,20 +163,32 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
  */
 InformationDisplayWidget::~InformationDisplayWidget()
 {
-    InformationDisplayWidget::allInformationDisplayWidgets.erase(this);
+    s_allInformationDisplayWidgets.erase(this);
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
  * Called when contralateral toolbutton is toggled.
- * @param
  */
 void 
 InformationDisplayWidget::contralateralIdentificationToggled(bool)
 {
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    info->setContralateralIdentificationEnabled(this->contralateralIdentificationAction->isChecked());
-    InformationDisplayWidget::updateAllInformationDisplayWidgets();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
+    updateAllInformationDisplayWidgets();
+}
+
+/**
+ * Called when volume identification toolbutton is toggled.
+ */
+void 
+InformationDisplayWidget::volumeSliceIdentificationToggled(bool)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
+    updateAllInformationDisplayWidgets();    
 }
 
 /**
@@ -145,7 +197,10 @@ InformationDisplayWidget::contralateralIdentificationToggled(bool)
 void 
 InformationDisplayWidget::clearInformationText()
 {
-    this->informationTextBrowser->setText("");
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeIdentificationText();
+    updateAllInformationDisplayWidgets();
 }
 
 
@@ -155,7 +210,10 @@ InformationDisplayWidget::clearInformationText()
 void 
 InformationDisplayWidget::removeIdSymbols()
 {
-    EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeAllIdentifiedNodes();
+    updateAllInformationDisplayWidgets();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -165,44 +223,174 @@ InformationDisplayWidget::removeIdSymbols()
 void 
 InformationDisplayWidget::updateInformationDisplayWidget()
 {
-    this->contralateralIdentificationAction->blockSignals(true);
     Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
-    this->contralateralIdentificationAction->setChecked(info->isContralateralIdentificationEnabled());
-    this->contralateralIdentificationAction->blockSignals(false);
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    const AString text = idManager->getIdentificationText();
+    m_informationTextBrowser->setContentToHtml(text);
+    
+    m_contralateralIdentificationAction->blockSignals(true);
+    m_contralateralIdentificationAction->setChecked(idManager->isContralateralIdentificationEnabled());
+    m_contralateralIdentificationAction->blockSignals(false);
+    m_volumeSliceIdentificationAction->blockSignals(true);
+    m_volumeSliceIdentificationAction->setChecked(idManager->isVolumeIdentificationEnabled());
+    m_volumeSliceIdentificationAction->blockSignals(false);
 }
 
 void 
 InformationDisplayWidget::updateAllInformationDisplayWidgets()
 {
-    for (std::set<InformationDisplayWidget*>::iterator iter = InformationDisplayWidget::allInformationDisplayWidgets.begin();
-         iter != InformationDisplayWidget::allInformationDisplayWidgets.end();
+    for (std::set<InformationDisplayWidget*>::iterator iter = s_allInformationDisplayWidgets.begin();
+         iter != s_allInformationDisplayWidgets.end();
          iter++) {
         InformationDisplayWidget* idw = *iter;
-        if (idw != this) {
-            idw->updateInformationDisplayWidget();
-        }
+        idw->updateInformationDisplayWidget();
     }
 }
 
 /**
- * Process a information display event directly routed to this instance..
+ * Receive events from the event manager.
  * 
- * @param informationEvent
- *   The information display event.
+ * @param event
+ *   Event sent by event manager.
  */
 void 
-InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informationEvent)
+InformationDisplayWidget::receiveEvent(Event* event)
 {
-    const AString text = informationEvent->getText();
-    if (text.isEmpty() == false) {
-        switch(informationEvent->getTextType()) {
-            case EventInformationTextDisplay::TYPE_PLAIN:
-                this->informationTextBrowser->append(informationEvent->getText());
-                break;
-            case EventInformationTextDisplay::TYPE_HTML:
-                this->informationTextBrowser->appendHtml(informationEvent->getText());
-                break;
-        }
+    bool doUpdate = false;
+    
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
+        EventUpdateInformationWindows* textEvent =
+        dynamic_cast<EventUpdateInformationWindows*>(event);
+        CaretAssert(textEvent);
+        textEvent->setEventProcessed();
+        
+        doUpdate = true;
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiUpdateEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiUpdateEvent);
+        uiUpdateEvent->setEventProcessed();
+        
+        doUpdate = true;
+    }
+    
+    if (doUpdate) {
+        updateInformationDisplayWidget();
     }
 }
+
+/**
+ * Show the symbol properties dialog
+ */
+void 
+InformationDisplayWidget::showPropertiesDialog()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* info = brain->getIdentificationManager();
+    
+    WuQDataEntryDialog ded("Symbol Properties",
+                           this);
+    m_propertiesDialogIdColorComboBox = ded.addCaretColorEnumComboBox("ID Symbol Color:",
+                                                                             info->getIdentificationSymbolColor());
+    QObject::connect(m_propertiesDialogIdColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+    m_propertiesDialogIdContraColorComboBox = ded.addCaretColorEnumComboBox("ID Contralateral Symbol Color:",
+                           info->getIdentificationContralateralSymbolColor());
+    QObject::connect(m_propertiesDialogIdContraColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+    m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
+                                                        info->getIdentificationSymbolSize(),
+                                                       0.5,
+                                                       100000.0,
+                                                       0.5);
+    m_propertiesDialogSizeSpinBox->setDecimals(1);
+    m_propertiesDialogSizeSpinBox->setSuffix("mm");
+    QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+    m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Size:",
+                                                                   info->getMostRecentIdentificationSymbolSize(),
+                                                                   0.5,
+                                                                   100000.0,
+                                                                   0.5);
+    m_propertiesDialogMostRecentSizeSpinBox->setDecimals(1);
+    m_propertiesDialogMostRecentSizeSpinBox->setSuffix("mm");
+    QObject::connect(m_propertiesDialogMostRecentSizeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(controlInPropertiesDialogChanged()));
+    
+
+    ded.setOkButtonText("Close");
+    ded.setCancelButtonText("");
+    ded.exec();
+    
+    m_propertiesDialogIdColorComboBox = NULL;
+    m_propertiesDialogIdContraColorComboBox = NULL;
+    m_propertiesDialogSizeSpinBox = NULL;
+}
+
+/**
+ * Gets called when a control in the Properties Dialog is changed.
+ * Updates properties and graphics.
+ */
+void
+InformationDisplayWidget::controlInPropertiesDialogChanged()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* info = brain->getIdentificationManager();
+    info->setIdentificationSymbolColor(m_propertiesDialogIdColorComboBox->getSelectedColor());
+    info->setIdentificationContralateralSymbolColor(m_propertiesDialogIdContraColorComboBox->getSelectedColor());
+    info->setIdentificationSymbolSize(m_propertiesDialogSizeSpinBox->value());
+    info->setMostRecentIdentificationSymbolSize(m_propertiesDialogMostRecentSizeSpinBox->value());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+InformationDisplayWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/,
+                                      const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "InformationDisplayWidget",
+                                            1);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously
+ *     saved and should be restored.
+ */
+void
+InformationDisplayWidget::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                           const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+}
+
+
+

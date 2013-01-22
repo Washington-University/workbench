@@ -9,7 +9,7 @@ PROJECT (CommandLine)
 #
 # Need XML from Qt
 #
-SET(QT_DONT_USE_QTGUI TRUE)
+#SET(QT_DONT_USE_QTGUI TRUE)
 SET(QT_USE_QTXML TRUE)
 SET(QT_USE_QTNETWORK TRUE)
 
@@ -19,19 +19,35 @@ SET(QT_USE_QTNETWORK TRUE)
 INCLUDE (${QT_USE_FILE})
 
 #
-# Create the executable
+# Name of executable
 #
-ADD_EXECUTABLE(wb_command
-wb_command.cxx
-)
+set (EXE_NAME wb_command)
+
+#
+# Create the executable
+# Apple creates a bundle
+#
+IF (APPLE)
+   ADD_EXECUTABLE(${EXE_NAME}
+      MACOSX_BUNDLE
+      wb_command.cxx
+   )
+ELSE (APPLE)
+   ADD_EXECUTABLE(${EXE_NAME}
+      wb_command.cxx
+   )
+ENDIF (APPLE)
+
 
 #
 # Libraries that are linked
+# Note: OSMESA library variables will be empty and have no effect
+# if OSMESA is not available
 #
-TARGET_LINK_LIBRARIES(wb_command 
+TARGET_LINK_LIBRARIES(${EXE_NAME}
 Commands
-Algorithms
 Operations
+Algorithms
 OperationsBase
 Brain
 Files
@@ -40,9 +56,14 @@ Gifti
 Cifti
 Nifti
 FilesBase
+Scenes
 Xml
 Common
+Quazip
 ${QT_LIBRARIES}
+${OSMESA_OFFSCREEN_LIBRARY}
+${OSMESA_GL_LIBRARY}
+${OSMESA_GLU_LIBRARY}
 ${ZLIB_LIBRARIES}
 ${LIBS})
 
@@ -52,8 +73,8 @@ ${LIBS})
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/Commands
-${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Palette
@@ -62,6 +83,9 @@ ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/FilesBase
+${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Quazip
 )
+

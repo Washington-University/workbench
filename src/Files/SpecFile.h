@@ -30,6 +30,7 @@
 
 #include "DataFile.h"
 #include "DataFileTypeEnum.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -37,8 +38,9 @@ namespace caret {
     class GiftiMetaData;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
+    class XmlWriter;
     
-    class SpecFile : public DataFile {
+    class SpecFile : public DataFile, SceneableInterface {
         
     public:
         SpecFile();
@@ -56,15 +58,26 @@ namespace caret {
         
         void addDataFile(const DataFileTypeEnum::Enum dataFileType,
                          const StructureEnum::Enum structure,
-                         const AString& filename) throw (DataFileException);
+                         const AString& filename,
+                         const bool fileSelectionStatus = true) throw (DataFileException);
         
         void addDataFile(const AString& dataFileTypeName,
                          const AString& structureName,
-                         const AString& filename) throw (DataFileException);
+                         const AString& filename,
+                         const bool fileSelectionStatus = true) throw (DataFileException);
+        
+        void setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
+                                    const StructureEnum::Enum structure,
+                                    const AString& filename,
+                                    const bool fileSelectionStatus);
         
         int32_t getNumberOfFiles() const;
         
         int32_t getNumberOfFilesSelected() const;
+        
+        std::vector<AString> getAllDataFileNames() const;
+        
+        bool areAllSelectedFilesSceneFiles() const;
         
         virtual void readFile(const AString& filename) throw (DataFileException);
         
@@ -78,11 +91,15 @@ namespace caret {
         
         SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex);
         
+        const SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex) const;
+        
         SpecFileDataFileTypeGroup* getDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType);
         
         void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         
         void setAllFilesSelected(bool selectionStatus);
+        
+        void setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
         
         GiftiMetaData* getMetaData() { return this->metadata; }
         
@@ -91,6 +108,14 @@ namespace caret {
         static AString getFileVersionAsString();
 
         bool hasBeenEdited() const;
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+        void appendSpecFile(const SpecFile& toAppend);
         
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
@@ -104,6 +129,9 @@ namespace caret {
         /** XML Tag for DataFileType attribute */
         static const AString XML_ATTRIBUTE_DATA_FILE_TYPE;
         
+        /** XML Tag for data file selection status */
+        static const AString XML_ATTRIBUTE_SELECTED;
+        
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
         
@@ -111,6 +139,16 @@ namespace caret {
         static const float specFileVersion;
         
     private:
+        enum WriteMetaDataType {
+            WRITE_META_DATA_YES,
+            WRITE_META_DATA_NO
+        };
+        
+        enum WriteFilesSelectedType {
+            WRITE_ALL_FILES,
+            WRITE_SELECTED_FILES
+        };
+        
         void copyHelperSpecFile(const SpecFile& sf);
         
         void initializeSpecFile();
@@ -118,6 +156,17 @@ namespace caret {
         void clearData();
         
         void removeFilesTaggedForRemoval();
+        
+        void readFileFromString(const AString& string) throw (DataFileException);
+        
+        AString updateFileNameAndPathForWriting(const AString& dataFileName);
+        
+        AString writeFileToString(const WriteMetaDataType writeMetaDataStatus,
+                                  const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);   
+        
+        void writeFileContentToXML(XmlWriter& xmlWriter,
+                                   const WriteMetaDataType writeMetaDataStatus,
+                                   const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);
         
         std::vector<SpecFileDataFileTypeGroup*> dataFileTypeGroups;
         
@@ -129,6 +178,7 @@ namespace caret {
     const AString SpecFile::XML_TAG_DATA_FILE            = "DataFile";
     const AString SpecFile::XML_ATTRIBUTE_STRUCTURE      = "Structure";
     const AString SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE = "DataFileType";
+    const AString SpecFile::XML_ATTRIBUTE_SELECTED       = "Selected";
     const AString SpecFile::XML_ATTRIBUTE_VERSION        = "Version";
     
     const float SpecFile::specFileVersion = 1.0;

@@ -42,13 +42,13 @@
 #include "Brain.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
-#include "ConnectivityLoaderManager.h"
 #include "EventUpdateAnimationStartTime.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -56,7 +56,7 @@ using namespace caret;
 
     
 /**
- * \class PreferencesDialog 
+ * \class caret::PreferencesDialog 
  * \brief Dialog for capturing images.
  *
  * Presents controls for editing palettes used to color
@@ -85,13 +85,16 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
      */
     this->allWidgets = new WuQWidgetObjectGroup(this);
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(this->createColorsWidget(), "Colors");
-//    tabWidget->addTab(this->createIdentificationWidget(), "ID");
-    tabWidget->addTab(this->createLoggingWidget(), "Logging");
-    tabWidget->addTab(this->createVolumeWidget(), "Volume");
-    tabWidget->addTab(this->createTimeCourseWidget(), "TimeCourse");
-    this->setCentralWidget(tabWidget);
+    QWidget* widget = new QWidget();
+    this->gridLayout = new QGridLayout(widget);
+    
+    this->addColorItems();
+    this->addLoggingItems();
+    this->addSplashItems();
+    this->addTimeCourseItems();
+    this->addVolumeItems();
+    
+    this->setCentralWidget(widget);
 }
 
 /**
@@ -100,6 +103,46 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
 PreferencesDialog::~PreferencesDialog()
 {
     
+}
+
+/**
+ * Add a label in the left column and the widget in the right column.
+ * @param labelText
+ *    Text for label.
+ * @param widget
+ *    Widget for right column.
+ */
+void 
+PreferencesDialog::addWidgetToLayout(const QString& labelText,
+                                     QWidget* widget)
+{
+    QLabel* label = new QLabel(labelText);
+    label->setAlignment(Qt::AlignRight);
+    this->addWidgetsToLayout(label, 
+                             widget);
+}
+
+/**
+ * Add widgets to the layout.  If rightWidget is NULL,
+ * leftItem spans both columns.
+ *
+ * @param leftWidget
+ *    Widget for left column.
+ * @param rightWidget
+ *    Widget for right column.
+ */
+void 
+PreferencesDialog::addWidgetsToLayout(QWidget* leftWidget,
+                                   QWidget* rightWidget)
+{
+    int row = this->gridLayout->rowCount();
+    if (rightWidget != NULL) {
+        this->gridLayout->addWidget(leftWidget, row, 0);
+        this->gridLayout->addWidget(rightWidget, row, 1);
+    }
+    else {
+        this->gridLayout->addWidget(leftWidget, row, 0, 1, 2, Qt::AlignLeft);
+    }
 }
 
 /**
@@ -133,11 +176,11 @@ PreferencesDialog::updateDialog()
     if (indx >= 0) {
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
-    
-    this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
-    this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
-    
-//    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
+        
+    this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
+    this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
+    this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
+    this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -212,65 +255,47 @@ void PreferencesDialog::applyButtonPressed()
 
 /**
  * Creates colors widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createColorsWidget()
+void
+PreferencesDialog::addColorItems()
 {
-    QPushButton* foregroundPushButton = new QPushButton("Set Foreground...");
+    QPushButton* foregroundPushButton = new QPushButton("Foreground Color...");
     QObject::connect(foregroundPushButton, SIGNAL(clicked()),
                      this, SLOT(foregroundColorPushButtonPressed()));
     this->foregroundColorWidget = new QWidget();
     
-    QPushButton* backgroundPushButton = new QPushButton("Set Background...");
+    QPushButton* backgroundPushButton = new QPushButton("Background Color...");
     QObject::connect(backgroundPushButton, SIGNAL(clicked()),
                      this, SLOT(backgroundColorPushButtonPressed()));
     this->backgroundColorWidget = new QWidget();
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(foregroundPushButton, 0, 0);
-    gridLayout->addWidget(this->foregroundColorWidget, 0, 1);
-    gridLayout->addWidget(backgroundPushButton, 1, 0);
-    gridLayout->addWidget(this->backgroundColorWidget, 1, 1);
-
-    return w;
+    this->addWidgetsToLayout(backgroundPushButton, 
+                             this->backgroundColorWidget);
+    this->addWidgetsToLayout(foregroundPushButton, 
+                             this->foregroundColorWidget);
 }
 
 /**
  * Creates time course widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createTimeCourseWidget()
+void 
+PreferencesDialog::addTimeCourseItems()
 {
-    QLabel* animationStartLabel = new QLabel("Animation Starts at: ");
     this->animationStartDoubleSpinBox = new QDoubleSpinBox();
-
-    
-    
-    
-   
-    
     QObject::connect(this->animationStartDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(animationStartChanged(double)));
     
     this->allWidgets->add(this->animationStartDoubleSpinBox);
 
-    double time;
+    /*double time;
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->getAnimationStartTime(time);
     this->animationStartDoubleSpinBox->blockSignals(true);
     this->animationStartDoubleSpinBox->setValue(time);    
     this->animationStartDoubleSpinBox->blockSignals(false);
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(animationStartLabel, 0, 0);
-    gridLayout->addWidget(this->animationStartDoubleSpinBox, 0, 1);   
-    
-    return w;
+
+    this->addWidgetToLayout("Timecourse Animation Starts at: ", 
+                             this->animationStartDoubleSpinBox);*/
 }
 
 /**
@@ -288,13 +313,10 @@ PreferencesDialog::animationStartChanged(double value)
 }
 /**
  * Creates logging widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createLoggingWidget()
+void
+PreferencesDialog::addLoggingItems()
 {
-    QLabel* loggingLevelLabel = new QLabel("Logging Level: ");
     this->loggingLevelComboBox = new QComboBox();
     
     std::vector<LogLevelEnum::Enum> loggingLevels;
@@ -310,37 +332,36 @@ PreferencesDialog::createLoggingWidget()
     
     this->allWidgets->add(this->loggingLevelComboBox);
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(loggingLevelLabel, 0, 0);
-    gridLayout->addWidget(this->loggingLevelComboBox, 0, 1);
-    return w;
+    this->addWidgetToLayout("Logging Level: ", this->loggingLevelComboBox);
 }
 
 /**
  * Creates volume widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createVolumeWidget()
+void
+PreferencesDialog::addVolumeItems()
 {
-    this->volumeAxesCrosshairsCheckBox = new QCheckBox("Axes Crosshairs");
-    QObject::connect(this->volumeAxesCrosshairsCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(volumeAxesCrosshairsCheckBoxToggled(bool)));
-    this->volumeAxesLabelsCheckBox = new QCheckBox("Axes Labels");
-    QObject::connect(this->volumeAxesLabelsCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(volumeAxesLabelsCheckBoxToggled(bool)));
+    this->volumeAxesCrosshairsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesCrosshairsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesCrosshairsComboBoxToggled(bool)));
+    this->volumeAxesLabelsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesLabelsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesLabelsComboBoxToggled(bool)));
     
+    this->volumeAxesMontageCoordinatesComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesMontageCoordinatesComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
     
-    this->allWidgets->add(this->volumeAxesCrosshairsCheckBox);
-    this->allWidgets->add(this->volumeAxesLabelsCheckBox);
+    this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
+    this->allWidgets->add(this->volumeAxesLabelsComboBox);
+    this->allWidgets->add(this->volumeAxesMontageCoordinatesComboBox);
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(this->volumeAxesCrosshairsCheckBox, 0, 0);
-    gridLayout->addWidget(this->volumeAxesLabelsCheckBox, 1, 0);
-    return w;
+    this->addWidgetToLayout("Volume Axes Crosshairs: ", 
+                            this->volumeAxesCrosshairsComboBox->getWidget());
+    this->addWidgetToLayout("Volume Axes Labels: ",
+                            this->volumeAxesLabelsComboBox->getWidget());
+    this->addWidgetToLayout("Volume Montage Slice Coord: ",
+                            this->volumeAxesMontageCoordinatesComboBox->getWidget());
 }
 
 /**
@@ -349,7 +370,7 @@ PreferencesDialog::createVolumeWidget()
  *    New value.
  */
 void 
-PreferencesDialog::volumeAxesCrosshairsCheckBoxToggled(bool value)
+PreferencesDialog::volumeAxesCrosshairsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesCrosshairsDisplayed(value);    
@@ -362,7 +383,7 @@ PreferencesDialog::volumeAxesCrosshairsCheckBoxToggled(bool value)
  *    New value.
  */
 void 
-PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
+PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesLabelsDisplayed(value);    
@@ -370,38 +391,41 @@ PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
 }
 
 /**
- * Creates identification widget.
- * @return
- *    Its widget.
- */
-QWidget* 
-PreferencesDialog::createIdentificationWidget()
-{
-    this->identificationContralateralCheckBox = new QCheckBox("Contralateral");
-    WuQtUtilities::setToolTipAndStatusTip(this->identificationContralateralCheckBox, 
-                                          "Enables contralateral (right<==>left) identification");
-    QObject::connect(this->identificationContralateralCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(identificationContralateralCheckBoxToggled(bool)));
-    
-    
-    this->allWidgets->add(this->identificationContralateralCheckBox);
-    
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(this->identificationContralateralCheckBox, 0, 0);
-    return w;
-}
-
-/**
- * Called when contralateral checkbox is toggled.
+ * Called when volume labels is toggled.
  * @param value
  *    New value.
  */
-void 
-PreferencesDialog::identificationContralateralCheckBoxToggled(bool /*value*/)
+void
+PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
 {
-//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-//    prefs->setContralateralIdentificationEnabled(value);    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeMontageAxesCoordinatesDisplayed(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Add splash screen items.
+ */
+void PreferencesDialog::addSplashItems()
+{
+    this->splashScreenShowAtStartupComboBox = new WuQTrueFalseComboBox("On",
+                                                                       "Off",
+                                                                       this);
+    QObject::connect(this->splashScreenShowAtStartupComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(splashScreenShowAtStartupComboBoxChanged(bool)));
+    this->addWidgetToLayout("Show Splash Screen at Startup: ", 
+                            this->splashScreenShowAtStartupComboBox->getWidget());
+}
+
+/**
+ * Called when add data file to spec file option changed.
+ * @param value
+ *   New value.
+ */
+void PreferencesDialog::splashScreenShowAtStartupComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setSplashScreenEnabled(value);
 }
 
 

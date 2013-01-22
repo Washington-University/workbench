@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QVariant>
 
+#include "CaretColorEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
@@ -46,8 +47,9 @@ class QTextEdit;
 
 namespace caret {
     class BrainStructure;
-    class StructureSelectionControl;
-    class SurfaceSelectionControl;
+    class CaretColorEnumComboBox;
+    class StructureEnumComboBox;
+    class SurfaceSelectionViewController;
     
     /// class for a modal data entry dialog
     class WuQDataEntryDialog : public WuQDialogModal {
@@ -116,22 +118,40 @@ namespace caret {
                                const bool readOnlyFlag);
         
         // add a structure selection control
-        StructureSelectionControl* addStructureSelectionControl(const QString& labelText,
+        StructureEnumComboBox* addStructureEnumComboBox(const QString& labelText,
                                                                 const StructureEnum::Enum defaultStructure = StructureEnum::INVALID);
         
+        // add a caret color selection control
+        CaretColorEnumComboBox* addCaretColorEnumComboBox(const QString& labelText,
+                                                        const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK);
         
-        SurfaceSelectionControl* addSurfaceSelectionControl(const QString& labelText,
+        
+        SurfaceSelectionViewController* addSurfaceSelectionViewController(const QString& labelText,
                                                             BrainStructure* brainStructure);
         
         // set text at top of dialog 
         void setTextAtTop(const QString& s,
                           const bool wrapTheText);
         
-    protected:
-        virtual void okButtonPressed();
+        void setDataValid(const bool isValid,
+                          const QString& dataInvalidErrorMessage);
         
-        // override to verify data after OK button pressed if subclassing this dialog
-        virtual bool dataEnteredIsValid();
+        QWidget* getDataWidgetWithName(const QString& name);
+        
+    signals:
+        /** 
+         * This signal is emitted when the user presses the OK button.
+         * The user of the dialog can then examine the widgets that were
+         * added to the dialog for validity and then pass the validity 
+         * status back to this dialog via setDataValid(). 
+         */
+        void validateData(WuQDataEntryDialog* dataEntryDialog);
+        
+    protected:
+        virtual void okButtonClicked();
+        
+//        // override to verify data after OK button pressed if subclassing this dialog
+//        virtual bool dataEnteredIsValid();
         
     private:      
         /// widgets in dialog
@@ -146,8 +166,11 @@ namespace caret {
         /// button group for radio buttons
         QButtonGroup* radioButtonGroup;
         
-        std::vector<StructureSelectionControl*> structureSelectionControlsToDelete;
-        std::vector<SurfaceSelectionControl*> surfaceSelectionControlsToDelete;
+        /** Indicates validity of data */
+        bool m_isDataValid;
+        
+        /** Error message displayed when data is invalid */
+        QString m_dataInvalidErrorMessage;
     };
 } // namespace
 

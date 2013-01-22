@@ -272,14 +272,19 @@ GiftiLabel::operator=(const GiftiLabel& o)
 void
 GiftiLabel::copyHelper(const GiftiLabel& gl)
 {
-    this->modifiedFlag = false;
+    this->initializeMembersGiftiLabel();
     this->name = gl.name;
     this->key = gl.key;
-    this->selected = false;
+    this->selected = gl.selected;
     this->red = gl.red;
     this->green = gl.green;    
     this->blue = gl.blue;    
     this->alpha = gl.alpha;
+    this->x = gl.x;
+    this->y = gl.y;
+    this->z = gl.z;
+    this->count = 0;
+    m_groupNameSelectionItem = NULL;
 }
 
 /**
@@ -299,6 +304,8 @@ GiftiLabel::initializeMembersGiftiLabel()
     this->x = 0.0;
     this->y = 0.0;
     this->z = 0.0;
+    this->count = 0;
+    m_groupNameSelectionItem = NULL;
 }
 
 /**
@@ -645,6 +652,7 @@ void
 GiftiLabel::setModified()
 {
     this->modifiedFlag = true;
+    m_groupNameSelectionItem = NULL;
 }
 
 /**
@@ -734,4 +742,48 @@ GiftiLabel::incrementCount()
 {
     this->count++;
 }
+
+bool
+GiftiLabel::matches(const GiftiLabel& rhs, const bool checkColor, const bool checkCoord) const
+{
+    if (key != rhs.key) return false;
+    if (name != rhs.name) return false;
+    if (checkColor)
+    {
+        if (red != rhs.red) return false;
+        if (green != rhs.green) return false;
+        if (blue != rhs.blue) return false;
+        if (alpha != rhs.alpha) return false;
+    }
+    if (checkCoord)
+    {
+        if (x != rhs.x) return false;
+        if (y != rhs.y) return false;
+        if (z != rhs.z) return false;
+    }
+    return true;
+}
+
+/**
+ * Set the selection item for the group/name hierarchy.
+ *
+ * @param item
+ *     The selection item from the group/name hierarchy.
+ */
+void
+GiftiLabel::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
+{
+    m_groupNameSelectionItem = item;
+}
+
+/**
+ * @return The selection item for the Group/Name selection hierarchy.
+ *      May be NULL in some circumstances.
+ */
+const GroupAndNameHierarchyItem*
+GiftiLabel::getGroupNameSelectionItem() const
+{
+    return m_groupNameSelectionItem;
+}
+
 

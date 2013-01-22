@@ -14,7 +14,7 @@
 #
 # Go to correct directory
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/mac32
+BUILD_ROOT_DIR=/Users/caret/caret7_development/mac32
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
@@ -68,7 +68,7 @@ macdeployqt Desktop/workbench.app
 #
 # Copy to distribution directory
 #
-DIST_DIR=/mainpool/storage/distribution/caret7_distribution/caret/macosx32_apps
+DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx32_apps
 scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
 scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
 

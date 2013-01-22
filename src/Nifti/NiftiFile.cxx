@@ -34,9 +34,11 @@ using namespace caret;
  * Default Constructor
  *
  */
-NiftiFile::NiftiFile() throw (NiftiException)
+NiftiFile::NiftiFile(bool usingVolume)
 {
     init();
+    m_usingVolume = usingVolume;
+    matrix.setUsingVolume(usingVolume);    
 }
 
 /**
@@ -47,10 +49,13 @@ NiftiFile::NiftiFile() throw (NiftiException)
  * @param fileName name and path of the Nifti File
  * currently only IN_MEMORY is supported
  */
-NiftiFile::NiftiFile(const AString &fileName) throw (NiftiException)
+NiftiFile::NiftiFile(const AString &fileName, bool usingVolume)
 {
     init();
+    m_usingVolume = usingVolume;
+    matrix.setUsingVolume(usingVolume);
     this->openFile(fileName);
+    
 }
 
 void NiftiFile::init()
@@ -76,7 +81,7 @@ bool NiftiFile::isCompressed()
  *
  * @param fileName name and path of the Nifti File
  */
-void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
+void NiftiFile::openFile(const AString &fileName)
 {
     this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
@@ -89,10 +94,19 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         return;
     }
     QFile file;
-    gzFile zFile;
+    gzFile zFile = NULL;
     if(isCompressed())
     {
+        /*
+         * Mac does not seem to have off64_t
+         */
+#ifdef CARET_OS_MACOSX
         zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#elif ZLIB_VERNUM > 0x1232
+        zFile = gzopen64(m_fileName.toAscii().data(), "rb");
+#else  // ZLIB_VERNUM > 0x1232
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#endif // ZLIB_VERNUM > 0x1232
     }
     else
     {
@@ -198,10 +212,17 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         matrix.setMatrixLayoutOnDisk(header);
         matrix.setMatrixOffset((header.getVolumeOffset()));
     }
+    if(m_usingVolume) return;
     if(isCompressed())
+    {
         matrix.readFile(zFile);
+        gzclose(zFile);
+    }
     else
+    {
         matrix.readFile(file);
+        file.close();
+    }
 }
 
 /**
@@ -211,7 +232,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
  *
  * @param fileName specifies the name and path of the file to write to
  */
-void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
+void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder)
 {  
     this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
@@ -303,13 +324,21 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     gzFile zFile;
     if(isCompressed())
     {
+#ifdef CARET_OS_MACOSX
         zFile = gzopen(m_fileName.toAscii().data(), "wb");
+#elif ZLIB_VERNUM > 0x1232
+        zFile = gzopen64(m_fileName.toAscii().data(), "wb");
+#else  // ZLIB_VERNUM > 0x1232
+        zFile = gzopen(m_fileName.toAscii().data(), "wb");
+#endif  // ZLIB_VERNUM > 0x1232
         headerIO.writeFile(zFile,byteOrder);
         if (gzwrite(zFile, extensionBytes.constData(), extensionBytes.size()) != extensionBytes.size())
         {
             throw NiftiException("failed to write bytes to file");
         }
-        matrix.writeFile(zFile);
+        if(m_usingVolume && m_vol) matrix.writeVolume(zFile, *m_vol);
+        else matrix.writeFile(zFile);
+
         gzclose(zFile);
     }
     else
@@ -321,7 +350,8 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         {
             throw NiftiException("failed to write bytes to file");
         }
-        matrix.writeFile(file);
+        if(m_usingVolume && m_vol) matrix.writeVolume(file, *m_vol);
+        else matrix.writeFile(file);
         file.close();
     }
 
@@ -343,7 +373,7 @@ NiftiFile::~NiftiFile()
  * @param header
  */
 // Header IO
-void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
+void NiftiFile::setHeader(const Nifti1Header &header)
 {
     headerIO.setHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
@@ -356,7 +386,7 @@ void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
  *
  * @param header
  */
-void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
+void NiftiFile::getHeader(Nifti1Header &header)
 {
     headerIO.getHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
@@ -370,7 +400,7 @@ void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
  * @param header
  */
 // Header IO
-void NiftiFile::setHeader(const Nifti2Header &header) throw (NiftiException)
+void NiftiFile::setHeader(const Nifti2Header &header)
 {
     headerIO.setHeader(header);
 }
@@ -383,7 +413,7 @@ void NiftiFile::setHeader(const Nifti2Header &header) throw (NiftiException)
  *
  * @param header
  */
-void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
+void NiftiFile::getHeader(Nifti2Header &header)
 {
     headerIO.getHeader(header);
 }
@@ -403,7 +433,7 @@ int NiftiFile::getNiftiVersion()
 
 // Volume IO
 
-void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename)
 {
     CaretPointer<NiftiAbstractHeader> aHeader(new NiftiAbstractHeader());
 
@@ -411,6 +441,7 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     QDir fpath(this->m_fileName);
     m_fileName = fpath.toNativeSeparators(this->m_fileName);
     this->openFile(m_fileName);
+    if (newFile) throw NiftiException("file '" + filename + "' not found");
 
     headerIO.getAbstractHeader(*aHeader);
     vol.m_header = aHeader;
@@ -432,10 +463,34 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
         vol.m_extensions.push_back(m_extensions[i]);
     }
 
-    matrix.getVolume(vol);
+    //load matrix into volume file
+    QFile file;
+    gzFile zFile;
+    if(isCompressed())
+    {
+        /*
+         * Mac does not seem to have off64_t
+         */
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#elif ZLIB_VERNUM > 0x1232
+        zFile = gzopen64(m_fileName.toAscii().data(), "rb");
+#else  // ZLIB_VERNUM > 0x12320
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#endif // ZLIB_VERNUM > 0x1232
+        matrix.readVolume(zFile,vol);
+        gzclose(zFile);        
+    }
+    else
+    {
+        file.setFileName(m_fileName);
+        file.open(QIODevice::ReadOnly);
+        matrix.readVolume(file,vol);        
+        file.close();
+    }
 }
 
-void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename)
 {
     if (vol.m_header != NULL)
     {
@@ -469,45 +524,60 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
                 break;//ignore unknown extensions since we don't know the ecode for them
         }
     }
-
-    if (vol.m_header == NULL)
-    {//default to nifti1 for now
-        Nifti1Header header;
-        header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
-        header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        header.setDimensions(myOrigDims);
-        headerIO.setHeader(header);
-        matrix.setMatrixLayoutOnDisk(header);
-    } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
-        Nifti1Header header;
-        headerIO.getHeader(header);
-        header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        header.setDimensions(myOrigDims);
-        headerIO.setHeader(header);
-        matrix.setMatrixLayoutOnDisk(header);
-    } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
-        Nifti2Header header;
-        headerIO.getHeader(header);
-        header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        header.setDimensions(myOrigDims);
-        headerIO.setHeader(header);
-        matrix.setMatrixLayoutOnDisk(header);
+    std::vector<int64_t> myOrigDims;
+    myOrigDims = vol.getOriginalDimensions();
+    int components = vol.getNumberOfComponents();
+    if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
+    bool forceNifti2 = false;
+    for (int i = 0; i < (int)myOrigDims.size(); ++i)
+    {
+        if (myOrigDims[i] > 32767)
+        {
+            forceNifti2 = true;
+        }
     }
-    matrix.setVolume(vol);
+    if (forceNifti2)
+    {
+        Nifti2Header header;
+        if (vol.m_header != NULL)
+        {
+            headerIO.getHeader(header);
+            header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+        }
+        header.setSForm(vol.getVolumeSpace());
+        header.setDimensions(myOrigDims);
+        headerIO.setHeader(header);
+        matrix.setMatrixLayoutOnDisk(header);
+    } else {
+        if (vol.m_header == NULL)
+        {//default to nifti1 if the dimensions check out
+            Nifti1Header header;
+            header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
+            Nifti1Header header;
+            headerIO.getHeader(header);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
+            Nifti2Header header;
+            headerIO.getHeader(header);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        }
+    }
+    //matrix.setVolume(vol);
     this->m_fileName = filename;
     QDir fpath(this->m_fileName);
     m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_vol = &vol;
     writeFile(filename);
+    m_vol = NULL;
 }

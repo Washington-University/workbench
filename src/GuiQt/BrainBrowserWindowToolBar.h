@@ -31,10 +31,12 @@
 #include <QToolBar>
 
 #include "EventListenerInterface.h"
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 class QAbstractButton;
+class QAction;
 class QActionGroup;
 class QButtonGroup;
 class QCheckBox;
@@ -52,31 +54,44 @@ class QToolButton;
 namespace caret {
     
     class BrainBrowserWindow;
-    class BrainBrowserWindowToolBox;
     class BrowserTabContent;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
+    class Model;
+    class ModelSurface;
+    class ModelVolumeInterface;
+    class SceneAttributes;
+    class SceneClass;
+    class Surface;
+    class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
     class WuQWidgetObjectGroup;
     
-    class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface   {
+    class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface, public SceneableInterface   {
       
         Q_OBJECT
         
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                   BrowserTabContent* initialBrowserTabContent,
-                                  BrainBrowserWindowToolBox* toolBox,
+                                  QAction* overlayToolBoxAction,
+                                  QAction* layersToolBoxAction,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();
         
-        QAction* getShowToolBoxAction();
+        void addNewTabCloneContent(BrowserTabContent* browserTabContentToBeCloned);
+        
+        void addNewTab(BrowserTabContent* browserTabContent);
         
         void addDefaultTabsAfterLoadingSpecFile();
         
         void receiveEvent(Event* event);
         
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     signals:
         void viewedModelChanged();
         
@@ -95,34 +110,41 @@ namespace caret {
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
-        ModelDisplayController* getDisplayedModelController();
+        ModelVolumeInterface* getModelVolumeForViewSelections();
+        
+        Model* getDisplayedModelController();
         
         int32_t loadIntoTab(const int32_t tabIndex,
-                            ModelDisplayController* controller);
+                            Model* controller);
 
         void updateGraphicsWindow();
         void updateUserInterface();
+        void updateToolBox();
         void updateTabName(const int32_t tabIndex);
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
-        QWidget* createToolsWidget();
+        QWidget* createModeWidget();
         QWidget* createWindowWidget();
         QWidget* createSingleSurfaceOptionsWidget();
+        QWidget* createSurfaceMontageOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
+        QWidget* createClippingWidget();
         
-        ModelDisplayControllerTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
+        ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
         void updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeIndicesWidget(BrowserTabContent* browserTabContent);
-        void updateToolsWidget(BrowserTabContent* browserTabContent);
+        void updateModeWidget(BrowserTabContent* browserTabContent);
         void updateWindowWidget(BrowserTabContent* browserTabContent);
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
+        void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
+        void updateClippingWidget(BrowserTabContent* browserTabContent);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
@@ -134,25 +156,29 @@ namespace caret {
         QWidget* orientationWidget;
         QWidget* wholeBrainSurfaceOptionsWidget;
         QWidget* volumeIndicesWidget;
-        QWidget* toolsWidget;
+        QWidget* modeWidget;
         QWidget* windowWidget;
         QWidget* singleSurfaceSelectionWidget;
+        QWidget* surfaceMontageSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
+        QWidget* clippingWidget;
         //QWidget* spacerWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
         WuQWidgetObjectGroup* orientationWidgetGroup;
         WuQWidgetObjectGroup* wholeBrainSurfaceOptionsWidgetGroup;
         WuQWidgetObjectGroup* volumeIndicesWidgetGroup;
-        WuQWidgetObjectGroup* toolsWidgetGroup;
+        WuQWidgetObjectGroup* modeWidgetGroup;
         WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
+        WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
+        WuQWidgetObjectGroup* clippingWidgetGroup;
         
         QWidget* fullToolBarWidget;
-        QWidget* toolbarWidget;
+        QWidget* m_toolbarWidget;
         QHBoxLayout* toolbarWidgetLayout;
         
         QWidget* tabBarWidget;
@@ -184,10 +210,8 @@ namespace caret {
         void removeTabWithContent(BrowserTabContent* browserTabContent);
         
     public slots:
-        void addNewTab();
+//        void addNewTab();
 
-        void addNewTab(BrowserTabContent* browserTabContent);
-        
         void closeSelectedTab();
 
         void moveTabsToNewWindows();
@@ -209,7 +233,10 @@ namespace caret {
     private:
         void removeTab(int index);
         
+        BrowserTabContent* createNewTab(AString& errorMessage);
+        
         QRadioButton* viewModeSurfaceRadioButton;
+        QRadioButton* viewModeSurfaceMontageRadioButton;
         QRadioButton* viewModeVolumeRadioButton;
         QRadioButton* viewModeWholeBrainRadioButton;
         
@@ -217,18 +244,33 @@ namespace caret {
         void viewModeRadioButtonClicked(QAbstractButton*);
         
     private:
+        QAction* orientationLateralMedialToolButtonAction;
+        QAction* orientationDorsalVentralToolButtonAction;
+        QAction* orientationAnteriorPosteriorToolButtonAction;
+        
+        QToolButton* orientationLateralMedialToolButton;
+        QToolButton* orientationDorsalVentralToolButton;
+        QToolButton* orientationAnteriorPosteriorToolButton;
+        
         QAction* orientationLeftOrLateralToolButtonAction;
         QAction* orientationRightOrMedialToolButtonAction;
         QAction* orientationAnteriorToolButtonAction;
         QAction* orientationPosteriorToolButtonAction;
         QAction* orientationDorsalToolButtonAction;
         QAction* orientationVentralToolButtonAction;
+        
+        QToolButton* orientationLeftOrLateralToolButton;
+        QToolButton* orientationRightOrMedialToolButton;
+        QToolButton* orientationAnteriorToolButton;
+        QToolButton* orientationPosteriorToolButton;
+        QToolButton* orientationDorsalToolButton;
+        QToolButton* orientationVentralToolButton;
+
         QAction* orientationResetToolButtonAction;
-        QAction* orientationUserViewOneToolButtonAction;
-        QAction* orientationUserViewTwoToolButtonAction;
-        QAction* orientationUserViewSelectToolButtonAction;
-        QMenu* orientationUserViewSelectToolButtonMenu;
-        QToolButton* orientationUserViewSelectToolButton;
+        QAction* orientationCustomViewTwoToolButtonAction;
+        QAction* orientationCustomViewSelectToolButtonAction;
+        QMenu* orientationCustomViewSelectToolButtonMenu;
+        QToolButton* orientationCustomViewSelectToolButton;
         
         QIcon* viewOrientationLeftIcon;
         QIcon* viewOrientationRightIcon;
@@ -248,11 +290,14 @@ namespace caret {
         void orientationDorsalToolButtonTriggered(bool checked);
         void orientationVentralToolButtonTriggered(bool checked);
         void orientationResetToolButtonTriggered(bool checked);
-        void orientationUserViewOneToolButtonTriggered(bool checked);
-        void orientationUserViewTwoToolButtonTriggered(bool checked);
+        
+        void orientationLateralMedialToolButtonTriggered(bool checked);
+        void orientationDorsalVentralToolButtonTriggered(bool checked);
+        void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
 
-        void orientationUserViewSelectToolButtonMenuAboutToShow();
-        void orientationUserViewSelectToolButtonMenuTriggered(QAction* action);
+        void orientationCustomViewSelectToolButtonMenuAboutToShow();
+        void orientationCustomViewSelectToolButtonMenuTriggered(QAction* action);
+        void orientationCustomViewToolButtonTriggered();
         
     
     private:
@@ -290,7 +335,7 @@ namespace caret {
         void updateSliceIndicesAndCoordinatesRanges();
         
     private slots:
-        void volumeIndicesResetActionTriggered();
+        void volumeIndicesOriginActionTriggered();
         void volumeIndicesParasagittalCheckBoxStateChanged(int state);
         void volumeIndicesCoronalCheckBoxStateChanged(int state);
         void volumeIndicesAxialCheckBoxStateChanged(int state);
@@ -304,6 +349,8 @@ namespace caret {
     private:
         
         QComboBox* windowYokeGroupComboBox;
+        WuQWidgetObjectGroup* windowYokingWidgetGroup;
+
     
     private slots:
         void windowYokeToGroupComboBoxIndexChanged(int indx);
@@ -313,7 +360,24 @@ namespace caret {
         
     private slots:
         void surfaceSelectionControlChanged(const StructureEnum::Enum,
-                                            ModelDisplayControllerSurface*);
+                                            ModelSurface*);
+        
+    private:
+        SurfaceSelectionViewController* surfaceMontageLeftSurfaceViewController;
+        SurfaceSelectionViewController* surfaceMontageLeftSecondSurfaceViewController;
+        SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
+        SurfaceSelectionViewController* surfaceMontageRightSecondSurfaceViewController;
+        QCheckBox* surfaceMontageLeftCheckBox;
+        QCheckBox* surfaceMontageRightCheckBox;
+        QCheckBox* surfaceMontageFirstSurfaceCheckBox;
+        QCheckBox* surfaceMontageSecondSurfaceCheckBox;
+        
+    private slots:
+        void surfaceMontageLeftSurfaceSelected(Surface*);
+        void surfaceMontageLeftSecondSurfaceSelected(Surface*);
+        void surfaceMontageRightSurfaceSelected(Surface*);
+        void surfaceMontageRightSecondSurfaceSelected(Surface*);
+        void surfaceMontageCheckBoxSelected(bool);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;
@@ -344,28 +408,36 @@ namespace caret {
         void montageColumnsSpinBoxValueChanged(int i);
         void montageSpacingSpinBoxValueChanged(int i);
         
-    private:
-        QAction* toolsToolBoxToolButtonAction;
-
     private slots:
-        void toolsConnectToDatabaseActionTriggered(bool);
-        void toolsInputModeActionTriggered(QAction*);
+        void modeInputModeActionTriggered(QAction*);
         
     private:
-        void updateDisplayedToolsUserInputWidget();
-        QMenu* toolsConnectMenu;
-        QAction* toolsConnectToAllenDatabaseAction;
-        QAction* toolsConnectToConnectomeDatabaseAction;
-        
-        QActionGroup* toolsInputModeActionGroup;
-        QAction* toolsInputModeBordersAction;
-        QAction* toolsInputModeViewAction;
+        void updateDisplayedModeUserInputWidget();
+        QActionGroup* modeInputModeActionGroup;
+        QAction* modeInputModeBordersAction;
+        QAction* modeInputModeFociAction;
+        QAction* modeInputModeViewAction;
         
     private:
-        BrainBrowserWindowToolBox* toolBox;
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     
+    private slots:
+        void clippingWidgetControlChanged();
+        
+    private:
+        QCheckBox* clippingXCheckBox;
+        QCheckBox* clippingYCheckBox;
+        QCheckBox* clippingZCheckBox;
+        
+        QDoubleSpinBox* clippingXThicknessSpinBox;
+        QDoubleSpinBox* clippingYThicknessSpinBox;
+        QDoubleSpinBox* clippingZThicknessSpinBox;
+        
+        QDoubleSpinBox* clippingXCoordSpinBox;
+        QDoubleSpinBox* clippingYCoordSpinBox;
+        QDoubleSpinBox* clippingZCoordSpinBox;
+        
     private:
         int32_t browserWindowIndex;
         
@@ -374,8 +446,6 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
-        
-        int32_t indexOfNewestAddedOrInsertedTab;
     };
 }
 

@@ -43,8 +43,22 @@ public:
         BORDER,
         /** Connectivity - Dense */
         CONNECTIVITY_DENSE,
+        /** Connectivity - Dense Label */
+        CONNECTIVITY_DENSE_LABEL,
+        /** Connectivity - Dense Parcel */
+        CONNECTIVITY_DENSE_PARCEL,
+        /** Connectivity - Dense Scalar */
+        CONNECTIVITY_DENSE_SCALAR,
         /** Connectivity - Dense Time Series */
         CONNECTIVITY_DENSE_TIME_SERIES,
+        /** Connectivity - Fiber Orientations TEMPORARY */
+        CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
+        /** Connectivity - Fiber Trajectory TEMPORARY */
+        CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
+        /** Connectivity - Parcel */
+        CONNECTIVITY_PARCEL,
+        /** Connectivity - Parcel Dense*/
+        CONNECTIVITY_PARCEL_DENSE,
         /** Foci */
         FOCI,
         /** Labels */
@@ -77,6 +91,10 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toOverlayTypeName(Enum enumValue);
+    
+    static Enum fromOverlayTypeName(const AString& overlayTypeName, bool* isValidOut);
+    
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
@@ -93,16 +111,22 @@ public:
     
     static AString toFileExtension(const Enum enumValue);
     
+    static std::vector<AString> getAllFileExtensions(const Enum enumValue);
+    
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
     static bool isConnectivityDataType(const Enum enumValue);
     
     static void getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOut);
     
+    static AString addFileExtensionIfMissing(const AString& filename,
+                                             const Enum enumValue);
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
                      const AString& guiName,
+                     const AString& overlayTypeName,
                      const bool fileIsUsedWithOneStructure,
                      const bool fileIsOpenedWithDataFileDialog,
                      const AString& fileExtensionOne,
@@ -134,6 +158,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Name for use in overlay selection */
+    AString overlayTypeName;
     
     /** Extension(s) for the file */
     std::vector<AString> fileExtensions;

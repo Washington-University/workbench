@@ -25,8 +25,11 @@
 #include <cmath>
 #include <sstream>
 
+#include "CaretOMP.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
+//because the ROY_BIG_BL palette name is a constant defined in Palette.h
+#include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteXmlElements.h"
@@ -80,6 +83,18 @@ PaletteColorMapping::operator=(const PaletteColorMapping& o)
 }
 
 /**
+ * Copy the palette color mapping from the given palette
+ * color mapping.
+ * @param pcm
+ *    Color mapping that is copied to this.
+ */
+void 
+PaletteColorMapping::copy(const PaletteColorMapping& pcm)
+{
+    this->copyHelper(pcm);
+}
+
+/**
  * Helps with copy constructor and assignment operator.
  */
 void
@@ -113,10 +128,51 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->clearModified();
 }
 
+/**
+ * Equality operator.
+ * @param pcm
+ *    Palette color mapping compared to 'this' palette color mapping.
+ * @return
+ *    True if their members are the same.
+ */
+bool
+PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
+{
+    if ((this->autoScalePercentageNegativeMaximum == pcm.autoScalePercentageNegativeMaximum)
+        && (this->autoScalePercentageNegativeMinimum == pcm.autoScalePercentageNegativeMinimum)
+        && (this->autoScalePercentagePositiveMaximum == pcm.autoScalePercentagePositiveMaximum)
+        && (this->autoScalePercentagePositiveMinimum == pcm.autoScalePercentagePositiveMinimum)
+        && (this->displayNegativeDataFlag == pcm.displayNegativeDataFlag)
+        && (this->displayPositiveDataFlag == pcm.displayPositiveDataFlag)
+        && (this->displayZeroDataFlag     == pcm.displayZeroDataFlag)
+        && (this->interpolatePaletteFlag  == pcm.interpolatePaletteFlag)
+        && (this->scaleMode == pcm.scaleMode)
+        && (this->selectedPaletteName == pcm.selectedPaletteName)
+        && (this->userScaleNegativeMaximum == pcm.userScaleNegativeMaximum)
+        && (this->userScaleNegativeMinimum == pcm.userScaleNegativeMinimum)
+        && (this->userScalePositiveMaximum == pcm.userScalePositiveMaximum)
+        && (this->userScalePositiveMinimum == pcm.userScalePositiveMinimum)
+        && (this->thresholdType == pcm.thresholdType)
+        && (this->thresholdTest == pcm.thresholdTest)
+        && (this->thresholdNormalMinimum == pcm.thresholdNormalMinimum)
+        && (this->thresholdNormalMaximum == pcm.thresholdNormalMaximum)
+        && (this->thresholdMappedMinimum== pcm.thresholdMappedMinimum)
+        && (this->thresholdMappedMaximum == pcm.thresholdMappedMaximum)
+        && (this->thresholdMappedAverageAreaMinimum == pcm.thresholdMappedAverageAreaMinimum)
+        && (this->thresholdMappedAverageAreaMaximum == pcm.thresholdMappedAverageAreaMaximum)
+        && (this->thresholdDataName == pcm.thresholdDataName)
+        && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
 void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {
-    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE;
+    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE;
     this->autoScalePercentageNegativeMaximum = 98.0f;
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
@@ -125,8 +181,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->userScaleNegativeMinimum = 0.0f;
     this->userScalePositiveMinimum = 0.0f;
     this->userScalePositiveMaximum = 100.0f;
-    this->selectedPaletteName = "PSYCH";
-    this->interpolatePaletteFlag = false;
+    this->selectedPaletteName = Palette::ROY_BIG_BL_PALETTE_NAME;
+    this->interpolatePaletteFlag = true;
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
@@ -206,6 +262,15 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);
+    float normalValues[2] = {
+        this->thresholdNormalMinimum,
+        this->thresholdNormalMaximum
+    };
+    xmlWriter.writeElementCharacters(
+                                     PaletteXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES,
+                                     normalValues,
+                                     2);
+    
     float mappedValues[2] = {
         this->thresholdMappedMinimum,
         this->thresholdMappedMaximum
@@ -1151,7 +1216,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
-    
+
     for (int32_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         

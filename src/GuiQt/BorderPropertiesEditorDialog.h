@@ -33,12 +33,14 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QStringListModel;
 
 namespace caret {
 
     class Border;
     class BorderFile;
-    class CaretColorEnumSelectionControl;
+    class CaretColorEnumComboBox;
+    class SurfaceFile;
     
     class BorderPropertiesEditorDialog : public WuQDialogModal {
         Q_OBJECT
@@ -46,6 +48,7 @@ namespace caret {
     public:
         static BorderPropertiesEditorDialog*
             newInstanceFinishBorder(Border* border,
+                                    SurfaceFile* surfaceFile,
                                     QWidget* parent = 0);
         
         static BorderPropertiesEditorDialog*
@@ -56,12 +59,16 @@ namespace caret {
         virtual ~BorderPropertiesEditorDialog();
         
     protected:
-        virtual void okButtonPressed();
+        virtual void okButtonClicked();
         
     private slots:
+        void displayNameEditor();
+        
         void displayClassEditor();
     
         void borderFileSelected();
+        
+        void newBorderFileButtonClicked();
         
     private:
         enum Mode {
@@ -70,6 +77,7 @@ namespace caret {
         };
         
         BorderPropertiesEditorDialog(const QString& title,
+                                     SurfaceFile* finishBorderSurfaceFile,
                                      const Mode mode,
                                      BorderFile* editModeBorderFile,
                                      Border* border,
@@ -79,7 +87,7 @@ namespace caret {
 
         BorderPropertiesEditorDialog& operator=(const BorderPropertiesEditorDialog&);
         
-        BorderFile* getSelectedBorderFile(bool createIfNoValidBorderFiles);
+        BorderFile* getSelectedBorderFile();
         
         void loadBorderFileComboBox();
         
@@ -94,14 +102,20 @@ namespace caret {
         
         QLineEdit* nameLineEdit;
         
+        QStringList m_nameCompleterStringList;
+        QStringListModel* m_nameCompleterStringListModel;
+        
         QCheckBox* closedCheckBox;
         
         QComboBox* classNameComboBox;
 
         QCheckBox* reversePointOrderCheckBox;
         
-        CaretColorEnumSelectionControl* colorSelectionControl;
+        CaretColorEnumComboBox* colorSelectionComboBox;
         
+        SurfaceFile* finishBorderSurfaceFile;
+        
+        static bool s_previousDataValid;
         static AString previousName;
         static BorderFile* previousBorderFile;
         static bool previousClosedSelected;
@@ -110,6 +124,7 @@ namespace caret {
     };
     
 #ifdef __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
+    bool BorderPropertiesEditorDialog::s_previousDataValid = false;
     AString BorderPropertiesEditorDialog::previousName = "Name";
     BorderFile* BorderPropertiesEditorDialog::previousBorderFile = NULL;
     bool BorderPropertiesEditorDialog::previousClosedSelected = false;

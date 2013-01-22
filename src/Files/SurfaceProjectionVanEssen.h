@@ -52,7 +52,8 @@ namespace caret {
         
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],
-                                const bool isUnprojectedOntoSurface = false) const;
+                                const float offsetFromSurface,
+                                const bool unprojectWithOffsetFromSurface) const;
         
         float getDR() const;
         
@@ -76,19 +77,32 @@ namespace caret {
         
         void setTriVertices(const int32_t triVertices[2][3]);
         
+        void setTriVertices(const int32_t indx1,
+                            const int32_t vertices[3]);
+        
         void getTriVertices(int32_t triVertices[2][3]) const;
         
         void setVertex(const int32_t vertex[2]);
+        
+        void setVertex(const int32_t indx1,
+                       const int32_t vertex);
         
         void getVertex(int32_t vertex[2]) const;
         
         void setTriAnatomical(const float triAnatomical[2][3][3]);
         
+        void setTriAnatomical(const int32_t indx1,
+                              const int32_t indx2,
+                              const float anatomical[3]);
+        
         void getTriAnatomical(float triAnatomical[2][3][3]) const;
         
-        void setVertexAnatomical(const float vertexAnatomical[2][2]);
+        void setVertexAnatomical(const float vertexAnatomical[2][3]);
         
-        void getVertexAnatomical(float vertexAnatomical[2][2]) const;
+        void setVertexAnatomical(const int32_t indx1,
+                                 const float anatomical[3]);
+        
+        void getVertexAnatomical(float vertexAnatomical[2][3]) const;
         
         void getPosAnatomical(float posAnatomical[3]) const;
         
@@ -96,9 +110,11 @@ namespace caret {
         
         void reset();
         
-        bool isValid();
+        bool isValid() const;
         
         void setValid(const bool valid);
+        
+        virtual AString toString() const;
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
@@ -147,7 +163,7 @@ namespace caret {
         
         float triAnatomical[2][3][3];
         
-        float vertexAnatomical[2][2];
+        float vertexAnatomical[2][3];
         
         float posAnatomical[3];
         

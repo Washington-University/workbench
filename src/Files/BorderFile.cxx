@@ -24,9 +24,13 @@
  */ 
 
 #include <algorithm>
-#include <fstream>
 #include <limits>
 #include <memory>
+
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
+
 #define __BORDER_FILE_DECLARE__
 #include "BorderFile.h"
 #undef __BORDER_FILE_DECLARE__
@@ -35,7 +39,10 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchySelection.h"
+#include "GroupAndNameHierarchyModel.h"
+#include "FileAdapter.h"
+#include "FileInformation.h"
+#include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
@@ -59,7 +66,7 @@ using namespace caret;
 BorderFile::BorderFile()
 : CaretDataFile(DataFileTypeEnum::BORDER)
 {
-    this->initializeBorderFile();
+    initializeBorderFile();
 }
 
 /**
@@ -67,16 +74,18 @@ BorderFile::BorderFile()
  */
 BorderFile::~BorderFile()
 {
-    delete this->metadata;
+    delete m_classColorTable;
+    delete m_nameColorTable;
+    delete m_metadata;
     
-    for (std::vector<Border*>::iterator iter = this->borders.begin();
-         iter != this->borders.end();
+    for (std::vector<Border*>::iterator iter = m_borders.begin();
+         iter != m_borders.end();
          iter++) {
         delete *iter;
     }
-    this->borders.clear();
+    m_borders.clear();
 
-    delete this->classNameHierarchy;
+    delete m_classNameHierarchy;
 }
 
 /**
@@ -85,8 +94,11 @@ BorderFile::~BorderFile()
 void 
 BorderFile::initializeBorderFile()
 {
-    this->classNameHierarchy = new ClassAndNameHierarchySelection();
-    this->metadata = new GiftiMetaData();
+    m_classColorTable = new GiftiLabelTable();
+    m_nameColorTable = new GiftiLabelTable();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_metadata = new GiftiMetaData();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -97,9 +109,9 @@ BorderFile::initializeBorderFile()
 BorderFile::BorderFile(const BorderFile& obj)
 : CaretDataFile(obj)
 {
-    this->initializeBorderFile();
+    initializeBorderFile();
 
-    this->copyHelperBorderFile(obj);
+    copyHelperBorderFile(obj);
 }
 
 /**
@@ -113,9 +125,9 @@ BorderFile&
 BorderFile::operator=(const BorderFile& obj)
 {
     if (this != &obj) {
-        this->clear();
+        clear();
         CaretDataFile::operator=(obj);
-        this->copyHelperBorderFile(obj);
+        copyHelperBorderFile(obj);
     }
     return *this;    
 }
@@ -128,18 +140,21 @@ BorderFile::operator=(const BorderFile& obj)
 void 
 BorderFile::copyHelperBorderFile(const BorderFile& obj)
 {
-    if (this->classNameHierarchy != NULL) {
-        delete this->classNameHierarchy;
+    *m_classColorTable = *obj.m_classColorTable;
+    *m_nameColorTable = *obj.m_nameColorTable;
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
     }
-    this->classNameHierarchy = new ClassAndNameHierarchySelection();
-    *this->metadata = *obj.metadata;
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    *m_metadata = *obj.m_metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        this->borders.push_back(new Border(*obj.getBorder(i)));
+        m_borders.push_back(new Border(*obj.getBorder(i)));
     }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     
-    this->setModified();
+    setModified();
 }
 
 /**
@@ -148,7 +163,7 @@ BorderFile::copyHelperBorderFile(const BorderFile& obj)
 bool 
 BorderFile::isEmpty() const
 {
-    return this->borders.empty();
+    return m_borders.empty();
 }
 
 /**
@@ -177,7 +192,7 @@ BorderFile::setStructure(const StructureEnum::Enum /*structure*/)
 GiftiMetaData* 
 BorderFile::getFileMetaData()
 {
-    return this->metadata;
+    return m_metadata;
 }
 
 /**
@@ -186,7 +201,7 @@ BorderFile::getFileMetaData()
 const GiftiMetaData* 
 BorderFile::getFileMetaData() const
 {
-    return this->metadata;
+    return m_metadata;
 }
 
 /**
@@ -196,13 +211,15 @@ void
 BorderFile::clear()
 {
     CaretDataFile::clear();
-    this->classNameHierarchy->clear();
-    this->metadata->clear();
-    const int32_t numBorders = this->getNumberOfBorders();
+    m_classNameHierarchy->clear();
+    m_classColorTable->clear();
+    m_nameColorTable->clear();
+    m_metadata->clear();
+    const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        delete this->borders[i];
+        delete m_borders[i];
     }
-    this->borders.clear();
+    m_borders.clear();
 }
 
 /**
@@ -211,7 +228,7 @@ BorderFile::clear()
 int32_t 
 BorderFile::getNumberOfBorders() const
 {
-    return this->borders.size();
+    return m_borders.size();
 }
 
 /**
@@ -224,8 +241,8 @@ BorderFile::getNumberOfBorders() const
 Border* 
 BorderFile::getBorder(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->borders, indx);
-    return this->borders[indx];
+    CaretAssertVectorIndex(m_borders, indx);
+    return m_borders[indx];
 }
 
 /**
@@ -238,14 +255,18 @@ BorderFile::getBorder(const int32_t indx)
 const Border* 
 BorderFile::getBorder(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->borders, indx);
-    return this->borders[indx];
+    CaretAssertVectorIndex(m_borders, indx);
+    return m_borders[indx];
 }
 
 /**
  * Find the border nearest the given coordinate within
  * the given tolerance.
  *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
  * @param surfaceFile
  *    Surface file used for unprojection of border points.
  * @param xyz
@@ -269,7 +290,9 @@ BorderFile::getBorder(const int32_t indx) const
  *    will be returned.
  */
 bool 
-BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t browserTabIndex,
+                                 const SurfaceFile* surfaceFile,
                                 const float xyz[3],
                                 const float maximumDistance,
                                 Border*& borderOut,
@@ -288,9 +311,16 @@ BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
     
     float nearestDistance = std::numeric_limits<float>::max();
     
-    const int32_t numBorders = this->getNumberOfBorders();
+    BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
+    
+    const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        Border* border = this->borders[i];
+        Border* border = m_borders[i];
+        if (nonConstBorderFile->isBorderDisplayed(displayGroup,
+                                                  browserTabIndex,
+                                                  border) == false) {
+            continue;
+        }
         float distanceToPoint = 0.0;
         const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile, 
                                                               xyz,
@@ -326,8 +356,23 @@ BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
 void 
 BorderFile::addBorder(Border* border)
 {
-    this->borders.push_back(border);
-    this->setModified();
+    m_borders.push_back(border);
+    const AString name = border->getName();
+    if (name.isEmpty() == false) {
+        const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
+        if (nameColorKey < 0) {
+            m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+    }
+    const AString className = border->getClassName();
+    if (className.isEmpty() == false) {
+        const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
+        if (classColorKey < 0) {
+            m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+    }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    setModified();
 }
 
 /**
@@ -338,11 +383,12 @@ BorderFile::addBorder(Border* border)
 void 
 BorderFile::removeBorder(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->borders, indx);
-    Border* border = this->getBorder(indx);
-    this->borders.erase(this->borders.begin() + indx);
+    CaretAssertVectorIndex(m_borders, indx);
+    Border* border = getBorder(indx);
+    m_borders.erase(m_borders.begin() + indx);
     delete border;
-    this->setModified();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    setModified();
 }
 
 /**
@@ -353,10 +399,10 @@ BorderFile::removeBorder(const int32_t indx)
 void 
 BorderFile::removeBorder(Border* border)
 {
-    const int32_t numBorders = this->getNumberOfBorders();
+    const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0;i < numBorders; i++) {
-        if (this->borders[i] == border) {
-            this->removeBorder(i);
+        if (m_borders[i] == border) {
+            removeBorder(i);
             return;
         }
     }
@@ -365,22 +411,195 @@ BorderFile::removeBorder(Border* border)
 }
 
 /**
+ * Is the given border, that MUST be in this file, displayed?
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
+ * @param border
+ *    Border that is tested to see if it is displayed.
+ * @return 
+ *    true if border is displayed, else false.
+ */
+bool
+BorderFile::isBorderDisplayed(const DisplayGroupEnum::Enum displayGroup,
+                              const int32_t browserTabIndex,
+                              const Border* border)
+{
+    const GroupAndNameHierarchyItem* selectionItem = border->getGroupNameSelectionItem();
+    if (selectionItem != NULL) {
+        if (selectionItem->isSelected(displayGroup,
+                                      browserTabIndex) == false) {
+            return false;
+        }
+    }
+        
+    return true;
+}
+
+/**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchySelection* 
-BorderFile::getClassAndNameHierarchy()
+GroupAndNameHierarchyModel*
+BorderFile::getGroupAndNameHierarchyModel()
 {
-    this->classNameHierarchy->update(this);
-    return this->classNameHierarchy;
+    m_classNameHierarchy->update(this,
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * @return  The class color table.
+ */
+GiftiLabelTable* 
+BorderFile::getClassColorTable()
+{
+    return m_classColorTable;
+}
+
+/**
+ * @return  The class color table.
+ */
+const GiftiLabelTable* 
+BorderFile::getClassColorTable() const
+{
+    return m_classColorTable;
+}
+
+/**
+ * @return  The name color table.
+ */
+GiftiLabelTable*
+BorderFile::getNameColorTable()
+{
+    return m_nameColorTable;
+}
+
+/**
+ * @return  The name color table.
+ */
+const GiftiLabelTable*
+BorderFile::getNameColorTable() const
+{
+    return m_nameColorTable;
+}
+
+/**
+ * Version 1 foci files contained one color table for both names
+ * and classes.  Newer versions of the foci file keep them in
+ * separate tables.
+ *
+ * @param oldColorTable
+ *    Old color table that is split into name and class color tables.
+ */
+void
+BorderFile::createNameAndClassColorTables(const GiftiLabelTable* oldColorTable)
+{
+    CaretAssert(oldColorTable);
+    
+    m_classColorTable->clear();
+    m_nameColorTable->clear();
+    
+    std::set<QString> nameSet;
+    std::set<QString> classSet;
+    
+    const int numBorders = getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        const Border* border = getBorder(i);
+        nameSet.insert(border->getName());
+        classSet.insert(border->getClassName());
+    }
+    
+    /*
+     * Create colors for only the "best matching" color.
+     */
+    for (std::set<QString>::iterator iter = nameSet.begin();
+         iter != nameSet.end();
+         iter++) {
+        const AString colorName = *iter;
+        const GiftiLabel* oldLabel = oldColorTable->getLabelBestMatching(colorName);
+        if (oldLabel != NULL) {
+            const AString bestMatchingName = oldLabel->getName();
+            const int32_t labelKey = m_nameColorTable->getLabelKeyFromName(bestMatchingName);
+            if (labelKey < 0) {
+                float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+                oldLabel->getColor(rgba);
+                m_nameColorTable->addLabel(bestMatchingName,
+                                           rgba[0],
+                                           rgba[1],
+                                           rgba[2],
+                                           rgba[3]);
+            }
+        }
+    }
+    
+    /*
+     * Create a color for each class name using the best matching color
+     */
+    for (std::set<QString>::iterator iter = classSet.begin();
+         iter != classSet.end();
+         iter++) {
+        const AString colorName = *iter;
+        const GiftiLabel* label = oldColorTable->getLabelBestMatching(colorName);
+        float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+        if (label != NULL) {
+            label->getColor(rgba);
+        }
+        m_classColorTable->addLabel(colorName,
+                                    rgba[0],
+                                    rgba[1],
+                                    rgba[2],
+                                    rgba[3]);
+    }
+}
+
+/**
+ * @return A string list containing all border names
+ * sorted in alphabetical order.
+ */
+QStringList
+BorderFile::getAllBorderNamesSorted() const
+{
+    std::set<QString> nameSet;
+    
+    const int32_t numFoci = getNumberOfBorders();
+    for (int32_t i = 0;i < numFoci; i++) {
+        nameSet.insert(m_borders[i]->getName());
+    }
+    
+    QStringList sl;
+    for (std::set<QString>::iterator iter = nameSet.begin();
+         iter != nameSet.end();
+         iter++) {
+        sl += *iter;
+    }
+    
+    return sl;
+}
+
+/**
+ * Invalidate all assigned colors.
+ */
+void
+BorderFile::invalidateAllAssignedColors()
+{
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        m_borders[i]->setClassRgbaInvalid();
+        //m_foci[i]->setNameRgbaInvalid();
+    }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
  * @return The version of the file as a number.
  */
-float 
+int32_t
 BorderFile::getFileVersion()
 {
-    return BorderFile::borderFileVersion;
+    return s_borderFileVersion;
 }
 
 /**
@@ -389,7 +608,7 @@ BorderFile::getFileVersion()
 AString 
 BorderFile::getFileVersionAsString()
 {
-    return AString::number(BorderFile::borderFileVersion);
+    return AString::number(s_borderFileVersion);
 }
 
 /**
@@ -403,13 +622,15 @@ BorderFile::getFileVersionAsString()
 void 
 BorderFile::readFile(const AString& filename) throw (DataFileException)
 {
+    checkFileReadability(filename);
+    
     BorderFileSaxReader saxReader(this);
     std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
-        this->setFileName("");
+        setFileName("");
         
         int lineNum = e.getLineNumber();
         int colNum  = e.getColumnNumber();
@@ -433,13 +654,19 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
         throw dfe;
     }
     
-    this->setFileName(filename);
+    setFileName(filename);
     
-    this->classNameHierarchy->update(this);
-    std::cout << "Class Table: " << this->classNameHierarchy->getClassLabelTable()->toString() << std::endl;
-    std::cout << "Name Table:  " << this->classNameHierarchy->getNameLabelTable()->toString() << std::endl;
+    m_classNameHierarchy->update(this,
+                                     true);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    m_classNameHierarchy->setAllSelected(true);
     
-    this->clearModified();
+    CaretLogFiner("CLASS/NAME Table for : "
+                  + getFileNameNoPath()
+                  + "\n"
+                  + m_classNameHierarchy->toString());
+    
+    clearModified();
 }
 
 /**
@@ -453,7 +680,9 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
 void 
 BorderFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    this->setFileName(filename);
+    checkFileWritability(filename);
+    
+    setFileName(filename);
     
     try {
         //
@@ -464,17 +693,18 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Open the file
         //
-        char* name = this->getFileName().toCharArray();
-        std::ofstream xmlFileOutputStream(name);
-        delete[] name;
-        if (! xmlFileOutputStream) {
-            AString msg = "Unable to open " + this->getFileName() + " for writing.";
-            throw DataFileException(msg);
+        FileAdapter file;
+        AString errorMessage;
+        QTextStream* textStream = file.openQTextStreamForWritingFile(getFileName(),
+                                                                     errorMessage);
+        if (textStream == NULL) {
+            throw DataFileException(errorMessage);
         }
+
         //
         // Create the xml writer
         //
-        XmlWriter xmlWriter(xmlFileOutputStream);
+        XmlWriter xmlWriter(*textStream);
         
         //
         // Write header info
@@ -498,29 +728,39 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write Metadata
         //
-        if (metadata != NULL) {
-            metadata->writeAsXML(xmlWriter);
+        if (m_metadata != NULL) {
+            m_metadata->writeAsXML(xmlWriter);
         }
             
         //
-        // Write the classes
+        // Write the class color table
         //
-        this->classNameHierarchy->getClassLabelTable()->writeAsXML(xmlWriter);
+        xmlWriter.writeStartElement(XML_TAG_CLASS_COLOR_TABLE);
+        m_classColorTable->writeAsXML(xmlWriter);
+        xmlWriter.writeEndElement();
+        
+        //
+        // Write the name color table
+        //
+        xmlWriter.writeStartElement(XML_TAG_NAME_COLOR_TABLE);
+        m_nameColorTable->writeAsXML(xmlWriter);
+        xmlWriter.writeEndElement();
+        
         
         //
         // Write borders
         //
-        const int32_t numBorders = this->getNumberOfBorders();
+        const int32_t numBorders = getNumberOfBorders();
         for (int32_t i = 0; i < numBorders; i++) {
-            this->borders[i]->writeAsXML(xmlWriter);
+            m_borders[i]->writeAsXML(xmlWriter);
         }
         
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         
-        xmlFileOutputStream.close();
+        file.close();
         
-        this->clearModified();
+        clearModified();
     }
     catch (const GiftiException& e) {
         throw DataFileException(e);
@@ -539,16 +779,24 @@ BorderFile::isModified() const
     if (CaretDataFile::isModified()) {
         return true;
     }
-    if (this->metadata->isModified()) {
+    if (m_metadata->isModified()) {
         return true;
     }
-    if (this->classNameHierarchy->getClassLabelTable()->isModified()) {
+    if (m_classColorTable->isModified()) {
+        return true;
+    }
+    if (m_nameColorTable->isModified()) {
         return true;
     }
     
-    const int32_t numBorders = this->getNumberOfBorders();
+    /* 
+     * Note, these members do not affect modification status:
+     * classNameHierarchy 
+     */
+    
+    const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        if (this->borders[i]->isModified()) {
+        if (m_borders[i]->isModified()) {
             return true;
         }
     }
@@ -564,11 +812,14 @@ BorderFile::clearModified()
 {
     CaretDataFile::clearModified();
     
-    this->metadata->clearModified();
+    m_metadata->clearModified();
     
-    const int32_t numBorders = this->getNumberOfBorders();
+    m_classColorTable->clearModified();
+    m_nameColorTable->clearModified();
+    
+    const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        this->borders[i]->clearModified();
+        m_borders[i]->clearModified();
     }
 }
 

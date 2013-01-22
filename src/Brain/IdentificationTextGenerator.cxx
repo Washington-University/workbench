@@ -31,18 +31,27 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CiftiBrainordinateScalarFile.h"
+#include "CiftiConnectivityMatrixDataFile.h"
 #include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
+#include "CaretVolumeExtension.h"
 #include "EventManager.h"
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemVoxel.h"
-#include "IdentificationManager.h"
+#include "FociFile.h"
+#include "Focus.h"
+#include "GiftiLabel.h"
+#include "SelectionItemBorderSurface.h"
+#include "SelectionItemFocusSurface.h"
+#include "SelectionItemFocusVolume.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVoxel.h"
+#include "SelectionManager.h"
 #include "IdentificationStringBuilder.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
+#include "SurfaceProjectionVanEssen.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -51,9 +60,9 @@ using namespace caret;
     
 /**
  * \class IdentificationTextGenerator 
- * \brief Creates text describing identified data.
+ * \brief Creates text describing selected data.
  *
- * Examine the identified data and generate descriptive text.
+ * Examine the selected data and generate descriptive text.
  */
 
 /**
@@ -81,29 +90,28 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  * @param brain
  */
 AString 
-IdentificationTextGenerator::createIdentificationText(const IdentificationManager* idManager,
+IdentificationTextGenerator::createIdentificationText(const SelectionManager* idManager,
                                                       const BrowserTabContent* /*browserTabConent*/,
                                                       const Brain* brain) const
 {
     IdentificationStringBuilder idText;
     
-    const IdentificationItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
+    const SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
     
     this->generateSurfaceIdentificationText(idText,
                                             brain,
                                             surfaceID);
     
-    const int32_t numAdditionalSurfaceIdentifications = idManager->getNumberOfAdditionalSurfaceNodeIdentifications();
-    for (int32_t i = 0; i < numAdditionalSurfaceIdentifications; i++) {
-        this->generateSurfaceIdentificationText(idText, 
-                                                brain, 
-                                                idManager->getAdditionalSurfaceNodeIdentification(i));
-    }
-    
     this->generateSurfaceBorderIdentifcationText(idText,
                                                  idManager->getSurfaceBorderIdentification());
     
-    const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
+    this->generateSurfaceFociIdentifcationText(idText, 
+                                               idManager->getSurfaceFocusIdentification());
+    
+    this->generateVolumeFociIdentifcationText(idText,
+                                              idManager->getVolumeFocusIdentification());
+    
+    const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
         int64_t ijk[3];
         const VolumeFile* idVolumeFile = voxelID->getVolumeFile();
@@ -140,7 +148,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                 
                 int64_t vfIJK[3];
                 vf->enclosingVoxel(xyz, 
-                                 vfIJK);
+                                   vfIJK);
                 
                 if (vf->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
                     AString boldText = vf->getFileNameNoPath();
@@ -154,8 +162,25 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                     
                     AString text;
                     const int32_t numMaps = vf->getNumberOfMaps();
-                    for (int j = 0; j < numMaps; j++) {
-                        text += AString::number(vf->getValue(vfIJK));
+                    for (int jMap = 0; jMap < numMaps; jMap++) {
+                        if (jMap > 0) {
+                            text += " ";
+                        }
+                        if (vf->getType() == SubvolumeAttributes::LABEL) {
+                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfIJK, jMap));
+                            const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
+                            const GiftiLabel* gl = glt->getLabel(labelIndex);
+                            if (gl != NULL) {
+                                text += gl->getName();
+                            }
+                            else {
+                                text += ("LABLE_MISSING_FOR_INDEX=" 
+                                         + AString::number(labelIndex));
+                            }
+                        }
+                        else {
+                            text += AString::number(vf->getValue(vfIJK, jMap));
+                        }
                     }
                     
                     idText.addLine(true,
@@ -165,10 +190,13 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
             }            
         }
         
-        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
+        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
+             connIter != allConnectivityFiles.end();
+             connIter++) {
+            const ConnectivityLoaderFile* clf = *connIter;
             if (clf->isEmpty() == false) {
                 float value = 0.0;
                 int64_t connIJK[3];
@@ -188,6 +216,63 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                 }
             }
         }
+
+        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
+        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
+        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
+             connMatIter != allConnMatrixFiles.end();
+             connMatIter++) {
+            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
+            if (cmf->isEmpty() == false) {
+                const int numMaps = cmf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    float value = 0.0;
+                    int64_t cmfIJK[3];
+                    AString textValue;
+                    if (cmf->getMapVolumeVoxelValue(iMap,
+                                                    xyz,
+                                                    cmfIJK,
+                                                    value,
+                                                    textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
+                                            + " "
+                                            + cmf->getFileNameNoPath());
+                        idText.addLine(true, boldText, textValue);
+                    }
+                }
+            }
+        }
+        
+        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
+        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
+        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
+             connMatIter != allCiftiBrainordinatesFiles.end();
+             connMatIter++) {
+            const CiftiBrainordinateFile* cbf = *connMatIter;
+            if (cbf->isEmpty() == false) {
+                const int numMaps = cbf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    int64_t voxelIJK[3];
+                    if (cbf->getMapVolumeVoxelValue(iMap,
+                                                    xyz,
+                                                    voxelIJK,
+                                                    textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
+                                            + " "
+                                            + cbf->getFileNameNoPath()
+                                            + " IJK ("
+                                            + AString::number(voxelIJK[0])
+                                            + ", "
+                                            + AString::number(voxelIJK[1])
+                                            + ", "
+                                            + AString::number(voxelIJK[2])
+                                            + ")  ");
+                        idText.addLine(true, boldText, textValue);                        
+                    }
+                }
+            }
+        }        
     }
     
     return idText.toString();
@@ -203,7 +288,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
 void 
 IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                                const Brain* brain,
-                                                               const IdentificationItemSurfaceNode* idSurfaceNode) const
+                                                               const SelectionItemSurfaceNode* idSurfaceNode) const
 {
     const Surface* surface = idSurfaceNode->getSurface();
     const int32_t nodeNumber = idSurfaceNode->getNodeNumber();
@@ -211,10 +296,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
         AString surfaceID;
-        if (idSurfaceNode->isContralateral()) {
-            surfaceID += "CONTRALATERAL ";
-        }
-        surfaceID += ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
+        surfaceID += ("VERTEX " + StructureEnum::toGuiName(surface->getStructure()));
         idText.addLine(false, surfaceID, nodeNumber, false);
         
         const float* xyz = surface->getCoordinate(nodeNumber);
@@ -230,19 +312,71 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
-        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+        
+        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
+        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
+             connIter != allConnectivityFiles.end();
+             connIter++) {
+            const ConnectivityLoaderFile* clf = *connIter;
             if (clf->isEmpty() == false) {
                 float value = 0.0;
                 if (clf->getSurfaceNodeValue(surface->getStructure(),
                                              nodeNumber,
                                              surface->getNumberOfNodes(),
                                              value)) {
-                    AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
+                    AString boldText = (clf->getCiftiTypeName().toUpper()
+                                        + " "
+                                        + clf->getFileNameNoPath());
                     AString text = AString::number(value);
                     idText.addLine(true, boldText, text);
+                }
+            }
+        }
+        
+        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
+        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
+        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
+             connMatIter != allConnMatrixFiles.end();
+             connMatIter++) {
+            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
+            if (cmf->isEmpty() == false) {
+                const int numMaps = cmf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    float value = 0.0;
+                    AString textValue;
+                    if (cmf->getMapSurfaceNodeValue(iMap,
+                                                    surface->getStructure(),
+                                                    nodeNumber,
+                                                    surface->getNumberOfNodes(),
+                                                    value,
+                                                    textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
+                                            + " "
+                                            + cmf->getFileNameNoPath());
+                        idText.addLine(true, boldText, textValue);
+                    }
+                }
+            }
+        }
+        
+        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
+        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
+        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
+             connMatIter != allCiftiBrainordinatesFiles.end();
+             connMatIter++) {
+            const CiftiBrainordinateFile* cbf = *connMatIter;
+            if (cbf->isEmpty() == false) {
+                const int numMaps = cbf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    if (cbf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
+                                            + " "
+                                            + cbf->getFileNameNoPath());
+                        idText.addLine(true, boldText, textValue);
+                    }
                 }
             }
         }
@@ -288,7 +422,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
  */
 void 
 IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
-                                                                    const IdentificationItemBorderSurface* idSurfaceBorder) const
+                                                                    const SelectionItemBorderSurface* idSurfaceBorder) const
 {
     if (idSurfaceBorder->isValid()) {
         const Border* border = idSurfaceBorder->getBorder();
@@ -313,6 +447,212 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
                               + AString::fromNumbers(xyz, 3, ",")
                               + ")");
         idText.addLine(true, boldText, text);
+    }
+}
+
+/**
+ * Generate identification text for a surface focus identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idSurfaceFocus
+ *     Information for surface focus ID.
+ */void 
+IdentificationTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
+                                          const SelectionItemFocusSurface* idSurfaceFocus) const
+{
+    if (idSurfaceFocus->isValid()) {
+        const Focus* focus = idSurfaceFocus->getFocus();
+        idText.addLine(false,
+                       "FOCUS", 
+                       focus->getName());
+
+        idText.addLine(true,
+                       "Index",
+                       AString::number(idSurfaceFocus->getFocusIndex()));
+        
+        const int32_t projectionIndex = idSurfaceFocus->getFocusProjectionIndex();
+        const SurfaceProjectedItem* spi = focus->getProjection(projectionIndex);
+        float xyzProj[3];
+        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
+        float xyzStereo[3];
+        spi->getStereotaxicXYZ(xyzStereo);
+        
+        idText.addLine(true,
+                       "Structure",
+                       StructureEnum::toGuiName(spi->getStructure()));
+
+        if (spi->isStereotaxicXYZValid()) {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           xyzStereo,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           "Invalid");
+        }
+        
+        bool projValid = false;
+        AString xyzProjName = "XYZ (Projected)";
+        if (spi->getBarycentricProjection()->isValid()) {
+            xyzProjName = "XYZ (Projected to Triangle)";
+            projValid = true;
+        }
+        else if (spi->getVanEssenProjection()->isValid()) {
+            xyzProjName = "XYZ (Projected to Edge)";
+            projValid = true;
+        }
+        if (projValid) {
+            idText.addLine(true,
+                           xyzProjName,
+                           xyzProj,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           xyzProjName,
+                           "Invalid");
+        }
+        
+        const int32_t numberOfProjections = focus->getNumberOfProjections();
+        for (int32_t i = 0; i < numberOfProjections; i++) {
+            if (i != projectionIndex) {
+                const SurfaceProjectedItem* proj = focus->getProjection(i);
+                AString projTypeName = "";
+                if (proj->getBarycentricProjection()->isValid()) {
+                    projTypeName = "Triangle";
+                    
+                }
+                else if (proj->getVanEssenProjection()->isValid()) {
+                    projTypeName = "Edge";
+                }
+                if (projTypeName.isEmpty() == false) {
+                    const AString txt = (StructureEnum::toGuiName(proj->getStructure())
+                                         + " ("
+                                         + projTypeName
+                                         + ")");
+                                         
+                    idText.addLine(true,
+                                   "Ambiguous Projection",
+                                   txt);
+                }
+            }
+        }
+        
+        idText.addLine(true,
+                       "Area",
+                       focus->getArea());
+        
+        idText.addLine(true,
+                       "Class Name",
+                       focus->getClassName());
+
+        idText.addLine(true,
+                       "Comment",
+                       focus->getComment());
+        
+        idText.addLine(true,
+                       "Extent",
+                       focus->getExtent(),
+                       true);
+        
+        idText.addLine(true,
+                       "Geography",
+                       focus->getGeography());
+        
+        idText.addLine(true,
+                       "Region of Interest",
+                       focus->getRegionOfInterest());
+        
+        idText.addLine(true,
+                       "Statistic",
+                       focus->getStatistic());
+        
+    }
+}
+
+/**
+ * Generate identification text for a volume focus identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idVolumeFocus
+ *     Information for surface focus ID.
+ */void
+IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
+                                                                  const SelectionItemFocusVolume* idVolumeFocus) const
+{
+    if (idVolumeFocus->isValid()) {
+        const Focus* focus = idVolumeFocus->getFocus();
+        const SurfaceProjectedItem* spi = focus->getProjection(idVolumeFocus->getFocusProjectionIndex());
+        float xyzVolume[3];
+        spi->getVolumeXYZ(xyzVolume);
+        float xyzStereo[3];
+        spi->getStereotaxicXYZ(xyzStereo);
+        
+        idText.addLine(false,
+                       "FOCUS",
+                       focus->getName());
+        
+        idText.addLine(true,
+                       "Index",
+                       AString::number(idVolumeFocus->getFocusIndex()));
+        
+        idText.addLine(true,
+                       "Structure",
+                       StructureEnum::toGuiName(spi->getStructure()));
+        
+        if (spi->isStereotaxicXYZValid()) {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           xyzStereo,
+                           3,
+                           true);
+        }
+        else {
+            idText.addLine(true,
+                           "XYZ (Stereotaxic)",
+                           "Invalid");
+        }
+        
+        AString xyzVolumeName = "XYZ (Volume)";
+        idText.addLine(true,
+                       xyzVolumeName,
+                       xyzVolume,
+                       3,
+                       true);
+        
+        idText.addLine(true,
+                       "Area",
+                       focus->getArea());
+        
+        idText.addLine(true,
+                       "Class Name",
+                       focus->getClassName());
+        
+        idText.addLine(true,
+                       "Comment",
+                       focus->getComment());
+        
+        idText.addLine(true,
+                       "Extent",
+                       focus->getExtent(),
+                       true);
+        
+        idText.addLine(true,
+                       "Geography",
+                       focus->getGeography());
+        
+        idText.addLine(true,
+                       "Region of Interest",
+                       focus->getRegionOfInterest());
+        
+        idText.addLine(true,
+                       "Statistic",
+                       focus->getStatistic());
+        
     }
 }
 

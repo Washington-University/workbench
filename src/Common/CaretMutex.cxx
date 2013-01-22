@@ -22,9 +22,13 @@
  */
 /*LICENSE_END*/
 
+#include "CaretAssert.h"
+#include "CaretException.h"
 #include "CaretMutex.h"
 
 using namespace caret;
+
+#ifndef CARET_OMP
 
 CaretMutexLocker::CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex)
 {
@@ -33,3 +37,6 @@ CaretMutexLocker::CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex
 CaretMutex::CaretMutex(QMutex::RecursionMode mode): QMutex(mode)
 {
 }
+
+#endif
+//the OMP versions are implemented in the header

@@ -31,11 +31,12 @@
 namespace caret {
 
     class DescriptiveStatistics;
+    class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
-    class PaletteColorMapping;
-    class FastStatistics;
     class Histogram;
+    class PaletteColorMapping;
+    class PaletteFile;
     
     /**
      * \class caret::CaretMappableDataFile 
@@ -266,6 +267,19 @@ namespace caret {
          *    not mapped using a label table).
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
+        
+        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
+        
+        /**
+         * Update coloring for a map.
+         *
+         * @param mapIndex
+         *    Index of map.
+         * @param paletteFile
+         *    Palette file containing palettes.
+         */
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                          const PaletteFile* paletteFile) = 0;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);

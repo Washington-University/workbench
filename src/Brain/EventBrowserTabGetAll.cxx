@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabGetAll.h"
 
@@ -75,4 +76,31 @@ EventBrowserTabGetAll::addBrowserTab(BrowserTabContent* browserTab)
 {
     this->allBrowserTabs.push_back(browserTab);
 }
+
+/**
+ * @return All browser tabs.
+ */
+std::vector<BrowserTabContent*> 
+EventBrowserTabGetAll::getAllBrowserTabs() const
+{
+    return this->allBrowserTabs;
+}
+
+/**
+ * @return The indices of all browser tabs.
+ */
+std::vector<int32_t> 
+EventBrowserTabGetAll::getBrowserTabIndices() const
+{
+    std::vector<int32_t> tabIndices;
+    
+    for (std::vector<BrowserTabContent*>::const_iterator iter = allBrowserTabs.begin();
+         iter != allBrowserTabs.end();
+         iter++) {
+        const BrowserTabContent* btc = *iter;
+        tabIndices.push_back(btc->getTabNumber());
+    }
+    return tabIndices;
+}
+
 

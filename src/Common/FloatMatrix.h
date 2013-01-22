@@ -32,6 +32,17 @@
 
 namespace caret {
 
+   class ConstFloatMatrixRowRef
+   {//needed to do [][] on a const FloatMatrix
+      const std::vector<float>& m_row;
+      ConstFloatMatrixRowRef();//disallow default construction, this contains a reference
+   public:
+      ConstFloatMatrixRowRef(const ConstFloatMatrixRowRef& right);//copy constructor
+      ConstFloatMatrixRowRef(const std::vector<float>& therow);
+      const float& operator[](const int64_t& index);//access element
+      friend class FloatMatrixRowRef;//so it can check if it points to the same row
+   };
+
    class FloatMatrixRowRef
    {//needed to ensure some joker doesn't call mymatrix[1].resize();, while still allowing mymatrix[1][2] = 5; and mymatrix[1] = mymatrix[2];
       std::vector<float>& m_row;
@@ -40,10 +51,11 @@ namespace caret {
       FloatMatrixRowRef(FloatMatrixRowRef& right);//copy constructor
       FloatMatrixRowRef(std::vector<float>& therow);
       FloatMatrixRowRef& operator=(const FloatMatrixRowRef& right);//NOTE: copy row contents!
+      FloatMatrixRowRef& operator=(const ConstFloatMatrixRowRef& right);//NOTE: copy row contents!
       FloatMatrixRowRef& operator=(const float& right);//NOTE: set all row values!
       float& operator[](const int64_t& index);//access element
    };
-   
+
    ///class for using single precision matrices (insulates other code from the MatrixFunctions templated header)
    ///errors will result in a matrix of size 0x0, or an assertion failure if the underlying vector<vector> isn't rectangular
    class FloatMatrix
@@ -53,6 +65,7 @@ namespace caret {
    public:
       FloatMatrix() { };//to make the compiler happy
       FloatMatrixRowRef operator[](const int64_t& index);//allow direct indexing to rows
+      ConstFloatMatrixRowRef operator[](const int64_t& index) const;//allow direct indexing to rows while const
       FloatMatrix& operator+=(const FloatMatrix& right);//add to
       FloatMatrix& operator-=(const FloatMatrix& right);//subtract from
       FloatMatrix& operator*=(const FloatMatrix& right);//multiply by

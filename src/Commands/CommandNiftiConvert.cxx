@@ -52,6 +52,27 @@ CommandNiftiConvert::~CommandNiftiConvert()
 }
 
 /**
+ * @return The help information.
+ */
+AString
+CommandNiftiConvert::getHelpInformation(const AString& /*programName*/)
+{
+    AString helpInfo = ("Convert NIFTI-1 to NIFTI-2\n"
+                        "\n"
+                        "Usage:  <input-nifti-file>\n"
+                        "        <output-nifti-file>\n"
+                        "    \n"
+                        "    input-nifti-file\n"
+                        "        Required input NIFTI file name.\n"
+                        "    \n"
+                        "    output-nifti-file\n"
+                        "        Required output NIFTI file name.\n"
+                        "    \n"
+                        );
+    return helpInfo;
+}
+
+/**
  * Execute the operation.
  * 
  * @param parameters

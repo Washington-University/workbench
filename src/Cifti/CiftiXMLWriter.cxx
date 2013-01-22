@@ -24,16 +24,18 @@
 /*LICENSE_END*/
 
 #include "CiftiXMLWriter.h"
-#include "iostream"
+#include "GiftiLabelTable.h"
+#include "PaletteColorMapping.h"
 
 using namespace caret;
+using namespace std;
 
-void caret::writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
-{  
+void CiftiXMLWriter::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
+{
+    //use default constructed writing version, which is latest supported...provide modifier to set writing version?
     xml.setAutoFormatting(true);
     xml.writeStartElement("CIFTI");
-    if(rootElement.m_version.length() >0) xml.writeAttribute("Version",rootElement.m_version);
-    else xml.writeAttribute("Version","1.0");
+    xml.writeAttribute("Version", m_writingVersion.toString());
     xml.writeAttribute("NumberOfMatrices",QString::number(rootElement.m_numberOfMatrices));
 
     for(unsigned int i = 0;i<rootElement.m_numberOfMatrices;i++)
@@ -45,10 +47,20 @@ void caret::writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
 
 }
 
-void caret::writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement)
+void CiftiXMLWriter::writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement)
 { 
     xml.writeStartElement("Matrix");
-    if(matrixElement.m_userMetaData.count() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
+    map<AString, AString> metadataCopy = matrixElement.m_userMetaData;//since we may be modifying the map, we must make a copy of it
+    if (matrixElement.m_palette != NULL)
+    {//NULL palette means we didn't mess with palette at all
+        if (matrixElement.m_defaultPalette && !(matrixElement.m_palette->isModified()))
+        {//it is set to use the default palette instead of a custom palette, so remove the palette item from metadata, if it exists
+            metadataCopy.erase("PaletteColorMapping");
+        } else {
+            metadataCopy["PaletteColorMapping"] = matrixElement.m_palette->encodeInXML();
+        }
+    }
+    if(metadataCopy.size() > 0) writeMetaData(xml,metadataCopy);
     if(matrixElement.m_volume.size() > 0) writeVolume(xml, matrixElement.m_volume[0]);
     if(matrixElement.m_labelTable.size() > 0) writeLabelTable(xml, matrixElement.m_labelTable);
 
@@ -60,20 +72,20 @@ void caret::writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrix
     xml.writeEndElement();//Matrix
 }
 
-void caret::writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData)
+void CiftiXMLWriter::writeMetaData(QXmlStreamWriter &xml, const map<AString, AString> &metaData)
 {     
     xml.writeStartElement("MetaData");
 
-    QHash<QString, QString>::Iterator i;
+    map<AString, AString>::const_iterator i;
 
     for (i = metaData.begin(); i != metaData.end(); ++i)
     {
-        writeMetaDataElement(xml,i.key(),i.value());
+        writeMetaDataElement(xml,i->first,i->second);
     }
     xml.writeEndElement();
 }
 
-void caret::writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value)
+void CiftiXMLWriter::writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value)
 {     
     xml.writeStartElement("MD");
 
@@ -88,7 +100,7 @@ void caret::writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, con
     xml.writeEndElement();//MD
 }
 
-void caret::writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &labelElement)
+void CiftiXMLWriter::writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement)
 {     
     xml.writeStartElement("LabelTable");
 
@@ -100,7 +112,7 @@ void caret::writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElemen
     xml.writeEndElement();
 }
 
-void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
+void CiftiXMLWriter::writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label)
 {     
     xml.writeStartElement("Label");
 
@@ -116,8 +128,8 @@ void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
     xml.writeEndElement();
 }
 
-void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
-{     
+void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap)
+{
     xml.writeStartElement("MatrixIndicesMap");
     //TODO
     //xml.writeAttribute("AppliesToMatrixDimension", QString::number(matrixIndicesMap.m_appliesToMatrixDimension));
@@ -126,9 +138,10 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_FIBERS) indicesMapToDataType = "CIFTI_INDEX_TYPE_FIBERS";
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) indicesMapToDataType = "CIFTI_INDEX_TYPE_PARCELS";
     else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS) indicesMapToDataType = "CIFTI_INDEX_TYPE_TIME_POINTS";
+    else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS) indicesMapToDataType = "CIFTI_INDEX_TYPE_SCALARS";
+    else if(matrixIndicesMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) indicesMapToDataType = "CIFTI_INDEX_TYPE_LABELS";
 
     xml.writeAttribute("IndicesMapToDataType",indicesMapToDataType);
-
 
     QString timeStepUnits;
 
@@ -138,7 +151,8 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
 
     if(timeStepUnits.length()>0) {
         QString str;
-        xml.writeAttribute("TimeStep",str.sprintf("%.1f",matrixIndicesMap.m_timeStep));
+        xml.writeAttribute("TimeStep",str.sprintf("%.10f",matrixIndicesMap.m_timeStep));
+        if (matrixIndicesMap.m_hasTimeStart) xml.writeAttribute("TimeStart",str.sprintf("%.10f",matrixIndicesMap.m_timeStart));
         xml.writeAttribute("TimeStepUnits",timeStepUnits);
     }
     if(matrixIndicesMap.m_appliesToMatrixDimension.size())
@@ -147,9 +161,13 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
         QString appliesToMatrixDimension, str;
         for(int i = 0;i<lastElement;i++)
         {
-            appliesToMatrixDimension.append(str.sprintf("%d,",matrixIndicesMap.m_appliesToMatrixDimension[i]));
+            int temp = matrixIndicesMap.m_appliesToMatrixDimension[i];
+            if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
+            appliesToMatrixDimension.append(str.sprintf("%d,",temp));
         }
-        appliesToMatrixDimension.append(str.sprintf("%d",matrixIndicesMap.m_appliesToMatrixDimension[lastElement]));
+        int temp = matrixIndicesMap.m_appliesToMatrixDimension[lastElement];
+        if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
+        appliesToMatrixDimension.append(str.sprintf("%d",temp));
         xml.writeAttribute("AppliesToMatrixDimension", appliesToMatrixDimension);
     }
 
@@ -157,10 +175,25 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
     {
         writeBrainModel(xml, matrixIndicesMap.m_brainModels[i]);
     }
+    for (size_t i = 0; i < matrixIndicesMap.m_namedMaps.size(); ++i)
+    {
+        writeNamedMap(xml, matrixIndicesMap.m_namedMaps[i]);
+    }
+    for (size_t i = 0; i < matrixIndicesMap.m_parcelSurfaces.size(); ++i)
+    {
+        xml.writeStartElement("Surface");
+        xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(matrixIndicesMap.m_parcelSurfaces[i].m_structure));
+        xml.writeAttribute("SurfaceNumberOfNodes", AString::number(matrixIndicesMap.m_parcelSurfaces[i].m_numNodes));
+        xml.writeEndElement();
+    }
+    for (size_t i = 0; i < matrixIndicesMap.m_parcels.size(); ++i)
+    {
+        writeParcel(xml, matrixIndicesMap.m_parcels[i]);
+    }
     xml.writeEndElement();
 }
 
-void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel)
+void CiftiXMLWriter::writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement &brainModel)
 {     
     xml.writeStartElement("BrainModel");
 
@@ -190,7 +223,7 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
 
 
 
-    std::vector <voxelIndexType> &ind = brainModel.m_voxelIndicesIJK;
+    const std::vector <voxelIndexType> &ind = brainModel.m_voxelIndicesIJK;
     unsigned long long lastVoxelIndex = ind.size();
     if(lastVoxelIndex)
     {
@@ -214,7 +247,83 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
     xml.writeEndElement();
 }
 
-void caret::writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
+void CiftiXMLWriter::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& namedMap)
+{
+    xml.writeStartElement("NamedMap");
+    xml.writeStartElement("MapName");
+    xml.writeCharacters(namedMap.m_mapName);
+    xml.writeEndElement();
+    if (namedMap.m_labelTable != NULL)
+    {
+        namedMap.m_labelTable->writeAsXML(xml);
+    }
+    map<AString, AString> metadataCopy = namedMap.m_mapMetaData;//make a copy because we may need to modify it to integrate palette
+    if (namedMap.m_palette != NULL)
+    {//NULL palette means we didn't mess with palette at all, leave metadata unchanged
+        if (namedMap.m_defaultPalette && !(namedMap.m_palette->isModified()))
+        {//it is set to use the default palette instead of a custom palette, so remove the palette item from metadata, if it exists
+            metadataCopy.erase("PaletteColorMapping");
+        } else {
+            metadataCopy["PaletteColorMapping"] = namedMap.m_palette->encodeInXML();
+        }
+    }
+    if (metadataCopy.size() != 0)
+    {
+        writeMetaData(xml, metadataCopy);
+    }
+    xml.writeEndElement();
+}
+
+void CiftiXMLWriter::writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel)
+{
+    xml.writeStartElement("Parcel");
+    xml.writeAttribute("Name", parcel.m_parcelName);
+    int numNodeElements = (int)parcel.m_nodeElements.size();
+    for (int i = 0; i < numNodeElements; ++i)
+    {
+        writeParcelNodes(xml, parcel.m_nodeElements[i]);
+    }
+    int numVoxInds = (int)parcel.m_voxelIndicesIJK.size();
+    if (numVoxInds > 0)
+    {
+        xml.writeStartElement("VoxelIndicesIJK");
+        xml.writeCharacters(AString::number(parcel.m_voxelIndicesIJK[0]));
+        int state = 0;
+        for (int i = 1; i < numVoxInds; ++i)
+        {
+            if (state >= 2)
+            {
+                state = 0;
+                xml.writeCharacters("\n");
+            } else {
+                ++state;
+                xml.writeCharacters(" ");
+            }
+            xml.writeCharacters(AString::number(parcel.m_voxelIndicesIJK[i]));
+        }
+        xml.writeEndElement();
+    }
+    xml.writeEndElement();
+}
+
+void CiftiXMLWriter::writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElement& parcelNodes)
+{
+    int numNodes = (int)parcelNodes.m_nodes.size();
+    if (numNodes > 0)//don't write empty elements even if they exist in the tree
+    {
+        xml.writeStartElement("Nodes");
+        xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(parcelNodes.m_structure));
+        xml.writeCharacters(AString::number(parcelNodes.m_nodes[0]));
+        for (int i = 1; i < numNodes; ++i)
+        {
+            xml.writeCharacters(" ");
+            xml.writeCharacters(AString::number(parcelNodes.m_nodes[i]));
+        }
+        xml.writeEndElement();
+    }
+}
+
+void CiftiXMLWriter::writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume)
 {     
     xml.writeStartElement("Volume");
 
@@ -228,7 +337,7 @@ void caret::writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
     xml.writeEndElement();
 }
 
-void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void CiftiXMLWriter::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, const TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {     
     xml.writeStartElement("TransformationMatrixVoxelIndicesIJKtoXYZ");
 
@@ -245,22 +354,22 @@ void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml,
     QString s;
     for(int i = 0;i<15;i++)
     {
-        voxelIndices.append(s.sprintf("%.1f ",transform.m_transform[i]));
+        voxelIndices.append(s.sprintf("%.10f ",transform.m_transform[i]));
     }
-    voxelIndices.append(s.sprintf("%.1f", transform.m_transform[15]));
+    voxelIndices.append(s.sprintf("%.10f", transform.m_transform[15]));
     xml.writeCharacters(voxelIndices);
 
     xml.writeEndElement();
 
 }
 
-void caret::getModelTypeString(int modelType, QString &modelTypeString)
+void CiftiXMLWriter::getModelTypeString(int modelType, QString &modelTypeString)
 {
     if(modelType == CIFTI_MODEL_TYPE_SURFACE) modelTypeString = "CIFTI_MODEL_TYPE_SURFACE";
     else if(modelType == CIFTI_MODEL_TYPE_VOXELS) modelTypeString = "CIFTI_MODEL_TYPE_VOXELS";
 }
 
-void caret::getDataSpaceString(int dataSpace, QString &dataSpaceString)
+void CiftiXMLWriter::getDataSpaceString(int dataSpace, QString &dataSpaceString)
 {
     if(dataSpace == NIFTI_XFORM_UNKNOWN) dataSpaceString = "NIFTI_XFORM_UNKNOWN";
     else if(dataSpace == NIFTI_XFORM_SCANNER_ANAT) dataSpaceString = "NIFTI_XFORM_SCANNER_ANAT";
@@ -269,7 +378,7 @@ void caret::getDataSpaceString(int dataSpace, QString &dataSpaceString)
     else if(dataSpace == NIFTI_XFORM_MNI_152) dataSpaceString = "NIFTI_XFORM_MNI_152";
 }
 
-void caret::getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
+void CiftiXMLWriter::getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
 {
     if(unitsXYZ == NIFTI_UNITS_MM) unitsXYZString = "NIFTI_UNITS_MM";
     else if(unitsXYZ == NIFTI_UNITS_MICRON) unitsXYZString = "NIFTI_UNITS_MICRON";

@@ -254,9 +254,12 @@ CaretAssertion::unitTest(std::ostream& stream,
                          const bool isVerbose)
 {
 #ifdef NDEBUG
-    stream << "Unit testing of CaretAssertion will not take place since software is not compiled with debug on." << std::endl;
+    if (isVerbose)
+    {
+        stream << "Unit testing of CaretAssertion will not take place since software is not compiled with debug on." << std::endl;
+    }
     return;
-#endif
+#else
     
     CaretAssertion::unitTestFlag = true;
     stream << "CaretAssertion::unitTest is starting" << std::endl;
@@ -288,8 +291,8 @@ CaretAssertion::unitTest(std::ostream& stream,
     CaretAssertion::unitTestHelper(stream, "Assert Message One", str.str(), true, isVerbose);
     str.str("");
     
-    int32_t someArray[] = { 1, 2, 3 };
-    someArray[1] = 2;
+    /*int32_t someArray[] = { 1, 2, 3 };
+    someArray[1] = 2;//*/
     
     CaretAssertArrayIndex(someArray, 3, -1);
     CaretAssertion::unitTestHelper(stream, "Assert Array Index -1", str.str(), false, isVerbose);
@@ -330,6 +333,7 @@ CaretAssertion::unitTest(std::ostream& stream,
     
     stream << "CaretAssertion::unitTest has ended" << std::endl << std::endl;;
     CaretAssertion::unitTestFlag = false;
+#endif
 }
 
 void 

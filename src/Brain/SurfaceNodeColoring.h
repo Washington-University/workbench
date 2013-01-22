@@ -32,8 +32,12 @@ namespace caret {
 
     class BrainStructure;
     class BrowserTabContent;
+    class CiftiConnectivityMatrixDataFile;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
     class ConnectivityLoaderFile;
-    class ModelDisplayController;
+    class DisplayPropertiesLabels;
+    class Model;
     class LabelFile;
     class MetricFile;
     class Palette;
@@ -50,13 +54,10 @@ namespace caret {
         
         virtual ~SurfaceNodeColoring();
         
-        float* colorSurfaceNodes(ModelDisplayController* modelDisplayController,
+        float* colorSurfaceNodes(Model* modelDisplayController,
                                  Surface* surface,
                                  const int32_t browserTabIndex);
         
-        void colorSurfaceNodes(const Surface* surface,
-                               OverlaySet* overlaySet,
-                               float* rgbaNodeColors);
     private:
         SurfaceNodeColoring(const SurfaceNodeColoring&);
 
@@ -73,17 +74,44 @@ namespace caret {
             METRIC_COLOR_TYPE_DO_NOT_COLOR
         };        
         
+        void colorSurfaceNodes(const DisplayPropertiesLabels* dpl,
+                               const int32_t browserTabIndex,
+                               const Surface* surface,
+                               OverlaySet* overlaySet,
+                               float* rgbaNodeColors);
+        
         bool assignConnectivityColoring(const BrainStructure* brainStructure,
                                         ConnectivityLoaderFile* connectivityLoaderFile,
                                         const int32_t numberOfNodes,
                                         float* rgbv);
         
-        bool assignLabelColoring(const BrainStructure* brainStructure,
+        bool assignLabelColoring(const DisplayPropertiesLabels* dpl,
+                                 const int32_t browserTabIndex,
+                                 const BrainStructure* brainStructure,
+                                 const Surface* surface,
                                  const LabelFile* labelFile,
                                  const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
+        bool assignCiftiLabelColoring(const BrainStructure* brainStructure,
+                                  CiftiBrainordinateLabelFile* ciftiScalarFile,
+                                  const AString& metricMapUniqueID,
+                                  const int32_t numberOfNodes,
+                                  float* rgbv);
+        
+        bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
+                                       CiftiBrainordinateScalarFile* ciftiScalarFile,
+                                       const AString& metricMapUniqueID,
+                                       const int32_t numberOfNodes,
+                                       float* rgbv);
+        
+        bool assignCiftiConnectivityMatrixColoring(const BrainStructure* brainStructure,
+                                       CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
+                                       const AString& selectedMapUniqueID,
+                                       const int32_t numberOfNodes,
+                                       float* rgbv);
+        
         bool assignMetricColoring(const BrainStructure* brainStructure,
                                   MetricFile* metricFile,
                                   const AString& metricMapUniqueID,

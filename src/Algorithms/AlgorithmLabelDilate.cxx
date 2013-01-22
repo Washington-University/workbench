@@ -24,9 +24,11 @@
 
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmException.h"
+#include "GeodesicHelper.h"
 #include "LabelFile.h"
 #include "GiftiLabelTable.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 using namespace std;
@@ -67,7 +69,7 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
     LabelFile* myLabel = myParams->getLabel(1);
     SurfaceFile* mySurf = myParams->getSurface(2);
     float myDist = (float)myParams->getDouble(3);
-    LabelFile* myLabelOut = myParams->getLabel(4);
+    LabelFile* myLabelOut = myParams->getOutputLabel(4);
     OptionalParameter* columnSelect = myParams->getOptionalParameter(5);
     int columnNum = -1;
     if (columnSelect->m_present)
@@ -97,16 +99,17 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     int numNodes = myLabel->getNumberOfNodes();
     if (mySurf->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("surface has wrong number of nodes for this label");
+        throw AlgorithmException("surface has wrong number of vertices for this label");
     }
     CaretArray<int32_t> colScratch(numNodes);
     vector<float> myAreas;
     CaretArray<int> markArray(numNodes);
     mySurf->computeNodeAreas(myAreas);
-    *(myLabelOut->getLabelTable()) = *(myLabel->getLabelTable());
     if (columnNum == -1)
     {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, myLabel->getNumberOfColumns());
+        *(myLabelOut->getLabelTable()) = *(myLabel->getLabelTable());
+        myLabelOut->setStructure(mySurf->getStructure());
         for (int thisCol = 0; thisCol < myLabel->getNumberOfColumns(); ++thisCol)
         {
             const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(thisCol);
@@ -180,6 +183,8 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
         }
     } else {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, 1);
+        *(myLabelOut->getLabelTable()) = *(myLabel->getLabelTable());
+        myLabelOut->setStructure(mySurf->getStructure());
         const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(columnNum);
         myLabelOut->setColumnName(0, myLabel->getColumnName(columnNum) + " dilated");
         for (int i = 0; i < numNodes; ++i)

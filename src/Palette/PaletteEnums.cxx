@@ -747,6 +747,22 @@ PaletteThresholdTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     }
     return e;
 }
+
+/**
+ * Get all enums for the data type.
+ * @param enumsOut
+ *   Loaded with all enums for this data type.
+ */
+void PaletteThresholdTestEnum::getAllEnums(std::vector<Enum>& enumsOut)
+{
+    initialize();
+    enumsOut.resize(enumData.size());
+    for (int i = 0; i < (int)enumData.size(); ++i)
+    {
+        enumsOut[i] = enumData[i].e;
+    }
+}
+
 /**
  * Get all enums for the data type.
  * @param enumsOut

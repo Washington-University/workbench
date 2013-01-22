@@ -44,15 +44,28 @@ class QListWidgetItem;
 
 namespace caret {
 
+    class BorderFile;
     class ColorEditorWidget;
+    class FociFile;
     class GiftiLabel;
     class GiftiLabelTable;
+    class WuQWidgetObjectGroup;
     
     class GiftiLabelTableEditor : public WuQDialogModal {
         Q_OBJECT
         
     public:
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
+                              const AString& dialogTitle,
+                              QWidget* parent);
+        
+        GiftiLabelTableEditor(FociFile* fociFile,
+                              GiftiLabelTable* giftiLableTable,
+                              const AString& dialogTitle,
+                              QWidget* parent);
+        
+        GiftiLabelTableEditor(BorderFile* borderFile,
+                              GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
                               QWidget* parent);
         
@@ -78,26 +91,37 @@ namespace caret {
         
         void labelNameLineEditTextEdited(const QString&);
         
+    protected:
+        virtual void okButtonClicked();
+
     private:
-        void loadLabels(const AString& selectedName = "",
-                        const bool usePreviouslySelectedIndex = false);
+        void initializeDialog(GiftiLabelTable* giftiLabelTable);
+        
+        void loadLabels(const AString& selectedName,
+                        const bool usePreviouslySelectedIndex);
         
         GiftiLabel* getSelectedLabel();
         
         void setWidgetItemIconColor(QListWidgetItem* item,
                                     const float rgba[4]);
         
-        QListWidget* labelSelectionListWidget;
+        QListWidget* m_labelSelectionListWidget;
         
-        GiftiLabelTable* giftiLableTable;
+        BorderFile* m_borderFile;
         
-        ColorEditorWidget* colorEditorWidget;
+        FociFile* m_fociFile;
         
-        QLineEdit* labelNameLineEdit;
+        GiftiLabelTable* m_giftiLableTable;
         
-        AString lastSelectedLabelName;
+        ColorEditorWidget* m_colorEditorWidget;
         
-        GiftiLabel* undoGiftiLabel;
+        QLineEdit* m_labelNameLineEdit;
+        
+        AString m_lastSelectedLabelName;
+        
+        GiftiLabel* m_undoGiftiLabel;
+        
+        WuQWidgetObjectGroup* m_editingGroup;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__

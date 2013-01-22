@@ -25,6 +25,9 @@
 #include <ostream>
 #include <sstream>
 
+#include <QTextStream>
+
+#include "AString.h"
 #include "CaretLogger.h"
 #include "XmlWriter.h"
 
@@ -36,12 +39,23 @@ using namespace caret;
  * @param writer - Writer to which XML is written.
  */
 XmlWriter::XmlWriter(std::ostream& writerIn)
-   : writer(writerIn) {
+   : stdOutputStreamWriter(&writerIn), 
+     qTextStreamWriter(NULL),
+     outputStreamType(OUTPUT_STREAM_STD_OUTPUT_STREAM)
+{
    this->indentationSpaces = 0;
    this->numberOfDecimalPlaces = 6;
-   //AString::setFloatDigitsRightOfDecimal(this->numberOfDecimalPlaces);
-   
 }
+
+XmlWriter::XmlWriter(QTextStream& writerIn)
+   : stdOutputStreamWriter(NULL), 
+     qTextStreamWriter(&writerIn),
+     outputStreamType(OUTPUT_STREAM_Q_TEXT_STREAM)
+{
+    this->indentationSpaces = 0;
+    this->numberOfDecimalPlaces = 6;
+}
+
 
 /**
  * Write the XML Start Document.
@@ -51,19 +65,10 @@ XmlWriter::XmlWriter(std::ostream& writerIn)
  */
 void
 XmlWriter::writeStartDocument(const AString& xmlVersion) throw (XmlException) {
-   writer << ("<?xml version=\"" + xmlVersion.toStdString() + "\" encoding=\"UTF-8\"?>\n");
+   this->writeTextToOutputStream("<?xml version=\"" 
+                                 + xmlVersion
+                                 + "\" encoding=\"UTF-8\"?>\n");
 }
-
-/**
- * Writes a start tag to the output.
- *
- * @param localName - local name of tag to write.
- * @throws IOException if an I/O error occurs.
- */
-//void writeStartDocument(const char* localName) throw(XmlException) {
-//   AString ln = localName;
-//   this->writeStartDocument(ln);
-//}
 
 /**
  * Write the XML Start document.
@@ -84,9 +89,10 @@ XmlWriter::writeStartDocument() throw (XmlException) {
  */
 void
 XmlWriter::writeDTD(const AString& rootTag, const AString& dtdURL) throw(XmlException) {
-   writer << ("<!DOCTYPE "
-                + rootTag.toStdString() + " SYSTEM \""
-                + dtdURL.toStdString() + "\">\n");
+   this->writeTextToOutputStream("<!DOCTYPE "
+                                 + rootTag 
+                                 + " SYSTEM \""
+                                 + dtdURL + "\">\n");
 }
 
 /**
@@ -98,8 +104,24 @@ XmlWriter::writeEndDocument() throw(XmlException) {
    while (this->elementStack.empty() == false) {
       writeEndElement();
    }
+    
+    this->flushOutputStream();
+}
 
-   writer.flush();
+/**
+ * Flush the output stream.
+ */
+void 
+XmlWriter::flushOutputStream()
+{
+    switch (this->outputStreamType) {
+        case OUTPUT_STREAM_Q_TEXT_STREAM:
+            qTextStreamWriter->flush();
+            break;
+        case OUTPUT_STREAM_STD_OUTPUT_STREAM:
+            stdOutputStreamWriter->flush();
+            break;
+    }
 }
 
 /**
@@ -184,62 +206,44 @@ XmlWriter::writeElementCharacters(const AString& localName, const bool value) {
  *
  * @param localName - local name of tag to write.
  * @param text - text to write.
- * @throws IOException if an I/O error occurs.
- */
-//void writeElementCharacters(const char* localName, const char* text) {
-//   this->writeElementCharacters(localName, text);
-//}
-
-/**
- * Write an element on one line.
- *
- * @param localName - local name of tag to write.
- * @param text - text to write.
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
 XmlWriter::writeElementCharacters(const AString& localName, const AString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString() + ">");
+   this->writeTextToOutputStream("<" + localName + ">");
    this->writeCharacters(text);
-   writer << ("</" + localName.toStdString() + ">\n");
+   this->writeTextToOutputStream("</" + localName + ">\n");
 }
 
 /**
  * Write an element on one line.
  *
  * @param localName - local name of tag to write.
+ * @param attributes - attribute for element.
  * @param text - text to write.
- * @throws IOException if an I/O error occurs.
+ * @throws XmlException if an I/O error occurs.
  */
-//void writeElementCharacters(const char* localName, AString text)
-//                                                 throw(XmlException) {
-//   AString ln = localName;
-//   this->writeElementCharacters(ln, text);
-//}
-
-/**
- * Write an element on one line.
- *
- * @param localName - local name of tag to write.
- * @param text - text to write.
- * @throws IOException if an I/O error occurs.
- */
-//void writeElementCData(const char* localName, const char* text) {
-//   this->writeElementCData(localName, text);
-//}
-
-/**
- * Write an element on one line.
- *
- * @param localName - local name of tag to write.
- * @param text - text to write.
- * @throws IOException if an I/O error occurs.
- */
-//void writeElementCData(const char* localName, AString text) {
-//   this->writeElementCData(localName, text);
-//}
+void
+XmlWriter::writeElementCharacters(const AString& localName, 
+                                  const XmlAttributes& attributes,
+                                  const AString& text)
+throw(XmlException) {
+    this->writeIndentation();
+    this->writeTextToOutputStream("<" + localName);
+    int32_t numAtts = attributes.getNumberOfAttributes();
+    for (int32_t i = 0; i < numAtts; i++) {
+        this->writeTextToOutputStream(" "
+                                      + attributes.getName(i)
+                                      + "=\""
+                                      + attributes.getValue(i)
+                                      + "\"");
+    }
+    this->writeTextToOutputStream(">");
+    this->writeCharacters(text);
+    this->writeTextToOutputStream("</" + localName + ">\n");
+}
 
 /**
  * Write a CData section on one line.
@@ -252,9 +256,9 @@ void
 XmlWriter::writeElementCData(const AString& localName, const AString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString() + ">");
+   this->writeTextToOutputStream("<" + localName + ">");
    this->writeCData(text);
-   writer << ("</" + localName.toStdString() + ">\n");
+   this->writeTextToOutputStream("</" + localName + ">\n");
 }
 
 /**
@@ -271,18 +275,18 @@ XmlWriter::writeElementCData(const AString& localName,
                               const AString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString());
+   this->writeTextToOutputStream("<" + localName);
    int32_t numAtts = attributes.getNumberOfAttributes();
    for (int32_t i = 0; i < numAtts; i++) {
-      writer << (" "
-                   + attributes.getName(i).toStdString()
-                   + "=\""
-                   + attributes.getValue(i).toStdString()
-                   + "\"");
+      this->writeTextToOutputStream(" "
+                                    + attributes.getName(i)
+                                    + "=\""
+                                    + attributes.getValue(i)
+                                    + "\"");
    }
-   writer << (">");
+   this->writeTextToOutputStream(">");
    this->writeCData(text);
-   writer << ("</" + localName.toStdString() + ">\n");
+   this->writeTextToOutputStream("</" + localName + ">\n");
 }
 
 /**
@@ -296,21 +300,11 @@ void
 XmlWriter::writeElementNoSpace(const AString& localName, const AString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString() + ">");
-   writer << (text.toStdString());
-   writer << ("</" + localName.toStdString() + ">\n");
+   this->writeTextToOutputStream("<" + localName + ">");
+   this->writeTextToOutputStream(text);
+   this->writeTextToOutputStream("</" + localName + ">\n");
 }
 
-/**
- * Writes a start tag to the output.
- *
- * @param localName - local name of tag to write.
- * @throws IOException if an I/O error occurs.
- */
-//void writeStartElement(const char* localName) throw(XmlException) {
-//   AString ln = localName;
-//   this->writeStartElement(ln);
-//}
 /**
  * Writes a start tag to the output.
  *
@@ -320,7 +314,7 @@ XmlWriter::writeElementNoSpace(const AString& localName, const AString& text)
 void
 XmlWriter::writeStartElement(const AString& localName) throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString() + ">\n");
+   this->writeTextToOutputStream("<" + localName + ">\n");
    this->indentationSpaces++;
    this->elementStack.push(localName);
 }
@@ -336,7 +330,7 @@ void
 XmlWriter::writeStartElement(const AString& localName,
                   const XmlAttributes& attributes) throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName.toStdString() + " ");
+   this->writeTextToOutputStream("<" + localName + " ");
 
    int32_t attIndentSpaces = localName.length() + 2;
    AString attIndentString(attIndentSpaces, ' ');
@@ -345,18 +339,18 @@ XmlWriter::writeStartElement(const AString& localName,
    for (int32_t i = 0; i < numAtts; i++) {
       if (i > 0) {
          this->writeIndentation();
-         writer << (attIndentString.toStdString());
+         this->writeTextToOutputStream(attIndentString);
       }
-      writer << (attributes.getName(i).toStdString()
-                   + "=\""
-                   + attributes.getValue(i).toStdString()
-                   + "\"");
+      this->writeTextToOutputStream(attributes.getName(i)
+                                    + "=\""
+                                    + attributes.getValue(i)
+                                    + "\"");
       if (i < (numAtts - 1)) {
-         writer << ("\n");
+         this->writeTextToOutputStream("\n");
       }
    }
 
-   writer << (">\n");
+   this->writeTextToOutputStream(">\n");
    this->indentationSpaces++;
    this->elementStack.push(localName);
 }
@@ -376,7 +370,7 @@ XmlWriter::writeEndElement() throw(XmlException) {
     this->elementStack.pop();
     this->indentationSpaces--;
     this->writeIndentation();
-    writer << ("</" + localName.toStdString() + ">\n");
+    this->writeTextToOutputStream("</" + localName + ">\n");
 }
 
 /**
@@ -387,9 +381,26 @@ XmlWriter::writeEndElement() throw(XmlException) {
  */
 void
 XmlWriter::writeCData(const AString& data) throw(XmlException) {
-   writer << "<![CDATA[";
+   this->writeTextToOutputStream("<![CDATA[");
    this->writeCharacters(data);
-   writer << "]]>";
+   this->writeTextToOutputStream("]]>");
+}
+
+/**
+ * Write text to the output stream.  Expects all characters
+ * to be valid.
+ */
+void 
+XmlWriter::writeTextToOutputStream(const AString& text)
+{
+    switch (this->outputStreamType) {
+        case OUTPUT_STREAM_Q_TEXT_STREAM:
+            *qTextStreamWriter << text;
+            break;
+        case OUTPUT_STREAM_STD_OUTPUT_STREAM:
+            *stdOutputStreamWriter << (text.toStdString());
+            break;
+    }
 }
 
 /**
@@ -401,34 +412,73 @@ XmlWriter::writeCData(const AString& data) throw(XmlException) {
  */
 void
 XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
-   const wchar_t CARRIAGE_RETURN = 13;
-   const wchar_t LINE_FEED = 10;
-   const wchar_t TAB = 9;
-
-   std::string tempstring = text.toStdString();
-   int32_t num = tempstring.length();
-   for (int32_t i = 0; i < num; i++) {
-      char c = tempstring.at(i);
-
-      bool printIt = true; //c.isPrint();
-
-      if (c < 32) {
-         printIt = false;
-         
-         if ((c == CARRIAGE_RETURN) ||
-             (c == LINE_FEED) ||
-             (c == TAB)) {
-            printIt = true;
-         }
-      }
-      if (printIt) {
-         writer << c;
-      }
-      else {
-          CaretLogWarning("Unicode value of character not written: " + (int)c);
-      }
-   }
-   //writer << (text);
+    switch (this->outputStreamType) {
+        case OUTPUT_STREAM_Q_TEXT_STREAM:
+        {
+            const ushort CARRIAGE_RETURN = 13;
+            const ushort LINE_FEED = 10;
+            const ushort TAB = 9;
+            
+            int32_t num = text.length();
+            for (int32_t i = 0; i < num; i++) {
+                QChar c = text[i];
+                ushort u = c.unicode();
+                
+                bool printIt = true; //c.isPrint();
+                
+                if (u < 32) {
+                    printIt = false;
+                    
+                    if ((u == CARRIAGE_RETURN) ||
+                        (u == LINE_FEED) ||
+                        (u == TAB)) {
+                        printIt = true;
+                    }
+                }
+                if (printIt) {
+                    *qTextStreamWriter << c;
+                }
+                else {
+                    CaretLogWarning("Unicode value of character not written: " 
+                                    + AString::number((int)u));
+                }
+            }
+            
+        }
+            break;
+        case OUTPUT_STREAM_STD_OUTPUT_STREAM:
+        {
+            const wchar_t CARRIAGE_RETURN = 13;
+            const wchar_t LINE_FEED = 10;
+            const wchar_t TAB = 9;
+            
+            std::string tempstring = text.toStdString();
+            int32_t num = tempstring.length();
+            for (int32_t i = 0; i < num; i++) {
+                char c = tempstring[i];
+                
+                bool printIt = true; //c.isPrint();
+                
+                if (c < 32) {
+                    printIt = false;
+                    
+                    if ((c == CARRIAGE_RETURN) ||
+                        (c == LINE_FEED) ||
+                        (c == TAB)) {
+                        printIt = true;
+                    }
+                }
+                if (printIt) {
+                    *stdOutputStreamWriter << c;
+                }
+                else {
+                    CaretLogWarning("Unicode value of character not written: " + AString::number((int)c));
+                }
+            }
+            
+        }
+            break;
+    }
 }
 
 /**
@@ -440,7 +490,7 @@ XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
 void
 XmlWriter::writeCharactersWithIndent(const AString& text) throw(XmlException) {
    this->writeIndentation();
-   writer << (text.toStdString());
+   this->writeTextToOutputStream(text);
 }
 
 void
@@ -456,7 +506,7 @@ XmlWriter::setNumberOfDecimalPlaces(int32_t decimals) {
 void XmlWriter::writeIndentation() throw(XmlException) {
    if (this->indentationSpaces > 0) {
       AString sb(indentationSpaces * 3, ' ');
-      writer << (sb.toStdString());
+      this->writeTextToOutputStream(sb);
    }
 }
 

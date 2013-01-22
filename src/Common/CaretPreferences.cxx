@@ -99,6 +99,34 @@ void CaretPreferences::setBoolean(const AString& name,
 }
 
 /**
+ * Get the boolean value for the given preference name.
+ * @param name
+ *    Name of the preference.
+ * @return
+ *    Integer value of preference or defaultValue if the
+ *    named preference is not found.
+ */
+int CaretPreferences::getInteger(const AString& name,
+                                  const int defaultValue)
+{
+    int b = this->qSettings->value(name, defaultValue).toInt();
+    return b;
+}
+
+/**
+ * Set the given preference name with the integer value.
+ * @param
+ *    Name of the preference.
+ * @param
+ *    New value for preference.
+ */
+void CaretPreferences::setInteger(const AString& name,
+                                  const int value)
+{
+    this->qSettings->setValue(name, value);
+}
+
+/**
  * Remove all user views.
  */
 void 
@@ -117,14 +145,44 @@ CaretPreferences::removeAllUserViews()
  * @return
  *    All of the user views.
  */
-std::vector<const UserView*> 
+std::vector<UserView*> 
 CaretPreferences::getAllUserViews()
 {
-    std::vector<const UserView*> viewsOut;
+    std::vector<UserView*> viewsOut;
     viewsOut.insert(viewsOut.end(),
                     this->userViews.begin(),
                     this->userViews.end());
     return viewsOut;
+}
+
+/**
+ * Set the user views to the given user views.  This class will take
+ * ownership of the user views and delete them when necessary.
+ *
+ * @param allUserViews
+ *     New user views.
+ */
+void
+CaretPreferences::setAllUserViews(std::vector<UserView*>& allUserViews)
+{
+    /*
+     * Remove any existing views that are not in the new vector of views
+     */
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        UserView* uv = *iter;
+        if (std::find(allUserViews.begin(),
+                      allUserViews.end(),
+                      uv) == allUserViews.end()) {
+            delete uv;
+        }
+    }
+    this->userViews.clear();
+    
+    this->userViews = allUserViews;
+    
+    this->writeUserViews();
 }
 
 /**
@@ -523,6 +581,52 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
                      this->displayVolumeAxesLabels);
 }
 
+
+/**
+ * @return  Are montage axes coordinates displayed?
+ */
+bool
+CaretPreferences::isVolumeMontageAxesCoordinatesDisplayed() const
+{
+    return this->displayVolumeAxesCoordinates;
+}
+
+/**
+ * Set montage axes coordinates displayed
+ * @param displayed
+ *   New status.
+ */
+void
+CaretPreferences::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
+{
+    this->displayVolumeAxesCoordinates = displayed;
+    this->setBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+                     this->displayVolumeAxesCoordinates);
+}
+
+/**
+ * @return The toolbox type.
+ */
+int32_t 
+CaretPreferences::getToolBoxType() const
+{
+    return this->toolBoxType;
+}
+
+/**
+ * Set the toolbox type.
+ * @param toolBoxType
+ *    New toolbox type.
+ */
+void 
+CaretPreferences::setToolBoxType(const int32_t toolBoxType)
+{
+    this->toolBoxType = toolBoxType;
+    this->setInteger(CaretPreferences::NAME_TOOLBOX_TYPE, 
+                     this->toolBoxType);
+}
+
+
 /**
  * @return Is contralateral identification enabled?
  *
@@ -546,6 +650,28 @@ CaretPreferences::setContralateralIdentificationEnabled(const bool enabled)
                      this->contralateralIdentificationEnabled);
 }
 */
+
+/**
+ * @return Is the splash screen enabled?
+ */
+bool 
+CaretPreferences::isSplashScreenEnabled() const
+{
+    return this->splashScreenEnabled;
+}
+
+/**
+ * Set the splash screen enabled.
+ * @param enabled
+ *    New status.
+ */
+void 
+CaretPreferences::setSplashScreenEnabled(const bool enabled)
+{
+    this->splashScreenEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_SPLASH_SCREEN, 
+                     this->splashScreenEnabled);
+}
 
 /**
  * Initialize/Read the preferences
@@ -589,19 +715,9 @@ CaretPreferences::readPreferences()
     }
     this->qSettings->endArray();
     
-    this->removeAllUserViews();
-    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
-    for (int i = 0; i < numUserViews; i++) {
-        this->qSettings->setArrayIndex(i);
-        const AString viewString = this->qSettings->value(AString::number(i)).toString();
-        UserView uv;
-        if (uv.setFromString(viewString)) {
-            this->userViews.push_back(new UserView(uv));
-        }        
-    }
-    this->qSettings->endArray();
-    
-    AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL, 
+    this->readUserViews(false);
+
+    AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL,
                                           LogLevelEnum::toName(LogLevelEnum::INFO)).toString();
     bool valid = false;
     LogLevelEnum::Enum logLevel = LogLevelEnum::fromName(levelName, &valid);
@@ -614,12 +730,47 @@ CaretPreferences::readPreferences()
                                                      true);
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
                                                          true);    
+    this->displayVolumeAxesCoordinates = this->getBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+                                                          true);
+    
+    this->animationStartTime = 0.0;//this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 
-    this->animationStartTime = this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
-
+    this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,
+                                         0);
+    
+    this->splashScreenEnabled = this->getBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
+                                                 true);
+    
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);
+    
 }
+
+/**
+ * Read the user views.  Since user's may created views and want to use them
+ * in multiple instance of workbench that are running, this method allows 
+ * the user view's to be read without affecting other preferences.
+ */
+void
+CaretPreferences::readUserViews(const bool performSync)
+{
+    if (performSync) {
+        this->qSettings->sync();
+    }
+    
+    this->removeAllUserViews();
+    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
+    for (int i = 0; i < numUserViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString viewString = this->qSettings->value(AString::number(i)).toString();
+        UserView uv;
+        if (uv.setFromString(viewString)) {
+            this->userViews.push_back(new UserView(uv));
+        }
+    }
+    this->qSettings->endArray();    
+}
+
 
 void CaretPreferences::getAnimationStartTime(double& time)
 {  
@@ -630,7 +781,7 @@ void CaretPreferences::getAnimationStartTime(double& time)
 void CaretPreferences::setAnimationStartTime(const double& time)
 {
    animationStartTime = time;
-   this->qSettings->setValue(CaretPreferences::NAME_ANIMATION_START_TIME, time);
+   //this->qSettings->setValue(CaretPreferences::NAME_ANIMATION_START_TIME, time);
 }
 
 

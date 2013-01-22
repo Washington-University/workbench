@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QVector>
 
+class QLayout;
 class QObject;
 
 namespace caret {

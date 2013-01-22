@@ -23,20 +23,24 @@
  */ 
 
 #include <algorithm>
+#include <cmath>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "CiftiXnat.h"
+#include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
+#include "EventProgressUpdate.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
-#include "ConnectivityLoaderFile.h"
+#include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
+#include "PaletteFile.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
 
@@ -52,7 +56,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->ciftiXnatFile = NULL;
     this->ciftiInterface = NULL;
     this->descriptiveStatistics = NULL;
-    this->paletteColorMapping = NULL;
+    //this->paletteColorMapping = NULL;
     this->labelTable = NULL;
     this->metadata = NULL;
     this->data = NULL;
@@ -61,10 +65,10 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->connectivityVolumeFile = NULL;
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->timeSeriesGraphEnabled = false;
-    this->selectedTimePoint = 0.0;
+    this->selectedFrame = 0;
     this->dataLoadingEnabled = true;
+    this->yokeEnabled = false;
     this->uniqueID = SystemUtilities::createUniqueID();
-    
     this->setFileName("");
 }
 
@@ -94,10 +98,10 @@ ConnectivityLoaderFile::clearData()
         delete this->descriptiveStatistics;
         this->descriptiveStatistics = NULL;
     }
-    if (this->paletteColorMapping != NULL) {
+    /*if (this->paletteColorMapping != NULL) {
         delete this->paletteColorMapping;
         this->paletteColorMapping = NULL;
-    }
+    }//*/
     if (this->labelTable != NULL) {
         delete this->labelTable;
         this->labelTable = NULL;
@@ -110,13 +114,15 @@ ConnectivityLoaderFile::clearData()
         delete this->connectivityVolumeFile;
         this->connectivityVolumeFile = NULL;
     }
-    this->selectedTimePoint = 0.0;
+    this->selectedFrame = 0;
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->allocateData(0);
 
     this->dataLoadingEnabled = true;
+    
+    this->progressUpdateInterval = 1;
 }
 
 /**
@@ -139,7 +145,7 @@ ConnectivityLoaderFile::reset()
     this->clearData();
     this->descriptiveStatistics = new DescriptiveStatistics();
     
-    this->paletteColorMapping = new PaletteColorMapping();
+    //this->paletteColorMapping = new PaletteColorMapping();
     
     this->labelTable = new GiftiLabelTable();
     
@@ -166,6 +172,18 @@ bool
 ConnectivityLoaderFile::isDataLoadingEnabled() const
 {
     return this->dataLoadingEnabled;
+}
+
+bool
+ConnectivityLoaderFile::isAnimationEnabled() const
+{
+    return this->animationEnabled;
+}
+
+void
+ConnectivityLoaderFile::setAnimationEnabled(const bool animationEnabled)
+{
+    this->animationEnabled = animationEnabled;
 }
 
 /**
@@ -203,12 +221,27 @@ ConnectivityLoaderFile::setup(const AString& path,
 {
     this->clear();
     
+    bool isReadIntoMemory = true;
+    bool isReadableFromNetwork = false;
+    
     switch (connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             this->loaderType = LOADER_TYPE_DENSE;
+            isReadIntoMemory = false;
+            isReadableFromNetwork = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->loaderType = LOADER_TYPE_DENSE_TIME_SERIES;
+            isReadableFromNetwork = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            this->loaderType = LOADER_TYPE_FIBER_ORIENTATIONS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            this->loaderType = LOADER_TYPE_DENSE_LABELS;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            this->loaderType = LOADER_TYPE_DENSE_SCALARS;
             break;
         default:
             throw DataFileException("Unsupported connectivity type " 
@@ -218,6 +251,11 @@ ConnectivityLoaderFile::setup(const AString& path,
     
     try {
         if (path.startsWith("http")) {
+            if (isReadableFromNetwork == false) {
+                throw DataFileException(path
+                                        + " cannot be read from network.");
+            }
+            
             this->ciftiXnatFile = new CiftiXnat();
             if (username.isEmpty() == false) {
                 this->ciftiXnatFile->setAuthentication(path, username, password);
@@ -227,23 +265,52 @@ ConnectivityLoaderFile::setup(const AString& path,
         }
         else {
             this->ciftiDiskFile = new CiftiFile();
-            if(this->loaderType == LOADER_TYPE_DENSE_TIME_SERIES)
-            {
+            if(isReadIntoMemory) {
                 this->ciftiDiskFile->openFile(path, IN_MEMORY);
             }
-            else this->ciftiDiskFile->openFile(path, ON_DISK);
+            else {
+                this->ciftiDiskFile->openFile(path, ON_DISK);
+            }
 
             this->ciftiInterface = this->ciftiDiskFile;
         } 
         this->setFileName(path);
         this->setDataFileType(connectivityFileType);
 
-        this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-        this->paletteColorMapping->setInterpolatePaletteFlag(true);
+        switch (connectivityFileType) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                this->allocateData(num);
+                this->ciftiInterface->getColumn(this->data, 0);
+                this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+            }
+                break;
+            default:
+                throw DataFileException("Unsupported connectivity type "
+                                        + DataFileTypeEnum::toName(connectivityFileType));
+                break;
+        }
+
+        //this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+        //this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+        //this->paletteColorMapping->setInterpolatePaletteFlag(true);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
+    }
+
+    this->progressUpdateInterval = 10;
+    if (this->ciftiXnatFile != NULL) {
+        this->progressUpdateInterval = 1;
     }
 }
 
@@ -369,12 +436,12 @@ ConnectivityLoaderFile::getFileMetaData() const
  * @return The palette color mapping for a data column.
  */
 PaletteColorMapping* 
-ConnectivityLoaderFile::getPaletteColorMapping(const int32_t /*columnIndex*/)
+ConnectivityLoaderFile::getPaletteColorMapping(const int32_t columnIndex)
 {
     /*
      * Use one palette color mapping for all
      */
-    return this->paletteColorMapping;
+    return getMapPaletteColorMapping(columnIndex);
 }
 
 /**
@@ -414,6 +481,15 @@ ConnectivityLoaderFile::getNumberOfMaps() const
             case LOADER_TYPE_DENSE_TIME_SERIES:
                 numMaps = 1;
                 break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                numMaps = this->ciftiInterface->getNumberOfColumns();
+                break;
         }
     }
     
@@ -442,6 +518,15 @@ ConnectivityLoaderFile::getMapName(const int32_t /*mapIndex*/) const
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
                 name = "Dense Time Series";
+                break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                name = "Dense Labels";
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                name = "Dense Scalars";
                 break;
         }
     }
@@ -662,12 +747,25 @@ ConnectivityLoaderFile::isMappedWithPalette() const
  *    not mapped using a palette).
  */         
 PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
     /*
      * One palette mapping for all
      */
-    return this->paletteColorMapping;    
+    switch (loaderType)
+    {
+        case LOADER_TYPE_DENSE_SCALARS:
+            return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            if (ciftiInterface->getCiftiXML().getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)//because timeseries isn't always timeseries due to a hack of getting scalars to behave like dtseries
+            {
+                return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+            } else {
+                return this->ciftiInterface->getCiftiXML().getFilePalette();
+            }
+        default:
+            return this->ciftiInterface->getCiftiXML().getFilePalette();
+    };
 }
 
 /**
@@ -680,12 +778,25 @@ ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
  *    not mapped using a palette).
  */         
 const PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
     /*
      * One palette mapping for all
      */
-    return this->paletteColorMapping;    
+    switch (loaderType)
+    {
+        case LOADER_TYPE_DENSE_SCALARS:
+            return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            if (ciftiInterface->getCiftiXML().getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)//because timeseries isn't always timeseries due to a hack of getting scalars to behave like dtseries
+            {
+                return this->ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW, mapIndex);
+            } else {
+                return this->ciftiInterface->getCiftiXML().getFilePalette();
+            }
+        default:
+            return this->ciftiInterface->getCiftiXML().getFilePalette();
+    };
 }
 
 /**
@@ -755,6 +866,15 @@ ConnectivityLoaderFile::isDenseTimeSeries() const
 }
 
 /**
+ * @return does this Cifti file have labeled columns
+ */
+bool 
+ConnectivityLoaderFile::hasDataSeriesLabels()
+{
+    return (this->ciftiInterface->getCiftiXML().getRowMappingType()==CIFTI_INDEX_TYPE_SCALARS);
+}
+
+/**
  * @return Name describing loader content.
  */
 AString 
@@ -768,6 +888,15 @@ ConnectivityLoaderFile::getCiftiTypeName() const
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             return "Dense Time";
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            return "Fiber Orientations";
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            return "Dense Labels";
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            return "Dense Scalars";
             break;
     }
     return "";
@@ -817,16 +946,15 @@ ConnectivityLoaderFile::zeroizeData()
  * @param seconds
  *    Time of data in seconds.
  */
-void 
+/*void 
 ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    /*
-     * Allow loading of data disable?
-     */
+    // Allow loading of data disable?
+     
     if (this->dataLoadingEnabled == false) {
         return;
     }
@@ -858,6 +986,66 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+}*/
+
+/**
+ * Load connectivity data for the data at the specified time.
+ * @param seconds
+ *    Time of data in seconds.
+ */
+void 
+ConnectivityLoaderFile::loadFrame(const int frame) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    this->zeroizeData();
+    //TODOJS: Make sure that selectedTimePoint is updated to selectedFrame
+    //this->selectedTimePoint = seconds;//TSC: update seconds any time you change data in any way, otherwise it may ignore a request while all you have is zeros from error
+    this->selectedFrame = frame;
+
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->getColumnFromFrame(this->data, frame)) {
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    loadDataIntoVolume();
+                }
+                else {
+                    CaretLogSevere("FAILED to read column for frame " + AString::number(frame));
+                }
+                break;
+            }
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
 }
 
 /**
@@ -872,8 +1060,10 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
  *    Surface file used for structure.
  * @param nodeIndex
  *    Index of node number.
+ * @return
+ *    Index of the row that was loaded from the CIFTI file (negative if invalid).
  */
-void 
+int64_t 
 ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                                const int32_t nodeIndex) throw (DataFileException)
 {
@@ -885,8 +1075,10 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
      * Allow loading of data disable?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -894,17 +1086,20 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 break;
             case LOADER_TYPE_DENSE:
             {
-                this->zeroizeData();
+                // WB-174 this->zeroizeData();
 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                // JWH-Oct2 if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
                     if (this->ciftiInterface->getRowFromNode(this->data,
                                                              nodeIndex,
-                                                             structure)) {
+                                                             structure,
+                                                             rowIndex)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
                     }
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
@@ -944,26 +1139,40 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 }*/
             }
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            CaretAssert(0);
+            break;
         }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
 /**
- * Load data for a voxel at the given coordinate.
+ * Load connectivity data for the surface's nodes and then average the data.  
  *
  * For a dense connectivity file, the data loaded is
- * the connectivity from the voxel to other brainordinates.
+ * the connectivity from the node to other brainordinates.
  * For a dense time series file, the data loaded is the
- * time-series for this voxel.
+ * time-series for this node.
  *
- * @param xyz
- *    Coordinate of voxel.
+ * @param surfaceFile
+ *    Surface file used for structure.
+ * @param nodeIndices
+ *    Indices of nodes.
  */
 void 
-ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -982,15 +1191,318 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 break;
             case LOADER_TYPE_DENSE:
             {
-                this->zeroizeData();
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                this->allocateData(num);
+                // WB-174 this->zeroizeData();
+                
+                // JWH-Oct2if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {  // JWH-Oct2
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    std::vector<float> rowDataVector(num);
+                    float* rowData = &rowDataVector[0];
+                    
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    
+                    bool userCancelled = false;
+                    EventProgressUpdate progressEvent(0,
+                                                      numberOfNodeIndices,
+                                                      0,
+                                                      "Starting");
+                    
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        const int32_t nodeIndex = nodeIndices[i];
+                        
+                        if ((i % this->progressUpdateInterval) == 0) {
+                            progressEvent.setProgress(i,
+                                                      "Loading data");
+                            EventManager::get()->sendEvent(progressEvent.getPointer());
+                            if (progressEvent.isCancelled()) {
+                                userCancelled = true;
+                                break;
+                            }
+                        }
+                        
+                        if (this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            
+                            for (int32_t j = 0; j < num; j++) {
+                                averageData[j] += rowData[j];
+                            }
+                            countForAveraging += 1.0;
+                        }
+                        else {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+                    
+                    if (userCancelled) {
+                        zeroizeData();
+                    }
+                    else {
+                        for (int32_t i = 0; i < num; i++) {
+                            this->data[i] = averageData[i] / countForAveraging;
+                        }
+                        
+                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
+                    }
+                }
+            }
+            break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            /*{
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    vector< vector<float> > rowDataVectors(numberOfNodeIndices, vector<float>(num,0.0));
+                                    
+                    
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    
+                    
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        const int32_t nodeIndex = nodeIndices[i];
+                        float *rowData = &(rowDataVectors.at(i).at(0));
+                        if (!this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        for(int32_t j = 0;j < num; j++) {
+                            averageData[j] += rowDataVectors[i][j];
+                        }
+                        countForAveraging += 1.0;      
+                    }
+                    
+                    
+                    if(this->timeSeriesGraphEnabled)
+                    {
+                        tl.x.clear();
+                        tl.y.clear();
+                        this->tl.x.reserve(num);
+                        this->tl.y.reserve(num);
+                        for(int64_t i = 0;i<num;i++)
+                        {
+                            tl.x.push_back(i);
+                            tl.y.push_back(averageData[i] / countForAveraging);
+                        }
+                        //double point[3] = {0.0,0.0,0.0};
+                        this->tl.nodeid = 0;
+                        this->tl.type = AVERAGE;
+                    }
+                    
+                    
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                }
+                //throw DataFileException("Loading of average time-series data not supported.");
+                
+            }*/
+            break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+}
+
+/** 
+ * Load average timeLine graph for a given set of node indices
+ */
+void 
+ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum::Enum structure,
+                                    const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    vector< vector<float> > rowDataVectors(numberOfNodeIndices, vector<float>(num,0.0));
+                                    
+                    
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    
+                    bool userCancelled = false;
+                    EventProgressUpdate progressEvent(0,
+                                                      numberOfNodeIndices,
+                                                      0,
+                                                      "Starting");
+                    
+                    
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        if ((i % this->progressUpdateInterval) == 0) {
+                            progressEvent.setProgress(i,
+                                                      "Loading data");
+                            EventManager::get()->sendEvent(progressEvent.getPointer());
+                            if (progressEvent.isCancelled()) {
+                                userCancelled = true;
+                                break;
+                            }
+                        }
+                        
+                        const int32_t nodeIndex = nodeIndices[i];
+                        float *rowData = &(rowDataVectors.at(i).at(0));
+                        if (!this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+
+                    if (userCancelled) {
+                        zeroizeData();
+                    }
+                    else {
+                        for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                            for(int32_t j = 0;j < num; j++) {
+                                averageData[j] += rowDataVectors[i][j];
+                            }
+                            countForAveraging += 1.0;
+                        }
+                        
+                        
+                        if(this->timeSeriesGraphEnabled)
+                        {
+                            tl = timeLine;
+                            tl.x.clear();
+                            tl.y.clear();
+                            this->tl.x.reserve(num);
+                            this->tl.y.reserve(num);
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                tl.x.push_back(i);
+                                tl.y.push_back(averageData[i] / countForAveraging);
+                            }
+                            //double point[3] = {0.0,0.0,0.0};
+                            this->tl.nodeid = 0;
+                            this->tl.type = AVERAGE;
+                            
+                            this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                            loadDataIntoVolume();
+                        }
+                    }
+                }
+                //throw DataFileException("Loading of average time-series data not supported.");
+                break;
+            }
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+}
+
+/**
+ * Load data for a voxel at the given coordinate.
+ *
+ * For a dense connectivity file, the data loaded is
+ * the connectivity from the voxel to other brainordinates.
+ * For a dense time series file, the data loaded is the
+ * time-series for this voxel.
+ *
+ * @param xyz
+ *    Coordinate of voxel.
+ */
+int64_t 
+ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return -1;
+    }
+    
+    int64_t rowIndex = -1;
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+            {
+                // WB-174  this->zeroizeData();
                 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->hasRowVolumeData()) {
-                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
+                 // JWH-Oct2  if (this->ciftiInterface->hasRowVolumeData()) {
+                if (this->ciftiInterface->hasColumnVolumeData()) { // JWH-Oct2
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz, rowIndex)) {
                         CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                        loadDataIntoVolume();
                     }
                     else {
                         CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
@@ -1030,11 +1542,22 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 }*/
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
 /**
@@ -1064,6 +1587,115 @@ float*
 ConnectivityLoaderFile::getDataRGBA()
 {
     return this->dataRGBA;
+}
+
+/**
+ * Assign the RGBA coloring.
+ * @param palette
+ *    Palette used to color data.
+ * @param mapIndex
+ *    Index of map being updated.
+ */
+void 
+ConnectivityLoaderFile::updateRGBAColoring(const Palette* palette,
+                                           const int32_t mapIndex)
+{
+        const FastStatistics* statistics = getMapFastStatistics(mapIndex);
+        const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(mapIndex);
+        
+        const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                          paletteColorMapping,
+                                                          palette,
+                                                          data,
+                                                          data,
+                                                          this->numberOfDataElements,
+                                                          dataRGBA);
+            
+            CaretLogFine("Connectivity Data Average/Min/Max: "
+                         + QString::number(statistics->getMean())
+                         + " "
+                         + QString::number(statistics->getMostNegativeValue())
+                         + " "
+                         + QString::number(statistics->getMostPositiveValue()));
+    
+    
+    bool useColumnsFlag = false;
+    bool useRowsFlag = false;
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            useRowsFlag = true;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            useColumnsFlag = true;
+            break;
+    }
+    std::vector<CiftiVolumeMap> volumeMaps;
+    if (useColumnsFlag
+        && this->ciftiInterface->hasColumnVolumeData()) {
+        this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
+    }
+    if (useRowsFlag
+        && this->ciftiInterface->hasRowVolumeData()) {
+        this->ciftiInterface->getVolumeMapForRows(volumeMaps);
+    }
+    if (volumeMaps.empty() == false) {
+        /*
+         * Update colors in map.
+         */
+        VolumeFile* vf = getConnectivityVolumeFile();
+        if (vf != NULL) {
+            vf->clearVoxelColoringForMap(0);
+            
+            for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+                 iter != volumeMaps.end();
+                 iter++) {
+                const CiftiVolumeMap& vm = *iter;
+                const int64_t dataRGBAIndex = vm.m_ciftiIndex * 4;
+                const float* rgba = &this->dataRGBA[dataRGBAIndex];
+                vf->setVoxelColorInMap(vm.m_ijk[0],
+                                       vm.m_ijk[1],
+                                       vm.m_ijk[2],
+                                       0,
+                                       rgba);
+            }
+        }
+    }
+}
+
+/**
+ * Update coloring for a map.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+ConnectivityLoaderFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
+                                                const PaletteFile* paletteFile)
+{
+    const PaletteColorMapping* paletteColorMapping = getMapPaletteColorMapping(0);
+    
+    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+    Palette* palette = paletteFile->getPaletteByName(paletteName);
+    if (palette != NULL) {
+        updateRGBAColoring(palette, 0);
+    }
+    else {
+        CaretLogWarning("Palette missing for connectivity coloring: " + paletteName);
+    }
 }
 
 /**
@@ -1117,6 +1749,15 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
                     useRowsFlag = true;
                     break;
                 case LOADER_TYPE_DENSE_TIME_SERIES:
+                    useColumnsFlag = true;
+                    break;
+                case LOADER_TYPE_FIBER_ORIENTATIONS:
+                    CaretAssert(0);
+                    break;
+                case LOADER_TYPE_DENSE_LABELS:
+                    CaretAssert(0);
+                    break;
+                case LOADER_TYPE_DENSE_SCALARS:
                     useColumnsFlag = true;
                     break;
             }
@@ -1201,6 +1842,15 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
             break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            useColumnsFlag = true;
+            break;
     }
     
     std::vector<CiftiSurfaceMap> nodeMap;
@@ -1281,6 +1931,15 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
             useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
             useColumnsFlag = true;
             break;
     }
@@ -1397,24 +2056,47 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             createVolumeFlag = true;
         }
         else {
-            float x0, y0, z0, x1, y1, z1;
+            float x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0;
             this->connectivityVolumeFile->indexToSpace(0, 0, 0, x0, y0, z0);
             this->connectivityVolumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
             const float dx = x1 - x0;
             const float dy = y1 - y0;
             const float dz = z1 - z0;
             
-            if ((x0 != origin[0])
-                || (y0 != origin[1])
-                || (z0 != origin[2])) {
+            const float diffOrigin[3] = {
+                std::fabs(x0 - origin[0]),
+                std::fabs(y0 - origin[1]),
+                std::fabs(z0 - origin[2])
+            };
+            
+            const float diffSpacing[3] = {
+                std::fabs(dx - spacing[0]),
+                std::fabs(dy - spacing[1]),
+                std::fabs(dz - spacing[2]),
+            };
+            
+            const float maxDiff = 0.0001;
+            if ((diffOrigin[0] > maxDiff)
+                || (diffOrigin[1] > maxDiff)
+                || (diffOrigin[2] > maxDiff)) {
                 createVolumeFlag = true;
             }
-            else if ((dx != spacing[0])
-                     || (dy != spacing[1])
-                     || (dz != spacing[2])) {
+            else if ((diffSpacing[0] > maxDiff)
+                     || (diffSpacing[1] > maxDiff)
+                     || (diffSpacing[2] > maxDiff)) {
                 createVolumeFlag = true;
             }
-        }        
+//            if ((x0 != origin[0])
+//                || (y0 != origin[1])
+//                || (z0 != origin[2])) {
+//                createVolumeFlag = true;
+//            }
+//            else if ((dx != spacing[0])
+//                     || (dy != spacing[1])
+//                     || (dz != spacing[2])) {
+//                createVolumeFlag = true;
+//            }
+        }
     }
     
     if (createVolumeFlag) {
@@ -1457,6 +2139,12 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
                                               numComponents);
     }
     
+    return this->connectivityVolumeFile;
+}
+
+void
+ConnectivityLoaderFile::loadDataIntoVolume()
+{
     bool useColumnsFlag = false;
     bool useRowsFlag = false;
     switch (this->loaderType) {
@@ -1467,6 +2155,15 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
             useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            CaretAssert(0);
             break;
     }
     
@@ -1482,7 +2179,11 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     
     
     if (volumeMaps.empty() == false) {
-        this->connectivityVolumeFile->setValueAllVoxels(0.0);
+        /*
+         * Update colors and values in map.
+         */
+        VolumeFile* vf = getConnectivityVolumeFile();
+         vf->setValueAllVoxels(0.0);
         
         for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
              iter != volumeMaps.end();
@@ -1490,17 +2191,13 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             const CiftiVolumeMap& vm = *iter;
             
             CaretAssertArrayIndex(this->data, this->numberOfDataElements, vm.m_ciftiIndex);
-            this->connectivityVolumeFile->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
+             vf->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
         }
         
-        return this->connectivityVolumeFile;
     }
-    
-    return NULL;
 }
 
 /**
-
  * @return
  *   Is the time series graph enabled?
  */
@@ -1559,11 +2256,21 @@ ConnectivityLoaderFile::getTimeStep() const
 
 /**
  * @return Get the selected time point.
- */ 
+ * 
 float 
 ConnectivityLoaderFile::getSelectedTimePoint() const
 {
     return this->selectedTimePoint;
+}*/
+
+/**
+ * @return Get the selected time point.
+ */ 
+
+int 
+ConnectivityLoaderFile::getSelectedFrame() const
+{
+    return this->selectedFrame;
 }
 
 /**
@@ -1577,9 +2284,13 @@ ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
     tlOut = this->tl;
 }
 
-void 
+/**
+ * Load a timeline.
+ * @return Index of row that was loaded.
+ */
+int64_t 
 ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
-                          const int32_t nodeIndex) throw (DataFileException)
+                          const int32_t nodeIndex,const TimeLine &timeLine) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -1589,8 +2300,10 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
      * Allow loading of data disable?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -1606,10 +2319,14 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                 if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
                     if (this->ciftiInterface->getRowFromNode(data,
                                                              nodeIndex,
-                                                             structure)) {
+                                                             structure,
+                                                             rowIndex)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         if(this->timeSeriesGraphEnabled)
                         {
+                            this->tl.nodeid = nodeIndex;
+                            this->tl = timeLine;
+                            for(int i = 0;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
@@ -1619,8 +2336,8 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
                             }
-                            //double point[3] = {0.0,0.0,0.0};
-                            this->tl.nodeid = nodeIndex;
+                            
+                            
                         }
                     }
                     else {
@@ -1630,15 +2347,25 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                 delete [] data;
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
-
+    
+    return rowIndex;
 }
 
-void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+int64_t ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3], TimeLine &timeLine) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -1648,8 +2375,10 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
      * Allow loading of data disabled?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -1662,12 +2391,14 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 float *data = new float [num];
                 if (this->ciftiInterface->hasColumnVolumeData()) {
-                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz,rowIndex))
                     {
                         CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
                         //this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
                         if(this->timeSeriesGraphEnabled)
                         {
+                            this->tl = timeLine;
+                            for(int i = 0;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
@@ -1676,7 +2407,8 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                             {
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
-                            }
+                            }                            
+                            
                             //double point[3] = {0.0,0.0,0.0};
                             //this->tl.nodeid = nodeIndex;
 
@@ -1689,11 +2421,68 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                 delete [] data;
             }
             break;
+            case LOADER_TYPE_FIBER_ORIENTATIONS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_LABELS:
+                CaretAssert(0);
+                break;
+            case LOADER_TYPE_DENSE_SCALARS:
+                CaretAssert(0);
+                break;
         }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
+/**
+ * Get the number of nodes for a surface of the given structure in this file.
+ * @param structure
+ *    The surface structure.
+ * @return  Number of nodes in this file for the given structure or negative if
+ *    this file is invalid (not yet loaded) or the given structure is not in
+ *    this file.
+ */
+int32_t 
+ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+{
+    if (this->ciftiInterface == NULL) {
+        return -1;
+    }
+    
+    int32_t numNodes = -1;
+    
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            numNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            numNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+            break;
+        case LOADER_TYPE_FIBER_ORIENTATIONS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_LABELS:
+            CaretAssert(0);
+            break;
+        case LOADER_TYPE_DENSE_SCALARS:
+            numNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+            break;
+    }
+    
+    return numNodes;
+}
 
+///get the map name for an index along a column
+AString ConnectivityLoaderFile::getMapNameForColumnIndex(const int& index) const
+{ return this->ciftiInterface->getMapNameForColumnIndex(index); }
+
+///get the map name for an index along a row
+AString ConnectivityLoaderFile::getMapNameForRowIndex(const int& index) const
+{ return this->ciftiInterface->getMapNameForRowIndex(index); }

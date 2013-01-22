@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include <limits>
+#include <typeinfo>
 
 #include <QAction>
 #include <QApplication>
@@ -29,10 +30,14 @@
 #include <QDesktopWidget>
 #include <QDialog>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QFrame>
 #include <QIcon>
+#include <QLabel>
 #include <QPushButton>
+#include <QSound>
+#include <QTextDocument>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -280,6 +285,9 @@ WuQtUtilities::moveWindowToOffset(QWidget* parentWindow,
  * Place a dialog next to its parent.  May not work correctly with
  * multi-screen systems.
  *
+ * MUST BE CALLED after a window is displayed since the given window
+ * may not have its geometry (size) set until AFTER it is displayed.
+ *
  * It will stop after the first one of these actions that is successful:
  *   1) Put window on right of parent if all of window will be visible.
  *   2) Put window on left of parent if all of window will be visible.
@@ -301,8 +309,9 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     const int ph = parentGeometry.height();
     const int parentMaxX = px + pw;
     
-    int x = px + pw + 1;
+    //int x = px + pw + 1;
     int y = py + ph - window->height() - 20;
+   // int y = py;
     const int windowWidth = window->width();
 
     QDesktopWidget* dw = QApplication::desktop();
@@ -315,6 +324,7 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     const int spaceOnLeft = px -screenMinX;
     const int spaceOnRight = screenMaxX - parentMaxX;
     
+    int x = screenMinX;
     if (spaceOnRight > windowWidth) {
         x = parentMaxX;
     }
@@ -324,9 +334,9 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     else if (spaceOnRight > spaceOnLeft) {
         x = screenMaxX - windowWidth;
     }
-    else {
-        x = screenMinX;
-    }
+//    else {
+//        x = screenMinX;
+//    }
     
     if ((x + windowWidth) > screenMaxX) {
         x = screenMaxX - windowWidth;
@@ -344,6 +354,109 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
     }
     
     window->move(x, y);
+}
+
+/**
+ * Move and size a window limiting window so that 
+ * it fits within the screen.
+ * @param x
+ *    X-coordinate of window.
+ * @param y 
+ *    Y-coordinate of window.
+ * @param w
+ *    Width of window.
+ * @param h
+ *    Height of window.
+ * @param xywhOut
+ *    On exit contains 4 values that are the actual
+ *    x, y, width, and height of the window after 
+ *    any needed adjustments for screen sizes.
+ */
+void
+WuQtUtilities::moveAndSizeWindow(QWidget* window,
+                                  const int32_t x,
+                                  const int32_t y,
+                                  const int32_t w,
+                                 const int32_t h,
+                                 int32_t* xywhOut)
+{
+    QDesktopWidget* dw = QApplication::desktop();
+    
+    /*
+     * Get available geometry where window is to be placed
+     * This geometry is all screens together as one large screen
+     */
+    QPoint pXY(x,
+               y);
+    const QRect availableRect = dw->screen()->geometry();
+    const int32_t screenSizeX = availableRect.width();
+    const int32_t screenSizeY = availableRect.height();
+    
+    /*
+     * Limit width/height in desktop
+     */
+    int32_t width  = std::min(w, screenSizeX);
+    int32_t height = std::min(h, screenSizeY);
+    
+    /*
+     * Limit window position in desktop
+     */
+    int32_t xPos = x;
+    if (xPos < availableRect.x()) {
+        xPos = availableRect.x();
+    }
+    const int32_t maxX = screenSizeX - 200;
+    if (xPos >= maxX) {
+        xPos = maxX;
+    }
+    int32_t yPos = y;
+    if (yPos < availableRect.y()) {
+        yPos = availableRect.y();
+    }
+    const int32_t maxY = screenSizeY - 200;
+    if (yPos >= maxY) {
+        yPos = maxY;
+    }
+        
+    /*
+     * Make sure visible in closest screen
+     */
+    pXY.setX(xPos);
+    pXY.setY(yPos);
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+        if (xPos < screenRect.x()) {
+            xPos = screenRect.x();
+        }
+        const int32_t maxX = screenRect.right() - 200;
+        if (xPos > maxX) {
+            xPos = maxX;
+        }
+        if (yPos < screenRect.y()) {
+            yPos = screenRect.y();
+        }
+        const int32_t maxY = screenRect.bottom() - 200;
+        if (yPos > maxY) {
+            yPos = maxY;
+        }
+    }
+    /*
+     * Move and size window
+     */
+//    std::cout << "Moving to " << xPos << ", " << yPos << std::endl;
+//    std::cout << "Width " << width << ", " << height << std::endl;
+    window->move(xPos,
+                 yPos);
+    window->resize(width,
+                   height);
+    
+    if (xywhOut != NULL) {
+        xywhOut[0] = window->x();
+        xywhOut[1] = window->y();
+        xywhOut[2] = window->width();
+        xywhOut[3] = window->height();
+    }
 }
 
 /**
@@ -458,8 +571,12 @@ WuQtUtilities::loadPixmap(const QString& filename,
 {
     bool valid = pixmapOut.load(filename);
     
-    if ((pixmapOut.width() <= 0) || (pixmapOut.height() <= 0)) {
-        QString msg = "Pixmap " + filename + " has invalid size";
+    if (valid == false) {
+        QString msg = "Failed to load Pixmap \"" + filename + "\".";
+        CaretLogSevere(msg);
+    }
+    else if ((pixmapOut.width() <= 0) || (pixmapOut.height() <= 0)) {
+        QString msg = "Pixmap \"" + filename + "\" has invalid size.";
         CaretLogSevere(msg);
         valid = false;
     }
@@ -519,6 +636,62 @@ WuQtUtilities::matchWidgetHeights(QWidget* w1,
     if (maxHeight > 0) {
         for (int i = 0; i < num; i++) {
             widgets[i]->setFixedHeight(maxHeight);
+        }
+    }
+}
+
+/**
+ * Find the widget with the maximum width in its
+ * size hint.  Apply this width to all of the widgets.
+ *
+ * @param w1   Required widget.
+ * @param w2   Required widget.
+ * @param w3   Optional widget.
+ * @param w4   Optional widget.
+ * @param w5   Optional widget.
+ * @param w6   Optional widget.
+ * @param w7   Optional widget.
+ * @param w8   Optional widget.
+ * @param w9   Optional widget.
+ * @param w10  Optional widget.
+ */
+void
+WuQtUtilities::matchWidgetWidths(QWidget* w1,
+                                  QWidget* w2,
+                                  QWidget* w3,
+                                  QWidget* w4,
+                                  QWidget* w5,
+                                  QWidget* w6,
+                                  QWidget* w7,
+                                  QWidget* w8,
+                                  QWidget* w9,
+                                  QWidget* w10)
+{
+    QVector<QWidget*> widgets;
+    
+    if (w1 != NULL) widgets.push_back(w1);
+    if (w2 != NULL) widgets.push_back(w2);
+    if (w3 != NULL) widgets.push_back(w3);
+    if (w4 != NULL) widgets.push_back(w4);
+    if (w5 != NULL) widgets.push_back(w5);
+    if (w6 != NULL) widgets.push_back(w6);
+    if (w7 != NULL) widgets.push_back(w7);
+    if (w8 != NULL) widgets.push_back(w8);
+    if (w9 != NULL) widgets.push_back(w9);
+    if (w10 != NULL) widgets.push_back(w10);
+    
+    int maxWidth = 0;
+    const int num = widgets.size();
+    for (int i = 0; i < num; i++) {
+        const int w = widgets[i]->sizeHint().width();
+        if (w > maxWidth) {
+            maxWidth = w;
+        }
+    }
+    
+    if (maxWidth > 0) {
+        for (int i = 0; i < num; i++) {
+            widgets[i]->setFixedWidth(maxWidth);
         }
     }
 }
@@ -585,6 +758,119 @@ WuQtUtilities::isSmallDisplay()
     }
     
     return false;
+}
+
+/**
+ * Get a String containing information about a layout' content.
+ * @param layout
+ *    The layout
+ * @return 
+ *    String with info.
+ */
+QString
+WuQtUtilities::getLayoutContentDescription(QLayout* layout)
+{
+    QString s;
+    s.reserve(25000);
+    
+    s += ("Layout  type : "
+          + QString(typeid(*layout).name())
+          + "\n");
+    
+    const int itemCount = layout->count();
+    for (int32_t i = 0; i < itemCount; i++) {
+        s += "   ";
+        QLayoutItem* layoutItem = layout->itemAt(i);
+        QLayout* layout = layoutItem->layout();
+        if (layout != NULL) {
+            s += QString(typeid(*layout).name());
+        }
+        QWidget* widget = layoutItem->widget();
+        if (widget != NULL) {
+            s += QString(typeid(*widget).name());
+        }
+        QSpacerItem* spacerItem = layoutItem->spacerItem();
+        if (spacerItem != NULL) {
+            s += "QSpacerItem";
+        }
+    }
+    return s;
+}
+
+/**
+ * Play a sound file.  The sound file MUST be in the distribution's
+ * "resources/sounds" directory.
+ *
+ * Note that sound files, as of Qt 4.8, do not support Qt's resource
+ * system.
+ *
+ * @param soundFileName
+ *    Name of sound file (with no path, just the filename).
+ */
+void
+WuQtUtilities::playSound(const QString& soundFileName)
+{
+    const QString workbenchDir = SystemUtilities::getWorkbenchHome();
+    const QString soundFilePath = (workbenchDir
+                                   + "/../resources/sounds/"
+                                   + soundFileName);
+    
+    if (QFile::exists(soundFilePath)) {
+        QSound::play(soundFilePath);
+    }
+    else {
+        CaretLogSevere("Sound file \""
+                       + soundFilePath
+                       + "\" does not exist.");
+    }
+}
+
+/**
+ * Create the text for a tooltip so that long lines are
+ * wrapped and the tooltip is not one giant line
+ * that is the width of the display.
+ *
+ * This is accomplished by placing the text into a
+ * QTextDocument and then retrieving the text with
+ * HTML formatting.
+ *
+ * @param tooltipText
+ *    Text for the tooltip.
+ * @return
+ *    Text reformatted for display in a tool tip.
+ */
+QString
+WuQtUtilities::createWordWrappedToolTipText(const QString& tooltipText)
+{
+    if (tooltipText.isEmpty()) {
+        return "";
+    }
+    
+    QTextDocument textDocument(tooltipText);
+    QString html = textDocument.toHtml();
+    return html;
+}
+
+
+/**
+ * Set the text for a tooltip so that long lines are
+ * wrapped and the tooltip is not one giant line
+ * that is the width of the display.
+ *
+ * This is accomplished by placing the text into a
+ * QTextDocument and then retrieving the text with
+ * HTML formatting.
+ *
+ * @param widget
+ *    Widget on which tooltip is set.
+ * @param tooltipText
+ *    Text for the widget's tooltip.
+ */
+void
+WuQtUtilities::setWordWrappedToolTip(QWidget* widget,
+                                     const QString& tooltipText)
+{
+    widget->setToolTip(createWordWrappedToolTipText(tooltipText));
 }
 
 

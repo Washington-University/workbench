@@ -22,6 +22,7 @@
  *
  */
 
+#include "MathFunctions.h"
 #include "Vector3D.h"
 
 using namespace std;
@@ -42,6 +43,11 @@ float Vector3D::dot(const Vector3D& right) const
 float Vector3D::length() const
 {
     return MathFunctions::vectorLength(m_vec);
+}
+
+float Vector3D::lengthsquared() const
+{
+    return m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2];
 }
 
 Vector3D Vector3D::normal(float* origLength) const

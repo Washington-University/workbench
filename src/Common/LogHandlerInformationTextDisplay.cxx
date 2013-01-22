@@ -29,7 +29,6 @@
 #include "LogHandlerInformationTextDisplay.h"
 #undef __LOG_HANDLER_INFORMATION_TEXT_DISPLAY_DECLARE__
 
-#include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "LogRecord.h"
 
@@ -99,15 +98,6 @@ LogHandlerInformationTextDisplay::publish(const LogRecord& logRecord)
             + "\nLine:   " + AString::number(logRecord.getLineNumber())
     + "\nText:   " + logRecord.getText()
      + "\n");
-    
-    EventInformationTextDisplay eitd(msg,
-                                     EventInformationTextDisplay::TYPE_PLAIN);
-    if (logRecord.getLevel() < LogLevelEnum::WARNING) {
-        eitd.setNotImportant();
-    }
-    
-    //FIXME: this causes an INFINITE LOOP when there is nothing set to handle this event, because the event manager logs an event not handled, and the logger gives another event, and the event manager logs an event not handled and...
-    //EventManager::get()->sendEvent(eitd.getPointer());
 }
 
 

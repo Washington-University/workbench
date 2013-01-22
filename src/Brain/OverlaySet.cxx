@@ -23,6 +23,7 @@
  * 
  */ 
 
+#include <algorithm>
 #include <deque>
 
 #define __OVERLAY_SET_DECLARE__
@@ -33,14 +34,20 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
+#include "ModelYokingGroup.h"
+#include "Overlay.h"
+#include "Scene.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 
@@ -62,17 +69,34 @@ using namespace caret;
  */
 
 /**
+ * \class OverlaySet
+ * \brief Contains a set of overlay assignments
+ *
+ * The maximum number of overlays is fixed.  The number
+ * of overlays presented to the user varies and is
+ * controlled using the ToolBox in a Browser Window.
+ * 
+ * The primary overlay is always the overlay at index zero.
+ * The underlay is the overlay at (numberOfDisplayedOverlays - 1).
+ * When models are colored, the overlays are assigned 
+ * starting with the underlay and concluding with the primary
+ * overlay.
+ */
+
+/**
  * Constructor for surface controller.
  * @param modelDisplayController
  *     Surface controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface)
+OverlaySet::OverlaySet(BrainStructure* brainStructure)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerSurface);
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(NULL,
+                         brainStructure);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        this->overlays[i] = new Overlay(modelDisplayControllerSurface);
+        m_overlays[i] = new Overlay(brainStructure);
     }
 }
 
@@ -81,13 +105,32 @@ OverlaySet::OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurf
  * @param modelDisplayControllerVolume
  *     Volume controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume)
+OverlaySet::OverlaySet(ModelVolume* modelDisplayControllerVolume)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerVolume);
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(modelDisplayControllerVolume,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        this->overlays[i] = new Overlay(modelDisplayControllerVolume);
+        m_overlays[i] = new Overlay(modelDisplayControllerVolume);
+    }
+}
+
+/**
+ * Constructor for surface montage controller.
+ * @param modelDisplayControllerSurfaceMontage
+ *     surface montage controller that uses this overlay set.
+ */
+OverlaySet::OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
+: CaretObject()
+{
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(modelDisplayControllerSurfaceMontage,
+                               NULL);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        m_overlays[i] = new Overlay(modelDisplayControllerSurfaceMontage);
     }
 }
 
@@ -96,13 +139,15 @@ OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolum
  * @param modelDisplayControllerWholeBrain
  *     Whole brain controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
+OverlaySet::OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerWholeBrain);
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(modelDisplayControllerWholeBrain,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        this->overlays[i] = new Overlay(modelDisplayControllerWholeBrain);
+        m_overlays[i] = new Overlay(modelDisplayControllerWholeBrain);
     }
 }
 
@@ -111,13 +156,15 @@ OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerW
  * @param modelDisplayControllerYoking
  *     Yoking controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking)
+OverlaySet::OverlaySet(ModelYokingGroup* modelDisplayControllerYoking)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerYoking);
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(modelDisplayControllerYoking,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        this->overlays[i] = NULL;
+        m_overlays[i] = NULL;
     }
 }
 
@@ -127,8 +174,26 @@ OverlaySet::OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayController
 OverlaySet::~OverlaySet()
 {
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        delete this->overlays[i];
+        delete m_overlays[i];
     }
+    delete m_sceneAssistant;
+}
+
+/**
+ * Copy the given overlay set to this overlay set.
+ * @param overlaySet
+ *    Overlay set that is copied.
+ */
+void 
+OverlaySet::copyOverlaySet(const OverlaySet* overlaySet)
+{
+    initializeOverlaySet(overlaySet->m_modelDisplayController, 
+                               overlaySet->m_brainStructure);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        m_overlays[i]->copyData(overlaySet->getOverlay(i));
+    }
+    m_numberOfDisplayedOverlays = overlaySet->m_numberOfDisplayedOverlays;
 }
 
 /**
@@ -137,11 +202,30 @@ OverlaySet::~OverlaySet()
  *     Controller that uses this overlay set.
  */
 void 
-OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController)
+OverlaySet::initializeOverlaySet(Model* modelDisplayController,
+                                 BrainStructure* brainStructure)
 {
-    CaretAssert(modelDisplayController);
-    this->modelDisplayController = modelDisplayController;
-    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
+    m_modelDisplayController = modelDisplayController;
+    m_brainStructure = brainStructure;
+    
+    if (m_modelDisplayController == NULL) {
+        CaretAssert(m_brainStructure != NULL);
+    }
+    else if (m_brainStructure == NULL) {
+        CaretAssert(m_modelDisplayController != NULL);
+    }
+    else {
+        CaretAssertMessage(0, "Both mode and brain structure are NULL");
+    }
+    
+    m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
+    
+    if (m_sceneAssistant != NULL) {
+        delete m_sceneAssistant;
+    }
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_numberOfDisplayedOverlays", 
+                          &m_numberOfDisplayedOverlays);
 }
 
 /**
@@ -150,7 +234,7 @@ OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController)
 Overlay* 
 OverlaySet::getPrimaryOverlay()
 {
-    return this->overlays[0];
+    return m_overlays[0];
 }
 
 /**
@@ -160,7 +244,7 @@ OverlaySet::getPrimaryOverlay()
 Overlay* 
 OverlaySet::getUnderlay()
 {
-    return this->overlays[this->getNumberOfDisplayedOverlays() - 1];
+    return m_overlays[getNumberOfDisplayedOverlays() - 1];
 }
 
 /*
@@ -176,11 +260,11 @@ OverlaySet::getUnderlayVolume()
 {
     VolumeFile* vf = NULL;
     
-    for (int32_t i = (this->getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
-        if (this->overlays[i]->isEnabled()) {
+    for (int32_t i = (getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
+        if (m_overlays[i]->isEnabled()) {
             CaretMappableDataFile* mapFile;
             int32_t mapIndex;
-            this->overlays[i]->getSelectionData(mapFile,
+            m_overlays[i]->getSelectionData(mapFile,
                                                 mapIndex);
             
             if (mapFile != NULL) {
@@ -203,16 +287,16 @@ OverlaySet::getUnderlayVolume()
 VolumeFile* 
 OverlaySet::setUnderlayToVolume()
 {
-    VolumeFile * vf = this->getUnderlayVolume();
+    VolumeFile * vf = getUnderlayVolume();
     
     if (vf == NULL) {
-        const int32_t overlayIndex = this->getNumberOfDisplayedOverlays() - 1;
+        const int32_t overlayIndex = getNumberOfDisplayedOverlays() - 1;
         if (overlayIndex >= 0) {
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* mapFile;
             AString mapUniqueID;
             int32_t mapIndex;
-            this->overlays[overlayIndex]->getSelectionData(mapFiles, 
+            m_overlays[overlayIndex]->getSelectionData(mapFiles, 
                                                           mapFile, 
                                                           mapUniqueID, 
                                                           mapIndex);
@@ -221,7 +305,7 @@ OverlaySet::setUnderlayToVolume()
             for (int32_t i = 0; i < numMapFiles; i++) {
                 vf = dynamic_cast<VolumeFile*>(mapFiles[i]);
                 if (vf != NULL) {
-                    this->overlays[overlayIndex]->setSelectionData(vf, 0);
+                    m_overlays[overlayIndex]->setSelectionData(vf, 0);
                     break;
                 }
             }
@@ -240,10 +324,10 @@ OverlaySet::setUnderlayToVolume()
 const Overlay* 
 OverlaySet::getOverlay(const int32_t overlayNumber) const
 {
-    CaretAssertArrayIndex(this->overlays, 
+    CaretAssertArrayIndex(m_overlays, 
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
-    return this->overlays[overlayNumber];    
+    return m_overlays[overlayNumber];    
 }
 
 /**
@@ -255,10 +339,10 @@ OverlaySet::getOverlay(const int32_t overlayNumber) const
 Overlay* 
 OverlaySet::getOverlay(const int32_t overlayNumber)
 {
-    CaretAssertArrayIndex(this->overlays, 
+    CaretAssertArrayIndex(m_overlays, 
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
-    return this->overlays[overlayNumber];    
+    return m_overlays[overlayNumber];    
 }
 
 /**
@@ -279,9 +363,9 @@ OverlaySet::toString() const
 void 
 OverlaySet::addDisplayedOverlay()
 {
-    this->numberOfDisplayedOverlays++;
-    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
-        this->numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
+    m_numberOfDisplayedOverlays++;
+    if (m_numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
     }
 }
 
@@ -291,8 +375,73 @@ OverlaySet::addDisplayedOverlay()
 int32_t 
 OverlaySet::getNumberOfDisplayedOverlays() const
 {
-    return this->numberOfDisplayedOverlays;
+    return m_numberOfDisplayedOverlays;
 }
+
+/**
+ * Sets the number of displayed overlays.
+ * @param numberOfDisplayedOverlays
+ *   Number of overlays for display.
+ */
+void 
+OverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
+{
+    const int32_t oldNumberOfDisplayedOverlays = m_numberOfDisplayedOverlays;
+    m_numberOfDisplayedOverlays = numberOfDisplayedOverlays;
+    if (m_numberOfDisplayedOverlays < BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
+    }
+    if (m_numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
+    }
+    
+    /*
+     * If one overlay added (probably through GUI),
+     * shift all overlays down one position so that 
+     * new overlay appears at the top
+     */ 
+    const int32_t numberOfOverlaysAdded = m_numberOfDisplayedOverlays - oldNumberOfDisplayedOverlays;
+    if (numberOfOverlaysAdded == 1) {
+        for (int32_t i = (m_numberOfDisplayedOverlays - 1); i >= 0; i--) {
+            moveDisplayedOverlayDown(i);
+        }
+    }
+}
+
+/**
+ * Insert an overlay below this overlay
+ * @param overlayIndex
+ *     Index of overlay for which an overlay is added below
+ */
+void 
+OverlaySet::insertOverlayAbove(const int32_t overlayIndex)
+{
+    if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays++;
+        
+        for (int32_t i = (m_numberOfDisplayedOverlays - 2); i >= overlayIndex; i--) {
+            moveDisplayedOverlayDown(i);
+        }
+    }
+}
+
+/**
+ * Insert an overlay above this overlay
+ * @param overlayIndex
+ *     Index of overlay for which an overlay is added above
+ */
+void 
+OverlaySet::insertOverlayBelow(const int32_t overlayIndex)
+{
+    if (m_numberOfDisplayedOverlays < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays++;
+        
+        for (int32_t i = (m_numberOfDisplayedOverlays - 2); i > overlayIndex; i--) {
+            moveDisplayedOverlayDown(i);
+        }
+    }
+}
+
 
 /**
  * Remove a displayed overlay.  This method will have
@@ -305,10 +454,10 @@ OverlaySet::getNumberOfDisplayedOverlays() const
 void 
 OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
-    if (this->numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
-        this->numberOfDisplayedOverlays--;
-        for (int32_t i = overlayIndex; i < this->numberOfDisplayedOverlays; i++) {
-            this->overlays[i]->copyData(this->overlays[i+1]);
+    if (m_numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
+        m_numberOfDisplayedOverlays--;
+        for (int32_t i = overlayIndex; i < m_numberOfDisplayedOverlays; i++) {
+            m_overlays[i]->copyData(m_overlays[i+1]);
         }
     }
 }
@@ -325,7 +474,7 @@ void
 OverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
     if (overlayIndex > 0) {
-        this->overlays[overlayIndex]->swapData(this->overlays[overlayIndex - 1]);
+        m_overlays[overlayIndex]->swapData(m_overlays[overlayIndex - 1]);
     }
 }
 
@@ -341,8 +490,8 @@ void
 OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 {
     const int32_t nextOverlayIndex = overlayIndex + 1;
-    if (nextOverlayIndex < this->numberOfDisplayedOverlays) {
-        this->overlays[overlayIndex]->swapData(this->overlays[nextOverlayIndex]);
+    if (nextOverlayIndex < m_numberOfDisplayedOverlays) {
+        m_overlays[overlayIndex]->swapData(m_overlays[nextOverlayIndex]);
     }
 }
 
@@ -354,7 +503,14 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 void 
 OverlaySet::initializeOverlays()
 {
-    Brain* brain = this->modelDisplayController->getBrain();
+    
+    Brain* brain = NULL;
+    if (m_modelDisplayController != NULL) {
+        brain = m_modelDisplayController->getBrain();
+    }
+    else if (m_brainStructure != NULL) {
+        brain = m_brainStructure->getBrain();
+    }
     if (brain == NULL) {
         return;
     }
@@ -362,37 +518,11 @@ OverlaySet::initializeOverlays()
     /*
      * Find connectivity files giving preferense to dense over dense time series
      */
-    std::vector<CaretMappableDataFile*> denseConnectivityFiles;
-    std::vector<CaretMappableDataFile*> denseTimeSeriesConnectivityFiles;
-    if (brain != NULL) {
-        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-            if (clf->isEmpty() == false) {
-                switch (clf->getDataFileType()) {
-                    case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                        denseConnectivityFiles.push_back(clf);
-                        break;
-                    case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                        denseTimeSeriesConnectivityFiles.push_back(clf);
-                        break;
-                    default:
-                        CaretLogWarning("Update this code for new connecivity files type: "
-                                        + DataFileTypeEnum::toName(clf->getDataFileType()));
-                        break;
-                }
-            }
-        }
-    }
-    std::vector<CaretMappableDataFile*> connFiles;
-    connFiles.insert(connFiles.end(),
-                     denseConnectivityFiles.begin(),
-                     denseConnectivityFiles.end());
-    connFiles.insert(connFiles.end(),
-                     denseTimeSeriesConnectivityFiles.begin(),
-                     denseTimeSeriesConnectivityFiles.end());
-    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
+//    std::vector<ConnectivityLoaderFile*> connFiles;
+//    if (brain != NULL) {
+//        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
+//    }
+//    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     
     
     std::deque<CaretMappableDataFile*> shapeMapFiles;
@@ -401,34 +531,28 @@ OverlaySet::initializeOverlays()
     std::deque<CaretMappableDataFile*> overlayMapFiles;
     std::deque<int32_t> overlayMapFileIndices;
     
-    ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayController);
-    ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
-    ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
-    
-    if (mdcs != NULL) {
-        /*
-         * Surface
-         */
-        Surface* surface = mdcs->getSurface();
-        BrainStructure* brainStructure = surface->getBrainStructure();
-                
+    ModelVolume* mdcv = dynamic_cast<ModelVolume*>(m_modelDisplayController);
+    ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(m_modelDisplayController);
+    ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(m_modelDisplayController);
+
+    if (m_brainStructure != NULL) {
         /*
          * Look for a shape map in metric
          */
         MetricFile* shapeMetricFile = NULL;
         int32_t     shapeMapIndex;
-        if (brainStructure->getMetricShapeMap(shapeMetricFile, shapeMapIndex)) {
+        if (m_brainStructure->getMetricShapeMap(shapeMetricFile, shapeMapIndex)) {
             shapeMapFiles.push_back(shapeMetricFile);
             shapeMapFileIndices.push_back(shapeMapIndex);
         }
         
-        if (brainStructure->getNumberOfLabelFiles() > 0) {
-            overlayMapFiles.push_back(brainStructure->getLabelFile(0));
+        if (m_brainStructure->getNumberOfLabelFiles() > 0) {
+            overlayMapFiles.push_back(m_brainStructure->getLabelFile(0));
             overlayMapFileIndices.push_back(0);
         }
-        int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
+        int32_t numMetricFiles = m_brainStructure->getNumberOfMetricFiles();
         for (int32_t i = 0; i < numMetricFiles; i++) {
-            MetricFile* mf = brainStructure->getMetricFile(i);
+            MetricFile* mf = m_brainStructure->getMetricFile(i);
             if (mf != shapeMetricFile) {
                 overlayMapFiles.push_back(mf);
                 overlayMapFileIndices.push_back(0);
@@ -440,11 +564,24 @@ OverlaySet::initializeOverlays()
     else if (mdcv != NULL) {
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
         for (int32_t i = 0; i < numVolumes; i++) {
-            shapeMapFiles.push_back(brain->getVolumeFile(i));
-            shapeMapFileIndices.push_back(0);
+            VolumeFile* vf = brain->getVolumeFile(i);
+            if ((vf->getType() == SubvolumeAttributes::ANATOMY)
+                || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
+                shapeMapFiles.push_back(vf);
+                shapeMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::LABEL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
         }
     }
-    else if (mdcwb != NULL) {
+    else if ((mdcwb != NULL)
+             || (mdcsm != NULL)){
         BrainStructure* leftBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
         BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
         
@@ -516,14 +653,28 @@ OverlaySet::initializeOverlays()
             }
         }
         
-        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
-        if (numVolumes > 0) {
-            shapeMapFiles.push_back(brain->getVolumeFile(0));
-            shapeMapFileIndices.push_back(0);
+        if (mdcwb != NULL) {
+            const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+            for (int32_t i = 0; i < numVolumes; i++) {
+                VolumeFile* vf = brain->getVolumeFile(i);
+                if ((vf->getType() == SubvolumeAttributes::ANATOMY)
+                    || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
+                    shapeMapFiles.push_back(vf);
+                    shapeMapFileIndices.push_back(0);
+                }
+                else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
+                    overlayMapFiles.push_back(vf);
+                    overlayMapFileIndices.push_back(0);
+                }
+                else if (vf->getType() == SubvolumeAttributes::LABEL) {
+                    overlayMapFiles.push_back(vf);
+                    overlayMapFileIndices.push_back(0);
+                }
+            }
         }
     }
     else {
-        CaretAssertMessage(0, "Invalid model controller: " + this->modelDisplayController->getNameForGUI(false));
+        CaretAssertMessage(0, "Invalid model controller: " + m_modelDisplayController->getNameForGUI(false));
     }
     
     /*
@@ -536,55 +687,175 @@ OverlaySet::initializeOverlays()
      * Limit to two connectivity files if there are overlay files
      * and put them in the front of the overlay map files
      */
-    int32_t maxConnFiles = numConnFiles;
-    if (numOverlayMapFiles > 0) {
-        maxConnFiles = std::min(maxConnFiles, 2);
-    }
-    for (int32_t i = (maxConnFiles - 1); i >= 0; i--) {
-        overlayMapFiles.push_front(connFiles[i]);
-        overlayMapFileIndices.push_front(0);
-    }
+// DISABLE adding connectivity files as of 17 May 2012
+//    int32_t maxConnFiles = numConnFiles;
+//    if (numOverlayMapFiles > 0) {
+//        maxConnFiles = std::min(maxConnFiles, 2);
+//    }
+//    for (int32_t i = (maxConnFiles - 1); i >= 0; i--) {
+//        overlayMapFiles.push_front(connFiles[i]);
+//        overlayMapFileIndices.push_front(0);
+//    }
     /* update count */
     numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size()); 
     
     /*
      * Number of overlay that are displayed.
      */
-    const int32_t numDisplayedOverlays = this->getNumberOfDisplayedOverlays();
+    const int32_t numDisplayedOverlays = getNumberOfDisplayedOverlays();
     
-    std::deque<CaretMappableDataFile*> mapFiles;
-    std::deque<int32_t> mapFileIndices;
+    /* Limit overlay map files to maximum number of overlays */
+    numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size());
+    if (numOverlayMapFiles > numDisplayedOverlays) {
+        numOverlayMapFiles = numDisplayedOverlays;
+    }
 
     /*
-     * Find out how many overlay files may be used and add them
+     * Track overlay that were initialized
      */
-    const int32_t maxOverlayFiles = std::min((numDisplayedOverlays - numShapeFiles),
-                                             numOverlayMapFiles);
-    for (int32_t i = 0; i < maxOverlayFiles; i++) {
-        mapFiles.push_back(overlayMapFiles[i]);
-        mapFileIndices.push_back(overlayMapFileIndices[i]);
-    }
+    std::vector<bool> overlayInitializedFlag(numDisplayedOverlays,
+                                             false);
     
     /*
-     * Put in the shape files
+     * Load overlay map files into the overlays
      */
+    for (int32_t i = 0; i < numOverlayMapFiles; i++) {
+        getOverlay(i)->setSelectionData(overlayMapFiles[i],
+                                        overlayMapFileIndices[i]);
+        overlayInitializedFlag[i] = true;
+    }
+
+    /*
+     * Put in the shape files at the bottom
+     */
+    int32_t firstShapeOverlayIndex = (numDisplayedOverlays - numShapeFiles);
+    if (firstShapeOverlayIndex < 0) {
+        firstShapeOverlayIndex = 0;
+    }
     for (int32_t i = 0; i < numShapeFiles; i++) {
-        if (static_cast<int32_t>(mapFiles.size()) >= numDisplayedOverlays) {
-            break;
-        }
-        mapFiles.push_back(shapeMapFiles[i]);
-        mapFileIndices.push_back(shapeMapFileIndices[i]);
+        const int32_t overlayIndex = i + firstShapeOverlayIndex;
+        getOverlay(overlayIndex)->setSelectionData(shapeMapFiles[i],
+                                        shapeMapFileIndices[i]);
+        overlayInitializedFlag[overlayIndex] = true;
     }
     
     /*
-     * Set the overlays
+     * Disable overlays that were not initialized
      */
-    const int32_t numMapFiles = std::min(static_cast<int32_t>(mapFiles.size()), 
-                                         this->getNumberOfDisplayedOverlays());
-    for (int32_t i = 0; i < numMapFiles; i++) {
-        this->getOverlay(i)->setSelectionData(mapFiles[i], mapFileIndices[i]);
+    for (int32_t i = 0; i < numDisplayedOverlays; i++) {
+        if (overlayInitializedFlag[i] == false) {
+            getOverlay(i)->setEnabled(false);
+        }
     }
 }
 
+/**
+ * Get any label files that are selected and applicable for the given surface.
+ * @param surface
+ *    Surface for which label files are desired.
+ * @param labelFilesOut
+ *    Label files that are applicable to the given surface.
+ * @param labelMapIndicesOut
+ *    Selected map indices in the output label files.
+ */
+void 
+OverlaySet::getLabelFilesForSurface(const Surface* surface,
+                                    std::vector<LabelFile*>& labelFilesOut,
+                                    std::vector<int32_t>& labelMapIndicesOut)
+{
+    CaretAssert(surface);
+    
+    labelFilesOut.clear();
+    labelMapIndicesOut.clear();
+    
+    const int32_t numberOfOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
+        Overlay* overlay = getOverlay(i);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            overlay->getSelectionData(mapFile, mapIndex);
+            if (mapFile != NULL) {
+                if (mapFile->getDataFileType() == DataFileTypeEnum::LABEL) {
+                    if (mapFile->getStructure() == surface->getStructure()) {
+                        LabelFile* labelFile = dynamic_cast<LabelFile*>(mapFile);
+                        labelFilesOut.push_back(labelFile);
+                        labelMapIndicesOut.push_back(mapIndex);
+                    }
+                }
+            }
+        }
+    }
+}
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+OverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "OverlaySet",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+    
+    std::vector<SceneClass*> overlayClassVector;
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        overlayClassVector.push_back(m_overlays[i]->saveToScene(sceneAttributes, "m_overlays"));
+    }
+    
+    SceneClassArray* overlayClassArray = new SceneClassArray("m_overlays",
+                                                             overlayClassVector);
+    sceneClass->addChild(overlayClassArray);
+    
+    return sceneClass;
+}
 
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void 
+OverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes, 
+                                     sceneClass);
+    
+    const SceneClassArray* overlayClassArray = sceneClass->getClassArray("m_overlays");
+    if (overlayClassArray != NULL) {
+        const int32_t numOverlays = std::min(overlayClassArray->getNumberOfArrayElements(),
+                                             (int32_t)BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+        for (int32_t i = 0; i < numOverlays; i++) {
+            m_overlays[i]->restoreFromScene(sceneAttributes, 
+                                            overlayClassArray->getClassAtIndex(i));
+        }
+    }
+}

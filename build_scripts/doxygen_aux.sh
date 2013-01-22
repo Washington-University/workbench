@@ -11,7 +11,7 @@
 #
 # Go to correct directory
 #
-MAIN_DIR=/Volumes/DS4600/caret7_development/doxygen
+MAIN_DIR=/mnt/myelin/caret7_documentation
 SOURCE_DIR=${MAIN_DIR}/caret7_source
 DOCUMENTATION_DIR=${MAIN_DIR}/documentation
 BUILD_DIR=${MAIN_DIR}/build

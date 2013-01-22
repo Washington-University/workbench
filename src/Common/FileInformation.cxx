@@ -61,6 +61,17 @@ FileInformation::FileInformation(const AString& file)
 FileInformation::FileInformation(const AString& path,
                                  const AString& file) : CaretObject(), m_fileInfo(path, file)
 {
+    /*
+     * Clean up path to remove any ".." (up a directory level).
+     * Note that canonicalFilePath() will return an empty string
+     * if the path does not point to a valid file.
+     */
+    if (getFilePath().contains("..")) {
+        const AString cleanedPath = m_fileInfo.canonicalFilePath();
+        if (cleanedPath.isEmpty() == false) {
+            m_fileInfo.setFile(cleanedPath);
+        }
+    }
 }
 
 /**

@@ -1,6 +1,13 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+<file>overlay_construction.png</file>
+<file>toolbar_clapboard_icon.png</file>
+<file>toolbar_info_icon.png</file>
+<file>twitter_icon.png</file>
+<file>layers_toolbox_icon.png</file>
 <file>splash_hcp.png</file>
+<file>splash_startup_image.png</file>
+<file>splash_startup_turkey.png</file>
 <file>view-anterior.png</file>
 <file>view-dorsal.png</file>
 <file>view-left.png</file>
@@ -16,7 +23,10 @@
 <file>view-right-medial.png</file>
 <file>toolbar.png</file>
 <file>toolbox.png</file>
-
+<file>cursor_pen_eraser_32x32.png</file>
+<file>overlay_wrench.png</file>
+<file>overlay_colorbar.png</file>
+<file>time_series_graph.png</file>
 </qresource>
 </RCC>
 

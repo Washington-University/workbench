@@ -1,4 +1,4 @@
-:w#!/bin/sh
+#!/bin/sh
 
 #
 # This file is executed by (via "launchd")
@@ -14,7 +14,7 @@
 #
 # Go to correct directory
 #
-BUILD_ROOT_DIR=/Volumes/DS4600/caret7_development/mac64
+BUILD_ROOT_DIR=/Users/caret/caret7_development/mac64
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
@@ -25,16 +25,12 @@ echo "BUILD_DIR: ${BUILD_DIR}"
 # Setup Environment
 #
 
-#for now we use caret5's lib dir
-#LIB_DIR=/Volumes/DS4600/caret_development/mac64
-#QTDIR=${LIB_DIR}/libraries/qt-software/qt-4.7.1-static-64bit
-
 #
 # Use Qt SDK
 #
 #QTDIR=/Users/caret/QtSDK/Desktop/Qt/474/gcc
 # has SSL linked
-QTDIR=/Volumes/DS4600/caret_development/mac64/libraries/qt-software/qt-4.7.4
+QTDIR=/opt/caret64_sdk/install/qt-4.8.3
 export QTDIR
 echo "QTDIR: ${QTDIR}"
 
@@ -65,23 +61,24 @@ git pull -u
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
-cmake ${SRC_DIR}
+cmake -DCMAKE_BUILD_TYPE=Release ${SRC_DIR}
 make -j2 
 make -j2
 
 #
-# Run 'macdeployqt' on the App so that frameworks are copied
+# Run 'macdeployqt' on the Apps so that frameworks are copied
 #
 echo "RUNNING MACDEPLOYQT"
 macdeployqt Desktop/workbench.app
+macdeployqt CommandLine/wb_command.app
 
 #
 # Copy to distribution directory
 #
 echo "COPYING PROGRAMS"
-DIST_DIR=/mainpool/storage/distribution/caret7_distribution/caret/macosx64_apps
+DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx64_apps
 scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
-scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
+scp -rv CommandLine/wb_command.app caret@myelin1:${DIST_DIR}
 
 ssh caret@myelin1 touch ${DIST_DIR}/workbench.app
 

@@ -30,7 +30,7 @@
 using namespace caret;
 using namespace std;
 
-const int NUM_BUCKETS_PERCENTILE_HIST = 10000;//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory for each histogram
+const int NUM_BUCKETS_PERCENTILE_HIST = 100000;//100,000 to temporarily overcome somewhat extreme outliers while I think of a better fix
 
 FastStatistics::FastStatistics()
 {
@@ -57,6 +57,8 @@ void FastStatistics::reset()
     m_leastNeg = 0.0f;
     m_leastPos = 0.0f;
     m_mostPos = 0.0f;
+    m_min = 0.0f;
+    m_max = 0.0f;
 }
 
 void FastStatistics::update(const float* data, const int64_t& dataCount)
@@ -64,6 +66,7 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
     reset();
     CaretArray<float> positives(dataCount), negatives(dataCount);
     double sum = 0.0;//for numerical stability
+    bool first = true;//so min can be positive and max can be negative
     for (int64_t i = 0; i < dataCount; ++i)
     {
         if (data[i] != data[i])
@@ -100,9 +103,10 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
                 }
             }
         }
-        if (data[i] > m_max) m_max = data[i];
-        if (data[i] < m_min) m_min = data[i];
+        if (data[i] > m_max || first) m_max = data[i];
+        if (data[i] < m_min || first) m_min = data[i];
         sum += data[i];//use a two-pass method for stability, only do mean this pass
+        first = false;
     }
     int64_t totalGood = (m_negCount + m_zeroCount + m_posCount);
     m_mean = sum / totalGood;
@@ -133,6 +137,7 @@ void FastStatistics::update(const float* data, const int64_t& dataCount, const f
     reset();
     CaretArray<float> positives(dataCount), negatives(dataCount);
     double sum = 0.0;//for numerical stability
+    bool first = true;//so min can be positive and max can be negative
     for (int64_t i = 0; i < dataCount; ++i)
     {
         if (data[i] != data[i])
@@ -171,9 +176,10 @@ void FastStatistics::update(const float* data, const int64_t& dataCount, const f
                 if (data[i] < m_leastPos) m_leastPos = data[i];
             }
         }
-        if (data[i] > m_max) m_max = data[i];
-        if (data[i] < m_min) m_min = data[i];
+        if (data[i] > m_max || first) m_max = data[i];
+        if (data[i] < m_min || first) m_min = data[i];
         sum += data[i];//use a two-pass method for stability, only do mean this pass
+        first = false;
     }
     int64_t totalGood = (m_negCount + m_zeroCount + m_posCount);
     m_mean = sum / totalGood;
@@ -229,7 +235,7 @@ float FastStatistics::getApproxNegativePercentile(const float& percent) const
     } else {
         curLower = 0;
     }
-    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || cumulative[highBound - 1] == cumulative[highBound - 2]))
+    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || (highBound > 1 && cumulative[highBound - 1] == cumulative[highBound - 2])))
     {//tweak the function a bit if there is a bin that collected zero to the immediate left, to reduce discontinuities
         if (rank - curLower >= 1.0f)
         {
@@ -287,7 +293,7 @@ float FastStatistics::getApproxPositivePercentile(const float& percent) const
     } else {
         curLower = 0;
     }
-    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || cumulative[highBound - 1] == cumulative[highBound - 2]))
+    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || (highBound > 1 && cumulative[highBound - 1] == cumulative[highBound - 2])))
     {//tweak the function a bit if there is a bin that collected zero to the immediate left, to reduce discontinuities
         if (rank - curLower >= 1.0f)
         {

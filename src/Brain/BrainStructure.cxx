@@ -35,22 +35,23 @@
 #include "BrainStructureNodeAttributes.h"
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
-#include "DisplayPropertiesInformation.h"
 #include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventIdentificationHighlightLocation.h"
-#include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
-#include "EventModelDisplayControllerAdd.h"
-#include "EventModelDisplayControllerDelete.h"
+#include "EventModelAdd.h"
+#include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
+#include "SelectionManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
+#include "ModelSurface.h"
+#include "OverlaySet.h"
 #include "RgbaFile.h"
+#include "SceneClass.h"
 #include "SessionManager.h"
 #include "Surface.h"
 
@@ -63,12 +64,16 @@ using namespace caret;
 BrainStructure::BrainStructure(Brain* brain,
                                StructureEnum::Enum structure)
 {
-    this->brainStructureIdentifier = BrainStructure::brainStructureIdentifierCounter++;
+    m_brainStructureIdentifier = BrainStructure::s_brainStructureIdentifierCounter++;
     
-    this->brain = brain;
-    this->structure = structure;
-    this->nodeAttributes = new BrainStructureNodeAttributes();
-    this->volumeInteractionSurface = NULL;
+    m_brain = brain;
+    m_structure = structure;
+    m_nodeAttributes = new BrainStructureNodeAttributes();
+    m_volumeInteractionSurface = NULL;
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_overlaySet[i] = new OverlaySet(this);
+    }
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
@@ -89,37 +94,41 @@ BrainStructure::~BrainStructure()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete m_overlaySet[i];
+    }
+    
     /*
      * Make a copy of all surface pointers since
      * deleting surfaces will alter the actual
      * vector that stores the surfaces.
      */
-    std::vector<Surface*> allSurfaces(this->surfaces);
+    std::vector<Surface*> allSurfaces(m_surfaces);
     
     for (uint64_t i = 0; i < allSurfaces.size(); i++) {
-        this->deleteSurface(allSurfaces[i]);
+        deleteSurface(allSurfaces[i]);
     }
-    this->surfaces.clear();
+    m_surfaces.clear();
     
-    for (uint64_t i = 0; i < labelFiles.size(); i++) {
-        delete this->labelFiles[i];
-        this->labelFiles[i] = NULL;
+    for (uint64_t i = 0; i < m_labelFiles.size(); i++) {
+        delete m_labelFiles[i];
+        m_labelFiles[i] = NULL;
     }
-    this->labelFiles.clear();
+    m_labelFiles.clear();
     
-    for (uint64_t i = 0; i < metricFiles.size(); i++) {
-        delete this->metricFiles[i];
-        this->metricFiles[i] = NULL;
+    for (uint64_t i = 0; i < m_metricFiles.size(); i++) {
+        delete m_metricFiles[i];
+        m_metricFiles[i] = NULL;
     }
-    this->metricFiles.clear();
+    m_metricFiles.clear();
     
-    for (uint64_t i = 0; i < rgbaFiles.size(); i++) {
-        delete this->rgbaFiles[i];
-        this->rgbaFiles[i] = NULL;
+    for (uint64_t i = 0; i < m_rgbaFiles.size(); i++) {
+        delete m_rgbaFiles[i];
+        m_rgbaFiles[i] = NULL;
     }
-    this->rgbaFiles.clear();
+    m_rgbaFiles.clear();
 
-    delete this->nodeAttributes;
+    delete m_nodeAttributes;
 }
 
 /**
@@ -130,7 +139,7 @@ BrainStructure::~BrainStructure()
 StructureEnum::Enum 
 BrainStructure::getStructure() const
 {
-    return this->structure;
+    return m_structure;
 }
 
 /**
@@ -147,24 +156,38 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
 {
     CaretAssert(labelFile);
     
-    int32_t numNodes = this->getNumberOfNodes();
+    int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (labelFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(labelFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (labelFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(labelFile->getNumberOfNodes())
+                               + " vertices but the "
+                               + StructureEnum::toGuiName(getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
             throw e;
         }
     }
+        
+    if (labelFile->getStructure() != getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + labelFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(labelFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
     
-    this->labelFiles.push_back(labelFile);
+    m_labelFiles.push_back(labelFile);
 }
 
 /**
@@ -181,16 +204,17 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
 {
     CaretAssert(metricFile);
     
-    int32_t numNodes = this->getNumberOfNodes();
+    int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (metricFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(metricFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (metricFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(metricFile->getNumberOfNodes())
+                               + " vertices but the "
+                               + StructureEnum::toGuiName(getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -198,7 +222,20 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
         }
     }
     
-    this->metricFiles.push_back(metricFile);
+    if (metricFile->getStructure() != getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + metricFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(metricFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
+    
+    m_metricFiles.push_back(metricFile);
 }
 
 /**
@@ -215,16 +252,17 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
 {
     CaretAssert(rgbaFile);
     
-    int32_t numNodes = this->getNumberOfNodes();
+    int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (rgbaFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(rgbaFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (rgbaFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(rgbaFile->getNumberOfNodes())
+                               + " vertices but the "
+                               + StructureEnum::toGuiName(getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -232,7 +270,21 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
         }
     }
     
-    this->rgbaFiles.push_back(rgbaFile);
+    
+    if (rgbaFile->getStructure() != getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + rgbaFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(rgbaFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
+    
+    m_rgbaFiles.push_back(rgbaFile);
 }
 
 /**
@@ -250,16 +302,17 @@ BrainStructure::addSurface(Surface* surface,
 {
     CaretAssert(surface);
     
-    int32_t numNodes = this->getNumberOfNodes();
+    int32_t numNodes = getNumberOfNodes();
     if (numNodes > 0) {
         if (surface->getNumberOfNodes() != numNodes) {
-            AString message = " Surface contains "
-            + AString::number(surface->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (surface->getFileNameNoPath()
+                               + "  contains "
+                               + AString::number(surface->getNumberOfNodes())
+                               + " vertices but the "
+                               + StructureEnum::toGuiName(getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " vertices.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -267,30 +320,42 @@ BrainStructure::addSurface(Surface* surface,
         }
     }
     
+    if (surface->getStructure() != getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + surface->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(surface->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
     if (numNodes == 0) {
         const int32_t numSurfaceNodes = surface->getNumberOfNodes();
-        this->nodeAttributes->update(numSurfaceNodes);
+        m_nodeAttributes->update(numSurfaceNodes);
     }
     
     surface->setBrainStructure(this);
     
-    this->surfaces.push_back(surface);
+    m_surfaces.push_back(surface);
 
     /*
      * Create a model controller for the surface.
      */
-    ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(this->brain,
+    ModelSurface* mdcs = new ModelSurface(m_brain,
                                                                             surface);
-    this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
+    m_surfaceControllerMap.insert(std::make_pair(surface, mdcs));
     
     if (initilizeOverlaysFlag) {
-        mdcs->initializeOverlays();
+        initializeOverlays();
     }
     
     /*
      * Send the controller added event.
      */
-    EventModelDisplayControllerAdd addEvent(mdcs);
+    EventModelAdd addEvent(mdcs);
     EventManager::get()->sendEvent(addEvent.getPointer());
 }
 
@@ -300,35 +365,35 @@ BrainStructure::deleteSurface(Surface* surface)
     CaretAssert(surface);
     
     std::vector<Surface*>::iterator iter =
-    std::find(this->surfaces.begin(),
-              this->surfaces.end(),
+    std::find(m_surfaces.begin(),
+              m_surfaces.end(),
               surface);
     
-    CaretAssertMessage((iter != this->surfaces.end()),
+    CaretAssertMessage((iter != m_surfaces.end()),
                        "Trying to delete surface not in brain structure.");
     
-    std::map<Surface*, ModelDisplayControllerSurface*>::iterator controllerIter = 
-        this->surfaceControllerMap.find(surface);
+    std::map<Surface*, ModelSurface*>::iterator controllerIter = 
+        m_surfaceControllerMap.find(surface);
 
-    CaretAssertMessage((controllerIter != this->surfaceControllerMap.end()),
+    CaretAssertMessage((controllerIter != m_surfaceControllerMap.end()),
                        "Surface does not map to a model controller");
 
-    ModelDisplayControllerSurface* mdcs = controllerIter->second;
+    ModelSurface* mdcs = controllerIter->second;
     
     /*
      * Remove from surface to controller map.
      */
-    this->surfaceControllerMap.erase(controllerIter);
+    m_surfaceControllerMap.erase(controllerIter);
     
     /*
      * Remove the surface.
      */
-    this->surfaces.erase(iter);
+    m_surfaces.erase(iter);
     
     /*
      * Send the controller deleted event.
      */
-    EventModelDisplayControllerDelete deleteEvent(mdcs);
+    EventModelDelete deleteEvent(mdcs);
     EventManager::get()->sendEvent(deleteEvent.getPointer());
     
     /*
@@ -347,7 +412,7 @@ BrainStructure::deleteSurface(Surface* surface)
 int 
 BrainStructure::getNumberOfSurfaces() const
 {
-    return static_cast<int>(this->surfaces.size());
+    return static_cast<int>(m_surfaces.size());
 }
 
 /**
@@ -361,9 +426,9 @@ BrainStructure::getNumberOfSurfaces() const
 Surface* 
 BrainStructure::getSurface(int indx)
 {
-    CaretAssertVectorIndex(this->surfaces, indx);
+    CaretAssertVectorIndex(m_surfaces, indx);
     
-    return this->surfaces[indx];
+    return m_surfaces[indx];
 }
 
 /**
@@ -379,10 +444,10 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
 {
     surfacesOut.clear();
     
-    const int32_t numSurfaces = this->getNumberOfSurfaces();
+    const int32_t numSurfaces = getNumberOfSurfaces();
     for (int32_t i = 0; i < numSurfaces; i++) {
-        if (this->surfaces[i]->getSurfaceType() == surfaceType) {
-            surfacesOut.push_back(this->surfaces[i]);
+        if (m_surfaces[i]->getSurfaceType() == surfaceType) {
+            surfacesOut.push_back(m_surfaces[i]);
         }
     }
 }
@@ -395,36 +460,36 @@ const Surface*
 BrainStructure::getVolumeInteractionSurfacePrivate() const
 {
     bool valid = false;
-    if (this->volumeInteractionSurface != NULL) {
-        const int32_t numSurfaces = this->getNumberOfSurfaces();
+    if (m_volumeInteractionSurface != NULL) {
+        const int32_t numSurfaces = getNumberOfSurfaces();
         for (int32_t i = 0; i < numSurfaces; i++) {
-            if (this->surfaces[i] == this->volumeInteractionSurface) {
+            if (m_surfaces[i] == m_volumeInteractionSurface) {
                 valid = true;
                 break;
             }
         }
     }
     if (valid) {
-        return this->volumeInteractionSurface;
+        return m_volumeInteractionSurface;
     }
-    this->volumeInteractionSurface = NULL;
+    m_volumeInteractionSurface = NULL;
     
     /*
      * Give preference to anatomical surfaces but if there are none
      * (perhaps the surface types are missing), use all surfaces.
      */
     std::vector<Surface*> interactionSurfaces;
-    this->getSurfacesOfType(SurfaceTypeEnum::ANATOMICAL, 
+    getSurfacesOfType(SurfaceTypeEnum::ANATOMICAL, 
                             interactionSurfaces);
     if (interactionSurfaces.empty()) {
-        interactionSurfaces = this->surfaces;
+        interactionSurfaces = m_surfaces;
     }
     
     if (interactionSurfaces.empty() == false) {
         /*
          * Default to first surface
          */
-        this->volumeInteractionSurface = interactionSurfaces[0];
+        m_volumeInteractionSurface = interactionSurfaces[0];
         
         /*
          * Now look for a surface with certain strings in their name
@@ -455,35 +520,35 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
         }
         
         if (midThicknessSurface != NULL) {
-            this->volumeInteractionSurface = midThicknessSurface;
+            m_volumeInteractionSurface = midThicknessSurface;
         }
         else if (whiteMatterSurface != NULL) {
-            this->volumeInteractionSurface = whiteMatterSurface;
+            m_volumeInteractionSurface = whiteMatterSurface;
         }
         else if (pialSurface != NULL) {
-            this->volumeInteractionSurface = pialSurface;
+            m_volumeInteractionSurface = pialSurface;
         }
         else if (anatomicalSurface != NULL) {
-            this->volumeInteractionSurface = anatomicalSurface;
+            m_volumeInteractionSurface = anatomicalSurface;
         }
         else if (fiducialSurface != NULL) {
-            this->volumeInteractionSurface = fiducialSurface;
+            m_volumeInteractionSurface = fiducialSurface;
         }
     }
     
-    if (this->volumeInteractionSurface != NULL) {
+    if (m_volumeInteractionSurface != NULL) {
         CaretLogFiner("Volume Interaction Surface for "
-                      + StructureEnum::toGuiName(this->structure)
+                      + StructureEnum::toGuiName(m_structure)
                       + ": " 
-                      + this->volumeInteractionSurface->getFileNameNoPath());
+                      + m_volumeInteractionSurface->getFileNameNoPath());
     }
     else {
         CaretLogFiner("Volume Interaction Surface for "
-                      + StructureEnum::toGuiName(this->structure)
+                      + StructureEnum::toGuiName(m_structure)
                       + " is invalid.");
     }
     
-    return this->volumeInteractionSurface;
+    return m_volumeInteractionSurface;
 }
 
 /**
@@ -493,7 +558,7 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
 const Surface* 
 BrainStructure::getVolumeInteractionSurface() const
 {
-    return this->getVolumeInteractionSurfacePrivate();
+    return getVolumeInteractionSurfacePrivate();
 }
 
 /**
@@ -506,7 +571,7 @@ BrainStructure::getVolumeInteractionSurface()
     /*
      * Kludge to avoid duplicated code and ease maintenance
      */
-    const Surface* constSurface = this->getVolumeInteractionSurfacePrivate();
+    const Surface* constSurface = getVolumeInteractionSurfacePrivate();
     Surface* s = (Surface*)constSurface;
     return s;
 }
@@ -519,7 +584,76 @@ BrainStructure::getVolumeInteractionSurface()
 void 
 BrainStructure::setVolumeInteractionSurface(Surface* volumeInteractionSurface)
 {
-    this->volumeInteractionSurface = volumeInteractionSurface;
+    m_volumeInteractionSurface = volumeInteractionSurface;
+}
+
+/**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+Surface* 
+BrainStructure::getSurfaceContainingTextInName(const AString& text)
+{
+    /*
+     * Kludge to avoid duplicated code and ease maintenance
+     */
+    const Surface* constSurface = getSurfaceContainingTextInNamePrivate(text);
+    Surface* s = (Surface*)constSurface;
+    return s;
+}
+
+
+/**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+const Surface* 
+BrainStructure::getSurfaceContainingTextInName(const AString& text) const
+{
+    return getSurfaceContainingTextInNamePrivate(text);
+}
+
+/**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+const Surface* 
+BrainStructure::getSurfaceContainingTextInNamePrivate(const AString& text) const
+{
+    for (std::vector<Surface*>::const_iterator iter = m_surfaces.begin();
+         iter != m_surfaces.end();
+         iter++) {
+        const Surface* surface = *iter;
+        const AString name = surface->getFileNameNoPath();
+        if (name.indexOf(text,
+                         0,
+                         Qt::CaseInsensitive) >= 0) {
+            return surface;
+        }
+    }
+    
+    return NULL;
 }
 
 /**
@@ -532,12 +666,40 @@ bool
 BrainStructure::containsSurface(const Surface* surface)
 {
     CaretAssert(surface);
-    if (std::find(this->surfaces.begin(),
-                  this->surfaces.end(),
-                  surface) != this->surfaces.end()) {
+    if (std::find(m_surfaces.begin(),
+                  m_surfaces.end(),
+                  surface) != m_surfaces.end()) {
         return true;
     }
     return false;
+}
+
+/**
+ * Find the surface with the given name.
+ * @param surfaceFileName
+ *    Name of surface.
+ * @param useAbsolutePath
+ *    If true the given surfaceFileName is an absolute path.
+ *    If false, the given surfaceFileName is just the file 
+ *    name without any path.
+ */
+Surface*
+BrainStructure::getSurfaceWithName(const AString& surfaceFileName,
+                                   const bool useAbsolutePath)
+{
+    for (std::vector<Surface*>::iterator iter = m_surfaces.begin();
+         iter != m_surfaces.end();
+         iter++) {
+        Surface* surface = *iter;
+        const AString name = (useAbsolutePath
+                              ? surface->getFileName()
+                              : surface->getFileNameNoPath());
+        if (surfaceFileName == name) {
+            return surface;
+        }
+    }
+    
+    return NULL;
 }
 
 /**
@@ -546,7 +708,7 @@ BrainStructure::containsSurface(const Surface* surface)
 Brain* 
 BrainStructure::getBrain()
 {
-    return this->brain;    
+    return m_brain;    
 }
 
 /**
@@ -555,7 +717,7 @@ BrainStructure::getBrain()
 const Brain* 
 BrainStructure::getBrain() const
 {
-    return this->brain;    
+    return m_brain;    
 }
 
 /**
@@ -566,8 +728,8 @@ BrainStructure::getBrain() const
 int32_t 
 BrainStructure::getNumberOfNodes() const
 {
-    if (this->surfaces.empty() == false) {
-        return surfaces[0]->getNumberOfNodes();
+    if (m_surfaces.empty() == false) {
+        return m_surfaces[0]->getNumberOfNodes();
     }
     return 0;
 }
@@ -582,8 +744,8 @@ BrainStructure::getLabelFiles(std::vector<LabelFile*>& labelFilesOut) const
 {
     labelFilesOut.clear();
     labelFilesOut.insert(labelFilesOut.end(),
-                          this->labelFiles.begin(),
-                          this->labelFiles.end());
+                          m_labelFiles.begin(),
+                          m_labelFiles.end());
 }
 
 /**
@@ -593,7 +755,7 @@ BrainStructure::getLabelFiles(std::vector<LabelFile*>& labelFilesOut) const
 int32_t 
 BrainStructure::getNumberOfLabelFiles() const
 {
-    return this->labelFiles.size();
+    return m_labelFiles.size();
 }
 
 /**
@@ -606,8 +768,8 @@ BrainStructure::getNumberOfLabelFiles() const
 LabelFile* 
 BrainStructure::getLabelFile(const int32_t fileIndex)
 {
-    CaretAssertVectorIndex(this->labelFiles, fileIndex);
-    return this->labelFiles[fileIndex];
+    CaretAssertVectorIndex(m_labelFiles, fileIndex);
+    return m_labelFiles[fileIndex];
 }
 
 /**
@@ -620,8 +782,8 @@ BrainStructure::getLabelFile(const int32_t fileIndex)
 const LabelFile* 
 BrainStructure::getLabelFile(const int32_t fileIndex) const
 {
-    CaretAssertVectorIndex(this->labelFiles, fileIndex);
-    return this->labelFiles[fileIndex];
+    CaretAssertVectorIndex(m_labelFiles, fileIndex);
+    return m_labelFiles[fileIndex];
 }
 
 /**
@@ -634,8 +796,8 @@ BrainStructure::getMetricFiles(std::vector<MetricFile*>& metricFilesOut) const
 {
     metricFilesOut.clear();
     metricFilesOut.insert(metricFilesOut.end(),
-                          this->metricFiles.begin(),
-                          this->metricFiles.end());
+                          m_metricFiles.begin(),
+                          m_metricFiles.end());
 }
 
 /**
@@ -645,7 +807,7 @@ BrainStructure::getMetricFiles(std::vector<MetricFile*>& metricFilesOut) const
 int32_t 
 BrainStructure::getNumberOfMetricFiles() const
 {
-    return this->metricFiles.size();
+    return m_metricFiles.size();
 }
 
 /**
@@ -658,8 +820,8 @@ BrainStructure::getNumberOfMetricFiles() const
 MetricFile* 
 BrainStructure::getMetricFile(const int32_t fileIndex)
 {
-    CaretAssertVectorIndex(this->metricFiles, fileIndex);
-    return this->metricFiles[fileIndex];
+    CaretAssertVectorIndex(m_metricFiles, fileIndex);
+    return m_metricFiles[fileIndex];
 }
 
 /**
@@ -672,8 +834,8 @@ BrainStructure::getMetricFile(const int32_t fileIndex)
 const MetricFile* 
 BrainStructure::getMetricFile(const int32_t fileIndex) const
 {
-    CaretAssertVectorIndex(this->metricFiles, fileIndex);
-    return this->metricFiles[fileIndex];
+    CaretAssertVectorIndex(m_metricFiles, fileIndex);
+    return m_metricFiles[fileIndex];
 }
 
 /**
@@ -683,7 +845,7 @@ BrainStructure::getMetricFile(const int32_t fileIndex) const
 int32_t 
 BrainStructure::getNumberOfRgbaFiles() const
 {
-    return this->rgbaFiles.size();
+    return m_rgbaFiles.size();
 }
 
 /**
@@ -696,8 +858,8 @@ BrainStructure::getNumberOfRgbaFiles() const
 RgbaFile* 
 BrainStructure::getRgbaFile(const int32_t fileIndex)
 {
-    CaretAssertVectorIndex(this->rgbaFiles, fileIndex);
-    return this->rgbaFiles[fileIndex];
+    CaretAssertVectorIndex(m_rgbaFiles, fileIndex);
+    return m_rgbaFiles[fileIndex];
 }
 
 /**
@@ -710,8 +872,8 @@ BrainStructure::getRgbaFile(const int32_t fileIndex)
 const RgbaFile* 
 BrainStructure::getRgbaFile(const int32_t fileIndex) const
 {
-    CaretAssertVectorIndex(this->rgbaFiles, fileIndex);
-    return this->rgbaFiles[fileIndex];
+    CaretAssertVectorIndex(m_rgbaFiles, fileIndex);
+    return m_rgbaFiles[fileIndex];
 }
 
 /**
@@ -724,8 +886,8 @@ BrainStructure::getRgbaFiles(std::vector<RgbaFile*>& rgbaFilesOut) const
 {
     rgbaFilesOut.clear();
     rgbaFilesOut.insert(rgbaFilesOut.end(),
-                          this->rgbaFiles.begin(),
-                          this->rgbaFiles.end());
+                          m_rgbaFiles.begin(),
+                          m_rgbaFiles.end());
 }
 
 
@@ -745,25 +907,25 @@ BrainStructure::receiveEvent(Event* event)
         
         const Surface* associatedSurface = dataFilesEvent->getSurface();
         if (associatedSurface != NULL) {
-            if (this->containsSurface(associatedSurface) == false) {
+            if (containsSurface(associatedSurface) == false) {
                 return;
             }
         }
         
-        for (std::vector<LabelFile*>::iterator labelIter = this->labelFiles.begin();
-             labelIter != this->labelFiles.end();
+        for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+             labelIter != m_labelFiles.end();
              labelIter++) {
             dataFilesEvent->addFile(*labelIter);
         }
         
-        for (std::vector<MetricFile*>::iterator metricIter = this->metricFiles.begin();
-             metricIter != this->metricFiles.end();
+        for (std::vector<MetricFile*>::iterator metricIter = m_metricFiles.begin();
+             metricIter != m_metricFiles.end();
              metricIter++) {
             dataFilesEvent->addFile(*metricIter);
         }
         
-        for (std::vector<RgbaFile*>::iterator rgbaIter = this->rgbaFiles.begin();
-             rgbaIter != this->rgbaFiles.end();
+        for (std::vector<RgbaFile*>::iterator rgbaIter = m_rgbaFiles.begin();
+             rgbaIter != m_rgbaFiles.end();
              rgbaIter++) {
             dataFilesEvent->addFile(*rgbaIter);
         }
@@ -777,151 +939,39 @@ BrainStructure::receiveEvent(Event* event)
         
         const Surface* associatedSurface = dataFilesEvent->getSurface();
         if (associatedSurface != NULL) {
-            if (this->containsSurface(associatedSurface) == false) {
+            if (containsSurface(associatedSurface) == false) {
                 return;
             }
         }
         
-        for (std::vector<LabelFile*>::iterator labelIter = this->labelFiles.begin();
-             labelIter != this->labelFiles.end();
+        for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+             labelIter != m_labelFiles.end();
              labelIter++) {
             dataFilesEvent->addFile(*labelIter);
         }
         
-        for (std::vector<MetricFile*>::iterator metricIter = this->metricFiles.begin();
-             metricIter != this->metricFiles.end();
+        for (std::vector<MetricFile*>::iterator metricIter = m_metricFiles.begin();
+             metricIter != m_metricFiles.end();
              metricIter++) {
             dataFilesEvent->addFile(*metricIter);
         }
         
-        for (std::vector<RgbaFile*>::iterator rgbaIter = this->rgbaFiles.begin();
-             rgbaIter != this->rgbaFiles.end();
+        for (std::vector<RgbaFile*>::iterator rgbaIter = m_rgbaFiles.begin();
+             rgbaIter != m_rgbaFiles.end();
              rgbaIter++) {
             dataFilesEvent->addFile(*rgbaIter);
         }
         
         dataFilesEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
-        EventIdentificationHighlightLocation* idLocationEvent =
-        dynamic_cast<EventIdentificationHighlightLocation*>(event);
-        CaretAssert(idLocationEvent);
-
-        //const bool contralateralIdEnabled = SessionManager::get()->getCaretPreferences()->isContralateralIdentificationEnabled();
-        DisplayPropertiesInformation* dpi = this->brain->getDisplayPropertiesInformation();
-        const bool contralateralIdEnabled = dpi->isContralateralIdentificationEnabled();
-        
-        NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
-        int32_t highlighNodeIndex = -1;
-        
-        BrainStructure* contralateralBrainStructure = NULL;
-        int32_t contralateralHighlightNodeIndex = -1;
-        Surface* contralateralSurface = NULL;
-        NodeIdentificationTypeEnum::Enum contralateralIdentificationType = NodeIdentificationTypeEnum::NONE;
-        
-        switch (idLocationEvent->getIdentificationType()) {
-            case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
-                if ((idLocationEvent->getSurfaceStructure() == this->getStructure()) 
-                    && (idLocationEvent->getSurfaceNumberOfNodes() == this->getNumberOfNodes())) { 
-                    highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                    identificationType = NodeIdentificationTypeEnum::NORMAL;
-                }
-                else if (contralateralIdEnabled) {
-                    if (this->getNumberOfNodes() == idLocationEvent->getSurfaceNumberOfNodes()) {
-                        if (StructureEnum::isCortexContralateral(this->getStructure(), 
-                                                                 idLocationEvent->getSurfaceStructure())) {
-                            highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                            identificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
-                        }
-                    }
-                }
-                break;
-            case EventIdentificationHighlightLocation::IDENTIFICATION_VOLUME:
-            {
-                const Surface* s = this->getVolumeInteractionSurface();
-                if (s != NULL) {
-                    const float* xyz = idLocationEvent->getXYZ();
-                    const float toleranceDistance = 10.0;
-                    int32_t nearestNodeIndex = s->closestNode(xyz, toleranceDistance);
-                    if (nearestNodeIndex >= 0) {
-                        highlighNodeIndex = nearestNodeIndex;
-                        identificationType = NodeIdentificationTypeEnum::NORMAL;
-                    }
-                    if (contralateralIdEnabled 
-                        && (highlighNodeIndex >= 0)) {
-                        const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(this->getStructure());
-                        if (contralateralStructure != StructureEnum::INVALID) {
-                            contralateralBrainStructure = brain->getBrainStructure(contralateralStructure,
-                                                                                        false);
-                            if (contralateralBrainStructure != NULL) {
-                                contralateralSurface = contralateralBrainStructure->getVolumeInteractionSurface();
-                                if (contralateralSurface != NULL) {
-                                    if (this->getNumberOfNodes() == contralateralSurface->getNumberOfNodes()) {
-                                        contralateralHighlightNodeIndex = highlighNodeIndex;
-                                        contralateralIdentificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-                break;
-        }
-        
-        IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
-        if (highlighNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes();
-            nodeAtts->setIdentificationType(highlighNodeIndex,
-                                            identificationType);
-            idManager->addAdditionalSurfaceNodeIdentification(this->getVolumeInteractionSurface(), 
-                                                              highlighNodeIndex,
-                                                              (identificationType == NodeIdentificationTypeEnum::CONTRALATERAL));
-            idLocationEvent->setEventProcessed();
-        }
-        if (contralateralHighlightNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = contralateralBrainStructure->getNodeAttributes();
-            nodeAtts->setIdentificationType(contralateralHighlightNodeIndex,
-                                            contralateralIdentificationType);
-            idManager->addAdditionalSurfaceNodeIdentification(contralateralSurface, 
-                                                              contralateralHighlightNodeIndex,
-                                                              true);
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
-        EventIdentificationSymbolRemoval* idRemovalEvent =
-            dynamic_cast<EventIdentificationSymbolRemoval*>(event);
-        CaretAssert(idRemovalEvent);
-        
-        if (idRemovalEvent->isRemoveAllSurfaceSymbols()) {
-            this->nodeAttributes->setAllIdentificationNone();
-        }
-        else if (idRemovalEvent->isRemoveSurfaceNodeSymbol()) {
-            const StructureEnum::Enum idStructure = idRemovalEvent->getSurfaceStructure();
-            const int32_t idNodeNumber = idRemovalEvent->getSurfaceNodeNumber();
-            if (idStructure == this->structure) {
-                if (this->getNumberOfNodes() >= idNodeNumber) {
-                    this->nodeAttributes->setIdentificationType(idNodeNumber,
-                                                                NodeIdentificationTypeEnum::NONE);
-                }
-            }
-            else if (this->structure == StructureEnum::getContralateralStructure(idStructure)) {
-                if (this->getNumberOfNodes() >= idNodeNumber) {
-                    this->nodeAttributes->setIdentificationType(idNodeNumber,
-                                                                NodeIdentificationTypeEnum::NONE);
-                }
-            }
-        }
-        idRemovalEvent->setEventProcessed();
-    }
     else if (event->getEventType() == EventTypeEnum::EVENT_SURFACES_GET) {
         EventSurfacesGet* getSurfacesEvent =
             dynamic_cast<EventSurfacesGet*>(event);
         CaretAssert(getSurfacesEvent);
         
-        const int32_t numSurfaces = this->getNumberOfSurfaces();
+        const int32_t numSurfaces = getNumberOfSurfaces();
         for (int32_t i = 0; i < numSurfaces; i++) {
-            getSurfacesEvent->addSurface(this->getSurface(i));
+            getSurfacesEvent->addSurface(getSurface(i));
         }
         getSurfacesEvent->setEventProcessed();
     }
@@ -933,7 +983,7 @@ BrainStructure::receiveEvent(Event* event)
 int64_t 
 BrainStructure::getBrainStructureIdentifier() const
 {
-    return this->brainStructureIdentifier;
+    return m_brainStructureIdentifier;
 }
 
 /**
@@ -944,7 +994,7 @@ BrainStructure::getBrainStructureIdentifier() const
 BrainStructureNodeAttributes* 
 BrainStructure::getNodeAttributes()
 {
-    return this->nodeAttributes;
+    return m_nodeAttributes;
 }
 
 /**
@@ -955,7 +1005,7 @@ BrainStructure::getNodeAttributes()
 const BrainStructureNodeAttributes* 
 BrainStructure::getNodeAttributes() const
 {
-    return this->nodeAttributes;
+    return m_nodeAttributes;
 }
 
 /**
@@ -964,20 +1014,20 @@ BrainStructure::getNodeAttributes() const
  *    Data files are loaded into this parameter.
  */
 void 
-BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
+BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
 {
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->surfaces.begin(),
-                           this->surfaces.end());
+                           m_surfaces.begin(),
+                           m_surfaces.end());
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->labelFiles.begin(),
-                           this->labelFiles.end());
+                           m_labelFiles.begin(),
+                           m_labelFiles.end());
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->metricFiles.begin(),
-                           this->metricFiles.end());
+                           m_metricFiles.begin(),
+                           m_metricFiles.end());
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->rgbaFiles.begin(),
-                           this->rgbaFiles.end());
+                           m_rgbaFiles.begin(),
+                           m_rgbaFiles.end());
 }
 
 /**
@@ -991,42 +1041,42 @@ bool
 BrainStructure::removeDataFile(CaretDataFile* caretDataFile)
 {
     std::vector<Surface*>::iterator surfaceIterator = 
-        std::find(this->surfaces.begin(),
-                  this->surfaces.end(),
+        std::find(m_surfaces.begin(),
+                  m_surfaces.end(),
                   caretDataFile);
-    if (surfaceIterator != this->surfaces.end()) {
+    if (surfaceIterator != m_surfaces.end()) {
         Surface* s = *surfaceIterator;
-        this->deleteSurface(s);
+        deleteSurface(s);
         return true;
     }
     
     std::vector<LabelFile*>::iterator labelIterator = 
-    std::find(this->labelFiles.begin(),
-              this->labelFiles.end(),
+    std::find(m_labelFiles.begin(),
+              m_labelFiles.end(),
               caretDataFile);
-    if (labelIterator != this->labelFiles.end()) {
+    if (labelIterator != m_labelFiles.end()) {
         delete caretDataFile;
-        this->labelFiles.erase(labelIterator);
+        m_labelFiles.erase(labelIterator);
         return true;
     }
     
     std::vector<MetricFile*>::iterator metricIterator = 
-    std::find(this->metricFiles.begin(),
-              this->metricFiles.end(),
+    std::find(m_metricFiles.begin(),
+              m_metricFiles.end(),
               caretDataFile);
-    if (metricIterator != this->metricFiles.end()) {
+    if (metricIterator != m_metricFiles.end()) {
         delete caretDataFile;
-        this->metricFiles.erase(metricIterator);
+        m_metricFiles.erase(metricIterator);
         return true;
     }
     
     std::vector<RgbaFile*>::iterator rgbaIterator = 
-    std::find(this->rgbaFiles.begin(),
-              this->rgbaFiles.end(),
+    std::find(m_rgbaFiles.begin(),
+              m_rgbaFiles.end(),
               caretDataFile);
-    if (rgbaIterator != this->rgbaFiles.end()) {
+    if (rgbaIterator != m_rgbaFiles.end()) {
         delete caretDataFile;
-        this->rgbaFiles.erase(rgbaIterator);
+        m_rgbaFiles.erase(rgbaIterator);
         return true;
     }
     
@@ -1053,20 +1103,29 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
     
     MetricFile* depthMetricFile = NULL;
     int32_t     depthMapIndex = -1;
+    MetricFile* depthNamedMetricFile = NULL;
     MetricFile* curvatureMetricFile = NULL;
     int32_t     curvatureMapIndex = -1;
-    MetricFile* shapeNamedMetricFile = NULL;
     MetricFile* curvatureNamedMetricFile = NULL;
-    MetricFile* depthNamedMetricFile = NULL;
+    MetricFile* shapeNamedMetricFile = NULL;
+    MetricFile* sulcMetricFile = NULL;
+    int32_t     sulcMapIndex = -1;
+    MetricFile* sulcNamedMetricFile = NULL;
     
-    const int numFiles = this->metricFiles.size();
+    const int numFiles = m_metricFiles.size();
     for (int32_t i = 0; i < numFiles; i++) {
-        MetricFile* mf = this->metricFiles[i];
+        MetricFile* mf = m_metricFiles[i];
         const AString filename = mf->getFileNameNoPath().toLower();
         const int32_t numMaps = mf->getNumberOfMaps();
         for (int32_t j = 0; j < numMaps; j++) {
             const AString mapName = mf->getMapName(j).toLower();
-            if (mapName.contains("depth")) {
+            if (mapName.contains("sulc")) {
+                if (sulcMetricFile == NULL) {
+                    sulcMetricFile = mf;
+                    sulcMapIndex   = j;
+                }
+            }
+            else if (mapName.contains("depth")) {
                 if (depthMetricFile == NULL) {
                     depthMetricFile = mf;
                     depthMapIndex   = j;
@@ -1080,6 +1139,11 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
             }
         }
         
+        if (filename.contains("sulc")) {
+            if (numMaps > 0) {
+                sulcNamedMetricFile = mf;
+            }
+        }
         if (filename.contains("shape")) {
             if (numMaps > 0) {
                 shapeNamedMetricFile = mf;
@@ -1097,13 +1161,21 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
         }
     }
     
-    if (depthMetricFile != NULL) {
+    if (sulcMetricFile != NULL) {
+        shapeMetricFileOut = sulcMetricFile;
+        shapeMapIndexOut   = sulcMapIndex;
+    }
+    else if (depthMetricFile != NULL) {
         shapeMetricFileOut = depthMetricFile;
         shapeMapIndexOut   = depthMapIndex;
     }
     else if (curvatureMetricFile != NULL) {
         shapeMetricFileOut = curvatureMetricFile;
         shapeMapIndexOut   = curvatureMapIndex;
+    }
+    else if (sulcNamedMetricFile != NULL) {
+        shapeMetricFileOut = sulcNamedMetricFile;
+        shapeMapIndexOut   = 0;
     }
     else if (depthNamedMetricFile != NULL) {
         shapeMetricFileOut = depthNamedMetricFile;
@@ -1126,4 +1198,134 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
     return false;
 }
 
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+OverlaySet* 
+BrainStructure::getOverlaySet(const int tabIndex)
+{
+    CaretAssertArrayIndex(m_overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return m_overlaySet[tabIndex];
+}
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+const OverlaySet* 
+BrainStructure::getOverlaySet(const int tabIndex) const
+{
+    CaretAssertArrayIndex(m_overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return m_overlaySet[tabIndex];
+}
+
+/**
+ * Initilize the overlays for this controller.
+ */
+void 
+BrainStructure::initializeOverlays()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_overlaySet[i]->initializeOverlays();
+    }
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainStructure::saveToScene(const SceneAttributes* sceneAttributes,
+                                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainStructure",
+                                            1);
+    
+    sceneClass->addInteger("numberOfNodes", 
+                           getNumberOfNodes());
+    sceneClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("m_structure", m_structure);
+    sceneClass->addClass(m_nodeAttributes->saveToScene(sceneAttributes, 
+                                                       "m_nodeAttributes"));
+    
+    /*
+     * Save Group/Name Selection Hierarchies
+     */
+    for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+         labelIter != m_labelFiles.end();
+         labelIter++) {
+        LabelFile* lf = *labelIter;
+        sceneClass->addClass(lf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                         lf->getFileNameNoPath()));
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainStructure::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const int32_t numNodes = sceneClass->getIntegerValue("numberOfNodes",
+                                                         0);
+    const StructureEnum::Enum structure = sceneClass->getEnumeratedTypeValue<StructureEnum,StructureEnum::Enum>("m_structure", 
+                                                                                                                StructureEnum::INVALID);
+    
+    /*
+     * Since there may be multiple brain structures in scene,
+     * match by structure-type and number of nodes
+     */
+    if ((numNodes == getNumberOfNodes())
+        && (structure == m_structure)) {
+        m_nodeAttributes->restoreFromScene(sceneAttributes, 
+                                           sceneClass->getClass("m_nodeAttributes"));
+
+        /*
+         * Save Group/Name Selection Hierarchies
+         */
+        for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
+             labelIter != m_labelFiles.end();
+             labelIter++) {
+            LabelFile* lf = *labelIter;
+            const SceneClass* labelClass = sceneClass->getClass(lf->getFileNameNoPath());
+            lf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                                  labelClass);
+        }
+    }
+}
 

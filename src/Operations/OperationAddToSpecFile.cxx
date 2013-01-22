@@ -71,6 +71,11 @@ void OperationAddToSpecFile::useParameters(OperationParameters* myParams, Progre
         throw OperationException("unrecognized structure type");
     }
     AString myDataFileName = myParams->getString(3);//file path
+    FileInformation myDataFileInfo(myDataFileName);
+    if (!myDataFileInfo.exists())
+    {
+        throw OperationException("data file not found");
+    }
     DataFileTypeEnum::Enum myType = DataFileTypeEnum::fromFileExtension(myDataFileName, &ok);
     if (!ok)
     {

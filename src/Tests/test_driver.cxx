@@ -30,15 +30,19 @@
 #include "TestInterface.h"
 #include "SessionManager.h"
 #include "CaretHttpManager.h"
+#include "CaretCommandLine.h"
 
 //tests
 #include "CiftiFileTest.h"
 #include "HttpTest.h"
 #include "HeapTest.h"
+#include "LookupTest.h"
+#include "MathExpressionTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
 #include "PointerTest.h"
 #include "ProgressTest.h"
+#include "QuatTest.h"
 #include "StatisticsTest.h"
 #include "TimerTest.h"
 #include "TopologyHelperTest.h"
@@ -60,16 +64,25 @@ int main(int argc, char** argv)
 {
     {
         QCoreApplication myApp(argc, argv);
+        caret_global_commandLine = argv[0];
+        for (int i = 1; i < argc; ++i)
+        {
+            caret_global_commandLine += " ";
+            caret_global_commandLine += argv[i];
+        }
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
         mytests.push_back(new HeapTest("heap"));
         mytests.push_back(new HttpTest("http"));
+        mytests.push_back(new LookupTest("lookup"));
+        mytests.push_back(new MathExpressionTest("mathexpression"));
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));
         mytests.push_back(new NiftiMatrixTest("niftimatrix"));
         mytests.push_back(new PointerTest("pointer"));
         mytests.push_back(new ProgressTest("progress"));
+        mytests.push_back(new QuatTest("quaternion"));
         mytests.push_back(new StatisticsTest("statistics"));
         mytests.push_back(new TimerTest("timer"));
         mytests.push_back(new TopologyHelperTest("topohelp"));

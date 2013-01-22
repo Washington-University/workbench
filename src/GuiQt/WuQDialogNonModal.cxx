@@ -35,7 +35,7 @@ using namespace caret;
 
     
 /**
- * \class WuQDialogNonModal 
+ * \class caret::WuQDialogNonModal 
  * \brief Base class for non-modal dialogs.
  *
  * A base class for non-modal dialogs.
@@ -69,6 +69,9 @@ WuQDialogNonModal::WuQDialogNonModal(const AString& dialogTitle,
     this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setAutoDefault(false);
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setDefault(false);
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setAutoDefault(false);
+    
+    this->isPositionRestoredWhenReopened = false;
+    this->positionWhenClosedValid = false;
 }
 
 /**
@@ -78,6 +81,38 @@ WuQDialogNonModal::~WuQDialogNonModal()
 {
     
 }
+
+/**
+ * Gets called when the dialog is closing.
+ * Overriden so that position of dialog 
+ * can be saved.
+ */
+void 
+WuQDialogNonModal::closeEvent(QCloseEvent* event)
+{
+    if (this->isPositionRestoredWhenReopened) {
+        this->positionWhenClosedValid = true;
+        this->positionWhenClosed = this->pos();
+    }
+    
+    WuQDialog::closeEvent(event);
+}
+
+/**
+ * Gets called when the dialog is to be displayed.
+ */
+void 
+WuQDialogNonModal::showEvent(QShowEvent* event)
+{
+    if (this->isPositionRestoredWhenReopened) {
+        if (this->positionWhenClosedValid) {
+            this->move(this->positionWhenClosed);
+        }
+    }
+    
+    WuQDialog::showEvent(event);
+}
+
 
 /**
  * This slot can be called and it simply calls
@@ -96,17 +131,65 @@ WuQDialogNonModal::apply()
 void 
 WuQDialogNonModal::clicked(QAbstractButton* button)
 {
-    QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
-    
-    if (buttonRole == QDialogButtonBox::ApplyRole) {
+    QDialogButtonBox::StandardButton standardButton = this->getDialogButtonBox()->standardButton(button);
+    if (standardButton == QDialogButtonBox::Apply) {
         this->applyButtonPressed();
     }
-    else if (buttonRole == QDialogButtonBox::RejectRole) {
+    else if (standardButton == QDialogButtonBox::Close) {
         this->closeButtonPressed();
     }
-    else {
-        CaretAssertMessage(0, "Invalid button role: " + buttonRole);
+    else if (standardButton == QDialogButtonBox::Help) {
+        this->helpButtonClicked();
     }
+    else {
+        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+        CaretAssert(pushButton);
+        const NonModalDialogUserButtonResult result = this->userButtonPressed(pushButton);        
+        switch (result) {
+            case RESULT_CLOSE:
+                close();
+                break;
+            case RESULT_NONE:
+                break;
+        };
+    }
+
+    
+    
+//    QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
+//    
+//    if (buttonRole == QDialogButtonBox::ApplyRole) {
+//        this->applyButtonPressed();
+//    }
+//    else if (buttonRole == QDialogButtonBox::RejectRole) {
+//        this->closeButtonPressed();
+//    }
+//    else {
+//        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+//        CaretAssert(pushButton);
+//        this->userButtonPressed(pushButton);
+//    }
+}
+
+/**
+ * Called when a push button was added using addUserPushButton().
+ * Subclasses MUST override this if user push buttons were 
+ * added using addUserPushButton().
+ *
+ * @param userPushButton
+ *    User push button that was pressed.
+ * @return 
+ *    The result that indicates action that should be taken
+ *    as a result of the button being pressed.
+ */
+WuQDialogNonModal::NonModalDialogUserButtonResult 
+WuQDialogNonModal::userButtonPressed(QPushButton* userPushButton)
+{
+    CaretAssertMessage(0, "Subclass of WuQDialogNonModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
+                       + userPushButton->text()
+                       + "\"");
+    
+    return RESULT_NONE;    
 }
 
 /**
@@ -156,4 +239,45 @@ WuQDialogNonModal::setCloseButtonText(const AString& text)
 {
     this->setStandardButtonText(QDialogButtonBox::Close, text);
 }
+
+/**
+ * If the given parameter is true, save the position of this
+ * dialog when it is closed.  Next time window is displayed 
+ * in the current session, use the position at the time the
+ * dialog was closed.
+ * @param saveIt
+ *   If true save the position for next time.
+ */
+void 
+WuQDialogNonModal::setSavePositionForNextTime(const bool saveIt)
+{
+    this->isPositionRestoredWhenReopened = saveIt;
+}
+
+/**
+ * Adds a button to the dialog.  When the button is
+ * pressed, userButtonPressed(QPushButton*) will be
+ * called with the button that was created and returned
+ * by this method.  The subclass of the dialog MUST
+ * override userButtonPressed(QPushButton*).
+ *
+ * @param text
+ *     Text for the pushbutton.
+ * @param buttonRole
+ *     Role of button.  NOTE: This is used for placement of buttons in
+ *     the appropriate location for the operating system.  Any action,
+ *     such as closing the dialog will not occur because of this button
+ *     push.
+ * @return
+ *     QPushButton that was created.
+ */
+QPushButton* 
+WuQDialogNonModal::addUserPushButton(const AString& text,
+                             const QDialogButtonBox::ButtonRole buttonRole)
+{
+    QPushButton* pushButton = getDialogButtonBox()->addButton(text, 
+                                                              buttonRole);
+    return pushButton;
+}
+
 

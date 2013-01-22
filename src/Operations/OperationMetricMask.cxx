@@ -63,7 +63,7 @@ void OperationMetricMask::useParameters(OperationParameters* myParams, ProgressO
     int32_t numNodes = myMetric->getNumberOfNodes();
     if (myMask->getNumberOfNodes() != numNodes)
     {
-        throw OperationException("mask metric must have the same number of nodes");
+        throw OperationException("mask metric must have the same number of vertices");
     }
     MetricFile* myMetricOut = myParams->getOutputMetric(3);//gets the output metric with key 2
     OptionalParameter* columnSelect = myParams->getOptionalParameter(4);//gets optional parameter with key 3
@@ -81,6 +81,7 @@ void OperationMetricMask::useParameters(OperationParameters* myParams, ProgressO
     {
         int32_t numCols = myMetric->getNumberOfColumns();
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
+        myMetricOut->setStructure(myMetric->getStructure());
         const float* maskVals = myMask->getValuePointerForColumn(0);
         for (int32_t col = 0; col < numCols; ++col)
         {
@@ -100,6 +101,7 @@ void OperationMetricMask::useParameters(OperationParameters* myParams, ProgressO
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(myMetric->getStructure());
         const float* maskVals = myMask->getValuePointerForColumn(0);
         const float* metricVals = myMetric->getValuePointerForColumn(columnNum);
         *(myMetricOut->getPaletteColorMapping(0)) = *(myMetric->getPaletteColorMapping(columnNum));//copy the palette settings

@@ -1,92 +1,95 @@
 
 /*LICENSE_START*/
-/* 
- *  Copyright 1995-2011 Washington University School of Medicine 
- * 
- *  http://brainmap.wustl.edu 
- * 
- *  This file is part of CARET. 
- * 
- *  CARET is free software; you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or 
- *  (at your option) any later version. 
- * 
- *  CARET is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- * 
- *  You should have received a copy of the GNU General Public License 
- *  along with CARET; if not, write to the Free Software 
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- * 
- */ 
-
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-#include <cmath>
-#include <limits>
-
-#include "BrainConstants.h"
-#include "CaretAssert.h"
-#include "CaretLogger.h"
+/*
+ * Copyright 2012 Washington University,
+ * All rights reserved.
+ *
+ * Connectome DB and Connectome Workbench are part of the integrated Connectome 
+ * Informatics Platform.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    * Redistributions of source code must retain the above copyright
+ *      notice, this list of conditions and the following disclaimer.
+ *    * Redistributions in binary form must reproduce the above copyright
+ *      notice, this list of conditions and the following disclaimer in the
+ *      documentation and/or other materials provided with the distribution.
+ *    * Neither the names of Washington University nor the
+ *      names of its contributors may be used to endorse or promote products
+ *      derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR  
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+/*LICENSE_END*/
 
 #define __IDENTIFICATION_MANAGER_DECLARE__
 #include "IdentificationManager.h"
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
-#include "IdentificationItemBorderSurface.h"
-#include "IdentificationItemSurfaceNode.h"
-#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
-#include "IdentificationItemSurfaceTriangle.h"
-#include "IdentificationItemVoxel.h"
-#include "IdentificationTextGenerator.h"
-#include "Surface.h"
+#include "Brain.h"
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "ColorManager.h"
+#include "ConnectivityLoaderManager.h"
+#include "IdentifiedItemNode.h"
+#include "SceneClassAssistant.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
-/**
- * \class IdentificationManager
- * \brief Manages identification.
- *
- * Manages identification.
- */
 
+    
+/**
+ * \class caret::IdentificationManager 
+ * \brief Manages identified items.
+ */
 
 /**
  * Constructor.
  */
-IdentificationManager::IdentificationManager()
-: CaretObject()
+IdentificationManager::IdentificationManager(Brain* brain)
+: SceneableInterface()
 {
-    this->surfaceBorderIdentification = new IdentificationItemBorderSurface();
-    this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
-    this->surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
-    this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
-    this->voxelIdentification = new IdentificationItemVoxel();
+    m_brain = brain;
     
-    this->allIdentificationItems.push_back(this->surfaceBorderIdentification);
-    this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
-    this->allIdentificationItems.push_back(this->surfaceNodeIdentificationSymbol);
-    this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
-    this->allIdentificationItems.push_back(this->voxelIdentification);
+    m_sceneAssistant = new SceneClassAssistant();
     
-    this->surfaceSelectedItems.push_back(this->surfaceNodeIdentification);
-    this->surfaceSelectedItems.push_back(this->surfaceTriangleIdentification);
+    m_contralateralIdentificationEnabled = false;
+    m_volumeIdentificationEnabled = true;
+    m_identificationSymbolColor = CaretColorEnum::WHITE;
+    m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
+    m_identifcationSymbolSize = 3.0;
+    m_identifcationMostRecentSymbolSize = 5.0;
     
-    this->layeredSelectedItems.push_back(this->surfaceBorderIdentification);
+    m_sceneAssistant->add("m_contralateralIdentificationEnabled",
+                          &m_contralateralIdentificationEnabled);
     
-    this->volumeSelectedItems.push_back(this->voxelIdentification);
+    m_sceneAssistant->add("m_volumeIdentificationEnabled",
+                          &m_volumeIdentificationEnabled);
     
-    this->idTextGenerator = new IdentificationTextGenerator();
+    m_sceneAssistant->add("m_identifcationSymbolSize",
+                          &m_identifcationSymbolSize);
+    
+    m_sceneAssistant->add("m_identifcationMostRecentSymbolSize",
+                          &m_identifcationMostRecentSymbolSize);
+    
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
+                                                                &m_identificationSymbolColor);
+    
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
+                                                                &m_identificationContralateralSymbolColor);
+
+    removeAllIdentifiedItems();
 }
 
 /**
@@ -94,169 +97,192 @@ IdentificationManager::IdentificationManager()
  */
 IdentificationManager::~IdentificationManager()
 {
-    this->reset();
-    delete this->surfaceBorderIdentification;
-    this->surfaceBorderIdentification = NULL;
-    delete this->surfaceNodeIdentification;
-    this->surfaceNodeIdentification = NULL;
-    delete this->surfaceNodeIdentificationSymbol;
-    this->surfaceNodeIdentificationSymbol = NULL;
-    delete this->surfaceTriangleIdentification;
-    this->surfaceTriangleIdentification = NULL;
-    delete this->voxelIdentification;
-    this->voxelIdentification = NULL;
-    delete this->idTextGenerator;
-    this->idTextGenerator = NULL;
+    removeAllIdentifiedItems();
+    
+    delete m_sceneAssistant;
 }
 
 /**
- * Filter selections to arbitrate between triangle/node
- * and to remove any selections behind another selection.
+ * Add an identified item.
+ * @param item
+ *    Identified item that is added.
+ *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
+ *    If item is a node and contralateral identification is enabled, the contralateral
+ *    structure will be set in the node item.
  */
-void 
-IdentificationManager::filterSelections()
+void
+IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
 {
-    AString logText;
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
-         iter++) {
-        IdentificationItem* item = *iter;
-        if (item->isValid()) {
-            logText += ("\n" + item->toString() + "\n");
-        }
-    }
-    CaretLogFine("Selected Items BEFORE filtering: " + logText);
+    CaretAssert(item);
     
-    IdentificationItemSurfaceTriangle* triangleID = this->surfaceTriangleIdentification;
-    IdentificationItemSurfaceNode* nodeID = this->surfaceNodeIdentification;
-    
-    //
-    // If both a node and triangle are found
-    //
-    if ((nodeID->getNodeNumber() >= 0) &&
-        (triangleID->getTriangleNumber() >= 0)) {
-        //
-        // Is node further from user than triangle?
-        //
-        double depthDiff = this->surfaceNodeIdentification->getScreenDepth()
-        - triangleID->getScreenDepth();
-        if (depthDiff > 0.00001) {
-            //
-            // Do not use node
-            //
-            this->surfaceNodeIdentification->reset();
+    IdentifiedItemNode* nodeItem = dynamic_cast<IdentifiedItemNode*>(item);
+    if (nodeItem != NULL) {
+        if (m_contralateralIdentificationEnabled) {
+            const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(nodeItem->getStructure());
+            nodeItem->setContralateralStructure(contralateralStructure);
         }
     }
     
-    //
-    // Have a triangle ?
-    //
-    const int32_t triangleNumber = triangleID->getTriangleNumber();
-    if (triangleNumber >= 0) {
-        //
-        // If no node, use node in nearest triangle
-        //
-        if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
-            const int32_t nearestNode = triangleID->getNearestNodeNumber();
-            if (nearestNode >= 0) {
-                CaretLogFine("Switched node to triangle nearest node ."
-                             + AString::number(nearestNode));
-                nodeID->setNodeNumber(nearestNode);
-                nodeID->setScreenDepth(triangleID->getScreenDepth());
-                nodeID->setSurface(triangleID->getSurface());
-                double xyz[3];
-                triangleID->getNearestNodeScreenXYZ(xyz);
-                nodeID->setScreenXYZ(xyz);
-                triangleID->getNearestNodeModelXYZ(xyz);
-                nodeID->setModelXYZ(xyz);
-                nodeID->setBrain(triangleID->getBrain());
-            }
-        }
-    }
-    
-    /*
-     * See if node identification symbol is too far from selected node.
-     * This may occur if the symbol is on the other side of the surface.
-     */
-    if ((this->surfaceNodeIdentificationSymbol->getNodeNumber() >= 0)
-        && (this->surfaceNodeIdentification->getNodeNumber() >= 0)) {
-        const double depthDiff = (this->surfaceNodeIdentificationSymbol->getScreenDepth()
-                                  - this->surfaceNodeIdentification->getScreenDepth());
-        if (depthDiff > 0.00001) {
-            this->surfaceNodeIdentificationSymbol->reset();
-        }
-        else {
-            this->surfaceNodeIdentification->reset();
-        }
-    }
-    
-    this->clearDistantSelections();
-    
-    logText = "";
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
-         iter++) {
-        IdentificationItem* item = *iter;
-        if (item->isValid()) {
-            logText += ("\n" + item->toString() + "\n");
-        }
-    }
-    CaretLogFine("Selected Items AFTER filtering: " + logText);
+    addIdentifiedItemPrivate(item);
 }
 
 /**
- * Examine the selection groups and manipulate them
- * so that there are not items selected in more
- * than one group.
+ * Add an identified item.
+ * @param item
+ *    Identified item that is added.
+ *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
  */
-void 
-IdentificationManager::clearDistantSelections()
+void
+IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item)
 {
-    std::vector<std::vector<IdentificationItem*>* > itemGroups;
-    /*
-     * Make layers items slightly closer since they are 
-     * often pasted onto the surface.
-     */
-    for (std::vector<IdentificationItem*>::iterator iter = this->layeredSelectedItems.begin();
-         iter != this->layeredSelectedItems.end();
+    CaretAssert(item);
+    m_mostRecentIdentifiedItem = item;
+    
+    m_identifiedItems.push_back(item);
+}
+
+/**
+ * @return String containing identification text for information window.
+ */
+AString
+IdentificationManager::getIdentificationText() const
+{
+    AString text;
+    
+    for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
-        item->setScreenDepth(item->getScreenDepth()* 0.99);
+        const IdentifiedItem* item = *iter;
+        if (text.isEmpty() == false) {
+            text += "<P></P>";
+        }
+        text += item->getText();
     }
 
-    
-    itemGroups.push_back(&this->layeredSelectedItems);
-    itemGroups.push_back(&this->surfaceSelectedItems);
-    itemGroups.push_back(&this->volumeSelectedItems);
-    
-    std::vector<IdentificationItem*>* minDepthGroup = NULL;
-    double minDepth = std::numeric_limits<double>::max();
-    for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
-         iter != itemGroups.end();
+    return text;
+}
+
+/**
+ * Remove all identification text.
+ */
+void
+IdentificationManager::removeIdentificationText()
+{
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
          iter++) {
-        std::vector<IdentificationItem*>* group = *iter;
-        IdentificationItem* minDepthItem =
-        this->getMinimumDepthFromMultipleSelections(*group);
-        if (minDepthItem != NULL) {
-            double md = minDepthItem->getScreenDepth();
-            if (md < minDepth) {
-                minDepthGroup = group;
-                minDepth = md;
+        IdentifiedItem* item = *iter;
+        item->clearText();
+    }
+}
+
+/**
+ * Get identified nodes for the surface with the given structure and
+ * number of nodes.
+ *
+ * @param structure
+ *    The structure
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ */
+std::vector<IdentifiedItemNode>
+IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
+                                                        const int32_t surfaceNumberOfNodes) const
+{
+    ConnectivityLoaderManager* clm = m_brain->getConnectivityLoaderManager();
+    QList<TimeLine> surfaceTimeLines;
+    clm->getSurfaceTimeLines(surfaceTimeLines);
+    
+    std::vector<IdentifiedItemNode> nodeItemsOut;
+    
+    for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
+         iter++) {
+        const IdentifiedItem* item = *iter;
+        const IdentifiedItemNode* nodeItem = dynamic_cast<const IdentifiedItemNode*>(item);
+        if (nodeItem != NULL) {
+            if (nodeItem->getSurfaceNumberOfNodes() == surfaceNumberOfNodes) {
+                bool useIt = false;
+                if (nodeItem->getStructure() == structure) {
+                    useIt = true;
+                }
+                else if (nodeItem->getContralateralStructure() == structure) {
+                    useIt = true;
+                }
+                if (useIt) {
+                    IdentifiedItemNode nodeID(*nodeItem);
+                    
+                    const float* symbolRGB = CaretColorEnum::toRGB(m_identificationSymbolColor);
+                    nodeID.setSymbolRGB(symbolRGB);
+                    const float* contralateralSymbolRGB = CaretColorEnum::toRGB(m_identificationContralateralSymbolColor);
+                    nodeID.setContralateralSymbolRGB(contralateralSymbolRGB);
+                    if (item == m_mostRecentIdentifiedItem) {
+                        nodeID.setSymbolSize(m_identifcationMostRecentSymbolSize);
+                    }
+                    else {
+                        nodeID.setSymbolSize(m_identifcationSymbolSize);
+                    }
+                    
+                    for (QList<TimeLine>::iterator iter = surfaceTimeLines.begin();
+                         iter != surfaceTimeLines.end();
+                         iter++) {
+                        const TimeLine& tl = *iter;
+                        if (tl.structure == structure) {
+                            if (tl.surfaceNumberOfNodes == surfaceNumberOfNodes) {
+                                if ((int32_t)tl.nodeid == nodeID.getNodeIndex()) {
+                                    Qt::GlobalColor qtColor = ColorManager().getColor(tl.colorID);
+                                    const int32_t colorInt = qtColor;
+                                    const int redByte = (colorInt & 0x00ff0000) >> 16;
+                                    const int greenByte = (colorInt & 0x0000ff00) >> 8;
+                                    const int blueByte = (colorInt & 0x000000ff);
+                                    const float rgb[3] = {
+                                        static_cast<float>(redByte) / 255.0,
+                                        static_cast<float>(greenByte) / 255.0,
+                                        static_cast<float>(blueByte) / 255.0
+                                    };
+                                    nodeID.setSymbolRGB(rgb);
+                                }
+                            }
+                        }
+                    }
+                    nodeItemsOut.push_back(nodeID);
+                }
             }
         }
     }
-    
-    if (minDepthGroup != NULL) {
-        for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
-             iter != itemGroups.end();
-             iter++) {
-            std::vector<IdentificationItem*>* group = *iter;
-            if (group != minDepthGroup) {
-                for (std::vector<IdentificationItem*>::iterator iter = group->begin();
-                     iter != group->end();
-                     iter++) {
-                    IdentificationItem* item = *iter;
-                    item->reset();
+
+    return nodeItemsOut;
+}
+
+/**
+ * Remove any identification for the node in the surface with the given
+ * structure and number of nodes.
+ *
+ * @param structure
+ *    The structure
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param nodeIndex
+ *    Index of the node.
+ */
+void
+IdentificationManager::removeIdentifiedNodeItem(const StructureEnum::Enum structure,
+                                                const int32_t surfaceNumberOfNodes,
+                                                const int32_t nodeIndex)
+{
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
+         iter++) {
+        IdentifiedItem* item = *iter;
+        const IdentifiedItemNode* node = dynamic_cast<const IdentifiedItemNode*>(item);
+        if (node != NULL) {
+            if ((node->getStructure() == structure)
+                || (node->getContralateralStructure() == structure)) {
+                if ((node->getSurfaceNumberOfNodes() == surfaceNumberOfNodes)
+                    && (node->getNodeIndex() == nodeIndex)) {
+                    m_identifiedItems.erase(iter);
+                    delete item;
+                    return;
                 }
             }
         }
@@ -264,228 +290,273 @@ IdentificationManager::clearDistantSelections()
 }
 
 /**
- * From the list of selectable items, find the item with the 
- * minimum depth.
- * @param items  List of selectable items.
- * @return  Reference to selectable item with the minimum depth
- * or NULL if no valid selectable items in the list.
+ * Remove all identified items. 
  */
-IdentificationItem* 
-IdentificationManager::getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const
+void
+IdentificationManager::removeAllIdentifiedItems()
 {
-    double minDepth = std::numeric_limits<double>::max();
-    
-    IdentificationItem* minDepthItem = NULL;
-    
-    for (std::vector<IdentificationItem*>::iterator iter = items.begin();
-         iter != items.end();
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
          iter++) {
-        IdentificationItem* item = *iter;
-        if (item->isValid()) {
-            if (item->getScreenDepth() < minDepth) {
-                minDepthItem = item;
-                minDepth = item->getScreenDepth();
+        IdentifiedItem* item = *iter;
+        delete item;
+    }
+    
+    m_identifiedItems.clear();
+    
+    m_mostRecentIdentifiedItem = NULL;
+}
+
+/**
+ * Remove all identified nodes.
+ */
+void
+IdentificationManager::removeAllIdentifiedNodes()
+{
+    std::list<IdentifiedItem*> itemsToKeep;
+    
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
+         iter++) {
+        IdentifiedItem* item = *iter;
+        IdentifiedItemNode* nodeItem = dynamic_cast<IdentifiedItemNode*>(item);
+        if (nodeItem != NULL) {
+            if (m_mostRecentIdentifiedItem == nodeItem) {
+                m_mostRecentIdentifiedItem = NULL;
             }
+            delete nodeItem;
+        }
+        else {
+            itemsToKeep.push_back(item);
         }
     }
     
-    return minDepthItem;
+    m_identifiedItems = itemsToKeep;
 }
 
 /**
- * Get text describing the current identification data.
- * @param browserTabContent
- *    Tab content in which identification took place.
- * @param brain
- *    Brain containing the data.
+ * @return Status of contralateral identification.
  */
-AString 
-IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent,
-                                             const Brain* brain) const
+bool
+IdentificationManager::isContralateralIdentificationEnabled() const
 {
-    const AString text = this->idTextGenerator->createIdentificationText(this, 
-                                                                         browserTabContent,
-                                                                         brain);
-    return text;
+    return m_contralateralIdentificationEnabled;
 }
 
 /**
- * Reset all identification.
+ * Set status of contralateral identification.
+ * @param
+ *    New status.
  */
-void 
-IdentificationManager::reset()
+void
+IdentificationManager::setContralateralIdentificationEnabled(const bool enabled)
 {
-    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
-         iter != this->allIdentificationItems.end();
-         iter++) {
-        IdentificationItem* item = *iter;
-        item->reset();
+    m_contralateralIdentificationEnabled = enabled;
+}
+
+/**
+ * @return Status of volume identification.
+ */
+bool
+IdentificationManager::isVolumeIdentificationEnabled() const
+{
+    return m_volumeIdentificationEnabled;
+}
+
+/**
+ * Set status of volume identification.
+ * @param
+ *    New status.
+ */
+void
+IdentificationManager::setVolumeIdentificationEnabled(const bool enabled)
+{
+    m_volumeIdentificationEnabled = enabled;
+}
+
+/**
+ * @return The size of the identification symbol
+ */
+float
+IdentificationManager::getIdentificationSymbolSize() const
+{
+    return m_identifcationSymbolSize;
+}
+
+/**
+ * Set the size of the identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setIdentificationSymbolSize(const float symbolSize)
+{
+    m_identifcationSymbolSize = symbolSize;
+}
+
+/**
+ * @return The size of the most recent identification symbol
+ */
+float
+IdentificationManager::getMostRecentIdentificationSymbolSize() const
+{
+    return m_identifcationMostRecentSymbolSize;
+}
+
+/**
+ * Set the size of the most recent identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setMostRecentIdentificationSymbolSize(const float symbolSize)
+{
+    m_identifcationMostRecentSymbolSize = symbolSize;
+}
+
+/**
+ * @return The color of the identification symbol.
+ */
+CaretColorEnum::Enum
+IdentificationManager::getIdentificationSymbolColor() const
+{
+    return m_identificationSymbolColor;
+}
+
+/**
+ * Set the color of the identification symbol.
+ * @param color
+ *    New color.
+ */
+void
+IdentificationManager::setIdentificationSymbolColor(const CaretColorEnum::Enum color)
+{
+    m_identificationSymbolColor = color;
+}
+
+/**
+ * @return The color of the contralateral identification symbol.
+ */
+CaretColorEnum::Enum
+IdentificationManager::getIdentificationContralateralSymbolColor() const
+{
+    return m_identificationContralateralSymbolColor;
+}
+
+/**
+ * Set the color of the contralateral identification symbol.
+ * @param color
+ *    New color.
+ */
+void
+IdentificationManager::setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color)
+{
+    m_identificationContralateralSymbolColor = color;
+}
+
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+IdentificationManager::saveToScene(const SceneAttributes* sceneAttributes,
+                   const AString& instanceName)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
     }
     
-    for (std::vector<IdentificationItemSurfaceNode*>::iterator iter = this->additionalSurfaceNodeIdentifications.begin();
-         iter != this->additionalSurfaceNodeIdentifications.end();
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "IdentificationManager",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+         iter != m_identifiedItems.end();
          iter++) {
-        delete *iter;
+        IdentifiedItem* item = *iter;
+        sceneClass->addClass(item->saveToScene(sceneAttributes,
+                                               "identifiedItem"));
     }
-    this->additionalSurfaceNodeIdentifications.clear();
+    
+    return sceneClass;
 }
 
 /**
- * @return Identification for surface node.
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
  */
-IdentificationItemSurfaceNode* 
-IdentificationManager::getSurfaceNodeIdentification()
+void
+IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+                        const SceneClass* sceneClass)
 {
-    return this->surfaceNodeIdentification;
-}
-
-/**
- * @return Identification for surface node.
- */
-const IdentificationItemSurfaceNode* 
-IdentificationManager::getSurfaceNodeIdentification() const
-{
-    return this->surfaceNodeIdentification;
-}
-
-/**
- * @return Identification for surface node.
- */
-const IdentificationItemSurfaceNodeIdentificationSymbol* 
-IdentificationManager::getSurfaceNodeIdentificationSymbol() const
-{
-    return this->surfaceNodeIdentificationSymbol;
-}
-
-/**
- * @return Identification for surface node.
- */
-IdentificationItemSurfaceNodeIdentificationSymbol* 
-IdentificationManager::getSurfaceNodeIdentificationSymbol()
-{
-    return this->surfaceNodeIdentificationSymbol;
-}
-
-/**
- * @return Identification for surface triangle.
- */
-IdentificationItemSurfaceTriangle* 
-IdentificationManager::getSurfaceTriangleIdentification()
-{
-    return this->surfaceTriangleIdentification;
-}
-
-/**
- * @return Identification for surface triangle.
- */
-const IdentificationItemSurfaceTriangle* 
-IdentificationManager::getSurfaceTriangleIdentification() const
-{
-    return this->surfaceTriangleIdentification;
-}
-
-/**
- * @return Identification for voxels.
- */
-const IdentificationItemVoxel* 
-IdentificationManager::getVoxelIdentification() const
-{
-    return this->voxelIdentification;
-}
-
-/**
- * @return Identification for voxels.
- */
-IdentificationItemVoxel* 
-IdentificationManager::getVoxelIdentification()
-{
-    return this->voxelIdentification;
-}
-
-/**
- * @return Identification for borders.
- */
-IdentificationItemBorderSurface* 
-IdentificationManager::getSurfaceBorderIdentification()
-{
-    return this->surfaceBorderIdentification;
-}
-
-/**
- * @return Identification for borders.
- */
-const IdentificationItemBorderSurface* 
-IdentificationManager::getSurfaceBorderIdentification() const
-{
-    return this->surfaceBorderIdentification;
-}
-
-/**
- * Add an additional surface node identifications
- * typically made as a result of identification in a volume or
- * an contralateral identification.
- * @param surface
- *   Surface on which identification took place.
- * @param nodeIndex
- *   Index of surface node.
- * @param isContralateralIdentification
- *   True if contralateral identification.
- */
-void 
-IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
-                                                              const int32_t nodeIndex,
-                                                              bool isContralateralIdentification)
-{
-    if (surface != this->surfaceNodeIdentification->getSurface()) {
-        IdentificationItemSurfaceNode* nodeID = new IdentificationItemSurfaceNode();
-        nodeID->setSurface(surface);
-        nodeID->setNodeNumber(nodeIndex);
-        nodeID->setContralateral(isContralateralIdentification);
-        this->additionalSurfaceNodeIdentifications.push_back(nodeID);
+    if (sceneClass == NULL) {
+        return;
     }
-}
-
-/**
- * @return the number of additional surface node identifications
- * typically made as a result of identification in a volume or
- * an contralateral identification.
- */
-int32_t 
-IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
-{
-    return this->additionalSurfaceNodeIdentifications.size();
-}
-
-/**
- * Get an additional identified surface node.
- * @param indx
- *   Index of the identification information.
- */
-IdentificationItemSurfaceNode* 
-IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
-    return this->additionalSurfaceNodeIdentifications[indx];
-}
-
-/**
- * Get an additional identified surface node.
- * @param indx
- *   Index of the identification information.
- */
-const IdentificationItemSurfaceNode* 
-IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
-{
-    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
-    return this->additionalSurfaceNodeIdentifications[indx];
-}
-
-/**
- * Get a description of this object's content.
- * @return String describing this object's content.
- */
-AString 
-IdentificationManager::toString() const
-{
-    return "IdentificationManager";
+    
+    removeAllIdentifiedItems();
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    const int32_t numChildren = sceneClass->getNumberOfObjects();
+    for (int32_t i = 0; i < numChildren; i++) {
+        const SceneObject* so = sceneClass->getObjectAtIndex(i);
+        if (so->getName() == "identifiedItem") {
+            const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
+            if (sc != NULL) {
+                const AString className = sc->getClassName();
+                if (className == "IdentifiedItem") {
+                    IdentifiedItem* item = new IdentifiedItem();
+                    item->restoreFromScene(sceneAttributes, sc);
+                    if (item->isValid()) {
+                        addIdentifiedItemPrivate(item);
+                    }
+                    else {
+                        delete item;
+                    }
+                }
+                else if (className == "IdentifiedItemNode") {
+                    IdentifiedItemNode* item = new IdentifiedItemNode();
+                    item->restoreFromScene(sceneAttributes, sc);
+                    if (item->isValid()) {
+                        addIdentifiedItemPrivate(item);
+                    }
+                    else {
+                        delete item;
+                    }
+                }
+                else {
+                    const AString msg = ("IdentifiedItem from scene is invalid.  "
+                                         "Has a new IdentifiedItem type been added?  "
+                                         "Class name=" + className);
+                    CaretAssertMessage(0,
+                                       msg);
+                    CaretLogSevere(msg);
+                }
+            }
+        }
+    }
 }

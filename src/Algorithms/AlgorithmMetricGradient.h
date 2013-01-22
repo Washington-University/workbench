@@ -38,13 +38,14 @@ namespace caret {
     public:
         AlgorithmMetricGradient(ProgressObject* myProgObj,
                                 SurfaceFile* mySurf,
-                                MetricFile* myMetricIn,
+                                const MetricFile* myMetricIn,
                                 MetricFile* myMetricOut,
                                 MetricFile* myVectorsOut = NULL,
                                 const float myPresmooth = -1.0f,
+                                const MetricFile* myRoi = NULL,
                                 const bool myAvgNormals = false,
-                                MetricFile* myRoi = NULL,
-                                const int32_t myColumn = -1);
+                                const int32_t myColumn = -1,
+                                bool matchRoiColumns = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

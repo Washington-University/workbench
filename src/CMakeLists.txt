@@ -11,6 +11,13 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 #TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 
 #
+# The definition VELAB_INTERNAL_RELEASE_ONLY is used to allow compilation
+# of source code that should only be used within the Van Essen Lab and
+# others but not for a release to everybody.
+#
+ADD_DEFINITIONS(-DVELAB_INTERNAL_RELEASE_ONLY)
+
+#
 # Setting the compiler MUST be done before the PROJECT
 # statement or else an infinite loop will occur indicating
 # that the compiler has been redefined.
@@ -23,15 +30,19 @@ ELSEIF(WIN32)
     IF(MSVC)
         ADD_DEFINITIONS(-DCARET_OS_WINDOWS_MSVC)
         IF(CMAKE_CL_64)
-            ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
+            ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
+            SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
-            SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
+#            SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
+            SET(ZLIB_LIBRARY optimized "C:\\dev64\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev64\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")
             SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl" CACHE_STRING "open ssl root directory")
 
         ELSE()
-            ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
+            ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
+            SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
-            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)") 
+#            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)") 
+            SET(ZLIB_LIBRARY optimized "C:\\dev32\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev32\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")             
             SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
         ENDIF(CMAKE_CL_64)
     ELSE(MSVC)
@@ -84,13 +95,13 @@ if (CMAKE_COMPILER_IS_GNUCC)
     list(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
     list(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
     message("gcc major minor version numbers are: "${GCC_MAJOR},${GCC_MINOR})
-endif()
-if(${GCC_VERSION} VERSION_LESS "4.2")
-    #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall" CACHE STRING "c++ compiler specific options")
-    ADD_DEFINITIONS(-W -Wall)
-else()
-    #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch" CACHE STRING "c++ compiler specific options")
-    ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
+    if(${GCC_VERSION} VERSION_LESS "4.2")
+        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall" CACHE STRING "c++ compiler specific options")
+        ADD_DEFINITIONS(-W -Wall)
+    else()
+        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch" CACHE STRING "c++ compiler specific options")
+        ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
+    endif()
 endif()
 ENDIF (NOT MSVC)
 
@@ -118,8 +129,20 @@ INCLUDE(${QT_USE_FILE})
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)
     #SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}" CACHE STRING "c++ compiler specific options")
-    ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
+    # add definitions will add the flag to the linker and resource compilers, which don't understand the openmp option
+    SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
+    #ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+    #
+    # Try to link static with Intel Compiler
+    #
+    IF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
+        MESSAGE(WARNING "Intel Compiler Being Used")
+        SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -openmp-link=static")
+        SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-intel")
+        ADD_DEFINITIONS("-static-intel")
+    ENDIF()
 ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
 ENDIF(OPENMP_FOUND)
@@ -136,10 +159,68 @@ ELSE (ZLIB_FOUND)
 ENDIF (ZLIB_FOUND)
 
 #
+# Quazip needs this defined here for static linking on windows
+#
+IF(WIN32)
+   IF(MSVC)
+      ADD_DEFINITIONS(-DQUAZIP_STATIC)
+   ENDIF(MSVC)
+ENDIF(WIN32)
+
+#=============================================================================
+#
+# Test for offscreen mesa (optional library)
+# If found, set some variables.  Since, Mesa is only used for 
+# command line 
+#
+SET(OSMESA_FOUND FALSE)
+SET(OSMESA_DEFINITION "")
+SET(OSMESA_OFFSCREEN_LIBRARY "")
+SET(OSMESA_GL_LIBRARY "")
+SET(OSMESA_GLU_LIBRARY "")
+SET(OSMESA_INCLUDE_DIRECTORY "")
+
+IF (EXISTS $ENV{OSMESA_DIR})
+    IF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
+        MESSAGE("Have Mesa Include Directory")
+        FIND_LIBRARY(OSMESA_LIBRARY_FOUND
+                     NAMES libOSMesa.a libOSMesa.so OSMesa.lib OSMesa.dll
+                     PATHS $ENV{OSMESA_DIR}/lib)
+        FIND_LIBRARY(OSMESA_GL_LIBRARY_FOUND
+                     NAMES libGL.a libGL.so
+                     PATHS $ENV{OSMESA_DIR}/lib)
+        FIND_LIBRARY(OSMESA_GLU_LIBRARY_FOUND
+                     NAMES libGLU.a libGLU.so
+                     PATHS $ENV{OSMESA_DIR}/lib)
+        MESSAGE("OSMesa lib: " ${OSMESA_LIBRARY})
+        IF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
+            SET(OSMESA_DEFINITION -DHAVE_OSMESA)
+            SET(OSMESA_OFFSCREEN_LIBRARY ${OSMESA_LIBRARY_FOUND})
+            SET(OSMESA_GL_LIBRARY ${OSMESA_GL_LIBRARY_FOUND})
+            SET(OSMESA_GLU_LIBRARY ${OSMESA_GLU_LIBRARY_FOUND})
+            SET(OSMESA_INCLUDE_DIRECTORY $ENV{OSMESA_DIR}/include)
+            SET(OSMESA_FOUND TRUE)
+
+            MESSAGE("Offscreen Mesa Library was found")
+            MESSAGE("   Definition: ${OSMESA_DEFINITION}")
+            MESSAGE("   Include:    ${OSMESA_INCLUDE_DIRECTORY}")
+            MESSAGE("   Libraries:  ${OSMESA_OFFSCREEN_LIBRARY}")
+            MESSAGE("   Libraries:  ${OSMESA_GL_LIBRARY}")
+            MESSAGE("   Libraries:  ${OSMESA_GLU_LIBRARY}")
+        ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
+    ENDIF (EXISTS $ENV{OSMESA_DIR}/include/GL/osmesa.h)
+ENDIF (EXISTS $ENV{OSMESA_DIR})
+
+#=============================================================================
+
+
+#
 # All subdirectories that will be configured for building
 #
+ADD_SUBDIRECTORY ( Quazip )
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
+ADD_SUBDIRECTORY ( Scenes )
 ADD_SUBDIRECTORY ( Palette )
 ADD_SUBDIRECTORY ( FilesBase )
 ADD_SUBDIRECTORY ( Nifti )
@@ -147,8 +228,8 @@ ADD_SUBDIRECTORY ( Gifti )
 ADD_SUBDIRECTORY ( Cifti )
 ADD_SUBDIRECTORY ( Files )
 ADD_SUBDIRECTORY ( OperationsBase )
-ADD_SUBDIRECTORY ( Operations )
 ADD_SUBDIRECTORY ( Algorithms )
+ADD_SUBDIRECTORY ( Operations )
 ADD_SUBDIRECTORY ( Brain )
 ADD_SUBDIRECTORY ( Qwt )
 ADD_SUBDIRECTORY ( GuiQt )
@@ -170,3 +251,6 @@ ADD_TEST(volumefile ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver volumefile)
 ADD_TEST(heap ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver heap)
 ADD_TEST(pointer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver pointer)
 ADD_TEST(statistics ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver statistics)
+ADD_TEST(quaternion ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver quaternion)
+ADD_TEST(mathexpression ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver mathexpression)
+ADD_TEST(lookup ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver lookup)

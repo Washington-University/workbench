@@ -33,6 +33,7 @@
 
 namespace caret {
 
+    class GroupAndNameHierarchyModel;
     class GiftiDataArray;
     class GiftiLabelTable;
     
@@ -58,6 +59,9 @@ namespace caret {
         
         void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
 
+        virtual void addMaps(const int32_t numberOfNodes,
+                             const int32_t numberOfMaps) throw (DataFileException);
+        
         GiftiLabelTable* getLabelTable();
         
         const GiftiLabelTable* getLabelTable() const;
@@ -72,9 +76,19 @@ namespace caret {
                          const int32_t columnIndex,
                          const int32_t labelIndex);
         
+        void getNodeIndicesWithLabelKey(const int32_t columnIndex,
+                                        const int32_t labelKey,
+                                        std::vector<int32_t>& nodeIndicesOut) const;
+        
         const int32_t* getLabelKeyPointerForColumn(const int32_t columnIndex) const;
         
         void setLabelKeysForColumn(const int32_t columnIndex, const int32_t* keysIn);
+        
+        std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
+        
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
+        
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
     protected:
         /**
@@ -91,6 +105,13 @@ namespace caret {
     private:
         /** Points to actual data in each Gifti Data Array */
         std::vector<int32_t*> columnDataPointers;
+
+        /** Holds class and name hierarchy used for display selection */
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
+        
     };
 
 } // namespace

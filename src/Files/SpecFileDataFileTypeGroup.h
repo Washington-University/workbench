@@ -55,6 +55,8 @@ namespace caret {
         
         SpecFileDataFile* getFileInformation(const int32_t fileIndex);
         
+        const SpecFileDataFile* getFileInformation(const int32_t fileIndex) const;
+        
         void setAllFilesSelected(bool selectionStatus);
         
         void removeFilesTaggedForRemoval();

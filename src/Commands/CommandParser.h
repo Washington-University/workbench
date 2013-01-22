@@ -32,12 +32,16 @@
 #include "CommandException.h"
 #include "ProgramParametersException.h"
 #include <vector>
+#include <set>
 
 namespace caret {
 
     class CommandParser : public CommandOperation, OperationParserInterface
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
+        AString m_provenance, m_parentProvenance;
+        const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME;//TODO: put this elsewhere?
+        std::set<AString> m_inputCiftiNames;
         struct OutputAssoc
         {//how the output is stored is up to the parser, in the GUI it should load into memory without writing to disk
             AString m_fileName;
@@ -46,6 +50,8 @@ namespace caret {
         void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug = false);
         bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
         void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
+        void provenanceForOnDiskOutputs(const std::vector<OutputAssoc>& outAssociation);
+        void checkOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs
         void writeOutput(const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);

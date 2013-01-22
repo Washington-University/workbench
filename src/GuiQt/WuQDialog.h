@@ -29,6 +29,7 @@
 
 #include "AString.h"
 
+class QHBoxLayout;
 class QKeyEvent;
 class QMenu;
 class QVBoxLayout;
@@ -57,11 +58,16 @@ namespace caret  {
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
         
-        QPushButton* addUserPushButton(const AString& text);
+        virtual QPushButton* addUserPushButton(const AString& text,
+                                               const QDialogButtonBox::ButtonRole buttonRole) = 0;
         
         void setDeleteWhenClosed(bool deleteFlag);
         
         void setAutoDefaultButtonProcessing(bool enabled);
+        
+        void disableAutoDefaultForAllPushButtons();
+        
+        void addWidgetToLeftOfButtons(QWidget* widget);
         
         static void beep();
         
@@ -88,7 +94,7 @@ namespace caret  {
         
         virtual void contextMenuEvent(QContextMenuEvent*);
         
-        virtual void userButtonPressed(QPushButton* userPushButton);        
+        virtual void helpButtonClicked();
         
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
@@ -96,9 +102,13 @@ namespace caret  {
                                                    QWidget* bottomWidget,
                                                    const bool allowInsertingIntoScrollArea);
         
+        QList<QWidget*> m_userWidgets;
+        
         QVBoxLayout* userWidgetLayout;
         
         QDialogButtonBox* buttonBox;
+        
+        QHBoxLayout* m_layoutLeftOfButtonBox;
         
         bool autoDefaultProcessingEnabledFlag;
     };

@@ -28,11 +28,12 @@
 #include "BorderException.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
-
+#include "StructureEnum.h"
 #include "XmlException.h"
 
 namespace caret {
 
+    class GroupAndNameHierarchyItem;
     class SurfaceFile;
     class SurfaceProjectedItem;
     class XmlWriter;
@@ -64,6 +65,10 @@ namespace caret {
         
         void setColor(const CaretColorEnum::Enum color);
         
+        StructureEnum::Enum getStructure();
+        
+        bool verifyAllPointsOnSameStructure() const;
+        
         int32_t getNumberOfPoints() const;
         
         const SurfaceProjectedItem* getPoint(const int32_t indx) const;
@@ -80,6 +85,8 @@ namespace caret {
         void addPoints(const Border* border,
                        const int32_t startPointIndex = -1,
                        const int32_t pointCount = -1);
+        
+        void addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile);
         
         void removeAllPoints();
         
@@ -102,18 +109,29 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        bool isDisplayed() const;
+        void setGroupNameSelectionItem(GroupAndNameHierarchyItem* item);
         
-        void setDisplayed(const bool displayed);
+        const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
-        bool isNameOrClassModified() const;
+        bool isClassRgbaValid() const;
         
-        void setNameAndClassKeys(const int32_t nameKey,
-                                 const int32_t classKey);
+        void setClassRgbaInvalid();
         
-        int32_t getNameKey() const;
+        const float* getClassRgba() const;
         
-        int32_t getClassKey() const;
+        void getClassRgba(float rgba[4]) const;
+        
+        void setClassRgba(const float rgba[4]);
+        
+        bool isNameRgbaValid() const;
+        
+        void setNameRgbaInvalid();
+        
+        const float* getNameRgba() const;
+        
+        void getNameRgba(float rgba[4]) const;
+        
+        void setNameRgba(const float rgba[4]);
         
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
@@ -125,29 +143,28 @@ namespace caret {
         
         void setNameOrClassModified();
         
-        AString name;
+        AString m_name;
         
-        AString className;
+        AString m_className;
         
-        CaretColorEnum::Enum color;
+        CaretColorEnum::Enum m_color;
         
-        std::vector<SurfaceProjectedItem*> points;
+        std::vector<SurfaceProjectedItem*> m_points;
         
-        /** display status: not saved to file and does not affect modification status */
-        bool displayFlag;
+        /** RGBA color component assigned to border's class name */
+        float m_classRgbaColor[4];
         
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t nameKey;
+        /** RGBA color components assigned to border's class name validity */
+        bool m_classRgbaColorValid;
         
-        /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t classKey;
+        /** RGBA color components assigned to focus' name */
+        float m_nameRgbaColor[4];
         
-        /** 
-         * Name/Class modification status, not saved to file. 
-         * COMPLETELY separate from the modification status
-         * that tracks all modifications to a border.
-         */
-        bool nameClassModificationStatus;
+        /** RGBA color components assigned to focus' name validity */
+        bool m_nameRgbaColorValid;
+        
+        /** Selection status of this border in the group/name hierarchy */
+        GroupAndNameHierarchyItem* m_groupNameSelectionItem;        
     };
     
 #ifdef __BORDER_DECLARE__

@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "AString.h"
 #include "CaretObject.h"
 #include "TracksModificationInterface.h"
 
@@ -33,9 +33,11 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include <stdint.h>
 
-#include <AString.h>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
 namespace caret {
 
@@ -55,7 +57,9 @@ public:
     GiftiLabelTable(const GiftiLabelTable& glt);
 
     GiftiLabelTable& operator=(const GiftiLabelTable& glt);
-
+    
+    bool matches(const GiftiLabelTable& rhs, const bool checkColors = false, const bool checkCoords = false) const;
+    
     virtual ~GiftiLabelTable();
 
 private:
@@ -108,10 +112,14 @@ public:
 
     const GiftiLabel* getLabel(const AString& labelName) const;
 
+    GiftiLabel* getLabel(const AString& labelName);
+    
     const GiftiLabel* getLabelBestMatching(const AString& name) const;
 
     const GiftiLabel* getLabel(const int32_t key) const;
 
+    GiftiLabel* getLabel(const int32_t key);
+    
     int32_t getUnassignedLabelKey() const;
 
     int32_t getNumberOfLabels() const;
@@ -158,10 +166,14 @@ public:
     std::vector<int32_t> getLabelKeysSortedByName() const;
 
     void resetLabelCounts();
+    
+    void removeLabelsWithZeroCounts();
 
     void createLabelsForKeys(const std::set<int32_t>& newKeys);
 
     void writeAsXML(XmlWriter& xmlWriter) throw (GiftiException);
+
+    void writeAsXML(QXmlStreamWriter& xmlWriter) const;
 
     AString toString() const;
 
@@ -173,6 +185,8 @@ public:
     void readFromXmlString(const AString& s)
             throw (GiftiException);
 
+    void readFromQXmlStreamReader(QXmlStreamReader& xml);
+
     void setModified();
 
     void clearModified();
@@ -183,7 +197,13 @@ public:
 
     std::set<int32_t> getKeys() const;
 
+    void getKeys(std::vector<int32_t>& keysOut) const;
+
+    bool hasLabelsWithInvalidGroupNameHierarchy() const;
+    
 private:
+    void issueLabelKeyZeroWarning(const AString& name) const;
+    
     /** The label table storage.  Use a TreeMap since label keys
  may be sparse.
 */

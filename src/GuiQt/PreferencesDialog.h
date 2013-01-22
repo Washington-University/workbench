@@ -31,9 +31,12 @@
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QGridLayout;
+class QSpinBox;
 
 namespace caret {
     
+    class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
     
     class PreferencesDialog : public WuQDialogNonModal {
@@ -54,19 +57,26 @@ namespace caret {
         void foregroundColorPushButtonPressed();
         void loggingLevelComboBoxChanged(int);
         
-        void volumeAxesCrosshairsCheckBoxToggled(bool value);
-        void volumeAxesLabelsCheckBoxToggled(bool value);
+        void volumeAxesCrosshairsComboBoxToggled(bool value);
+        void volumeAxesLabelsComboBoxToggled(bool value);
+        void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
         
-        void identificationContralateralCheckBoxToggled(bool value);
-
+        void splashScreenShowAtStartupComboBoxChanged(bool value);
+        
         void animationStartChanged(double value);
         
     private:
-        QWidget* createColorsWidget();
-        QWidget* createIdentificationWidget();
-        QWidget* createLoggingWidget();
-        QWidget* createVolumeWidget();
-        QWidget* createTimeCourseWidget();
+        void addColorItems();
+        void addLoggingItems();
+        void addSplashItems();
+        void addVolumeItems();
+        void addTimeCourseItems();
+        
+        void addWidgetToLayout(const QString& labelText,
+                               QWidget* widget);
+        
+        void addWidgetsToLayout(QWidget* leftWidget,
+                             QWidget* rightWidget);
         
         PreferencesDialog(const PreferencesDialog&);
 
@@ -77,12 +87,15 @@ namespace caret {
 
         QComboBox* loggingLevelComboBox;
         
-        QCheckBox* volumeAxesCrosshairsCheckBox;
-        QCheckBox* volumeAxesLabelsCheckBox;
+        WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
+        WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
+        WuQTrueFalseComboBox* volumeAxesMontageCoordinatesComboBox;
         
-        QCheckBox* identificationContralateralCheckBox;
-
+        WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
+        
         QDoubleSpinBox* animationStartDoubleSpinBox;
+        
+        QGridLayout* gridLayout;
         
         WuQWidgetObjectGroup* allWidgets;
     };

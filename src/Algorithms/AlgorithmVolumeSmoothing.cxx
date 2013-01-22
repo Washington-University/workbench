@@ -28,10 +28,14 @@
 #include "Vector3D.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "CaretAssert.h"
 #include <cmath>
 
 using namespace caret;
 using namespace std;
+
+//makes the program issue warning only once per launch, prevents repeated calls by other algorithms from spamming
+bool AlgorithmVolumeSmoothing::haveWarned = false;
 
 AString AlgorithmVolumeSmoothing::getCommandSwitch()
 {
@@ -99,6 +103,8 @@ void AlgorithmVolumeSmoothing::useParameters(OperationParameters* myParams, Prog
 
 AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, const VolumeFile* inVol, const float& kernel, VolumeFile* outVol, const VolumeFile* roiVol, const bool& fixZeros, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
+    CaretAssert(inVol != NULL);
+    CaretAssert(outVol != NULL);
     LevelProgress myProgress(myProgObj);
     if (roiVol != NULL && !inVol->matchesVolumeSpace(roiVol))
     {
@@ -197,7 +203,11 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             }
         }
     } else {
-        CaretLogWarning("input volume is not orthogonal, smoothing will take longer");
+        if (!haveWarned)
+        {
+            CaretLogWarning("input volume is not orthogonal, smoothing will take longer");
+            haveWarned = true;
+        }
         ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
         jkorth = jvec.cross(kvec).normal();
         kiorth = kvec.cross(ivec).normal();
@@ -280,7 +290,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                 if (imin < 0) imin = 0;
                 if (imax > myDims[0]) imax = myDims[0];
                 float sum = 0.0f, weightsum = 0.0f;
-                int64_t baseInd = inVol->getIndex(0, j, k);
+                int64_t baseInd = inVol->getIndex(0, j, k, 0);//extra 0 on a default parameter is to prevent int->pointer vs int->int64 conversion ambiguity
                 int64_t curInd = baseInd + i;
                 for (int ikern = imin; ikern < imax; ++ikern)
                 {
@@ -373,7 +383,7 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
                     if (imin < 0) imin = 0;
                     if (imax > myDims[0]) imax = myDims[0];
                     float sum = 0.0f, weightsum = 0.0f;
-                    int64_t baseInd = inVol->getIndex(0, j, k);
+                    int64_t baseInd = inVol->getIndex(0, j, k, 0);
                     int64_t curInd = baseInd + i;
                     bool used = false;
                     for (int ikern = imin; ikern < imax; ++ikern)
@@ -485,9 +495,14 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
                 }
             }
         }
+        if (lists[0].size() == 0)
+        {
+            lists[0].push_back(-1);//to keep it from scanning the ROI again when the ROI has no voxels, slightly hacky
+        }
     } else {//lists already made, use them
         const float* roiFrame = roiVol->getFrame();
         int64_t ibasesize = (int64_t)lists[0].size();
+        if (ibasesize < 3) return;//handle the case of empty ROI here (ibasesize will be 1)
         int64_t jbasesize = (int64_t)lists[1].size();
         int64_t kbasesize = (int64_t)lists[2].size();
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -500,7 +515,7 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
             if (imin < 0) imin = 0;
             if (imax > myDims[0]) imax = myDims[0];
             float sum = 0.0f, weightsum = 0.0f;
-            int64_t baseInd = inVol->getIndex(0, j, k);
+            int64_t baseInd = inVol->getIndex(0, j, k, 0);
             int64_t curInd = baseInd + i;
             for (int ikern = imin; ikern < imax; ++ikern)
             {

@@ -28,13 +28,19 @@
 
 #include "VolumeBase.h"
 #include "CaretMappableDataFile.h"
+#include "CaretMutex.h"
 #include "CaretVolumeExtension.h"
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
 #include "DescriptiveStatistics.h"
+#include "PaletteFile.h"
+#include "VolumeFileVoxelColorizer.h"
 
 namespace caret {
+    
+    class VolumeFileVoxelColorizer;
+    class VolumeSpline;
     
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
@@ -62,15 +68,32 @@ namespace caret {
         
         bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
+        /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
+        VolumeFileVoxelColorizer* m_voxelColorizer;
+        
+        mutable CaretMutex m_splineMutex;
+        
+        mutable bool m_splinesValid;
+        
+        mutable std::vector<bool> m_frameSplineValid;
+        
+        mutable std::vector<VolumeSpline> m_frameSplines;
+        
     public:
         
         enum InterpType
         {
             ENCLOSING_VOXEL,
-            TRILINEAR
+            TRILINEAR,
+            CUBIC
         };
         
         const static float INVALID_INTERP_VALUE;
+        
+        /** Enables coloring.  Coloring is almost always not needed for command line operations */
+        static bool s_voxelColoringEnabled;
+        
+        static void setVoxelColoringEnabled(const bool enabled);
         
         VolumeFile();
         VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
@@ -85,13 +108,18 @@ namespace caret {
         void setType(SubvolumeAttributes::VolumeType whatType);
         
         SubvolumeAttributes::VolumeType getType() const;
+        
+        void validateSplines(const int64_t brickIndex = 0, const int64_t component = 0) const;
 
-        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
+        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
 
-        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
+        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
 
         ///returns true if volume space matches in spatial dimensions and sform
         bool matchesVolumeSpace(const VolumeFile* right) const;
+        
+        ///returns true if volume space matches in spatial dimensions and sform
+        bool matchesVolumeSpace(const int64_t dims[3], const std::vector<std::vector<float> >& sform) const;
         
         void readFile(const AString& filename) throw (DataFileException);
 
@@ -101,9 +129,9 @@ namespace caret {
         
         virtual void setModified();
         
-        virtual void clearModified() { CaretMappableDataFile::clearModified(); VolumeBase::clearModified(); }
+        virtual void clearModified();
         
-        virtual bool isModified() const { return (CaretMappableDataFile::isModified() || VolumeBase::isModified()); }
+        virtual bool isModified() const;
         
         BoundingBox getSpaceBoundingBox() const;
         
@@ -177,6 +205,31 @@ namespace caret {
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
 
         AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        void updateScalarColoringForMap(const int32_t mapIndex,
+                                     const PaletteFile* paletteFile);
+        
+        void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                         const int64_t sliceIndex,
+                                         uint8_t* rgbaOut) const;
+
+        void getVoxelColorInMap(const int64_t i,
+                                const int64_t j,
+                                const int64_t k,
+                                const int64_t mapIndex,
+                                uint8_t rgbaOut[4]) const;
+        
+        void clearVoxelColoringForMap(const int64_t mapIndex);
+        
+        void setVoxelColorInMap(const int64_t i,
+                                 const int64_t j,
+                                 const int64_t k,
+                                 const int64_t mapIndex,
+                                 const float rgba[4]);
+        
+    private:
+        friend class VolumeFileVoxelColorizer;
     };
 
 }

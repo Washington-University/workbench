@@ -31,9 +31,11 @@
 
 #include <stdint.h>
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "SurfaceTypeEnum.h"
 
@@ -44,14 +46,15 @@ namespace caret {
     class CaretDataFile;
     class LabelFile;
     class MetricFile;
-    class ModelDisplayControllerSurface;
+    class ModelSurface;
+    class OverlaySet;
     class RgbaFile;
     class Surface;
     
     /**
      * Maintains view of some type of object.
      */
-    class BrainStructure : public CaretObject, public EventListenerInterface {
+    class BrainStructure : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         BrainStructure(Brain* brain,
@@ -60,6 +63,12 @@ namespace caret {
         ~BrainStructure();
         
         void receiveEvent(Event* event);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
     private:
         BrainStructure(const BrainStructure& s);
@@ -90,6 +99,13 @@ namespace caret {
         const Surface* getVolumeInteractionSurface() const;
         
         Surface* getVolumeInteractionSurface();
+        
+        const Surface* getSurfaceContainingTextInName(const AString& text) const;
+        
+        Surface* getSurfaceContainingTextInName(const AString& text);
+        
+        Surface* getSurfaceWithName(const AString& surfaceFileName,
+                                    const bool useAbsolutePath);
         
         void setVolumeInteractionSurface(Surface* surface);
         
@@ -131,44 +147,55 @@ namespace caret {
         
         const BrainStructureNodeAttributes* getNodeAttributes() const;
         
-        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
         
         bool removeDataFile(CaretDataFile* caretDataFile);
         
         bool getMetricShapeMap(MetricFile* &metricFileOut,
                                int32_t& shapeMapIndexOut) const;
         
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        void initializeOverlays();
+        
     private:
         const Surface* getVolumeInteractionSurfacePrivate() const;
         
-        Brain* brain;
+        const Surface* getSurfaceContainingTextInNamePrivate(const AString& text) const;
+
+        Brain* m_brain;        
         
-        StructureEnum::Enum structure;
+        StructureEnum::Enum m_structure;
         
-        std::vector<Surface*> surfaces;
+        /** Overlays sets for this model and for each tab */
+        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        std::vector<LabelFile*> labelFiles;
+        std::vector<Surface*> m_surfaces;
         
-        std::vector<MetricFile*> metricFiles;
+        std::vector<LabelFile*> m_labelFiles;
         
-        std::vector<RgbaFile*> rgbaFiles;
+        std::vector<MetricFile*> m_metricFiles;
+        
+        std::vector<RgbaFile*> m_rgbaFiles;
         
         /** Maps a surface to its model controller */
-        std::map<Surface*, ModelDisplayControllerSurface*> surfaceControllerMap; 
+        std::map<Surface*, ModelSurface*> m_surfaceControllerMap; 
         
         /** Unique number assigned to each brain structure. */
-        int64_t brainStructureIdentifier;
+        int64_t m_brainStructureIdentifier;
         
         /** Generates unique number assigned to each brain structure */
-        static int64_t brainStructureIdentifierCounter;
+        static int64_t s_brainStructureIdentifierCounter;
         
-        BrainStructureNodeAttributes* nodeAttributes;
+        BrainStructureNodeAttributes* m_nodeAttributes;
         
-        mutable Surface* volumeInteractionSurface;
+        mutable Surface* m_volumeInteractionSurface;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__
-    int64_t BrainStructure::brainStructureIdentifierCounter = 1;
+    int64_t BrainStructure::s_brainStructureIdentifierCounter = 1;
 #endif // __BRAIN_STRUCTURE_DEFINE__
 
 } // namespace

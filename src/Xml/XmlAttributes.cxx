@@ -164,6 +164,18 @@ XmlAttributes::addAttribute(const AString& name, const double value) {
 }
 
 /**
+ * Add an attribute.
+ *
+ * @param name - Name of attribute.
+ * @param value - Value of attribute.
+ */
+void 
+XmlAttributes::addAttribute(const AString& name, const bool value) {
+    names.push_back(name);
+    values.push_back(AString::fromBool(value));
+}
+
+/**
  * Get the number of attributes.
  *
  * @return Number of attributes.
@@ -272,9 +284,12 @@ XmlAttributes::getValueAsInt(const AString& name, const int32_t defaultValue) co
 /**
  * Get the value of an attribute as a float.
  *
- * @param index - index of attribute.
+ * @param name 
+ *    Name of attribute.
+ * @param defaultValue
+ *    Value returned if attribute is not found.
  *
- * @return Value of attribute at index.
+ * @return Value of attribute with given namex.
  */
 float 
 XmlAttributes::getValueAsFloat(const AString& name, const float& defaultValue) const
@@ -283,6 +298,29 @@ XmlAttributes::getValueAsFloat(const AString& name, const float& defaultValue) c
     if (index == -1) return defaultValue;
     return getValueAsFloat(index);
 }
+
+/**
+ * Get the value of an attribute as a boolean.
+ *
+ * @param name 
+ *    Name of attribute.
+ * @param defaultValue
+ *    Value returned if attribute is not found.
+ *
+ * @return Value of attribute with given namex.
+ */
+bool 
+XmlAttributes::getValueAsBoolean(const AString& name,
+                                 const bool defaultValue) const
+{
+    int index = getIndex(name);
+    if (index == -1) return defaultValue;
+    CaretAssertVectorIndex(this->values, index);
+    AString value = this->values.at(index);
+    const bool boolValue = value.toBool();
+    return boolValue;
+}
+
 
 int XmlAttributes::getIndex(const AString& name) const
 {

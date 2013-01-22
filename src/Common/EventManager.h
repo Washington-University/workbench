@@ -37,20 +37,6 @@ namespace caret {
 
     class EventListenerInterface;
     
-    /**
-     * \brief  The event manager.
-     *
-     * The event manager processes events
-     * from senders to receivers.
-     *
-     * Objects that wish to receive events must implement
-     * the EventListenerInterface and call
-     * addEventListener() to receive events and call
-     * removeEventListener() to no longer receive events.
-     *
-     * Events are sent by calling this class' sendEvent()
-     * method.
-     */
     class EventManager : public CaretObject {
         
     public:
@@ -63,6 +49,9 @@ namespace caret {
         void addEventListener(EventListenerInterface* eventListener,
                               const EventTypeEnum::Enum listenForEventType);
         
+        void addProcessedEventListener(EventListenerInterface* eventListener,
+                                       const EventTypeEnum::Enum listenForEventType);
+        
         void removeEventFromListener(EventListenerInterface* eventListener,
                                  const EventTypeEnum::Enum listenForEventType);
 
@@ -70,6 +59,8 @@ namespace caret {
         
         void sendEvent(Event* event);
         
+        void blockEvent(const EventTypeEnum::Enum eventToBlock,
+                        const bool blockStatus);
     private:
         EventManager();
         
@@ -80,7 +71,13 @@ namespace caret {
         
         EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
         
-        int64_t eventCounter;
+        EVENT_LISTENER_CONTAINER eventProcessedListeners[EventTypeEnum::EVENT_COUNT];
+        
+        /** Counter that is incremented each time an event is issued */
+        int64_t eventIssuedCounter;
+        
+        /** A counter for blocking events of each type */
+        std::vector<int64_t> eventBlockingCounter;
         
         static EventManager* singletonEventManager;
         

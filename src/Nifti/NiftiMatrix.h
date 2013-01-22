@@ -78,6 +78,23 @@ public:
     void writeFile(QFile &fileOut) throw (NiftiException);
     void writeFile(gzFile fileOut) throw (NiftiException);
 
+    //readMatrix(
+    //readFrame(
+    //writeMatrix(
+    //writeFrame(
+    
+    //template <class retType> retType * convertFrame(int8_t *&bytes, int64_t &size) throw (NiftiException);
+    void readVolume(QFile &fileIn, VolumeBase &vol) throw (NiftiException);
+    void readVolume(gzFile fileIn, VolumeBase &vol) throw (NiftiException);
+    void readVolume(VolumeBase &vol) throw (NiftiException);
+    void convertBytes(char *&bytes, float *&byteOut, int64_t &size) throw (NiftiException);
+
+    int8_t *allocateFrame();
+    void writeVolume(QFile &fileOut, VolumeBase &vol) throw (NiftiException);
+    void writeVolume(gzFile fileOut, VolumeBase &vol) throw (NiftiException);
+    void writeVolume(VolumeBase &vol) throw (NiftiException);
+    void convertFrame(float *&frameIn, char *&bytesOut, int64_t &size) throw (NiftiException);
+
     // For reading the entire Matrix
     /// sets the entire volume file Matrix, be sure to set the matrix layout before calling this function
     void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException);
@@ -108,6 +125,8 @@ public:
     /// Gets the number of individual elements (array size) of the entire volume matrix
     int64_t getMatrixLength() { return matrixLength; }
 
+    void setUsingVolume(bool usingVolume) { m_usingVolume = usingVolume; }
+
    
 
 
@@ -115,10 +134,10 @@ public:
 private:
     /// Reads frame from disk into memory, flushes previous frame to disk if changes were made.
     void readFile()  throw (NiftiException);//for loading a frame at a time
-    void readMatrixBytes(char *bytes, int64_t size);
+    void readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset = 0);
     /// Writes the current frame to disk.
     void writeFile() throw (NiftiException);
-    void writeMatrixBytes(char *bytes, int64_t size);
+    void writeMatrixBytes(char *bytes, int64_t size, int64_t frameOffset = 0);
 
 
     bool isCompressed();
@@ -145,6 +164,7 @@ private:
     bool matrixLoaded;
 
 	int64_t timeLength;
+    bool m_usingVolume;
 };
 
 }

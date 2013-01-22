@@ -289,6 +289,24 @@ MathFunctions::crossProduct(
 }
 
 /**
+ * Cross product of two 3D vectors.
+ * @param  v1  The first vector, an array of three floats.
+ * @param  v2  The first vector, an array of three floats.
+ * @param resultOut  Output containing the cross product.
+ *
+ */
+void
+MathFunctions::crossProduct(
+                            const double v1[],
+                            const double v2[],
+                            double resultOut[])
+{
+    resultOut[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    resultOut[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    resultOut[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+/**
  * Cross product of two 3D vectors with normalizing both the
  * input and output vectors.
  *
@@ -883,7 +901,7 @@ MathFunctions::vtkLUFactor3x3(
     // third column
     A[1][2] -= A[1][0]*A[0][2];
     A[2][2] -= A[2][0]*A[0][2] + A[2][1]*A[1][2];
-    largest = scale[2]*std::abs(A[2][2]);
+    //largest = scale[2]*std::abs(A[2][2]);
     index[2] = 2;
     A[2][2] = (1.0f)/A[2][2];
 }
@@ -1522,4 +1540,223 @@ bool MathFunctions::isPosInf(const float number)
     return (number > 1.0f && number * 2.0f == number);
 }
 
+void MathFunctions::quaternToMatrix(const float cijk[4], float matrix[3][3])
+{//formula from http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    double qlengthsqr = cijk[0] * cijk[0] + cijk[1] * cijk[1] + cijk[2] * cijk[2] + cijk[3] * cijk[3];
+    double mult = 0.0;
+    if (qlengthsqr > 0.0f)
+    {
+        mult = 2.0f / qlengthsqr;
+    }
+    double ijkmult[4] = { cijk[1] * mult, cijk[2] * mult, cijk[3] * mult };
+    double wX = cijk[0] * ijkmult[0], wY = cijk[0] * ijkmult[1], wZ = cijk[0] * ijkmult[2];
+    double xX = cijk[1] * ijkmult[0], xY = cijk[1] * ijkmult[1], xZ = cijk[1] * ijkmult[2];
+    double yY = cijk[2] * ijkmult[1], yZ = cijk[2] * ijkmult[2];
+    double zZ = cijk[3] * ijkmult[2];
+    matrix[0][0] = 1.0 - (yY + zZ);//equals nifti1 formula because for unit quaternion, a*a + b*b + c*c + d*d = 1, and yY = 2 * c*c
+    matrix[0][1] = xY - wZ;
+    matrix[0][2] = xZ + wY;
+    matrix[1][0] = xY + wZ;
+    matrix[1][1] = 1.0 - (xX + zZ);
+    matrix[1][2] = yZ - wX;
+    matrix[2][0] = xZ - wY;
+    matrix[2][1] = yZ + wX;
+    matrix[2][2] = 1.0 - (xX + yY);
+}
+
+void MathFunctions::quaternToMatrix(const double cijk[4], double matrix[3][3])
+{//formula from http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    double qlengthsqr = cijk[0] * cijk[0] + cijk[1] * cijk[1] + cijk[2] * cijk[2] + cijk[3] * cijk[3];
+    double mult = 0.0;
+    if (qlengthsqr > 0.0f)
+    {
+        mult = 2.0f / qlengthsqr;
+    }
+    double ijkmult[4] = { cijk[1] * mult, cijk[2] * mult, cijk[3] * mult };
+    double wX = cijk[0] * ijkmult[0], wY = cijk[0] * ijkmult[1], wZ = cijk[0] * ijkmult[2];
+    double xX = cijk[1] * ijkmult[0], xY = cijk[1] * ijkmult[1], xZ = cijk[1] * ijkmult[2];
+    double yY = cijk[2] * ijkmult[1], yZ = cijk[2] * ijkmult[2];
+    double zZ = cijk[3] * ijkmult[2];
+    matrix[0][0] = 1.0 - (yY + zZ);//equals nifti1 formula because for unit quaternion, a*a + b*b + c*c + d*d = 1, and yY = 2 * c*c
+    matrix[0][1] = xY - wZ;
+    matrix[0][2] = xZ + wY;
+    matrix[1][0] = xY + wZ;
+    matrix[1][1] = 1.0 - (xX + zZ);
+    matrix[1][2] = yZ - wX;
+    matrix[2][0] = xZ - wY;
+    matrix[2][1] = yZ + wX;
+    matrix[2][2] = 1.0 - (xX + yY);
+}
+
+bool MathFunctions::matrixToQuatern(const float matrix[3][3], float cijk[4])
+{//formulas from http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    const float toler = 0.0001f;
+    float ivec[3] = { matrix[0][0], matrix[1][0], matrix[2][0] };
+    float jvec[3] = { matrix[0][1], matrix[1][1], matrix[2][1] };
+    float kvec[3] = { matrix[0][2], matrix[1][2], matrix[2][2] };
+    if (!(std::abs(1.0f - normalizeVector(ivec)) <= toler)) return false;//use the "not less than or equal to" trick to catch NaNs
+    if (!(std::abs(1.0f - normalizeVector(jvec)) <= toler)) return false;
+    if (!(std::abs(1.0f - normalizeVector(kvec)) <= toler)) return false;
+    if (!(dotProduct(ivec, jvec) <= toler)) return false;
+    if (!(dotProduct(ivec, kvec) <= toler)) return false;
+    if (!(dotProduct(jvec, kvec) <= toler)) return false;
+    float tempvec[3];
+    crossProduct(ivec, jvec, tempvec);
+    if (!(dotProduct(tempvec, kvec) >= 0.9f)) return false;//i cross j must be k, otherwise it contains a flip
+    int method = 0;
+    double trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+    if (trace < 0.0)
+    {
+        method = 1;
+        float tempf = matrix[0][0];
+        if (matrix[1][1] > tempf)
+        {
+            method = 2;
+            tempf = matrix[1][1];
+        }
+        if (matrix[2][2] > tempf)
+        {
+            method = 3;
+        }
+    }
+    switch (method)
+    {
+        case 0:
+            {
+                double r = std::sqrt(1.0 + trace);
+                double s = 0.5 / r;
+                cijk[0] = 0.5 * r;
+                cijk[1] = (matrix[2][1] - matrix[1][2]) * s;
+                cijk[2] = (matrix[0][2] - matrix[2][0]) * s;
+                cijk[3] = (matrix[1][0] - matrix[0][1]) * s;
+            }
+        break;
+        case 1:
+            {
+                double r = std::sqrt(1.0 + matrix[0][0] - matrix[1][1] - matrix[2][2]);
+                double s = 0.5 / r;
+                cijk[0] = (matrix[2][1] - matrix[1][2]) * s;
+                cijk[1] = 0.5 * r;
+                cijk[2] = (matrix[0][1] + matrix[1][0]) * s;
+                cijk[3] = (matrix[2][0] + matrix[0][2]) * s;
+            }
+        break;
+        case 2:
+            {//DISCLAIMER: these last two were worked out by pattern since they aren't on wikipedia
+                double r = std::sqrt(1.0 - matrix[0][0] + matrix[1][1] - matrix[2][2]);
+                double s = 0.5 / r;
+                cijk[0] = (matrix[0][2] - matrix[2][0]) * s;
+                cijk[1] = (matrix[0][1] + matrix[1][0]) * s;
+                cijk[2] = 0.5 * r;
+                cijk[3] = (matrix[1][2] + matrix[2][1]) * s;
+            }
+        break;
+        case 3:
+            {
+                double r = std::sqrt(1.0 - matrix[0][0] - matrix[1][1] + matrix[2][2]);
+                double s = 0.5 / r;
+                cijk[0] = (matrix[1][0] - matrix[0][1]) * s;
+                cijk[1] = (matrix[2][0] + matrix[0][2]) * s;
+                cijk[2] = (matrix[1][2] + matrix[2][1]) * s;
+                cijk[3] = 0.5 * r;
+            }
+        break;
+        default:
+            return false;
+    }
+    if (cijk[0] < 0.0f)
+    {
+        cijk[0] = -cijk[0];
+        cijk[1] = -cijk[1];
+        cijk[2] = -cijk[2];
+        cijk[3] = -cijk[3];
+    }
+    return true;
+}
+
+bool MathFunctions::matrixToQuatern(const double matrix[3][3], double cijk[4])
+{//formulas from http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
+    const float toler = 0.0001f;
+    float ivec[3] = { matrix[0][0], matrix[1][0], matrix[2][0] };
+    float jvec[3] = { matrix[0][1], matrix[1][1], matrix[2][1] };
+    float kvec[3] = { matrix[0][2], matrix[1][2], matrix[2][2] };
+    if (!(std::abs(1.0f - normalizeVector(ivec)) <= toler)) return false;//use the "not less than or equal to" trick to catch NaNs
+    if (!(std::abs(1.0f - normalizeVector(jvec)) <= toler)) return false;
+    if (!(std::abs(1.0f - normalizeVector(kvec)) <= toler)) return false;
+    if (!(dotProduct(ivec, jvec) <= toler)) return false;
+    if (!(dotProduct(ivec, kvec) <= toler)) return false;
+    if (!(dotProduct(jvec, kvec) <= toler)) return false;
+    float tempvec[3];
+    crossProduct(ivec, jvec, tempvec);
+    if (!(dotProduct(tempvec, kvec) >= 0.9f)) return false;//i cross j must be k, otherwise it contains a flip
+    int method = 0;
+    double trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+    if (trace < 0.0)
+    {
+        method = 1;
+        float tempf = matrix[0][0];
+        if (matrix[1][1] > tempf)
+        {
+            method = 2;
+            tempf = matrix[1][1];
+        }
+        if (matrix[2][2] > tempf)
+        {
+            method = 3;
+        }
+    }
+    switch (method)
+    {
+        case 0:
+        {
+            double r = std::sqrt(1.0 + trace);
+            double s = 0.5 / r;
+            cijk[0] = 0.5 * r;
+            cijk[1] = (matrix[2][1] - matrix[1][2]) * s;
+            cijk[2] = (matrix[0][2] - matrix[2][0]) * s;
+            cijk[3] = (matrix[1][0] - matrix[0][1]) * s;
+        }
+            break;
+        case 1:
+        {
+            double r = std::sqrt(1.0 + matrix[0][0] - matrix[1][1] - matrix[2][2]);
+            double s = 0.5 / r;
+            cijk[0] = (matrix[2][1] - matrix[1][2]) * s;
+            cijk[1] = 0.5 * r;
+            cijk[2] = (matrix[0][1] + matrix[1][0]) * s;
+            cijk[3] = (matrix[2][0] + matrix[0][2]) * s;
+        }
+            break;
+        case 2:
+        {//DISCLAIMER: these last two were worked out by pattern since they aren't on wikipedia
+            double r = std::sqrt(1.0 - matrix[0][0] + matrix[1][1] - matrix[2][2]);
+            double s = 0.5 / r;
+            cijk[0] = (matrix[0][2] - matrix[2][0]) * s;
+            cijk[1] = (matrix[0][1] + matrix[1][0]) * s;
+            cijk[2] = 0.5 * r;
+            cijk[3] = (matrix[1][2] + matrix[2][1]) * s;
+        }
+            break;
+        case 3:
+        {
+            double r = std::sqrt(1.0 - matrix[0][0] - matrix[1][1] + matrix[2][2]);
+            double s = 0.5 / r;
+            cijk[0] = (matrix[1][0] - matrix[0][1]) * s;
+            cijk[1] = (matrix[2][0] + matrix[0][2]) * s;
+            cijk[2] = (matrix[1][2] + matrix[2][1]) * s;
+            cijk[3] = 0.5 * r;
+        }
+            break;
+        default:
+            return false;
+    }
+    if (cijk[0] < 0.0f)
+    {
+        cijk[0] = -cijk[0];
+        cijk[1] = -cijk[1];
+        cijk[2] = -cijk[2];
+        cijk[3] = -cijk[3];
+    }
+    return true;
+}
 

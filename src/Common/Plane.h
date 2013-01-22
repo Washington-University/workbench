@@ -54,14 +54,16 @@ namespace caret {
                                     const float t2[3],
                                     const float t3[3],
                                     float intersectionPointOut1[3],
-                                    float intersectionPointOut2[3]);
+                                    float intersectionPointOut2[3]) const;
         
-        double absDistanceToPlane(const float p[3]);
+        double absoluteDistanceToPlane(const float p[3]) const;
+        
+        double signedDistanceToPlane(const float p[3]) const;
         
         bool lineSegmentIntersectPlane(
                                        const float lp1[3],
                                        const float lp2[3],
-                                       float intersectionOut[3]);
+                                       float intersectionOut[3]) const;
         
         static void unitTest(std::ostream& stream,
                       const bool isVerbose);

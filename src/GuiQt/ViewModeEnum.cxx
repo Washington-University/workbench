@@ -108,7 +108,7 @@ ViewModeEnum::findData(const Enum e)
         }
     }
 
-    return NULL;
+    return &enumData[0];
 }
 
 /**

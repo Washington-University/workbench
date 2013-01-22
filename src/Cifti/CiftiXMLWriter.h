@@ -30,19 +30,27 @@
 
 namespace caret {
 
-void writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement);
-void writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement);
-void writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData);
-void writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value);
-void writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &labelElement);
-void writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label);
-void writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap);
-void writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel);
-void writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume);
-void writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
-void getModelTypeString(int modelType, QString &modelTypeString);
-void getDataSpaceString(int dataSpace, QString &dataSpaceString);
-void getUnitsXYZString(int UnitsXYZ, QString &unitsXYZString);
+    class CiftiXMLWriter
+    {
+        CiftiVersion m_writingVersion;
+        void writeMatrixElement(QXmlStreamWriter &xml, const CiftiMatrixElement &matrixElement);
+        void writeMetaData(QXmlStreamWriter &xml, const std::map<AString, AString> &metaData);
+        void writeMetaDataElement(QXmlStreamWriter &xml, const AString &name, const AString &value);
+        void writeLabelTable(QXmlStreamWriter &xml, const std::vector <CiftiLabelElement> &labelElement);
+        void writeLabel(QXmlStreamWriter &xml, const CiftiLabelElement &label);
+        void writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMatrixIndicesMapElement &matrixIndicesMap);
+        void writeBrainModel(QXmlStreamWriter &xml, const CiftiBrainModelElement &brainModel);
+        void writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapElement& namedMap);
+        void writeParcel(QXmlStreamWriter& xml, const CiftiParcelElement& parcel);
+        void writeParcelNodes(QXmlStreamWriter& xml, const CiftiParcelNodesElement& parcelNodes);
+        void writeVolume(QXmlStreamWriter &xml, const CiftiVolumeElement &volume);
+        void writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, const TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
+        void getModelTypeString(int modelType, QString &modelTypeString);
+        void getDataSpaceString(int dataSpace, QString &dataSpaceString);
+        void getUnitsXYZString(int UnitsXYZ, QString &unitsXYZString);
+    public:
+        void writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement);
+    };
 
 }
 #endif //__CIFTI_XML_WRITER_H__

@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class WuQSpinBoxGroup 
+ * \class caret::WuQSpinBoxGroup 
  * \brief Container that organizes a group of spin boxes. 
  *
  * Container that organizes a group of spin boxes.

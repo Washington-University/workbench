@@ -70,7 +70,9 @@ namespace caret {
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
         
-        std::vector<const UserView*> getAllUserViews();
+        std::vector<UserView*> getAllUserViews();
+
+        void setAllUserViews(std::vector<UserView*>& allUserViews);
         
         const UserView* getUserView(const AString& viewName);
         
@@ -86,6 +88,10 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
+        bool isVolumeMontageAxesCoordinatesDisplayed() const;
+        
+        void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
+        
         void setAnimationStartTime(const double &time);
         
         void getAnimationStartTime(double &time);
@@ -93,6 +99,16 @@ namespace caret {
         //bool isContralateralIdentificationEnabled() const;
         
         //void setContralateralIdentificationEnabled(const bool enabled);
+        
+        bool isSplashScreenEnabled() const;
+        
+        void setSplashScreenEnabled(const bool enabled);
+        
+        int32_t getToolBoxType() const;
+        
+        void setToolBoxType(const int32_t toolBoxType);
+        
+        void readUserViews(const bool performSync = true);
         
     private:
         CaretPreferences(const CaretPreferences&);
@@ -108,6 +124,12 @@ namespace caret {
         
         void setBoolean(const AString& name,
                         const bool value);
+        
+        int getInteger(const AString& name,
+                        const int defaultValue = false);
+        
+        void setInteger(const AString& name,
+                        const int value);
         
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
@@ -136,33 +158,46 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
+        bool displayVolumeAxesCoordinates;
+        
+        bool splashScreenEnabled;
+        
         double animationStartTime;
+        
+        int32_t toolBoxType;
         
         //bool contralateralIdentificationEnabled;
         
+        static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_AXES_CROSSHAIRS;
         static const AString NAME_AXES_LABELS;
+        static const AString NAME_AXES_COORDINATE;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
-        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
+//        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
+        static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
-        static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_SPLASH_SCREEN;
         static const AString NAME_USER_VIEWS;
-        static const AString NAME_ANIMATION_START_TIME;
+        
+        static const AString NAME_TOOLBOX_TYPE;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
+    const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
     const AString CaretPreferences::NAME_AXES_CROSSHAIRS = "volumeAxesCrosshairs";
     const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
+    const AString CaretPreferences::NAME_AXES_COORDINATE     = "volumeAxesCoordinates";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
+    const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
-    const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
+    const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
+    const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
     const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
-    const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

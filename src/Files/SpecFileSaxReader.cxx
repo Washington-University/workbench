@@ -100,6 +100,16 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
                 throw e;
             }
          }
+           else if (qName == "Spec_File") {
+               const AString msg = ("You are trying to read a Spec File from Caret5 "
+                                    "that is incompatible with Workbench.  Use the "
+                                    "program <b>wb_import</b> (included in the "
+                                    "Workbench distribution) to convert files from "
+                                    "Caret5 formats to Workbench formats");
+               XmlSaxParserException e(msg);
+               CaretLogThrowing(e);
+               throw e;
+           }
          else {
              const AString msg =
              "Root elements is "
@@ -121,6 +131,8 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
              this->state = STATE_DATA_FILE;
              this->fileAttributeStructureName = attributes.getValue(SpecFile::XML_ATTRIBUTE_STRUCTURE);
              this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE);
+             this->fileAttributeSelectionStatus = attributes.getValueAsBoolean(SpecFile::XML_ATTRIBUTE_SELECTED,
+                                                                               false);
          }
          else {
              const AString msg =
@@ -174,9 +186,12 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                const AString filename = this->elementText.trimmed();
                this->specFile->addDataFile(this->fileAttributeTypeName, 
                                            this->fileAttributeStructureName, 
-                                           filename);
+                                           filename,
+                                           this->fileAttributeSelectionStatus);
+               
                this->fileAttributeTypeName = "";
                this->fileAttributeStructureName = "";
+               this->fileAttributeSelectionStatus = false;
            }
            catch (const DataFileException& e) {
                throw XmlSaxParserException(e);

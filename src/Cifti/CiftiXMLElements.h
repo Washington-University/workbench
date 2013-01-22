@@ -26,12 +26,37 @@
 #define __CIFTI_XML_ELEMENTS
 #include <QtCore>
 #include <vector>
+#include <map>
+#include "AString.h"
+#include "CaretPointer.h"
+#include "CaretCompact3DLookup.h"
 #include "nifti2.h"
 #include "StructureEnum.h"
 /* Cifti Defines */
 
 namespace caret {
 
+class PaletteColorMapping;
+
+class CiftiVersion
+{
+    int16_t m_major, m_minor;
+public:
+    CiftiVersion();
+    CiftiVersion(const int16_t& major, const int16_t& minor);
+    CiftiVersion(const AString& versionString);
+    AString toString() const;
+    bool operator<(const CiftiVersion& rhs) const;
+    bool operator>(const CiftiVersion& rhs) const;
+    bool operator==(const CiftiVersion& rhs) const;
+    bool operator!=(const CiftiVersion& rhs) const;
+    bool operator<=(const CiftiVersion& rhs) const;
+    bool operator>=(const CiftiVersion& rhs) const;
+    ///quirk tests
+    bool hasReversedFirstDims() const;
+};
+
+class GiftiLabelTable;
 /*! ModelType */
 enum ModelType {
     CIFTI_MODEL_TYPE_SURFACE=1,/*!< CIFTI_MODEL_TYPE_SURFACE*/
@@ -44,26 +69,72 @@ enum IndicesMapToDataType {
     CIFTI_INDEX_TYPE_BRAIN_MODELS=1,/*!< CIFTI_INDEX_TYPE_BRAIN_MODELS*/
     CIFTI_INDEX_TYPE_FIBERS=2,/*!< CIFTI_INDEX_TYPE_FIBERS*/
     CIFTI_INDEX_TYPE_PARCELS=3,/*!< CIFTI_INDEX_TYPE_PARCELS*/
-    CIFTI_INDEX_TYPE_TIME_POINTS=4/*!< CIFTI_INDEX_TYPE_TIME_POINTS*/
+    CIFTI_INDEX_TYPE_TIME_POINTS=4,/*!< CIFTI_INDEX_TYPE_TIME_POINTS*/
+    CIFTI_INDEX_TYPE_SCALARS=5,
+    CIFTI_INDEX_TYPE_LABELS=6
 };
 
 typedef int voxelIndexType;
+
+class CiftiMatrixIndicesMapElement;
 
 /// Cifti Brain Model XML Element
 class CiftiBrainModelElement {
 public:
     //CiftiBrainModelElement();
 
-    unsigned long long m_indexOffset; /*!< Index of first element in dimension of the matrix for this brain structure. The value is the number of elements, NOT the number of bytes. */
-    unsigned long long m_indexCount; /*!< Number of elements in this brain model. */
+    int64_t m_indexOffset; /*!< Index of first element in dimension of the matrix for this brain structure. The value is the number of elements, NOT the number of bytes. */
+    int64_t m_indexCount; /*!< Number of elements in this brain model. */
     ModelType m_modelType; /*!< Type of model representing the brain structure. */
     StructureEnum::Enum m_brainStructure; /*!<  Identifies the brain structure. Valid values are contained in nifti2.h */
-    unsigned long long m_surfaceNumberOfNodes; /*!< This attribute contains the actual (or true) number of nodes in the surface that is associated with this BrainModel.*/
+    int64_t m_surfaceNumberOfNodes; /*!< This attribute contains the actual (or true) number of nodes in the surface that is associated with this BrainModel.*/
     //children
-    std::vector<unsigned long long> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
+    std::vector<int64_t> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
     std::vector<voxelIndexType> m_voxelIndicesIJK; /*!<  Identifies the voxels that model a brain structure. */
-    std::vector<unsigned long long> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
-    void setupLookup();//convenience function to populate lookup
+    std::vector<int64_t> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
+    void setupLookup(CiftiMatrixIndicesMapElement& myMap);//convenience function to populate lookup
+    bool operator==(const CiftiBrainModelElement& rhs) const;
+};
+
+struct CiftiNamedMapElement
+{
+    AString m_mapName;
+    CaretPointer<GiftiLabelTable> m_labelTable;
+    std::map<AString, AString> m_mapMetaData;/*!< User Meta Data*/
+    mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
+    mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
+    CiftiNamedMapElement();
+    CiftiNamedMapElement(const CiftiNamedMapElement& rhs);//to turn copy and assignment into a deep copy of the label table
+    ~CiftiNamedMapElement();
+    CiftiNamedMapElement& operator=(const CiftiNamedMapElement& rhs);
+    bool operator==(const CiftiNamedMapElement& rhs) const;
+    bool operator!=(const CiftiNamedMapElement& rhs) const { return !(*this == rhs); }
+};
+
+struct CiftiParcelNodesElement
+{
+    StructureEnum::Enum m_structure;
+    std::vector<int64_t> m_nodes;
+    bool operator==(const CiftiParcelNodesElement& rhs) const;
+    bool operator!=(const CiftiParcelNodesElement& rhs) const { return !(*this == rhs); }
+};
+
+struct CiftiParcelElement
+{
+    AString m_parcelName;
+    std::vector<CiftiParcelNodesElement> m_nodeElements;
+    std::vector<voxelIndexType> m_voxelIndicesIJK;
+    bool operator==(const CiftiParcelElement& rhs) const;
+    bool operator!=(const CiftiParcelElement& rhs) const { return !(*this == rhs); }
+};
+
+struct CiftiParcelSurfaceElement
+{
+    StructureEnum::Enum m_structure;
+    int64_t m_numNodes;
+    std::vector<int64_t> m_lookup;
+    bool operator==(const CiftiParcelSurfaceElement& rhs) const;
+    bool operator!=(const CiftiParcelSurfaceElement& rhs) const { return !(*this == rhs); }
 };
 
 /// Cifti Matrix Indices Map XML Element
@@ -73,16 +144,27 @@ public:
     CiftiMatrixIndicesMapElement()
     {
         m_timeStep = -1.0;
+        m_timeStart = -1.0;
+        m_hasTimeStart = false;
         m_timeStepUnits = -1;
         m_numTimeSteps = -1;
+        m_indicesMapToDataType = CIFTI_INDEX_TYPE_INVALID;
     }
 
     std::vector<int> m_appliesToMatrixDimension; /*!< Lists the dimension(s) of the matrix to which this MatrixIndicesMap applies. */
     IndicesMapToDataType m_indicesMapToDataType; /*!< Type of data to which the MatrixIndicesMap applies.  */
     double m_timeStep; /*!< Indicates amount of time between each timepoint. */
+    double m_timeStart;
+    bool m_hasTimeStart;
     int m_timeStepUnits;/*!< Indicates units of TimeStep. */
     int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
+    CaretCompact3DLookup<int64_t> m_voxelToIndexLookup;//make one unified lookup rather than separate lookups per volume structure
+    std::vector<CiftiNamedMapElement> m_namedMaps;
+    std::vector<CiftiParcelElement> m_parcels;
+    std::vector<CiftiParcelSurfaceElement> m_parcelSurfaces;
+    void setupLookup();
+    bool operator==(const CiftiMatrixIndicesMapElement& rhs) const;
 };
 
 /// Cifti Label XML Element
@@ -123,8 +205,14 @@ public:
 /// Cifti Matrix XML Element
 class CiftiMatrixElement {
 public:
-    std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO, this may be better as a hash
-    QHash<QString, QString> m_userMetaData;/*!< User Meta Data*/
+    CiftiMatrixElement(const CiftiMatrixElement& rhs);
+    CiftiMatrixElement& operator=(const CiftiMatrixElement& rhs);
+    CiftiMatrixElement();
+    ~CiftiMatrixElement();
+    std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO: replace this with GiftiLabelTable (or remove? not being used for anything)
+    std::map<AString, AString> m_userMetaData;/*!< User Meta Data*/
+    mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
+    mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
     std::vector<CiftiMatrixIndicesMapElement> m_matrixIndicesMap;/*!< Vector array of one or more Matrix Indices Map Elements*/
     std::vector<CiftiVolumeElement> m_volume;/*!< Volume Element*/
 };
@@ -133,7 +221,7 @@ public:
 class CiftiRootElement {
 public:
     CiftiRootElement() { m_numberOfMatrices = 0; }
-    QString m_version;/*!<  Version String*/
+    CiftiVersion m_version;/*!<  Version String*/
     unsigned long m_numberOfMatrices;/*!< Number of Matrices*/
     std::vector<CiftiMatrixElement> m_matrices; /*!< Matrices, currently there is only matrix, but future versions may allow for more */
 };

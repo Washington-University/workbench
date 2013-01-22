@@ -34,8 +34,8 @@ class QComboBox;
 
 namespace caret {
     
-    class ModelDisplayControllerSurfaceSelector;
-    class ModelDisplayControllerSurface;
+    class ModelSurfaceSelector;
+    class ModelSurface;
     class Structure;
     
     class StructureSurfaceSelectionControl : public QWidget {
@@ -47,19 +47,19 @@ namespace caret {
         
         virtual ~StructureSurfaceSelectionControl();
 
-        ModelDisplayControllerSurface* getSelectedSurfaceController();
+        ModelSurface* getSelectedSurfaceController();
         
         StructureEnum::Enum getSelectedStructure();
         
-        //void setSelectedSurfaceController(ModelDisplayControllerSurface* surfaceController);
+        //void setSelectedSurfaceController(ModelSurface* surfaceController);
         
         //void setSelectedStructure(const StructureEnum::Enum selectedStructure);
         
-        void updateControl(ModelDisplayControllerSurfaceSelector* surfaceControllerSelector);
+        void updateControl(ModelSurfaceSelector* surfaceControllerSelector);
         
     signals:
         void selectionChanged(const StructureEnum::Enum selectedStructure,
-                              ModelDisplayControllerSurface* surfaceController);
+                              ModelSurface* surfaceController);
         
     private slots:
         void structureSelected(int currentIndex);
@@ -77,7 +77,7 @@ namespace caret {
         
         QComboBox* surfaceControllerSelectionComboBox;
 
-        ModelDisplayControllerSurfaceSelector* surfaceControllerSelector;
+        ModelSurfaceSelector* surfaceControllerSelector;
     public:
     private:
     };

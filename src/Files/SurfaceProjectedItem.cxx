@@ -176,10 +176,12 @@ SurfaceProjectedItem::unprojectToVolumeXYZ(const SurfaceFile& sf,
  * The first valid of this positions is used: (1) Barycentric,
  * (2) VanEssen, (3) Stereotaxic.
  * 
- * @param surfaceFile  Surface File for positioning.
- * @param 
- * @param pasteOntoSurfaceFlag   Place directly on the surface.
- * 
+ * @param surfaceFile  
+ *     Surface File for positioning.
+ * @param xyzOut
+ *     Output containing the projected position.
+ * @param pasteOntoSurfaceFlag   
+ *     Place directly on the surface.
  * @return  true if the position is valid, else false.
  *
  */
@@ -194,15 +196,69 @@ SurfaceProjectedItem::getProjectedPosition(const SurfaceFile& surfaceFile,
         if (this->barycentricProjection->isValid()) {
             valid = this->barycentricProjection->unprojectToSurface(surfaceFile, 
                                                                     xyzOut, 
+                                                                    0.0,
                                                                     isUnprojectedOntoSurface);
         }
     }
     
     if (valid == false) {
         if (this->vanEssenProjection->isValid()) {
+            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile, 
+                                                                 xyzOut, 
+                                                                 0.0,
+                                                                 isUnprojectedOntoSurface);
+        }
+    }
+    
+    if (valid == false) {
+        if (this->stereotaxicXYZValid) {
+            this->getStereotaxicXYZ(xyzOut);
+            valid = true;
+        }
+    }
+    
+    return valid;
+}
+
+/**
+ * Get the projected position of this item.  The item is unprojected
+ * to the surface and then it is placed above (below if negative)
+ * the surface by the amount specified by 'distanceAboveSurface'.
+ * 
+ * The first valid of this positions is used: (1) Barycentric,
+ * (2) VanEssen, (3) Stereotaxic.
+ * 
+ * @param surfaceFile  
+ *     Surface File for positioning.
+ * @param xyzOut
+ *     Output containing the projected position.
+ * @param distanceAboveSurface   
+ *     Unproje
+ * @return  true if the position is valid, else false.
+ *
+ */
+bool 
+SurfaceProjectedItem::getProjectedPositionAboveSurface(const SurfaceFile& surfaceFile,
+                                                       float xyzOut[3],
+                                                       const float distanceAboveSurface) const
+{
+    bool valid = false;
+    
+    if (valid == false) {
+        if (this->barycentricProjection->isValid()) {
             valid = this->barycentricProjection->unprojectToSurface(surfaceFile, 
                                                                     xyzOut, 
-                                                                    isUnprojectedOntoSurface);
+                                                                    distanceAboveSurface,
+                                                                    true);
+        }
+    }
+    
+    if (valid == false) {
+        if (this->vanEssenProjection->isValid()) {
+            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile, 
+                                                                 xyzOut, 
+                                                                 distanceAboveSurface,
+                                                                 true);
         }
     }
     
@@ -262,10 +318,17 @@ SurfaceProjectedItem::isStereotaxicXYZValid() const
 void
 SurfaceProjectedItem::setStereotaxicXYZ(const float stereotaxicXYZ[3])
 {
+    if (this->stereotaxicXYZValid) {
+    }
     this->stereotaxicXYZ[0] = stereotaxicXYZ[0];
     this->stereotaxicXYZ[1] = stereotaxicXYZ[1];
     this->stereotaxicXYZ[2] = stereotaxicXYZ[2];
     this->stereotaxicXYZValid = true;
+
+    if (this->volumeXYZValid == false) {
+        this->setVolumeXYZ(stereotaxicXYZ);
+    }
+    
     this->setModified();
 }
 
@@ -278,6 +341,15 @@ SurfaceProjectedItem::setStereotaxicXYZ(const float stereotaxicXYZ[3])
 const float*
 SurfaceProjectedItem::getVolumeXYZ() const
 {
+    /*
+     * If not set, return stereotaxic coordinate
+     */
+    if ((volumeXYZ[0] == 0.0)
+        && (volumeXYZ[1] == 0.0)
+        && (volumeXYZ[2] == 0.0)) {
+        const float* stereoXYZ = getStereotaxicXYZ();
+        return stereoXYZ;
+    }
     return this->volumeXYZ;
 }
 
@@ -289,6 +361,16 @@ SurfaceProjectedItem::getVolumeXYZ() const
 void
 SurfaceProjectedItem::getVolumeXYZ(float xyzOut[3]) const
 {
+    /*
+     * If not set, return stereotaxic coordinate
+     */
+    if ((volumeXYZ[0] == 0.0)
+        && (volumeXYZ[1] == 0.0)
+        && (volumeXYZ[2] == 0.0)) {
+        getStereotaxicXYZ(xyzOut);
+        return;
+    }
+    
     xyzOut[0] = this->volumeXYZ[0];
     xyzOut[1] = this->volumeXYZ[1];
     xyzOut[2] = this->volumeXYZ[2];
@@ -363,7 +445,7 @@ SurfaceProjectedItem::getBarycentricProjection() const
     return this->barycentricProjection;
 }
 
-/** 
+/**
  * @return the Van Essen projection 
  */
 SurfaceProjectionVanEssen* 
@@ -430,6 +512,22 @@ SurfaceProjectedItem::isModified() const
         return true;
     }
     
+    return false;
+}
+
+/**
+ * @return True if a projection (barycentric, vanessen)
+ * is valid.  Otherwise, false.
+ */
+bool
+SurfaceProjectedItem::hasValidProjection() const
+{
+    if (barycentricProjection->isValid()) {
+        return true;
+    }
+    if (vanEssenProjection->isValid()) {
+        return true;
+    }
     return false;
 }
 

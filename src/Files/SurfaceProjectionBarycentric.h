@@ -66,11 +66,16 @@ namespace caret {
                 
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],
-                                const bool isUnprojectedOntoSurface = false) const;
+                                const float offsetFromSurface,
+                                const bool unprojectWithOffsetFromSurface) const;
         
         void reset();
         
-        bool isValid();
+        bool isValid() const;
+        
+        void setDegenerate(const bool degenerate);
+        
+        bool isDegenerate() const;
         
         void setValid(const bool valid);
         
@@ -97,6 +102,7 @@ namespace caret {
 
         bool projectionValid;
         
+        bool m_degenerate;
     };
     
 #ifdef __SURFACE_PROJECTION_BARYCENTRIC_DECLARE__

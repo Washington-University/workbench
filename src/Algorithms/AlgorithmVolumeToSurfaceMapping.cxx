@@ -26,6 +26,7 @@
 #include "AlgorithmException.h"
 #include "VolumeFile.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "MetricFile.h"
 #include "MathFunctions.h"
 #include <cmath>
@@ -58,6 +59,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     
     ret->createOptionalParameter(5, "-enclosing", "use value of the enclosing voxel");
     
+    ret->createOptionalParameter(8, "-cubic", "use cubic splines");
+    
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
@@ -70,9 +73,9 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the node lies inside, while trilinear does a 3D ") + 
-        "linear interpolation based on the voxels immediately on each side of the node's position." +
-        "\n\nThe ribbon mapping method constructs a polyhedron from the node's neighbors on each " +
+        AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the vertex lies inside, while trilinear does a 3D ") + 
+        "linear interpolation based on the voxels immediately on each side of the vertex's position." +
+        "\n\nThe ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
         "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for sampling.  " +
         "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
         "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
@@ -89,6 +92,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* trilinearOpt = myParams->getOptionalParameter(4);
     OptionalParameter* enclosingOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* cubicOpt = myParams->getOptionalParameter(8);
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
     int64_t mySubVol = -1;
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(7);
@@ -125,6 +129,15 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         haveMethod = true;
         myMethod = RIBBON_CONSTRAINED;
     }
+    if (cubicOpt->m_present)
+    {
+        if (haveMethod)
+        {
+            throw AlgorithmException("more than one mapping method specified");
+        }
+        haveMethod = true;
+        myMethod = CUBIC;
+    }
     if (!haveMethod)
     {
         throw AlgorithmException("no mapping method specified");
@@ -133,6 +146,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     {
         case TRILINEAR:
         case ENCLOSING_VOXEL:
+        case CUBIC:
             AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol);//in case we want to separate constructors rather than just having defaults
             break;
         case RIBBON_CONSTRAINED:
@@ -184,6 +198,53 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     myMetricOut->setStructure(mySurface->getStructure());
     switch (myMethod)
     {
+        case CUBIC:
+            {
+                CaretArray<float> myCaretArray(numNodes);
+                float* myArray = myCaretArray.getArray();
+                if (mySubVol == -1)
+                {
+                    for (int64_t i = 0; i < myVolDims[3]; ++i)
+                    {
+                        for (int64_t j = 0; j < myVolDims[4]; ++j)
+                        {
+                            AString metricLabel = myVolume->getMapName(i);
+                            if (myVolDims[4] != 1)
+                            {
+                                metricLabel += " component " + AString::number(j);
+                            }
+                            metricLabel += " cubic";
+                            int64_t thisCol = i * myVolDims[4] + j;
+                            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+                            for (int64_t node = 0; node < numNodes; ++node)
+                            {
+                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::CUBIC, NULL, i, j);
+                            }
+                            myMetricOut->setValuesForColumn(thisCol, myArray);
+                        }
+                    }
+                } else {
+                    for (int64_t j = 0; j < myVolDims[4]; ++j)
+                    {
+                        AString metricLabel = myVolume->getMapName(mySubVol);
+                        if (myVolDims[4] != 1)
+                        {
+                            metricLabel += " component " + AString::number(j);
+                        }
+                        metricLabel += " trilinear";
+                        int64_t thisCol = j;
+                        myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+                        for (int64_t node = 0; node < numNodes; ++node)
+                        {
+                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, mySubVol, j);
+                        }
+                        myMetricOut->setValuesForColumn(thisCol, myArray);
+                    }
+                }
+            }
+            break;
         case TRILINEAR:
             {
                 CaretArray<float> myCaretArray(numNodes);
@@ -286,7 +347,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 }
                 if (mySurface->getNumberOfNodes() != outerSurf->getNumberOfNodes() || mySurface->getNumberOfNodes() != innerSurf->getNumberOfNodes())
                 {//TODO: also compare topologies?
-                    throw AlgorithmException("all surfaces must be in node correspondence");
+                    throw AlgorithmException("all surfaces must be in vertex correspondence");
                 }
                 if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
                 {
@@ -450,7 +511,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                     }
                 }
             }
-            /*if (node == 100634)//debug - get the "kernel" for any single node
+            /*if (node == 100634)//debug - get the kernel for any single node
             {
                 vector<int64_t> myDims;
                 myVolume->getDimensions(myDims);
@@ -588,7 +649,7 @@ void TriInfo::initialize(const float* xyz1, const float* xyz2, const float* xyz3
     }
 }
 
-//Original copyright for PNPOLY, even though my version is entirely rewritten
+//Original copyright for PNPOLY, even though my version is entirely rewritten and modified
 //Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 /**
 Copyright (c) 1970-2003, Wm. Randolph Franklin
@@ -629,7 +690,14 @@ bool TriInfo::vertRayHit(const float* xyz)
     {
         if ((m_xyz[i][0] < xyz[0]) != (m_xyz[j][0] < xyz[0]))
         {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
-            if ((m_xyz[i][1] - m_xyz[j][1]) / (m_xyz[i][0] - m_xyz[j][0]) * (xyz[0] - m_xyz[j][0]) + m_xyz[j][1] > xyz[1])
+            int ti, tj;
+            if (m_xyz[i][0] < m_xyz[j][0])//reorient the segment consistently to prevent rounding error from affecting the result
+            {
+                ti = i; tj = j;
+            } else {
+                ti = j; tj = i;
+            }
+            if ((m_xyz[ti][1] - m_xyz[tj][1]) / (m_xyz[ti][0] - m_xyz[tj][0]) * (xyz[0] - m_xyz[tj][0]) + m_xyz[tj][1] > xyz[1])
             {//if the point on the line described by the two vertices with the same x coordinate is above (greater y) than the test point
                 inside = !inside;//even/odd winding rule again
             }

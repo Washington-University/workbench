@@ -26,20 +26,29 @@ GENERATE_LATEX = NO
 GENERATE_MAN = NO
 GENERATE_RTF = NO
 
+CREATE_SUBDIRS = YES
+SUBGROUPING = YES
 
 INPUT = \
 	src/Algorithms \
 	src/Brain \
 	src/Cifti \
 	src/CommandLine \
-	src/CommandOperations \
+	src/Commands \
 	src/Common \
 	src/Desktop \
 	src/Files \
+	src/FilesBase \
 	src/Gifti \
 	src/GuiQt \
 	src/Nifti \
+	src/Operations \
+	src/OperationsBase \
 	src/Palette \
+	src/Quazip \
+	src/Qwt \
+	src/Scenes \
+	src/Tests \
 	src/Xml
 
 

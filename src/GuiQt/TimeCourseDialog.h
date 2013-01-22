@@ -29,33 +29,17 @@
 #include "AString.h"
 
 #include <QDialog>
-//qwt includes
-#include <qapplication.h>
-#include "qlayout.h"
-#include "qwt_plot.h"
-#include "qwt_plot_marker.h"
-#include "qwt_plot_curve.h"
-#include "qwt_legend.h"
-#include "qwt_series_data.h"
-#include "qwt_plot_canvas.h"
-#include "qwt_plot_panner.h"
-#include "qwt_plot_magnifier.h"
-#include "qwt_text.h"
-#include "qwt_math.h"
-#include "math.h"
-#include "TimeLine.h"
-#include "ColorManager.h"
+#include "TimeCoursePlotter.h"
 #include "QList"
 #include <stdio.h>
+class QListWidgetItem;
 
 
 namespace Ui {
     class TimeCourseDialog;
 }
 using namespace caret;
-namespace caret {
-    class PlotTC;
-}
+
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -63,12 +47,14 @@ class TimeCourseDialog : public QDialog
 public:
     explicit TimeCourseDialog(QWidget *parent = 0);
     ~TimeCourseDialog();
-    void updateDialog(bool forceUpdate = false);
+    void updateDialog(const bool &forceUpdate = false, const bool &forceDisableAutoScale = false);
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
     void setTimeSeriesGraphEnabled(bool enabled);
     void setAnimationStartTime(const double &time);
-
+    void updateExtents();
+protected:
+    //virtual bool eventFilter(QObject * object,QEvent *event);
 private slots:
     void on_TDClose_clicked();
 
@@ -96,51 +82,35 @@ private slots:
 
     void on_resetViewButton_clicked();
 
+    void on_exportImageButton_clicked();
+
+    void on_openTimeLineButton_clicked();
+
+    void on_TDHistoryList_itemActivated(QListWidgetItem *item);
+
+public slots:
+    virtual void plotTimeEndValueChanged(double time);
+    virtual void plotTimeStartValueChanged(double time);
+    virtual void plotActivityMaxValueChanged(double time);
+    virtual void plotActivityMinValueChanged(double time);
+
 private:
-    PlotTC *plot;
+    void populateHistory();
+    TimeCoursePlotter *plot;
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
     AString filename;
     bool isEnabled;
     double startOffset; 
+    bool ctrlKeyDown;
+    bool shiftKeyDown;
 
 };
 
 
-namespace caret {
-
-
-class PlotTC : public QwtPlot
-{
-public:
-    PlotTC( QWidget *parent = NULL);
-     void populate(QList<TimeLine> &tlVIn);
-     void sortByColorId(QList<TimeLine> &tlV);
-     void setDisplayAverage(bool checked);
-     void calculateAndDisplayAverage(QList<TimeLine> &tlV);
-     void clear(QList<TimeLine> &tlV);
-     void setMaxTimeLines(int maxIn) { max = maxIn; }
-     int getMaxTimeLines() { return max;}
-     void setAutoScaleEnabled(bool checked);
-     void setTimeLineWidth(int width);
-     QwtPlotMagnifier * magnifier;
-     void resetView();
-     bool getAutoScale();     
-protected:
-    void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
-    virtual void resizeEvent( QResizeEvent * );
-    QList<QwtPlotCurve *> plotV;
-    ColorManager colors;
-    int max;
-    bool displayAverage;
-    TimeLine averageTimeLine;
-    bool autoScaleEnabled;
-    bool autoScaleOnce;
-    int lineWidth;
-};
 
 
 
-}
+
 
 #endif //__TIME_COURSE_DIALOG__

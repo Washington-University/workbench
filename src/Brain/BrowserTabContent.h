@@ -27,30 +27,35 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
-    class BrowserTabYoking;
+    class CaretDataFile;
     class CaretMappableDataFile;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerSurfaceSelector;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
-    class ModelDisplayControllerYokingGroup;
+    class Model;
+    class ModelSurface;
+    class ModelSurfaceMontage;
+    class ModelSurfaceSelector;
+    class ModelVolume;
+    class ModelWholeBrain;
+    class ModelYokingGroup;
     class OverlaySet;
     class Palette;
+    class SceneClassAssistant;
     class Surface;
+    class VolumeSurfaceOutlineSetModel;
     
     /// Maintains content in a brower's tab
-    class BrowserTabContent : public CaretObject, public EventListenerInterface {
+    class BrowserTabContent : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        BrowserTabContent(const int32_t tabNumber,
-                          ModelDisplayControllerYokingGroup* defaultYokingGroup);
+        BrowserTabContent(const int32_t tabNumber);
         
         virtual ~BrowserTabContent();
+        
+        void cloneBrowserTabContent(BrowserTabContent* tabToClone);
         
         virtual void receiveEvent(Event* event);
         
@@ -66,37 +71,35 @@ namespace caret {
         
         OverlaySet* getOverlaySet();
         
-        BrowserTabYoking* getBrowserTabYoking();
-        
         int32_t getTabNumber() const;
         
-        ModelDisplayControllerTypeEnum::Enum getSelectedModelType() const;
+        ModelTypeEnum::Enum getSelectedModelType() const;
         
-        void setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType);
+        void setSelectedModelType(ModelTypeEnum::Enum selectedModelType);
         
-        const ModelDisplayController* getModelControllerForDisplay() const;
+        const Model* getModelControllerForDisplay() const;
         
-        ModelDisplayController* getModelControllerForDisplay();
+        Model* getModelControllerForDisplay();
         
-        ModelDisplayController* getModelControllerForTransformation();
+        Model* getModelControllerForTransformation();
         
-        ModelDisplayControllerSurface* getDisplayedSurfaceModel();
+        ModelSurface* getDisplayedSurfaceModel();
         
-        const ModelDisplayControllerSurface* getDisplayedSurfaceModel() const;
+        const ModelSurface* getDisplayedSurfaceModel() const;
         
-        ModelDisplayControllerVolume* getDisplayedVolumeModel();
+        ModelVolume* getDisplayedVolumeModel();
         
-        ModelDisplayControllerWholeBrain* getDisplayedWholeBrainModel();
+        ModelWholeBrain* getDisplayedWholeBrainModel();
         
-        ModelDisplayControllerVolume* getSelectedVolumeModel();
+        ModelSurfaceMontage* getDisplayedSurfaceMontageModel();
         
-        ModelDisplayControllerWholeBrain* getSelectedWholeBrainModel();
+        const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
-        const std::vector<ModelDisplayControllerSurface*> getAllSurfaceModels() const;
+        ModelSurfaceSelector* getSurfaceModelSelector();
         
-        ModelDisplayControllerSurfaceSelector* getSurfaceModelSelector();
+        void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
-        void update(const std::vector<ModelDisplayController*> modelDisplayControllers);
+        void update(const std::vector<Model*> modelDisplayControllers);
         
         bool isSurfaceModelValid() const;
         
@@ -104,6 +107,8 @@ namespace caret {
         
         bool isWholeBrainModelValid() const;
 
+        bool isSurfaceMontageModelValid() const;
+        
         void updateTransformationsForYoking();
         
         bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
@@ -111,42 +116,101 @@ namespace caret {
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
         
+        VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet();
+        
+        const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
+        
+        const ModelYokingGroup* getSelectedYokingGroup() const;
+        
+        ModelYokingGroup* getSelectedYokingGroup();
+        
+        const ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model) const;
+        
+        ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model);
+        
+        void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
+        
+        bool isClippingPlaneEnabled(const int32_t indx) const;
+        
+        void setClippingPlaneEnabled(const int32_t indx,
+                                     const bool status);
+        
+        float getClippingPlaneThickness(const int32_t indx) const;
+        
+        void setClippingPlaneThickness(const int32_t indx,
+                                       const float value);
+        
+        float getClippingPlaneCoordinate(const int32_t indx) const;
+        
+        void setClippingPlaneCoordinate(const int32_t indx,
+                                        const float value);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
         /** Number of this tab */
-        int32_t tabNumber;
+        int32_t m_tabNumber;
         
         /** Selected surface model */
-        ModelDisplayControllerSurfaceSelector* surfaceModelSelector;
+        ModelSurfaceSelector* m_surfaceModelSelector;
         
         /** Selected model type */
-        ModelDisplayControllerTypeEnum::Enum selectedModelType;
+        ModelTypeEnum::Enum m_selectedModelType;
         
         /** All surface models */
-        std::vector<ModelDisplayControllerSurface*> allSurfaceModels;
+        std::vector<ModelSurface*> m_allSurfaceModels;
         
         /** The volume model */
-        ModelDisplayControllerVolume* volumeModel;
+        ModelVolume* m_volumeModel;
         
         /** The whole brain model */
-        ModelDisplayControllerWholeBrain* wholeBrainModel;
+        ModelWholeBrain* m_wholeBrainModel;
+        
+        /** The surface montage model */
+        ModelSurfaceMontage* m_surfaceMontageModel;
         
         /** 
          * Name requested by user interface - reflects contents 
          * such as Surface, Volume Slices, etc
          */
-        AString guiName;
+        AString m_guiName;
         
         /**
          * User can set the name of the tab.
          */
-        AString userName;
+        AString m_userName;
+        
+        /**
+         * Clipping thickness along axes.
+         */
+        float m_clippingThickness[3];
+        
+        /**
+         * Clipping coordinate along axes.
+         */
+        float m_clippingCoordinate[3];
+        
+        /**
+         * Clipping enabled.
+         */
+        bool m_clippingEnabled[3];
         
         /** Controls yoking */
-        BrowserTabYoking* browserTabYoking;        
+        ModelYokingGroup* m_selectedYokingGroup;
+        
+        /** Volume Surface Outlines */
+        VolumeSurfaceOutlineSetModel* m_volumeSurfaceOutlineSetModel;
+        
+        /** Assists with creating/restoring scenes */
+        SceneClassAssistant* m_sceneClassAssistant;
+        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

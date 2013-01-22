@@ -31,7 +31,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderFileSaxReader.h"
-#include "ClassAndNameHierarchySelection.h"
+#include "GiftiLabelTable.h"
 #include "GiftiLabelTableSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "SurfaceProjectedItem.h"
@@ -54,15 +54,16 @@ using namespace caret;
 BorderFileSaxReader::BorderFileSaxReader(BorderFile* borderFile)
 {
    CaretAssert(borderFile);
-   this->borderFile = borderFile;
-   this->state = STATE_NONE;
-   this->stateStack.push(this->state);
-   this->elementText = "";
-   this->metaDataSaxReader = NULL;
-    this->classTableSaxReader = NULL;
-    this->surfaceProjectedItemSaxReader = NULL;
-    this->border = NULL;
-    this->surfaceProjectedItem = NULL;
+   m_borderFile = borderFile;
+   m_state = STATE_NONE;
+   m_stateStack.push(m_state);
+   m_elementText = "";
+   m_metaDataSaxReader = NULL;
+    m_labelTableSaxReader = NULL;
+    m_surfaceProjectedItemSaxReader = NULL;
+    m_border = NULL;
+    m_surfaceProjectedItem = NULL;
+    m_versionOneColorTable = NULL;
 }
 
 /**
@@ -73,20 +74,23 @@ BorderFileSaxReader::~BorderFileSaxReader()
     /*
      * If reading fails, allocated items need to be deleted.
      */
-    if (this->metaDataSaxReader != NULL) {
-        delete this->metaDataSaxReader;
+    if (m_metaDataSaxReader != NULL) {
+        delete m_metaDataSaxReader;
     }
-    if (this->classTableSaxReader != NULL) {
-        delete this->classTableSaxReader;
+    if (m_labelTableSaxReader != NULL) {
+        delete m_labelTableSaxReader;
     }
-    if (this->surfaceProjectedItemSaxReader != NULL) {
-        delete this->surfaceProjectedItemSaxReader;
+    if (m_surfaceProjectedItemSaxReader != NULL) {
+        delete m_surfaceProjectedItemSaxReader;
     }
-    if (this->surfaceProjectedItem != NULL) {
-        delete this->surfaceProjectedItem;
+    if (m_surfaceProjectedItem != NULL) {
+        delete m_surfaceProjectedItem;
     }
-    if (this->border != NULL) {
-        delete this->border;
+    if (m_border != NULL) {
+        delete m_border;
+    }
+    if (m_versionOneColorTable != NULL) {
+        delete m_versionOneColorTable;
     }
 }
 
@@ -100,24 +104,33 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
                                          const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-   const STATE previousState = this->state;
-   switch (this->state) {
+   const STATE previousState = m_state;
+   switch (m_state) {
       case STATE_NONE:
            if (qName == BorderFile::XML_TAG_BORDER_FILE) {
-            this->state = STATE_BORDER_FILE;
+            m_state = STATE_BORDER_FILE;
             
-            //
-            // Check version of file being read
-            //
-             const float version = attributes.getValueAsFloat(BorderFile::XML_ATTRIBUTE_VERSION);
-            if (version > BorderFile::getFileVersion()) {
-                AString msg = XmlUtilities::createInvalidVersionMessage(BorderFile::getFileVersion(), 
-                                                                        version);
-                XmlSaxParserException e(msg);
-                CaretLogThrowing(e);
-                throw e;
-            }
-         }
+               /*
+                * At one time version was float, but now integer so if
+                * getting the version fails as integer get as float
+                * and convert to integer.
+                */
+               int32_t versionBeingRead = 0;
+               try {
+                   versionBeingRead = attributes.getValueAsInt(BorderFile::XML_ATTRIBUTE_VERSION);
+               }
+               catch (const XmlSaxParserException& e) {
+                   const float floatVersion = attributes.getValueAsFloat(BorderFile::XML_ATTRIBUTE_VERSION);
+                   versionBeingRead = static_cast<int32_t>(floatVersion);
+               }
+               if (versionBeingRead > BorderFile::getFileVersion()) {
+                   AString msg = XmlUtilities::createInvalidVersionMessage(BorderFile::getFileVersion(),
+                                                                           versionBeingRead);
+                   XmlSaxParserException e(msg);
+                   CaretLogThrowing(e);
+                   throw e;
+               }
+           }
          else {
              const AString msg = XmlUtilities::createInvalidRootElementMessage(BorderFile::XML_TAG_BORDER_FILE,
                                                                                qName);
@@ -128,10 +141,10 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
          break;
       case STATE_BORDER:
            if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
-               this->state = STATE_SURFACE_PROJECTED_ITEM;
-               this->surfaceProjectedItem = new SurfaceProjectedItem();
-               this->surfaceProjectedItemSaxReader = new SurfaceProjectedItemSaxReader(this->surfaceProjectedItem);
-               this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
+               m_state = STATE_SURFACE_PROJECTED_ITEM;
+               m_surfaceProjectedItem = new SurfaceProjectedItem();
+               m_surfaceProjectedItemSaxReader = new SurfaceProjectedItemSaxReader(m_surfaceProjectedItem);
+               m_surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
            else if ((qName != Border::XML_TAG_NAME) 
                     && (qName != Border::XML_TAG_CLASS_NAME)
@@ -144,21 +157,26 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
            }
            break;
       case STATE_BORDER_FILE:
-           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
-               this->state = STATE_CLASSES;
-               ClassAndNameHierarchySelection* classAndNameHierarchy = this->borderFile->getClassAndNameHierarchy();
-               GiftiLabelTable* classTable = classAndNameHierarchy->getClassLabelTable();
-               this->classTableSaxReader = new GiftiLabelTableSaxReader(classTable);
-               this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           if (qName == BorderFile::XML_TAG_CLASS_COLOR_TABLE) {
+               m_state = STATE_CLASS_COLOR_TABLE;
+           }
+           else if (qName == BorderFile::XML_TAG_NAME_COLOR_TABLE) {
+               m_state = STATE_NAME_COLOR_TABLE;
+           }
+           else if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+               m_state = STATE_VERSION_ONE_COLOR_TABLE;
+               m_versionOneColorTable = new GiftiLabelTable();
+               m_labelTableSaxReader = new GiftiLabelTableSaxReader(m_versionOneColorTable);
+               m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
          else if (qName == GiftiXmlElements::TAG_METADATA) {
-             this->state = STATE_METADATA;
-             this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->borderFile->getFileMetaData());
-             this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
+             m_state = STATE_METADATA;
+             m_metaDataSaxReader = new GiftiMetaDataSaxReader(m_borderFile->getFileMetaData());
+             m_metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          }
          else if (qName == Border::XML_TAG_BORDER) {
-             this->state = STATE_BORDER;
-             this->border = new Border();
+             m_state = STATE_BORDER;
+             m_border = new Border();
          }
          else {
              const AString msg = XmlUtilities::createInvalidChildElementMessage(BorderFile::XML_TAG_BORDER_FILE, 
@@ -169,22 +187,54 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
          }
          break;
       case STATE_METADATA:
-           this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           m_metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
-       case STATE_CLASSES:
-           this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+       case STATE_VERSION_ONE_COLOR_TABLE:
+           m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           break;
+       case STATE_CLASS_COLOR_TABLE:
+           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+               m_labelTableSaxReader = new GiftiLabelTableSaxReader(m_borderFile->getClassColorTable());
+               m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           }
+           else if (qName == GiftiXmlElements::TAG_LABEL) {
+               m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           }
+           else {
+               const AString msg = XmlUtilities::createInvalidChildElementMessage(BorderFile::XML_TAG_CLASS_COLOR_TABLE,
+                                                                                  qName);
+               XmlSaxParserException e(msg);
+               CaretLogThrowing(e);
+               throw e;
+           }
+           break;
+       case STATE_NAME_COLOR_TABLE:
+           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+               m_labelTableSaxReader = new GiftiLabelTableSaxReader(m_borderFile->getNameColorTable());
+               m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           }
+           else if (qName == GiftiXmlElements::TAG_LABEL) {
+               m_labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           }
+           else {
+               const AString msg = XmlUtilities::createInvalidChildElementMessage(BorderFile::XML_TAG_NAME_COLOR_TABLE,
+                                                                                  qName);
+               XmlSaxParserException e(msg);
+               CaretLogThrowing(e);
+               throw e;
+           }
            break;
       case STATE_SURFACE_PROJECTED_ITEM:
-           this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           m_surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            break;
    }
    
    //
    // Save previous state
    //
-   stateStack.push(previousState);
+   m_stateStack.push(previousState);
    
-   elementText = "";
+   m_elementText = "";
 }
 
 /**
@@ -195,23 +245,26 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
                                        const AString& localName,
                                        const AString& qName) throw (XmlSaxParserException)
 {
-   switch (this->state) {
+   switch (m_state) {
       case STATE_NONE:
          break;
        case STATE_BORDER:
-           CaretAssert(this->border);
+           CaretAssert(m_border);
            if (qName == Border::XML_TAG_NAME) {
-               this->border->setName(this->elementText.trimmed());
+               m_border->setName(m_elementText.trimmed());
            }
            else if (qName == Border::XML_TAG_CLASS_NAME) {
-               this->border->setClassName(this->elementText.trimmed());
+               m_border->setClassName(m_elementText.trimmed());
            }
            else if (qName == Border::XML_TAG_COLOR_NAME) {
-               this->border->setColor(CaretColorEnum::fromName(this->elementText.trimmed(), NULL));
+               bool valid = false;
+               CaretColorEnum::Enum colorEnum = CaretColorEnum::fromName(m_elementText.trimmed(), 
+                                                                         &valid);
+               m_border->setColor(colorEnum);
            }
            else if (qName == Border::XML_TAG_BORDER) {
-               this->borderFile->addBorder(this->border);
-               this->border = NULL;  // do not delete since added to border file
+               m_borderFile->addBorder(m_border);
+               m_border = NULL;  // do not delete since added to border file
            }
            else {
            }
@@ -219,29 +272,49 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
       case STATE_BORDER_FILE:
          break;
       case STATE_METADATA:
-           CaretAssert(this->metaDataSaxReader);
-           this->metaDataSaxReader->endElement(namespaceURI, localName, qName);
+           CaretAssert(m_metaDataSaxReader);
+           m_metaDataSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == GiftiXmlElements::TAG_METADATA) {
-               delete this->metaDataSaxReader;
-               this->metaDataSaxReader = NULL;
+               delete m_metaDataSaxReader;
+               m_metaDataSaxReader = NULL;
            }
          break;
-       case STATE_CLASSES:
-           CaretAssert(this->classTableSaxReader);
-           this->classTableSaxReader->endElement(namespaceURI, localName, qName);
+       case STATE_VERSION_ONE_COLOR_TABLE:
+           CaretAssert(m_labelTableSaxReader);
+           m_labelTableSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
-               delete this->classTableSaxReader;
-               this->classTableSaxReader = NULL;
+               delete m_labelTableSaxReader;
+               m_labelTableSaxReader = NULL;
+           }
+           break;
+       case STATE_CLASS_COLOR_TABLE:
+           if (qName != BorderFile::XML_TAG_CLASS_COLOR_TABLE) {
+               CaretAssert(m_labelTableSaxReader);
+               m_labelTableSaxReader->endElement(namespaceURI, localName, qName);
+               if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+                   delete m_labelTableSaxReader;
+                   m_labelTableSaxReader = NULL;
+               }
+           }
+           break;
+       case STATE_NAME_COLOR_TABLE:
+           if (qName != BorderFile::XML_TAG_NAME_COLOR_TABLE) {
+               CaretAssert(m_labelTableSaxReader);
+               m_labelTableSaxReader->endElement(namespaceURI, localName, qName);
+               if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+                   delete m_labelTableSaxReader;
+                   m_labelTableSaxReader = NULL;
+               }
            }
            break;
       case STATE_SURFACE_PROJECTED_ITEM:
-           CaretAssert(this->surfaceProjectedItemSaxReader);
-           this->surfaceProjectedItemSaxReader->endElement(namespaceURI, localName, qName);
+           CaretAssert(m_surfaceProjectedItemSaxReader);
+           m_surfaceProjectedItemSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
-               this->border->addPoint(this->surfaceProjectedItem);
-               this->surfaceProjectedItem = NULL; // do not delete since added to border
-               delete this->surfaceProjectedItemSaxReader;
-               this->surfaceProjectedItemSaxReader = NULL;
+               m_border->addPoint(m_surfaceProjectedItem);
+               m_surfaceProjectedItem = NULL; // do not delete since added to border
+               delete m_surfaceProjectedItemSaxReader;
+               m_surfaceProjectedItemSaxReader = NULL;
            }
          break;
    }
@@ -249,16 +322,16 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
    //
    // Clear out for new elements
    //
-   this->elementText = "";
+   m_elementText = "";
    
    //
    // Go to previous state
    //
-   if (this->stateStack.empty()) {
+   if (m_stateStack.empty()) {
        throw XmlSaxParserException("State stack is empty while reading XML NiftDataFile.");
    }
-   this->state = stateStack.top();
-   this->stateStack.pop();
+   m_state = m_stateStack.top();
+   m_stateStack.pop();
 }
 
 /**
@@ -267,17 +340,17 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
 void 
 BorderFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
-    if (this->metaDataSaxReader != NULL) {
-        this->metaDataSaxReader->characters(ch);
+    if (m_metaDataSaxReader != NULL) {
+        m_metaDataSaxReader->characters(ch);
     }
-    else if (this->classTableSaxReader != NULL) {
-        this->classTableSaxReader->characters(ch);
+    else if (m_labelTableSaxReader != NULL) {
+        m_labelTableSaxReader->characters(ch);
     }
-    else if (this->surfaceProjectedItemSaxReader != NULL) {
-        this->surfaceProjectedItemSaxReader->characters(ch);
+    else if (m_surfaceProjectedItemSaxReader != NULL) {
+        m_surfaceProjectedItemSaxReader->characters(ch);
     }
     else {
-        elementText += ch;
+        m_elementText += ch;
     }
 }
 
@@ -327,5 +400,8 @@ BorderFileSaxReader::startDocument()  throw (XmlSaxParserException)
 void 
 BorderFileSaxReader::endDocument() throw (XmlSaxParserException)
 {
+    if (m_versionOneColorTable != NULL) {
+        m_borderFile->createNameAndClassColorTables(m_versionOneColorTable);
+    }
 }
 

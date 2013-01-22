@@ -89,6 +89,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_CONTENT_GET, 
                                      "EVENT_BROWSER_WINDOW_CONTENT_GET", 
                                      "Get the content in a browser window"));
+
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_CREATE_TABS, 
+                                     "EVENT_BROWSER_WINDOW_CREATE_TABS", 
+                                     "Create tabs (if needed) after loading data files"));
     
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW, 
                                      "EVENT_BROWSER_WINDOW_NEW", 
@@ -126,13 +130,9 @@ EventTypeEnum::initialize()
                                      "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
                                      "Remove all identification symbols"));
     
-    enumData.push_back(EventTypeEnum(EVENT_INFORMATION_TEXT_DISPLAY,
-                                     "EVENT_INFORMATION_TEXT_DISPLAY",
-                                     "Display text in information windows"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
-                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR",
-                                     "Display map scalar data color mapping editor"));
+    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
+                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
+                                     "Request display of map scalar data color mapping editor"));
     
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
@@ -154,6 +154,14 @@ EventTypeEnum::initialize()
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
                                      "Get all model display YOKING GROUP controllers"));
 
+    enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
+                                     "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
+                                     "Operating system requests open data file (Mac only)"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_OVERLAY_VALIDATE,
+                                     "EVENT_OVERLAY_VALIDATE",
+                                     "Validate an overlay for validity (it exists)"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));
@@ -178,11 +186,15 @@ EventTypeEnum::initialize()
                                      "EVENT_PROGRESS_UPDATE", 
                                      "Update the progress amount, text, or finished status"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG, 
-                                     "EVENT_UPDATE_TIME_COURSE_DIALOG", 
-                                     "Update the time course dialog after user has selected a node"));
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_INFORMATION_WINDOWS, 
+                                     "EVENT_UPDATE_INFORMATION_WINDOWS", 
+                                     "Update the information windows"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME, 
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG,
+                                     "EVENT_UPDATE_TIME_COURSE_DIALOG",
+                                     "Update the time course dialog after user has selected a node"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME,
                                      "EVENT_UPDATE_ANIMATION_START_TIME", 
                                      "Update the animation start time after user has modified the preference"));
     

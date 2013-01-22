@@ -40,7 +40,7 @@ namespace caret {
         enum Mode {
             MODE_DRAW,
             MODE_EDIT,
-            MODE_SELECT
+            MODE_ROI
         };
         
         enum DrawOperation {
@@ -61,7 +61,7 @@ namespace caret {
         virtual ~UserInputModeBorders();
         
         void processMouseEvent(MouseEvent* mouseEvent,
-                               BrowserTabContent* browserTabContent,
+                               BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
         UserInputMode getUserInputMode() const;
@@ -72,6 +72,8 @@ namespace caret {
 
         QWidget* getWidgetForToolBar();
         
+        virtual CursorEnum::Enum getCursor() const;
+
         Mode getMode() const;
         
         void setMode(const Mode mode);
@@ -103,7 +105,7 @@ namespace caret {
         
         void drawOperationReset();
         
-        void showHideBorderSelectionToolBox();
+        void updateAfterBordersChanged();
         
         UserInputModeBordersWidget* borderToolsWidget;
         
@@ -122,6 +124,9 @@ namespace caret {
         int32_t windowIndex;
         
         friend class UserInputModeBordersWidget;
+
+        int32_t mousePressX;
+        int32_t mousePressY;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

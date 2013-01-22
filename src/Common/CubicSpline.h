@@ -34,6 +34,9 @@ namespace caret {
     public:
         ///takes as input the fraction in [0, 1] along the middle (used) range of the spline, low and high edge set whether it doesn't have p[0] or p[3] to use, respectively
         static CubicSpline hermite(float frac, bool lowEdge, bool highEdge);
+        
+        ///NOTE: data should be deconvolved before using this spline
+        static CubicSpline bspline(float frac, bool lowEdge, bool highEdge);
 
         //splines will be reused, so this part should be fast for the majority case (testing for if it is an edge case would slow it down for the majority case)
         ///evaluate the spline with these samples

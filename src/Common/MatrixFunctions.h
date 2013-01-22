@@ -1,5 +1,3 @@
-
-
 #ifndef __MATRIX_UTILITIES_H__
 #define __MATRIX_UTILITIES_H__
 
@@ -31,20 +29,19 @@
 #include <vector>
 #include <cmath>
 #include "stdint.h"
-#include "CaretAssert.h"
 
 using namespace std;
 //because I don't want to type std:: every other line
 
 //NOTICE: this is not intended to be used outisde of FloatMatrix.cxx and DoubleMatrix.cxx, use at your own risk
-//NOTICE: this is NOT meant to be as error friendly as matlab, it will check some things, error condition is a 0x0 matrix result, plus a line in cerr
+//NOTICE: this is NOT meant to be as error friendly as matlab, it will check some things, error condition is a 0x0 matrix result
 //if a matrix has a row shorter than the first row, expect a segfault.  Calling checkDim will look for this, but it is a relatively slow operation to do on every input, so it is not used internally.
 
 namespace caret {
 
    class MatrixFunctions
    {
-      typedef int64_t msize_t;
+      typedef int64_t msize_t;//NOTE: must be signed due to using -1 as a sentinel
       
       public:
       ///
@@ -132,21 +129,22 @@ namespace caret {
       static void vertCat(const vector<vector<T1> > &top, const vector<vector<T2> > &bottom, vector<vector<T3> > &result);
       
       ///
-      /// print a matrix
-      ///
-      template <typename T>
-      static void display(const vector<vector<T> > &in);
-      
-      ///
       /// grab a piece of a matrix
       ///
       template <typename T>
       static void getChunk(const msize_t firstrow, const msize_t lastrow, const msize_t firstcol, const msize_t lastcol, const vector<vector<T> > &in, vector<vector<T> > &result);
+      
+   private:
+      ///
+      /// reduced row echelon form that is faster on larger matrices, is called by rref() if the matrix is big enough
+      ///
+      template <typename T>
+      static void rref_big(vector<vector<T> > &inout);
    };
 
    template <typename T1, typename T2, typename T3>
    void MatrixFunctions::multiply(const vector<vector<T1> >& left, const vector<vector<T2> >& right, vector<vector<T3> >& result)
-   {//the stupid multiply O(n^3) - the O(n^2.78) version might not be that hard to implement with the other functions here
+   {//the stupid multiply O(n^3) - the O(n^2.78) version might not be that hard to implement with the other functions here, but not as stable
       msize_t leftrows = (msize_t)left.size(), rightrows = (msize_t)right.size(), leftcols, rightcols;
       vector<vector<T3> > tempstorage, *tresult = &result;//pointer because you can't change a reference
       bool copyout = false;
@@ -184,7 +182,7 @@ namespace caret {
       }
       if (copyout)
       {
-         result = tempstorage;//simply because dereferencing might be an additional cycle
+         result = tempstorage;
       }
    }
 
@@ -204,7 +202,7 @@ namespace caret {
          leftcols = (msize_t)left[0].size();
          if (leftcols)
          {
-            resize(leftrows, leftcols, (*tresult), true);//could use zeros(), but common index last lets us zero at the same time
+            resize(leftrows, leftcols, (*tresult), true);
             msize_t i, j;
             for (i = 0; i < leftrows; ++i)
             {
@@ -223,7 +221,91 @@ namespace caret {
       }
       if (copyout)
       {
-         result = tempstorage;//simply because dereferencing might be an additional cycle
+         result = tempstorage;
+      }
+   }
+
+   template<typename T>
+   void MatrixFunctions::rref_big(vector<vector<T> > &inout)
+   {
+      msize_t rows = (msize_t)inout.size(), cols;
+      if (rows > 0)
+      {
+         cols = (msize_t)inout[0].size();
+         if (cols > 0)
+         {
+            vector<msize_t> pivots(rows, -1), missingPivots;
+            msize_t i, j, k, myrow = 0;
+            msize_t pivotrow;
+            T tempval;
+            for (i = 0; i < cols; ++i)
+            {
+               if (myrow >= rows) break;//no pivots left
+               tempval = 0;
+               pivotrow = -1;
+               for (j = myrow; j < rows; ++j)
+               {//only search below for new pivot
+                  if (abs(inout[j][i]) > tempval)
+                  {
+                     pivotrow = (msize_t)j;
+                     tempval = abs(inout[j][i]);
+                  }
+               }
+               if (pivotrow == -1)
+               {//naively expect linearly dependence to show as an exact zero
+                  missingPivots.push_back(i);//record the missing pivot
+                  continue;//move to the next column
+               }
+               inout[pivotrow].swap(inout[myrow]);//STL swap via pointers for constant time row swap
+               pivots[myrow] = i;//save the pivot location for back substitution
+               tempval = inout[myrow][i];
+               inout[myrow][i] = (T)1;
+               for (j = i + 1; j < cols; ++j)
+               {
+                  inout[myrow][j] /= tempval;//divide row by pivot
+               }
+               for (j = myrow + 1; j < rows; ++j)
+               {//zero ONLY below pivot for now
+                  tempval = inout[j][i];
+                  inout[j][i] = (T)0;
+                  for (k = i + 1; k < cols; ++k)
+                  {
+                     inout[j][k] -= tempval * inout[myrow][k];
+                  }
+               }
+               ++myrow;//increment row on successful pivot
+            }
+            msize_t numMissing = (msize_t)missingPivots.size();
+            if (myrow > 1)//if there is only 1 pivot, there is no back substitution to do
+            {
+                msize_t lastPivotCol = pivots[myrow - 1];
+                for (i = myrow - 1; i > 0; --i)//loop through pivots, can't zero above the top pivot so exclude it
+                {
+                    msize_t pivotCol = pivots[i];
+                    for (j = i - 1; j >= 0; --j)//loop through rows above pivot
+                    {
+                        tempval = inout[j][pivotCol];
+                        inout[j][pivotCol] = (T)0;//flat zero the entry above the pivot
+                        for (k = numMissing - 1; k >= 0; --k)//back substitute within pivot range where pivots are missing
+                        {
+                            msize_t missingCol = missingPivots[k];
+                            if (missingCol <= pivotCol) break;//equals will never trip, but whatever
+                            inout[j][missingCol] -= tempval * inout[i][missingCol];
+                        }
+                        for (k = lastPivotCol + 1; k < cols; ++k)//loop through elements that are outside the pivot area
+                        {
+                            inout[j][k] -= tempval * inout[i][k];
+                        }
+                    }
+                }
+            }
+         } else {
+            inout.resize(0);
+            return;
+         }
+      } else {
+         inout.resize(0);
+         return;
       }
    }
 
@@ -236,10 +318,14 @@ namespace caret {
          cols = (msize_t)inout[0].size();
          if (cols)
          {
+            if (rows > 7 || cols > 7)//when the matrix has this many rows/columns, it is faster to allocate storage for tracking pivots, and back substitute
+            {
+                rref_big(inout);
+                return;
+            }
             msize_t i, j, k, myrow = 0;
-            int pivotrow;
+            msize_t pivotrow;
             T tempval;
-            vector<T> swaprow;
             for (i = 0; i < cols; ++i)
             {
                if (myrow >= rows) break;//no pivots left
@@ -249,7 +335,7 @@ namespace caret {
                {//only search below for new pivot
                   if (abs(inout[j][i]) > tempval)
                   {
-                     pivotrow = (int)j;
+                     pivotrow = (msize_t)j;
                      tempval = abs(inout[j][i]);
                   }
                }
@@ -257,9 +343,7 @@ namespace caret {
                {//naively expect linearly dependence to show as an exact zero
                   continue;//move to the next column
                }
-               swaprow = inout[pivotrow];//STL copy swap
-               inout[pivotrow] = inout[myrow];
-               inout[myrow] = swaprow;
+               inout[pivotrow].swap(inout[myrow]);//STL swap via pointers for constant time row swap
                tempval = inout[myrow][i];
                inout[myrow][i] = 1;
                for (j = i + 1; j < cols; ++j)

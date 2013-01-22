@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -122,8 +123,10 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
     
     this->vertexAnatomical[0][0] = this->vertexAnatomical[0][0];
     this->vertexAnatomical[0][1] = this->vertexAnatomical[0][1];
+    this->vertexAnatomical[0][2] = this->vertexAnatomical[0][2];
     this->vertexAnatomical[1][0] = this->vertexAnatomical[1][0];
     this->vertexAnatomical[1][1] = this->vertexAnatomical[1][1];
+    this->vertexAnatomical[1][2] = this->vertexAnatomical[1][2];
     
     this->posAnatomical[0] = this->posAnatomical[0];
     this->posAnatomical[1] = this->posAnatomical[1];
@@ -147,13 +150,19 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
  *    Surface file used for unprojecting.
  * @param xyzOut
  *    Output containing coordinate created by unprojecting.
- * @param isUnprojectedOntoSurface
- *    If true, ouput coordinate will be directly on the surface.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface' 
+ *    distance from the surface.
  */
 bool 
 SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
-                                                 float xyzOut[3],
-                                                 const bool isUnprojectedOntoSurface) const
+                                              float xyzOut[3],
+                                              const float offsetFromSurface,
+                                              const bool unprojectWithOffsetFromSurface) const
 {
     /*
      * Make sure projection surface number of nodes matches surface.
@@ -185,7 +194,7 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     float v[3];
     float v_t1[3];
     MathFunctions::subtractVectors(this->vertexAnatomical[js], this->vertexAnatomical[is], v);
-    MathFunctions::subtractVectors(this->posAnatomical, this->posAnatomical, v_t1);
+    MathFunctions::subtractVectors(this->posAnatomical, this->vertexAnatomical[is], v_t1);
     
     float s_t2 = MathFunctions::dotProduct(v, v);
     float s_t3 = MathFunctions::dotProduct(v_t1, v);
@@ -200,10 +209,31 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     const float* posPIS = surfaceFile.getCoordinate(pis);
     const float* posPJS = surfaceFile.getCoordinate(pjs);
     
-    if (isUnprojectedOntoSurface) {
+    if (unprojectWithOffsetFromSurface) {
         xyzOut[0] = (posPIS[0] + posPJS[0]) / 2.0f;
         xyzOut[1] = (posPIS[1] + posPJS[1]) / 2.0f;
         xyzOut[2] = (posPIS[2] + posPJS[2]) / 2.0f;
+        
+        if (unprojectWithOffsetFromSurface != 0.0) {
+            const float* normalI = surfaceFile.getNormalVector(pis);
+            const float* normalJ = surfaceFile.getNormalVector(pjs);
+            
+            float avgNormal[3] = {
+                ((normalI[0] + normalJ[0]) / 2.0),
+                ((normalI[1] + normalJ[1]) / 2.0),
+                ((normalI[2] + normalJ[2]) / 2.0),
+            };
+            MathFunctions::normalizeVector(avgNormal);
+            
+            const float offsetX = avgNormal[0] * offsetFromSurface;
+            const float offsetY = avgNormal[1] * offsetFromSurface;
+            const float offsetZ = avgNormal[2] * offsetFromSurface;
+            
+            xyzOut[0] += offsetX;
+            xyzOut[1] += offsetY;
+            xyzOut[2] += offsetZ;
+        }
+        
         return true;
     }
     
@@ -274,6 +304,16 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     }
     else {
         thetaS = 0.5f * phiS;
+    }
+    
+    /*
+     * Fixes unprojection when thetaR is zero NOT ALL CASES YET
+     */
+    if (thetaR == 0.0) {
+//        thetaS = M_PI / 2.0;
+//        if (this->phiR > 0.0) {
+//            thetaS = ((M_PI / 2.0) / this->phiR) * phiS;
+//        }
     }
     
     MathFunctions::subtractVectors(posPJS, posPIS, v);
@@ -471,6 +511,24 @@ SurfaceProjectionVanEssen::setTriVertices(const int32_t triVertices[2][3])
 }
 
 /**
+ * Set triVertices
+ * @param indx1
+ *    Index of vertices being set.
+ * @param triVertices
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setTriVertices(const int32_t indx1,
+                                          const int32_t vertices[3])
+{
+    CaretAssertArrayIndex(this->triVertices, 2, indx1);
+    for (int32_t j = 0; j < 3; j++) {
+        this->triVertices[indx1][j] = vertices[j];
+    }
+    setModified();
+}
+
+/**
  * Get triVertices
  * @param triVertices
  *    Output values.
@@ -495,6 +553,20 @@ SurfaceProjectionVanEssen::setVertex(const int32_t vertex[2])
 {
     this->vertex[0] = vertex[0];
     this->vertex[1] = vertex[1];
+    this->setModified();
+}
+
+/**
+ * Set vertex
+ * @param vertex
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setVertex(const int32_t indx1,
+                                     const int32_t vertex)
+{
+    CaretAssertArrayIndex(this->vertex, 2, indx1);
+    this->vertex[indx1] = vertex;
     this->setModified();
 }
 
@@ -529,6 +601,24 @@ SurfaceProjectionVanEssen::setTriAnatomical(const float triAnatomical[2][3][3])
 }
 
 /**
+ * Set triAnatomical
+ * @param triAnatomical
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setTriAnatomical(const int32_t indx1,
+                                            const int32_t indx2,
+                                            const float triAnatomical[3])
+{
+    CaretAssertArrayIndex(this->triAnatomical, 2, indx1);
+    CaretAssertArrayIndex(this->triAnatomical, 3, indx2);
+    for (int32_t k = 0; k < 3; k++) {
+        this->triAnatomical[indx1][indx2][k] = triAnatomical[k];
+    }
+    this->setModified();
+}
+
+/**
  * Get triAnatomical
  * @param triAnatomical
  *    Output values.
@@ -551,12 +641,30 @@ SurfaceProjectionVanEssen::getTriAnatomical(float triAnatomical[2][3][3]) const
  *    New values.
  */
 void 
-SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][2])
+SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][3])
 {
     this->vertexAnatomical[0][0] = vertexAnatomical[0][0];
     this->vertexAnatomical[0][1] = vertexAnatomical[0][1];
+    this->vertexAnatomical[0][2] = vertexAnatomical[0][2];
     this->vertexAnatomical[1][0] = vertexAnatomical[1][0];
     this->vertexAnatomical[1][1] = vertexAnatomical[1][1];
+    this->vertexAnatomical[1][2] = vertexAnatomical[1][2];
+    this->setModified();
+}
+
+/**
+ * Set vertexAnatomical
+ * @param vertexAnatomical
+ *    New values.
+ */
+void
+SurfaceProjectionVanEssen::setVertexAnatomical(const int32_t indx1,
+                                               const float vertexAnatomical[3])
+{
+    CaretAssertArrayIndex(this->vertexAnatomical, 2, indx1);
+    this->vertexAnatomical[indx1][0] = vertexAnatomical[0];
+    this->vertexAnatomical[indx1][1] = vertexAnatomical[1];
+    this->vertexAnatomical[indx1][2] = vertexAnatomical[2];
     this->setModified();
 }
 
@@ -566,12 +674,14 @@ SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][2
  *    Output values.
  */
 void 
-SurfaceProjectionVanEssen::getVertexAnatomical(float vertexAnatomical[2][2]) const
+SurfaceProjectionVanEssen::getVertexAnatomical(float vertexAnatomical[2][3]) const
 {
     vertexAnatomical[0][0] = this->vertexAnatomical[0][0];
     vertexAnatomical[0][1] = this->vertexAnatomical[0][1];
+    vertexAnatomical[0][2] = this->vertexAnatomical[0][2];
     vertexAnatomical[1][0] = this->vertexAnatomical[1][0];
     vertexAnatomical[1][1] = this->vertexAnatomical[1][1];
+    vertexAnatomical[1][2] = this->vertexAnatomical[1][2];
 }
 
 /**
@@ -636,8 +746,10 @@ SurfaceProjectionVanEssen::resetAllValues()
     
     this->vertexAnatomical[0][0] = 0.0;
     this->vertexAnatomical[0][1] = 0.0;
+    this->vertexAnatomical[0][2] = 0.0;
     this->vertexAnatomical[1][0] = 0.0;
     this->vertexAnatomical[1][1] = 0.0;
+    this->vertexAnatomical[1][2] = 0.0;
     
     this->posAnatomical[0] = 0.0;
     this->posAnatomical[1] = 0.0;
@@ -656,7 +768,7 @@ SurfaceProjectionVanEssen::resetAllValues()
  * @return Is the projection valid?
  */
 bool 
-SurfaceProjectionVanEssen::isValid()
+SurfaceProjectionVanEssen::isValid() const
 {
     return this->projectionValid;
 }
@@ -670,6 +782,7 @@ void
 SurfaceProjectionVanEssen::setValid(const bool valid)
 {
     this->projectionValid = valid;
+    setModified();
 }
 
 /**
@@ -697,10 +810,11 @@ SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
                                          (int32_t*)this->triVertices,
                                          6);
         xmlWriter.writeElementCharacters(XML_TAG_VERTEX,
-                                         (int32_t*)this->vertex);
+                                         (int32_t*)this->vertex,
+                                         2);
         xmlWriter.writeElementCharacters(XML_TAG_VERTEX_ANATOMICAL,
                                          (float*)this->vertexAnatomical,
-                                         4);
+                                         6);
         xmlWriter.writeElementCharacters(XML_TAG_POS_ANATOMICAL,
                                          this->posAnatomical,
                                          3);
@@ -712,4 +826,30 @@ SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     }
 }
 
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+SurfaceProjectionVanEssen::toString() const
+{
+    AString txt = SurfaceProjection::toString();
+    if (txt.isEmpty() == false) {
+        txt += ", ";
+    }
+    txt += ("dR=" + AString::number(dR)
+            + ", thetaR=" + AString::number(thetaR)
+            + ", phiR=" + AString::number(phiR)
+            + ", fracRI=" + AString::number(fracRI)
+            + ", fracRJ=" + AString::number(fracRJ)
+            + ", triVertices=" + AString::fromNumbers((int32_t*)triVertices, 6, ",")
+            + ", vertex=" + AString::fromNumbers(vertex, 2, ",")
+            + ", triAnatomical=" + AString::fromNumbers((float*)triAnatomical, 18, ",")
+            + ", vertexAnatomical=" + AString::fromNumbers((float*)vertexAnatomical, 6, ",")
+            + ", posAnatomical=" + AString::fromNumbers(posAnatomical, 3, ",")
+            );
+    
+    return txt;
+}
 

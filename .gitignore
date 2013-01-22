@@ -1,7 +1,7 @@
 OLD.Makefile
 *.kdev4
 CMakeLists.txt.user*
-vs
+vs*
 build
 release
 debug

@@ -27,6 +27,7 @@
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CiftiXnat.h"
+#include "CaretLogger.h"
 
 #include <iostream>
 
@@ -47,18 +48,12 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         if (url.mid(start + 1, 9) == "searchID=")
         {
             foundSearchID = true;
-            int32_t end = url.indexOf('&');//if doesn't exist, -1 is also special case to end of string for mid()
-            AString fullArg = url.mid(start + 1, end);
-            int32_t equalsPos = fullArg.indexOf('=');//should obviously be 8, but this is more readable
-            m_baseRequest.m_arguments.push_back(make_pair(AString(fullArg.mid(0, equalsPos)), AString(fullArg.mid(equalsPos + 1, -1))));
         }
         start = url.indexOf('&', start + 1);
     }
     m_baseRequest.m_queries.push_back(make_pair(AString("type"), AString("dconn")));
-    m_baseRequest.m_arguments.push_back(make_pair(AString("type"), AString("dconn")));
     CaretHttpRequest metadata = m_baseRequest;
     metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
-    metadata.m_arguments.push_back(make_pair(AString("metadata"), AString("")));
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(metadata, myResponse);
     if (!myResponse.m_ok)
@@ -67,51 +62,29 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     }
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
-    //cout << theBody << endl;
     m_xml.readXML(theBody);
-    m_numberOfColumns = 0;
-    m_numberOfRows = 0;
-    CiftiRootElement myRoot;
-    m_xml.getXMLRoot(myRoot);
-    vector<CiftiMatrixIndicesMapElement>& myMaps = myRoot.m_matrices[0].m_matrixIndicesMap;
-    int64_t numMaps = (int64_t)myMaps.size();
-    for (int64_t i = 0; i < numMaps; ++i)//TODO: let CiftiXML do this for us
-    {
-        vector<int>& myDimList = myMaps[i].m_appliesToMatrixDimension;
-        for (int64_t j = 0; j < (int64_t)myDimList.size(); ++j)
-        {
-            if (myMaps[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
-            {//we have no length info in any other type
-                std::vector<CiftiBrainModelElement>& myModels = myMaps[i].m_brainModels;
-                for (int64_t k = 0; k < (int64_t)myModels.size(); ++k)
-                {
-                    if (myDimList[j] == 0)
-                    {
-                        m_numberOfColumns += myModels[k].m_indexCount;
-                    }
-                    if (myDimList[j] == 1)
-                    {
-                        m_numberOfRows += myModels[k].m_indexCount;
-                    }
-                }
-            }
-        }
-    }
-    if (m_numberOfColumns == 0)
+    bool fixedDims = false;
+    m_numberOfColumns = m_xml.getNumberOfColumns();
+    m_numberOfRows = m_xml.getNumberOfRows();
+    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS && m_numberOfColumns < 1)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
-        rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString("0")));
         m_numberOfColumns = getSizeFromReq(rowRequest);
         m_xml.setRowNumberOfTimepoints(m_numberOfColumns);//number of timepoints along a row is the number of columns
+        fixedDims = true;
     }
-    if (m_numberOfRows == 0)
+    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS && m_numberOfRows < 1)
     {
         CaretHttpRequest columnRequest = m_baseRequest;
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
-        columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString("0")));
         m_numberOfRows = getSizeFromReq(columnRequest);
         m_xml.setColumnNumberOfTimepoints(m_numberOfRows);//see above
+        fixedDims = true;
+    }
+    if (fixedDims && m_xml.getVersion() != CiftiVersion(1, 0))
+    {
+        CaretLogWarning("fixed missing time points dimension in version \"" + m_xml.getVersion().toString() + "\" cifti xml");
     }
 }
 
@@ -124,7 +97,6 @@ void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const th
 {
     CaretHttpRequest columnRequest = m_baseRequest;
     columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
-    columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     getReqAsFloats(columnOut, m_numberOfRows, columnRequest);
 }
 
@@ -132,7 +104,6 @@ void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const throw (Cift
 {
     CaretHttpRequest rowRequest = m_baseRequest;
     rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
-    rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     getReqAsFloats(rowOut, m_numberOfColumns, rowRequest);
 }
 

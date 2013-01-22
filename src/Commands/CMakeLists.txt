@@ -17,28 +17,34 @@ INCLUDE (${QT_USE_FILE})
 # Create the brain library
 #
 ADD_LIBRARY(Commands
+CommandClassAddMember.h
 CommandClassCreate.h
+CommandClassCreateAlgorithm.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
+CommandClassCreateOperation.h
+CommandException.h
 CommandGiftiConvert.h
 CommandNiftiConvert.h
 CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
-CommandException.h
-CommandUnitTest.h
+ CommandUnitTest.h
 
+CommandClassAddMember.cxx
 CommandClassCreate.cxx
+CommandClassCreateAlgorithm.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
+CommandClassCreateOperation.cxx
+CommandException.cxx
 CommandGiftiConvert.cxx
 CommandNiftiConvert.cxx
 CommandNiftiInformation.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx
-CommandException.cxx
 CommandUnitTest.cxx
 )
 

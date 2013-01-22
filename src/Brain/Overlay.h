@@ -27,27 +27,37 @@
 
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
+#include "EventListenerInterface.h"
+#include "SceneableInterface.h"
+#include "WholeBrainVoxelDrawingMode.h"
 
 namespace caret {
+    class BrainStructure;
     class CaretMappableDataFile;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
-    class ModelDisplayControllerYokingGroup;
+    class Model;
+    class ModelSurface;
+    class ModelSurfaceMontage;
+    class ModelVolume;
+    class ModelWholeBrain;
+    class ModelYokingGroup;
+    class SceneClassAssistant;
     
-    class Overlay : public CaretObject {
+    class Overlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        Overlay(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        Overlay(BrainStructure* brainStructure);
         
-        Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume);
+        Overlay(ModelVolume* modelDisplayControllerVolume);
         
-        Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
+        Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain);
         
-        Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
+        Overlay(ModelYokingGroup* modelDisplayControllerYokingGroup);
+        
+        Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~Overlay();
+        
+        virtual void receiveEvent(Event* event);
         
         float getOpacity() const;
         
@@ -62,6 +72,10 @@ namespace caret {
         bool isEnabled() const;
         
         void setEnabled(const bool enabled);
+        
+        WholeBrainVoxelDrawingMode::Enum getWholeBrainVoxelDrawingMode() const;
+        
+        void setWholeBrainVoxelDrawingMode(const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode);
         
         void copyData(const Overlay* overlay);
         
@@ -85,48 +99,60 @@ namespace caret {
         
         void setPaletteDisplayEnabled(const bool enabled);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
     private:
         Overlay(const Overlay&);
 
         Overlay& operator=(const Overlay&);
 
-        void initializeOverlay(ModelDisplayController* modelDisplayController);
+        void initializeOverlay(Model* modelDisplayController,
+                               BrainStructure* brainStructure);
         
-        /** Model controller in this overlay */
-        ModelDisplayController* modelDisplayController;
-        
-        /** Surface controller using this overlay (NULL if this overlay is not assigned to a surface controller) */
-        ModelDisplayControllerSurface* surfaceController;
+        /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
+        BrainStructure* m_brainStructure;
         
         /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
-        ModelDisplayControllerVolume* volumeController;
+        ModelVolume* m_volumeController;
         
         /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
-        ModelDisplayControllerWholeBrain* wholeBrainController;
+        ModelWholeBrain* m_wholeBrainController;
+        
+        /** Surfaced Montage controller using this overlay (NULL if this overlay is not assigned to a surface montage controller) */
+        ModelSurfaceMontage* m_surfaceMontageController;
         
         /** Name of overlay (DO NOT COPY)*/
-        AString name;
+        AString m_name;
         
         /** Index of this overlay (DO NOT COPY)*/
-        int32_t overlayIndex;
+        int32_t m_overlayIndex;
         
         /** opacity for overlay */
-        float opacity;
+        float m_opacity;
         
         /** enabled status */
-        bool enabled;
+        bool m_enabled;
         
         /** available mappable files */
-        std::vector<CaretMappableDataFile*> mapFiles;
+        //std::vector<CaretMappableDataFile*> m_mapFiles;
         
-        /* selected mappable file */
-        CaretMappableDataFile* selectedMapFile;
+        /** selected mappable file */
+        CaretMappableDataFile* m_selectedMapFile;
         
-        /* selected data file map unique id */
-        AString selectedMapUniqueID;
+        /** selected data file map unique id */
+        AString m_selectedMapUniqueID;
         
-        /* Display palette in graphics window */
-        bool paletteDisplayedFlag;
+        /** Display palette in graphics window */
+        bool m_paletteDisplayedFlag;
+        
+        /** Voxel drawing mode in Whole Brain View */
+        WholeBrainVoxelDrawingMode::Enum m_wholeBrainVoxelDrawingMode;
+        
+        /** helps with scene save/restore */
+        SceneClassAssistant* m_sceneAssistant;
     };
     
 #ifdef __OVERLAY_DECLARE__

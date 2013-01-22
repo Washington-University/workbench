@@ -22,45 +22,67 @@
  *
  */
 
+#include <QCheckBox>
 #include <QCloseEvent>
+#include <QDesktopServices>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QTabBar>
+#include <QUrl>
 
-#include "Brain.h"
-#include "BrainBrowserSelectionToolBox.h"
+#define __BRAIN_BROWSER_WINDOW_DECLARE__
 #include "BrainBrowserWindow.h"
+#undef __BRAIN_BROWSER_WINDOW_DECLARE__
+
+#include "AboutWorkbenchDialog.h"
+#include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
-#include "BrainBrowserWindowToolBox.h"
+#include "BrainBrowserWindowOrientedToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CaretFileDialogExtendable.h"
+#include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
+#include "CursorDisplayScoped.h"
+#include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventToolBoxSelectionDisplay.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
+#include "FociProjectionDialog.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelWholeBrain.h"
+#include "ProgressReportingDialog.h"
+#include "SceneAttributes.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
+#include "SceneFile.h"
+#include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
+#include "SpecFileCreateAddToDialog.h"
 #include "SpecFileDialog.h"
-#include "StructureSelectionControl.h"
+#include "StructureEnumComboBox.h"
 #include "Surface.h"
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -82,77 +104,121 @@ using namespace caret;
  */
 BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        BrowserTabContent* browserTabContent,
+                                       const CreateDefaultTabsMode createDefaultTabsMode,
                                        QWidget* parent,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 {
-    this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    if (BrainBrowserWindow::s_firstWindowFlag) {
+        BrainBrowserWindow::s_firstWindowFlag = false;
+    }
+    
+    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     
     GuiManager* guiManager = GuiManager::get();
     
-    this->setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_DeleteOnClose);
     
-    this->browserWindowIndex = browserWindowIndex;
+    m_browserWindowIndex = browserWindowIndex;
     
-    this->setWindowTitle(guiManager->applicationName() 
+    setWindowTitle(guiManager->applicationName() 
                          + " "
-                         + AString::number(this->browserWindowIndex + 1));
+                         + AString::number(m_browserWindowIndex + 1));
+    setObjectName(windowTitle());
     
-    this->openGLWidget = new BrainOpenGLWidget(this,
+    m_openGLWidget = new BrainOpenGLWidget(this,
                                                browserWindowIndex);
     
     const int openGLSizeX = 500;
     const int openGLSizeY = (WuQtUtilities::isSmallDisplay() ? 200 : 375);
-    this->openGLWidget->setMinimumSize(openGLSizeX, 
+    m_openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);
     
-    this->setCentralWidget(this->openGLWidget);
+    setCentralWidget(m_openGLWidget);
     
-    this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
-                                                  ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                  Qt::Horizontal,
-                                                  this);
-    this->addDockWidget(Qt::BottomDockWidgetArea,
-                        this->toolBox,
-                        Qt::Horizontal);
-    QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
-                     this, SLOT(shrinkToolbox()));
+    m_overlayVerticalToolBox = 
+    new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
+                                          "Overlay ToolBox",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_VERTICAL,
+                                          this);
+    m_overlayVerticalToolBox->setAllowedAreas(Qt::LeftDockWidgetArea);
     
-    this->selectionToolBox = new BrainBrowserSelectionToolBox(this->browserWindowIndex);
-    this->selectionToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
-    this->addDockWidget(Qt::RightDockWidgetArea,
-                        this->selectionToolBox);
+    m_overlayHorizontalToolBox = 
+    new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
+                                          "Overlay ToolBox ",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_HORIZONTAL,
+                                          this);
+    m_overlayHorizontalToolBox->setAllowedAreas(Qt::BottomDockWidgetArea);
 
-    this->createActionsUsedByToolBar();
-    
-    this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
-                                                  browserTabContent,
-                                                  this->toolBox,
-                                                  this);
-    this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
-    this->addToolBar(this->toolbar);
-    
-    this->createActions();
-    
-    this->createMenus();
-    
-    this->toolbar->updateToolBar();
-
-    if (browserTabContent == NULL) {
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    if (WuQtUtilities::isSmallDisplay()) {
+        m_overlayActiveToolBox = m_overlayVerticalToolBox;
+        addDockWidget(Qt::LeftDockWidgetArea, m_overlayVerticalToolBox);
+        m_overlayHorizontalToolBox->setVisible(false);
+        //m_overlayHorizontalToolBox->toggleViewAction()->trigger();
+    }
+    else {
+        m_overlayActiveToolBox = m_overlayHorizontalToolBox;
+        addDockWidget(Qt::BottomDockWidgetArea, m_overlayHorizontalToolBox);
+        m_overlayVerticalToolBox->setVisible(false);
+        //m_overlayVerticalToolBox->toggleViewAction()->trigger();
     }
     
+    QObject::connect(m_overlayHorizontalToolBox, SIGNAL(visibilityChanged(bool)),
+                     this, SLOT(processOverlayHorizontalToolBoxVisibilityChanged(bool)));
+    QObject::connect(m_overlayVerticalToolBox, SIGNAL(visibilityChanged(bool)),
+                     this, SLOT(processOverlayVerticalToolBoxVisibilityChanged(bool)));
     
-    QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
-                     this->toolBox, SLOT(updateDisplayedPanel()));
-}
+    m_featuresToolBox = 
+    new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
+                                          "Features ToolBox",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_FEATURES,
+                                          this);
+    m_featuresToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, m_featuresToolBox);
+    
+    createActionsUsedByToolBar();
+    m_overlayToolBoxAction->blockSignals(true);
+    m_overlayToolBoxAction->setChecked(true);
+    m_overlayToolBoxAction->blockSignals(false);
+    m_featuresToolBoxAction->blockSignals(true);
+    m_featuresToolBoxAction->setChecked(true);
+    m_featuresToolBoxAction->blockSignals(false);
+    
+    m_toolbar = new BrainBrowserWindowToolBar(m_browserWindowIndex,
+                                                  browserTabContent,
+                                                  m_overlayToolBoxAction,
+                                                  m_featuresToolBoxAction,
+                                                  this);
+    m_showToolBarAction = m_toolbar->toolBarToolButtonAction;
+    addToolBar(m_toolbar);
+    
+    createActions();
+    
+    createMenus();
+     
+    m_toolbar->updateToolBar();
 
+    processShowOverlayToolBox(m_overlayToolBoxAction->isChecked());
+    processHideFeaturesToolBox();
+    
+    if (browserTabContent == NULL) {
+        if (createDefaultTabsMode == CREATE_DEFAULT_TABS_YES) {
+            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+        }
+    }
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
+    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayActiveToolBox->isVisible();
+    m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
+}
 /**
  * Destructor.
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
-    EventManager::get()->removeAllEventsFromListener(this);    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -161,7 +227,7 @@ BrainBrowserWindow::~BrainBrowserWindow()
 BrainBrowserWindowScreenModeEnum::Enum 
 BrainBrowserWindow::getScreenMode() const
 {
-    return this->screenMode;
+    return m_screenMode;
 }
 
 /**
@@ -170,7 +236,7 @@ BrainBrowserWindow::getScreenMode() const
 int32_t 
 BrainBrowserWindow::getBrowserWindowIndex() const 
 { 
-    return this->browserWindowIndex; 
+    return m_browserWindowIndex; 
 }
 
 /**
@@ -189,7 +255,7 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
      */
     GuiManager* guiManager = GuiManager::get();
     if (guiManager->allowBrainBrowserWindowToClose(this,
-                                                   this->toolbar->tabBar->count())) {
+                                                   m_toolbar->tabBar->count())) {
         event->accept();
     }
     else {
@@ -204,14 +270,91 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void 
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
-    this->displayControlAction = 
-    WuQtUtilities::createAction("Display Control...",
-                                "Show the Display Control",
-                                Qt::CTRL + Qt::Key_D,
+    QIcon featuresToolBoxIcon;
+    const bool featuresToolBoxIconValid = WuQtUtilities::loadIcon(":/toolbox.png", 
+                                                         featuresToolBoxIcon);
+    
+    QIcon overlayToolBoxIcon;
+    const bool overlayToolBoxIconValid = WuQtUtilities::loadIcon(":/layers_toolbox_icon.png",
+                                                                  overlayToolBoxIcon);
+    
+    /*
+     * Note: The name of a dock widget becomes its
+     * name in the toggleViewAction().  So, use
+     * a separate action here so that the name in 
+     * the menu is as set here.
+     */
+    m_overlayToolBoxAction = 
+    WuQtUtilities::createAction("Overlay ToolBox",
+                                "Overlay ToolBox",
                                 this,
                                 this,
-                                SLOT(processDisplayControl()));   
-    this->displayControlAction->setIconText("DC");
+                                SLOT(processShowOverlayToolBox(bool)));
+    m_overlayToolBoxAction->setCheckable(true);
+    if (overlayToolBoxIconValid) {
+        m_overlayToolBoxAction->setIcon(overlayToolBoxIcon);
+        m_overlayToolBoxAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_overlayToolBoxAction->setIconText("OT");
+    }
+
+    /*
+     * Note: The name of a dock widget becomes its
+     * name in the toggleViewAction().  So, use
+     * a separate action here so that the name in 
+     * the menu is as set here.
+     */
+    m_featuresToolBoxAction = m_featuresToolBox->toggleViewAction();
+    m_featuresToolBoxAction->setCheckable(true);
+    QObject::connect(m_featuresToolBoxAction, SIGNAL(triggered(bool)),
+                     this, SLOT(processShowFeaturesToolBox(bool)));
+    if (featuresToolBoxIconValid) {
+        m_featuresToolBoxAction->setIcon(featuresToolBoxIcon);
+        m_featuresToolBoxAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_featuresToolBoxAction->setIconText("LT");
+    }
+    
+    /*
+     * Scene window.
+     */
+    QIcon clapBoardIcon;
+    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/toolbar_clapboard_icon.png", 
+                                                            clapBoardIcon);
+    
+    m_showSceneDialogAction = WuQtUtilities::createAction("Scenes...",
+                                                          "Displays the Scene Window",
+                                                          this,
+                                                          this,
+                                                          SLOT(processShowSceneDialog()));
+    if (clapBoardIconValid) {
+        m_showSceneDialogAction->setIcon(clapBoardIcon);
+        m_showSceneDialogAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_showSceneDialogAction->setIconText("Scenes");
+    }
+    m_showSceneDialogAction->setCheckable(false);
+}
+
+/**
+ * Show the scene dialog.
+ */
+void 
+BrainBrowserWindow::processShowSceneDialog()
+{
+    GuiManager::get()->processShowSceneDialog(this);
+}
+
+/**
+ * Show the surface properties editor dialog.
+ */
+void
+BrainBrowserWindow::processShowSurfacePropertiesDialog()
+{
+    GuiManager::get()->processShowSurfacePropertiesEditorDialog(this);
 }
 
 /**
@@ -221,11 +364,18 @@ BrainBrowserWindow::createActionsUsedByToolBar()
 void 
 BrainBrowserWindow::createActions()
 {
-    CaretAssert(this->toolbar);
+    CaretAssert(m_toolbar);
     
     GuiManager* guiManager = GuiManager::get();
     
-    this->newWindowAction =
+    m_aboutWorkbenchAction =
+    WuQtUtilities::createAction("About Workbench...",
+                                "Information about Workbench",
+                                this,
+                                this,
+                                SLOT(processAboutWorkbench()));
+    
+    m_newWindowAction =
     WuQtUtilities::createAction("New Window",
                                 "Creates a new window for viewing brain models",
                                 Qt::CTRL+Qt::Key_N,
@@ -233,7 +383,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processNewWindow()));
     
-    this->newTabAction =
+    m_newTabAction =
     WuQtUtilities::createAction("New Tab", 
                                 "Create a new tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_T,
@@ -241,15 +391,23 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processNewTab()));
     
-    this->openFileAction =
+    m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
-                                "Open a data file including a spec file",
+                                "Open a data file including a spec file located on the computer",
                                 Qt::CTRL+Qt::Key_O,
                                 this,
                                 this,
                                 SLOT(processDataFileOpen()));
     
-    this->openFileViaSpecFileAction =
+    m_openLocationAction = 
+    WuQtUtilities::createAction("Open Location...", 
+                                "Open a data file including a spec file located on a web server (http)",
+                                Qt::CTRL+Qt::Key_L,
+                                this,
+                                this,
+                                SLOT(processDataFileLocationOpen()));
+    
+    m_openFileViaSpecFileAction =
     WuQtUtilities::createAction("Open File via Spec File...", 
                                 "Open a data file listed in the Spec File",
                                 Qt::CTRL + Qt::SHIFT + Qt::Key_O,
@@ -258,7 +416,7 @@ BrainBrowserWindow::createActions()
                                 SLOT(processDataFileOpenFromSpecFile()));
     
     
-    this->manageFilesAction =
+    m_manageFilesAction =
     WuQtUtilities::createAction("Save/Manage Files...", 
                                 "Save and Manage Loaded Files",
                                 Qt::CTRL + Qt::Key_S,
@@ -266,22 +424,22 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
     
-    this->closeSpecFileAction =
+    m_closeSpecFileAction =
     WuQtUtilities::createAction("Close Spec File",
                                 "Close the Spec File",
                                 this,
                                 this,
                                 SLOT(processCloseSpecFile()));
     
-    this->closeTabAction =
+    m_closeTabAction =
     WuQtUtilities::createAction("Close Tab",
                                 "Close the active tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_W,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(closeSelectedTab()));
     
-    this->closeWindowAction = 
+    m_closeWindowAction = 
     WuQtUtilities::createAction("Close Window",
                                 "Close the window",
                                 Qt::CTRL + Qt::SHIFT + Qt::Key_W,
@@ -289,21 +447,28 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(close()));
     
-    this->captureImageAction =
+    m_captureImageAction =
     WuQtUtilities::createAction("Capture Image...",
                                 "Capture an Image of the windows content",
                                 this,
                                 this,
                                 SLOT(processCaptureImage()));
+
+    m_recordMovieAction = 
+    WuQtUtilities::createAction("Animation Control...",
+                                "Animate Brain Surface",
+                                this,
+                                this,
+                                SLOT(processRecordMovie()));
     
-    this->preferencesAction = 
+    m_preferencesAction = 
     WuQtUtilities::createAction("Preferences...",
                                 "Edit the preferences",
                                 this,
                                 this,
                                 SLOT(processEditPreferences()));
     
-    this->exitProgramAction =
+    m_exitProgramAction =
     WuQtUtilities::createAction("Exit", 
                                 "Exit (quit) the program",
                                 Qt::CTRL+Qt::Key_Q, 
@@ -311,114 +476,146 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
-    /*
-     * Note the toolbox's toggleViewAction cannot be used directly since
-     * its text overrides the text in the menu.
-     */
-    this->viewMenuShowToolBoxAction = WuQtUtilities::createAction("Toolbox",
-                                                                  "Show or hide the toolbox",
-                                                                  this,
-                                                                  this->toolBox->toggleViewAction(),
-                                                                  SLOT(trigger()));
-    this->viewMenuShowToolBoxAction->setCheckable(true);
+    m_fociProjectAction =
+    WuQtUtilities::createAction("Project Foci...",
+                                "Project Foci to Surfaces",
+                                this,
+                                this,
+                                SLOT(processProjectFoci()));
     
-    this->viewScreenNormalAction = WuQtUtilities::createAction("Normal", 
+    m_viewScreenNormalAction = WuQtUtilities::createAction("Normal",
                                                                "Normal Viewing", 
                                                                Qt::Key_Escape, 
                                                                this);
-    this->viewScreenNormalAction->setCheckable(true);
+    m_viewScreenNormalAction->setCheckable(true);
     
-    this->viewScreenFullAction = WuQtUtilities::createAction("Full Screen", 
+    m_viewScreenFullAction = WuQtUtilities::createAction("Full Screen", 
                                                              "View using all of screen", 
                                                              Qt::CTRL+Qt::Key_F, 
                                                              this);
-    this->viewScreenFullAction->setCheckable(true);
+    m_viewScreenFullAction->setCheckable(true);
     
-    this->viewScreenMontageTabsAction = WuQtUtilities::createAction("Tab Montage", 
-                                                                    "View all tabs in a grid layout", 
+    m_viewScreenMontageTabsAction = WuQtUtilities::createAction("Tile Tabs", 
+                                                                    "View all tabs in a tiled layout", 
                                                                     Qt::CTRL+Qt::Key_M, 
                                                                     this);
-    this->viewScreenMontageTabsAction->setCheckable(true);
+    m_viewScreenMontageTabsAction->setCheckable(true);
     
-    this->viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tab Montage (Full Screen)", 
-                                                                        "View all tabs in a grid layout using all of screen", 
+    m_viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tile Tabs (Full Screen)", 
+                                                                        "View all tabs in a tiled layout using all of screen", 
                                                                         Qt::CTRL+Qt::SHIFT+Qt::Key_M, 
                                                                         this);
-    this->viewScreenFullMontageTabsAction->setCheckable(true);
+    m_viewScreenFullMontageTabsAction->setCheckable(true);
     
-    this->viewScreenActionGroup = new QActionGroup(this);
-    QObject::connect(this->viewScreenActionGroup, SIGNAL(triggered(QAction*)),
+    m_viewScreenActionGroup = new QActionGroup(this);
+    QObject::connect(m_viewScreenActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(processViewScreenActionGroupSelection(QAction*)));
-    this->viewScreenActionGroup->setExclusive(true);
-    this->viewScreenActionGroup->addAction(this->viewScreenNormalAction);
-    this->viewScreenActionGroup->addAction(this->viewScreenFullAction);
-    this->viewScreenActionGroup->addAction(this->viewScreenMontageTabsAction);
-    this->viewScreenActionGroup->addAction(this->viewScreenFullMontageTabsAction);
+    m_viewScreenActionGroup->setExclusive(true);
+    m_viewScreenActionGroup->addAction(m_viewScreenNormalAction);
+    m_viewScreenActionGroup->addAction(m_viewScreenFullAction);
+    m_viewScreenActionGroup->addAction(m_viewScreenMontageTabsAction);
+    m_viewScreenActionGroup->addAction(m_viewScreenFullMontageTabsAction);
     
-    this->viewScreenActionGroup->blockSignals(true);
-    this->viewScreenNormalAction->setChecked(true);
-    this->viewScreenActionGroup->blockSignals(false);
+    m_viewScreenActionGroup->blockSignals(true);
+    m_viewScreenNormalAction->setChecked(true);
+    m_viewScreenActionGroup->blockSignals(false);
         
-    this->nextTabAction =
+    m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",
                                 Qt::CTRL + Qt::Key_Right,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(nextTab()));
     
-    this->previousTabAction =
+    m_previousTabAction =
     WuQtUtilities::createAction("Previous Tab",
                                 "Move to the previous tab",
                                 Qt::CTRL + Qt::Key_Left,
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(previousTab()));
     
-    this->renameSelectedTabAction =
+    m_renameSelectedTabAction =
     WuQtUtilities::createAction("Rename Selected Tab...",
                                 "Change the name of the selected tab",
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(renameTab()));
     
-    this->moveTabsInWindowToNewWindowsAction =
+    m_moveTabsInWindowToNewWindowsAction =
     WuQtUtilities::createAction("Move All Tabs in Current Window to New Windows",
                                 "Move all but the left most tab to new windows",
                                 this,
-                                this->toolbar,
+                                m_toolbar,
                                 SLOT(moveTabsToNewWindows()));
     
-    this->moveTabsFromAllWindowsToOneWindowAction =
+    m_moveTabsFromAllWindowsToOneWindowAction =
     WuQtUtilities::createAction("Move All Tabs From All Windows Into Selected Window",
                                 "Move all tabs from all windows into selected window",
                                 this,
                                 this,
                                 SLOT(processMoveAllTabsToOneWindow()));
     
-    this->bringAllToFrontAction =
+    m_bringAllToFrontAction =
     WuQtUtilities::createAction("Bring All To Front",
                                 "Move all windows on top of other application windows",
                                 this,
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
     
-    this->helpOnlineAction =
+    m_informationDialogAction =
+    WuQtUtilities::createAction("Information Window",
+                                "Show the Informaiton Window",
+                                this,
+                                guiManager,
+                                SLOT(processShowInformationWindow()));
+    
+    m_helpHcpWebsiteAction =
+    WuQtUtilities::createAction("Go to HCP Website...",
+                                "Load the HCP Website in your computer's web browser",
+                                this,
+                                this,
+                                SLOT(processHcpWebsiteInBrowser()));
+    
+    m_helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
                                 "Show the Help Window",
                                 this,
                                 guiManager,
                                 SLOT(processShowHelpOnlineWindow()));
-    this->helpOnlineAction->setEnabled(false);
+    m_helpOnlineAction->setEnabled(false);
     
-    this->searchHelpOnlineAction =
+    m_helpSearchOnlineAction =
     WuQtUtilities::createAction("Search Help (Online)...",
                                 "Show the Search Helper Window",
                                 this,
                                 guiManager,
                                 SLOT(processShowSearchHelpOnlineWindow()));
-    this->searchHelpOnlineAction->setEnabled(false);
+    m_helpSearchOnlineAction->setEnabled(false);
 
+    m_helpGraphicsTimingAction =
+    WuQtUtilities::createAction("Time Graphics Update",
+                                "Show the average time for updating the windows graphics",
+                                this,
+                                this,
+                                SLOT(processGraphicsTiming()));
+    
+    m_connectToAllenDatabaseAction =
+    WuQtUtilities::createAction("Allen Brain Institute Database...",
+                                "Open a connection to the Allen Brain Institute Database",
+                                this,
+                                this,
+                                SLOT(processConnectToAllenDataBase()));
+    m_connectToAllenDatabaseAction->setEnabled(false);
+    
+    m_connectToConnectomeDatabaseAction =
+    WuQtUtilities::createAction("Human Connectome Project Database...",
+                                "Open a connection to the Human Connectome Project Database",
+                                this,
+                                this,
+                                SLOT(processConnectToConnectomeDataBase()));
+    m_connectToConnectomeDatabaseAction->setEnabled(false);
 }
 
 /**
@@ -430,14 +627,21 @@ BrainBrowserWindow::createMenus()
     /*
      * Create the menu bar and add menus to it.
      */
-    QMenuBar* menuBar = this->menuBar();
-    menuBar->addMenu(this->createMenuFile());
-    menuBar->addMenu(this->createMenuView());
-    menuBar->addMenu(this->createMenuData());
-    menuBar->addMenu(this->createMenuSurface());
-    menuBar->addMenu(this->createMenuVolume());
-    menuBar->addMenu(this->createMenuWindow());
-    menuBar->addMenu(this->createMenuHelp());    
+    QMenuBar* menubar = menuBar();
+    menubar->addMenu(createMenuFile());
+    menubar->addMenu(createMenuView());
+    QMenu* dataMenu = createMenuData();
+    if (dataMenu != NULL) {
+        menubar->addMenu(dataMenu);
+    }
+    menubar->addMenu(createMenuSurface());
+    QMenu* volumeMenu = createMenuVolume();
+    if (volumeMenu != NULL) {
+        menubar->addMenu(volumeMenu);
+    }
+    menubar->addMenu(createMenuConnect());
+    menubar->addMenu(createMenuWindow());
+    menubar->addMenu(createMenuHelp());    
 }
 
 /**
@@ -451,34 +655,90 @@ BrainBrowserWindow::createMenuFile()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processFileMenuAboutToShow()));
 
-    menu->addAction(this->preferencesAction);
+    menu->addAction(m_aboutWorkbenchAction);
+    menu->addAction(m_preferencesAction);
 #ifndef CARET_OS_MACOSX
     menu->addSeparator();
 #endif // CARET_OS_MACOSX
-    menu->addAction(this->newWindowAction);
-    menu->addAction(this->newTabAction);
+    menu->addAction(m_newWindowAction);
+    menu->addAction(m_newTabAction);
     menu->addSeparator();
-    menu->addAction(this->openFileAction);
-    this->recentSpecFileMenu = menu->addMenu("Open Recent Spec File");
-    QObject::connect(this->recentSpecFileMenu, SIGNAL(aboutToShow()),
+    menu->addAction(m_openFileAction);
+    menu->addAction(m_openLocationAction);
+    m_recentSpecFileMenu = menu->addMenu("Open Recent Spec File");
+    QObject::connect(m_recentSpecFileMenu, SIGNAL(aboutToShow()),
                      this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
-    QObject::connect(this->recentSpecFileMenu, SIGNAL(triggered(QAction*)),
+    QObject::connect(m_recentSpecFileMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processRecentSpecFileMenuSelection(QAction*)));
-    menu->addAction(this->openFileViaSpecFileAction);
-    menu->addAction(this->manageFilesAction);
-    menu->addAction(this->closeSpecFileAction);
+    menu->addAction(m_openFileViaSpecFileAction);
+    menu->addAction(m_manageFilesAction);
+    menu->addAction(m_closeSpecFileAction);
     menu->addSeparator();
-    menu->addAction(this->captureImageAction);
+    menu->addAction(m_recordMovieAction);
+    menu->addAction(m_captureImageAction);
     menu->addSeparator();
-    menu->addAction(this->closeTabAction);
-    menu->addAction(this->closeWindowAction);
+    menu->addAction(m_closeTabAction);
+    menu->addAction(m_closeWindowAction);
     menu->addSeparator();
 #ifndef CARET_OS_MACOSX
     menu->addSeparator();
 #endif // CARET_OS_MACOSX
-    menu->addAction(this->exitProgramAction);
+    menu->addAction(m_exitProgramAction);
     
     return menu;
+}
+
+/**
+ * Called to display the overlay toolbox.
+ */
+void 
+BrainBrowserWindow::processShowOverlayToolBox(bool status)
+{
+    m_overlayActiveToolBox->setVisible(status);
+    m_overlayToolBoxAction->blockSignals(true);
+    m_overlayToolBoxAction->setChecked(status);
+    m_overlayToolBoxAction->blockSignals(false);
+    if (status) {
+        m_overlayToolBoxAction->setToolTip("Hide Overlay Toolbox");
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBox().getPointer());
+    }
+    else {
+        m_overlayToolBoxAction->setToolTip("Show Overlay Toolbox");
+    }
+}
+
+/**
+ * Called when visibility of horizontal overlay toolbox is changed.
+ * @param visible
+ *    New visibility status.
+ */
+void 
+BrainBrowserWindow::processOverlayHorizontalToolBoxVisibilityChanged(bool visible)
+{
+    if (visible == false) {
+        if (m_overlayActiveToolBox == m_overlayHorizontalToolBox) {
+            m_overlayToolBoxAction->blockSignals(true);
+            m_overlayToolBoxAction->setChecked(false);
+            m_overlayToolBoxAction->blockSignals(false);
+        }
+    }
+}
+
+/**
+ * Called when visibility of vertical overlay toolbox is changed.
+ * @param visible
+ *    New visibility status.
+ */
+void 
+BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
+{
+    if (visible == false) {
+        if (m_overlayActiveToolBox == m_overlayVerticalToolBox) {
+            m_overlayToolBoxAction->blockSignals(true);
+            m_overlayToolBoxAction->setChecked(false);
+            m_overlayToolBoxAction->blockSignals(false);
+        }
+    }
 }
 
 /**
@@ -487,8 +747,9 @@ BrainBrowserWindow::createMenuFile()
 void 
 BrainBrowserWindow::processFileMenuAboutToShow()
 {
-    const int32_t numFiles = GuiManager::get()->getBrain()->getSpecFile()->getNumberOfFiles();
-    this->openFileViaSpecFileAction->setEnabled(numFiles > 0);
+    const bool enabled = GuiManager::get()->getBrain()->isSpecFileValid();
+    
+    m_openFileViaSpecFileAction->setEnabled(enabled);
 }
 
 /**
@@ -498,7 +759,7 @@ BrainBrowserWindow::processFileMenuAboutToShow()
 void 
 BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
 {
-    this->recentSpecFileMenu->clear();
+    m_recentSpecFileMenu->clear();
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     std::vector<AString> recentSpecFiles;
@@ -506,26 +767,35 @@ BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
     
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
     for (int32_t i = 0; i < numRecentSpecFiles; i++) {
-        FileInformation fileInfo(recentSpecFiles[i]);
-        QString path = fileInfo.getPathName();
-        QString name = fileInfo.getFileName();
-        if (path.isEmpty() == false) {
-            name += (" (" + path + ")");
+        AString actionName;
+        AString actionFullPath;
+        if (DataFile::isFileOnNetwork(recentSpecFiles[i])) {
+            actionName     = recentSpecFiles[i];
+            actionFullPath = recentSpecFiles[i];
         }
-        QString fullPath = fileInfo.getFilePath();
+        else {
+            FileInformation fileInfo(recentSpecFiles[i]);
+            QString path = fileInfo.getPathName();
+            QString name = fileInfo.getFileName();
+            if (path.isEmpty() == false) {
+                name += (" (" + path + ")");
+            }
+            actionName = name;
+            actionFullPath = fileInfo.getFilePath();
+        }
         
-        QAction* action = new QAction(name,
-                                      this->recentSpecFileMenu);
-        action->setData(fullPath);
-        this->recentSpecFileMenu->addAction(action);
+        QAction* action = new QAction(actionName,
+                                      m_recentSpecFileMenu);
+        action->setData(actionFullPath);
+        m_recentSpecFileMenu->addAction(action);
     } 
     
     if (numRecentSpecFiles > 0) {
-        this->recentSpecFileMenu->addSeparator();
+        m_recentSpecFileMenu->addSeparator();
         QAction* action = new QAction("Clear Menu",
-                                      this->recentSpecFileMenu);
+                                      m_recentSpecFileMenu);
         action->setData("CLEAR_CLEAR");
-        this->recentSpecFileMenu->addAction(action);
+        m_recentSpecFileMenu->addAction(action);
     }
 }
 
@@ -556,26 +826,30 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
             errorMessages += e.whatString();
         }
         
-        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                       this);
-        if (sfd->exec() == QDialog::Accepted) {
-            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                         &specFile);
-            
-            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-            
-            if (readSpecFileEvent.isError()) {
-                if (errorMessages.isEmpty() == false) {
-                    errorMessages += "\n";
+        if (errorMessages.isEmpty()) {
+            SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                           this);
+            if (sfd->exec() == QDialog::Accepted) {
+                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                             &specFile);
+                
+                ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                  this,
+                                                  specFile.getFileNameNoPath());
+                
+                if (readSpecFileEvent.isError()) {
+                    if (errorMessages.isEmpty() == false) {
+                        errorMessages += "\n";
+                    }
+                    errorMessages += readSpecFileEvent.getErrorMessage();
                 }
-                errorMessages += readSpecFileEvent.getErrorMessage();
             }
+            
+            delete sfd;
+            sfd = NULL;
+            
+            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
         }
-        
-        delete sfd;
-        sfd = NULL;
-        
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
         
         if (errorMessages.isEmpty() == false) {
             QMessageBox::critical(this, 
@@ -595,13 +869,6 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
 void 
 BrainBrowserWindow::processViewMenuAboutToShow()
 {
-    /*
-     * Update status of view toolbox action.
-     */
-    this->viewMenuShowToolBoxAction->setEnabled(this->toolBox->toggleViewAction()->isEnabled());
-    this->viewMenuShowToolBoxAction->blockSignals(true);
-    this->viewMenuShowToolBoxAction->setChecked(this->toolBox->toggleViewAction()->isChecked());
-    this->viewMenuShowToolBoxAction->blockSignals(false);
 }
 
 /**
@@ -615,16 +882,19 @@ BrainBrowserWindow::createMenuView()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
     
-    menu->addAction(this->showToolBarAction);
-    menu->addAction(this->viewMenuShowToolBoxAction);
-    menu->addMenu(this->createMenuViewMoveToolBox());
+    menu->addAction(m_showToolBarAction);
+    menu->addMenu(createMenuViewMoveFeaturesToolBox());
+    menu->addMenu(createMenuViewMoveOverlayToolBox());
     menu->addSeparator();
+
+    /*menu->addAction(m_recordMovieAction);
+    menu->addSeparator();*/
     
     QMenu* screenMenu = new QMenu("Screen");
-    screenMenu->addAction(this->viewScreenNormalAction);
-    screenMenu->addAction(this->viewScreenFullAction);
-    screenMenu->addAction(this->viewScreenMontageTabsAction);
-    screenMenu->addAction(this->viewScreenFullMontageTabsAction);
+    screenMenu->addAction(m_viewScreenNormalAction);
+    screenMenu->addAction(m_viewScreenFullAction);
+    screenMenu->addAction(m_viewScreenMontageTabsAction);
+    screenMenu->addAction(m_viewScreenFullMontageTabsAction);
 
     menu->addMenu(screenMenu);
     
@@ -632,20 +902,47 @@ BrainBrowserWindow::createMenuView()
 }
 
 /**
- * Create the toolbox menu.
- * @return the toolbox menu.
+ * @return Create and return the overlay toolbox menu.
  */
 QMenu* 
-BrainBrowserWindow::createMenuViewMoveToolBox()
+BrainBrowserWindow::createMenuViewMoveFeaturesToolBox()
 {
-    QMenu* menu = new QMenu("Move Toolbox", this);
+    QMenu* menu = new QMenu("Features Toolbox", this);
     
-    menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
-    menu->addSeparator();
-    menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
-    //menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
-    //menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
-    menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
+    menu->addAction("Attach to Right", this, SLOT(processMoveFeaturesToolBoxToRight()));
+    menu->addAction("Detach", this, SLOT(processMoveFeaturesToolBoxToFloat()));
+    menu->addAction("Hide", this, SLOT(processHideFeaturesToolBox()));
+    
+    return menu;
+}
+
+/**
+ * @return Create and return the overlay toolbox menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
+{
+    QMenu* menu = new QMenu("Overlay Toolbox", this);
+    
+    menu->addAction("Attach to Bottom", this, SLOT(processMoveOverlayToolBoxToBottom()));
+    menu->addAction("Attach to Left", this, SLOT(processMoveOverlayToolBoxToLeft()));
+    menu->addAction("Detach", this, SLOT(processMoveOverlayToolBoxToFloat()));
+    menu->addAction("Hide", this, SLOT(processHideOverlayToolBox()));
+    
+    return menu;
+}
+
+/**
+ * Create the connect menu.
+ * @return the connect menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuConnect()
+{
+    QMenu* menu = new QMenu("Connect", this);
+    
+    menu->addAction(m_connectToAllenDatabaseAction);
+    menu->addAction(m_connectToConnectomeDatabaseAction);
     
     return menu;
 }
@@ -658,8 +955,22 @@ QMenu*
 BrainBrowserWindow::createMenuData()
 {
     QMenu* menu = new QMenu("Data", this);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(processDataMenuAboutToShow()));
+    
+    menu->addAction(m_fociProjectAction);
     
     return menu;
+}
+
+/**
+ * Called when Data Menu is about to show.
+ */
+void
+BrainBrowserWindow::processDataMenuAboutToShow()
+{
+    bool haveFociFiles = (GuiManager::get()->getBrain()->getNumberOfFociFiles() > 0);
+    m_fociProjectAction->setEnabled(haveFociFiles);
 }
 
 /**
@@ -674,6 +985,10 @@ BrainBrowserWindow::createMenuSurface()
     menu->addAction("Information...", 
                     this, 
                     SLOT(processSurfaceMenuInformation()));
+    
+    menu->addAction("Properties...",
+                    this,
+                    SLOT(processShowSurfacePropertiesDialog()));
     
     menu->addAction("Volume Interaction...", 
                     this, 
@@ -696,11 +1011,11 @@ BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
     
     WuQDataEntryDialog ded("Volume Interaction Surfaces",
                            this);
-    std::vector<SurfaceSelectionControl*> surfaceSelectionControls;
+    std::vector<SurfaceSelectionViewController*> surfaceSelectionControls;
     for (int32_t i = 0; i < numBrainStructures; i++) {
         BrainStructure* bs = brain->getBrainStructure(i);
-        SurfaceSelectionControl* ssc = ded.addSurfaceSelectionControl(StructureEnum::toGuiName(bs->getStructure()), 
-                                                                      bs);
+        SurfaceSelectionViewController* ssc = ded.addSurfaceSelectionViewController(StructureEnum::toGuiName(bs->getStructure()), 
+                                                                                    bs);
         ssc->setSurface(bs->getVolumeInteractionSurface());
         surfaceSelectionControls.push_back(ssc);
     }
@@ -719,17 +1034,17 @@ BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
 void 
 BrainBrowserWindow::processSurfaceMenuInformation()
 {
-    BrowserTabContent* btc = this->getBrowserTabContent();  
+    BrowserTabContent* btc = getBrowserTabContent();  
     if (btc != NULL) {
         AString txt = "";
         
-        ModelDisplayController* mdc = btc->getModelControllerForDisplay();
-        ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+        Model* mdc = btc->getModelControllerForDisplay();
+        ModelSurface* mdcs = dynamic_cast<ModelSurface*>(mdc);
         if (mdcs != NULL) {
             txt += mdcs->getSurface()->getInformation();
         }
         
-        ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+        ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(mdc);
         if (mdcwb != NULL) {
             std::vector<StructureEnum::Enum> allStructures;
             StructureEnum::getAllEnums(allStructures);
@@ -758,9 +1073,9 @@ BrainBrowserWindow::processSurfaceMenuInformation()
 QMenu* 
 BrainBrowserWindow::createMenuVolume()
 {
-    QMenu* menu = new QMenu("Volume", this);
-    
-    return menu;
+//    QMenu* menu = new QMenu("Volume", this);
+//    return menu;
+    return NULL;
 }
 
 /**
@@ -770,25 +1085,26 @@ BrainBrowserWindow::createMenuVolume()
 QMenu* 
 BrainBrowserWindow::createMenuWindow()
 {
-    this->moveSelectedTabToWindowMenu = new QMenu("Move Selected Tab to Window");
-    QObject::connect(this->moveSelectedTabToWindowMenu, SIGNAL(aboutToShow()),
+    m_moveSelectedTabToWindowMenu = new QMenu("Move Selected Tab to Window");
+    QObject::connect(m_moveSelectedTabToWindowMenu, SIGNAL(aboutToShow()),
                      this, SLOT(processMoveSelectedTabToWindowMenuAboutToBeDisplayed()));
-    QObject::connect(this->moveSelectedTabToWindowMenu, SIGNAL(triggered(QAction*)),
+    QObject::connect(m_moveSelectedTabToWindowMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processMoveSelectedTabToWindowMenuSelection(QAction*)));
     
     QMenu* menu = new QMenu("Window", this);
     
-    menu->addAction(this->nextTabAction);
-    menu->addAction(this->previousTabAction);
-    menu->addAction(this->renameSelectedTabAction);
+    menu->addAction(m_nextTabAction);
+    menu->addAction(m_previousTabAction);
+    menu->addAction(m_renameSelectedTabAction);
     menu->addSeparator();
-    menu->addAction(this->moveTabsInWindowToNewWindowsAction);
-    menu->addAction(this->moveTabsFromAllWindowsToOneWindowAction);
-    menu->addMenu(this->moveSelectedTabToWindowMenu);
+    menu->addAction(m_moveTabsInWindowToNewWindowsAction);
+    menu->addAction(m_moveTabsFromAllWindowsToOneWindowAction);
+    menu->addMenu(m_moveSelectedTabToWindowMenu);
     menu->addSeparator();
-    menu->addAction(this->displayControlAction);
+    menu->addAction(m_informationDialogAction);
+    menu->addAction(m_showSceneDialogAction);
     menu->addSeparator();
-    menu->addAction(this->bringAllToFrontAction);
+    menu->addAction(m_bringAllToFrontAction);
     
     return menu;
 }
@@ -802,10 +1118,46 @@ BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
     
-    menu->addAction(this->helpOnlineAction);
-    menu->addAction(this->searchHelpOnlineAction);
+    menu->addAction(m_helpHcpWebsiteAction);
+    menu->addSeparator();
+    menu->addAction(m_helpOnlineAction);
+    menu->addAction(m_helpSearchOnlineAction);
+    menu->addSeparator();
+    menu->addAction(m_helpGraphicsTimingAction);
     
     return menu;
+}
+
+/**
+ * Time the graphics drawing.
+ */
+void
+BrainBrowserWindow::processGraphicsTiming()
+{
+    ElapsedTimer et;
+    et.start();
+    
+    const int32_t numTimes = 5;
+    for (int32_t i = 0; i < numTimes; i++) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    }
+    
+    const float time = et.getElapsedTimeSeconds() / numTimes;
+    const AString timeString = AString::number(time, 'f', 5);
+    
+    const AString msg = ("Time to draw graphics (seconds): "
+                         + timeString);
+    WuQMessageBox::informationOk(this, msg);
+}
+
+/**
+ * Project foci.
+ */
+void
+BrainBrowserWindow::processProjectFoci()
+{    
+    FociProjectionDialog fpd(this);
+    fpd.exec();
 }
 
 /**
@@ -818,6 +1170,15 @@ BrainBrowserWindow::processCaptureImage()
 }
 
 /**
+ * Called when record movie is selected.
+ */
+void 
+BrainBrowserWindow::processRecordMovie()
+{
+    GuiManager::get()->processShowMovieDialog(this);
+}
+
+/**
  * Called when capture image is selected.
  */
 void 
@@ -827,12 +1188,12 @@ BrainBrowserWindow::processEditPreferences()
 }
 
 /**
- * Called when display control is selected.
+ * Called when information dialog is selected.
  */
 void 
-BrainBrowserWindow::processDisplayControl()
+BrainBrowserWindow::processInformationDialog()
 {
-    GuiManager::get()->processShowDisplayControlDialog(this);
+    GuiManager::get()->processShowInformationDisplayDialog(this);
 }
 
 /**
@@ -858,9 +1219,45 @@ BrainBrowserWindow::processCloseSpecFile()
 void 
 BrainBrowserWindow::processNewWindow()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+                                    true);
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    if (eventNewBrowser.isError()) {
+        cursor.restoreCursor();
+        QMessageBox::critical(this,
+                              "",
+                              eventNewBrowser.getErrorMessage());
+        return;
+    }
+    const int32_t newWindowIndex = eventNewBrowser.getBrowserWindowCreated()->getBrowserWindowIndex();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(newWindowIndex).getPointer());
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+                                    false);
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(newWindowIndex).getPointer());
+}
+
+/**
+ * Display about workbench dialog.
+ */
+void 
+BrainBrowserWindow::processAboutWorkbench()
+{
+    AboutWorkbenchDialog awd(this);
+    awd.exec();
+}
+
+/**
+ * Called when open location is selected.
+ */
+void 
+BrainBrowserWindow::processDataFileLocationOpen()
+{
+    CaretFileRemoteDialog fileRemoteDialog(this);
+    fileRemoteDialog.exec();
 }
 
 /**
@@ -869,8 +1266,8 @@ BrainBrowserWindow::processNewWindow()
 void 
 BrainBrowserWindow::processDataFileOpen()
 {
-    if (this->previousOpenFileNameFilter.isEmpty()) {
-        this->previousOpenFileNameFilter = 
+    if (s_previousOpenFileNameFilter.isEmpty()) {
+        s_previousOpenFileNameFilter = 
             DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION);
     }
     
@@ -889,35 +1286,121 @@ BrainBrowserWindow::processDataFileOpen()
     }
     
     /*
+     * Widget for adding to file dialog
+     */
+    QCheckBox* addFileToSpecFileCheckBox = new QCheckBox("Add Opened Data File to Spec File");
+    addFileToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) opened\n"
+                                          "will be added to the currently loaded Spec File.\n"
+                                          "If there is not a valid Spec File loaded, you\n"
+                                          "will be prompted to create or select a Spec File.");
+    addFileToSpecFileCheckBox->setChecked(false);
+    QWidget* extraWidget = new QWidget();
+    QVBoxLayout* extraLayout = new QVBoxLayout(extraWidget);
+    extraLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    extraLayout->addWidget(addFileToSpecFileCheckBox, 0, Qt::AlignLeft);
+    
+    /*
      * Setup file selection dialog.
      */
-    CaretFileDialog fd(this);
+    CaretFileDialogExtendable fd(this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
-    fd.selectFilter(this->previousOpenFileNameFilter);
-    fd.selectNameFilter(this->previousOpenFileNameFilter);
+    fd.selectNameFilter(s_previousOpenFileNameFilter);
+    fd.addWidget(extraWidget);
+    if (s_previousOpenFileDirectory.isEmpty() == false) {
+        FileInformation fileInfo(s_previousOpenFileDirectory);
+        if (fileInfo.exists()) {
+            fd.setDirectory(s_previousOpenFileDirectory);
+        }
+    }
     
     AString errorMessages;
     
-    if (fd.exec()) {
+    if (fd.exec() == CaretFileDialogExtendable::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
-        this->previousOpenFileNameFilter = fd.selectedFilter();
-        
-        /*
-         * Load the files.
-         */
-        std::vector<AString> filenamesVector;
-        QStringListIterator nameIter(selectedFiles);
-        while (nameIter.hasNext()) {
-            filenamesVector.push_back(nameIter.next());
+        if (selectedFiles.empty() == false) {            
+            /*
+             * Load the files.
+             */
+            bool isLoadingSpecFile = false;
+            std::vector<AString> filenamesVector;
+            QStringListIterator nameIter(selectedFiles);
+            while (nameIter.hasNext()) {
+                const QString name = nameIter.next();
+                filenamesVector.push_back(name);
+                if (name.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                    isLoadingSpecFile = true;
+                }
+            }
+            
+            bool isLoadDataFiles = true;
+                        
+            AddDataFileToSpecFileMode addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_NO;
+            if (isLoadingSpecFile) {
+                //addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+            }
+            else {
+                if (addFileToSpecFileCheckBox->isChecked()) {
+                    Brain* brain = GuiManager::get()->getBrain();
+                    FileInformation fileInfo(brain->getSpecFileName());
+                    if (fileInfo.exists()) {
+                        addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+                    }
+                    else {
+                        SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
+                                                                            SpecFileCreateAddToDialog::MODE_OPEN,
+                                                                            this);
+                        
+                        if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
+                            if (createAddToSpecFileDialog.isAddToSpecFileSelected()) {
+                                addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+                            }
+                        }
+                        else {
+                            isLoadDataFiles = false;
+                        }
+                    }
+                }                
+            }
+            
+            if (isLoadDataFiles) {
+                loadFiles(filenamesVector,
+                          LOAD_SPEC_FILE_WITH_DIALOG,
+                          addDataFileToSpecFileMode,
+                          "",
+                          "");
+            }
         }
-        this->loadFiles(filenamesVector,
-                        LOAD_SPEC_FILE_WITH_DIALOG,
-                        false);
+        s_previousOpenFileNameFilter = fd.selectedNameFilter();
+        s_previousOpenFileDirectory  = fd.directory().absolutePath();
     }
 }
+
+/**
+ * Load files that are on the network
+ * @param
+ *    List of filenames to read.
+ * @param username
+ *    Username for network file reading
+ * @param password
+ *    Password for network file reading
+ */
+void
+BrainBrowserWindow::loadFilesFromNetwork(const std::vector<AString>& filenames,
+                                         const AString& username,
+                                         const AString& password)
+{    
+//    this->loadFilesFromCommandLine(filenames,
+//                                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
+    loadFiles(filenames,
+              BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
+              ADD_DATA_FILE_TO_SPEC_FILE_NO,
+              username,
+              password);
+}
+
 
 /**
  * Load the files that were specified on the command line.
@@ -930,10 +1413,78 @@ void
 BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                              const LoadSpecFileMode loadSpecFileMode)
 {
-    this->loadFiles(filenames,
-                    loadSpecFileMode,
-                    true);
+    loadFiles(filenames,
+              loadSpecFileMode,
+              ADD_DATA_FILE_TO_SPEC_FILE_NO,
+              "",
+              "");
 }
+
+/**
+ * Load the scene file and the scene with the given name or number
+ * @param sceneFileName
+ *    Name of scene file.
+ * @param sceneNameOrNumber
+ *    Name or number of scene.  Name takes precedence over number. 
+ *    Scene numbers start at one.
+ */
+void
+BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
+                                             const AString& sceneNameOrNumber)
+{
+    std::vector<AString> filenames;
+    filenames.push_back(sceneFileName);
+    
+    loadFilesFromCommandLine(filenames,
+                             LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+    
+    bool haveSceneFileError = true;
+    bool haveSceneError = true;
+    FileInformation fileInfo(sceneFileName);
+    const AString nameNoExt = fileInfo.getFileName();
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
+    for (int32_t i = 0; i < numSceneFiles; i++) {
+        SceneFile* sf = brain->getSceneFile(i);
+        if (sf->getFileName().contains(sceneFileName)) {
+            haveSceneFileError = false;
+            Scene* scene = sf->getSceneWithName(sceneNameOrNumber);
+            if (scene == NULL) {
+                bool isValidNumber = false;
+                int sceneNumber = sceneNameOrNumber.toInt(&isValidNumber);
+                if (isValidNumber) {
+                    sceneNumber--;  // convert to index (numbers start at one)
+                    if ((sceneNumber >= 0)
+                        && (sceneNumber < sf->getNumberOfScenes())) {
+                        scene = sf->getSceneAtIndex(sceneNumber);
+                    }
+                }
+            }
+            
+            if (scene != NULL) {
+                GuiManager::get()->processShowSceneDialogAndScene(this,
+                                                                  sf,
+                                                                  scene);
+                haveSceneError = false;
+                break;
+            }
+        }
+    }
+    
+    if (haveSceneFileError) {
+        const AString msg = ("No scene file named \""
+                             + sceneFileName
+                             + "\" was loaded.");
+        WuQMessageBox::errorOk(this, msg);
+    }
+    else if (haveSceneError) {
+        const AString msg = ("No scene with name/number \""
+                             + sceneNameOrNumber
+                             + "\" found in scene file.");
+        WuQMessageBox::errorOk(this, msg);
+    }
+}
+
 
 /**
  * Load data files.  If there are errors, an error message dialog
@@ -945,11 +1496,17 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
  *    Specifies handling of SpecFiles
  * @param commandLineFlag
  *    True if files are being loaded from the command line.
+ * @param username
+ *    Username for network file reading
+ * @param password
+ *    Password for network file reading
  */
 void 
 BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               const LoadSpecFileMode loadSpecFileMode,
-                              const bool commandLineFlag)
+                              const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
+                              const AString& username,
+                              const AString& password)
 {
     /*
      * Pick out specific file types.
@@ -963,28 +1520,26 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         const AString name = filenames[i];
         bool isValidType = false;
         DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-        if (isValidType) {
-            switch (fileType) {
-                case DataFileTypeEnum::SPECIFICATION:
-                    if (specFileName.isEmpty() == false) {
-                        QMessageBox::critical(this, 
-                                              "ERROR", 
-                                              "More than one spec file cannot be loaded");
-                        return;
-
-                    }
-                    specFileName = name;
-                    break;
-                case DataFileTypeEnum::SURFACE:
-                    surfaceFileNames.push_back(name);
-                    break;
-                case DataFileTypeEnum::VOLUME:
-                    volumeFileNames.push_back(name);
-                    break;
-                default:
-                    otherFileNames.push_back(name);
-                    break;
-            }
+        switch (fileType) {
+            case DataFileTypeEnum::SPECIFICATION:
+                if (specFileName.isEmpty() == false) {
+                    QMessageBox::critical(this,
+                                          "ERROR",
+                                          "More than one spec file cannot be loaded");
+                    return;
+                    
+                }
+                specFileName = name;
+                break;
+            case DataFileTypeEnum::SURFACE:
+                surfaceFileNames.push_back(name);
+                break;
+            case DataFileTypeEnum::VOLUME:
+                volumeFileNames.push_back(name);
+                break;
+            default:
+                otherFileNames.push_back(name);
+                break;
         }
     }
     
@@ -996,9 +1551,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
      * (4) All other files.
      */
     std::vector<AString> filenamesToLoad;
-    if (specFileName.isEmpty() == false) {
-        filenamesToLoad.push_back(specFileName);
-    }
+//    if (specFileName.isEmpty() == false) {
+//        filenamesToLoad.push_back(specFileName);
+//    }
     filenamesToLoad.insert(filenamesToLoad.end(),
                            volumeFileNames.begin(),
                            volumeFileNames.end());
@@ -1010,7 +1565,17 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                            otherFileNames.end());
                            
 
-    bool createDefaultTabsFlag = commandLineFlag;
+    bool createDefaultTabsFlag = false;
+    switch (loadSpecFileMode) {
+        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+            createDefaultTabsFlag = true;
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG:
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+            createDefaultTabsFlag = true;
+            break;
+    }
     
     AString errorMessages;
     
@@ -1018,9 +1583,118 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     timer.start();
     float specFileTimeStart = 0.0;
     float specFileTimeEnd   = 0.0;
+    bool sceneFileWasLoaded = false;
     
     /*
-     * Load each file.
+     * Load spec file (before data files)
+     */
+    if (specFileName.isEmpty() == false) {
+        SpecFile specFile;
+        try {
+            specFile.readFile(specFileName);
+        }
+        catch (const DataFileException& e) {
+            errorMessages += e.whatString();
+            QMessageBox::critical(this,
+                                  "ERROR",
+                                  errorMessages);
+            return;
+        }
+        
+        switch (loadSpecFileMode) {
+            case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+            {
+                timer.reset(); // resets timer
+                specFileTimeStart = timer.getElapsedTimeSeconds();
+                
+                /*
+                 * Load all files listed in spec file
+                 */
+                specFile.setAllFilesSelected(true);
+                
+                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                             &specFile);
+                if (username.isEmpty() == false) {
+                    readSpecFileEvent.setUsernameAndPassword(username,
+                                                             password);
+                }
+                
+                ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                  this,
+                                                  specFile.getFileNameNoPath());
+                
+                if (readSpecFileEvent.isError()) {
+                    if (errorMessages.isEmpty() == false) {
+                        errorMessages += "\n";
+                    }
+                    errorMessages += readSpecFileEvent.getErrorMessage();
+                }
+                specFileTimeEnd = timer.getElapsedTimeSeconds();
+            }
+                break;
+            case LOAD_SPEC_FILE_WITH_DIALOG:
+            case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+            {
+                /*
+                 * Allow user to choose files listed in the spec file
+                 */
+                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                               this);
+                if (sfd->exec() == QDialog::Accepted) {
+                    timer.reset();
+                    specFileTimeStart = timer.getElapsedTimeSeconds();
+                    
+                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                 &specFile);
+                    if (username.isEmpty() == false) {
+                        readSpecFileEvent.setUsernameAndPassword(username,
+                                                                 password);
+                    }
+                    
+                    ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                                      this,
+                                                      specFile.getFileNameNoPath());
+                    
+                    if (readSpecFileEvent.isError()) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
+                        }
+                        errorMessages += readSpecFileEvent.getErrorMessage();
+                    }
+                    specFileTimeEnd = timer.getElapsedTimeSeconds();
+                    
+                    createDefaultTabsFlag = true;
+                }
+                
+                delete sfd;
+            }
+                break;
+        }
+        
+        sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
+    }
+    
+    /*
+     * Prepare to load any data files
+     */
+    bool addDataFileToSpecFile = false;
+    switch (addDataFileToSpecFileMode) {
+        case ADD_DATA_FILE_TO_SPEC_FILE_NO:
+            addDataFileToSpecFile = false;
+            break;
+        case ADD_DATA_FILE_TO_SPEC_FILE_YES:
+            addDataFileToSpecFile = true;
+            break;
+    }
+    EventDataFileRead loadFilesEvent(GuiManager::get()->getBrain(),
+                                    addDataFileToSpecFile);
+    if (username.isEmpty() == false) {
+        loadFilesEvent.setUsernameAndPassword(username,
+                                             password);
+    }
+    
+    /*
+     * Add data files to data file loading event (after loading spec file)
      */
     const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
     for (int32_t i = 0; i < numFilesToLoad; i++) {
@@ -1034,130 +1708,306 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         bool isValidType = false;
         DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
         if (isValidType) {
-            if (fileType == DataFileTypeEnum::SPECIFICATION) {
-                SpecFile specFile;
-                try {
-                    specFile.readFile(name);
-                }
-                catch (const DataFileException& e) {
-                    errorMessages += e.whatString();
-                }
-                
-                switch (loadSpecFileMode) {
-                    case LOAD_SPEC_FILE_CONTENTS:
-                    {
-                        timer.reset(); // resets timer
-                        specFileTimeStart = timer.getElapsedTimeSeconds();
-                        
-                        /*
-                         * Load all files listed in spec file
-                         */
-                        specFile.setAllFilesSelected(true);
-                        
-                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                     &specFile);
-                        
-                        EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                        
-                        if (readSpecFileEvent.isError()) {
-                            if (errorMessages.isEmpty() == false) {
-                                errorMessages += "\n";
-                            }
-                            errorMessages += readSpecFileEvent.getErrorMessage();
-                        }
-                        specFileTimeEnd = timer.getElapsedTimeSeconds();
-                    }
-                        break;
-                    case LOAD_SPEC_FILE_WITH_DIALOG:
-                    {
-                        /*
-                         * Allow user to choose files listed in the spec file
-                         */
-                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                                       this);
-                        if (sfd->exec() == QDialog::Accepted) {
-                            timer.reset();
-                            specFileTimeStart = timer.getElapsedTimeSeconds();
-                            
-                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                         &specFile);
-                            
-                            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                            
-                            if (readSpecFileEvent.isError()) {
-                                if (errorMessages.isEmpty() == false) {
-                                    errorMessages += "\n";
-                                }
-                                errorMessages += readSpecFileEvent.getErrorMessage();
-                            }
-                            specFileTimeEnd = timer.getElapsedTimeSeconds();
-                            
-                            createDefaultTabsFlag = true;
-                        }
-                        
-                        delete sfd;
-                    }
-                        break;
-                }
-            }
-            else {
-                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                                fileType,
-                                                name);
-                
-                EventManager::get()->sendEvent(loadFileEvent.getPointer());
-                
-                if (loadFileEvent.isError()) {
-                    AString loadErrorMessage = "";
-                    
-                    if (loadFileEvent.isErrorInvalidStructure()) {
-                        WuQDataEntryDialog ded("Structure",
-                                               this);
-                        StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
-                        ded.setTextAtTop(("File \""
-                                          + FileInformation(name).getFileName()
-                                          + "\"\nhas missing or invalid structure, select it's structure."
-                                          "\nAfter loading, save file with File Menu->Save Manage Files"
-                                          "\nto prevent this error."),
-                                         false);
-                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
-                                                                     ssc->getSelectedStructure(),
-                                                                     fileType,
-                                                                     name);
-                            
-                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
-                            if (loadFileEventStructure.isError()) {
-                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
-                            }
-                        }
-                    }
-                    else {
-                        loadErrorMessage = loadFileEvent.getErrorMessage();
-                    }
-                    if (loadErrorMessage.isEmpty() == false) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
-                        }
-                        errorMessages += loadErrorMessage;
-                    }
-                }                    
-            }
+            loadFilesEvent.addDataFile(fileType,
+                                       name);
         }
         else {
             if (errorMessages.isEmpty() == false) {
                 errorMessages += "\n";
             }
-            errorMessages += ("Extension for " + name + " does not match a Caret file type");
+            errorMessages += ("Extension for " + name + " does not match a suppported file type");
         }
     }
+    
+    /*
+     * Now, load the data files
+     */
+    const int32_t numberOfValidFiles = loadFilesEvent.getNumberOfDataFilesToRead();
+    if (numberOfValidFiles > 0) {
+        ProgressReportingDialog::runEvent(&loadFilesEvent,
+                                          this,
+                                          "Loading Data Files");
+        errorMessages.appendWithNewLine(loadFilesEvent.getErrorMessage());
+        
+        /*
+         * Check for errors
+         */
+        for (int32_t i = 0; i < numberOfValidFiles; i++) {
+            const AString& dataFileName = loadFilesEvent.getDataFileName(i);
+            const DataFileTypeEnum::Enum dataFileType = loadFilesEvent.getDataFileType(i);
+            
+            const AString shortName = FileInformation(dataFileName).getFileName();
+            
+            if (loadFilesEvent.isFileErrorInvalidStructure(i)) {
+                /*
+                 * Allow user to specify the structure
+                 */
+                WuQDataEntryDialog ded("Structure",
+                                       this);
+                StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
+                ded.setTextAtTop(("File \""
+                                  + shortName
+                                  + "\"\nhas missing or invalid structure, select it's structure."
+                                  "\nAfter loading, save file with File Menu->Save Manage Files"
+                                  "\nto prevent this error."),
+                                 false);
+                if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                    EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+                                                             addDataFileToSpecFile);
+                    loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
+                                                       dataFileType,
+                                                       dataFileName);
+                    if (username.isEmpty() == false) {
+                        loadFileEventStructure.setUsernameAndPassword(username,
+                                                                      password);
+                    }
+                    
+                    ProgressReportingDialog::runEvent(&loadFileEventStructure,
+                                                      this,
+                                                      ("Loading " + shortName));
+                    if (loadFileEventStructure.isError()) {
+                        errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
+                    }
+                }
+                else {
+                    errorMessages.appendWithNewLine("File \""
+                                                       + shortName
+                                                       + "\" not loaded due to invalid structure.");
+                }
+            }
+            else if (loadFilesEvent.isFileError(i) == false) {
+                if (dataFileType == DataFileTypeEnum::SCENE) {
+                    sceneFileWasLoaded = true;
+                }                
+            }
+        }
+    }
+    
+    
+    
+    
+//    /*
+//     * Load each file.
+//     */
+//    //const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
+//    for (int32_t i = 0; i < numFilesToLoad; i++) {
+//        AString name = filenamesToLoad[i];
+//        
+//        //FileInformation fileInfo(name);
+//        //if (fileInfo.isAbsolute()) {
+//        //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+//        //}
+//        
+//        bool isValidType = false;
+//        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+//        if (isValidType) {
+//            if (fileType == DataFileTypeEnum::SPECIFICATION) {
+//                SpecFile specFile;
+//                try {
+//                    specFile.readFile(name);
+//                }
+//                catch (const DataFileException& e) {
+//                    errorMessages += e.whatString();
+//                    cursor.restoreCursor();
+//                    QMessageBox::critical(this,
+//                                          "ERROR",
+//                                          errorMessages);
+//                    return;
+//                }
+//                
+//                switch (loadSpecFileMode) {
+//                    case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+//                    {
+//                        timer.reset(); // resets timer
+//                        specFileTimeStart = timer.getElapsedTimeSeconds();
+//                        
+//                        /*
+//                         * Load all files listed in spec file
+//                         */
+//                        specFile.setAllFilesSelected(true);
+//                        
+//                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                                     &specFile);
+//                        if (username.isEmpty() == false) {
+//                            readSpecFileEvent.setUsernameAndPassword(username,
+//                                                                     password);
+//                        }
+//                        
+//                        ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                          this,
+//                                                          specFile.getFileNameNoPath());
+//                        //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+//                        
+//                        if (readSpecFileEvent.isError()) {
+//                            if (errorMessages.isEmpty() == false) {
+//                                errorMessages += "\n";
+//                            }
+//                            errorMessages += readSpecFileEvent.getErrorMessage();
+//                        }
+//                        specFileTimeEnd = timer.getElapsedTimeSeconds();
+//                    }
+//                        break;
+//                    case LOAD_SPEC_FILE_WITH_DIALOG:
+//                    case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+//                    {
+//                        /*
+//                         * Remove wait cursor
+//                         */
+//                        cursor.restoreCursor();
+//                        
+//                        /*
+//                         * Allow user to choose files listed in the spec file
+//                         */
+//                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+//                                                                                       this);
+//                        if (sfd->exec() == QDialog::Accepted) {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                            
+//                            timer.reset();
+//                            specFileTimeStart = timer.getElapsedTimeSeconds();
+//                            
+//                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                                         &specFile);
+//                            if (username.isEmpty() == false) {
+//                                readSpecFileEvent.setUsernameAndPassword(username,
+//                                                                         password);
+//                            }
+//                            
+//                            ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                              this,
+//                                                              specFile.getFileNameNoPath());
+//                            //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+//                            
+//                            if (readSpecFileEvent.isError()) {
+//                                if (errorMessages.isEmpty() == false) {
+//                                    errorMessages += "\n";
+//                                }
+//                                errorMessages += readSpecFileEvent.getErrorMessage();
+//                            }
+//                            specFileTimeEnd = timer.getElapsedTimeSeconds();
+//                            
+//                            createDefaultTabsFlag = true;
+//                        }
+//                        else {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                        }
+//                        
+//                        delete sfd;
+//                    }
+//                        break;
+//                }
+//                
+//                sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
+//            }
+//            else {
+//                bool addDataFileToSpecFile = false;
+//                switch (addDataFileToSpecFileMode) {
+//                    case ADD_DATA_FILE_TO_SPEC_FILE_NO:
+//                        addDataFileToSpecFile = false;
+//                        break;
+//                    case ADD_DATA_FILE_TO_SPEC_FILE_YES:
+//                        addDataFileToSpecFile = true;
+//                        break;
+//                }
+//                
+//                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+//                                                addDataFileToSpecFile);
+//                loadFileEvent.addDataFile(fileType,
+//                                          name);
+//                if (username.isEmpty() == false) {
+//                    loadFileEvent.setUsernameAndPassword(username,
+//                                                         password);
+//                }
+//                
+//                EventManager::get()->sendEvent(loadFileEvent.getPointer());
+//                
+//                if (fileType == DataFileTypeEnum::SCENE) {
+//                    sceneFileWasLoaded = true;
+//                }
+//                if (loadFileEvent.isError()) {
+//                    AString loadErrorMessage = "";
+//                    
+//                    if (loadFileEvent.isFileErrorInvalidStructure(0)) {
+//                        /*
+//                         * Remove wait cursor
+//                         */
+//                        cursor.restoreCursor();
+//                        
+//                        WuQDataEntryDialog ded("Structure",
+//                                               this);
+//                        StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
+//                        ded.setTextAtTop(("File \""
+//                                          + FileInformation(name).getFileName()
+//                                          + "\"\nhas missing or invalid structure, select it's structure."
+//                                          "\nAfter loading, save file with File Menu->Save Manage Files"
+//                                          "\nto prevent this error."),
+//                                         false);
+//                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//
+//                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+//                                                                     addDataFileToSpecFile);
+//                            loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
+//                                                               fileType,
+//                                                               name);
+//                            if (username.isEmpty() == false) {
+//                                loadFileEventStructure.setUsernameAndPassword(username,
+//                                                                              password);
+//                            }
+//                            
+//                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
+//                            if (loadFileEventStructure.isError()) {
+//                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
+//                            }
+//                        }
+//                        else {
+//                            /*
+//                             * Redisplay wait cursor
+//                             */
+//                            cursor.showWaitCursor();
+//                        }
+//                    }
+//                    else {
+//                        loadErrorMessage = loadFileEvent.getErrorMessage();
+//                    }
+//                    if (loadErrorMessage.isEmpty() == false) {
+//                        if (errorMessages.isEmpty() == false) {
+//                            errorMessages += "\n";
+//                        }
+//                        errorMessages += loadErrorMessage;
+//                    }
+//                }                    
+//            }
+//        }
+//        else {
+//            if (errorMessages.isEmpty() == false) {
+//                errorMessages += "\n";
+//            }
+//            errorMessages += ("Extension for " + name + " does not match a suppported file type");
+//        }
+//    }
     
     const float specFileTime = specFileTimeEnd - specFileTimeStart;
     
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
-    if (createDefaultTabsFlag) {
-        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
-    }
+    const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
+                                                  EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
+                                                  EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
+    EventBrowserWindowCreateTabs createTabsEvent(tabMode);
+    EventManager::get()->sendEvent(createTabsEvent.getPointer());
+    
+//    if (createDefaultTabsFlag) {
+//        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//    }
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
     const float guiStartTime = timer.getElapsedTimeSeconds();
@@ -1185,8 +2035,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               errorMessages);
     }
     
+    if (sceneFileWasLoaded) {
+        GuiManager::get()->processShowSceneDialog(this);
+    }
 }
-
 
 /**
  * Called when open data file from spec file is selected.
@@ -1194,9 +2046,20 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
 void 
 BrainBrowserWindow::processDataFileOpenFromSpecFile()
 {
-    SpecFile* sf = GuiManager::get()->getBrain()->getSpecFile();
-    SpecFileDialog::displayFastOpenDataFile(sf,
-                                            this);
+    const bool valid = GuiManager::get()->getBrain()->isSpecFileValid();
+    if (valid) {
+        try {
+            SpecFile sf;
+            sf.readFile(GuiManager::get()->getBrain()->getSpecFileName());
+            SpecFileDialog::displayFastOpenDataFile(&sf,
+                                                    this);
+        }
+        catch (const DataFileException& e) {
+            QMessageBox::critical(this, 
+                                  "ERROR", 
+                                  e.whatString());
+        }
+    }
 }
 
 /**
@@ -1206,7 +2069,8 @@ void
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
     ManageLoadedFilesDialog manageLoadedFile(this,
-                                             GuiManager::get()->getBrain());
+                                             GuiManager::get()->getBrain(),
+                                             false);
     manageLoadedFile.exec();
 }
 
@@ -1227,58 +2091,66 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
 {
     bool showInFullScreen = false;
     
-    BrainBrowserWindowScreenModeEnum::Enum previousScreenMode = this->screenMode;
+    BrainBrowserWindowScreenModeEnum::Enum previousScreenMode = m_screenMode;
     
-    this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
-    if (action == this->viewScreenNormalAction) {
-        this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    if (action == m_viewScreenNormalAction) {
+        m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     }
-    else if (action == this->viewScreenFullAction) {
-        this->screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
+    else if (action == m_viewScreenFullAction) {
+        m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
         showInFullScreen = true;
     }
-    else if (action == this->viewScreenMontageTabsAction) {
-        this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE;
+    else if (action == m_viewScreenMontageTabsAction) {
+        m_screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE;
     }
-    else if (action == this->viewScreenFullMontageTabsAction) {
-        this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN;
+    else if (action == m_viewScreenFullMontageTabsAction) {
+        m_screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN;
         showInFullScreen = true;
     }
     else {
         CaretAssert(0);
     }
     
-    if (this->screenMode == previousScreenMode) {
+    if (m_screenMode == previousScreenMode) {
         return;
     }
     
+    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
+        if (m_screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
+        saveWindowComponentStatus(m_normalWindowComponentStatus);
+        }
+    }
+    
     if (showInFullScreen) {
-        if (this->isFullScreen() == false) {
-            this->showFullScreen();
+        if (isFullScreen() == false) {
+            showFullScreen();
         }
     }
     else {
-        if (this->isFullScreen()) {
-            this->showNormal();
+        if (isFullScreen()) {
+            showNormal();
         }
     }    
     
-    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
-        if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-            this->saveWindowComponentStatus(this->normalWindowComponentStatus);
-        }
+    if (m_screenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
+        restoreWindowComponentStatus(m_normalWindowComponentStatus);
     }
     
-    if (this->screenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
-        this->restoreWindowComponentStatus(this->normalWindowComponentStatus);
+    m_toolbar->updateToolBar();
+    if (m_screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
+        m_overlayToolBoxAction->blockSignals(true);
+        m_overlayToolBoxAction->setChecked(true);
+        m_overlayToolBoxAction->blockSignals(false);
+        m_overlayToolBoxAction->trigger();
+
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(true);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
     }
     
-    this->toolbar->updateToolBar();
-    if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-        this->toolBox->setVisible(false);
-    }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -1289,23 +2161,42 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
-    this->showToolBarAction->setEnabled(true);
-    this->toolBox->toggleViewAction()->setEnabled(true);
+    m_showToolBarAction->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
-        this->showToolBarAction->setChecked(false);
-        this->showToolBarAction->trigger();
+        m_showToolBarAction->setChecked(false);
+        m_showToolBarAction->trigger();
     }
     else {
-        this->showToolBarAction->setChecked(true);
-        this->showToolBarAction->trigger();
+        m_showToolBarAction->setChecked(true);
+        m_showToolBarAction->trigger();
     }
-    if (wcs.isToolBoxDisplayed) {
-        this->toolBox->toggleViewAction()->setChecked(false);
-        this->toolBox->toggleViewAction()->trigger();
+    
+    m_overlayToolBoxAction->setEnabled(true);
+    if (wcs.isOverlayToolBoxDisplayed) {
+        m_overlayToolBoxAction->blockSignals(true);
+        m_overlayToolBoxAction->setChecked(false);
+        m_overlayToolBoxAction->blockSignals(false);
+        m_overlayToolBoxAction->trigger();
     }
     else {
-        this->toolBox->toggleViewAction()->setChecked(true);
-        this->toolBox->toggleViewAction()->trigger();
+        m_overlayToolBoxAction->blockSignals(true);
+        m_overlayToolBoxAction->setChecked(true);
+        m_overlayToolBoxAction->blockSignals(false);
+        m_overlayToolBoxAction->trigger();
+    }
+    
+    m_featuresToolBoxAction->setEnabled(true);
+    if (wcs.isFeaturesToolBoxDisplayed) {
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(false);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+    }
+    else {
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(true);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
     }
 }
 
@@ -1319,10 +2210,12 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
 void 
 BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
-    wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
-    wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
-    this->showToolBarAction->setEnabled(false);
-    this->toolBox->toggleViewAction()->setEnabled(false);
+    wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
+    wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
+    wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();
+    m_showToolBarAction->setEnabled(false);
+    m_overlayToolBoxAction->setEnabled(false);
+    m_featuresToolBoxAction->setEnabled(false);
 }
 
 /**
@@ -1331,12 +2224,8 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 void 
 BrainBrowserWindow::processNewTab()
 {
-    this->toolbar->addNewTab();
-    this->toolbar->updateToolBar();
-
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    BrowserTabContent* previousTabContent = getBrowserTabContent();
+    m_toolbar->addNewTabCloneContent(previousTabContent);
 }
 
 /**
@@ -1345,19 +2234,25 @@ BrainBrowserWindow::processNewTab()
 void 
 BrainBrowserWindow::processMoveAllTabsToOneWindow()
 {
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     std::vector<BrowserTabContent*> otherTabContent;
     GuiManager::get()->closeOtherWindowsAndReturnTheirTabContent(this,
                                                                  otherTabContent);
     
     const int32_t numOtherTabs = static_cast<int32_t>(otherTabContent.size());
     for (int32_t i = 0; i < numOtherTabs; i++) {
-        this->toolbar->addNewTab(otherTabContent[i]);
-        this->toolbar->updateToolBar();
+        m_toolbar->addNewTab(otherTabContent[i]);
+        m_toolbar->updateToolBar();
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -1366,9 +2261,9 @@ BrainBrowserWindow::processMoveAllTabsToOneWindow()
 void 
 BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
 {
-    this->moveSelectedTabToWindowMenu->clear();
+    m_moveSelectedTabToWindowMenu->clear();
 
-    if (this->getBrowserTabContent() == NULL) {
+    if (getBrowserTabContent() == NULL) {
         return;
     }
     
@@ -1376,20 +2271,20 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
      * Allow movement of tab to new window ONLY if this window
      * contains more than one tab.
      */
-    if (this->toolbar->tabBar->count() > 1) {
+    if (m_toolbar->tabBar->count() > 1) {
         QAction* toNewWindowAction = new QAction("New Window",
-                                                 this->moveSelectedTabToWindowMenu);
+                                                 m_moveSelectedTabToWindowMenu);
         toNewWindowAction->setData(qVariantFromValue((void*)NULL));
-        this->moveSelectedTabToWindowMenu->addAction(toNewWindowAction);
+        m_moveSelectedTabToWindowMenu->addAction(toNewWindowAction);
     }
     
     std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (int32_t i = 0; i < static_cast<int32_t>(browserWindows.size()); i++) {
         if (browserWindows[i] != this) {
             QAction* action = new QAction(browserWindows[i]->windowTitle(),
-                                          this->moveSelectedTabToWindowMenu);
+                                          m_moveSelectedTabToWindowMenu);
             action->setData(qVariantFromValue((void*)browserWindows[i]));
-            this->moveSelectedTabToWindowMenu->addAction(action);
+            m_moveSelectedTabToWindowMenu->addAction(action);
         }
     }    
 }
@@ -1405,208 +2300,209 @@ void
 BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
 {
     if (action != NULL) {
+        /*
+         * Wait cursor
+         */
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
         void* p = action->data().value<void*>();
         BrainBrowserWindow* moveToBrowserWindow = (BrainBrowserWindow*)p;
         
-        BrowserTabContent* btc = this->getBrowserTabContent();
+        BrowserTabContent* btc = getBrowserTabContent();
         
-        this->toolbar->removeTabWithContent(btc);
             
         if (moveToBrowserWindow != NULL) {
-            moveToBrowserWindow->toolbar->addNewTab(btc);
+            m_toolbar->removeTabWithContent(btc);
+            moveToBrowserWindow->m_toolbar->addNewTab(btc);
         }
         else {
             EventBrowserWindowNew newWindow(this,
                                             btc);
             EventManager::get()->sendEvent(newWindow.getPointer());
+            if (newWindow.isError()) {
+                cursor.restoreCursor();
+                QMessageBox::critical(this,
+                                      "",
+                                      newWindow.getErrorMessage());
+                return;
+            }
+            m_toolbar->removeTabWithContent(btc);
         }
         
-        if (this->toolbar->tabBar->count() <= 0) {
-            EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
-            this->close();
+        if (m_toolbar->tabBar->count() <= 0) {
+            close();
         }
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 
 /**
- * Called to move the toolbox to the left side of the window.
+ * Called to move the overlay toolbox to the left side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToLeft()
+BrainBrowserWindow::processMoveOverlayToolBoxToLeft()
 {
-    this->moveToolBox(Qt::LeftDockWidgetArea);
+    moveOverlayToolBox(Qt::LeftDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the right side of the window.
+ * Called to move the overlay toolbox to the bottom side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToRight()
+BrainBrowserWindow::processMoveOverlayToolBoxToBottom()
 {
-    this->moveToolBox(Qt::RightDockWidgetArea);
+    moveOverlayToolBox(Qt::BottomDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the top side of the window.
+ * Called to move the overlay toolbox to float outside of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToTop()
+BrainBrowserWindow::processMoveOverlayToolBoxToFloat()
 {
-    this->moveToolBox(Qt::TopDockWidgetArea);
+moveOverlayToolBox(Qt::NoDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the bottom side of the window.
+ * Called to hide the overlay toolbox.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToBottom()
+BrainBrowserWindow::processHideOverlayToolBox()
 {
-    this->moveToolBox(Qt::BottomDockWidgetArea);
+    processShowOverlayToolBox(false);
 }
 
 /**
- * Called to move the toolbox to float outside of the window.
+ * Called to move the layers toolbox to the right side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToFloat()
+BrainBrowserWindow::processMoveFeaturesToolBoxToRight()
 {
-    this->moveToolBox(Qt::NoDockWidgetArea);
+    moveFeaturesToolBox(Qt::RightDockWidgetArea);
 }
 
+/**
+ * Called to move the layers toolbox to float outside of the window.
+ */
 void 
-BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
+BrainBrowserWindow::processMoveFeaturesToolBoxToFloat()
 {
-        switch (area) {
-            case Qt::LeftDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::RightDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::RightDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::TopDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::TopDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::BottomDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            default:
-                this->toolBox->setFloating(true);
-                break;
+    moveFeaturesToolBox(Qt::NoDockWidgetArea);
+}
+
+/**
+ * Called to hide the layers tool box.
+ */
+void 
+BrainBrowserWindow::processHideFeaturesToolBox()
+{
+    if (m_featuresToolBoxAction->isChecked()) {
+        m_featuresToolBoxAction->trigger();
     }
+}
 
-    if (this->toolBox->isVisible() == false) {
-        this->viewMenuShowToolBoxAction->trigger();
+/**
+ * Called to display the layers toolbox.
+ */
+void 
+BrainBrowserWindow::processShowFeaturesToolBox(bool status)
+{
+    if (status) {
+        m_featuresToolBoxAction->setToolTip("Hide Features Toolbox");
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBox().getPointer());
     }
-    if (this->toolBox->isFloating() == false) {
-        this->shrinkToolbox();
+    else {
+        m_featuresToolBoxAction->setToolTip("Show Features Toolbox");
     }
-    /*
-     * This code will allow the region of the main window
-     * containing the dock widget to shrink without changing 
-     * the vertical size of the OpenGL graphics widget
-     * and without changing the width of the main window.
-     *
-    const int centralMinHeight = this->centralWidget()->minimumHeight();
-    const int centralMaxHeight = this->centralWidget()->maximumHeight();
-    this->centralWidget()->setFixedHeight(this->centralWidget()->height());
-    const int minWidth = this->minimumWidth();
-    const int maxWidth = this->maximumWidth();
-    this->setFixedWidth(this->width());
-    this->adjustSize();
-    this->setMinimumWidth(minWidth);
-    this->setMaximumWidth(maxWidth);
-    this->centralWidget()->setMinimumHeight(centralMinHeight);
-    this->centralWidget()->setMaximumHeight(centralMaxHeight);
-*/
-    /*
+//    if (status) {
+//        AString title = m_featuresToolBoxTitle;
+//        if (m_featuresToolBox->isFloating()) {
+//            title += (" "
+//                      + AString::number(m_browserWindowIndex + 1));
+//        }
+//        m_featuresToolBox->setWindowTitle(title);
+//    }
+}
+
+/**
+ * Move the overlay toolbox to the desired location.
+ * @param area
+ *    DockWidget location.
+ */
+void 
+BrainBrowserWindow::moveFeaturesToolBox(Qt::DockWidgetArea area)
+{
     switch (area) {
         case Qt::LeftDockWidgetArea:
+            CaretAssertMessage(0, "Layers toolbox not allowed on left");
             break;
         case Qt::RightDockWidgetArea:
+            m_featuresToolBox->setFloating(false);
+            addDockWidget(Qt::RightDockWidgetArea, 
+                                m_featuresToolBox);
+            if (m_featuresToolBoxAction->isChecked() == false) {
+                m_featuresToolBoxAction->trigger();
+            }
             break;
         case Qt::TopDockWidgetArea:
-            this->toolBox->setFloating(false);
-            this->addDockWidget(Qt::TopDockWidgetArea, this->toolBox);
+            CaretAssertMessage(0, "Layers toolbox not allowed on top");
             break;
         case Qt::BottomDockWidgetArea:
-            this->toolBox->setFloating(false);
-            this->addDockWidget(Qt::BottomDockWidgetArea, this->toolBox);
+            CaretAssertMessage(0, "Layers toolbox not allowed on bottom");
             break;
         default:
-            this->toolBox->setFloating(true);
+            m_featuresToolBox->setFloating(true);
+            if (m_featuresToolBoxAction->isChecked() == false) {
+                m_featuresToolBoxAction->trigger();
+            }
             break;
     }
-*/
 }
 
 /**
- * Shrink the toolbox after a control is removed.
+ * Move the overlay toolbox to the desired location.
+ * @param area
+ *    DockWidget location.
  */
 void 
-BrainBrowserWindow::shrinkToolbox()
+BrainBrowserWindow::moveOverlayToolBox(Qt::DockWidgetArea area)
 {
-    if (this->toolBox->isFloating() == false) {
-        switch (this->dockWidgetArea(this->toolBox)) {
-            case Qt::LeftDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::RightDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::TopDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::TopDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::BottomDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            default:
-                this->toolBox->setFloating(true);
-                break;
-        }
+    bool isVisible = false;
+    switch (area) {
+        case Qt::LeftDockWidgetArea:
+            m_overlayHorizontalToolBox->setVisible(false);
+            m_overlayVerticalToolBox->setFloating(false);
+            addDockWidget(Qt::LeftDockWidgetArea, 
+                                m_overlayVerticalToolBox);
+            m_overlayVerticalToolBox->setVisible(true);
+            m_overlayActiveToolBox = m_overlayVerticalToolBox;
+            isVisible = true;
+            break;
+        case Qt::RightDockWidgetArea:
+            CaretAssertMessage(0, "Overlay toolbox not allowed on right");
+            break;
+        case Qt::TopDockWidgetArea:
+            CaretAssertMessage(0, "Overlay toolbox not allowed on top");
+            break;
+        case Qt::BottomDockWidgetArea:
+            m_overlayVerticalToolBox->setVisible(false);
+            m_overlayHorizontalToolBox->setFloating(false);
+            addDockWidget(Qt::BottomDockWidgetArea, 
+                                m_overlayHorizontalToolBox);
+            m_overlayHorizontalToolBox->setVisible(true);
+            m_overlayActiveToolBox = m_overlayHorizontalToolBox;
+            isVisible = true;
+            break;
+        default:
+            m_overlayActiveToolBox->setVisible(true);
+            m_overlayActiveToolBox->setFloating(true);
+            isVisible = true;
+            break;
     }
-     /*
-     * This code will allow the region of the main window
-     * containing the dock widget to shrink without changing 
-     * the vertical size of the OpenGL graphics widget
-     * and without changing the width of the main window.
-     */
-     const int centralMinHeight = this->centralWidget()->minimumHeight();
-     const int centralMaxHeight = this->centralWidget()->maximumHeight();
-     this->centralWidget()->setFixedHeight(this->centralWidget()->height());
-     const int minWidth = this->minimumWidth();
-     const int maxWidth = this->maximumWidth();
-     this->setFixedWidth(this->width());
-     this->toolBox->adjustSize();
-     this->setFixedWidth(this->width());
-     this->adjustSize();
-     this->setMinimumWidth(minWidth);
-     this->setMaximumWidth(maxWidth);
-     this->centralWidget()->setMinimumHeight(centralMinHeight);
-     this->centralWidget()->setMaximumHeight(centralMaxHeight);
+
+    processShowOverlayToolBox(isVisible);
 }
 
 /**
@@ -1620,30 +2516,7 @@ BrainBrowserWindow::shrinkToolbox()
 void 
 BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent)
 {
-    this->toolbar->removeAndReturnAllTabs(allTabContent);
-}
-
-/**
- * Receive events from the event manager.
- * 
- * @param event
- *   Event sent by event manager.
- */
-void 
-BrainBrowserWindow::receiveEvent(Event* event)
-{
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        this->toolbar->updateToolBar();
-        
-        uiEvent->setEventProcessed();
-    }
-    else {
-        
-    }
+    m_toolbar->removeAndReturnAllTabs(allTabContent);
 }
 
 /**
@@ -1653,7 +2526,20 @@ BrainBrowserWindow::receiveEvent(Event* event)
 BrowserTabContent* 
 BrainBrowserWindow::getBrowserTabContent()
 {
-    return this->toolbar->getTabContentFromSelectedTab();
+    return m_toolbar->getTabContentFromSelectedTab();
+}
+
+/**
+ * get browser tab content for tab with specified tab Index
+ * @param tabIndex
+ *   Desired tabIndex
+ * @return Return the active browser tab content in
+ * this browser window.
+*/
+BrowserTabContent*
+BrainBrowserWindow::getBrowserTabContent(int tabIndex)
+{
+    return m_toolbar->getTabContentFromTab(tabIndex);
 }
 
 /**
@@ -1687,10 +2573,268 @@ QImage
 BrainBrowserWindow::captureImageOfGraphicsArea(const int32_t imageSizeX,
                                                const int32_t imageSizeY)
 {
-    QImage image = this->openGLWidget->captureImage(imageSizeX, 
+    QImage image = m_openGLWidget->captureImage(imageSizeX, 
                                                     imageSizeY);
     
     return image;
 }
+
+/**
+ * Open a connection to the allen brain institute database.
+ */
+void 
+BrainBrowserWindow::processConnectToAllenDataBase()
+{
+    GuiManager::get()->processShowAllenDataBaseWebView(this);
+}
+
+/**
+ * Open a connection to the human connectome project database.
+ */
+void 
+BrainBrowserWindow::processConnectToConnectomeDataBase()
+{
+    GuiManager::get()->processShowConnectomeDataBaseWebView(this);
+}
+
+/**
+ * Load the HCP Website into the user's web browser.
+ */
+void 
+BrainBrowserWindow::processHcpWebsiteInBrowser()
+{
+    QUrl url("https://humanconnectome.org");
+    QDesktopServices::openUrl(url);
+}
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of 
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass* 
+BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
+                                const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "BrainBrowserWindow",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes, 
+                                  sceneClass);
+
+    /*
+     * Save toolbar
+     */
+    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes, 
+                                                "m_toolbar"));
+
+    /*
+     * Save overlay toolbox
+     */
+    {
+        AString orientationName = "";
+        if (m_overlayActiveToolBox == m_overlayHorizontalToolBox) {
+            orientationName = "horizontal";
+        }
+        else if (m_overlayActiveToolBox == m_overlayVerticalToolBox) {
+            orientationName = "vertical";
+        }
+        
+        SceneClass* overlayToolBoxClass = new SceneClass("overlayToolBox",
+                                                         "OverlayToolBox",
+                                                         1);
+        overlayToolBoxClass->addString("orientation", 
+                                       orientationName);
+        overlayToolBoxClass->addBoolean("floating", 
+                                        m_overlayActiveToolBox->isFloating());
+        overlayToolBoxClass->addBoolean("visible", 
+                                        m_overlayActiveToolBox->isVisible());
+        sceneClass->addClass(overlayToolBoxClass);
+        
+        sceneClass->addClass(m_overlayActiveToolBox->saveToScene(sceneAttributes,
+                                                                 "m_overlayActiveToolBox"));
+    }
+    
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
+    
+    /*
+     * Save features toolbox
+     */
+    {
+        SceneClass* featureToolBoxClass = new SceneClass("featureToolBox",
+                                                         "FeatureToolBox",
+                                                         1);
+        featureToolBoxClass->addBoolean("floating",
+                                        m_featuresToolBox->isFloating());
+        featureToolBoxClass->addBoolean("visible",
+                                        m_featuresToolBox->isVisible());
+        sceneClass->addClass(featureToolBoxClass);
+        sceneClass->addClass(m_featuresToolBox->saveToScene(sceneAttributes,
+                                                            "m_featuresToolBox"));
+    }
+    
+    /*
+     * Screen mode (normal, full, etc)
+     */
+    sceneClass->addEnumeratedType<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode",
+                                                                                                            m_screenMode);
+    
+    /*
+     * Position and size
+     */
+    SceneWindowGeometry swg(this);
+    sceneClass->addClass(swg.saveToScene(sceneAttributes,
+                                         "geometry"));
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ * 
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     SceneClass containing the state that was previously 
+ *     saved and should be restored.
+ */
+void 
+BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    /*
+     * Screen mode
+     * Note: m_screenMode must be set to a different value than 
+     * the value passed to processViewScreenActionGroupSelection().
+     */
+    m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
+    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode = 
+    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode", 
+                                                                                                                 BrainBrowserWindowScreenModeEnum::NORMAL);
+    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    switch (newScreenMode) {
+        case BrainBrowserWindowScreenModeEnum::NORMAL:
+            m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
+            processViewScreenActionGroupSelection(m_viewScreenNormalAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+            processViewScreenActionGroupSelection(m_viewScreenFullAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
+            processViewScreenActionGroupSelection(m_viewScreenMontageTabsAction);
+            break;
+        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
+            processViewScreenActionGroupSelection(m_viewScreenFullMontageTabsAction);
+            break;
+    }
+    
+    /*
+     * Restore toolbar
+     */
+    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
+    if (toolbarClass != NULL) {
+        m_toolbar->restoreFromScene(sceneAttributes,
+                                    toolbarClass);
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    
+    /*
+     * Position and size
+     */
+    SceneWindowGeometry swg(this);
+    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    QApplication::processEvents();
+    
+    /*
+     * Restore feature toolbox
+     */
+    const SceneClass* featureToolBoxClass = sceneClass->getClass("featureToolBox");
+    if (featureToolBoxClass != NULL) {
+        const bool toolBoxVisible = featureToolBoxClass->getBooleanValue("visible",
+                                                                         true);
+        const bool toolBoxFloating = featureToolBoxClass->getBooleanValue("floating",
+                                                                          false);
+        
+        if (toolBoxVisible) {
+            if (toolBoxFloating) {
+                processMoveFeaturesToolBoxToFloat();
+            }
+            else {
+                processMoveFeaturesToolBoxToRight();
+            }
+        }
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(! toolBoxVisible);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+        //processShowFeaturesToolBox(toolBoxVisible);
+        m_featuresToolBox->restoreFromScene(sceneAttributes,
+                                            sceneClass->getClass("m_featuresToolBox"));
+    }
+    
+    /*
+     * Restore overlay toolbox
+     */
+    const SceneClass* overlayToolBoxClass = sceneClass->getClass("overlayToolBox");
+    if (overlayToolBoxClass != NULL) {
+        const AString orientationName = overlayToolBoxClass->getStringValue("orientation",
+                                                                            "horizontal");
+        const bool toolBoxVisible = overlayToolBoxClass->getBooleanValue("visible",
+                                                                         true);
+        const bool toolBoxFloating = overlayToolBoxClass->getBooleanValue("floating",
+                                                                          false);
+        if (orientationName == "horizontal") {
+            processMoveOverlayToolBoxToBottom();
+        }
+        else {
+            processMoveOverlayToolBoxToLeft();
+        }
+        if (toolBoxFloating) {
+            processMoveOverlayToolBoxToFloat();
+        }
+        processShowOverlayToolBox(toolBoxVisible);
+        m_overlayActiveToolBox->restoreFromScene(sceneAttributes,
+                                                 sceneClass->getClass("m_overlayActiveToolBox"));
+    }
+    
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }    
+}
+
+void
+BrainBrowserWindow::getViewportSize(int &w, int &h)
+{
+    m_openGLWidget->getViewPortSize(w,h);
+}
+
 
 

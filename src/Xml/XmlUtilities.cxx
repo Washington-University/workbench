@@ -135,6 +135,33 @@ XmlUtilities::createInvalidChildElementMessage(const AString& parentElementName,
 }
 
 /**
+ * Create an invalid attribute message.
+ *
+ * @param elementName
+ *     Name of element.
+ * @param attributeName
+ *     Name of attribute.
+ * @param invalidAttributeValue
+ *     Invalid attribute value.
+ * @return
+ *     Message describing the invalid verion.
+ */
+AString 
+XmlUtilities::createInvalidAttributeMessage(const AString& elementName,
+                                            const AString& attributeName,
+                                            const AString& invalidAttributeValue)
+{
+    AString txt("Element "
+                + elementName 
+                + " has an attribute named "
+                + attributeName
+                + " with the invalid value "
+                + invalidAttributeValue);
+    return txt;
+}
+
+
+/**
  * Create an invalid version message.
  *
  * @param supportedVersion

@@ -24,8 +24,11 @@
 
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmException.h"
-#include "SurfaceFile.h"
+#include "GeodesicHelper.h"
 #include "MetricFile.h"
+#include "PaletteColorMapping.h"
+#include "SurfaceFile.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 using namespace std;
@@ -51,17 +54,17 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-node-roi", "specify an roi of nodes to overwrite, rather than nodes with value zero");
-    roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote nodes to have their values replaced");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
+    roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote vertices to have their values replaced");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("For all metric nodes that are designated as bad, if they neighbor a good node or are within the specified distance of a good node, ") +
-        "replace the value with a distance weighted average of nearby good nodes, otherwise set the value to zero.  If -bad-node-roi is specified, " +
-        "all nodes, including those with value zero, are good, except for nodes with a positive value in the ROI.  If it is not specified, " +
-        "only nodes with value zero are bad."
+        AString("For all metric vertices that are designated as bad, if they neighbor a good vertex or are within the specified distance of a good vertex, ") +
+        "replace the value with a distance weighted average of nearby good vertices, otherwise set the value to zero.  If -bad-vertex-roi is specified, " +
+        "all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  If it is not specified, " +
+        "only vertices with value zero are bad."
     );
     return ret;
 }
@@ -97,11 +100,11 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     int numNodes = mySurf->getNumberOfNodes();
     if (numNodes != myMetric->getNumberOfNodes())
     {
-        throw AlgorithmException("surface and metric number of nodes do not match");
+        throw AlgorithmException("surface and metric number of vertices do not match");
     }
     if (badNodeRoi != NULL && badNodeRoi->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("bad node roi number of nodes does not match");
+        throw AlgorithmException("bad vertex roi number of vertices does not match");
     }
     if (columnNum < -1 || columnNum >= myMetric->getNumberOfColumns())
     {
@@ -115,11 +118,13 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     vector<float> myAreas;
     CaretArray<int> markArray(numNodes);
     mySurf->computeNodeAreas(myAreas);
+    myMetricOut->setStructure(mySurf->getStructure());
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
         for (int thisCol = 0; thisCol < myMetric->getNumberOfColumns(); ++thisCol)
         {
+            *(myMetricOut->getMapPaletteColorMapping(thisCol)) = *(myMetric->getMapPaletteColorMapping(thisCol));
             const float* myInputData = myMetric->getValuePointerForColumn(thisCol);
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol) + " dilated");
             if (badNodeRoi == NULL)
@@ -213,6 +218,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
         const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum) + " dilated");
         if (badNodeRoi == NULL)

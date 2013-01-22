@@ -25,16 +25,18 @@
  * 
  */ 
 
+#include "CursorEnum.h"
+
 class QWidget;
 
 namespace caret {
 
+    class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
-    class BrowserTabContent;
     class MouseEvent;
     
     /**
-     * \class UserInputReceiverInterface
+     * \class caret::UserInputReceiverInterface
      * \brief Provides an interface for user input events
      *
      * Classes implementing this interface receive
@@ -51,6 +53,8 @@ namespace caret {
             INVALID,
             /** Border Operations */
             BORDERS,
+            /** Foci Operations */
+            FOCI,
             /** Viewing Operations */
             VIEW
         };
@@ -67,7 +71,7 @@ namespace caret {
          *     OpenGL Widget in which mouse event occurred.
          */
         virtual void processMouseEvent(MouseEvent* mouseEvent,
-                               BrowserTabContent* browserTabContent,
+                               BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget) = 0;
         
         /**
@@ -95,6 +99,11 @@ namespace caret {
          * delete it so derived class MUST NOT delete the widget.
          */
         virtual QWidget* getWidgetForToolBar() = 0;
+        
+        /**
+         * @return The cursor for display in the OpenGL widget.
+         */
+        virtual CursorEnum::Enum getCursor() const = 0;
         
     protected:
         UserInputReceiverInterface() { }

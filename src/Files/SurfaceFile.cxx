@@ -31,11 +31,18 @@
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "DescriptiveStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
+#include "Matrix4x4.h"
+
+#include "CaretPointLocator.h"
+#include "GeodesicHelper.h"
+#include "SignedDistanceHelper.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 
@@ -298,6 +305,31 @@ const float* SurfaceFile::getCoordinateData() const
     return this->coordinatePointer;
 }
 
+void 
+SurfaceFile::setCoordinate(const int32_t nodeIndex,
+                           const float xyzIn[3])
+{
+    CaretAssert(this->coordinatePointer);
+    const int32_t offset = nodeIndex * 3;
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfNodes() * 3)));
+    this->coordinatePointer[offset] = xyzIn[0];
+    this->coordinatePointer[offset+1] = xyzIn[1];
+    this->coordinatePointer[offset+2] = xyzIn[2];
+    invalidateHelpers();
+    setModified();
+}
+
+void 
+SurfaceFile::setCoordinates(const float *coordinates, const int64_t coordCount)
+{
+    CaretAssert(this->coordinatePointer);
+    
+    CaretAssert(this->getNumberOfNodes() == coordCount);
+    memcpy(this->coordinatePointer,coordinates,12*coordCount);    
+    invalidateHelpers();
+    //setModified();
+}
+
 /**
  * Get the number of triangles.
  *
@@ -335,6 +367,53 @@ SurfaceFile::getTriangle(const int32_t indx) const
 }
 
 /**
+ * Find the triangle that has an edge formed by "n1" and "n2"
+ * but its not "oppositeTriangle".
+ * 
+ * @param n1
+ *    First node in the edge.
+ * @param n2
+ *    Second node in the edge.
+ * @param oppositeTriangle
+ *    Triangle that on opposite side of the edge.
+ * @return
+ *    Index of triangle or -1 if not found.  If not
+ *    found surface must be open/cut.
+ */
+int32_t
+SurfaceFile::getTriangleThatSharesEdge(const int32_t n1,
+                                  const int32_t n2,
+                                  const int32_t oppositeTriangle) const
+{
+    CaretPointer<TopologyHelper> topoHelp = getTopologyHelper();
+
+    /*
+     * Get the triangles used by one of the nodes
+     */
+    int32_t numTriangles = 0;
+    const int32_t* triangles = topoHelp->getNodeTiles(n1, numTriangles);
+    
+    for (int32_t i = 0; i < numTriangles; i++) {
+        const int32_t t = triangles[i];
+        if (t != oppositeTriangle) {
+            const int* nodes = this->getTriangle(t);
+            if ((n1 == nodes[0])
+                || (n1 == nodes[1])
+                || (n1 == nodes[2])) {
+                if ((n2 == nodes[0])
+                    || (n2 == nodes[1])
+                    || (n2 == nodes[2])) {
+                    return t;
+                }
+            }
+        }
+    }
+    
+    return -1;
+}
+
+
+/**
  * Initialize members of this class.
  */
 void 
@@ -345,8 +424,10 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->triangleDataArray   = NULL;
     this->trianglePointer     = NULL;
     this->boundingBox         = NULL;
+    m_distHelperIndex = 0;
+    m_geoHelperIndex = 0;
+    m_topoHelperIndex = 0;
     m_normalsComputed = false;
-    invalidateHelpers();
 }
 
 /**
@@ -383,6 +464,11 @@ const float* SurfaceFile::getNormalData() const
     return normalVectors.data();
 }
 
+void
+SurfaceFile::invalidateNormals()
+{
+	m_normalsComputed = false;
+}
 /**
  * Compute surface normals.
  */
@@ -408,47 +494,44 @@ SurfaceFile::computeNormals(const bool averageNormals)
         float* normalPointer = &this->normalVectors[0];
         std::vector<float> numContribute(numCoords, 0.0f);
 
-#pragma omp CARET_PAR
-        {
-            float triangleNormal[3];
-#pragma omp CARET_FOR
-            for (int32_t i = 0; i < numTriangles; i++) {
-                const int32_t it3 = i * 3;
-                const int n1 = this->trianglePointer[it3];
-                const int n2 = this->trianglePointer[it3 + 1];
-                const int n3 = this->trianglePointer[it3 + 2];
-                const int32_t c1 = n1 * 3;
-                const int32_t c2 = n2 * 3;
-                const int32_t c3 = n3 * 3;
-                if ((n1 >= 0)
-                    && (n2 >= 0)
-                    && (n3 >= 0)) {
-                    
-                    MathFunctions::normalVector(&this->coordinatePointer[c1],
-                                                &this->coordinatePointer[c2],
-                                                &this->coordinatePointer[c3],
-                                                triangleNormal);
-                    
-                    normalPointer[c1 + 0] += triangleNormal[0];
-                    normalPointer[c1 + 1] += triangleNormal[1];
-                    normalPointer[c1 + 2] += triangleNormal[2];
-                    numContribute[n1] += 1.0;
-                    normalPointer[c2 + 0] += triangleNormal[0];
-                    normalPointer[c2 + 1] += triangleNormal[1];
-                    normalPointer[c2 + 2] += triangleNormal[2];
-                    numContribute[n2] += 1.0;
-                    normalPointer[c3 + 0] += triangleNormal[0];
-                    normalPointer[c3 + 1] += triangleNormal[1];
-                    normalPointer[c3 + 2] += triangleNormal[2];
-                    numContribute[n3] += 1.0;
-                }
+        float triangleNormal[3];
+        for (int32_t i = 0; i < numTriangles; i++) {
+            const int32_t it3 = i * 3;
+            const int n1 = this->trianglePointer[it3];
+            const int n2 = this->trianglePointer[it3 + 1];
+            const int n3 = this->trianglePointer[it3 + 2];
+            const int32_t c1 = n1 * 3;
+            const int32_t c2 = n2 * 3;
+            const int32_t c3 = n3 * 3;
+            if ((n1 >= 0)
+                && (n2 >= 0)
+                && (n3 >= 0)) {
+                
+                MathFunctions::normalVector(&this->coordinatePointer[c1],
+                                            &this->coordinatePointer[c2],
+                                            &this->coordinatePointer[c3],
+                                            triangleNormal);
+                
+                normalPointer[c1 + 0] += triangleNormal[0];//+= is not guaranteed to be atomic, do not parallelize
+                normalPointer[c1 + 1] += triangleNormal[1];
+                normalPointer[c1 + 2] += triangleNormal[2];
+                numContribute[n1] += 1.0;
+                normalPointer[c2 + 0] += triangleNormal[0];
+                normalPointer[c2 + 1] += triangleNormal[1];
+                normalPointer[c2 + 2] += triangleNormal[2];
+                numContribute[n2] += 1.0;
+                normalPointer[c3 + 0] += triangleNormal[0];
+                normalPointer[c3 + 1] += triangleNormal[1];
+                normalPointer[c3 + 2] += triangleNormal[2];
+                numContribute[n3] += 1.0;
             }
         }
         
 #pragma omp CARET_PAR
         {
-#pragma omp CARET_FOR
-            for (int32_t i = 0; i < numCoords; i++) {
+			int32_t i = 0;
+#pragma omp CARET_FOR schedule(static,1000) private(i)
+            for (i = 0; i < numCoords; i++) {
                 const int32_t i3 = i * 3;
                 if (numContribute[i] > 0.0) {
                     MathFunctions::normalizeVector(normalPointer + i3);
@@ -467,8 +550,9 @@ SurfaceFile::computeNormals(const bool averageNormals)
             {
                 float tempVec[3];
                 CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
-    #pragma omp CARET_FOR
-                for (int32_t i = 0; i < numCoords; ++i)
+                int32_t i = 0; 
+#pragma omp CARET_FOR schedule(static,1000) private(i)
+                for (i = 0; i < numCoords; ++i)
                 {
                     int32_t i3 = i * 3;
                     tempVec[0] = 0.0f;
@@ -502,6 +586,31 @@ SurfaceFile::computeNormals(const bool averageNormals)
 }
 
 /**
+ * Get the normal vector for a triangle.
+ * @param triangleIndex
+ *    Index of the triangle.
+ * @param normalOut
+ *    Output containing the normal for the triangle.
+ */
+void
+SurfaceFile::getTriangleNormalVector(const int32_t triangleIndex,
+                                     float normalOut[3]) const
+{
+    const int32_t it3 = triangleIndex * 3;
+    const int n1 = this->trianglePointer[it3];
+    const int n2 = this->trianglePointer[it3 + 1];
+    const int n3 = this->trianglePointer[it3 + 2];
+    const int32_t c1 = n1 * 3;
+    const int32_t c2 = n2 * 3;
+    const int32_t c3 = n3 * 3;
+    MathFunctions::normalVector(&this->coordinatePointer[c1],
+                                &this->coordinatePointer[c2],
+                                &this->coordinatePointer[c3],
+                                normalOut);
+}
+
+
+/**
  * Get the coloring for a node.
  *
  * @param nodeIndex
@@ -515,7 +624,7 @@ const float*
 SurfaceFile::getNodeColor(int32_t nodeIndex) const
 {
     CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()),
-                       "Invalid index for node coloring.");
+                       "Invalid index for vertex coloring.");
     
     return &this->nodeColoring[nodeIndex * 4];
 }
@@ -656,18 +765,69 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted) con
     return ret;
 }
 
-void caret::SurfaceFile::invalidateHelpers()
+void SurfaceFile::getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const
 {
-    CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
-    CaretMutexLocker myLock2(&m_topoHelperMutex);
-    CaretMutexLocker myLock3(&m_locatorMutex);
-    m_topoHelperIndex = 0;
-    m_topoHelpers.clear();
-    m_geoHelperIndex = 0;
-    m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
-    m_geoBase.grabNew(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
-    m_locator.grabNew(NULL);
-    m_topoBase.grabNew(NULL);
+    {
+        CaretMutexLocker myLock(&m_distHelperMutex);//lock before searching with the shared index
+        int32_t& myIndex = m_distHelperIndex;
+        int32_t myEnd = m_distHelpers.size();
+        for (int32_t i = 0; i < myEnd; ++i)
+        {
+            if (myIndex >= myEnd) myIndex = 0;
+            if (m_distHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
+            {
+                helpOut = m_distHelpers[myIndex];
+                ++myIndex;
+                return;
+            }
+            ++myIndex;
+        }
+        if (m_distBase == NULL)
+        {
+            m_distBase.grabNew(new SignedDistanceHelperBase(this));
+        }
+    }
+    CaretPointer<SignedDistanceHelper> ret(new SignedDistanceHelper(m_distBase));
+    CaretMutexLocker myLock(&m_distHelperMutex);//lock before modifying the array
+    m_distHelpers.push_back(ret);
+    helpOut = ret;
+}
+
+CaretPointer<SignedDistanceHelper> SurfaceFile::getSignedDistanceHelper() const
+{//see convenience function for geo helper for explanation
+    CaretPointer<SignedDistanceHelper> ret;
+    getSignedDistanceHelper(ret);
+    return ret;
+}
+
+void SurfaceFile::invalidateHelpers()
+{
+    if (m_geoBase != NULL)
+    {
+        CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
+        m_geoHelperIndex = 0;
+        m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+        m_geoBase.grabNew(NULL);
+    }
+    if (m_topoBase != NULL)
+    {
+        CaretMutexLocker myLock2(&m_topoHelperMutex);
+        m_topoHelperIndex = 0;
+        m_topoHelpers.clear();
+        m_topoBase.grabNew(NULL);
+    }
+    if (m_distBase != NULL)
+    {
+        CaretMutexLocker myLock4(&m_distHelperMutex);
+        m_distHelperIndex = 0;
+        m_distHelpers.clear();
+        m_distBase.grabNew(NULL);
+    }
+    if (m_locator != NULL)
+    {
+        CaretMutexLocker myLock3(&m_locatorMutex);
+        m_locator.grabNew(NULL);
+    }
 }
 
 /**
@@ -692,6 +852,91 @@ SurfaceFile::getBoundingBox() const
     }
     return this->boundingBox;
 }
+
+/**
+ * Match this surface to the given surface.  That is, after this
+ * method is called, this surface and the given surface will 
+ * fit within the same bounding box.
+ * @param surfaceFile
+ *     Match to this surface file.
+ */
+void
+SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
+{
+    CaretAssert(surfaceFile);
+    
+    const BoundingBox* targetBoundingBox = surfaceFile->getBoundingBox();
+    const BoundingBox* myBoundingBox = getBoundingBox();
+    
+    Matrix4x4 matrix;
+    
+    /*
+     * Translate min x/y/z to origin
+     */
+    matrix.translate(-myBoundingBox->getMinX(),
+                           -myBoundingBox->getMinY(),
+                           -myBoundingBox->getMinZ());
+    
+    /*
+     * Scale to match size of match surface
+     */
+    const float scaleX = (targetBoundingBox->getDifferenceX()
+                          / myBoundingBox->getDifferenceX());
+    const float scaleY = (targetBoundingBox->getDifferenceY()
+                          / myBoundingBox->getDifferenceY());
+    const float scaleZ = (targetBoundingBox->getDifferenceZ()
+                          / myBoundingBox->getDifferenceZ());
+    matrix.scale(scaleX,
+                      scaleY,
+                      scaleZ);
+    
+    /*
+     * Translate to min x/y/z of match surface so that
+     * the two surfaces are now within the same "shoebox".
+     */
+    matrix.translate(targetBoundingBox->getMinX(),
+                              targetBoundingBox->getMinY(),
+                              targetBoundingBox->getMinZ());
+    
+    applyMatrix(matrix);
+}
+
+/**
+ * Apply the given matrix to the coordinates of this surface.
+ *
+ * @param matrix
+ *    Transformation matrix that is used.
+ */
+void
+SurfaceFile::applyMatrix(const Matrix4x4& matrix)
+{
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    
+    const int32_t numberOfNodes = getNumberOfNodes();
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (th->getNodeHasNeighbors(i)) {
+            matrix.multiplyPoint3(&coordinatePointer[i*3]);
+        }
+    }
+    
+    computeNormals();
+    
+    setModified();
+}
+
+/**
+ * @return The radius of the spherical surface.
+ *    Surface is assumed spherical.
+ */
+float
+SurfaceFile::getSphericalRadius() const
+{
+    const BoundingBox* bb = getBoundingBox();
+    const float radius = bb->getMaxX() - bb->getCenterX();
+    return radius;
+}
+
+
 
 void SurfaceFile::computeNodeAreas(std::vector<float>& areasOut) const
 {
@@ -750,6 +995,23 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
 }
 
 /**
+ * @populates timeline with surface coordinates and structure information
+ */
+void
+SurfaceFile::getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const
+{
+    float point[3] = {0.0, 0.0, 0.0};
+    this->getCoordinate(nodeIndex,point);
+    AString structure = StructureEnum::toGuiName(this->getStructure());
+    AString label = structure + ":[" + AString::fromNumbers(point,3,AString(", ")) + "]";
+    for(int i = 0;i<3;i++) tl.point[i] = point[i];
+    tl.label = label;
+    
+    tl.surfaceNumberOfNodes = getNumberOfNodes();
+    tl.structure = getStructure();
+}
+
+/**
  * @return Information about the surface.
  */
 AString 
@@ -763,8 +1025,9 @@ SurfaceFile::getInformation() const
     txt += ("Type: "
             + SurfaceTypeEnum::toGuiName(this->getSurfaceType())
             + "\n");
-    txt += ("Number of Nodes: "
-            + AString::number(this->getNumberOfNodes())
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    txt += ("Number of Vertices: "
+            + AString::number(numberOfNodes)
             + "\n");
     txt += ("Number of Triangles: "
             + AString::number(this->getNumberOfTriangles())
@@ -773,13 +1036,85 @@ SurfaceFile::getInformation() const
             + AString::fromNumbers(this->getBoundingBox()->getBounds(), 6, ", ")
             + ")\n");
     
+    if (numberOfNodes > 0) {
+//        std::vector<float> nodeSpacing;
+//        nodeSpacing.reserve(numberOfNodes * 10);
+//        CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+//        int numberOfNeighbors;
+//        for (int32_t i = 0; i < numberOfNodes; i++) {
+//            const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+//            for (int32_t j = 0; j < numberOfNeighbors; j++) {
+//                const int n = neighbors[j];
+//                if (n > i) {
+//                    const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+//                                                                 this->getCoordinate(n));
+//                    nodeSpacing.push_back(dist);
+//                }
+//            }
+//        }
+//        
+//        DescriptiveStatistics stats;
+//        stats.update(nodeSpacing);
+
+        DescriptiveStatistics stats;
+        getNodesSpacingStatistics(stats);
+        const float mean = stats.getMean();
+        const float stdDev = stats.getStandardDeviationSample();
+        const float minValue = stats.getMinimumValue();
+        const float maxValue = stats.getMaximumValue();
+        
+        txt += ("Spacing:\n");
+        txt += ("    Mean: "
+                + AString::number(mean, 'f', 6)
+                + "\n");
+        txt += ("    Std Dev: "
+                + AString::number(stdDev, 'f', 6)
+                + "\n");
+        txt += ("    Minimum: "
+                + AString::number(minValue, 'f', 6)
+                + "\n");
+        txt += ("    Maximum: "
+                + AString::number(maxValue, 'f', 6)
+                + "\n");
+    }
+    
     return txt;
 }
 
 /**
+ * Get statistics on node spacing.
+ * @param statsOut
+ *    Upon exit, contains node spacing descriptive statistics.
+ */
+void
+SurfaceFile::getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const
+{
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    std::vector<float> nodeSpacing;
+    nodeSpacing.reserve(numberOfNodes * 10);
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    int numberOfNeighbors;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+        for (int32_t j = 0; j < numberOfNeighbors; j++) {
+            const int n = neighbors[j];
+            if (n > i) {
+                const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+                                                             this->getCoordinate(n));
+                nodeSpacing.push_back(dist);
+            }
+        }
+    }
+    
+    statsOut.update(nodeSpacing);
+
+}
+
+
+/**
  * Invalidate surface coloring.
  */
-void 
+void
 SurfaceFile::invalidateNodeColoringForBrowserTabs()
 {
     /*
@@ -787,6 +1122,7 @@ SurfaceFile::invalidateNodeColoringForBrowserTabs()
      */
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->surfaceNodeColoringForBrowserTabs[i].clear();
+        this->surfaceMontageNodeColoringForBrowserTabs[i].clear();
         this->wholeBrainNodeColoringForBrowserTabs[i].clear();
     }    
 }
@@ -814,6 +1150,33 @@ SurfaceFile::allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIn
         }
         else {
             this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Allocate node coloring for a surface montage in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateSurfaceMontageNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                             const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
         }
     }
 }
@@ -893,6 +1256,54 @@ SurfaceFile::setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabInd
 }
 
 /**
+ * Get the RGBA color components for this surface montage in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be 
+ *    set.
+ */
+float* 
+SurfaceFile::getSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a surface montage in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface montage in the given tab.
+ */
+void 
+SurfaceFile::setSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateSurfaceMontageNodeColoringForBrowserTab(browserTabIndex, 
+                                                   false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+
+/**
  * Get the RGBA color components for this whole brain surface in the given tab.
  * @param browserTabIndex
  *    Index of browser tab.
@@ -912,6 +1323,7 @@ SurfaceFile::getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTab
     }
     return &rgba[0];
 }
+
 
 /**
  * Set the RGBA color components for this a whole brain surface in the given tab.

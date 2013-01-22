@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -108,6 +109,7 @@ SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const Surfa
     this->setTriangleNodes(obj.getTriangleNodes());
     this->signedDistanceAboveSurface = obj.signedDistanceAboveSurface;
     this->projectionValid = obj.projectionValid;
+    this->m_degenerate = obj.m_degenerate;
 }
 
 /**
@@ -117,10 +119,15 @@ SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const Surfa
 AString 
 SurfaceProjectionBarycentric::toString() const
 {
-    const AString txt = (SurfaceProjection::toString()
-                         + "\nSurfaceProjectionBarycentric::triangleAreas=" + AString::fromNumbers(this->triangleAreas, 3, ",")
-                         + "triangleNodes=" + AString::fromNumbers(this->triangleNodes, 3, ",")
-                         + "signedDistanceAboveSurface=" + AString::number(this->signedDistanceAboveSurface));
+    AString txt = SurfaceProjection::toString();
+    if (txt.isEmpty() == false) {
+        txt += ", ";
+    }
+    txt += ("projectionValid=" + AString::fromBool(projectionValid)
+            + ", triangleAreas=(" + AString::fromNumbers(this->triangleAreas, 3, ",")
+            + "), triangleNodes=(" + AString::fromNumbers(this->triangleNodes, 3, ",")
+            + "), signedDistanceAboveSurface=" + AString::number(this->signedDistanceAboveSurface));
+    
     return txt;
 }
 
@@ -201,15 +208,21 @@ SurfaceProjectionBarycentric::setTriangleAreas(const float triangleAreas[3])
  *    Surface file used for unprojecting.
  * @param xyzOut
  *    Output containing coordinate created by unprojecting.
- * @param isUnprojectedOntoSurface
- *    If true, ouput coordinate will be directly on the surface.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface' 
+ *    distance from the surface.
  * @return
  *    True if unprojection was successful.
  */
 bool 
 SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
                                                  float xyzOut[3],
-                                                 const bool isUnprojectedOntoSurface) const
+                                                 const float offsetFromSurface,
+                                                 const bool unprojectWithOffsetFromSurface) const
 {
     /*
      * Make sure projection surface number of nodes matches surface.
@@ -294,12 +307,13 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
      * Set output coordinate, possibly offsetting from surface.
      */
     for (int j = 0; j < 3; j++) {
-        if (isUnprojectedOntoSurface) {
-            xyzOut[j] = barycentricXYZ[j];
+        if (unprojectWithOffsetFromSurface) {
+            xyzOut[j] = (barycentricXYZ[j]
+                         + (barycentricNormal[j] * offsetFromSurface));
         }
         else {
-            xyzOut[j] = barycentricXYZ[j] 
-            + (barycentricNormal[j] * signedDistanceAboveSurface);
+            xyzOut[j] = (barycentricXYZ[j] 
+                         + (barycentricNormal[j] * signedDistanceAboveSurface));
         }
     }
     
@@ -319,7 +333,7 @@ SurfaceProjectionBarycentric::reset()
  * @return Is the projection valid?
  */
 bool 
-SurfaceProjectionBarycentric::isValid()
+SurfaceProjectionBarycentric::isValid() const
 {
     return this->projectionValid;
 }
@@ -336,6 +350,28 @@ SurfaceProjectionBarycentric::setValid(const bool valid)
 }
 
 /**
+ * Set the projection is degenerate (on
+ * an edge or just outside the edge).
+ * @param degenerate
+ *     New status.
+ */
+void
+SurfaceProjectionBarycentric::setDegenerate(const bool degenerate)
+{
+    m_degenerate = degenerate;
+}
+
+/**
+ * @return Is the projection degenerate (on
+ * an edge or just outside the edge).
+ */
+bool
+SurfaceProjectionBarycentric::isDegenerate() const
+{
+    return m_degenerate;
+}
+
+/**
  * Since reset overrides the 'super' class it should
  * never be called from a constructor.  So, this 
  * method does the actual reset, and since it does
@@ -346,6 +382,7 @@ void
 SurfaceProjectionBarycentric::resetAllValues()
 {
     this->projectionValid  = false;
+    m_degenerate = false;
     
     this->triangleAreas[0] = -1.0;
     this->triangleAreas[1] = -1.0;
@@ -368,6 +405,9 @@ SurfaceProjectionBarycentric::resetAllValues()
 void 
 SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
 {
+    /*
+     * Note: Degenerate status is not saved!
+     */
     if (this->projectionValid) {
         xmlWriter.writeStartElement(XML_TAG_PROJECTION_BARYCENTRIC);
         xmlWriter.writeElementCharacters(XML_TAG_TRIANGLE_AREAS, this->triangleAreas, 3);
@@ -376,3 +416,4 @@ SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlExcepti
         xmlWriter.writeEndElement();
     }
 }
+

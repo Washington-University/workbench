@@ -34,6 +34,35 @@ CommandNiftiInformation::CommandNiftiInformation() : CommandOperation("-nifti-in
 {
 }
 
+/**
+ * @return The help information.
+ */
+AString
+CommandNiftiInformation::getHelpInformation(const AString& /*programName*/)
+{
+    AString helpInfo = ("\n"
+                        "Print information about a NIFTI file.\n"
+                        "\n"
+                        "Usage:  <nifti-file>\n"
+                        "        [-print-header]\n"
+                        "        [-print-matrix]\n"
+                        "        [-print-xml]\n"
+                        "\n"
+                        "    nifti-file\n"
+                        "        Required NIFTI file name.\n"
+                        "    \n"
+                        "    -print-header\n"
+                        "        Option to show header contents.\n"
+                        "    \n"
+                        "    -print-matrix\n"
+                        "        Option to print the matrix (CIFTI Intents only).\n"
+                        "    \n"
+                        "    -print-xml\n"
+                        "        Option to print the XML (CIFTI Intents only).\n"
+                        );
+    return helpInfo;
+}
+
 void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
     try
@@ -62,9 +91,19 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
         if(!QFile::exists(fileName)) throw CommandException("File "+fileName+" does not exist.");
         else if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) throw CommandException("File doesn't end with .nii extension, is this really a Nifti file?");
 
-        if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
+        bool validDataFileType = false;
+        const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(fileName,
+                                                                                  &validDataFileType);
+        bool isCiftiFile = false;
+        if (validDataFileType) {
+            if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+                isCiftiFile = true;
+            }
+        }
+        //if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
+        if (isCiftiFile)
         {
-            CiftiFile cf(fileName);
+            CiftiFile cf(fileName, ON_DISK);
             if(printHeader) {
                 CiftiHeader header;
                 cf.getHeader(header);
@@ -73,8 +112,7 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
                 cout << headerString << endl;
             }
             if(printXml) {
-                CiftiXML xml;
-                cf.getCiftiXML(xml);
+                const CiftiXML& xml = cf.getCiftiXML();
                 AString xmlString;
                 xml.writeXML(xmlString);
                 cout << xmlString << endl;

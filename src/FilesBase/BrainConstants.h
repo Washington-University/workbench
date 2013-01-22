@@ -39,13 +39,19 @@ namespace caret {
             MAXIMUM_NUMBER_OF_BROWSER_WINDOWS = 10,
             
             /// Maximum number of browser tabs
-            MAXIMUM_NUMBER_OF_BROWSER_TABS = 50,
+            MAXIMUM_NUMBER_OF_BROWSER_TABS = 100,
             
             /// Maximum number of overlays
             MAXIMUM_NUMBER_OF_OVERLAYS = 10,
             
             /// Minimum number of overlays
-            MINIMUM_NUMBER_OF_OVERLAYS = 3, 
+            MINIMUM_NUMBER_OF_OVERLAYS = 3,
+            
+            /// Minimum number of volume surface outlines 
+            MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 4,
+            
+            /// Maximum number of volume surface outlines 
+            MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 10
         };        
     private:
         BrainConstants();

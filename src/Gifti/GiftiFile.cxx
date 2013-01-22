@@ -470,6 +470,21 @@ GiftiFile::clear()
    // requiredArrayTypeDataTypes
 }
 
+void GiftiFile::clearAndKeepMetadata()
+{//same as above, minus metaData.clear()
+    DataFile::clear();
+    for (std::size_t i = 0; i < dataArrays.size(); i++)
+    {
+        if (dataArrays[i] != NULL)
+        {
+            delete dataArrays[i];
+            dataArrays[i] = NULL;
+        }
+    }
+    dataArrays.clear();
+    labelTable.clear();
+}
+
 /**
  * get all of the data array names.
  */

@@ -23,8 +23,12 @@
  */
 
 #include <vector>
+#include <cmath>
+#include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "Nifti2Header.h"
 #include "Nifti1Header.h"
+#include "Vector3D.h"
 
 using namespace caret;
 
@@ -291,10 +295,14 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
     header.datatype = 0;
     header.bitpix = 0;//TODO
     header.dim[0] = 0;//TODO
+    for (int i = 1; i < 8; ++i)
+    {
+        header.dim[i] = 1;
+    }
     header.intent_p1 = 0;
     header.intent_p2 = 0;
     header.intent_p3 = 0;
-    header.pixdim[0] = 0.0;header.pixdim[1] = 1.0;
+    header.pixdim[0] = 1.0;header.pixdim[1] = 1.0;
     header.pixdim[2] = 1.0;header.pixdim[3] = 1.0;
     header.pixdim[4] = 1.0;header.pixdim[5] = 1.0;
     header.pixdim[6] = 1.0;header.pixdim[7] = 1.0;
@@ -317,17 +325,17 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
     header.qoffset_x = 0.0;
     header.qoffset_y = 0.0;
     header.qoffset_z = 0.0;
-    header.srow_x[0] = 0.0;
+    header.srow_x[0] = 1.0;
     header.srow_x[1] = 0.0;
     header.srow_x[2] = 0.0;
     header.srow_x[3] = 0.0;
     header.srow_y[0] = 0.0;
-    header.srow_y[1] = 0.0;
+    header.srow_y[1] = 1.0;
     header.srow_y[2] = 0.0;
     header.srow_y[3] = 0.0;
     header.srow_z[0] = 0.0;
     header.srow_z[1] = 0.0;
-    header.srow_z[2] = 0.0;
+    header.srow_z[2] = 1.0;
     header.srow_z[3] = 0.0;
     header.slice_code = 0;
     header.xyzt_units = 0;//TODO
@@ -353,9 +361,14 @@ void Nifti2Header::setDimensions(const std::vector < int64_t > &dimensionsIn) th
 {
     if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nifti2 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
-    for(uint i =0;i<dimensionsIn.size();i++)
+    int i;
+    for(i =0;i<(int)dimensionsIn.size();i++)
     {
         m_header.dim[i+1]=dimensionsIn[i];
+    }
+    for (; i < 7; ++i)
+    {
+        m_header.dim[i + 1] = 1;
     }
 }
 void Nifti2Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
@@ -392,30 +405,128 @@ void Nifti2Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(Nifti
     }
 }
 
-void Nifti2Header::getSForm(std::vector < std::vector <float> > &sForm)
+void Nifti2Header::getSForm(std::vector<std::vector<float> >& sForm)
 {
     sForm.resize(4);
     for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);
-    for(int i = 0;i<4;i++)
+    for (int i = 0; i < 4; ++i)
     {
-        sForm[0][i] = m_header.srow_x[i];
-        sForm[1][i] = m_header.srow_y[i];
-        sForm[2][i] = m_header.srow_z[i];
-        sForm[3][i] = 0.0f;
+        for (int j = 0; j < 4; ++j)
+        {
+            sForm[i][j] = 0.0f;
+        }
     }
     sForm[3][3] = 1.0f;
+    if (m_header.sform_code != 0)//prefer sform
+    {
+        for(int i = 0;i<4;i++)
+        {
+            sForm[0][i] = m_header.srow_x[i];
+            sForm[1][i] = m_header.srow_y[i];
+            sForm[2][i] = m_header.srow_z[i];
+        }
+    } else if (m_header.qform_code != 0) {//fall back to qform
+        float rotmat[3][3], quat[4];
+        quat[1] = m_header.quatern_b;
+        quat[2] = m_header.quatern_c;
+        quat[3] = m_header.quatern_d;
+        float checkquat = quat[1] * quat[1] + quat[2] * quat[2] + quat[3] * quat[3];
+        if (checkquat <= 1.01f)//make sure qform is sane
+        {
+            if (checkquat > 1.0f)
+            {
+                quat[0] = 0.0f;
+            } else {
+                quat[0] = sqrt(1.0f - checkquat);
+            }
+            MathFunctions::quaternToMatrix(quat, rotmat);
+            for (int i = 0; i < 3; ++i)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    rotmat[i][j] *= m_header.pixdim[i + 1];
+                }
+            }
+            if (m_header.pixdim[0] < 0.0f)//left handed coordinate system, flip the kvec
+            {
+                rotmat[0][2] = -rotmat[0][2];
+                rotmat[1][2] = -rotmat[1][2];
+                rotmat[2][2] = -rotmat[2][2];
+            }
+            for (int i = 0; i < 3; ++i)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    sForm[i][j] = rotmat[i][j];
+                }
+            }
+            sForm[0][3] = m_header.qoffset_x;
+            sForm[1][3] = m_header.qoffset_y;
+            sForm[2][3] = m_header.qoffset_z;
+        } else {
+            CaretLogWarning("found quaternion with length greater than 1 in nifti2 header");
+            sForm[0][0] = m_header.pixdim[1];
+            sForm[1][1] = m_header.pixdim[2];
+            sForm[2][2] = m_header.pixdim[3];
+        }
+    } else {//fall back to analyze and complain
+        CaretLogWarning("no sform or qform code found, using ANALYZE coordinates!");
+        sForm[0][0] = m_header.pixdim[1];
+        sForm[1][1] = m_header.pixdim[2];
+        sForm[2][2] = m_header.pixdim[3];
+    }
 }
 
-void Nifti2Header::setSForm(const std::vector < std::vector <float> > &sForm)
+void Nifti2Header::setSForm(const std::vector<std::vector<float> >& sForm)
 {
-    if(sForm.size()<3) return;//TODO should throw an exception
-    for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
-    for(int i = 0;i<4;i++)
+    if (sForm.size() < 3) return;//TODO should throw an exception
+    for (uint i = 0; i < sForm.size(); i++)
+        if (sForm[i].size() < 4) return;
+    for (int i = 0; i < 4; i++)
     {
         m_header.srow_x[i] = sForm[0][i];
         m_header.srow_y[i] = sForm[1][i];
         m_header.srow_z[i] = sForm[2][i];
     }
+    m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;
+    Vector3D ivec, jvec, kvec;
+    ivec[0] = sForm[0][0]; ivec[1] = sForm[1][0]; ivec[2] = sForm[2][0];
+    jvec[0] = sForm[0][1]; jvec[1] = sForm[1][1]; jvec[2] = sForm[2][1];
+    kvec[0] = sForm[0][2]; kvec[1] = sForm[1][2]; kvec[2] = sForm[2][2];
+    m_header.pixdim[0] = 1.0f;
+    m_header.pixdim[1] = ivec.length();
+    m_header.pixdim[2] = jvec.length();
+    m_header.pixdim[3] = kvec.length();
+    ivec = ivec.normal();
+    jvec = jvec.normal();
+    kvec = kvec.normal();
+    if (kvec.dot(ivec.cross(jvec)) < 0.0f)//left handed sform!
+    {
+        m_header.pixdim[0] = -1.0f;
+        kvec = -kvec;//because to nifti, "left handed" apparently means "up is down", not "left is right"
+    }
+    float rotmat[3][3];
+    rotmat[0][0] = ivec[0]; rotmat[1][0] = jvec[0]; rotmat[2][0] = kvec[0];
+    rotmat[0][1] = ivec[1]; rotmat[1][1] = jvec[1]; rotmat[2][1] = kvec[1];
+    rotmat[0][2] = ivec[2]; rotmat[1][2] = jvec[2]; rotmat[2][2] = kvec[2];
+    float quat[4];
+    if (!MathFunctions::matrixToQuatern(rotmat, quat))
+    {
+        m_header.qform_code = NIFTI_XFORM_UNKNOWN;//0, implies that there is no qform
+        m_header.quatern_b = 0.0;//set dummy values anyway
+        m_header.quatern_c = 0.0;
+        m_header.quatern_d = 0.0;
+        m_header.qoffset_x = sForm[0][3];
+        m_header.qoffset_y = sForm[1][3];
+        m_header.qoffset_z = sForm[2][3];
+    } else {
+        m_header.qform_code = NIFTI_XFORM_SCANNER_ANAT;
+        m_header.quatern_b = quat[1];
+        m_header.quatern_c = quat[2];
+        m_header.quatern_d = quat[3];
+        m_header.qoffset_x = sForm[0][3];
+        m_header.qoffset_y = sForm[1][3];
+        m_header.qoffset_z = sForm[2][3];
+    }
+
 }
-
-

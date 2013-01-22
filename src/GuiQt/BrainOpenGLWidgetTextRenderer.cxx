@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class BrainOpenGLWidgetTextRenderer 
+ * \class caret::BrainOpenGLWidgetTextRenderer 
  * \brief Text rendering using QGLWidget.
  *
  * Draws text using methods in QGLWidget.

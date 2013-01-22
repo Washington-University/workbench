@@ -32,18 +32,25 @@
 #include "BrainConstants.h"
 #include "CaretMutex.h"
 #include "CaretPointer.h"
-#include "CaretPointLocator.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
-#include "GeodesicHelper.h"
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
-#include "TopologyHelper.h"
+#include "TimeLine.h"
 
 namespace caret {
 
     class BoundingBox;
+    class CaretPointLocator;
+    class DescriptiveStatistics;
+    class GeodesicHelper;
+    class GeodesicHelperBase;
     class GiftiDataArray;
+    class Matrix4x4;
+    class SignedDistanceHelper;
+    class SignedDistanceHelperBase;
+    class TopologyHelper;
+    class TopologyHelperBase;
     
     /**
      * A surface data file.
@@ -72,6 +79,11 @@ namespace caret {
         void getCoordinate(const int32_t nodeIndex,
                            float xyzOut[3]) const;
         
+        void setCoordinate(const int32_t nodeIndex,
+                           const float xyzIn[3]);
+
+        void setCoordinates(const float *coordinates, const int64_t coordCount);
+        
         const float* getCoordinateData() const;
         
         const float* getNormalVector(const int32_t nodeIndex) const;
@@ -82,9 +94,16 @@ namespace caret {
         
         const int32_t* getTriangle(const int32_t) const;
         
+        int32_t getTriangleThatSharesEdge(const int32_t n1,
+                                          const int32_t n2,
+                                          const int32_t oppositeTriangle) const;
+        
         void computeNormals(bool averageNormals = false);
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
+        
+        void getTriangleNormalVector(const int32_t triangleIndex,
+                                     float normalOut[3]) const;
         
         SurfaceTypeEnum::Enum getSurfaceType() const;
         
@@ -94,6 +113,8 @@ namespace caret {
         
         void setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType);
         
+        float getSphericalRadius() const;
+        
         CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false) const;
         
         void getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted = false) const;
@@ -102,7 +123,17 @@ namespace caret {
         
         void getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const;
         
+        CaretPointer<SignedDistanceHelper> getSignedDistanceHelper() const;
+        
+        void getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const;
+        
         const BoundingBox* getBoundingBox() const;
+        
+        void matchSurfaceBoundingBox(const SurfaceFile* surfaceFile);
+        
+        void applyMatrix(const Matrix4x4& matrix);
+        
+        void getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const;
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
@@ -118,10 +149,19 @@ namespace caret {
         void setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
         
+        float* getSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
+        
+        void setSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents);
+        
         float* getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
         
         void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
+
+        void getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const;
+
+		void invalidateNormals();
         
     protected:
         /**
@@ -141,6 +181,9 @@ namespace caret {
         void allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIndex,
                                                       const bool zeroizeColorsFlag);
         
+        void allocateSurfaceMontageNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                      const bool zeroizeColorsFlag);
+        
         void allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
                                                          const bool zeroizeColorsFlag);
         
@@ -154,6 +197,14 @@ namespace caret {
          * for a browser tab with the corresponding index.
          */
         std::vector<float> surfaceNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** 
+         * This coloring is used when a surface montage is displayed.
+         * Node color components Red, Green, Blue, Alpha for each browser tab.
+         * Each element of the vector points to the coloring
+         * for a browser tab with the corresponding index.
+         */
+        std::vector<float> surfaceMontageNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** 
          * This coloring is used when a Whole Brain is displayed.
@@ -184,7 +235,7 @@ namespace caret {
         mutable CaretPointer<TopologyHelperBase> m_topoBase;
         
         ///tracks allocated TopologyHelpers for this class
-        mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
+        mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;
         
         ///used to search through topology helpers without starting from 0 every time, wraps around
         mutable int32_t m_topoHelperIndex;
@@ -198,6 +249,15 @@ namespace caret {
         ///used to search through geodesic helpers without starting from 0 every time, wraps around
         mutable int32_t m_geoHelperIndex;
         
+        ///the geodesic base for this surface
+        mutable CaretPointer<SignedDistanceHelperBase> m_distBase;
+        
+        ///tracks allocated geodesic helpers for this class
+        mutable std::vector<CaretPointer<SignedDistanceHelper> > m_distHelpers;
+        
+        ///used to search through geodesic helpers without starting from 0 every time, wraps around
+        mutable int32_t m_distHelperIndex;
+        
         ///used to search for the closest point in the surface
         mutable CaretPointer<CaretPointLocator> m_locator;
         
@@ -206,7 +266,7 @@ namespace caret {
         
         mutable BoundingBox* boundingBox;
         
-        mutable CaretMutex m_topoHelperMutex, m_geoHelperMutex, m_locatorMutex;
+        mutable CaretMutex m_topoHelperMutex, m_geoHelperMutex, m_locatorMutex, m_distHelperMutex;
     };
 
 } // namespace

@@ -34,28 +34,39 @@
 #include <QObject>
 
 #include "EventListenerInterface.h"
+#include "SceneableInterface.h"
 #include "TimeCourseDialog.h"
+#include "WuQWebView.h"
 
-#include "qdialog.h"
-#include "qwidget.h"
-//class QWidget;
+class QAction;
+class QDialog;
+class QWebView;
+class QWidget;
 
+class MovieDialog;
 namespace caret {
     
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;
-    class DisplayControlDialog;
+    class CursorManager;
+    class CustomViewDialog;
     class ImageFile;
     class ImageCaptureDialog;
-    class MapScalarDataColorMappingEditorDialog;
+    class InformationDisplayDialog;
+    class MapSettingsEditorDialog;
+    class Model;
     class PreferencesDialog;
+    class Scene;
+    class SceneDialog;
+    class SceneFile;
+    class SurfacePropertiesEditorDialog;
     class ConnectivityLoaderControl;
     
     /**
      * Manages the graphical user-interface.
      */
-    class GuiManager : public QObject, public EventListenerInterface {
+    class GuiManager : public QObject, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
         
@@ -71,6 +82,8 @@ namespace caret {
         Brain* getBrain();
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
+        
+        BrainBrowserWindow* getActiveBrowserWindow() const;
         
         std::vector<BrainBrowserWindow*> getAllOpenBrainBrowserWindows() const;
         
@@ -88,30 +101,62 @@ namespace caret {
         BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
                                                                 const bool allowInvalidBrowserWindowIndex);
         
+        Model* getModelInBrowserWindow(const int32_t browserWindowIndex);
+        
         void receiveEvent(Event* event);
 
+        const CursorManager* getCursorManager() const;
+        
+        QAction* getInformationDisplayDialogEnabledAction();
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         
+        void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
+        void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
-        void processShowDisplayControlDialog(BrainBrowserWindow* browserWindow);
+        void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
                 
+        void processShowSceneDialog(BrainBrowserWindow* browserWindow);
+        
+        void processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browserWindow);
+        
+        void processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
+                                            SceneFile* sceneFile,
+                                            Scene* scene);
+        
+        void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
+        void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
+        
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
                                                      const int32_t imageSizeY,
-                                                     ImageFile& imageFileOut);
+                                                     ImageFile& imageFileOut,
+                                                     bool updateWindow = true);
         void processUpdateTimeCourseDialogs();
         TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);
         void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
-        void updateAnimationStartTime(double value);        
+        void updateAnimationStartTime(double value); 
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+        AString getNameOfDataFileToOpenAfterStartup() const;
+
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();
         void processShowSearchHelpOnlineWindow();
+        void processShowInformationWindow();
+        
+        void showHideInfoWindowSelected(bool);
         
     private:
         GuiManager(QObject* parent = 0);
@@ -123,7 +168,8 @@ namespace caret {
         GuiManager& operator=(const GuiManager&);
         
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
-                                                  BrowserTabContent* browserTabContent);
+                                                  BrowserTabContent* browserTabContent,
+                                                  const bool createDefaultTabs);
         
         void reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow);
         
@@ -135,7 +181,7 @@ namespace caret {
          * As BrainBrowser windows are closed, some of
          * the elements may be NULL.
          */
-        std::vector<BrainBrowserWindow*> brainBrowserWindows;
+        std::vector<BrainBrowserWindow*> m_brainBrowserWindows;
         
         /** Name of application */
         QString nameOfApplication;
@@ -146,14 +192,28 @@ namespace caret {
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
         
-        /* Editor for scalar color mapping. */
-        MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
+        /* Editor for map settings. */
+        std::set<MapSettingsEditorDialog*> m_mappingSettingsEditors;
         
-        DisplayControlDialog* displayControlDialog;
+        CustomViewDialog* m_customViewDialog;
         
         ImageCaptureDialog* imageCaptureDialog;
+
+        MovieDialog* movieDialog;
         
         PreferencesDialog* preferencesDialog;       
+        
+        InformationDisplayDialog* m_informationDisplayDialog;
+        
+        SceneDialog* sceneDialog;
+        
+        SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
+        
+        WuQWebView* connectomeDatabaseWebView;
+        
+        CursorManager* cursorManager;
+        
+        QAction* m_informationDisplayDialogEnabledAction;
         
         /** 
          * Tracks non-modal dialogs that are created only one time
@@ -161,8 +221,19 @@ namespace caret {
          * BrainBrowserWindow is closed in which case the dialog
          * is reparented to a different BrainBrowserWindow.
          */
-        std::vector<QDialog*> nonModalDialogs;
+        std::vector<QWidget*> nonModalDialogs;
+        
         QMap<void *,TimeCourseDialog *> timeCourseDialogs;
+        
+        /**
+         * If Workbench is started by double-clicking a data file in
+         * the Mac OSX Finder, this will contain the name of the data
+         * file.  When the event is received, Workbench has not yet
+         * created windows.  After creating the first Browser Window,
+         * the values of this string is requested, and if valid,
+         * the data file is opened.
+         */
+        AString m_nameOfDataFileToOpenAfterStartup;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__

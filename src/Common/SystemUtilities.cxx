@@ -39,9 +39,12 @@
 #include "Windows.h"
 #endif
 
+#include "CaretLogger.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
+
+AString commandLine;//used to store the command line for output by unexpected handler
 
 /**
  * Constructor.
@@ -327,6 +330,10 @@ SystemUtilities::unitTest(std::ostream& stream,
                      "remove:/usr/local",
                      "root:/var/etc");
     
+//    testRelativePath("/Volumes/DS4600/caret7_gui_design/data/HCP_demo/Glasser_PilotIII.L.very_inflated.20k_fs_LR.surf.gii",
+//                     "/Volumes/DS4600/caret7_gui_design/data/HCP_demo/border.spec",
+//                     "border.spec");
+    
     /*
      * Restore std::err
      */
@@ -499,6 +506,7 @@ SystemUtilities::relativePath(
 static void unexpectedHandler()
 {
     std::cerr << "WARNING: unhandled exception." << std::endl;
+    std::cerr << "command line: " << commandLine << std::endl;
     //if (theMainWindow != NULL) {
         const AString msg("Caret will be terminating due to an unexpected exception.\n"
                           "abort() will be called and a core file may be created.");
@@ -545,8 +553,17 @@ static void newHandler()
  * out of memory errors.
  */
 void 
-SystemUtilities::setHandlersForUnexpected()
+SystemUtilities::setHandlersForUnexpected(int argc, char** argv)
 {
+    commandLine = "";
+    if (argc > 0)
+    {
+        commandLine = argv[0];
+        for (int i = 1; i < argc; ++i)
+        {
+            commandLine += AString(" ") + AString(argv[i]);
+        }
+    }
     std::set_unexpected(unexpectedHandler);
     std::set_new_handler(newHandler);
 
@@ -594,5 +611,41 @@ void
 SystemUtilities::sleepSeconds(const float numberOfSeconds)
 {
     Sleeper::sleepSeconds(numberOfSeconds);
+}
+
+/**
+ * Get the workbench home directory
+ * @return workbenchHomeDirectory
+ *    The path to the workbench installation
+ */
+AString
+SystemUtilities::getWorkbenchHome()
+{
+    static QString workbenchHomeDirectory;
+    if(workbenchHomeDirectory.isEmpty() == false)
+    {
+        return workbenchHomeDirectory;
+    }
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    workbenchHomeDirectory = env.value ( AString("WORKBENCH_HOME") );
+    if (workbenchHomeDirectory.isEmpty()) {
+            workbenchHomeDirectory = QCoreApplication::applicationDirPath();            
+            if (workbenchHomeDirectory.isEmpty() == false) {                
+#ifdef CARET_OS_MACOSX
+                const bool appFlag = (workbenchHomeDirectory.indexOf(".app/") > 0);
+                if (appFlag) {
+                    QDir dir(workbenchHomeDirectory);
+                    dir.cdUp();
+                    dir.cdUp();
+                    dir.cdUp();
+                    workbenchHomeDirectory = dir.absolutePath();                    
+                }
+#endif
+            }
+        CaretLogFine("Workbench Home Directory: " + workbenchHomeDirectory);        
+    }    
+    
+    return workbenchHomeDirectory  = QDir::toNativeSeparators(workbenchHomeDirectory);    
 }
 

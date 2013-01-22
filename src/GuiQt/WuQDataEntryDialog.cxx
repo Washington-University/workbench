@@ -37,9 +37,12 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QTextEdit>
-#include "StructureSelectionControl.h"
-#include "SurfaceSelectionControl.h"
+
+#include "CaretColorEnumComboBox.h"
+#include "StructureEnumComboBox.h"
+#include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -86,16 +89,6 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
-    for (std::vector<StructureSelectionControl*>::iterator iter = this->structureSelectionControlsToDelete.begin();
-         iter != this->structureSelectionControlsToDelete.end();
-         iter++) {
-        delete *iter;
-    }
-    for (std::vector<SurfaceSelectionControl*>::iterator iter = this->surfaceSelectionControlsToDelete.begin();
-         iter != this->surfaceSelectionControlsToDelete.end();
-         iter++) {
-        delete *iter;
-    }
 }
 
 /**
@@ -105,21 +98,81 @@ WuQDataEntryDialog::~WuQDataEntryDialog()
  * call this to issue the accept signal.
  */
 void 
-WuQDataEntryDialog::okButtonPressed()
+WuQDataEntryDialog::okButtonClicked()
 {
-    if (dataEnteredIsValid()) {
-        accept();
+    m_isDataValid = true;
+    m_dataInvalidErrorMessage = "";
+    
+    emit validateData(this);
+    
+    if (m_isDataValid) {
+//        if (dataEnteredIsValid()) {
+//            accept();
+//        }
+        WuQDialogModal::okButtonClicked();
+    }
+    else {
+        if (m_dataInvalidErrorMessage.isEmpty()) {
+            m_dataInvalidErrorMessage = "Data is not valid.";
+        }
+        WuQMessageBox::errorOk(this,
+                               m_dataInvalidErrorMessage);
     }
 }
 
 /**
- * override to verify data after OK button pressed.
+ * This method is used to set the validity of the data
+ * widgets that were added by the user.  To use this,
+ * connect to the validateData() signal and then call
+ * this to indicate the validity of the data widgets.
+ * getDataWidgetWithName() can be used to get widgets
+ * but only will work if the user sets the name of 
+ * the widgets.
+ * @param isValid
+ *    True if the data is valid, else false.
+ * @param dataInvalidErrorMessage
+ *    If data is invalid, message describing why data is invalid.
  */
-bool 
-WuQDataEntryDialog::dataEnteredIsValid()
+void 
+WuQDataEntryDialog::setDataValid(const bool isValid,
+                                 const QString& dataInvalidErrorMessage)
 {
-   return true;
+    m_isDataValid = isValid;
+    m_dataInvalidErrorMessage = dataInvalidErrorMessage;
 }
+
+/**
+ * Get the data widget that was added by user with the
+ * given name.  For this method to return the correct
+ * widget, the user must call setObjectName() on a 
+ * widget after it is added to the dialog.
+ * 
+ * @param name
+ *    Name of the widget.
+ * @return
+ *    Pointer to widget with the given name or NULL
+ *    if the widget is not found.
+ */
+QWidget* 
+WuQDataEntryDialog::getDataWidgetWithName(const QString& name)
+{
+    const int numWidgets = widgets.size();
+    for (int i = 0; i < numWidgets; i++) {
+        if (widgets[i]->objectName() == name) {
+            return widgets[i];
+        }
+    }
+    return NULL;
+}
+
+///**
+// * override to verify data after OK button pressed.
+// */
+//bool 
+//WuQDataEntryDialog::dataEnteredIsValid()
+//{
+//   return true;
+//}
 
 /**
  * set text at top of dialog (text is automatically wrapped).
@@ -408,38 +461,54 @@ WuQDataEntryDialog::addTextEdit(const QString& labelText,
 }
 
 /**
- * Add a structure selection control.
+ * Add a caret color selection control.
  */
-StructureSelectionControl* 
-WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
-                                                 const StructureEnum::Enum defaultStructure)
+CaretColorEnumComboBox* 
+WuQDataEntryDialog::addCaretColorEnumComboBox(const QString& labelText,
+                                              const CaretColorEnum::Enum defaultColor)
 {
-    StructureSelectionControl* structureSelectionControl = 
-    new StructureSelectionControl();
-    structureSelectionControl->setSelectedStructure(defaultStructure);
+    CaretColorEnumComboBox* caretColorComboBox =
+    new CaretColorEnumComboBox(this);
+    caretColorComboBox->setSelectedColor(defaultColor);
     
     this->addWidget(labelText,
-                    structureSelectionControl->getWidget());
-    this->structureSelectionControlsToDelete.push_back(structureSelectionControl);
+                    caretColorComboBox->getWidget());
     
-    return structureSelectionControl;
+    return caretColorComboBox;
+}
+
+/**
+ * Add a structure selection control.
+ */
+StructureEnumComboBox* 
+WuQDataEntryDialog::addStructureEnumComboBox(const QString& labelText,
+                                                 const StructureEnum::Enum defaultStructure)
+{
+    StructureEnumComboBox* structureEnumComboBox = 
+    new StructureEnumComboBox(this);
+    structureEnumComboBox->setSelectedStructure(defaultStructure);
+    
+    this->addWidget(labelText,
+                    structureEnumComboBox->getWidget());
+    
+    return structureEnumComboBox;
 }
 
 /**
  * Add a surface selection control
  */
-SurfaceSelectionControl* 
-WuQDataEntryDialog::addSurfaceSelectionControl(const QString& labelText,
+SurfaceSelectionViewController* 
+WuQDataEntryDialog::addSurfaceSelectionViewController(const QString& labelText,
                                                BrainStructure* brainStructure)
 {
-    SurfaceSelectionControl* surfaceSelectionControl =
-    new SurfaceSelectionControl(brainStructure);
+    SurfaceSelectionViewController* surfaceSelectionViewController =
+    new SurfaceSelectionViewController(this,
+                                brainStructure);
     
     this->addWidget(labelText,
-                    surfaceSelectionControl->getWidget());
-    this->surfaceSelectionControlsToDelete.push_back(surfaceSelectionControl);
+                    surfaceSelectionViewController->getWidget());
     
-    return surfaceSelectionControl;
+    return surfaceSelectionViewController;
 }
 
 

@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 
 #include "CiftiFile.h"
+#include "FociFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
@@ -53,10 +54,47 @@ ParameterComponent::~ParameterComponent()
     {
         delete m_optionList[i];
     }
+    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        delete m_repeatableOptions[i];
+    }
+}
+
+RepeatableOption::~RepeatableOption()
+{
+    for (uint32_t i = 0; i < m_instances.size(); ++i)
+    {
+        delete m_instances[i];
+    }
 }
 
 OperationParameters::OperationParameters()
 {
+}
+
+ParameterComponent::ParameterComponent(const ParameterComponent& rhs)
+{
+    uint32_t i;
+    m_paramList.resize(rhs.m_paramList.size());
+    for (i = 0; i < m_paramList.size(); ++i)
+    {
+        m_paramList[i] = rhs.m_paramList[i]->cloneAbstractParameter();
+    }
+    m_outputList.resize(rhs.m_outputList.size());
+    for (i = 0; i < m_outputList.size(); ++i)
+    {
+        m_outputList[i] = rhs.m_outputList[i]->cloneAbstractParameter();
+    }
+    m_optionList.resize(rhs.m_optionList.size());
+    for (i = 0; i < m_optionList.size(); ++i)
+    {
+        m_optionList[i] = new OptionalParameter(*(rhs.m_optionList[i]));
+    }
+    m_repeatableOptions.resize(rhs.m_repeatableOptions.size());
+    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        m_repeatableOptions[i] = new RepeatableOption(*(rhs.m_repeatableOptions[i]));
+    }
 }
 
 void ParameterComponent::addOptionalParameter(OptionalParameter* param)
@@ -69,6 +107,13 @@ OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key
     OptionalParameter* ret = new OptionalParameter(key, optionSwitch, description);
     addOptionalParameter(ret);
     return ret;
+}
+
+ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
+{
+    RepeatableOption* newOpt = new RepeatableOption(key, optionSwitch, description);
+    m_repeatableOptions.push_back(newOpt);
+    return &(newOpt->m_template);
 }
 
 AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const OperationParametersEnum::Enum type)
@@ -99,6 +144,20 @@ OptionalParameter* ParameterComponent::getOptionalParameter(const int32_t key)
     return NULL;
 }
 
+const vector<ParameterComponent*>* ParameterComponent::getRepeatableParameterInstances(const int32_t key)
+{
+    uint32_t i;
+    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        if (m_repeatableOptions[i]->m_key == key)
+        {
+            return &(m_repeatableOptions[i]->m_instances);
+        }
+    }
+    CaretAssertMessage(false, "Algorithm asked for option it didn't specify");
+    return NULL;
+}
+
 AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type)
 {
     uint32_t i;
@@ -122,6 +181,11 @@ void ParameterComponent::addBooleanParameter(const int32_t key, const caret::ASt
 void ParameterComponent::addCiftiParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_paramList.push_back(new CiftiParameter(key, name, description));
+}
+
+void ParameterComponent::addFociParameter(const int32_t key, const AString& name, const AString& description)
+{
+    m_paramList.push_back(new FociParameter(key, name, description));
 }
 
 void ParameterComponent::addDoubleParameter(const int32_t key, const AString& name, const AString& description)
@@ -171,10 +235,17 @@ void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AStrin
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description)
+void ParameterComponent::addFociOutputParameter(const int32_t key, const AString& name, const AString& description)
+{
+    FociParameter* myParam = new FociParameter(key, name, description);
+    myParam->m_parameter.grabNew(new FociFile());
+    m_outputList.push_back(myParam);
+}
+
+/*void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new DoubleParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
@@ -183,10 +254,10 @@ void ParameterComponent::addMetricOutputParameter(const int32_t key, const AStri
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
+/*void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new IntegerParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
@@ -195,10 +266,10 @@ void ParameterComponent::addLabelOutputParameter(const int32_t key, const AStrin
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addStringOutputParameter(const int32_t key, const AString& name, const AString& description)
+/*void ParameterComponent::addStringOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_outputList.push_back(new StringParameter(key, name, description));
-}
+}//*/
 
 void ParameterComponent::addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
@@ -231,6 +302,11 @@ bool ParameterComponent::getBoolean(const int32_t key)
 CiftiFile* ParameterComponent::getCifti(const int32_t key)
 {
     return ((CiftiParameter*)getInputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
+}
+
+FociFile* ParameterComponent::getFoci(const int32_t key)
+{
+    return ((FociParameter*)getInputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
 double ParameterComponent::getDouble(const int32_t key)
@@ -271,6 +347,11 @@ VolumeFile* ParameterComponent::getVolume(const int32_t key)
 CiftiFile* ParameterComponent::getOutputCifti(const int32_t key)
 {
     return ((CiftiParameter*)getOutputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
+}
+
+FociFile* ParameterComponent::getOutputFoci(const int32_t key)
+{
+    return ((FociParameter*)getOutputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
 double* ParameterComponent::getOutputDouble(const int32_t key)

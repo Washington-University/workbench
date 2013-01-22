@@ -23,24 +23,22 @@
  */ 
 /*LICENSE_END*/
 
+#include <algorithm>
+#include "QApplication"
+#include "QDesktopWidget"
+#include "QImageWriter"
+#include "QFileDialog"
+#include "QMessageBox"
+#include "QPainter"
+#include "QVBoxLayout"
+#include "qwt_plot_renderer.h"
 
+#include "CaretLogger.h"
+#include "CaretPreferences.h"
+#include "SessionManager.h"
 #include "TimeCourseDialog.h"
 #include "ui_TimeCourseDialog.h"
-
-//qwt includes
-#include <qapplication.h>
-#include "qlayout.h"
-#include "qwt_plot.h"
-#include "qwt_plot_marker.h"
-#include "qwt_plot_curve.h"
-#include "qwt_legend.h"
-#include "qwt_series_data.h"
-#include "qwt_plot_canvas.h"
-#include "qwt_plot_panner.h"
-#include "qwt_plot_magnifier.h"
-#include "qwt_text.h"
-#include "qwt_math.h"
-#include "math.h"
+#include "TimeCoursePlotter.h"
 
 using namespace caret;
 
@@ -52,12 +50,46 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 #ifdef CARET_OS_WINDOWS
     this->setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
 #endif
-    this->plot = new caret::PlotTC();
+    this->plot = new caret::TimeCoursePlotter();
     isEnabled = true;
+    this->ui->TDMinTime->setEnabled(true);
+    this->ui->TDMaxTime->setEnabled(true);
+    this->ui->TDMinActivity->setEnabled(true);
+    this->ui->TDMaxActivity->setEnabled(true);
+    this->ui->TDMinTime->setMinimum(-1000000.0);
+    this->ui->TDMaxTime->setMinimum(-1000000.0);
+    this->ui->TDMinActivity->setMinimum(-1000000.0);
+    this->ui->TDMaxActivity->setMinimum(-1000000.0);
+    this->ui->TDMinTime->setMaximum(1000000.0);
+    this->ui->TDMaxTime->setMaximum(1000000.0);
+    this->ui->TDMinActivity->setMaximum(1000000.0);
+    this->ui->TDMaxActivity->setMaximum(1000000.0);
+    /*QObject::connect(this->plot, SIGNAL(timeStartValueChanged(double)),
+                    this->ui->TDMinTime, SLOT(setValue(double)));
+    QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
+                    this->ui->TDMaxTime, SLOT(setValue(double)));*/
+    QObject::connect(this->plot, SIGNAL(activityMinValueChanged(double)),
+                    this, SLOT(plotActivityMinValueChanged(double)));
+    QObject::connect(this->plot, SIGNAL(activityMaxValueChanged(double)),
+                    this, SLOT(plotActivityMaxValueChanged(double)));
+    QObject::connect(this->plot, SIGNAL(timeStartValueChanged(double)),
+                    this, SLOT(plotTimeStartValueChanged(double)));
+    QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
+                    this, SLOT(plotTimeEndValueChanged(double)));
+    this->layout()->setContentsMargins(0,0,0,0);
+    //this->layout()->addWidget(plot);
+    QVBoxLayout *layout = (QVBoxLayout *)this->layout();
+    layout->insertWidget(0,plot,100);
+    
 
-    ui->verticalLayout_4->setContentsMargins(0,0,0,0);
-    ui->verticalLayout_4->insertWidget(0,plot,100);
+    //ui->verticalLayout_4->setContentsMargins(0,0,0,0);
+    //ui->verticalLayout_4->insertWidget(0,plot,100);
+    //CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    double time = 0.0;    
+    this->setAnimationStartTime(time);
 }
+
+
 
 TimeCourseDialog::~TimeCourseDialog()
 {
@@ -67,45 +99,71 @@ TimeCourseDialog::~TimeCourseDialog()
 void TimeCourseDialog::addTimeLine(TimeLine &tl)
 {    
     tlV.push_back(tl);
+    //readjust x values to account for timestep
+    double timeStep = ((tlV.last().timeStep>0.0001) ? tlV.last().timeStep : 1.0);
+    for(int j = 0;j<tlV.last().x.size();j++)
+    {
+        tlV.last().x[j] = startOffset + timeStep*(double)j;
+    }
 }
 
 void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
 {
     for(int i = 0;i<tlVIn.size();i++)
     {
-        tlV.push_back(tlVIn[i]);
+        this->addTimeLine(tlV[i]);
     }
-    //readjust x values to account for timestep
-    for(int i =0;i<tlV.size();i++)
-    {        
-        for(int j = 0;j<tlV[i].x.size();j++)
-        {
-            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
-        }
-    }
-
 }
 
-void TimeCourseDialog::updateDialog(bool forceUpdate)
+void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDisableAutoScale)
 {
     if(tlV.isEmpty() && !forceUpdate) return;
     if(!this->isEnabled) return;
     if(!(this->filename.length())) 
     {   
-        this->filename = tlV[0].filename;
-        AString temp = filename;
-        if(temp.length() > 80) temp = "..." + temp.right(80);
-        this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
+        if(this->tlV.count())
+        {
+            this->filename = tlV[0].filename;
+            AString temp = filename;
+            if(temp.length() > 80) temp = "..." + temp.right(80);
+            this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
+        }
+        else 
+        {
+            this->filename = " ";
+            this->setWindowTitle("Time Course");
+        }
+        
     }
     plot->detachItems();
-    plot->populate(tlV);    
+    plot->populate(tlV,forceDisableAutoScale);    
+    this->populateHistory();
     this->setVisible(true);
     this->show();
     this->activateWindow();
     plot->update();
     plot->replot();
     plot->setFocus();
-    plot->setAttribute(Qt::WA_NoMousePropagation,true);
+    this->setAttribute(Qt::WA_NoMousePropagation,true);    
+    plot->legend()->setVisible(false);
+    plot->legend()->setDisabled(true);
+    plot->legend()->clear();
+}
+
+void TimeCourseDialog::populateHistory()
+{
+    if(tlV.isEmpty()) return;
+    this->ui->TDHistoryList->clear();
+    for(int i =0;i<tlV.size();i++)
+    { 
+        
+//        this->ui->TDHistoryList->setTextColor(plot->colors.getColor(tlV[i].colorID));
+//        this->ui->TDHistoryList->append(tlV[i].label);
+        QListWidgetItem *item = new QListWidgetItem(tlV[i].label);
+        item->setTextColor(plot->colors.getColor(tlV[i].colorID));
+        this->ui->TDHistoryList->addItem(item);
+        this->ui->TDHistoryList->show();
+    }
 }
 
 void TimeCourseDialog::setAnimationStartTime(const double &time)
@@ -114,14 +172,15 @@ void TimeCourseDialog::setAnimationStartTime(const double &time)
     if(tlV.isEmpty()) return;
     
     for(int i =0;i<tlV.size();i++)
-    {        
+    { 
+        double timeStep = ((tlV[i].timeStep>0.0001) ? tlV[i].timeStep : 1.0);
         for(int j = 0;j<tlV[i].x.size();j++)
         {
-            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
+            tlV[i].x[j] = startOffset + timeStep*(double)j;
         }
     }
     plot->detachItems();
-    plot->populate(tlV);
+    plot->populate(tlV,true);
     plot->update();
     plot->replot();    
 }
@@ -138,33 +197,68 @@ void TimeCourseDialog::on_TDClearChart_clicked()
 {
     this->plot->clear(tlV);
     tlV.clear();
+    this->ui->TDHistoryList->clear();
     this->updateDialog(true);
 }
 
 void TimeCourseDialog::on_TDMinTime_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::xBottom);
+    plot->setAxisScale(QwtPlot::xBottom,arg1,sd->upperBound());
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMaxTime_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::xBottom);
+    plot->setAxisScale(QwtPlot::xBottom,sd->lowerBound(),arg1);
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMinActivity_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::yLeft);
+    plot->setAxisScale(QwtPlot::yLeft,arg1,sd->upperBound());
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMaxActivity_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::yLeft);
+    plot->setAxisScale(QwtPlot::yLeft,sd->lowerBound(),arg1);
+    plot->QwtPlot::replot();
 }
 
+void TimeCourseDialog::plotTimeEndValueChanged(double time)
+{
+    this->ui->TDMaxTime->blockSignals(true);
+    this->ui->TDMaxTime->setValue(time);
+    this->ui->TDMaxTime->blockSignals(false);
+
+}
+void TimeCourseDialog::plotTimeStartValueChanged(double time)
+{
+    this->ui->TDMinTime->blockSignals(true);
+    this->ui->TDMinTime->setValue(time);
+    this->ui->TDMinTime->blockSignals(false);
+}
+void TimeCourseDialog::plotActivityMaxValueChanged(double time)
+{
+    this->ui->TDMaxActivity->blockSignals(true);
+    this->ui->TDMaxActivity->setValue(time);
+    this->ui->TDMaxActivity->blockSignals(false);
+}
+void TimeCourseDialog::plotActivityMinValueChanged(double time)
+{
+    this->ui->TDMinActivity->blockSignals(true);
+    this->ui->TDMinActivity->setValue(time);
+    this->ui->TDMinActivity->blockSignals(false);
+}
 void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
 {
     this->plot->setDisplayAverage(checked);
-    this->updateDialog();
+    this->updateDialog(true,true);
+
 }
 
 void TimeCourseDialog::setTimeSeriesGraphEnabled(bool enabled)
@@ -173,171 +267,28 @@ void TimeCourseDialog::setTimeSeriesGraphEnabled(bool enabled)
 }
 
 
-
-
-PlotTC::PlotTC(QWidget *parent):
-    QwtPlot( parent )
+void TimeCourseDialog::updateExtents()
 {
-    max = 5;
-    lineWidth = 1;
-    autoScaleEnabled = true;
-    // panning with the left mouse button
-    (void) new QwtPlotPanner( canvas() );
-
-    // zoom in/out with the wheel`
-    magnifier = new QwtPlotMagnifier( canvas() );
-    magnifier->setAxisEnabled(QwtPlot::yLeft,false);
-    magnifier->setAxisEnabled(QwtPlot::yRight,false);
-    
-
-    setAutoFillBackground( true );
-    setPalette( QPalette( QColor( 165, 193, 228 ) ) );    
-
-    setTitle("Time Course");
-    insertLegend(new QwtLegend(), QwtPlot::RightLegend);
-
-    // canvas
-    canvas()->setLineWidth( 1 );
-    canvas()->setFrameStyle( QFrame::Box | QFrame::Plain );
-    canvas()->setBorderRadius( 1 );//15
-
-    QPalette canvasPalette( Qt::white );
-    canvasPalette.setColor( QPalette::Foreground, QColor( 133, 190, 232 ) );
-    canvas()->setPalette( canvasPalette );
-    this->displayAverage = false;
-}
-
-void PlotTC::clear(QList<TimeLine> &tlV)
-{
-    for(int i =0;i<tlV.size();)
-    {
-        colors.removeColor(tlV.at(0).colorID);
-        tlV.pop_front();
-    }
-}
-
-void PlotTC::populate(QList<TimeLine> &tlV)
-{
-    if(tlV.isEmpty()) return;
-    //Delete oldest time lines first if we are displaying more than max number of time lines
-    if(tlV.size()>max)
-    {
-        for(int i =0;i<(tlV.size()-max);)
-        {
-            colors.removeColor(tlV.at(0).colorID);
-            tlV.pop_front();
-        }
-    }
-    // Make sure all timelines have a valid color assigned to them
-    for(int i=0;i<tlV.size();i++)
-    {
-        if(tlV.at(i).colorID == -1)
-        {
-            tlV[i].colorID = colors.getNewColor();
-        }
-    }
-    // Insert new curves
-    //setAxisScale(xBottom,0,x.size()-1);
-    //setAxisScale(yLeft,0,y.size()-1);
-
-    //Plot Time Lines
-    if(this->getAutoScale())
-    {
-        setAxisAutoScale(QwtPlot::xBottom);
-        setAxisAutoScale(QwtPlot::yLeft);
-    }
-    else
-    {
-        setAxisAutoScale(QwtPlot::xBottom,false);
-        setAxisAutoScale(QwtPlot::yLeft,false);
-    }
-    
-    for(int i = 0;i<tlV.size();i++)
-    {
-        drawTimeLine(tlV[i]);
-    }
-    if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
-    
-}
-
-void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
-{
-    QPen *myPen;
-    if(pen == NULL)
-
-    {
-        myPen = new QPen(colors.getColor(tl.colorID));
-        myPen->setWidth(this->lineWidth);
-    }
-    else
-    {
-        myPen = pen;
-    }
-    QwtPlotCurve *tc = new QwtPlotCurve();
-    tc->setRenderHint(QwtPlotItem::RenderAntialiased);
-    //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
-    tc->setPen(*myPen);
-
-    tc->setSamples(tl.x,tl.y);
-    tc->attach(this);
-    if(pen == NULL) delete myPen;
+    double tmin, tmax, amin, amax;
+    this->plot->getTimeExtents(tmin,tmax);
+    this->plot->getActivityExtents(amin, amax);
+    this->ui->TDMinActivity->setMinimum(amin);
+    this->ui->TDMinActivity->setMaximum(amax - 1.0);
+    this->ui->TDMinTime->setMinimum(tmin);
+    this->ui->TDMinTime->setMaximum(tmax - 1.0);
+    this->ui->TDMaxActivity->setMinimum(amin + 1.0);
+    this->ui->TDMaxActivity->setMaximum(amax);
+    this->ui->TDMaxTime->setMinimum(tmin + 1.0);
+    this->ui->TDMaxTime->setMaximum(tmax);    
 }
 
 
-void PlotTC::calculateAndDisplayAverage(QList<TimeLine> &tlV)
-{
-    int64_t xmax =0;
-    for(int i =0;i<tlV.size();i++)
-    {
-        xmax = std::max<int64_t>(tlV[i].x.size(),xmax);
-    }
-    averageTimeLine.x.clear();
-    averageTimeLine.y.clear();
-    for(int i =0;i<xmax;i++)
-    {
-        averageTimeLine.x.push_back(0.0);
-        averageTimeLine.y.push_back(0.0);
-        uint64_t divisor = 0.0;
 
-        for(int j = 0;j<tlV.size();j++)
-        {
-            if(i>=tlV[j].x.size()) continue;
-            divisor++;
-            averageTimeLine.x[i] += tlV[j].x[i];
-            averageTimeLine.y[i] += tlV[j].y[i];
-
-        }
-        averageTimeLine.x[i] /= divisor;
-        averageTimeLine.y[i] /= divisor;
-    }
-    QPen pen(colors.getColor(averageTimeLine.colorID));
-    pen.setDashOffset(4);
-    pen.setWidth(2);
-    drawTimeLine(averageTimeLine,&pen);
-}
-
-void PlotTC::setDisplayAverage(bool checked)
-{
-    displayAverage = checked;
-    if(checked)
-    {
-        averageTimeLine.colorID = colors.getNewColor();
-    }
-    else
-    {
-        colors.removeColor(averageTimeLine.colorID);
-    }
-}
-
-void PlotTC::resizeEvent( QResizeEvent *event )
-{
-    QwtPlot::resizeEvent( event );
-}
 
 void TimeCourseDialog::on_TDKeepLast_valueChanged(int arg1)
 {
     this->plot->setMaxTimeLines(arg1);
-    this->updateDialog();
+    this->updateDialog(true,true);
 }
 
 void TimeCourseDialog::on_zoomXCheckBox_toggled(bool checked)
@@ -355,33 +306,7 @@ void TimeCourseDialog::on_zoomYCheckBox_toggled(bool checked)
 void TimeCourseDialog::on_lineWidthSpinBox_valueChanged(int arg1)
 {
     this->plot->setTimeLineWidth(arg1);
-    this->updateDialog(true);
-}
-
-void PlotTC::setTimeLineWidth(int width)
-{
-    this->lineWidth = width;    
-}
-
-void PlotTC::setAutoScaleEnabled(bool checked)
-{
-    this->autoScaleEnabled = checked;
-}
-
-bool PlotTC::getAutoScale()
-{
-    if(autoScaleOnce || autoScaleEnabled)
-    {
-        autoScaleOnce = false;
-        return true;
-    }
-    else
-        return false;
-}
-
-void PlotTC::resetView()
-{
-    autoScaleOnce = true;
+    this->updateDialog(true,true);
 }
 
 void TimeCourseDialog::on_autoFitTimeLinesCheckBox_toggled(bool checked)
@@ -394,4 +319,79 @@ void TimeCourseDialog::on_resetViewButton_clicked()
 {
     this->plot->resetView();
     this->updateDialog(true);
+}
+
+void TimeCourseDialog::on_exportImageButton_clicked()
+{
+    QStringList formats;
+    QString formatString("Image Files (");
+    
+    for ( int i = 0; i < QImageWriter::supportedImageFormats().count(); i++ ) {
+        QString str = QString( QImageWriter::supportedImageFormats().at( i ) );
+        formats.append( str );
+        formatString.append("*."+str);
+        if(i<(QImageWriter::supportedImageFormats().count()-1)) formatString.append(" ");
+        else formatString.append(")");
+    }
+    QStringList files;
+
+    QString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+    if ( !fileName.isEmpty() )
+    {
+        /*QPixmap *image = new QPixmap(this->plot->width(),this->plot->height());
+        //image->setDotsPerMeterX(1000);
+        //image->setDotsPerMeterY(1000);
+        QwtPlotRenderer *renderer = new QwtPlotRenderer();
+        renderer->renderDocument(this->plot, filename, QRectF(this->plot->width(),this->plot->height());
+        image->save(filename, "*.jpg");
+        std::cout << "File Saved" << std::endl;
+        delete image;*/
+
+        const QRect imageRect = this->plot->rect();
+        //const int dotsPerMeter = 3863;//85 DPI converted to meters
+        QImage image( imageRect.size(), QImage::Format_ARGB32 );
+        image.setDotsPerMeterX( float(QApplication::desktop()->physicalDpiX())/0.0254);//dotsPerMeter );
+        image.setDotsPerMeterY( float(QApplication::desktop()->physicalDpiY())/0.0254);//dotsPerMeter );
+        image.fill( QColor( Qt::white ).rgb() );
+
+        QPainter painter( &image );
+        
+        QwtPlotRenderer * renderer = new QwtPlotRenderer();
+        renderer->render( plot, &painter, imageRect );
+        painter.end();
+
+        image.save( fileName );
+    }
+}
+
+void TimeCourseDialog::on_openTimeLineButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName( this, tr("Open Dvars File"),QString::null, tr("Dvars Files (*.txt)") );
+    QFile file(fileName);
+    //file.open(QIODevice::ReadOnly);
+    TimeLine tl;
+    tl.timeStep = 1.0;
+    tl.label = fileName;
+    tl.filename = fileName;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        
+        CaretLogWarning("There was an error reading the dvars file.");
+        return;
+    }
+    while(!file.atEnd())
+    {
+        QByteArray line = file.readLine(100);
+        float var = 0.0;
+        sscanf(line,"%g ", &var);
+        tl.y.push_back(var);        
+    }
+    tl.x.resize(tl.y.count());
+    this->addTimeLine(tl);
+    this->updateDialog();
+}
+
+void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem* /*item*/)
+{
+
 }

@@ -44,16 +44,18 @@ using namespace caret;
  * @param dy
  *    Change in mouse Y-coordinate
  */
-MouseEvent::MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
+MouseEvent::MouseEvent(const int32_t browserWindowIndex,
+                       const MouseEventTypeEnum::Enum mouseEventType,
                        const Qt::KeyboardModifiers keyModifiers, 
-                       const int x,
-                       const int y,
-                       const int dx,
-                       const int dy)
+                       const int32_t x,
+                       const int32_t y,
+                       const int32_t dx,
+                       const int32_t dy)
 : CaretObject()
 {
     this->initializeMembersMouseEvent();
 
+    this->browserWindowIndex = browserWindowIndex;
     this->mouseEventType = mouseEventType;
     this->x = x;
     this->y = y;
@@ -63,14 +65,15 @@ MouseEvent::MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
     if (keyModifiers == Qt::NoButton) {
         // nothing
     }
-    else if (keyModifiers == Qt::AltModifier) {
-        this->keyDownAlt = true;           
-    }
     else if (keyModifiers == Qt::ControlModifier) {
         this->keyDownControl = true;           
     }
     else if (keyModifiers == Qt::ShiftModifier) {
         this->keyDownShift = true;            
+    }
+    else if ((keyModifiers & Qt::ControlModifier)
+             && (keyModifiers & Qt::ShiftModifier)) {
+        this->keyDownControlAndShift = true;           
     }
     else {
         /*
@@ -115,13 +118,16 @@ MouseEvent::initializeMembersMouseEvent()
     this->dx = 0;
     this->dy = 0;
     this->wheelRotation = 0;
-    this->keyDownAlt = false;
+    
+    this->setNoKeysDown();
+}
+
+void 
+MouseEvent::setNoKeysDown()
+{
+    this->keyDownControlAndShift = false;
     this->keyDownControl = false;
     this->keyDownShift = false;
-    
-    this->graphicsUpdateOneWindowRequested = false;
-    this->graphicsUpdateAllWindowsRequested = false;
-    this->userInterfaceUpdateRequested = false;
 }
 
 /**
@@ -151,12 +157,22 @@ MouseEvent::toString() const
     + ", y=" + AString::number(this->y)
     + ", dx=" + AString::number(this->dx)
     + ", dy=" + AString::number(this->dy);
-    + ", keyDownAlt=" + AString::fromBool(this->keyDownAlt)
+    + ", keyDownControlAndShift=" + AString::fromBool(this->keyDownControlAndShift)
     + ", keyDownControl=" + AString::fromBool(this->keyDownControl)
     + ", keyDownShift=" + AString::fromBool(this->keyDownShift)
     + ", wheelRotation=" + AString::number(this->wheelRotation);
     
     return msg;
+}
+
+/**
+ * @return Index of the browser window in which the
+ * event took place.
+ */
+int32_t 
+MouseEvent::getBrowserWindowIndex() const
+{
+    return this->browserWindowIndex;
 }
 
 /**
@@ -232,21 +248,20 @@ MouseEvent::getWheelRotation() const
 bool 
 MouseEvent::isAnyKeyDown() const
 {
-    const bool anyKeyDown = 
-    this->keyDownAlt
-    || this->keyDownControl
-    || this->keyDownShift;
+    const bool anyKeyDown = (this->keyDownControlAndShift
+                             || this->keyDownControl
+                             || this->keyDownShift);
     
     return anyKeyDown;
 }
 
 /**
- * @return Is the ALT key down?
+ * @return Is the CONTROL AND SHIFT key down?
  */
 bool 
-MouseEvent::isAltKeyDown() const
+MouseEvent::isControlAndShiftKeyDown() const
 {
-    return this->keyDownAlt;
+    return this->keyDownControlAndShift;
 }
 
 /**
@@ -266,65 +281,3 @@ MouseEvent::isShiftKeyDown() const
 {
     return this->keyDownShift;
 }
-
-/**
- * @return Is a graphics update of the window
- * after processing the mouse event requested?
- */
-bool 
-MouseEvent::isGraphicsUpdateOneWindowRequested() const
-{
-    return this->graphicsUpdateOneWindowRequested;
-}
-
-/**
- * Request a graphics update of the window after
- * the mouse event has been processed.
- */
-void 
-MouseEvent::setGraphicsUpdateOneWindowRequested()
-{
-    this->graphicsUpdateOneWindowRequested = true;
-}
-
-/**
- * @return Is a graphics update of all windows
- * after processing the mouse event requested?
- */
-bool 
-MouseEvent::isGraphicsUpdateAllWindowsRequested() const
-{
-    return this->graphicsUpdateAllWindowsRequested;
-}
-
-/**
- * Request a graphics update of all windows after
- * the mouse event has been processed.
- */
-void 
-MouseEvent::setGraphicsUpdateAllWindowsRequested()
-{
-    this->graphicsUpdateAllWindowsRequested = true;
-}
-
-/**
- * @return Is a user-interface update after
- * the processing the mouse event requested?
- */
-bool 
-MouseEvent::isUserInterfaceUpdateRequested() const
-{
-    return this->userInterfaceUpdateRequested;
-}
-
-/**
- * Request a user-interface update after the
- * mouse event has been processed.
- */
-void 
-MouseEvent::setUserInterfaceUpdateRequested()
-{
-    this->userInterfaceUpdateRequested = true;
-}
-
-

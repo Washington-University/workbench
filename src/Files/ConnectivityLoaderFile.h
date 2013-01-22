@@ -38,6 +38,8 @@ namespace caret {
     class CiftiFile;
     class CiftiXnat;
     class CiftiInterface;
+    class CiftiScalarFile;
+    class Palette;
     class SurfaceFile;
     class VolumeFile;
     
@@ -56,8 +58,12 @@ namespace caret {
         virtual bool isEmpty() const;
 
         bool isDataLoadingEnabled() const;
-        
+
         void setDataLoadingEnabled(const bool enabled);
+
+        bool isYokeEnabled() const { return this->yokeEnabled; }
+
+        void setYokeEnabled(const bool &enabled) { this->yokeEnabled = enabled; }
         
         void setupLocalFile(const AString& filename,
                             const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
@@ -139,21 +145,38 @@ namespace caret {
         bool isDense() const;
         
         bool isDenseTimeSeries() const;
+
+        bool hasDataSeriesLabels();
+
+        bool isAnimationEnabled() const;
+        
+        void setAnimationEnabled(const bool animationEnabled);
         
         AString getCiftiTypeName() const;
         
-        void loadDataForSurfaceNode(const StructureEnum::Enum structure,
+        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t nodeIndex) throw (DataFileException);
         
-        void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        void loadAverageDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+
+        void loadAverageTimeSeriesForSurfaceNodes(const StructureEnum::Enum structure,
+                                    const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException);
+        
+        int64_t loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         void loadTimePointAtTime(const float seconds) throw (DataFileException);
+
+        void loadFrame(const int frame) throw (DataFileException);
         
         int32_t getNumberOfDataElements() const;
         
         float* getData();
         
         float* getDataRGBA();
+        
+        void updateRGBAColoring(const Palette* palette,
+                                const int32_t mapIndex);
         
         bool getVolumeVoxelValue(const float xyz[3],
                                  int64_t ijkOut[3],
@@ -168,7 +191,6 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
-
         VolumeFile* getConnectivityVolumeFile();
         int64_t getNumberOfTimePoints();
 
@@ -178,15 +200,28 @@ namespace caret {
         
         void setTimeSeriesGraphEnabled(const bool showGraph);
         
-        float getSelectedTimePoint() const;
+        //float getSelectedTimePoint() const;
 
-        void loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
-                          const int32_t nodeIndex) throw (DataFileException);
+        int getSelectedFrame() const;
+
+        int64_t loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
+                          const int32_t nodeIndex, const TimeLine &timeLine) throw (DataFileException);
 
                          
-        void loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        int64_t loadTimeLineForVoxelAtCoordinate(const float xyz[3],TimeLine &timeLine) throw (DataFileException);
         void getTimeLine(TimeLine &tl);
         
+        int32_t getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+
+        ///get the map name for an index along a column
+        AString getMapNameForColumnIndex(const int& index) const;
+
+        ///get the map name for an index along a row
+        AString getMapNameForRowIndex(const int& index) const;
+        
+        
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                             const PaletteFile* paletteFile);
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
         ConnectivityLoaderFile& operator=(const ConnectivityLoaderFile&);
@@ -194,7 +229,10 @@ namespace caret {
         enum LoaderType {
             LOADER_TYPE_INVALID,
             LOADER_TYPE_DENSE,
-            LOADER_TYPE_DENSE_TIME_SERIES
+            LOADER_TYPE_DENSE_LABELS,
+            LOADER_TYPE_DENSE_SCALARS,
+            LOADER_TYPE_DENSE_TIME_SERIES,
+            LOADER_TYPE_FIBER_ORIENTATIONS
         };
         
         enum MapToType {
@@ -216,6 +254,8 @@ namespace caret {
         
         void zeroizeData();
         
+        void loadDataIntoVolume();
+        
         LoaderType loaderType;
         
         MapToType mapToType;
@@ -232,7 +272,7 @@ namespace caret {
         
         CaretPointer<Histogram> m_histogram;
         
-        PaletteColorMapping* paletteColorMapping;
+        //PaletteColorMapping* paletteColorMapping;
         
         GiftiLabelTable* labelTable;
         
@@ -240,6 +280,7 @@ namespace caret {
         
         float* data;
         float* dataRGBA;
+        
         int32_t numberOfDataElements;
         
         VolumeFile* connectivityVolumeFile;
@@ -247,12 +288,23 @@ namespace caret {
         bool timeSeriesGraphEnabled;
         
         bool dataLoadingEnabled;
+
+        bool yokeEnabled;
         
-        float selectedTimePoint;
+        //float selectedTimePoint;
+
+        int selectedFrame;
 
         TimeLine tl;
+
+        bool animationEnabled;
+        
+        int32_t progressUpdateInterval;
         
         AString uniqueID; // DO NOT COPY
+        
+        friend class CiftiFiberTrajectoryFile;
+        friend class CiftiScalarFile;
     };
     
 } // namespace

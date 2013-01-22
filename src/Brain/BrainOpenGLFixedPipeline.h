@@ -31,31 +31,46 @@
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
 #include "BrainOpenGLTextRenderInterface.h"
-#include "IdentificationItemDataTypeEnum.h"
+#include "CaretVolumeExtension.h"
+#include "DisplayGroupEnum.h"
+#include "FiberOrientationColoringTypeEnum.h"
+#include "FiberOrientationSymbolTypeEnum.h"
+#include "Model.h"
+#include "SelectionItemDataTypeEnum.h"
+#include "StructureEnum.h"
 #include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "WholeBrainVoxelDrawingMode.h"
+
 
 class QGLWidget;
 
 namespace caret {
     
+    class BoundingBox;
     class Brain;
+    class BrainOpenGLShapeCone;
+    class BrainOpenGLShapeCube;
+    class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class FastStatistics;
+    class DisplayPropertiesFiberOrientation;
     class DescriptiveStatistics;
-    class IdentificationItem;
-    class IdentificationManager;
+    class FiberOrientation;
+    class SelectionItem;
+    class SelectionManager;
     class IdentificationWithColor;
+    class Plane;
     class Surface;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
+    class Model;
+    class ModelSurface;
+    class ModelSurfaceMontage;
+    class ModelVolume;
+    class ModelWholeBrain;
     class Palette;
     class PaletteColorMapping;
     class PaletteFile;
-    class SphereOpenGL;
     class VolumeFile;
     
     /**
@@ -82,7 +97,8 @@ namespace caret {
         
         void selectModel(BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
-                         const int32_t mouseY);
+                         const int32_t mouseY,
+                         const bool applySelectionBackgroundFiltering);
         
         void projectToModel(BrainOpenGLViewportContent* viewportContent,
                             const int32_t mouseX,
@@ -95,26 +111,55 @@ namespace caret {
         class VolumeDrawInfo {
         public:
             VolumeDrawInfo(VolumeFile* volumeFile,
-                           Palette* palette,
+                           Brain* brain,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
+                           const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                            const int32_t mapIndex,
                            const float opacity);
-            
+            Brain* brain;
             VolumeFile* volumeFile;
-            Palette* palette;
+            SubvolumeAttributes::VolumeType volumeType;
             PaletteColorMapping* paletteColorMapping;
+            WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode;
             const FastStatistics* statistics;
             int32_t mapIndex;
             float opacity;
         };
         
+        struct FiberOrientationDisplayInfo {
+            float aboveLimit;
+            float belowLimit;
+            BoundingBox* boundingBox;
+            FiberOrientationColoringTypeEnum::Enum colorType;
+            float fanMultiplier;
+            bool isDrawWithMagnitude;
+            float minimumMagnitude;
+            float magnitudeMultiplier;
+            Plane* plane;
+            FiberOrientationSymbolTypeEnum::Enum symbolType;
+        };
+        
+        void setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
+                                            BoundingBox* boundingBox,
+                                            Plane* plane,
+                                            FiberOrientationDisplayInfo& dispInfo);
+        
+//        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
+//                            const float* scalarValues,
+//                            const float* thresholdValues,
+//                            const int32_t numberOfScalars,
+//                            float* rgbaOut,
+//                            const bool ignoreThresholding);
+
         void drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent);
         
         void initializeMembersBrainOpenGL();
         
-        void drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
+        void drawSurfaceController(ModelSurface* surfaceController,
                                    const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
@@ -139,10 +184,31 @@ namespace caret {
                         const Border* border,
                         const int32_t borderFileIndex,
                         const int32_t borderIndex,
-                        const bool isSelect);
+                        const bool isSelect,
+                        const bool isContralateralEnabled);
+        
+        void drawSurfaceFoci(Surface* surface);
+        
+        void drawSurfaceNormalVectors(const Surface* surface);
+        
+        void drawSurfaceFiberOrientations();
+        
+        void drawFiberOrientations(const Plane* plane);
+        
+        void addFiberOrientationForDrawing(const FiberOrientationDisplayInfo* fodi,
+                                           const FiberOrientation* fiberOrientation);
+        
+        void sortFiberOrientationsByDepth();
+        
+        void drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi,
+                                      const bool isSortFibers);
+        
+        void drawSurfaceFiberTrajectories();
+        
+        void drawFiberTrajectories(const Plane* plane);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
-                                  ModelDisplayControllerVolume* volumeController,
+                                  ModelVolume* volumeController,
                                   const int32_t viewport[4]);
         
         void drawVolumeAxesCrosshairs(
@@ -151,33 +217,54 @@ namespace caret {
         
         void drawVolumeAxesLabels(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int32_t viewport[4]);
+
+        void drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
-        void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       std::vector<VolumeDrawInfo>& volumeDrawInfo);
+                                       std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
         void drawVolumeOrthogonalSliceVolumeViewer(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
         void drawVolumeSurfaceOutlines(Brain* brain,
-                                       ModelDisplayController* modelDisplayController,
+                                       Model* modelDisplayController,
+                                       BrowserTabContent* browserTabContent,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        VolumeFile* underlayVolume);
         
+        void drawVolumeFoci(Brain* brain,
+                            ModelVolume* modelVolume,
+                            BrowserTabContent* browserTabContent,
+                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                            const int64_t sliceIndex,
+                            VolumeFile* underlayVolume);
+        
+        void drawVolumeFibers(Brain* brain,
+                              ModelVolume* modelVolume,
+                              BrowserTabContent* browserTabContent,
+                              const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                              const int64_t sliceIndex,
+                              VolumeFile* underlayVolume);
+        
         void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
-                                 PaletteFile* paletteFile,
+                                 Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
         void drawWholeBrainController(BrowserTabContent* browserTabContent,
-                                      ModelDisplayControllerWholeBrain* wholeBrainController,
+                                      ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4]);
         
-        void setOrthographicProjection(const int32_t viewport[4],
-                                       const bool isRightSurfaceLateralMedialYoked);
+        void drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
+                                     ModelSurfaceMontage* surfaceMontageModel,
+                                     const int32_t viewport[4]);
         
-        void checkForOpenGLError(const ModelDisplayController* modelController,
+        void setOrthographicProjection(const int32_t viewport[4],
+                                       const Model::ViewingTransformIndex rotationMatrixIndex);
+        
+        void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
         
         void enableLighting();
@@ -187,13 +274,20 @@ namespace caret {
         void enableLineAntiAliasing();
         void disableLineAntiAliasing();
         
-        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
         
-        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
+                                        const int32_t x,
+                                        const int32_t y,
+                                        int32_t& index1Out,
+                                        int32_t& index2Out,
+                                        float& depthOut);
+        
+        void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
                                         const int32_t y,
                                         int32_t& index1Out,
@@ -201,24 +295,40 @@ namespace caret {
                                         int32_t& index3Out,
                                         float& depthOut);
         
-        void setIdentifiedItemScreenXYZ(IdentificationItem* item,
+        void setSelectedItemScreenXYZ(SelectionItem* item,
                                         const float itemXYZ[3]);
-        
+
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
-                                                  const bool isRightSurfaceLateralMedialYoked = false);
+                                                  const Model::ViewingTransformIndex rotationMatrixIndex);
         
-        void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
+        void applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
-                                         const bool isRightSurfaceLateralMedialYoked);
+                                         const Model::ViewingTransformIndex rotationMatrixIndex);
         
-        void applyViewingTransformationsVolumeSlice(const ModelDisplayControllerVolume* modelDisplayControllerVolume,
+        void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,
                                          const VolumeSliceViewPlaneEnum::Enum viewPlane);
         
         void drawSurfaceAxes();
         
         void drawSphere(const double radius);
+        
+        void drawSquare(const float size);
+        
+        void drawCube(const double cubeSize);
+        
+        void drawCuboid(const double sizeX,
+                        const double sizeY,
+                        const double sizeZ);
+        
+        void drawEllipticalCone(const float baseXYZ[3],
+                                const float apexXYZ[3],
+                                const float baseRadiusScaling,
+                                const float baseMajorAngle,
+                                const float baseMinorAngle,
+                                const float baseRotationAngle,
+                                const bool backwardsFlag);
         
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
@@ -233,10 +343,10 @@ namespace caret {
         
         void drawAllPalettes(Brain* brain);
         
-        void drawPalette(const Palette* palette,
-                         const PaletteColorMapping* paletteColorMapping,
-                         const DescriptiveStatistics* statistics,
-                         const int paletteDrawingIndex);
+//        void drawPalette(const Palette* palette,
+//                         const PaletteColorMapping* paletteColorMapping,
+//                         const DescriptiveStatistics* statistics,
+//                         const int paletteDrawingIndex);
         
         void drawPalette(const Palette* palette,
                          const PaletteColorMapping* paletteColorMapping,
@@ -245,11 +355,27 @@ namespace caret {
         
         float modelSizeToPixelSize(const float modelSize);
         
+        void setProjectionModeData(const float screenDepth,
+                                          const float xyz[3],
+                                          const StructureEnum::Enum structure,
+                                          const float barycentricAreas[3],
+                                          const int barycentricNodes[3],
+                                          const int numberOfNodes);
+        
+        void setLineWidth(const float lineWidth);
+        
+        void setPointSize(const float pointSize);
+        
+        void applyClippingPlanes();
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
         /** Content of browser tab being drawn */
         BrowserTabContent* browserTabContent;
+        
+        /** Source brain of content being drawn DOES NOT get deleted! */
+        Brain* m_brain;
         
         /** Index of window tab */
         int32_t windowTabIndex;
@@ -258,7 +384,7 @@ namespace caret {
         Mode mode;
         
         /** Identification manager */
-        IdentificationManager* identificationManager;
+        SelectionManager* selectionManager;
         
         int32_t mouseX;
         int32_t mouseY;
@@ -268,22 +394,45 @@ namespace caret {
 
         SurfaceProjectedItem* modeProjectionData;
         
+        /** Screen depth when projecting to surface mode */
+        double modeProjectionScreenDepth;
+        
         /** Performs node coloring */
         SurfaceNodeColoring* surfaceNodeColoring;
          
-        uint32_t sphereDisplayList;
+        /** Sphere symbol */
+        BrainOpenGLShapeSphere* m_shapeSphere;
         
-        SphereOpenGL* sphereOpenGL;
+        /** Cone symbol */
+        BrainOpenGLShapeCone* m_shapeCone;
+        
+        /** Cube symbol */
+        BrainOpenGLShapeCube* m_shapeCube;
+        
+        std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
+        
+        double inverseRotationMatrix[16];
+        bool inverseRotationMatrixValid;
         
         double orthographicLeft; 
         double orthographicRight;
         double orthographicBottom;
         double orthographicTop;
         double orthographicFar; 
-        double orthographicNear; 
+        double orthographicNear;
+        
+        static bool s_staticInitialized;
+        
+        static float COLOR_RED[3];
+        static float COLOR_GREEN[3];
+        static float COLOR_BLUE[3];
     };
 
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
+    bool BrainOpenGLFixedPipeline::s_staticInitialized = false;
+    float BrainOpenGLFixedPipeline::COLOR_RED[3]   = { 1.0, 0.0, 0.0 };
+    float BrainOpenGLFixedPipeline::COLOR_GREEN[3]  = { 0.0, 1.0, 0.0 };
+    float BrainOpenGLFixedPipeline::COLOR_BLUE[3] = { 0.0, 0.0, 1.0 };
 #endif //__BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 } // namespace

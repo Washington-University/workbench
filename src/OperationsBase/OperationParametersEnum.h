@@ -50,6 +50,8 @@ public:
         /** */
         CIFTI,
         /** */
+        FOCI,
+        /** */
         DOUBLE,
         /** */
         INT,

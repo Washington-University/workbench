@@ -52,6 +52,8 @@ public:
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */
         EVENT_BROWSER_WINDOW_CONTENT_GET,
+        /** Create tabs after loading a file */
+        EVENT_BROWSER_WINDOW_CREATE_TABS,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */
@@ -70,10 +72,8 @@ public:
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Remove all identification symbols */
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
-        /** Display text in information windows */
-        EVENT_INFORMATION_TEXT_DISPLAY,
-        /** map scalar color data mapping editor */
-        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
+        /** request display of map scalar color data mapping editor */
+        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */
@@ -84,8 +84,12 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET,
         /** model display yoking group controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
+        /** open file request from the operating system (Mac only) for now */
+        EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
+        /** Validate that overlay is valid (it exists). */
+        EVENT_OVERLAY_VALIDATE,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Get surfaces */
@@ -96,6 +100,8 @@ public:
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */
         EVENT_PROGRESS_UPDATE,
+        /** Update the information windows */
+        EVENT_UPDATE_INFORMATION_WINDOWS,
         /** Update and show the time course dialog */
         EVENT_UPDATE_TIME_COURSE_DIALOG,
         /** Update Animation start time */

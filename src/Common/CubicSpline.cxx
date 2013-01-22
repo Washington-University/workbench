@@ -67,3 +67,26 @@ CubicSpline CubicSpline::hermite(float frac, bool lowEdge, bool highEdge)
     }
     return ret;
 }
+
+CubicSpline CubicSpline::bspline(float frac, bool lowEdge, bool highEdge)
+{
+    CaretAssert(frac > -0.01f && frac < 1.01f);//give some leeway for rounding errors
+    CubicSpline ret;
+    float frac2 = frac * frac;
+    float frac3 = frac2 * frac;
+    ret.m_weights[1] = (3.0f * frac3 - 6.0f * frac2 + 4.0f) / 6.0f;
+    ret.m_weights[2] = (-3.0f * frac3 + 3.0f * frac2 + 3.0f * frac + 1.0f) / 6.0f;
+    if (lowEdge)
+    {
+        ret.m_weights[0] = 0.0f;//assume outside range is zero
+    } else {
+        ret.m_weights[0] = (-frac3 + 3.0f * frac2 - 3.0f * frac + 1.0f) / 6.0f;//the standard blending function
+    }
+    if (highEdge)
+    {
+        ret.m_weights[3] = 0.0f;
+    } else {
+        ret.m_weights[3] = frac3 / 6.0f;
+    }
+    return ret;
+}

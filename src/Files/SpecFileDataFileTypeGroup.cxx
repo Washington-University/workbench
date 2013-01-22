@@ -150,6 +150,21 @@ SpecFileDataFileTypeGroup::getFileInformation(const int32_t fileIndex)
 }
 
 /**
+ * Get information for a file.
+ * @param fileIndex
+ *    Index of file for which information is requested.
+ * @return
+ *    Information for file.
+ */
+const SpecFileDataFile* 
+SpecFileDataFileTypeGroup::getFileInformation(const int32_t fileIndex) const
+{
+    CaretAssertVectorIndex(this->files, 
+                           fileIndex);
+    return this->files[fileIndex];
+}
+
+/**
  * Set the selection status of all files.
  * @param selectionStatus
  *   New selection status for all files.

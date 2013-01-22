@@ -38,6 +38,7 @@ void HeapTest::execute()
     srand(time(NULL));
     CaretMinHeap<int, int> myHeap;
     const int NUM_ELEMS = 500;
+    const int NUM_REMOVE = 30;
     int testarray[NUM_ELEMS][2];
     int64_t indexes[NUM_ELEMS];
     bool markarray[NUM_ELEMS];
@@ -54,7 +55,32 @@ void HeapTest::execute()
         myHeap.changekey(indexes[i], testarray[i][1]);
     }
     int prevkey = 0, thiskey = 0, thisdata = 0;
-    for (int i = 0; i < NUM_ELEMS; ++i)
+    for (int i = 0; i < NUM_REMOVE; ++i)
+    {
+        int which = rand() % NUM_ELEMS;
+        while (markarray[which]) which = rand() % NUM_ELEMS;
+        thisdata = myHeap.remove(indexes[which], &thiskey);
+        if (thisdata < 5 || thisdata > NUM_ELEMS + 4)
+        {
+            setFailed("data DESTROYED at " + AString::number(i));
+            continue;//don't let it segfault trying to mark it
+        }
+        if (which != thisdata - 5)
+        {
+            setFailed("data/index pairing lost at " + AString::number(i));
+        }
+        if (testarray[thisdata - 5][1] != thiskey)
+        {
+            setFailed("data scrambled at " + AString::number(i));
+        }
+        if (markarray[thisdata - 5])
+        {
+            setFailed("element duplicated at " + AString::number(i));
+        }
+        markarray[thisdata - 5] = true;
+    }
+    thiskey = 0;
+    for (int i = 0; i < NUM_ELEMS - NUM_REMOVE; ++i)
     {
         prevkey = thiskey;
         thisdata = myHeap.pop(&thiskey);
@@ -77,6 +103,7 @@ void HeapTest::execute()
         }
         markarray[thisdata - 5] = true;
     }
+    if (myHeap.size() != 0) setFailed("heap should be empty, but isn't");
     CaretSimpleMinHeap<int, int> mySimpleHeap;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
@@ -108,6 +135,7 @@ void HeapTest::execute()
         }
         markarray[thisdata - 5] = true;
     }
+    if (mySimpleHeap.size() != 0) setFailed("heap should be empty, but isn't");
     CaretMaxHeap<int, int> myMaxHeap;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
@@ -120,8 +148,32 @@ void HeapTest::execute()
         testarray[i][1] = rand() % 1000;//new key
         myMaxHeap.changekey(indexes[i], testarray[i][1]);
     }
+    for (int i = 0; i < NUM_REMOVE; ++i)
+    {
+        int which = rand() % NUM_ELEMS;
+        while (markarray[which]) which = rand() % NUM_ELEMS;
+        thisdata = myMaxHeap.remove(indexes[which], &thiskey);
+        if (thisdata < 5 || thisdata > NUM_ELEMS + 4)
+        {
+            setFailed("data DESTROYED at " + AString::number(i));
+            continue;//don't let it segfault trying to mark it
+        }
+        if (which != thisdata - 5)
+        {
+            setFailed("data/index pairing lost at " + AString::number(i));
+        }
+        if (testarray[thisdata - 5][1] != thiskey)
+        {
+            setFailed("data scrambled at " + AString::number(i));
+        }
+        if (markarray[thisdata - 5])
+        {
+            setFailed("element duplicated at " + AString::number(i));
+        }
+        markarray[thisdata - 5] = true;
+    }
     thiskey = 0;
-    for (int i = 0; i < NUM_ELEMS; ++i)
+    for (int i = 0; i < NUM_ELEMS - NUM_REMOVE; ++i)
     {
         prevkey = thiskey;
         thisdata = myMaxHeap.pop(&thiskey);
@@ -144,6 +196,7 @@ void HeapTest::execute()
         }
         markarray[thisdata - 5] = true;
     }
+    if (myMaxHeap.size() != 0) setFailed("heap should be empty, but isn't");
     CaretSimpleMaxHeap<int, int> mySimpleMaxHeap;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
@@ -175,4 +228,5 @@ void HeapTest::execute()
         }
         markarray[thisdata - 5] = true;
     }
+    if (mySimpleMaxHeap.size() != 0) setFailed("heap should be empty, but isn't");
 }

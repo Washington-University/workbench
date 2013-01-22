@@ -35,7 +35,22 @@ namespace caret {
 /// File for images
 class ImageFile : public DataFile {
 public:
+    /**
+     * Location of origin in image data.
+     */
+    enum IMAGE_DATA_ORIGIN_LOCATION {
+        /** Origin at bottom (OpenGL has origin at bottom) */
+        IMAGE_DATA_ORIGIN_AT_BOTTOM,
+        /** Origin at top (most image formats have origin at top) */
+        IMAGE_DATA_ORIGIN_AT_TOP
+    };
+    
     ImageFile();
+    
+    ImageFile(const unsigned char* imageDataRGBA,
+              const int imageWidth,
+              const int imageHeight,
+              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin);
     
     ImageFile(const QImage& img);
     
@@ -78,6 +93,12 @@ public:
                                                 const int numImagesPerRow,
                                                 const uint8_t backgroundColor[3]);
     
+    static void getImageFileExtensions(std::vector<AString>& imageFileExtensions,
+                                       AString& defaultExtension);
+    
+    static void getImageFileFilters(std::vector<AString>& imageFileFilters,
+                                    AString& defaultFilter);
+
 private:
     ImageFile(const ImageFile&);
     
