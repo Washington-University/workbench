@@ -148,7 +148,7 @@ MapSettingsEditorDialog::createMapFileAndNameSection()
  *     The focus event.
  */
 void
-MapSettingsEditorDialog::focusInEvent(QFocusEvent* event)
+MapSettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
 {
     updateDialog();
 }
