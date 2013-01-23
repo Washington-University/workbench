@@ -378,7 +378,7 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
      */
     AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
                                                                       this,
-                                                                      "Choose Scene File Name",
+                                                                      "Choose Border File Name",
                                                                       newBorderFile->getFileName());
     /*
      * If user cancels, delete the new border file and return

@@ -465,7 +465,7 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
      */
     AString newFociFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::FOCI,
                                                                       this,
-                                                                      "Choose Scene File Name",
+                                                                      "Choose Foci File Name",
                                                                       newFociFile->getFileName());
     /*
      * If user cancels, delete the new focus file and return
