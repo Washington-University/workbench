@@ -457,7 +457,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     labelFile->setMapName(0, mapName);
                     labelFile->setStructure(this->brainStructure->getStructure());
                     labelFile->setFileName(mapFileName);
-                    this->brainStructure->addLabelFile(labelFile); 
+                    this->brainStructure->addLabelFile(labelFile,
+                                                       false);
                     fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
                 }
                     break;
@@ -468,7 +469,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     metricFile->setMapName(0, mapName);
                     metricFile->setStructure(this->brainStructure->getStructure());
                     metricFile->setFileName(mapFileName);
-                    this->brainStructure->addMetricFile(metricFile);                
+                    this->brainStructure->addMetricFile(metricFile,
+                                                        false);
                     fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
                 }
                     break;

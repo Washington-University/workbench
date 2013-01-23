@@ -111,6 +111,11 @@ SurfaceFile::~SurfaceFile()
 void 
 SurfaceFile::clear()
 {
+    if (this->boundingBox != NULL) {
+        delete this->boundingBox;
+        this->boundingBox = NULL;
+    }
+    
     GiftiTypeFile::clear();
     invalidateHelpers();
     this->invalidateNodeColoringForBrowserTabs();

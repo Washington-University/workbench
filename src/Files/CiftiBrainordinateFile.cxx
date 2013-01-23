@@ -252,6 +252,8 @@ CiftiBrainordinateFile::readFile(const AString& filename) throw (DataFileExcepti
                 m_mapContent.push_back(mc);
             }
         }
+        
+        clearModified();
     }
     catch (CiftiFileException& e) {
         clear();

@@ -844,6 +844,7 @@ GiftiFile::removeDataArray(const GiftiDataArray* arrayPointer)
 void
 GiftiFile::readFile(const AString& filename) throw (DataFileException)
 {
+    this->clear();
     this->setFileName(filename);
     
     GiftiFileSaxReader saxReader(this);

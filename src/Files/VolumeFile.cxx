@@ -134,13 +134,34 @@ void VolumeFile::setType(SubvolumeAttributes::VolumeType whatType)
 
 VolumeFile::~VolumeFile()
 {
+    clear();
+
+}
+
+/**
+ * Clear the file.
+ */
+void
+VolumeFile::clear()
+{
+    CaretMappableDataFile::clear();
+    
     if (m_voxelColorizer != NULL) {
         delete m_voxelColorizer;
+        m_voxelColorizer = NULL;
     }
+    
+    m_caretVolExt.clear();
+    m_brickAttributes.clear();
+    m_brickStatisticsValid = false;
+    m_splinesValid = false;
+    m_frameSplineValid.clear();
+    m_frameSplines.clear();
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
     checkFileReadability(filename);
     
     try {

@@ -34,8 +34,9 @@
 #include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
-#include "EventUserInterfaceUpdate.h"
+#include "EventDataFileReload.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
 #include "FileInformation.h"
@@ -108,6 +109,9 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     gridLayout->addWidget(new QLabel("Save"),
                           gridRow,
                           COLUMN_SAVE_CHECKBOX);
+    gridLayout->addWidget(new QLabel("Reload\nFile"),
+                          gridRow,
+                          COLUMN_RELOAD_BUTTON);
     gridLayout->addWidget(new QLabel("Structure"),
                           gridRow,
                           COLUMN_STRUCTURE);
@@ -166,6 +170,9 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         gridLayout->addWidget(fileRow->saveCheckBox,
                               gridRow,
                               COLUMN_SAVE_CHECKBOX);
+        gridLayout->addWidget(fileRow->reloadToolButton,
+                              gridRow,
+                              COLUMN_RELOAD_BUTTON);
         gridLayout->addWidget(fileRow->structureLabel,
                               gridRow,
                               COLUMN_STRUCTURE);
@@ -351,12 +358,16 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->caretDataFile);
     
     this->saveCheckBox = new QCheckBox(" ");
+
+    QAction* reloadAction = WuQtUtilities::createAction("Reload",
+                                                        "Reload the file",
+                                                        this,
+                                                        this,
+                                                        SLOT(reloadToolButtonPressed()));
+    this->reloadToolButton = new QToolButton();
+    this->reloadToolButton->setDefaultAction(reloadAction);
     
     this->structureLabel = new QLabel("");
-    const StructureEnum::Enum structure = caretDataFile->getStructure();
-    if (structure != StructureEnum::INVALID) {
-        this->structureLabel->setText(StructureEnum::toGuiName(structure));
-    }
     
     this->fileTypeLabel = new QLabel(DataFileTypeEnum::toGuiName(caretDataFile->getDataFileType()));
     
@@ -366,11 +377,6 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     }
     
     this->modifiedLabel = new QLabel("   ");
-    if (this->caretDataFile->isModified()) {
-        this->modifiedLabel->setText("***");
-        this->modifiedLabel->setStyleSheet("QLabel { color: red; }");
-        this->saveCheckBox->setChecked(true);
-    }
     
     QAction* metaDataAction = WuQtUtilities::createAction("Edit...",
                                                           "Edit the file's metadata",
@@ -414,6 +420,7 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     
     this->widgetGroup = new WuQWidgetObjectGroup(this);
     this->widgetGroup->add(this->saveCheckBox);
+    this->widgetGroup->add(this->reloadToolButton);
     this->widgetGroup->add(this->structureLabel);
     this->widgetGroup->add(this->fileTypeLabel);
     this->widgetGroup->add(this->displayedLabel);
@@ -487,13 +494,56 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
         fileNameAction->setEnabled(false);
         this->fileNameLineEdit->setReadOnly(true);
     }
+    
+    updateContent();
 }
+
 
 /**
  * Destructor.
  */
 ManageFileRow::~ManageFileRow()
 {
+}
+
+/**
+ * Update the content of the row.
+ */
+void
+ManageFileRow::updateContent()
+{
+    this->structureLabel->setText("");
+    const StructureEnum::Enum structure = caretDataFile->getStructure();
+    if (structure != StructureEnum::INVALID) {
+        this->structureLabel->setText(StructureEnum::toGuiName(structure));
+    }
+    
+    this->modifiedLabel->setText("");
+    this->saveCheckBox->setChecked(false);
+    if (this->caretDataFile->isModified()) {
+        this->modifiedLabel->setText("***");
+        this->modifiedLabel->setStyleSheet("QLabel { color: red; }");
+        this->saveCheckBox->setChecked(true);
+    }
+}
+
+/**
+ * Called when reload button is pressed.
+ */
+void
+ManageFileRow::reloadToolButtonPressed()
+{
+    EventDataFileReload reloadEvent(this->brain,
+                                    this->caretDataFile);
+    EventManager::get()->sendEvent(reloadEvent.getPointer());
+    this->parentWidget->updateUserInterfaceAndGraphics();
+
+    this->updateContent();
+    
+    if (reloadEvent.isError()) {
+        WuQMessageBox::informationOk(this->parentWidget,
+                                     reloadEvent.getErrorMessage());
+    }
 }
 
 /**
@@ -530,6 +580,9 @@ void
 ManageFileRow::removeMapToolButtonPressed()
 {
     WuQMessageBox::informationOk(this->parentWidget, ("remove map not implemented " + this->caretDataFile->getFileNameNoPath()));
+
+    updateContent();
+    
     this->parentWidget->updateUserInterfaceAndGraphics();
 }
 

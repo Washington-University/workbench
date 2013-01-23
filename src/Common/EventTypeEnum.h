@@ -60,6 +60,8 @@ public:
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
+        /** Reload (replace) a data file with its saved version */
+        EVENT_DATA_FILE_RELOAD,
         /** Get node data files */
         EVENT_GET_NODE_DATA_FILES,
         /** get or set the user input mode */

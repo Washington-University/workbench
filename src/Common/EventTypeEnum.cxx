@@ -106,6 +106,10 @@ EventTypeEnum::initialize()
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));
     
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_RELOAD,
+                                     "EVENT_DATA_FILE_RELOAD",
+                                     "Reopen a data file (replace it with saved version)"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GET_NODE_DATA_FILES,
                                      "EVENT_GET_NODE_DATA_FILES",
                                      "Get node data files"));

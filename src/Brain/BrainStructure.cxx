@@ -147,12 +147,16 @@ BrainStructure::getStructure() const
  *
  * @param labelFile
  *    Label file that is added.
+ * @param isReloadingFile
+ *    If true, file is being 'reloaded' so it does not get added
+ *    since it should already be in this brain structure.
  * @throw DataFileException
  *    If the number of nodes in the label file does not match
  *    the number of nodes in this brain structure.
  */
 void 
-BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
+BrainStructure::addLabelFile(LabelFile* labelFile,
+                             const bool isReloadingFile) throw (DataFileException)
 {
     CaretAssert(labelFile);
     
@@ -187,7 +191,9 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
         throw e;        
     }
     
-    m_labelFiles.push_back(labelFile);
+    if (isReloadingFile == false) {
+        m_labelFiles.push_back(labelFile);
+    }
 }
 
 /**
@@ -195,12 +201,16 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
  *
  * @param metricFile
  *    Metric file that is added.
+ * @param isReloadingFile
+ *    If true, file is being 'reloaded' so it does not get added
+ *    since it should already be in this brain structure.
  * @throw DataFileException
  *    If the number of nodes in the metric file does not match
  *    the number of nodes in this brain structure.
  */
 void 
-BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
+BrainStructure::addMetricFile(MetricFile* metricFile,
+                              const bool isReloadingFile) throw (DataFileException)
 {
     CaretAssert(metricFile);
     
@@ -235,7 +245,9 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
         throw e;        
     }
     
-    m_metricFiles.push_back(metricFile);
+    if (isReloadingFile == false) {
+        m_metricFiles.push_back(metricFile);
+    }
 }
 
 /**
@@ -243,12 +255,16 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
  *
  * @param rgbaFile
  *    RGBA file that is added.
+ * @param isReloadingFile
+ *    If true, file is being 'reloaded' so it does not get added
+ *    since it should already be in this brain structure.
  * @throw DataFileException
  *    If the number of nodes in the RGBA file does not match
  *    the number of nodes in this brain structure.
  */
 void 
-BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
+BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
+                            const bool isReloadingFile) throw (DataFileException)
 {
     CaretAssert(rgbaFile);
     
@@ -284,7 +300,9 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
         throw e;        
     }
     
-    m_rgbaFiles.push_back(rgbaFile);
+    if (isReloadingFile == false) {
+        m_rgbaFiles.push_back(rgbaFile);
+    }
 }
 
 /**
@@ -292,12 +310,16 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
  *
  * @param surface
  *    Surface that is added.
+ * @param isReloadingFile
+ *    If true, file is being 'reloaded' so it does not get added
+ *    since it should already be in this brain structure.
  * @throw DataFileException
  *    If the number of nodes in the surface does not match
  *    the number of nodes in this brain structure.
  */
 void 
 BrainStructure::addSurface(Surface* surface,
+                           const bool isReloadingFile,
                            const bool initilizeOverlaysFlag) throw (DataFileException)
 {
     CaretAssert(surface);
@@ -339,24 +361,26 @@ BrainStructure::addSurface(Surface* surface,
     
     surface->setBrainStructure(this);
     
-    m_surfaces.push_back(surface);
-
-    /*
-     * Create a model controller for the surface.
-     */
-    ModelSurface* mdcs = new ModelSurface(m_brain,
-                                                                            surface);
-    m_surfaceControllerMap.insert(std::make_pair(surface, mdcs));
-    
-    if (initilizeOverlaysFlag) {
-        initializeOverlays();
+    if (isReloadingFile == false) {
+        m_surfaces.push_back(surface);
+        
+        /*
+         * Create a model controller for the surface.
+         */
+        ModelSurface* mdcs = new ModelSurface(m_brain,
+                                              surface);
+        m_surfaceControllerMap.insert(std::make_pair(surface, mdcs));
+        
+        if (initilizeOverlaysFlag) {
+            initializeOverlays();
+        }
+        
+        /*
+         * Send the controller added event.
+         */
+        EventModelAdd addEvent(mdcs);
+        EventManager::get()->sendEvent(addEvent.getPointer());
     }
-    
-    /*
-     * Send the controller added event.
-     */
-    EventModelAdd addEvent(mdcs);
-    EventManager::get()->sendEvent(addEvent.getPointer());
 }
 
 void 

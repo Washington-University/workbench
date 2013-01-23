@@ -45,6 +45,13 @@ static const AString CARET_VOL_EXT_VI_STUDY_META_SET = "StudyMetaDataLinkSet";
 static const AString CARET_VOL_EXT_VI_STUDY_META_LINK = "StudyMetaDataLink";
 static const AString CARET_VOL_EXT_VI_TYPE = "VolumeType";
 
+void
+CaretVolumeExtension::clear() {
+    m_comment.clear();
+    m_date.clear();
+    m_attributes.clear();
+}
+
 void CaretVolumeExtension::readFromXmlString(const AString& s)
 {
     CaretVolumeExtensionXMLReader myReader(this);

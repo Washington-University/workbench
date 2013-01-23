@@ -71,6 +71,7 @@ namespace caret
         std::vector<CaretPointer<SubvolumeAttributes> > m_attributes;
         void writeAsXML(XmlWriter& xmlWriter);
         void readFromXmlString(const AString& s);
+        void clear();
     };
     
     class CaretVolumeExtensionXMLReader : public XmlSaxParserHandlerInterface

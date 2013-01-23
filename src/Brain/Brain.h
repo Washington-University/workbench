@@ -65,6 +65,7 @@ namespace caret {
     class DisplayPropertiesSurface;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
+    class EventDataFileReload;
     class EventSpecFileReadDataFiles;
     class IdentificationManager;
     class LabelFile;
@@ -362,57 +363,85 @@ namespace caret {
         
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
+        void processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent);
+        
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
                           const AString& dataFileName,
                           const bool markDataFileAsModified,
                           const bool addDataFileToSpecFile) throw (DataFileException);
         
-        LabelFile* readLabelFile(const AString& filename,
+        CaretDataFile* readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
+                                   const DataFileTypeEnum::Enum dataFileType,
+                                   const StructureEnum::Enum structure,
+                                   const AString& dataFileName,
+                                   const bool markDataFileAsModified) throw (DataFileException);
+        
+        void postReadDataFileProcessing();
+        
+        LabelFile* readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
+                                 const AString& filename,
                                  const StructureEnum::Enum structure,
                                  const bool markDataFileAsModified) throw (DataFileException);
         
-        MetricFile* readMetricFile(const AString& filename,
+        MetricFile* readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
+                                   const AString& filename,
                                    const StructureEnum::Enum structure,
                                    const bool markDataFileAsModified) throw (DataFileException);
         
-        RgbaFile* readRgbaFile(const AString& filename,
+        RgbaFile* readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
+                               const AString& filename,
                                const StructureEnum::Enum structure,
                                const bool markDataFileAsModified) throw (DataFileException);
         
-        Surface* readSurfaceFile(const AString& filename,
+        Surface* readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
+                                 const AString& filename,
                                  const StructureEnum::Enum structure,
                                  const bool markDataFileAsModified) throw (DataFileException);
         
-        void readVolumeFile(const AString& filename) throw (DataFileException);
+        void readVolumeFile(CaretDataFile* reloadThisFileIfNotNull,
+                            const AString& filename) throw (DataFileException);
                             
-        void readBorderFile(const AString& filename) throw (DataFileException);
+        void readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
+                            const AString& filename) throw (DataFileException);
         
-        void readConnectivityDenseFile(const AString& filename) throw (DataFileException);
+        void readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
+                                       const AString& filename) throw (DataFileException);
         
-        void readConnectivityDenseLabelFile(const AString& filename) throw (DataFileException);
+        void readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
+                                            const AString& filename) throw (DataFileException);
         
-        void readConnectivityMatrixDenseParcelFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                   const AString& filename) throw (DataFileException);
         
-        void readConnectivityDenseScalarFile(const AString& filename) throw (DataFileException);
+        void readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
+                                             const AString& filename) throw (DataFileException);
         
-        void readConnectivityFiberOrientationFile(const AString& filename) throw (DataFileException);
+        void readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                  const AString& filename) throw (DataFileException);
         
-        void readConnectivityFiberTrajectoryFile(const AString& filename) throw (DataFileException);
+        void readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                 const AString& filename) throw (DataFileException);
         
-        void readConnectivityMatrixParcelFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
+                                              const AString& filename) throw (DataFileException);
         
-        void readConnectivityMatrixParcelDenseFile(const AString& filename) throw (DataFileException);
+        void readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                   const AString& filename) throw (DataFileException);
         
-        void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
+        void readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
+                                            const AString& filename) throw (DataFileException);
         
         void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
         
-        void readFociFile(const AString& filename) throw (DataFileException);
+        void readFociFile(CaretDataFile* reloadThisFileIfNotNull,
+                          const AString& filename) throw (DataFileException);
         
-        void readPaletteFile(const AString& filename) throw (DataFileException);
+        void readPaletteFile(CaretDataFile* reloadThisFileIfNotNull,
+                             const AString& filename) throw (DataFileException);
         
-        void readSceneFile(const AString& filename) throw (DataFileException);
+        void readSceneFile(CaretDataFile* reloadThisFileIfNotNull,
+                           const AString& filename) throw (DataFileException);
         
         AString updateFileNameForReading(const AString& filename);
         

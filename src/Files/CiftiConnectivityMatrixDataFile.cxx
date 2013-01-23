@@ -90,6 +90,7 @@ void
 CiftiConnectivityMatrixDataFile::clear()
 {
     CaretMappableDataFile::clear();
+    clearPrivate();
 }
 
 /**
@@ -204,6 +205,8 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
         }
         
         setFileName(filename);
+        
+        clearModified();
     }
     catch (CiftiFileException& e) {
         clear();

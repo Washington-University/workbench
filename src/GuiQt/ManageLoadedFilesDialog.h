@@ -62,6 +62,7 @@ namespace caret {
         
         enum Column {
             COLUMN_SAVE_CHECKBOX,
+            COLUMN_RELOAD_BUTTON,
             COLUMN_DISPLAYED,
             COLUMN_MODIFIED,
             COLUMN_STRUCTURE,
@@ -103,11 +104,14 @@ namespace caret {
         
         ~ManageFileRow();
         
+        void updateContent();
+        
         ManageLoadedFilesDialog* parentWidget;
         CaretDataFile* caretDataFile;
         CaretMappableDataFile* caretMappableDataFile;
         
         QCheckBox* saveCheckBox;
+        QToolButton* reloadToolButton;
         QLabel* structureLabel;
         QLabel* fileTypeLabel;
         QLabel* displayedLabel;
@@ -125,6 +129,7 @@ namespace caret {
         void saveFile(const bool isAddToSpecFile) throw (DataFileException);
         
     private slots:
+        void reloadToolButtonPressed();
         void metaDataToolButtonPressed();
         void removeFileToolButtonPressed();
         void removeMapToolButtonPressed();

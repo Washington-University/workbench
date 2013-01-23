@@ -76,13 +76,17 @@ namespace caret {
         BrainStructure& operator=(const BrainStructure& s);
 
     public:
-        void addLabelFile(LabelFile* labelFile) throw (DataFileException);
+        void addLabelFile(LabelFile* labelFile,
+                          const bool isReloadingFile) throw (DataFileException);
         
-        void addMetricFile(MetricFile* metricFile) throw (DataFileException);
+        void addMetricFile(MetricFile* metricFile,
+                           const bool isReloadingFile) throw (DataFileException);
         
-        void addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException);
+        void addRgbaFile(RgbaFile* rgbaFile,
+                         const bool isReloadingFile) throw (DataFileException);
         
         void addSurface(Surface* surface,
+                        const bool isReloadingFile,
                         const bool initilizeOverlaysFlag) throw (DataFileException);
         
         void deleteSurface(Surface* surface);
