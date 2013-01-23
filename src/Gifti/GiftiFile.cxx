@@ -853,6 +853,7 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         this->setFileName("");
         
         int lineNum = e.getLineNumber();

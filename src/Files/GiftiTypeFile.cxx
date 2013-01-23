@@ -145,6 +145,8 @@ GiftiTypeFile::isEmpty() const
 void 
 GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
+    
     checkFileReadability(filename);
     
     this->giftiFile->readFile(filename);

@@ -80,6 +80,7 @@ TextFile::isEmpty() const
 void 
 TextFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
     checkFileReadability(filename);
     
     QFile file(filename);

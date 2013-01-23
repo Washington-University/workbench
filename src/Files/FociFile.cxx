@@ -516,6 +516,8 @@ FociFile::invalidateAllAssignedColors()
 void 
 FociFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
+    
     checkFileReadability(filename);
     
     FociFileSaxReader saxReader(this);
@@ -524,6 +526,7 @@ FociFile::readFile(const AString& filename) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         setFileName("");
         
         int lineNum = e.getLineNumber();

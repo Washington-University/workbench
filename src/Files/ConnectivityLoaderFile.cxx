@@ -305,6 +305,7 @@ ConnectivityLoaderFile::setup(const AString& path,
         //this->paletteColorMapping->setInterpolatePaletteFlag(true);
     }
     catch (CiftiFileException& e) {
+        clear();
         throw DataFileException(e.whatString());
     }
 

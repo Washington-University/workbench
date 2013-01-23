@@ -622,6 +622,7 @@ BorderFile::getFileVersionAsString()
 void 
 BorderFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
     checkFileReadability(filename);
     
     BorderFileSaxReader saxReader(this);
@@ -630,6 +631,7 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         setFileName("");
         
         int lineNum = e.getLineNumber();

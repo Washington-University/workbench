@@ -560,6 +560,7 @@ ImageFile::readFile(const AString& filename) throw (DataFileException)
     this->setFileName(filename);
   
    if (this->image->load(filename) == false) {
+       clear();
       throw DataFileException(filename + "Unable to load file.");
    }
    

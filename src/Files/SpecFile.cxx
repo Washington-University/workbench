@@ -509,6 +509,8 @@ SpecFile::areAllSelectedFilesSceneFiles() const
 void 
 SpecFile::readFile(const AString& filename) throw (DataFileException)
 {
+    clear();
+    
     FileInformation specInfo(filename);
     AString absFileName = specInfo.getFilePath();
     this->setFileName(absFileName);
@@ -521,6 +523,7 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         this->setFileName("");
         
         int lineNum = e.getLineNumber();
@@ -567,6 +570,7 @@ SpecFile::readFileFromString(const AString& string) throw (DataFileException)
         parser->parseString(string, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         this->setFileName("");
         
         int lineNum = e.getLineNumber();

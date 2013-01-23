@@ -386,6 +386,12 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->metaDataToolButton = new QToolButton();
     this->metaDataToolButton->setDefaultAction(metaDataAction);
     
+    /*
+     * EDITING OF METADATA NOT SUPPORTED AT THIS TIME
+     */
+    metaDataAction->setEnabled(false);
+    
+    
     QAction* removeFileAction = WuQtUtilities::createAction("XF",
                                                           "Remove the file from memory (does NOT delete the file from disk)",
                                                           this,
@@ -404,6 +410,11 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     }
     this->removeMapToolButton = new QToolButton();
     this->removeMapToolButton->setDefaultAction(removeMapAction);
+    
+    /*
+     * REMOVAL OF MAPS NOT SUPPORTED AT THIS TIME
+     */
+    removeMapAction->setEnabled(false);
     
     QAction* fileNameAction = WuQtUtilities::createAction("Name...",
                                                           "Use a File Dialog to set the name of the file",
@@ -601,6 +612,7 @@ ManageFileRow::fileNameToolButtonPressed()
                                                               "Choose File",
                                                               this->caretDataFile->getFileName());
     if (filename.isEmpty() == false) {
+        this->caretDataFile->setFileName(filename);
         this->fileNameLineEdit->setText(filename);
     }
     this->parentWidget->updateUserInterfaceAndGraphics();

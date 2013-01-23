@@ -323,6 +323,8 @@ SceneFile::getFileMetaData() const
 void 
 SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
 {
+    clear();
+    
     FileInformation fileInfo(filenameIn);
     const AString filename = fileInfo.getFilePath();
     checkFileReadability(filename);
@@ -334,6 +336,7 @@ SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
         parser->parseFile(filename, &saxReader);
     }
     catch (const XmlSaxParserException& e) {
+        clear();
         this->setFileName("");
         
         int lineNum = e.getLineNumber();

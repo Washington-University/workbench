@@ -358,6 +358,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
 void 
 PaletteFile::readFile(const AString& /*filename*/) throw (DataFileException)
 {
+    clear();
 //    checkFileReadability(filename);
     
     throw DataFileException("Reading of PaletteFile not implemented.");

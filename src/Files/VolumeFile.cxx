@@ -171,8 +171,10 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         parseExtensions();
         clearModified();
     } catch (const CaretException& e) {
+        clear();
         throw DataFileException(e);
     } catch (...) {
+        clear();
         throw DataFileException("unknown error while trying to open volume file " + filename);
     }
 }
