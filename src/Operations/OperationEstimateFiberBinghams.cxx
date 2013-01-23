@@ -203,7 +203,8 @@ void OperationEstimateFiberBinghams::useParameters(OperationParameters* myParams
     vector<CiftiVolumeMap> volMap;
     CaretArray<float> temprow(24);
     myXML.getVolumeMapForColumns(volMap);//we don't need to know which voxel is from which parcel
-    for (int64_t i = 0; i < (int)volMap.size(); ++i)
+    int64_t end = (int64_t)volMap.size();
+    for (int64_t i = 0; i < end; ++i)
     {
         myVolLabel->indexToSpace(volMap[i].m_ijk, temprow);//first three elements are the coordinates
         estimateBingham(temprow.getArray() + 3, volMap[i].m_ijk, f1_samples, th1_samples, ph1_samples);

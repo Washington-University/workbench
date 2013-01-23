@@ -77,6 +77,7 @@
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
 #include "OperationConvertAffine.h"
+#include "OperationConvertFiberOrientations.h"
 #include "OperationConvertMatrix4ToMatrix2.h"
 #include "OperationConvertMatrix4ToWorkbenchSparse.h"
 #include "OperationEstimateFiberBinghams.h"
@@ -209,6 +210,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertAffine()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationConvertFiberOrientations()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToMatrix2()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToWorkbenchSparse()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
