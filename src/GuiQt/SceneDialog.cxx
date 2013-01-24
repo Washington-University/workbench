@@ -339,6 +339,7 @@ SceneDialog::addNewSceneButtonClicked()
         if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString newSceneName = newSceneNameLineEdit->text();
             Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+            Scene::setSceneBeingCreated(newScene);
             newScene->setName(newSceneName);
             newScene->setDescription(descriptionTextEdit->toPlainText());
             
@@ -358,7 +359,10 @@ SceneDialog::addNewSceneButtonClicked()
             newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                               "guiManager"));
             
-            sceneFile->addScene(newScene);            
+            sceneFile->addScene(newScene);
+            
+            Scene::setSceneBeingCreated(NULL);
+            
             loadSceneListWidget(newScene);
         }
     }
@@ -415,6 +419,7 @@ SceneDialog::replaceSceneButtonClicked()
             if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
                 const AString newSceneName = newSceneNameLineEdit->text();
                 Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+                Scene::setSceneBeingCreated(newScene);
                 newScene->setName(newSceneName);
                 newScene->setDescription(descriptionTextEdit->toPlainText());
                 
@@ -436,6 +441,9 @@ SceneDialog::replaceSceneButtonClicked()
                 
                 sceneFile->replaceScene(newScene,
                                         scene);
+                
+                Scene::setSceneBeingCreated(NULL);
+                
                 loadSceneListWidget(newScene);
             }
             else {

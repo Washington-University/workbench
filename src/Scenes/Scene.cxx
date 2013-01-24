@@ -61,6 +61,7 @@ Scene::Scene(const SceneTypeEnum::Enum sceneType)
 : CaretObject()
 {
     m_sceneAttributes = new SceneAttributes(sceneType);
+    m_hasFilesWithRemotePaths = false;
 }
 
 /**
@@ -204,6 +205,26 @@ void
 Scene::setHasFilesWithRemotePaths(const bool hasFilesWithRemotePaths)
 {
     m_hasFilesWithRemotePaths = hasFilesWithRemotePaths;
+}
+
+/**
+ * Set a static value for the scene that is being created.
+ */
+void
+Scene::setSceneBeingCreated(Scene* scene)
+{
+    s_sceneBeingCreated = scene;
+}
+
+/**
+ * Set the scene being created to have files with remote paths.
+ */
+void
+Scene::setSceneBeingCreatedHasFilesWithRemotePaths()
+{
+    if (s_sceneBeingCreated != NULL) {
+        s_sceneBeingCreated->m_hasFilesWithRemotePaths = true;
+    }
 }
 
 

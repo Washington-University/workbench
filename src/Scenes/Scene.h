@@ -82,6 +82,10 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+        static void setSceneBeingCreated(Scene* scene);
+        
+        static void setSceneBeingCreatedHasFilesWithRemotePaths();
+        
     private:
 
         /** Attributes of the scene*/
@@ -99,11 +103,15 @@ namespace caret {
         /** True if it found a ScenePathName with a remote file */
         bool m_hasFilesWithRemotePaths;
         
+        /** When a scene is being created, this will be set */
+        static Scene* s_sceneBeingCreated;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __SCENE_DECLARE__
+    Scene* Scene::s_sceneBeingCreated = NULL;
 #endif // __SCENE_DECLARE__
 
 } // namespace

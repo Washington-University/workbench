@@ -39,6 +39,7 @@
 #include "CaretLogger.h"
 #include "DataFile.h"
 #include "FileInformation.h"
+#include "Scene.h"
 
 using namespace caret;
 
@@ -71,7 +72,7 @@ ScenePathName::ScenePathName(const AString& name,
 : SceneObject(name,
               SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
-    m_value = value;
+    setValue(value);
 }
 
 /**
@@ -91,6 +92,10 @@ void
 ScenePathName::setValue(const AString& value)
 {
     m_value = value;
+    
+    if (DataFile::isFileOnNetwork(m_value)) {
+        Scene::setSceneBeingCreatedHasFilesWithRemotePaths();
+    }
 }
 
 /**
