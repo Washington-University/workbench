@@ -76,6 +76,9 @@ namespace caret {
         
         void setDescription(const AString& description);
         
+        bool hasFilesWithRemotePaths() const;
+        
+        void setHasFilesWithRemotePaths(const bool hasFilesWithRemotePaths);
 
         // ADD_NEW_METHODS_HERE
 
@@ -92,6 +95,9 @@ namespace caret {
 
         /** description of scene */
         AString m_sceneDescription;
+        
+        /** True if it found a ScenePathName with a remote file */
+        bool m_hasFilesWithRemotePaths;
         
         // ADD_NEW_MEMBERS_HERE
 

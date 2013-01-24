@@ -185,4 +185,25 @@ Scene::setDescription(const AString& sceneDescription)
     m_sceneDescription = sceneDescription;
 }
 
+/**
+ * @return true if there are files with remote paths in the scene.
+ */
+bool
+Scene::hasFilesWithRemotePaths() const
+{
+    return m_hasFilesWithRemotePaths;
+}
+
+/**
+ * Set status of having files with remote paths.
+ *
+ * @param hasFilesWithRemotePaths
+ *    New status.
+ */
+void
+Scene::setHasFilesWithRemotePaths(const bool hasFilesWithRemotePaths)
+{
+    m_hasFilesWithRemotePaths = hasFilesWithRemotePaths;
+}
+
 

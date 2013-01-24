@@ -761,6 +761,32 @@ SceneDialog::showSceneButtonClicked()
     }
     Scene* scene = getSelectedScene();
     if (scene != NULL) {
+        if (scene->hasFilesWithRemotePaths()) {
+            WuQDataEntryDialog ded("Username and Password",
+                                    this);
+            const QString msg("This scene contains files that are on the network.  "
+                              "If accessing the files requires a username and "
+                              "password, enter it here.  Otherwise, remove any "
+                              "text from the username and password fields.");
+            ded.setTextAtTop(msg,
+                             true);
+            QLineEdit* usernameLineEdit = ded.addLineEditWidget("Username");
+            QLineEdit* passwordLineEdit = ded.addLineEditWidget("Password");
+            passwordLineEdit->setEchoMode(QLineEdit::Password);
+            
+            usernameLineEdit->setText("wbuser");
+            passwordLineEdit->setText("hcpWb0512");
+            
+            if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                const QString username = usernameLineEdit->text().trimmed();
+                const QString password = passwordLineEdit->text().trimmed();
+                CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                 password);
+            }
+            else {
+                return;
+            }
+        }
         ProgressReportingDialog progressDialog(("Restoring Scene " + scene->getName()),
                                                "",
                                                this);

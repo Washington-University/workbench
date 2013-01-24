@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFile.h"
 #include "Scene.h"
 #include "SceneBoolean.h"
 #include "SceneBooleanArray.h"
@@ -537,6 +538,10 @@ SceneSaxReader::endElement(const AString& /* namspaceURI */,
                     scenePathName->setValueToAbsolutePath(m_sceneFileName, 
                                                           stringValue);
                     addChildToParentClass(scenePathName);
+                    
+                    if (DataFile::isFileOnNetwork(stringValue)) {
+                        m_scene->setHasFilesWithRemotePaths(true);
+                    }
                 }
                     break;
                 case SceneObjectDataTypeEnum::SCENE_STRING:
