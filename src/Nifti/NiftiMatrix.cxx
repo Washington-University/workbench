@@ -642,7 +642,7 @@ void NiftiMatrix::getFrame(float *frameOut, const int64_t &timeSlice, const int6
 int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const
 {
     int64_t frameLength = 1;
-    for(int i=0;i<MATRIX_FRAME_DIMENSIONS;i++)
+    for(int i=0;i<MATRIX_FRAME_DIMENSIONS && i < (int)dimensionsIn.size();i++)
         frameLength*=dimensionsIn[i];
     return frameLength;
 }
