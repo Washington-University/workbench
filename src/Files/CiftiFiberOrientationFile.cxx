@@ -498,6 +498,8 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
                                              m_volumeSpacing);
         
         setFileName(filename);
+        
+        clearModified();
     }
     catch (const DataFileException& dfe) {
         clear();

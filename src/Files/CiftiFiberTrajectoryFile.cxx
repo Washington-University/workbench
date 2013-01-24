@@ -261,6 +261,8 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
         m_sparseFile = new CaretSparseFile();
         m_sparseFile->readFile(filename);
         setFileName(filename);
+        
+        clearModified();
     }
     catch (const DataFileException& dfe) {
         clear();
