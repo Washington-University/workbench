@@ -7840,19 +7840,21 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
     for (int32_t i = 0; i < numMapFiles; i++) {
         const int mapIndex = mapIndices[i];
         const PaletteColorMapping* pcm = mapFiles[i]->getMapPaletteColorMapping(mapIndex);
-        const AString paletteName = pcm->getSelectedPaletteName();
-        const Palette* palette = paletteFile->getPaletteByName(paletteName);
-        if (palette != NULL) {
-            const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
-            this->drawPalette(palette, 
-                              pcm, 
-                              statistics, 
-                              i);
-        }
-        else {
-            CaretLogWarning("Palette named "
-                            + paletteName
-                            + " not found in palette file.");
+        if (pcm != NULL) {
+            const AString paletteName = pcm->getSelectedPaletteName();
+            const Palette* palette = paletteFile->getPaletteByName(paletteName);
+            if (palette != NULL) {
+                const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
+                this->drawPalette(palette,
+                                  pcm,
+                                  statistics,
+                                  i);
+            }
+            else {
+                CaretLogWarning("Palette named "
+                                + paletteName
+                                + " not found in palette file.");
+            }
         }
     }
     

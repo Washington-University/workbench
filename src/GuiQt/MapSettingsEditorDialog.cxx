@@ -179,9 +179,11 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
     
     if (m_caretMappableDataFile != NULL) {
         if (m_caretMappableDataFile->isMappedWithPalette()) {
-            isPaletteValid = true;
-            m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
-                                                      m_mapIndex);
+            if (m_caretMappableDataFile->getMapPaletteColorMapping(m_mapIndex) != NULL) {
+                isPaletteValid = true;
+                m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
+                                                          m_mapIndex);
+            }
         }
     }
   
