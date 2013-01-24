@@ -226,7 +226,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 if (validOut != NULL) *validOut = false;
                 return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
             }
-            int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+            int64_t whichFrame = component * m_dimensions[3] + brickIndex;
             validateSplines(brickIndex, component);
             if (validOut != NULL) *validOut = true;
             return m_frameSplines[whichFrame].sample(indexSpace);

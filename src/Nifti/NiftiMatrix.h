@@ -99,7 +99,7 @@ public:
     /// sets the entire volume file Matrix, be sure to set the matrix layout before calling this function
     void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException);
     /// gets the entire volume file Matrix
-    void getMatrix(float *matrixOut) throw (NiftiException);
+    void getMatrix(float *matrixOut);
 
     // For reading a frame at a time from previously loaded matrix
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed

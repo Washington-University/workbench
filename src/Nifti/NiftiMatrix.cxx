@@ -682,6 +682,17 @@ void NiftiMatrix::setVolume(VolumeBase &vol)
     }
 }
 
+void NiftiMatrix::getMatrix(float* matrixOut)
+{
+    for(int t=0;t<timeLength;t++)
+    {
+        for(int i=0;i<componentDimensions;i++)
+        {
+            this->getFrame(matrixOut + (t + i * timeLength) * this->frameLength, t, i);
+        }
+    }
+}
+
 void NiftiMatrix::convertBytes(char *&bytes, float *&frameOut, int64_t &size) throw (NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
