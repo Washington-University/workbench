@@ -172,6 +172,10 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
     ciftiOut->setCiftiXML(myXML);
     vector<CiftiVolumeMap> volMap;
     CaretArray<float> temprow(24, 0.0f);
+    temprow[14] = 1.0f;//do not put zeros in ka and kb, ever
+    temprow[15] = 1.0f;
+    temprow[21] = 1.0f;
+    temprow[22] = 1.0f;
     myXML.getVolumeMapForColumns(volMap);//we don't need to know which voxel is from which parcel
     int64_t end = (int64_t)volMap.size();
     for (int64_t i = 0; i < end; ++i)
