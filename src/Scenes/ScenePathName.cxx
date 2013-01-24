@@ -37,6 +37,7 @@
 #undef __SCENE_PATH_NAME_DECLARE__
 
 #include "CaretLogger.h"
+#include "DataFile.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -119,11 +120,13 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
     if (name.isEmpty() == false) {
         FileInformation sceneFileInfo(sceneFileName);
         if (sceneFileInfo.isAbsolute()) {
-            FileInformation fileInfo(name);
-            if (fileInfo.isRelative()) {
-                FileInformation fileInfo(sceneFileInfo.getPathName(),
-                                         name);
-                name = fileInfo.getFilePath();
+            if (DataFile::isFileOnNetwork(name) == false) {
+                FileInformation fileInfo(name);
+                if (fileInfo.isRelative()) {
+                    FileInformation fileInfo(sceneFileInfo.getPathName(),
+                                             name);
+                    name = fileInfo.getFilePath();
+                }
             }
         }
         

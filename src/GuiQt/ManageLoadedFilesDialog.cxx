@@ -624,7 +624,8 @@ ManageFileRow::fileNameToolButtonPressed()
 void 
 ManageFileRow::saveFile(const bool isAddToSpecFile)  throw (DataFileException)
 {
-    if (this->saveCheckBox->isChecked()) {
+    if (this->saveCheckBox->isEnabled()
+        && this->saveCheckBox->isChecked()) {
         AString name = this->fileNameLineEdit->text().trimmed();
         this->caretDataFile->setFileName(name);
         this->brain->writeDataFile(this->caretDataFile,
