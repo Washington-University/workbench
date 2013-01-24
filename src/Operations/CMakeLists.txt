@@ -35,6 +35,7 @@ OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
 OperationLabelMask.h
+OperationMetricConvert.h
 OperationMetricMask.h
 OperationMetricMath.h
 OperationMetricMerge.h
@@ -73,6 +74,7 @@ OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx
 OperationLabelMask.cxx
+OperationMetricConvert.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx
 OperationMetricMerge.cxx

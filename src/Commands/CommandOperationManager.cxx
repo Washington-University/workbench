@@ -83,6 +83,7 @@
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFociListCoords.h"
 #include "OperationLabelMask.h"
+#include "OperationMetricConvert.h"
 #include "OperationMetricMask.h"
 #include "OperationMetricMath.h"
 #include "OperationMetricMerge.h"
@@ -216,6 +217,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
