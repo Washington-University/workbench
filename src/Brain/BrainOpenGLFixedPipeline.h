@@ -340,7 +340,15 @@ namespace caret {
                                   const int windowY,
                                   const QString& text,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY);
+                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
+                                  const int fontHeight = -1);
+        
+        void drawBoldTextWindowCoords(const int windowX,
+                                  const int windowY,
+                                  const QString& text,
+                                  const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
+                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
+                                  const int fontHeight = -1);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,

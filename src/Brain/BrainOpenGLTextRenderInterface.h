@@ -109,7 +109,7 @@ namespace caret {
                                             const TextAlignmentY alignmentY,
                                             const TextStyle textStyle = NORMAL,
                                             const int fontHeight = 14,
-                                            const AString& fontName = "times") = 0;
+                                            const AString& fontName = "") = 0;
         
         /**
          * Draw text at the given model coordinates.

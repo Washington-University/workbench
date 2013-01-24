@@ -30,6 +30,8 @@
 
 class QGLWidget;
 
+class QFont;
+
 namespace caret {
 
     class BrainOpenGLWidgetTextRenderer : public BrainOpenGLTextRenderInterface {
@@ -47,7 +49,7 @@ namespace caret {
                                     const TextAlignmentY alignmentY,
                                     const TextStyle textStyle = NORMAL,
                                     const int fontHeight = 14,
-                                    const AString& fontName = "times");
+                                    const AString& fontName = "");
         
         void drawTextAtModelCoords(const double modelX,
                                    const double modelY,
@@ -63,7 +65,30 @@ namespace caret {
         BrainOpenGLWidgetTextRenderer& operator=(const BrainOpenGLWidgetTextRenderer&);
         
     private:
-        QGLWidget* glWidget;
+        class FontData {
+        public:
+            FontData(QFont* font,
+                     const QString fontName,
+                     const int fontHeight,
+                     const TextStyle textStyle);
+
+            ~FontData();
+            
+            QFont* m_font;
+            QString m_fontName;
+            int m_fontHeight;
+            TextStyle m_textStyle;
+        };
+        
+        std::vector<FontData*> m_fonts;
+        
+        QFont* findFont(const QString& fontName,
+                        const int fontHeight,
+                        const TextStyle textStyle);
+        
+        QGLWidget* m_glWidget;
+        
+        QString m_emptyNameFont;
     };
     
 #ifdef __BRAIN_OPEN_G_L_WIDGET_TEXT_RENDERER_DECLARE__

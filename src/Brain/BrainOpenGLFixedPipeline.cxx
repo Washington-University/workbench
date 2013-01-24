@@ -2974,29 +2974,34 @@ BrainOpenGLFixedPipeline::drawVolumeAxesLabels(
         SessionManager::get()->getCaretPreferences()->getColorForeground(foregroundRGB);
         glColor3ubv(foregroundRGB);
         
-        this->drawTextWindowCoords(5, 
+        const int fontHeight = 18;
+        this->drawBoldTextWindowCoords(5,
                                    (viewport[3] / 2), 
                                    orientLeftSideLabel, 
                                    BrainOpenGLTextRenderInterface::X_LEFT,
-                                   BrainOpenGLTextRenderInterface::Y_CENTER);
+                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                   fontHeight);
 
-        this->drawTextWindowCoords((viewport[2] - 5), 
+        this->drawBoldTextWindowCoords((viewport[2] - 5), 
                                    (viewport[3] / 2), 
                                    orientRightSideLabel, 
                                    BrainOpenGLTextRenderInterface::X_RIGHT,
-                                   BrainOpenGLTextRenderInterface::Y_CENTER);
+                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                   fontHeight);
         
-        this->drawTextWindowCoords((viewport[2] / 2), 
+        this->drawBoldTextWindowCoords((viewport[2] / 2), 
                                    5, 
                                    orientBottomSideLabel, 
                                    BrainOpenGLTextRenderInterface::X_CENTER,
-                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM,
+                                   fontHeight);
         
-        this->drawTextWindowCoords((viewport[2] / 2), 
+        this->drawBoldTextWindowCoords((viewport[2] / 2), 
                                    (viewport[3] - 5), 
                                    orientTopSideLabel, 
                                    BrainOpenGLTextRenderInterface::X_CENTER,
-                                   BrainOpenGLTextRenderInterface::Y_TOP);
+                                   BrainOpenGLTextRenderInterface::Y_TOP,
+                                   fontHeight);
         
         glPopMatrix();
         
@@ -7717,13 +7722,16 @@ BrainOpenGLFixedPipeline::drawSquare(const float size)
  *    Text that is to be drawn.
  * @param alignment
  *    Alignment of text.
+ * @param fontHeight
+ *    Height of font.  If negative, default is used.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                const int windowY,
                                                const QString& text,
                                                const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                               const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY)
+                                               const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
+                                               const int fontHeight)
 {
     if (this->textRenderer != NULL) {
         GLint vp[4];
@@ -7739,7 +7747,50 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                    windowY,
                                                    text.trimmed(),
                                                    alignmentX,
-                                                   alignmentY);
+                                                   alignmentY,
+                                                   BrainOpenGLTextRenderInterface::NORMAL,
+                                                   fontHeight);
+    }
+}
+
+/**
+ * Draw BOLD text at the given window coordinates.
+ * @param windowX
+ *    Window X-coordinate.
+ * @param windowY
+ *    Window Y-coordinate.
+ * @param text
+ *    Text that is to be drawn.
+ * @param alignment
+ *    Alignment of text.
+ * @param fontHeight
+ *    Height of font.  If negative, default is used.
+ */
+void
+BrainOpenGLFixedPipeline::drawBoldTextWindowCoords(const int windowX,
+                                               const int windowY,
+                                               const QString& text,
+                                               const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
+                                               const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
+                                               const int fontHeight)
+{
+    if (this->textRenderer != NULL) {
+        GLint vp[4];
+        glGetIntegerv(GL_VIEWPORT, vp);
+        int viewport[4] = {
+            vp[0],
+            vp[1],
+            vp[2],
+            vp[3]
+        };
+        this->textRenderer->drawTextAtWindowCoords(viewport,
+                                                   windowX,
+                                                   windowY,
+                                                   text.trimmed(),
+                                                   alignmentX,
+                                                   alignmentY,
+                                                   BrainOpenGLTextRenderInterface::BOLD,
+                                                   fontHeight);
     }
 }
 
