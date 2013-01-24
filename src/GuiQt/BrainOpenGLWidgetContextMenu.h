@@ -91,13 +91,13 @@ namespace caret {
 
         void parcelConnectivityActionSelected(QAction* action);
         
-        void parcelTimeSeriesActionSelected(QAction* action);
+        void parcelDataSeriesActionSelected(QAction* action);
         
         void borderCiftiConnectivitySelected();
 
         void borderConnectivitySelected();
         
-        void borderTimeSeriesSelected();
+        void borderDataSeriesSelected();
         
     private:
         class ParcelConnectivity {
@@ -138,6 +138,10 @@ namespace caret {
                                            const std::vector<int32_t>& nodeIndices);
         bool warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
                                            const std::vector<int32_t>& nodeIndices);
+        
+        bool enableDataSeriesGraphsIfNoneEnabled();
+        
+        void displayAllDataSeriesGraphs();
         
         std::vector<ParcelConnectivity*> parcelConnectivities;
         

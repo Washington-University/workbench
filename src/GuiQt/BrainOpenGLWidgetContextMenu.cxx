@@ -45,6 +45,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -71,6 +72,7 @@
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "Surface.h"
+#include "TimeCourseDialog.h"
 #include "UserInputModeFociWidget.h"
 #include "VolumeFile.h"
 #include "WuQMessageBox.h"
@@ -209,7 +211,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         run = true;
         const AString actionName("Show Time series For Parcel ");
         QAction* action = connectivityActionGroup->addAction(actionName);
-        timeSeriesActions.push_back(action);
+        dataSeriesActions.push_back(action);
 
     }*/
 
@@ -241,13 +243,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         if (clm != NULL) {
             if(hasTimeSeries)
             {
-                const QString text = ("Show Time Series for Nodes Inside Border "
+                const QString text = ("Show Data Series Graph for Nodes Inside Border "
                                       + borderID->getBorder()->getName());
                 QAction* action = WuQtUtilities::createAction(text,
                                                               "",
                                                               this,
                                                               this,
-                                                              SLOT(borderTimeSeriesSelected()));
+                                                              SLOT(borderDataSeriesSelected()));
                 borderConnectivityActions.push_back(action);
             }   
         }
@@ -263,10 +265,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(parcelConnectivityActionSelected(QAction*)));
     
-    std::vector<QAction*> timeSeriesActions;
-    QActionGroup* timeSeriesActionGroup = new QActionGroup(this);
-    QObject::connect(timeSeriesActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelTimeSeriesActionSelected(QAction*)));
+    std::vector<QAction*> dataSeriesActions;
+    QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
+    QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelDataSeriesActionSelected(QAction*)));
     if (surfaceID->isValid()) {
         /*
          * Connectivity actions for labels
@@ -344,13 +346,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                     
                     if (clm != NULL) {
                         if (hasTimeSeries) {
-                            const AString tsActionName("Show Time Series For Parcel "
+                            const AString tsActionName("Show Data Series Graph For Parcel "
                                                        + giftiLabel->getName()
                                                        + " in map "
                                                        + mapName);
-                            QAction* tsAction = timeSeriesActionGroup->addAction(tsActionName);
+                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
                             tsAction->setData(qVariantFromValue((void*)pc));                            
-                            timeSeriesActions.push_back(tsAction);
+                            dataSeriesActions.push_back(tsAction);
                         }
                     }
                 }
@@ -385,10 +387,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         }
     }
     
-    if(timeSeriesActions.empty() == false) {
+    if(dataSeriesActions.empty() == false) {
         this->addSeparator();            
-        for (std::vector<QAction*>::iterator tsIter = timeSeriesActions.begin();
-             tsIter != timeSeriesActions.end();
+        for (std::vector<QAction*>::iterator tsIter = dataSeriesActions.begin();
+             tsIter != dataSeriesActions.end();
              tsIter++) {
             this->addAction(*tsIter);
         }
@@ -766,7 +768,7 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
  *    Action that was selected.
  */
 void 
-BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
+BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
@@ -796,6 +798,7 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
         tl.parcelName = pc->labelName;       
         tl.structureName = StructureEnum::toGuiName(pc->surface->getStructure());
         tl.label = tl.structureName + ":" + tl.parcelName;
+        const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
         pc->connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(pc->surface,
                                                                       nodeIndices, tl);
 
@@ -803,7 +806,11 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
         pc->connectivityLoaderManager->getSurfaceTimeLines(tlV);
         if(tlV.size()!=0)
         {                    
-                GuiManager::get()->addTimeLines(tlV);                    
+            if (showAllGraphs) {
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                displayAllDataSeriesGraphs();
+            }
+            GuiManager::get()->addTimeLines(tlV);
         }
         EventUpdateTimeCourseDialog e;
         EventManager::get()->sendEvent(e.getPointer());
@@ -818,7 +825,7 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
  * Called when border timeseries is selected.
  */
 void 
-BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
+BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
 {
     SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
     Border* border = borderID->getBorder();
@@ -869,13 +876,18 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
             tl.structureName = StructureEnum::toGuiName(border->getStructure());
             tl.label =  tl.structureName + ":" + tl.borderClassName + ":" + tl.borderName;
             ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
+            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
             connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(surface,
                                                                           nodeIndices,tl);
             QList <TimeLine> tlV;
             connectivityLoaderManager->getSurfaceTimeLines(tlV);
             if(tlV.size()!=0)
-            {                    
-                 GuiManager::get()->addTimeLines(tlV);                    
+            {
+                if (showAllGraphs) {
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                    displayAllDataSeriesGraphs();
+                }
+                GuiManager::get()->addTimeLines(tlV);
             }
             EventUpdateTimeCourseDialog e;
             EventManager::get()->sendEvent(e.getPointer());
@@ -891,6 +903,65 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
         WuQMessageBox::errorOk(this, e.whatString());
     }
 
+}
+
+/**
+ * @return If not data series graphs are enabled, enable all of them and return 
+ * true.  Else, return false.
+ */
+bool
+BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<ConnectivityLoaderFile*> dataSeriesFiles;
+    brain->getConnectivityTimeSeriesFiles(dataSeriesFiles);
+    if (dataSeriesFiles.empty()) {
+        return false;
+    }
+    
+    /*
+     * Exit if any data series graph is enabled.
+     */
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
+         iter != dataSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isTimeSeriesGraphEnabled()) {
+            return false;
+        }
+    }
+    
+    /*
+     * Enable and display all data series graphs.
+     */
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
+         iter != dataSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        clf->setTimeSeriesGraphEnabled(true);
+    }
+
+    return true;
+}
+
+/**
+ * Display all data-series graphs.
+ */
+void
+BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<ConnectivityLoaderFile*> dataSeriesFiles;
+    brain->getConnectivityTimeSeriesFiles(dataSeriesFiles);
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
+         iter != dataSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        clf->setTimeSeriesGraphEnabled(true);
+        TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog((void *)clf);
+        tcd->setTimeSeriesGraphEnabled(true);
+        tcd->show();
+    }    
 }
 
 /**
