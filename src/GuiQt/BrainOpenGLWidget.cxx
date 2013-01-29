@@ -48,6 +48,7 @@
 #include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
@@ -318,6 +319,14 @@ BrainOpenGLWidget::paintGL()
         this->openGL->setBorderBeingDrawn(NULL);
     }
     this->openGL->drawModels(this->drawingViewportContents);
+    
+    /*
+     * Issue browser window redrawn event
+     */
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+    if (bbw != NULL) {
+        EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
+    }
 }
 
 /**

@@ -30,6 +30,7 @@ AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
+BrainBrowserWindowComboBox.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
@@ -123,6 +124,7 @@ AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
 BrainBrowserWindow.h
+BrainBrowserWindowComboBox.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
@@ -146,6 +148,7 @@ DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowCreateTabs.h
+EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
@@ -235,6 +238,7 @@ AboutWorkbenchDialog.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx
+BrainBrowserWindowComboBox.cxx
 BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
@@ -257,6 +261,7 @@ CustomViewDialog.cxx
 DisplayGroupEnumComboBox.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowCreateTabs.cxx
+EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx

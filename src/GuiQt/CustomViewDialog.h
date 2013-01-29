@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QDoubleSpinBox;
@@ -43,11 +43,10 @@ class QPushButton;
 namespace caret {
 
     class BrainBrowserWindow;
-    class BrowserTabContent;
-    class UserView;
-    class WuQListWidget;
+    class BrainBrowserWindowComboBox;
+    class WuQWidgetObjectGroup;
     
-    class CustomViewDialog : public WuQDialogNonModal {
+    class CustomViewDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -58,6 +57,10 @@ namespace caret {
         
         void updateDialog();
         
+        void updateContent(const int32_t browserWindowIndex);
+        
+        void receiveEvent(Event* event);
+        
     private:
         CustomViewDialog(const CustomViewDialog&);
 
@@ -66,21 +69,11 @@ namespace caret {
     private slots:
         void transformValueChanged();
         
-        void addNewViewPushButtonClicked();
+        void loadCustomViewPushButtonClicked();
         
-        void applyViewPushButtonClicked();
+        void saveCustomViewPushButtonClicked();
         
-        void deleteViewPushButtonClicked();
-        
-        void replaceViewPushButtonClicked();
-        
-        void setTransformationPushButtonClicked();
-        
-        void updateViewPushButtonClicked();
-        
-        void viewSelected();
-        
-        void viewWasDropped();
+        void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
         
     public:
 
@@ -88,54 +81,50 @@ namespace caret {
 
     private:
 
-        QWidget* createViewsWidget();
+        void updateGraphicsWindow();
+        
+        void getTransformationControlValues(double& panX,
+                                double& panY,
+                                double& rotX,
+                                double& rotY,
+                                double& rotZ,
+                                double& zoom) const;
+        
+        void setTransformationControlValues(const double panX,
+                                const double panY,
+                                const double rotX,
+                                const double rotY,
+                                const double rotZ,
+                                const double zoom) const;
+        
+        // ADD_NEW_MEMBERS_HERE
+        
+        QWidget* createCustomViewWidget();
         
         QWidget* createTransformsWidget();
         
-        UserView* getSelectedUserView();
+        QDoubleSpinBox* m_xPanDoubleSpinBox;
         
-        void selectViewByName(const AString& name);
+        QDoubleSpinBox* m_yPanDoubleSpinBox;
         
-        std::vector<BrainBrowserWindow*> getBrowserWindows();
-        
-        // ADD_NEW_MEMBERS_HERE
-
-        /// x translate float spin box
-        QDoubleSpinBox* m_xTranslateDoubleSpinBox;
-        
-        /// y translate float spin box
-        QDoubleSpinBox* m_yTranslateDoubleSpinBox;
-        
-        /// z translate float spin box
-        QDoubleSpinBox* m_zTranslateDoubleSpinBox;
-        
-        /// x rotate float spin box
         QDoubleSpinBox* m_xRotateDoubleSpinBox;
         
-        /// y rotate float spin box
         QDoubleSpinBox* m_yRotateDoubleSpinBox;
         
-        /// z rotate float spin box
         QDoubleSpinBox* m_zRotateDoubleSpinBox;
         
-        /// scale float spin box
-        QDoubleSpinBox* m_scaleDoubleSpinBox;
-        
-        QPushButton* m_addNewViewPushButton;
-        
-        QPushButton* m_deleteViewPushButton;
-        
-        QPushButton* m_replaceViewPushButton;
-        
-        QPushButton* m_updateViewPushButton;
-        
-        QPushButton* m_applyViewPushButton;
-        
-        QPushButton* m_setTransformationPushButton;
-        
-        WuQListWidget* m_viewSelectionListWidget;
+        QDoubleSpinBox* m_zoomDoubleSpinBox;
 
-        std::vector<BrainBrowserWindow*> m_previousAppliedToBrowserWindows;
+        WuQWidgetObjectGroup* m_transformWidgetGroup;
+        
+        BrainBrowserWindowComboBox* m_browserWindowComboBox;
+        
+        QPushButton* m_loadCustomViewPushButton;
+        
+        QPushButton* m_saveCustomViewPushButton;
+        
+        bool m_blockDialogUpdate;
+        
     };
     
 #ifdef __CUSTOM_VIEW_DIALOG_DECLARE__

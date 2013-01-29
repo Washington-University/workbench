@@ -1031,7 +1031,8 @@ GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
         this->nonModalDialogs.push_back(m_customViewDialog);
     }
     
-    m_customViewDialog->updateDialog();
+    const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
+    m_customViewDialog->updateContent(browserWindowIndex);
     m_customViewDialog->setVisible(true);
     m_customViewDialog->show();
     m_customViewDialog->activateWindow();

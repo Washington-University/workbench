@@ -54,6 +54,8 @@ public:
         EVENT_BROWSER_WINDOW_CONTENT_GET,
         /** Create tabs after loading a file */
         EVENT_BROWSER_WINDOW_CREATE_TABS,
+        /** Issued after a browser window's graphicshave been redrawn */
+        EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */

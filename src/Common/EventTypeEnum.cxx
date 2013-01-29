@@ -94,7 +94,11 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_CREATE_TABS", 
                                      "Create tabs (if needed) after loading data files"));
     
-    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW, 
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN,
+                                     "EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN",
+                                     "A Browser Window's graphics have been redrawn"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW,
                                      "EVENT_BROWSER_WINDOW_NEW", 
                                      "Create a new browser window"));
     
@@ -201,8 +205,8 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME,
                                      "EVENT_UPDATE_ANIMATION_START_TIME", 
                                      "Update the animation start time after user has modified the preference"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_COUNT, 
+
+    enumData.push_back(EventTypeEnum(EVENT_COUNT,
                                     "EVENT_COUNT", 
                                     "Count of events"));
     

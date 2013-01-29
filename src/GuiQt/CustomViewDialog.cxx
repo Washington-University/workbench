@@ -36,19 +36,21 @@
 #include "CustomViewDialog.h"
 #undef __CUSTOM_VIEW_DIALOG_DECLARE__
 
-#include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QInputDialog>
 #include <QLabel>
-#include <QListWidgetItem>
+#include <QListWidget>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowComboBox.h"
 #include "BrowserTabContent.h"
 #include "CaretPreferences.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -58,9 +60,9 @@
 #include "SessionManager.h"
 #include "UserView.h"
 #include "WuQDataEntryDialog.h"
-#include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -79,181 +81,166 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
 : WuQDialogNonModal("Custom Orientation",
                     parent)
 {
+    m_blockDialogUpdate = true;
+    
     /*
      * Remove apply button by using an empty name
      */
     setApplyButtonText("");
     
-    /*
-     * View controls
-     */
-    QLabel* viewLabel = new QLabel("Orientations:");
+    QWidget* customViewWidget = createCustomViewWidget();
+    QWidget* transformWidget = createTransformsWidget();
+    WuQtUtilities::matchWidgetHeights(customViewWidget,
+                                      transformWidget);
     
     /*
-     * Add new view button
+     * Layout for dialog
      */
-    m_addNewViewPushButton = new QPushButton("Add...");
-    QObject::connect(m_addNewViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(addNewViewPushButtonClicked()));
+    QWidget* widget = new QWidget();
+    QHBoxLayout* sceneButtonLayout = new QHBoxLayout(widget);
+    sceneButtonLayout->addWidget(transformWidget);
+    sceneButtonLayout->addWidget(customViewWidget);
+    setCentralWidget(widget);
     
     /*
-     * Delete view button
+     * No auto default button processing (Qt highlights button)
      */
-    m_deleteViewPushButton = new QPushButton("Delete...");
-    QObject::connect(m_deleteViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(deleteViewPushButtonClicked()));
+    disableAutoDefaultForAllPushButtons();
+ 
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    
+    m_blockDialogUpdate = false;
+}
+
+/**
+ * Destructor.
+ */
+CustomViewDialog::~CustomViewDialog()
+{
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * @return The Custom View widget.
+ */
+QWidget*
+CustomViewDialog::createCustomViewWidget()
+{
+    m_loadCustomViewPushButton = new QPushButton("Load...");
+    QObject::connect(m_loadCustomViewPushButton, SIGNAL(clicked()),
+                     this, SLOT(loadCustomViewPushButtonClicked()));
+    
+    m_saveCustomViewPushButton = new QPushButton("Save...");
+    QObject::connect(m_saveCustomViewPushButton, SIGNAL(clicked()),
+                     this, SLOT(saveCustomViewPushButtonClicked()));
+    
+    QGroupBox* groupBox = new QGroupBox("Custom");
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->addWidget(m_loadCustomViewPushButton);
+    layout->addWidget(m_saveCustomViewPushButton);
+    layout->addStretch();
+    
+    groupBox->setSizePolicy(QSizePolicy::Fixed,
+                            QSizePolicy::Fixed);
+
+    return groupBox;
+}
+
+/**
+ * @return The Transform widget.
+ */
+QWidget*
+CustomViewDialog::createTransformsWidget()
+{
+    const int spinBoxWidth = 70;
     
     /*
-     * Replace view button
+     * Window number
      */
-    m_replaceViewPushButton = new QPushButton("Replace...");
-    QObject::connect(m_replaceViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(replaceViewPushButtonClicked()));
+    QLabel* windowLabel = new QLabel("Window: ");
+    m_browserWindowComboBox = new BrainBrowserWindowComboBox(this);
+    m_browserWindowComboBox->getWidget()->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
+                     this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
     
     /*
-     * Apply view button
+     * Panning
      */
-    m_applyViewPushButton = new QPushButton("Apply");
-    QObject::connect(m_applyViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(applyViewPushButtonClicked()));
-    
-    /*
-     * Update all views button
-     */
-    const AString updateToolTipText = ("If Custom Orientations have been changed in another "
-                                       "concurrently running Workbench, pressing this "
-                                       "button will reload the Custom Orientations from the "
-                                       "user's preferences.");
-    m_updateViewPushButton = new QPushButton("Update");
-    WuQtUtilities::setWordWrappedToolTip(m_updateViewPushButton,
-                                         updateToolTipText);
-    QObject::connect(m_updateViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(updateViewPushButtonClicked()));
-    
-    /*
-     * Layout for view buttons
-     */
-    QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
-    sceneButtonLayout->addWidget(m_applyViewPushButton);
-    sceneButtonLayout->addStretch();
-    sceneButtonLayout->addWidget(m_addNewViewPushButton);
-    //sceneButtonLayout->addWidget(m_replaceViewPushButton);
-    sceneButtonLayout->addWidget(m_deleteViewPushButton);
-    sceneButtonLayout->addWidget(m_updateViewPushButton);
-    
-    /*
-     * View selection list widget
-     */
-    m_viewSelectionListWidget = new WuQListWidget();
-    m_viewSelectionListWidget->setFixedHeight(140);
-    
-    QObject::connect(m_viewSelectionListWidget, SIGNAL(currentRowChanged(int)),
-                     this, SLOT(viewSelected()));
-    QObject::connect(m_viewSelectionListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-                     this, SLOT(applyViewPushButtonClicked()));  // show the scene
-    QObject::connect(m_viewSelectionListWidget, SIGNAL(itemWasDropped()),
-                     this, SLOT(viewWasDropped()));
-    
-    /*------------------------------------------------------------------------*/
-    /*
-     * Transformations
-     */
-    
-    const int spinBoxWidth = 80;
-    
-    /*
-     * Column names
-     */
-    QLabel* xLabel = new QLabel("X");
-    QLabel* yLabel = new QLabel("Y");
-    QLabel* zLabel = new QLabel("Z");
-    
-    /*
-     * Translation
-     */
-    QLabel* translateLabel = new QLabel("Translation:");
-    m_xTranslateDoubleSpinBox = new QDoubleSpinBox;
-    m_xTranslateDoubleSpinBox->setMinimum(-100000.0);
-    m_xTranslateDoubleSpinBox->setMaximum( 100000.0);
-    m_xTranslateDoubleSpinBox->setSingleStep(5.0);
-    m_xTranslateDoubleSpinBox->setDecimals(2);
-    m_xTranslateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_xTranslateDoubleSpinBox, SIGNAL(valueChanged(double)),
+    const double panStep = 1.0;
+    QLabel* panLabel = new QLabel("Pan (X,Y):");
+    m_xPanDoubleSpinBox = new QDoubleSpinBox;
+    m_xPanDoubleSpinBox->setMinimum(-100000.0);
+    m_xPanDoubleSpinBox->setMaximum( 100000.0);
+    m_xPanDoubleSpinBox->setSingleStep(panStep);
+    m_xPanDoubleSpinBox->setDecimals(2);
+    m_xPanDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_xPanDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
-    m_yTranslateDoubleSpinBox = new QDoubleSpinBox;
-    m_yTranslateDoubleSpinBox->setMinimum(-100000.0);
-    m_yTranslateDoubleSpinBox->setMaximum( 100000.0);
-    m_yTranslateDoubleSpinBox->setSingleStep(5.0);
-    m_yTranslateDoubleSpinBox->setDecimals(2);
-    m_yTranslateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_yTranslateDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(transformValueChanged()));
-    m_zTranslateDoubleSpinBox = new QDoubleSpinBox;
-    m_zTranslateDoubleSpinBox->setMinimum(-100000.0);
-    m_zTranslateDoubleSpinBox->setMaximum( 100000.0);
-    m_zTranslateDoubleSpinBox->setSingleStep(5.0);
-    m_zTranslateDoubleSpinBox->setDecimals(2);
-    m_zTranslateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_zTranslateDoubleSpinBox, SIGNAL(valueChanged(double)),
+    m_yPanDoubleSpinBox = new QDoubleSpinBox;
+    m_yPanDoubleSpinBox->setMinimum(-100000.0);
+    m_yPanDoubleSpinBox->setMaximum( 100000.0);
+    m_yPanDoubleSpinBox->setSingleStep(panStep);
+    m_yPanDoubleSpinBox->setDecimals(2);
+    m_yPanDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_yPanDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
     /*
      * Rotation
      */
-    QLabel* rotateLabel = new QLabel("Rotation:");
+    const double rotationMinimum = -360.0;
+    const double rotationMaximum =  360.0;
+    const double rotateStep = 1.0;
+    QLabel* rotateLabel = new QLabel("Rotate (X,Y,Z): ");
     m_xRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_xRotateDoubleSpinBox->setMinimum(-180.0);
-    m_xRotateDoubleSpinBox->setMaximum(180.0);
-    m_xRotateDoubleSpinBox->setSingleStep(1.0);
+    m_xRotateDoubleSpinBox->setWrapping(true);
+    m_xRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_xRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_xRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_xRotateDoubleSpinBox->setDecimals(2);
     m_xRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_xRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_yRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_yRotateDoubleSpinBox->setMinimum(-180.0);
-    m_yRotateDoubleSpinBox->setMaximum(180.0);
-    m_yRotateDoubleSpinBox->setSingleStep(1.0);
+    m_yRotateDoubleSpinBox->setWrapping(true);
+    m_yRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_yRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_yRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_yRotateDoubleSpinBox->setDecimals(2);
     m_yRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_yRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_zRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_zRotateDoubleSpinBox->setMinimum(-180.0);
-    m_zRotateDoubleSpinBox->setMaximum(180.0);
-    m_zRotateDoubleSpinBox->setSingleStep(1.0);
+    m_zRotateDoubleSpinBox->setWrapping(true);
+    m_zRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_zRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_zRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_zRotateDoubleSpinBox->setDecimals(2);
     m_zRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_zRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
     /*
-     * Scale
+     * Zoom
      */
-    QLabel* scaleLabel = new QLabel("Scaling (XYZ):");
-    m_scaleDoubleSpinBox = new QDoubleSpinBox;
-    m_scaleDoubleSpinBox->setMinimum(0.001);
-    m_scaleDoubleSpinBox->setMaximum(10000.0);
-    m_scaleDoubleSpinBox->setSingleStep(0.1);
-    m_scaleDoubleSpinBox->setDecimals(3);
-    m_scaleDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_scaleDoubleSpinBox, SIGNAL(valueChanged(double)),
+    const double zoomStep = 0.1;
+    QLabel* zoomLabel = new QLabel("Zoom: ");
+    m_zoomDoubleSpinBox = new QDoubleSpinBox;
+    m_zoomDoubleSpinBox->setMinimum(0.001);
+    m_zoomDoubleSpinBox->setMaximum(10000.0);
+    m_zoomDoubleSpinBox->setSingleStep(zoomStep);
+    m_zoomDoubleSpinBox->setDecimals(3);
+    m_zoomDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_zoomDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
-    /*
-     * Set transformation button.
-     */
-    m_setTransformationPushButton = new QPushButton("Set...");
-    QObject::connect(m_setTransformationPushButton, SIGNAL(clicked()),
-                     this, SLOT(setTransformationPushButtonClicked()));
-    
-    
-    /*
-     * Layout for view buttons
-     */
-    QVBoxLayout* transformButtonLayout = new QVBoxLayout();
-    transformButtonLayout->addStretch();
-    transformButtonLayout->addWidget(m_setTransformationPushButton);
-    transformButtonLayout->addStretch();
+    m_transformWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_transformWidgetGroup->add(m_xPanDoubleSpinBox);
+    m_transformWidgetGroup->add(m_yPanDoubleSpinBox);
+    m_transformWidgetGroup->add(m_xRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_yRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_zRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_zoomDoubleSpinBox);
     
     /*------------------------------------------------------------------------*/
     /*
@@ -267,53 +254,38 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     const int COLUMN_X      = column++;
     const int COLUMN_Y      = column++;
     const int COLUMN_Z      = column++;
-    const int COLUMN_BUTTON = column++;
     const int COLUMN_COUNT  = column++;
     
-    QWidget* gridWidget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    QGroupBox* groupBox = new QGroupBox("Transform");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
     WuQtUtilities::setLayoutMargins(gridLayout, 4, 4);
     int row = 0;
-    gridLayout->addWidget(viewLabel, row, COLUMN_LABEL, Qt::AlignLeft | Qt::AlignVCenter);
-    gridLayout->addWidget(m_viewSelectionListWidget, row, 1, 1, 3);
-    gridLayout->addLayout(sceneButtonLayout, row, COLUMN_BUTTON);
-    row++;
-    QWidget* lineWidget = WuQtUtilities::createHorizontalLineWidget();
-    lineWidget->setFixedHeight(12);
-    gridLayout->addWidget(lineWidget, row, 0, 1, COLUMN_COUNT);
-    row++;
-
-    /*
-     * First row of grid layout containing transformation items
-     */
-    const int gridLayoutTransformTopRow = row;
-    
-    gridLayout->addWidget(xLabel,
-                          row,
-                          COLUMN_X,
-                          Qt::AlignCenter);
-    gridLayout->addWidget(yLabel,
-                          row,
-                          COLUMN_Y,
-                          Qt::AlignCenter);
-    gridLayout->addWidget(zLabel,
-                          row,
-                          COLUMN_Z,
-                          Qt::AlignCenter);
-    row++;
-    
-    gridLayout->addWidget(translateLabel,
+    gridLayout->addWidget(windowLabel,
                           row,
                           COLUMN_LABEL);
-    gridLayout->addWidget(m_xTranslateDoubleSpinBox,
+    gridLayout->addWidget(m_browserWindowComboBox->getWidget(),
                           row,
                           COLUMN_X);
-    gridLayout->addWidget(m_yTranslateDoubleSpinBox,
+    row++;
+    
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                          row,
+                          COLUMN_LABEL,
+                          1,
+                          COLUMN_COUNT);
+    gridLayout->setRowMinimumHeight(row,
+                                    10.0);
+    row++;
+    
+    gridLayout->addWidget(panLabel,
+                          row,
+                          COLUMN_LABEL);
+    gridLayout->addWidget(m_xPanDoubleSpinBox,
+                          row,
+                          COLUMN_X);
+    gridLayout->addWidget(m_yPanDoubleSpinBox,
                           row,
                           COLUMN_Y);
-    gridLayout->addWidget(m_zTranslateDoubleSpinBox,
-                          row,
-                          COLUMN_Z);
     row++;
     
     gridLayout->addWidget(rotateLabel,
@@ -330,41 +302,33 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
                           COLUMN_Z);
     row++;
     
-    gridLayout->addWidget(scaleLabel,
+    gridLayout->addWidget(zoomLabel,
                           row,
                           COLUMN_LABEL);
-    gridLayout->addWidget(m_scaleDoubleSpinBox,
+    gridLayout->addWidget(m_zoomDoubleSpinBox,
                           row,
                           COLUMN_X);
     row++;
     
-    /*
-     * Last row of grid layout containing transformation items
-     */
-    const int gridLayoutNumberOfTransformRows = row - gridLayoutTransformTopRow;
+    groupBox->setSizePolicy(QSizePolicy::Fixed,
+                            QSizePolicy::Fixed);
     
-    gridLayout->addLayout(transformButtonLayout,
-                          gridLayoutTransformTopRow, COLUMN_BUTTON,
-                          gridLayoutNumberOfTransformRows, 1);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(gridWidget);
-    setCentralWidget(widget);
-    
-    /*
-     * No auto default button processing (Qt highlights button)
-     */
-    disableAutoDefaultForAllPushButtons();
-    
+    return groupBox;
 }
 
 /**
- * Destructor.
+ * Called when window number combo box value changed.
  */
-CustomViewDialog::~CustomViewDialog()
+void
+CustomViewDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow)
 {
+    int32_t windowIndex = -1;
+    if (browserWindow != NULL) {
+        std::cout << "Selected " << browserWindow->getBrowserWindowIndex() << std::endl;
+        windowIndex = browserWindow->getBrowserWindowIndex();
+    }
     
+    updateContent(windowIndex);
 }
 
 /**
@@ -373,29 +337,46 @@ CustomViewDialog::~CustomViewDialog()
 void
 CustomViewDialog::transformValueChanged()
 {
-    const float t[3] = {
-        m_xTranslateDoubleSpinBox->value(),
-        m_yTranslateDoubleSpinBox->value(),
-        m_zTranslateDoubleSpinBox->value()
-    };
+    double panX, panY, rotX, rotY, rotZ, zoom;
+    getTransformationControlValues(panX,
+                                   panY,
+                                   rotX,
+                                   rotY,
+                                   rotZ,
+                                   zoom);
+    const float panning[3] = { panX, panY, 0.0 };
+    
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    if (bbw != NULL) {
+        BrowserTabContent* btc = bbw->getBrowserTabContent();
+        const int32_t tabIndex = btc->getTabNumber();
+        if (btc != NULL) {
+            Model* model = btc->getModelControllerForTransformation();
+            if (model != NULL) {
+                model->setTranslation(tabIndex, panning);
+                Matrix4x4* rotationMatrix = model->getViewingRotationMatrix(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
+                rotationMatrix->setRotation(rotX, rotY, rotZ);
+                model->setScaling(tabIndex, zoom);
+                
+                updateGraphicsWindow();
+            }
+        }
+    }
+}
 
-    const float r[3] = {
-        m_xRotateDoubleSpinBox->value(),
-        m_yRotateDoubleSpinBox->value(),
-        m_zRotateDoubleSpinBox->value()
-    };
-    Matrix4x4 rotationMatrix;
-    rotationMatrix.setRotation(r[0], r[1], r[2]);
-    float rotation[4][4];
-    rotationMatrix.getMatrix(rotation);
-    
-    const float s = m_scaleDoubleSpinBox->value();
-    
-    UserView* userView = getSelectedUserView();
-    if (userView != NULL) {
-        userView->setTranslation(t);
-        userView->setRotation(rotation);
-        userView->setScaling(s);
+/**
+ * Update the selected graphics window.
+ */
+void
+CustomViewDialog::updateGraphicsWindow()
+{
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    if (bbw != NULL) {
+        const int32_t windowIndex = bbw->getBrowserWindowIndex();
+        
+        m_blockDialogUpdate = true;
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+        m_blockDialogUpdate = false;
     }
 }
 
@@ -405,89 +386,189 @@ CustomViewDialog::transformValueChanged()
 void
 CustomViewDialog::updateDialog()
 {
-    UserView* previouslySelectedUserView = getSelectedUserView();
+    m_browserWindowComboBox->updateComboBox();
+    updateContent(m_browserWindowComboBox->getSelectedBrowserWindowIndex());
+}
+
+/**
+ * Update the dialog.
+ */
+void
+CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
+{
+    /*
+     * May get updates when graphics are redrawn by this dialog
+     * and not doing this could result in infinite loop
+     */
+    if (m_blockDialogUpdate) {
+        return;
+    }
     
-    m_viewSelectionListWidget->clear();
+    /*
+     * Update, set, and validate selected browser window
+     */
+    m_browserWindowComboBox->updateComboBox();
+    m_browserWindowComboBox->setBrowserWindowByIndex(browserWindowIndexIn);
+    const int32_t browserWindowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->readUserViews();
-    std::vector<UserView*> allUserViews = prefs->getAllUserViews();
-    
-    int defaultSelectedIndex = 0;
-    const int32_t numViews = static_cast<int32_t>(allUserViews.size());
-    for (int32_t i = 0; i < numViews; i++) {
-        UserView* userView = allUserViews[i];
-        
-        if (userView == previouslySelectedUserView) {
-            defaultSelectedIndex = i;
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+    if (bbw != NULL) {
+        BrowserTabContent* btc = bbw->getBrowserTabContent();
+        const int32_t tabIndex = btc->getTabNumber();
+        if (btc != NULL) {
+            Model* model = btc->getModelControllerForTransformation();
+            if (model != NULL) {
+                const float* panning = model->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
+                const Matrix4x4* rotationMatrix = model->getViewingRotationMatrix(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
+                const float zooming = model->getScaling(tabIndex);
+                
+                double rotX, rotY, rotZ;
+                rotationMatrix->getRotation(rotX, rotY, rotZ);
+                
+                setTransformationControlValues(panning[0],
+                                               panning[1],
+                                               rotX,
+                                               rotY,
+                                               rotZ,
+                                               zooming);
+            }
         }
         
-        const QString viewName = userView->getName();
-        
-        QListWidgetItem* lwi = new QListWidgetItem(viewName);
-        lwi->setData(Qt::UserRole,
-                     qVariantFromValue(reinterpret_cast<quintptr>(userView)));
-        m_viewSelectionListWidget->addItem(lwi);
+        m_transformWidgetGroup->setEnabled(true);
     }
+    else {
+        m_transformWidgetGroup->setEnabled(false);
+    }
+}
+
+/**
+ * Get the transformation values.
+ *
+ * @param panX
+ *    X pannning
+ * @param panX
+ *    X pannning
+ * @param rotX
+ *    X rotation
+ * @param rotY
+ *    Y rotation
+ * @param rotZ
+ *    Z rotation
+ * @param zoom
+ *    Zooming
+ */
+void
+CustomViewDialog::getTransformationControlValues(double& panX,
+                        double& panY,
+                        double& rotX,
+                        double& rotY,
+                        double& rotZ,
+                        double& zoom) const
+{
+    panX = m_xPanDoubleSpinBox->value();
+    panY = m_yPanDoubleSpinBox->value();
     
-    if (defaultSelectedIndex < m_viewSelectionListWidget->count()) {
-        m_viewSelectionListWidget->setCurrentRow(defaultSelectedIndex);
-        viewSelected();
-    }
+    rotX = m_xRotateDoubleSpinBox->value();
+    rotY = m_yRotateDoubleSpinBox->value();
+    rotZ = m_zRotateDoubleSpinBox->value();
+    
+    zoom = m_zoomDoubleSpinBox->value();
 }
 
 /**
- * Called when update button is pressed.
+ * Set the transformation values.
+ *
+ * @param panX
+ *    X pannning
+ * @param panX
+ *    X pannning
+ * @param rotX
+ *    X rotation
+ * @param rotY
+ *    Y rotation
+ * @param rotZ
+ *    Z rotation
+ * @param zoom
+ *    Zooming
  */
 void
-CustomViewDialog::updateViewPushButtonClicked()
+CustomViewDialog::setTransformationControlValues(const double panX,
+                                    const double panY,
+                                    const double rotX,
+                                    const double rotY,
+                                    const double rotZ,
+                                    const double zoom) const
 {
-    updateDialog();
+    m_transformWidgetGroup->blockAllSignals(true);
+    
+    m_xPanDoubleSpinBox->setValue(panX);
+    m_yPanDoubleSpinBox->setValue(panY);
+    
+    m_xRotateDoubleSpinBox->setValue(rotX);
+    m_yRotateDoubleSpinBox->setValue(rotY);
+    m_zRotateDoubleSpinBox->setValue(rotZ);
+    
+    m_zoomDoubleSpinBox->setValue(zoom);
+    
+    m_transformWidgetGroup->blockAllSignals(false);
 }
 
 /**
- * @return The selected user view.  Returns NULL if no views.
- */
-UserView*
-CustomViewDialog::getSelectedUserView()
-{
-    UserView* userView = NULL;
-    QListWidgetItem* lwi = m_viewSelectionListWidget->currentItem();
-    if (lwi != NULL) {
-        userView = reinterpret_cast<UserView*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-    }
-    return userView;
-}
-
-/**
- * Select the view with the given name.
+ * Called when load custom view push button clicked.
  */
 void
-CustomViewDialog::selectViewByName(const AString& name)
+CustomViewDialog::loadCustomViewPushButtonClicked()
 {
-    const int32_t numItems = m_viewSelectionListWidget->count();
-    for (int32_t i = 0; i < numItems; i++) {
-        QListWidgetItem* lwi = m_viewSelectionListWidget->item(i);
-        if (lwi->text() == name) {
-            m_viewSelectionListWidget->setCurrentItem(lwi);
-            break;
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const std::vector<UserView*> userViews = prefs->getAllUserViews();
+
+    QStringList userViewNames;
+    for (std::vector<UserView*>::const_iterator iter = userViews.begin();
+         iter != userViews.end();
+         iter++) {
+        const UserView* uv = *iter;
+        userViewNames.append(uv->getName());
+    }
+    WuQDataEntryDialog ded("Load Custom View",
+                           m_loadCustomViewPushButton);
+    QListWidget* viewListWidget = ded.addListWidget("",
+                                                    userViewNames);
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const int viewIndex = viewListWidget->currentRow();
+        if (viewIndex >= 0) {
+            const UserView* uv = userViews[viewIndex];
+            
+            const int32_t browserWindowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+            
+            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+            if (bbw != NULL) {
+                BrowserTabContent* btc = bbw->getBrowserTabContent();
+                const int32_t tabIndex = btc->getTabNumber();
+                if (btc != NULL) {
+                    Model* model = btc->getModelControllerForTransformation();
+                    if (model != NULL) {
+                        model->setTransformationsFromUserView(tabIndex, *uv);
+                        updateGraphicsWindow();
+                    }
+                }
+            }
+            
+            updateDialog();
         }
     }
 }
 
 /**
- * Called when add new view push button clicked.
+ * Called when save custom view push button clicked.
  */
 void
-CustomViewDialog::addNewViewPushButtonClicked()
+CustomViewDialog::saveCustomViewPushButtonClicked()
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
     bool ok = false;
     bool exitLoop = false;
     AString newViewName;
     while (exitLoop == false) {
-        newViewName = QInputDialog::getText(m_addNewViewPushButton,
+        newViewName = QInputDialog::getText(m_saveCustomViewPushButton,
                                             "",
                                             "Name of New View",
                                             QLineEdit::Normal,
@@ -495,6 +576,7 @@ CustomViewDialog::addNewViewPushButtonClicked()
                                             &ok);
         if (ok) {
             bool overwriteFlag = false;
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             const std::vector<UserView*> userViews = prefs->getAllUserViews();
             const int32_t numViews = static_cast<int32_t>(userViews.size());
             if (numViews > 0) {
@@ -509,7 +591,7 @@ CustomViewDialog::addNewViewPushButtonClicked()
                 const QString msg = ("View named \""
                                      + newViewName
                                      + "\" already exits.  Replace?");
-                if (WuQMessageBox::warningYesNo(m_addNewViewPushButton,
+                if (WuQMessageBox::warningYesNo(m_saveCustomViewPushButton,
                                                 msg)) {
                     exitLoop = true;
                 }
@@ -524,304 +606,57 @@ CustomViewDialog::addNewViewPushButtonClicked()
         }
     }
     if (ok && (newViewName.isEmpty() == false)) {
+        double panX, panY, rotX, rotY, rotZ, zoom;
+        getTransformationControlValues(panX,
+                                       panY,
+                                       rotX,
+                                       rotY,
+                                       rotZ,
+                                       zoom);
+        const float panning[3] = { panX, panY, 0.0 };
+
         UserView uv;
-        uv.setName(newViewName);
-        prefs->addUserView(uv);
         
-        updateDialog();
-        selectViewByName(newViewName);
-    }
-}
-
-/**
- * Called when apply view push button clicked.
- */
-void
-CustomViewDialog::applyViewPushButtonClicked()
-{
-    UserView* userView = getSelectedUserView();
-    if (userView == NULL) {
-        return;
-    }
-    
-    /*
-     * Determine which browser windows can be used as source for view
-     */
-    std::vector<BrainBrowserWindow*> openBrowserWindows = getBrowserWindows();
-    const int32_t numBrowserWindows = static_cast<int32_t>(openBrowserWindows.size());
-    if (numBrowserWindows <= 0) {
-        return;
-    }
-    std::vector<BrainBrowserWindow*> applyToBrowserWindows;
-    
-    if (numBrowserWindows > 1) {
-        /*
-         * Create dialog for applying transformations to windows.
-         */
-        WuQDataEntryDialog ded("Apply Transformation",
-                               m_setTransformationPushButton);
+        uv.setTranslation(panning);
         
-        std::vector<QCheckBox*> browserWindowCheckBoxes;
-        for (int32_t i = 0; i < numBrowserWindows; i++) {
-            BrainBrowserWindow* bbw = openBrowserWindows[i];
-            QCheckBox* cb  = ded.addCheckBox(bbw->windowTitle());
-            browserWindowCheckBoxes.push_back(cb);
-            
-            if (std::find(m_previousAppliedToBrowserWindows.begin(),
-                          m_previousAppliedToBrowserWindows.end(),
-                          bbw) != m_previousAppliedToBrowserWindows.end()) {
-                cb->setChecked(true);
-            }
-        }
-        
-        /*
-         * If user presses OK, update the view transformation values.
-         */
-        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-            for (int32_t i = 0; i < numBrowserWindows; i++) {
-                if (browserWindowCheckBoxes[i]->isChecked()) {
-                    applyToBrowserWindows.push_back(openBrowserWindows[i]);
-                }
-            }
-        }
-    }
-    else {
-        applyToBrowserWindows.push_back(openBrowserWindows[0]);
-    }
-    
-    m_previousAppliedToBrowserWindows.clear();
-    
-    const int32_t numApplyBrowserWindows = static_cast<int32_t>(applyToBrowserWindows.size());
-    for (int32_t i = 0; i < numApplyBrowserWindows; i++) {
-        BrainBrowserWindow* bbw = applyToBrowserWindows[i];
-        BrowserTabContent* btc = bbw->getBrowserTabContent();
-        if (btc != NULL) {
-            Model* model = btc->getModelControllerForTransformation();
-            const int32_t tabIndex = btc->getTabNumber();
-            model->setTransformationsFromUserView(tabIndex, *userView);
-            const int32_t windowIndex = bbw->getBrowserWindowIndex();
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
-            
-            m_previousAppliedToBrowserWindows.push_back(bbw);
-        }
-    }
-}
-
-/**
- * Called when delete view push button clicked.
- */
-void
-CustomViewDialog::deleteViewPushButtonClicked()
-{
-    UserView* userView = getSelectedUserView();
-    if (userView != NULL) {
-        const AString msg = ("Delete view named: "
-                             + userView->getName());
-        if (WuQMessageBox::warningOkCancel(m_deleteViewPushButton, msg)) {
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            const std::vector<UserView*> userViews = prefs->getAllUserViews();
-            prefs->removeUserView(userView->getName());
-            updateDialog();
-        }
-    }
-}
-
-/**
- * Called when replace view push button clicked.
- */
-void
-CustomViewDialog::replaceViewPushButtonClicked()
-{
-    
-}
-
-/**
- * Called when a view is selected.
- */
-void
-CustomViewDialog::viewSelected()
-{
-    UserView* userView = getSelectedUserView();
-    if (userView != NULL) {
-        float rotation[4][4];
-        userView->getRotation(rotation);
         Matrix4x4 rotationMatrix;
-        rotationMatrix.setMatrix(rotation);
+        rotationMatrix.setRotation(rotX,
+                                   rotY,
+                                   rotZ);
+        float rotationMatrixArray[4][4];
+        rotationMatrix.getMatrix(rotationMatrixArray);
+        uv.setRotation(rotationMatrixArray);
         
-        double rotationX, rotationY, rotationZ;
-        rotationMatrix.getRotation(rotationX, rotationY, rotationZ);
+        uv.setScaling(zoom);
         
-        float translation[3];
-        userView->getTranslation(translation);
+        uv.setName(newViewName);
         
-        const float scaling = userView->getScaling();
-        
-        m_xTranslateDoubleSpinBox->setValue(translation[0]);
-        m_yTranslateDoubleSpinBox->setValue(translation[1]);
-        m_zTranslateDoubleSpinBox->setValue(translation[2]);
-        
-        m_xRotateDoubleSpinBox->setValue(rotationX);
-        m_yRotateDoubleSpinBox->setValue(rotationY);
-        m_zRotateDoubleSpinBox->setValue(rotationZ);
-        
-        m_scaleDoubleSpinBox->setValue(scaling);
-    }
-}
-
-/**
- * Called when user drags and drops a view in the list box
- * to reorder the views.
- */
-void
-CustomViewDialog::viewWasDropped()
-{
-    std::vector<UserView*> newlyOrderedUserViews;
-    
-    /*
-     * Get the scenes from this list widget to obtain the new scene ordering.
-     */
-    const int32_t numItems = m_viewSelectionListWidget->count();
-    for (int32_t i = 0; i < numItems; i++) {
-        QListWidgetItem* lwi = m_viewSelectionListWidget->item(i);
-        if (lwi != NULL) {
-            if (lwi != NULL) {
-                UserView* view = reinterpret_cast<UserView*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-                newlyOrderedUserViews.push_back(view);
-            }
-        }
-    }
-
-    if (newlyOrderedUserViews.empty() == false) {
-        /*
-         * Update the order of the views in the preferences.
-         */
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->setAllUserViews(newlyOrderedUserViews);
+        prefs->addUserView(uv);
     }
     
-    updateDialog();
-    viewSelected();
 }
 
 /**
- * Called when set transformation button is clicked.
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
  */
 void
-CustomViewDialog::setTransformationPushButtonClicked()
+CustomViewDialog::receiveEvent(Event* event)
 {
-    UserView* userView = getSelectedUserView();
-    if (userView == NULL) {
-        return;
-    }
-    
-    WuQDataEntryDialog ded("Set Transformation",
-                           m_setTransformationPushButton);
-
-    /*
-     * Determine which browser windows can be used as source for view
-     */
-    std::vector<QRadioButton*> browserWindowRadioButtons;
-    std::vector<BrainBrowserWindow*> browserWindows = getBrowserWindows();
-    const int32_t numBrowserWindows = static_cast<int32_t>(browserWindows.size());
-    
-    for (int32_t i = 0; i < numBrowserWindows; i++) {
-        BrainBrowserWindow* bbw = browserWindows[i];
-        QRadioButton* rb  = ded.addRadioButton(bbw->windowTitle());
-        browserWindowRadioButtons.push_back(rb);
-    }
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-
-    /*
-     * User to set view to identity.
-     */
-    QRadioButton* identityRadioButton = ded.addRadioButton("Identity");
-
-    /*
-     * If user presses OK, update the view transformation values.
-     */
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        for (int32_t i = 0; i < numBrowserWindows; i++) {
-            if (browserWindowRadioButtons[i]->isChecked()) {
-                BrainBrowserWindow* bbw = browserWindows[i];
-                BrowserTabContent* btc = bbw->getBrowserTabContent();
-                if (btc != NULL) {
-                    Model* model = btc->getModelControllerForTransformation();
-                    if (model != NULL) {
-                        const int32_t tabIndex = btc->getTabNumber();
-                        model->getTransformationsInUserView(tabIndex,
-                                                            *userView);
-                        prefs->addUserView(*userView);
-                        viewSelected();
-                    }
-                    return;
-                }
-            }
-        }
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        EventBrowserWindowGraphicsRedrawn* redrawnEvent =
+        dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(redrawnEvent);
         
-        if (identityRadioButton->isChecked()) {
-            userView->setToIdentity();
-            prefs->addUserView(*userView);
-            viewSelected();
+        redrawnEvent->setEventProcessed();
+
+        const int32_t selectedBrowserWindowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+        if (redrawnEvent->getBrowserWindowIndex() == selectedBrowserWindowIndex) {
+            updateContent(selectedBrowserWindowIndex);
         }
     }
 }
-
-/**
- * @return A list of browser windows that contain selected tabs with models
- * that can be transformed.
- */
-std::vector<BrainBrowserWindow*>
-CustomViewDialog::getBrowserWindows()
-{
-    std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-    const int32_t numBrowserWindows = static_cast<int32_t>(browserWindows.size());
-    
-    std::vector<BrainBrowserWindow*> browserWindowsout;
-    
-    for (int32_t i = 0; i < numBrowserWindows; i++) {
-        BrainBrowserWindow* bbw = browserWindows[i];
-        BrowserTabContent* btc = bbw->getBrowserTabContent();
-        if (btc != NULL) {
-            Model* model = btc->getModelControllerForTransformation();
-            if (model != NULL) {
-                bool isTranformable = false;
-                switch (model->getControllerType()) {
-                    case ModelTypeEnum::MODEL_TYPE_INVALID:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                        isTranformable = true;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                        isTranformable = true;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                        isTranformable = true;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_YOKING:
-                    {
-                        ModelYokingGroup* myg = dynamic_cast<ModelYokingGroup*>(model);
-                        switch (myg->getYokingType()) {
-                            case ModelYokingGroup::YOKING_TYPE_SURFACE:
-                                isTranformable = true;
-                                break;
-                            case ModelYokingGroup::YOKING_TYPE_VOLUME:
-                                break;
-                        }
-                    }
-                        break;
-                }
-                
-                if (isTranformable) {
-                    browserWindowsout.push_back(bbw);
-                }
-            }
-        }
-    }
-    
-    return browserWindowsout;
-}
-
 
