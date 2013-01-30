@@ -25,6 +25,8 @@
  * 
  */ 
 
+#include <utility>
+
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
 
@@ -33,7 +35,7 @@ class QStringList;
 
 namespace caret {
 
-    class UserView;
+    class ModelTransform;
     
     class CaretPreferences : public CaretObject {
         
@@ -70,16 +72,6 @@ namespace caret {
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
         
-        std::vector<UserView*> getAllUserViews();
-
-        void setAllUserViews(std::vector<UserView*>& allUserViews);
-        
-        const UserView* getUserView(const AString& viewName);
-        
-        void addUserView(const UserView& userView);
-        
-        void removeUserView(const AString& viewName);
-        
         bool isVolumeAxesCrosshairsDisplayed() const;
         
         void setVolumeAxesCrosshairsDisplayed(const bool displayed);
@@ -108,7 +100,28 @@ namespace caret {
         
         void setToolBoxType(const int32_t toolBoxType);
         
-        void readUserViews(const bool performSync = true);
+        void readCustomViews(const bool performSync = true);
+        
+        std::vector<AString> getCustomViewNames() const;
+        
+        std::vector<std::pair<AString,AString> > getCustomViewNamesAndComments() const;
+        
+        bool getCustomView(const AString& customViewName,
+                           ModelTransform& modelTransformOut) const;
+        
+        void addOrReplaceCustomView(const ModelTransform& modelTransform);
+        
+        void removeCustomView(const AString& customViewName);
+        
+//        std::vector<ModelTransform*> getAllModelTransforms();
+//        
+//        void setAllModelTransforms(std::vector<ModelTransform*>& allModelTransforms);
+//        
+//        const ModelTransform* getModelTransform(const AString& viewName);
+//        
+//        void addModelTransform(const ModelTransform& ModelTransform);
+//        
+//        void removeModelTransform(const AString& viewName);
         
     private:
         CaretPreferences(const CaretPreferences&);
@@ -136,9 +149,9 @@ namespace caret {
         
         void readPreferences();
         
-        void removeAllUserViews();
+        void removeAllCustomViews();
         
-        void writeUserViews();
+        void writeCustomViews();
         
         mutable QSettings* qSettings;
         
@@ -152,7 +165,7 @@ namespace caret {
         
         LogLevelEnum::Enum loggingLevel;
         
-        std::vector<UserView*> userViews;
+        std::vector<ModelTransform*> customViews;
 
         bool displayVolumeAxesCrosshairs;
         
@@ -179,7 +192,7 @@ namespace caret {
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
-        static const AString NAME_USER_VIEWS;
+        static const AString NAME_CUSTOM_VIEWS;
         
         static const AString NAME_TOOLBOX_TYPE;
     };
@@ -197,7 +210,7 @@ namespace caret {
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
     const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
-    const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
+    const AString CaretPreferences::NAME_CUSTOM_VIEWS     = "customViews";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

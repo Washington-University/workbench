@@ -29,6 +29,7 @@
 
 #include "AString.h"
 
+class QFocusEvent;
 class QHBoxLayout;
 class QKeyEvent;
 class QMenu;
@@ -94,7 +95,11 @@ namespace caret  {
         
         virtual void contextMenuEvent(QContextMenuEvent*);
         
+        virtual void focusInEvent(QFocusEvent* event);
+        
         virtual void helpButtonClicked();
+        
+        virtual void focusGained();
         
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,

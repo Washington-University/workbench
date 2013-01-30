@@ -30,12 +30,12 @@
 #include "EventManager.h"
 #include "Matrix4x4.h"
 #include "ModelSurface.h"
+#include "ModelTransform.h"
 #include "OverlaySet.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "Surface.h"
-#include "UserView.h"
 
 using namespace caret;
 
@@ -737,15 +737,15 @@ Model::ventralView(const int32_t windowTabNumberIn)
 
 /**
  * Place the transformations for the given window tab into
- * the userView.
+ * the model transform.
  * @param windowTabNumber
  *    Tab number for transformations.
- * @param userView
- *    View into which transformations are loaded.
+ * @param modelTransform
+ *    Model transform into which transformations are loaded.
  */
 void 
-Model::getTransformationsInUserView(const int32_t windowTabNumberIn,
-                                                     UserView& userView) const
+Model::getTransformationsInModelTransform(const int32_t windowTabNumberIn,
+                                                     ModelTransform& modelTransform) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -759,24 +759,24 @@ Model::getTransformationsInUserView(const int32_t windowTabNumberIn,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           windowTabNumber);
     
-    userView.setTranslation(m_translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
+    modelTransform.setTranslation(m_translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
     float m[4][4];
     m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].getMatrix(m);
-    userView.setRotation(m);
-    userView.setScaling(m_scaling[windowTabNumber]);
+    modelTransform.setRotation(m);
+    modelTransform.setScaling(m_scaling[windowTabNumber]);
 }
 
 /**
  * Apply the transformations to the given window tab from
- * the userView.
+ * the model transform.
  * @param windowTabNumber
  *    Tab number whose transformations are updated.
- * @param userView
- *    View into which transformations are retrieved.
+ * @param modelTransform
+ *    Model transform into which transformations are retrieved.
  */
 void 
-Model::setTransformationsFromUserView(const int32_t windowTabNumberIn,
-                                                       const UserView& userView)
+Model::setTransformationsFromModelTransform(const int32_t windowTabNumberIn,
+                                                       const ModelTransform& modelTransform)
 {
     CaretAssertArrayIndex(m_scaling, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -791,7 +791,7 @@ Model::setTransformationsFromUserView(const int32_t windowTabNumberIn,
     }
 
     float translation[3];
-    userView.getTranslation(translation);
+    modelTransform.getTranslation(translation);
     const float tx = translation[0];
     const float ty = translation[1];
     const float tz = translation[2];
@@ -802,7 +802,7 @@ Model::setTransformationsFromUserView(const int32_t windowTabNumberIn,
     }
 
     float m[4][4];
-    userView.getRotation(m);
+    modelTransform.getRotation(m);
     Matrix4x4 rotationMatrix;
     rotationMatrix.setMatrix(m);
     
@@ -817,7 +817,7 @@ Model::setTransformationsFromUserView(const int32_t windowTabNumberIn,
     m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].setRotation(rxT, ryT, rz);
     m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].setRotation(rxT, ryT, rz);
 
-    const float s = userView.getScaling();
+    const float s = modelTransform.getScaling();
     setScaling(windowTabNumber, s);
     
     CaretLogFine("T: " + AString::number(tx) + " " + AString::number(ty) + " " + AString::number(tz) + " "

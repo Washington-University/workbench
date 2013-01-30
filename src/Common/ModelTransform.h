@@ -1,5 +1,5 @@
-#ifndef __USER_VIEW__H_
-#define __USER_VIEW__H_
+#ifndef __MODEL_TRANSFORM_H__
+#define __MODEL_TRANSFORM_H__
 
 /*LICENSE_START*/
 /* 
@@ -30,16 +30,16 @@
 
 namespace caret {
 
-    class UserView : public CaretObject {
+    class ModelTransform : public CaretObject {
         
     public:
-        UserView();
+        ModelTransform();
         
-        virtual ~UserView();
+        virtual ~ModelTransform();
         
-        UserView(const UserView&);
+        ModelTransform(const ModelTransform&);
         
-        UserView& operator=(const UserView&);
+        ModelTransform& operator=(const ModelTransform&);
         
         AString getName() const;
         
@@ -51,11 +51,29 @@ namespace caret {
         
         void setName(const AString& name);
         
+        AString getComment() const;
+        
+        void setComment(const AString& comment);
+        
         void setTranslation(const float translation[3]);
+        
+        void setTranslation(const float translationX,
+                            const float translationY,
+                            const float translationZ);
         
         void setRotation(const float rotation[4][4]);
         
         void setScaling(const float scaling);
+        
+        void setPanXyRotationMatrixAndZoom(const float panX,
+                                        const float panY,
+                                        const float rotationMatrix[4][4],
+                                        const float zoom);
+        
+        void getPanXyRotationMatrixAndZoom(float& panX,
+                                        float& panY,
+                                        float rotationMatrix[4][4],
+                                        float& zoom) const;
         
         AString getAsString() const;
         
@@ -63,26 +81,32 @@ namespace caret {
         
         void setToIdentity();
         
-        bool operator<(const UserView& view) const;
+        bool operator<(const ModelTransform& view) const;
+        
+        bool operator==(const ModelTransform& view) const;
         
     public:
         virtual AString toString() const;
         
     private:
-        void copyHelper(const UserView& userView);
+        void copyHelper(const ModelTransform& ModelTransform);
         
         AString name;
+        
+        AString comment;
         
         float translation[3];
         
         float rotation[4][4];
         
         float scaling;
+        
+        static const QString s_separatorInPreferences;
     };
     
-#ifdef __USER_VIEW_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_VIEW_DECLARE__
+#ifdef __MODEL_TRANSFORM_DECLARE__
+    const QString ModelTransform::s_separatorInPreferences = "::::";
+#endif // __MODEL_TRANSFORM_DECLARE__
 
 } // namespace
-#endif  //__USER_VIEW__H_
+#endif  //__MODEL_TRANSFORM_H__

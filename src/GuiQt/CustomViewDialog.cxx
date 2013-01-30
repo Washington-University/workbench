@@ -42,8 +42,9 @@
 #include <QGroupBox>
 #include <QInputDialog>
 #include <QLabel>
-#include <QListWidget>
+#include <QListWidgetItem>
 #include <QPushButton>
+#include <QTextEdit>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
@@ -56,10 +57,11 @@
 #include "GuiManager.h"
 #include "Matrix4x4.h"
 #include "Model.h"
+#include "ModelTransform.h"
 #include "ModelYokingGroup.h"
 #include "SessionManager.h"
-#include "UserView.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -87,19 +89,23 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
      * Remove apply button by using an empty name
      */
     setApplyButtonText("");
-    
+
+    /*
+     * Create the controls
+     */
     QWidget* customViewWidget = createCustomViewWidget();
     QWidget* transformWidget = createTransformsWidget();
-    WuQtUtilities::matchWidgetHeights(customViewWidget,
-                                      transformWidget);
+    m_copyWidget = createCopyWidget();
     
     /*
      * Layout for dialog
      */
     QWidget* widget = new QWidget();
-    QHBoxLayout* sceneButtonLayout = new QHBoxLayout(widget);
-    sceneButtonLayout->addWidget(transformWidget);
-    sceneButtonLayout->addWidget(customViewWidget);
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    layout->setSpacing(layout->spacing() / 2);
+    layout->addWidget(transformWidget, 0, Qt::AlignVCenter);
+    layout->addWidget(m_copyWidget, 0, Qt::AlignVCenter);
+    layout->addWidget(customViewWidget, 0, Qt::AlignVCenter);
     setCentralWidget(widget);
     
     /*
@@ -109,7 +115,11 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
  
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
     
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
     m_blockDialogUpdate = false;
+    
+//    loadCustomViewListWidget();
 }
 
 /**
@@ -126,18 +136,38 @@ CustomViewDialog::~CustomViewDialog()
 QWidget*
 CustomViewDialog::createCustomViewWidget()
 {
-    m_loadCustomViewPushButton = new QPushButton("Load...");
-    QObject::connect(m_loadCustomViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(loadCustomViewPushButtonClicked()));
+    /*
+     * View selection list widget
+     */
+    m_customViewListWidget = new WuQListWidget();
+    m_customViewListWidget->setFixedHeight(100);
+    m_customViewListWidget->setFixedWidth(140);
+    m_customViewListWidget->setSelectionMode(QListWidget::SingleSelection);
     
-    m_saveCustomViewPushButton = new QPushButton("Save...");
-    QObject::connect(m_saveCustomViewPushButton, SIGNAL(clicked()),
-                     this, SLOT(saveCustomViewPushButtonClicked()));
+    QObject::connect(m_customViewListWidget, SIGNAL(currentRowChanged(int)),
+                     this, SLOT(customViewSelected()));
+
+    m_newCustomViewPushButton = new QPushButton("New...");
+    WuQtUtilities::setWordWrappedToolTip(m_newCustomViewPushButton,
+                                         "Create a new Custom View by entering its name.  The view will use the current transformation values.");
+    QObject::connect(m_newCustomViewPushButton, SIGNAL(clicked()),
+                     this, SLOT(newCustomViewPushButtonClicked()));
+    
+    m_deleteCustomViewPushButton = new QPushButton("Delete...");
+    WuQtUtilities::setWordWrappedToolTip(m_deleteCustomViewPushButton,
+                                         "Delete the selected Custom View.");
+    QObject::connect(m_deleteCustomViewPushButton, SIGNAL(clicked()),
+                     this, SLOT(deleteCustomViewPushButtonClicked()));
+    
+    WuQtUtilities::matchWidgetWidths(m_newCustomViewPushButton,
+                                     m_deleteCustomViewPushButton);
     
     QGroupBox* groupBox = new QGroupBox("Custom");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    layout->addWidget(m_loadCustomViewPushButton);
-    layout->addWidget(m_saveCustomViewPushButton);
+    WuQtUtilities::setLayoutMargins(layout, 4, 2);
+    layout->addWidget(m_customViewListWidget, 100, Qt::AlignHCenter);
+    layout->addWidget(m_newCustomViewPushButton, 0, Qt::AlignHCenter);
+    layout->addWidget(m_deleteCustomViewPushButton, 0, Qt::AlignHCenter);
     layout->addStretch();
     
     groupBox->setSizePolicy(QSizePolicy::Fixed,
@@ -147,12 +177,223 @@ CustomViewDialog::createCustomViewWidget()
 }
 
 /**
+ * Called when a custom view is selected.
+ */
+void
+CustomViewDialog::customViewSelected()
+{
+    
+}
+
+///**
+// * @return The selected user view or NULL if no user view selected.
+// */
+//UserView*
+//CustomViewDialog::getSelectedUserView()
+//{
+//    UserView* userView = NULL;
+//    QListWidgetItem* lwi = m_customViewListWidget->currentItem();
+//    if (lwi != NULL) {
+//        userView = reinterpret_cast<UserView*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
+//    }
+//    return userView;
+//}
+//
+/**
+ * @return Name of selected custom view..
+ */
+AString
+CustomViewDialog::getSelectedCustomViewName()
+{
+    AString viewName;
+    
+    QListWidgetItem* lwi = m_customViewListWidget->currentItem();
+    if (lwi != NULL) {
+        viewName = lwi->text();
+    }
+    
+    return viewName;
+}
+
+
+/**
+ * Load content of custom view list widget.
+ * 
+ * @param selectedName
+ *    If not empty, this name will be selected.
+ */
+void
+CustomViewDialog::loadCustomViewListWidget(const AString& selectedName)
+{
+    /*
+     * Cannot use getSelectedUserView() since the item returned may be invalid
+     * if items have been removed.
+     */
+    QString previousViewName = getSelectedCustomViewName();
+    if (selectedName.isEmpty() == false) {
+        previousViewName = selectedName;
+    }
+    
+    int defaultSelectedIndex = m_customViewListWidget->currentRow();
+    
+    m_customViewListWidget->clear();
+    
+    CaretPreferences* prefs = getCaretPreferences();
+    prefs->readCustomViews();
+    const std::vector<std::pair<AString,AString> > customViewNamesAndComments = prefs->getCustomViewNamesAndComments();
+    const int32_t numViews = static_cast<int32_t>(customViewNamesAndComments.size());
+    
+    for (int32_t i = 0; i < numViews; i++) {
+        const AString viewName = customViewNamesAndComments[i].first;
+        const AString comment  = customViewNamesAndComments[i].second;
+        
+        if (viewName == previousViewName) {
+            defaultSelectedIndex = i;
+        }
+        
+        QListWidgetItem* lwi = new QListWidgetItem(viewName);
+        if (comment.isEmpty() == false) {
+            lwi->setToolTip(WuQtUtilities::createWordWrappedToolTipText(comment));
+        }
+        
+        m_customViewListWidget->addItem(lwi);
+    }
+    
+    if (defaultSelectedIndex >= numViews) {
+        defaultSelectedIndex = numViews - 1;
+    }
+    if (defaultSelectedIndex < 0) {
+        defaultSelectedIndex = 0;
+    }
+    
+    if ((defaultSelectedIndex >= 0)
+        && (defaultSelectedIndex < m_customViewListWidget->count())) {
+        m_customViewListWidget->setCurrentRow(defaultSelectedIndex);
+        customViewSelected();
+        
+        m_customViewListWidget->scrollToItem(m_customViewListWidget->currentItem());
+    }
+    
+    const bool haveViews = (numViews > 0);
+    m_copyWidget->setEnabled(haveViews);
+    
+    const bool haveSelectedView = (getSelectedCustomViewName().isEmpty() == false);
+    m_deleteCustomViewPushButton->setEnabled(haveSelectedView);
+}
+
+/**
+ * @return Create and return the copy buttons widget.
+ */
+QWidget*
+CustomViewDialog::createCopyWidget()
+{
+    QPushButton* copyToCustomViewPushButton = new QPushButton("Copy -->");
+    WuQtUtilities::setWordWrappedToolTip(copyToCustomViewPushButton,
+                                         "Copy the Transform values into the selected Custom View.");
+    QObject::connect(copyToCustomViewPushButton, SIGNAL(clicked()),
+                     this, SLOT(copyToCustomViewPushButtonClicked()));
+    
+    QPushButton* copyToTransformPushButton = new QPushButton("<-- Copy");
+    WuQtUtilities::setWordWrappedToolTip(copyToTransformPushButton,
+                                         "Copy the Custom View's transform values into the Transform.");
+    QObject::connect(copyToTransformPushButton, SIGNAL(clicked()),
+                     this, SLOT(copyToTransformPushButtonClicked()));
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(copyToCustomViewPushButton);
+    layout->addWidget(copyToTransformPushButton);
+    
+    widget->setSizePolicy(QSizePolicy::Fixed,
+                            QSizePolicy::Fixed);
+    
+    return widget;
+}
+
+/**
+ * Called when Copy To Custom View push buttton is clicked.
+ */
+void
+CustomViewDialog::copyToCustomViewPushButtonClicked()
+{
+    CaretPreferences* prefs = getCaretPreferences();
+    
+    ModelTransform modelTransform;
+    if (prefs->getCustomView(getSelectedCustomViewName(), modelTransform)) {
+        moveTransformToCustomView(modelTransform);
+        prefs->addOrReplaceCustomView(modelTransform);
+    }
+}
+
+/**
+ * Move the transform values to the given user view.
+ *
+ * @param userView
+ *     User View into which transform values are moved.
+ */
+void
+CustomViewDialog::moveTransformToCustomView(ModelTransform& modelTransform)
+{
+    double panX, panY, rotX, rotY, rotZ, zoom;
+    getTransformationControlValues(panX,
+                                   panY,
+                                   rotX,
+                                   rotY,
+                                   rotZ,
+                                   zoom);
+    
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setRotation(rotX,
+                               rotY,
+                               rotZ);
+    float rotationMatrixArray[4][4];
+    rotationMatrix.getMatrix(rotationMatrixArray);
+    
+    modelTransform.setPanXyRotationMatrixAndZoom(panX,
+                                                 panY,
+                                                 rotationMatrixArray,
+                                                 zoom);
+}
+
+
+/**
+ * Called when Move To Transform push buttton is clicked.
+ */
+void
+CustomViewDialog::copyToTransformPushButtonClicked()
+{
+    CaretPreferences* prefs = getCaretPreferences();
+    
+    const AString customViewName = getSelectedCustomViewName();
+    
+    ModelTransform modelTransform;
+    if (prefs->getCustomView(customViewName, modelTransform)) {
+        float panX, panY, rotationMatrixArray[4][4], zoom;
+        modelTransform.getPanXyRotationMatrixAndZoom(panX,
+                                                panY,
+                                                rotationMatrixArray,
+                                                zoom);
+        
+        Matrix4x4 rotationMatrix;
+        rotationMatrix.setMatrix(rotationMatrixArray);
+        
+        double rotX, rotY, rotZ;
+        rotationMatrix.getRotation(rotX, rotY, rotZ);
+        
+        setTransformationControlValues(panX, panY, rotX, rotY, rotZ, zoom);
+        
+        transformValueChanged();
+        
+    }
+}
+
+/**
  * @return The Transform widget.
  */
 QWidget*
 CustomViewDialog::createTransformsWidget()
 {
-    const int spinBoxWidth = 70;
+    const int spinBoxWidth = 90;
     
     /*
      * Window number
@@ -344,7 +585,6 @@ CustomViewDialog::transformValueChanged()
                                    rotY,
                                    rotZ,
                                    zoom);
-    const float panning[3] = { panX, panY, 0.0 };
     
     BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
     if (bbw != NULL) {
@@ -353,12 +593,16 @@ CustomViewDialog::transformValueChanged()
         if (btc != NULL) {
             Model* model = btc->getModelControllerForTransformation();
             if (model != NULL) {
-                model->setTranslation(tabIndex, panning);
-                Matrix4x4* rotationMatrix = model->getViewingRotationMatrix(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->setRotation(rotX, rotY, rotZ);
-                model->setScaling(tabIndex, zoom);
+                Matrix4x4 rotationMatrix;
+                rotationMatrix.setRotation(rotX, rotY, rotZ);
+                float rotationMatrixArray[4][4];
+                rotationMatrix.getMatrix(rotationMatrixArray);
                 
-                updateGraphicsWindow();
+                ModelTransform modelTransform;
+                modelTransform.setPanXyRotationMatrixAndZoom(panX, panY, rotationMatrixArray, zoom);
+                model->setTransformationsFromModelTransform(tabIndex,
+                                                            modelTransform);
+               updateGraphicsWindow();
             }
         }
     }
@@ -378,6 +622,15 @@ CustomViewDialog::updateGraphicsWindow()
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
         m_blockDialogUpdate = false;
     }
+}
+
+/**
+ * Gets called when the dialog gains focus.
+ */
+void
+CustomViewDialog::focusGained()
+{
+    updateDialog();
 }
 
 /**
@@ -439,6 +692,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
     else {
         m_transformWidgetGroup->setEnabled(false);
     }
+    
+    loadCustomViewListWidget();
 }
 
 /**
@@ -514,47 +769,92 @@ CustomViewDialog::setTransformationControlValues(const double panX,
 }
 
 /**
- * Called when load custom view push button clicked.
+ * @return The caret preferences.
  */
-void
-CustomViewDialog::loadCustomViewPushButtonClicked()
+CaretPreferences*
+CustomViewDialog::getCaretPreferences()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const std::vector<UserView*> userViews = prefs->getAllUserViews();
+    return prefs;
+}
 
-    QStringList userViewNames;
-    for (std::vector<UserView*>::const_iterator iter = userViews.begin();
-         iter != userViews.end();
-         iter++) {
-        const UserView* uv = *iter;
-        userViewNames.append(uv->getName());
-    }
-    WuQDataEntryDialog ded("Load Custom View",
-                           m_loadCustomViewPushButton);
-    QListWidget* viewListWidget = ded.addListWidget("",
-                                                    userViewNames);
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        const int viewIndex = viewListWidget->currentRow();
-        if (viewIndex >= 0) {
-            const UserView* uv = userViews[viewIndex];
+///**
+// * @return The user views (updated by rereading from preferences).
+// */
+//std::vector<UserView*>
+//CustomViewDialog::getUserViews()
+//{
+//    CaretPreferences* cp = getCaretPreferences();
+//    cp->readUserViews();
+//    std::vector<UserView*> userViews = cp->getAllUserViews();
+//    return userViews;
+//}
+
+
+/**
+ * Called when new custom view push button clicked.
+ */
+void
+CustomViewDialog::newCustomViewPushButtonClicked()
+{
+    CaretPreferences* prefs = getCaretPreferences();
+    const std::vector<AString> existingCustomViewNames = prefs->getCustomViewNames();
+    
+    bool createViewFlag = false;
+    AString newViewName;
+    AString newViewComment;
+    
+    bool exitLoop = false;
+    while (exitLoop == false) {
+        WuQDataEntryDialog ded("New Custom View",
+                               m_newCustomViewPushButton);
+        
+        QLineEdit* nameLineEdit = ded.addLineEditWidget("View Name");
+        QTextEdit* commentTextEdit = ded.addTextEdit("Comment", "", false);
+        
+        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+            newViewName = nameLineEdit->text().trimmed();
+
             
-            const int32_t browserWindowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
             
-            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-            if (bbw != NULL) {
-                BrowserTabContent* btc = bbw->getBrowserTabContent();
-                const int32_t tabIndex = btc->getTabNumber();
-                if (btc != NULL) {
-                    Model* model = btc->getModelControllerForTransformation();
-                    if (model != NULL) {
-                        model->setTransformationsFromUserView(tabIndex, *uv);
-                        updateGraphicsWindow();
+            if (newViewName.isEmpty() == false) {
+                newViewComment = commentTextEdit->toPlainText().trimmed();
+                
+                /*
+                 * If custom view exists with name entered by user,
+                 * then warn the user.
+                 */
+                if (std::find(existingCustomViewNames.begin(),
+                              existingCustomViewNames.end(),
+                              newViewName) != existingCustomViewNames.end()) {
+                    const QString msg = ("View named \""
+                                         + newViewName
+                                         + "\" already exits.  Replace?");
+                    if (WuQMessageBox::warningYesNo(m_newCustomViewPushButton,
+                                                    msg)) {
+                        exitLoop = true;
+                        createViewFlag = true;
                     }
+                }
+                else {
+                    exitLoop = true;
+                    createViewFlag = true;
                 }
             }
             
-            updateDialog();
         }
+        else {
+            exitLoop = true;
+        }
+    }
+    if (createViewFlag && (newViewName.isEmpty() == false)) {
+        ModelTransform  mt;
+        mt.setName(newViewName);
+        mt.setComment(newViewComment);
+        moveTransformToCustomView(mt);
+        prefs->addOrReplaceCustomView(mt);
+        
+        loadCustomViewListWidget(newViewName);
     }
 }
 
@@ -562,13 +862,26 @@ CustomViewDialog::loadCustomViewPushButtonClicked()
  * Called when save custom view push button clicked.
  */
 void
-CustomViewDialog::saveCustomViewPushButtonClicked()
+CustomViewDialog::deleteCustomViewPushButtonClicked()
 {
+    const AString viewName = getSelectedCustomViewName();
+    if (viewName.isEmpty() == false) {
+        const QString msg = ("Delete view named \""
+                             + viewName
+                             + "\" ?");
+        if (WuQMessageBox::warningYesNo(m_newCustomViewPushButton,
+                                        msg)) {
+            CaretPreferences* prefs = getCaretPreferences();
+            prefs->removeCustomView(viewName);
+            loadCustomViewListWidget();
+        }
+    }
+/*
     bool ok = false;
     bool exitLoop = false;
     AString newViewName;
     while (exitLoop == false) {
-        newViewName = QInputDialog::getText(m_saveCustomViewPushButton,
+        newViewName = QInputDialog::getText(m_deleteCustomViewPushButton,
                                             "",
                                             "Name of New View",
                                             QLineEdit::Normal,
@@ -591,7 +904,7 @@ CustomViewDialog::saveCustomViewPushButtonClicked()
                 const QString msg = ("View named \""
                                      + newViewName
                                      + "\" already exits.  Replace?");
-                if (WuQMessageBox::warningYesNo(m_saveCustomViewPushButton,
+                if (WuQMessageBox::warningYesNo(m_deleteCustomViewPushButton,
                                                 msg)) {
                     exitLoop = true;
                 }
@@ -634,7 +947,7 @@ CustomViewDialog::saveCustomViewPushButtonClicked()
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         prefs->addUserView(uv);
     }
-    
+*/    
 }
 
 /**

@@ -45,6 +45,7 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QTabBar>
+#include <QTextEdit>
 #include <QToolButton>
 #include <QtWebKit/QtWebKit>
 #include <QtWebKit/QWebView>
@@ -81,6 +82,7 @@
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
+#include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "ModelYokingGroup.h"
@@ -95,7 +97,6 @@
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "UserInputReceiverInterface.h"
-#include "UserView.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -1396,12 +1397,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
     
-    this->orientationCustomViewSelectToolButtonMenu = new QMenu(this);
-    QObject::connect(this->orientationCustomViewSelectToolButtonMenu, SIGNAL(aboutToShow()),
-                     this, SLOT(orientationCustomViewSelectToolButtonMenuAboutToShow()));
-    QObject::connect(this->orientationCustomViewSelectToolButtonMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(orientationCustomViewSelectToolButtonMenuTriggered(QAction*)));
-    
     const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
                                    "Pressing the arrow button will display a menu for selection of custom orientations.\n"
                                    "Note that custom orientations are stored in your Workbench's preferences and thus\n"
@@ -1411,8 +1406,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                   this,
                                                                                   this,
                                                                                   SLOT(orientationCustomViewToolButtonTriggered()));
-    this->orientationCustomViewSelectToolButtonAction->setMenu(this->orientationCustomViewSelectToolButtonMenu);
-
 
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
@@ -1450,6 +1443,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
 
     this->orientationCustomViewSelectToolButton = new QToolButton();
     this->orientationCustomViewSelectToolButton->setDefaultAction(this->orientationCustomViewSelectToolButtonAction);
+    this->orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
+                                                               QSizePolicy::Fixed);
     
     QGridLayout* buttonGridLayout = new QGridLayout();
     buttonGridLayout->setColumnStretch(3, 100);
@@ -1463,7 +1458,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     buttonGridLayout->addWidget(this->orientationLateralMedialToolButton, 0, 2);
     buttonGridLayout->addWidget(this->orientationDorsalVentralToolButton, 1, 2);
     buttonGridLayout->addWidget(this->orientationAnteriorPosteriorToolButton, 2, 2);
-    buttonGridLayout->addWidget(this->orientationCustomViewSelectToolButton, 3, 0, 1, 5);
+    buttonGridLayout->addWidget(this->orientationCustomViewSelectToolButton, 3, 0, 1, 5, Qt::AlignHCenter);
     buttonGridLayout->addWidget(orientationResetToolButton, 0, 4, 3, 1);
     
     QWidget* w = new QWidget();
@@ -1480,7 +1475,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationWidgetGroup->add(this->orientationVentralToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationResetToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationCustomViewSelectToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationCustomViewSelectToolButtonMenu);
 
     QWidget* orientWidget = this->createToolWidget("Orientation", 
                                                    w, 
@@ -3431,142 +3425,48 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
 }
 
 /**
- * Called when orientation user view menu is about to display.
- */
-void 
-BrainBrowserWindowToolBar::orientationCustomViewSelectToolButtonMenuAboutToShow()
-{
-    this->orientationCustomViewSelectToolButtonMenu->clear();
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->readUserViews();
-    const std::vector<UserView*> userViews = prefs->getAllUserViews();
-    
-    const int32_t numViews = static_cast<int32_t>(userViews.size());
-    for (int32_t i = 0; i < numViews; i++) {
-        const QString viewName = userViews[i]->getName();
-        QAction* viewAction = new QAction(viewName,
-                                          this->orientationCustomViewSelectToolButtonMenu);
-        this->orientationCustomViewSelectToolButtonMenu->addAction(viewAction);
-    }
-    
-    if (numViews > 0) {
-        this->orientationCustomViewSelectToolButtonMenu->addSeparator();
-    }
-    this->orientationCustomViewSelectToolButtonMenu->addAction("Add...");
-    QAction* editAction = this->orientationCustomViewSelectToolButtonMenu->addAction("Delete...");
-    editAction->setEnabled(numViews > 0);
-}
-
-/**
  * Called when orientation custom view button is pressed to show
- * custom view dialog.
+ * custom view menu.
  */
 void
 BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
 {
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-    GuiManager::get()->processShowCustomViewDialog(bbw);
-}
-
-/**
- * Called when orientation user view selection is made from the menu.
- */
-void 
-BrainBrowserWindowToolBar::orientationCustomViewSelectToolButtonMenuTriggered(QAction* action)
-{
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->readCustomViews();
+    const std::vector<std::pair<AString, AString> > customViewNameAndComments = prefs->getCustomViewNamesAndComments();
     
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        const QString actionText = action->text();
-        if (actionText == "Add...") {
-            bool ok = false;
-            bool exitLoop = false;
-            AString newViewName;
-            while (exitLoop == false) {
-                newViewName = QInputDialog::getText(this->orientationCustomViewSelectToolButtonMenu, 
-                                                     "", 
-                                                     "Name of New View",
-                                                     QLineEdit::Normal,
-                                                     newViewName,
-                                                     &ok);
-                if (ok) {
-                    bool overwriteFlag = false;
-                    const std::vector<UserView*> userViews = prefs->getAllUserViews();
-                    const int32_t numViews = static_cast<int32_t>(userViews.size());
-                    if (numViews > 0) {
-                        for (int32_t i = 0; i < numViews; i++) {
-                            const QString viewName = userViews[i]->getName();
-                            if (viewName == newViewName) {
-                                overwriteFlag = true;
-                            }
-                        }
-                    }
-                    if (overwriteFlag) {
-                        const QString msg = ("View named \""
-                                             + newViewName
-                                             + "\" already exits.  Replace?");
-                        if (WuQMessageBox::warningYesNo(this->orientationCustomViewSelectToolButtonMenu,
-                                                        msg)) {
-                            exitLoop = true;
-                        }
-                    }
-                    else {
-                        exitLoop = true;
-                    }
-                    
-                }
-                else {
-                    exitLoop = true;
-                }
-            }
-            if (ok && (newViewName.isEmpty() == false)) {
-                UserView uv;
-                mdc->getTransformationsInUserView(tabIndex,
-                                                  uv);
-                uv.setName(newViewName);
-                prefs->addUserView(uv);
-            }
-        }
-        else if (actionText == "Delete...") {
-            const std::vector<UserView*> userViews = prefs->getAllUserViews();
-            const int32_t numViews = static_cast<int32_t>(userViews.size());
-            if (numViews > 0) {
-                WuQDataEntryDialog dialog("Edit Views",
-                                          this->orientationCustomViewSelectToolButtonMenu,
-                                          (numViews > 10));
-                dialog.setTextAtTop("Unchecked views will be deleted", false);
-                std::vector<QCheckBox*> viewNameCheckBoxes;
-                for (int32_t i = 0; i < numViews; i++) {
-                    const QString viewName = userViews[i]->getName();
-                    viewNameCheckBoxes.push_back(dialog.addCheckBox(viewName,
-                                                                    true));
-                }
-                
-                if (dialog.exec() == QDialog::Accepted) {
-                    for (int32_t i = 0; i < numViews; i++) {
-                        QCheckBox* cb = viewNameCheckBoxes[i];
-                        if (cb->isChecked() == false) {
-                            prefs->removeUserView(cb->text());
-                        }
-                    }
-                }
-            }
+    QMenu menu;
+    
+    const int32_t numViews = static_cast<int32_t>(customViewNameAndComments.size());
+    for (int32_t i = 0; i < numViews; i++) {
+        QAction* action = menu.addAction(customViewNameAndComments[i].first);
+        action->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customViewNameAndComments[i].second));
+    }
+    
+    if (numViews > 0) {
+        menu.addSeparator();
+    }
+    
+    QAction* editAction = menu.addAction("Create and Edit...");
+    editAction->setToolTip("Add and delete Custom Views.\n"
+                           "Edit model transformations.");
+    
+    QAction* selectedAction = menu.exec(QCursor::pos());
+    if (selectedAction != NULL) {
+        if (selectedAction == editAction) {
+            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+            GuiManager::get()->processShowCustomViewDialog(bbw);
         }
         else {
-//            std::cout << "Current View: " << std::endl;
-//            std::cout << "   Left:      " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_NORMAL) << std::endl;
-//            std::cout << "   Lat/Med:   " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED) << std::endl;
-//            std::cout << "   Left Opp:  " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE) << std::endl;
-//            std::cout << "   Right:     " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT) << std::endl;
-//            std::cout << "   Right Opp: " << mdc->getTransformationsAsString(tabIndex, Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE) << std::endl;
-            const UserView* uv = prefs->getUserView(actionText);
-            CaretAssert(uv);
-            if (uv != NULL) {
-                mdc->setTransformationsFromUserView(tabIndex, *uv);
+            const AString customViewName = selectedAction->text();
+            
+            ModelTransform modelTransform;
+            if (prefs->getCustomView(customViewName, modelTransform)) {
+                BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+                const int32_t tabIndex = btc->getTabNumber();
+                Model* mdc = btc->getModelControllerForTransformation();
+                mdc->setTransformationsFromModelTransform(tabIndex,
+                                                          modelTransform);
                 this->updateGraphicsWindow();
             }
         }

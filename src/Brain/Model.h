@@ -33,6 +33,7 @@
 
 namespace caret {
     class Brain;
+    class ModelTransform;
     class UserView;
     class OverlaySet;
     
@@ -147,11 +148,11 @@ namespace caret {
         
         virtual void ventralView(const int32_t windowTabNumber);
                 
-        void getTransformationsInUserView(const int32_t windowTabNumber,
-                                          UserView& userView) const;
+        void getTransformationsInModelTransform(const int32_t windowTabNumber,
+                                          ModelTransform& modelTransform) const;
         
-        void setTransformationsFromUserView(const int32_t windowTabNumber,
-                                            const UserView& userView);
+        void setTransformationsFromModelTransform(const int32_t windowTabNumber,
+                                            const ModelTransform& modelTransform);
         
         virtual AString toString() const;
         

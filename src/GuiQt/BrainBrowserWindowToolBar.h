@@ -267,9 +267,7 @@ namespace caret {
         QToolButton* orientationVentralToolButton;
 
         QAction* orientationResetToolButtonAction;
-        QAction* orientationCustomViewTwoToolButtonAction;
         QAction* orientationCustomViewSelectToolButtonAction;
-        QMenu* orientationCustomViewSelectToolButtonMenu;
         QToolButton* orientationCustomViewSelectToolButton;
         
         QIcon* viewOrientationLeftIcon;
@@ -295,8 +293,6 @@ namespace caret {
         void orientationDorsalVentralToolButtonTriggered(bool checked);
         void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
 
-        void orientationCustomViewSelectToolButtonMenuAboutToShow();
-        void orientationCustomViewSelectToolButtonMenuTriggered(QAction* action);
         void orientationCustomViewToolButtonTriggered();
         
     

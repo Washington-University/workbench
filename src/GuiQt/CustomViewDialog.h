@@ -44,6 +44,9 @@ namespace caret {
 
     class BrainBrowserWindow;
     class BrainBrowserWindowComboBox;
+    class CaretPreferences;
+    class ModelTransform;
+    class WuQListWidget;
     class WuQWidgetObjectGroup;
     
     class CustomViewDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -69,18 +72,30 @@ namespace caret {
     private slots:
         void transformValueChanged();
         
-        void loadCustomViewPushButtonClicked();
+        void newCustomViewPushButtonClicked();
         
-        void saveCustomViewPushButtonClicked();
+        void deleteCustomViewPushButtonClicked();
         
         void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
+        
+        void customViewSelected();
+        
+        void copyToCustomViewPushButtonClicked();
+        
+        void copyToTransformPushButtonClicked();
+        
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        void focusGained();
+
     private:
 
+        void loadCustomViewListWidget(const AString& selectedName = "");
+        
         void updateGraphicsWindow();
         
         void getTransformationControlValues(double& panX,
@@ -99,9 +114,23 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
+        CaretPreferences* getCaretPreferences();
+
+        //std::vector<AString> getAllCustomViewNames();
+        
         QWidget* createCustomViewWidget();
         
+        QWidget* createCopyWidget();
+        
         QWidget* createTransformsWidget();
+        
+        //UserView* getSelectedUserView();
+        
+        AString getSelectedCustomViewName();
+        
+        void moveTransformToCustomView(ModelTransform& modelTransform);
+        
+        QWidget* m_copyWidget;
         
         QDoubleSpinBox* m_xPanDoubleSpinBox;
         
@@ -119,9 +148,11 @@ namespace caret {
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
-        QPushButton* m_loadCustomViewPushButton;
+        QPushButton* m_newCustomViewPushButton;
         
-        QPushButton* m_saveCustomViewPushButton;
+        QPushButton* m_deleteCustomViewPushButton;
+        
+        WuQListWidget* m_customViewListWidget;
         
         bool m_blockDialogUpdate;
         

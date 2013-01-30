@@ -28,13 +28,14 @@
 #undef __CARET_PREFERENCES_DECLARE__
 
 #include <algorithm>
+#include <set>
 
 #include <QSettings>
 #include <QStringList>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "UserView.h"
+#include "ModelTransform.h"
 
 using namespace caret;
 
@@ -65,7 +66,7 @@ CaretPreferences::CaretPreferences()
  */
 CaretPreferences::~CaretPreferences()
 {
-    this->removeAllUserViews();
+    this->removeAllCustomViews();
     
     delete this->qSettings;
 }
@@ -127,142 +128,281 @@ void CaretPreferences::setInteger(const AString& name,
 }
 
 /**
- * Remove all user views.
+ * Remove all custom views.
  */
 void 
-CaretPreferences::removeAllUserViews()
+CaretPreferences::removeAllCustomViews()
 {
-    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
-         iter != this->userViews.end();
+    for (std::vector<ModelTransform*>::iterator iter = this->customViews.begin();
+         iter != this->customViews.end();
          iter++) {
         delete *iter;
     }
-    this->userViews.clear();
+    this->customViews.clear();
 }
 
 /**
- * Get all of the user views.
- * @return
- *    All of the user views.
+ * @return Names of custom views sorted by name.  May want to precede this
+ * method with a call to 'readCustomViews(true)' so that the custom views
+ * are the latest from the settings.
  */
-std::vector<UserView*> 
-CaretPreferences::getAllUserViews()
+std::vector<AString>
+CaretPreferences::getCustomViewNames() const
 {
-    std::vector<UserView*> viewsOut;
-    viewsOut.insert(viewsOut.end(),
-                    this->userViews.begin(),
-                    this->userViews.end());
-    return viewsOut;
+    std::vector<AString> names;
+    
+    for (std::vector<ModelTransform*>::const_iterator iter = this->customViews.begin();
+         iter != this->customViews.end();
+         iter++) {
+        const ModelTransform* mt = *iter;
+        names.push_back(mt->getName());
+    }
+    
+    std::sort(names.begin(),
+              names.end());
+    
+    return names;
 }
 
 /**
- * Set the user views to the given user views.  This class will take
- * ownership of the user views and delete them when necessary.
+ * @return Names and comments of custom views sorted by name.  May want to precede this
+ * method with a call to 'readCustomViews(true)' so that the custom views
+ * are the latest from the settings.
+ */
+std::vector<std::pair<AString,AString> >
+CaretPreferences::getCustomViewNamesAndComments() const
+{
+    std::vector<AString> customViewNames = getCustomViewNames();
+    
+    std::vector<std::pair<AString,AString> > namesAndComments;
+    
+    for (std::vector<AString>::const_iterator iter = customViewNames.begin();
+         iter != customViewNames.end();
+         iter++) {
+        const AString name = *iter;
+        ModelTransform modelTransform;
+        if (getCustomView(name, modelTransform)) {
+            const AString comment = modelTransform.getComment();
+            namesAndComments.push_back(std::make_pair(name,
+                                                      comment));
+        }
+    }
+    
+    return namesAndComments;
+}
+
+
+/**
+ * Get a custom view with the given name.
  *
- * @param allUserViews
- *     New user views.
+ * @param customViewName
+ *     Name of requested custom view.
+ * @param modelTransformOut
+ *     Custom view will be loaded into this model transform.
+ * @return true if a custom view with the name exists.  If no
+ *     custom view exists with the name, false is returned and
+ *     the model transform will be the identity transform.
+ */
+bool
+CaretPreferences::getCustomView(const AString& customViewName,
+                   ModelTransform& modelTransformOut) const
+{
+    for (std::vector<ModelTransform*>::const_iterator iter = this->customViews.begin();
+         iter != this->customViews.end();
+         iter++) {
+        const ModelTransform* mt = *iter;
+        
+        if (customViewName == mt->getName()) {
+            modelTransformOut = *mt;
+            return true;
+        }
+    }
+    
+    modelTransformOut.setToIdentity();
+    
+    return false;
+}
+
+/**
+ * Add or update a custom view.  If a custom view exists with the name
+ * in the given model transform it is replaced.
+ *
+ * @param modelTransform
+ *     Custom view's model transform.
  */
 void
-CaretPreferences::setAllUserViews(std::vector<UserView*>& allUserViews)
+CaretPreferences::addOrReplaceCustomView(const ModelTransform& modelTransform)
 {
-    /*
-     * Remove any existing views that are not in the new vector of views
-     */
-    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
-         iter != this->userViews.end();
+    bool addNewCustomView = true;
+    
+    for (std::vector<ModelTransform*>::iterator iter = this->customViews.begin();
+         iter != this->customViews.end();
          iter++) {
-        UserView* uv = *iter;
-        if (std::find(allUserViews.begin(),
-                      allUserViews.end(),
-                      uv) == allUserViews.end()) {
-            delete uv;
-        }
-    }
-    this->userViews.clear();
-    
-    this->userViews = allUserViews;
-    
-    this->writeUserViews();
-}
-
-/**
- * Get the user view with the specified name.
- * @param viewName
- *    Name of view.
- * @return
- *    Pointer to view or NULL if not found.
- */
-const UserView* 
-CaretPreferences::getUserView(const AString& viewName)
-{
-    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
-         iter != this->userViews.end();
-         iter++) {
-        UserView* uv = *iter;
-        if (uv->getName() == viewName) {
-            return uv;
-        }
-    }
-    
-    return NULL;
-}
-
-/**
- * Add a user view.  If a view with the same name exists
- * it is replaced.
- * @param
- *    New user view.
- */
-void 
-CaretPreferences::addUserView(const UserView& userView)
-{
-    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
-         iter != this->userViews.end();
-         iter++) {
-        UserView* uv = *iter;
-        if (uv->getName() == userView.getName()) {
-            *uv = userView;
-            return;
-        }
-    }
-    
-    this->userViews.push_back(new UserView(userView));
-    
-    this->writeUserViews();
-}
-
-/**
- * Remove the user view with the specified name.
- */
-void 
-CaretPreferences::removeUserView(const AString& viewName)
-{
-    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
-         iter != this->userViews.end();
-         iter++) {
-        UserView* uv = *iter;
-        if (uv->getName() == viewName) {
-            this->userViews.erase(iter);
-            delete uv;
+        ModelTransform* mt = *iter;
+        if (mt->getName() == modelTransform.getName()) {
+            *mt = modelTransform;
+            addNewCustomView = false;
             break;
         }
     }
     
-    this->writeUserViews();
+    if (addNewCustomView) {
+        this->customViews.push_back(new ModelTransform(modelTransform));
+    }
+    this->writeCustomViews();
 }
 
 /**
- * Write the user views.
+ * Remove the custom view with the given name.
+ *
+ * @param customViewName
+ *     Name of custom view.
+ */
+void
+CaretPreferences::removeCustomView(const AString& customViewName)
+{
+    for (std::vector<ModelTransform*>::iterator iter = this->customViews.begin();
+         iter != this->customViews.end();
+         iter++) {
+        ModelTransform* mt = *iter;
+        if (mt->getName() == customViewName) {
+            this->customViews.erase(iter);
+            delete mt;
+            break;
+        }
+    }
+    
+    this->writeCustomViews();
+}
+
+///**
+// * Get all of the user views.
+// * @return
+// *    All of the user views.
+// */
+//std::vector<ModelTransform*> 
+//CaretPreferences::getAllModelTransforms()
+//{
+//    std::vector<ModelTransform*> viewsOut;
+//    viewsOut.insert(viewsOut.end(),
+//                    this->ModelTransforms.begin(),
+//                    this->ModelTransforms.end());
+//    return viewsOut;
+//}
+//
+///**
+// * Set the user views to the given user views.  This class will take
+// * ownership of the user views and delete them when necessary.
+// *
+// * @param allModelTransforms
+// *     New user views.
+// */
+//void
+//CaretPreferences::setAllModelTransforms(std::vector<ModelTransform*>& allModelTransforms)
+//{
+//    /*
+//     * Remove any existing views that are not in the new vector of views
+//     */
+//    for (std::vector<ModelTransform*>::iterator iter = this->ModelTransforms.begin();
+//         iter != this->ModelTransforms.end();
+//         iter++) {
+//        ModelTransform* uv = *iter;
+//        if (std::find(allModelTransforms.begin(),
+//                      allModelTransforms.end(),
+//                      uv) == allModelTransforms.end()) {
+//            delete uv;
+//        }
+//    }
+//    this->ModelTransforms.clear();
+//    
+//    this->ModelTransforms = allModelTransforms;
+//    
+//    this->writeModelTransforms();
+//}
+//
+///**
+// * Get the user view with the specified name.
+// * @param viewName
+// *    Name of view.
+// * @return
+// *    Pointer to view or NULL if not found.
+// */
+//const ModelTransform* 
+//CaretPreferences::getModelTransform(const AString& viewName)
+//{
+//    for (std::vector<ModelTransform*>::iterator iter = this->ModelTransforms.begin();
+//         iter != this->ModelTransforms.end();
+//         iter++) {
+//        ModelTransform* uv = *iter;
+//        if (uv->getName() == viewName) {
+//            return uv;
+//        }
+//    }
+//    
+//    return NULL;
+//}
+//
+///**
+// * Add a user view.  If a view with the same name exists
+// * it is replaced.
+// * @param
+// *    New user view.
+// */
+//void 
+//CaretPreferences::addModelTransform(const ModelTransform& ModelTransform)
+//{
+//    for (std::vector<ModelTransform*>::iterator iter = this->ModelTransforms.begin();
+//         iter != this->ModelTransforms.end();
+//         iter++) {
+//        ModelTransform* uv = *iter;
+//        if (uv->getName() == ModelTransform.getName()) {
+//            *uv = ModelTransform;
+//            return;
+//        }
+//    }
+//    
+//    this->ModelTransforms.push_back(new ModelTransform(ModelTransform));
+//    
+//    this->writeModelTransforms();
+//}
+//
+///**
+// * Remove the user view with the specified name.
+// */
+//void 
+//CaretPreferences::removeModelTransform(const AString& viewName)
+//{
+//    for (std::vector<ModelTransform*>::iterator iter = this->ModelTransforms.begin();
+//         iter != this->ModelTransforms.end();
+//         iter++) {
+//        ModelTransform* uv = *iter;
+//        if (uv->getName() == viewName) {
+//            this->ModelTransforms.erase(iter);
+//            delete uv;
+//            break;
+//        }
+//    }
+//    
+//    this->writeModelTransforms();
+//}
+
+/**
+ * Write the custom views.
  */
 void 
-CaretPreferences::writeUserViews()
+CaretPreferences::writeCustomViews()
 {
-    this->qSettings->beginWriteArray(NAME_USER_VIEWS);
-    const int32_t numViews = static_cast<int32_t>(this->userViews.size());
+    /*
+     * Remove "userViews" that were replaced by customView
+     */
+    this->qSettings->remove("userViews");
+    
+    this->qSettings->beginWriteArray(NAME_CUSTOM_VIEWS);
+    const int32_t numViews = static_cast<int32_t>(this->customViews.size());
     for (int32_t i = 0; i < numViews; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
-                                  this->userViews[i]->getAsString());
+                                  this->customViews[i]->getAsString());
     }
     this->qSettings->endArray();
     this->qSettings->sync();
@@ -715,7 +855,7 @@ CaretPreferences::readPreferences()
     }
     this->qSettings->endArray();
     
-    this->readUserViews(false);
+    this->readCustomViews(false);
 
     AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL,
                                           LogLevelEnum::toName(LogLevelEnum::INFO)).toString();
@@ -747,25 +887,43 @@ CaretPreferences::readPreferences()
 }
 
 /**
- * Read the user views.  Since user's may created views and want to use them
+ * Read the custom views.  Since user's may created views and want to use them
  * in multiple instance of workbench that are running, this method allows 
- * the user view's to be read without affecting other preferences.
+ * the custom view's to be read without affecting other preferences.
  */
 void
-CaretPreferences::readUserViews(const bool performSync)
+CaretPreferences::readCustomViews(const bool performSync)
 {
     if (performSync) {
         this->qSettings->sync();
     }
     
-    this->removeAllUserViews();
-    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
+    this->removeAllCustomViews();
+    
+    /*
+     * Previously had "userViews" prior to CustomViews
+     */
+    const int numUserViews = this->qSettings->beginReadArray("userViews");
     for (int i = 0; i < numUserViews; i++) {
         this->qSettings->setArrayIndex(i);
         const AString viewString = this->qSettings->value(AString::number(i)).toString();
-        UserView uv;
+        ModelTransform uv;
         if (uv.setFromString(viewString)) {
-            this->userViews.push_back(new UserView(uv));
+            this->customViews.push_back(new ModelTransform(uv));
+        }
+    }
+    this->qSettings->endArray();
+
+    /*
+     * Read Custom Views
+     */
+    const int numCustomViews = this->qSettings->beginReadArray(NAME_CUSTOM_VIEWS);
+    for (int i = 0; i < numCustomViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString viewString = this->qSettings->value(AString::number(i)).toString();
+        ModelTransform uv;
+        if (uv.setFromString(viewString)) {
+            this->customViews.push_back(new ModelTransform(uv));
         }
     }
     this->qSettings->endArray();    

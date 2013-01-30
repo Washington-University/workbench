@@ -78,6 +78,7 @@ LogRecord.h
 MathFunctionEnum.h
 MathFunctions.h
 MatrixFunctions.h
+ModelTransform.h
 NameIndexSort.h
 NetworkException.h
 OctTree.h
@@ -93,7 +94,6 @@ StereotaxicSpaceEnum.h
 StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
-UserView.h
 Vector3D.h
 
 ${MOC_SOURCE_FILES}
@@ -141,6 +141,7 @@ LogManager.cxx
 LogRecord.cxx
 MathFunctionEnum.cxx
 MathFunctions.cxx
+ModelTransform.cxx
 NameIndexSort.cxx
 NetworkException.cxx
 Plane.cxx
@@ -153,7 +154,6 @@ SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
-UserView.cxx
 Vector3D.cxx
 )
 

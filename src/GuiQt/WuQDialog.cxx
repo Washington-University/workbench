@@ -555,5 +555,30 @@ WuQDialog::helpButtonClicked()
     CaretAssertMessage(0, "Help button was added to dialog but WuQDialog::helpButtonClicked() was not overriden");
 }
 
+/**
+ * Called for focus events.  Since this dialog stores a pointer
+ * to the overlay, we need to be aware that the overlay's parameters
+ * may change or the overlay may even be deleted.  So, when
+ * this dialog gains focus, validate the overlay and then update
+ * the dialog.
+ *
+ * @param event
+ *     The focus event.
+ */
+void
+WuQDialog::focusInEvent(QFocusEvent* /*event*/)
+{
+    focusGained();
+}
+
+/**
+ * Will be called when dialog gains focus.  User may override this
+ * method to receive focus in events.
+ */
+void
+WuQDialog::focusGained()
+{
+    /* nothing - intended to be overridden by users */
+}
 
 
