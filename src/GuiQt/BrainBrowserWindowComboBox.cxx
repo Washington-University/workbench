@@ -75,7 +75,7 @@ BrainBrowserWindowComboBox::~BrainBrowserWindowComboBox()
  *    Index of item selected.
  */
 void
-BrainBrowserWindowComboBox::comboBoxIndexSelected(int indx)
+BrainBrowserWindowComboBox::comboBoxIndexSelected(int /*indx*/)
 {
     BrainBrowserWindow* bbw = getSelectedBrowserWindow();
     if (bbw != NULL) {

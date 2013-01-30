@@ -184,12 +184,18 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
      */
     DisplayPropertiesLabels* displayPropertiesLabels = NULL;
     if (browserTabContent != NULL) {
-        if (surfaceController != NULL) {
-            Brain* brain = surfaceController->getBrain();
+        if (modelDisplayController != NULL) {
+            Brain* brain = modelDisplayController->getBrain();
             if (brain != NULL) {
                 displayPropertiesLabels = brain->getDisplayPropertiesLabels();
             }
         }
+//        if (surfaceController != NULL) {
+//            Brain* brain = surfaceController->getBrain();
+//            if (brain != NULL) {
+//                displayPropertiesLabels = brain->getDisplayPropertiesLabels();
+//            }
+//        }
     }
     
     const int numNodes = surface->getNumberOfNodes();
