@@ -209,7 +209,8 @@ namespace caret {
             void updateData(const CiftiInterface* ciftiInterface,
                             const int32_t mapIndex,
                             const float* data,
-                            const int64_t dataCount);
+                            const int64_t dataCount,
+                            const AString& mapName);
 
             void updateColoring(const int32_t mapIndex,
                                 const PaletteFile* paletteFile);

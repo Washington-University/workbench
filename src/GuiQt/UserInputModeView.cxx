@@ -420,7 +420,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     }
 }
 

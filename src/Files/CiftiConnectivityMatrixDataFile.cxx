@@ -744,12 +744,21 @@ CiftiConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t mapInde
                 std::vector<float> dataVector(dataCount);
                 float* data = &dataVector[0];
                 
+                const AString mapName = ("Row: "
+                                         + AString::number(rowIndex)
+                                         + ", Node Index: "
+                                         + AString::number(nodeIndex)
+                                         + ", Structure: "
+                                         + StructureEnum::toName(structure));
+                
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
                 m_ciftiInterface->getRow(data, rowIndex);
+
                 mapContent->updateData(m_ciftiInterface,
                                        mapIndex,
                                        data,
-                                       dataCount);
+                                       dataCount,
+                                       mapName);
                 CaretLogFine("Read row for node " + AString::number(nodeIndex));
                 
                 dataWasLoaded = true;
@@ -1122,13 +1131,18 @@ CiftiConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t
                     dataAverage[i] /= rowSuccessCount;
                 }
                 
+                const AString mapName = ("Structure: "
+                                         + StructureEnum::toName(structure)
+                                         + ", Averaged Node Count: "
+                                         + AString::number(numberOfNodeIndices));
                 /*
                  * Update the viewed data
                  */
                 mapContent->updateData(m_ciftiInterface,
                                        mapIndex,
                                        dataAverage,
-                                       dataCount);
+                                       dataCount,
+                                       mapName);
                 
                 dataWasLoaded = true;
             }
@@ -1197,10 +1211,18 @@ CiftiConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t m
                 
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
                 m_ciftiInterface->getRow(data, rowIndex);
+                
+                const AString mapName = ("Row: "
+                                         + AString::number(rowIndex)
+                                         + ", Voxel XYZ: ("
+                                         + AString::fromNumbers(xyz, 3, ",")
+                                         + ")");
+                                
                 mapContent->updateData(m_ciftiInterface,
                                        mapIndex,
                                        data,
-                                       dataCount);
+                                       dataCount,
+                                       mapName);
                 CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                 
                 dataWasLoaded = true;
@@ -1471,22 +1493,23 @@ CiftiConnectivityMatrixDataFile::MapContent::~MapContent()
 /**
  * Update the map's content.
  *
+ * @param ciftiInterface
+ *    Interface to CIFTI data.
+ * @param mapIndex
+ *    Map's index.
  * @param data
- *    Data for the map.
+ *    Data for map.
  * @param dataCount
- *    Count of data elements.
+ *    Number of elements in data.
  * @param mapName
- *    Name of map.
- * @param paletteColorMapping
- *    Palette color mapping for map.
- * @param metadataNamesValues
- *    Metadata names and values.
+ *    Name for the map.
  */
 void
 CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ciftiInterface,
                                                         const int32_t mapIndex,
                                                         const float* data,
-                                                        const int64_t dataCount)
+                                                        const int64_t dataCount,
+                                                        const AString& mapName)
 {
     m_dataCount = dataCount;
     /*
@@ -1506,6 +1529,9 @@ CiftiConnectivityMatrixDataFile::MapContent::updateData(const CiftiInterface* ci
      * Set name of map.
      */
     m_name = ciftiInterface->getMapNameForColumnIndex(mapIndex);
+    if (mapName.isEmpty() == false) {
+        m_name = mapName;
+    }
     
     /*
      * Need access the CIFTI_XML.
