@@ -365,7 +365,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
     this->comment = modelTransform.comment;
     
     this->translation[0] = modelTransform.translation[0];
-    this->translation[1] = modelTransform.translation[2];
+    this->translation[1] = modelTransform.translation[1];
+    this->translation[2] = modelTransform.translation[2];
     
     for (int32_t i = 0; i < 4; i++) {
         for (int32_t j = 0; j < 4; j++) {
@@ -420,7 +421,7 @@ ModelTransform::getPanXyRotationMatrixAndZoom(float& panX,
                                      float& zoom) const
 {
     panX = this->translation[0];
-    panY = this->translation[0];
+    panY = this->translation[1];
     
     getRotation(rotationMatrix);
     

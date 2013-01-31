@@ -3437,19 +3437,18 @@ BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
     
     QMenu menu;
     
+    QAction* editAction = menu.addAction("Create and Edit...");
+    editAction->setToolTip("Add and delete Custom Views.\n"
+                           "Edit model transformations.");
+    
     const int32_t numViews = static_cast<int32_t>(customViewNameAndComments.size());
+    if (numViews > 0) {
+        menu.addSeparator();
+    }
     for (int32_t i = 0; i < numViews; i++) {
         QAction* action = menu.addAction(customViewNameAndComments[i].first);
         action->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customViewNameAndComments[i].second));
     }
-    
-    if (numViews > 0) {
-        menu.addSeparator();
-    }
-    
-    QAction* editAction = menu.addAction("Create and Edit...");
-    editAction->setToolTip("Add and delete Custom Views.\n"
-                           "Edit model transformations.");
     
     QAction* selectedAction = menu.exec(QCursor::pos());
     if (selectedAction != NULL) {

@@ -80,6 +80,8 @@ namespace caret {
         
         void customViewSelected();
         
+        void customViewSelectedAndApplied();
+        
         void copyToCustomViewPushButtonClicked();
         
         void copyToTransformPushButtonClicked();
