@@ -51,7 +51,7 @@ namespace caret {
             MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 4,
             
             /// Maximum number of volume surface outlines 
-            MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 10
+            MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 25
         };        
     private:
         BrainConstants();

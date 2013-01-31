@@ -110,8 +110,8 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     
     QLabel* outlineCountLabel = new QLabel("Number of Outlines: ");
     this->outlineCountSpinBox = new QSpinBox();
-    this->outlineCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
-                                        BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+    this->outlineCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES,
+                                        BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES);
     this->outlineCountSpinBox->setSingleStep(1);
     QObject::connect(this->outlineCountSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(outlineCountSpinBoxValueChanged(int)));
