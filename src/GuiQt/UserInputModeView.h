@@ -38,19 +38,19 @@ namespace caret {
         
         virtual ~UserInputModeView();
         
-        void processMouseEvent(MouseEvent* mouseEvent,
+        virtual void processMouseEvent(MouseEvent* mouseEvent,
                                BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
-        UserInputMode getUserInputMode() const;
+        virtual UserInputMode getUserInputMode() const;
         
-        void initialize();
+        virtual void initialize();
         
-        void finish();
+        virtual void finish();
 
         virtual CursorEnum::Enum getCursor() const;
         
-        QWidget* getWidgetForToolBar();
+        virtual QWidget* getWidgetForToolBar();
         
         static void processModelViewTransformation(MouseEvent* mouseEvent,
                                                    BrainOpenGLViewportContent* viewportContent,

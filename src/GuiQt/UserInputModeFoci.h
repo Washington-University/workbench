@@ -63,19 +63,31 @@ namespace caret {
         
         virtual ~UserInputModeFoci();
         
-        void processMouseEvent(MouseEvent* mouseEvent,
+        virtual void processMouseEvent(MouseEvent* mouseEvent,
                                BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
-        UserInputMode getUserInputMode() const;
+        virtual UserInputMode getUserInputMode() const;
         
-        void initialize();
+        virtual void initialize();
         
-        void finish();
+        virtual void finish();
         
-        QWidget* getWidgetForToolBar();
+        virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
+        
+    private:
+        /*
+         * Note some private methods are accessed by the 
+         * friend UserInputModeFociWidget.
+         */
+        friend class UserInputModeFociWidget;
+        
+        
+        UserInputModeFoci(const UserInputModeFoci&);
+
+        UserInputModeFoci& operator=(const UserInputModeFoci&);
         
         Mode getMode() const;
         
@@ -85,17 +97,6 @@ namespace caret {
         
         void setEditOperation(const EditOperation editOperation);
         
-    private:
-        UserInputModeFoci(const UserInputModeFoci&);
-
-        UserInputModeFoci& operator=(const UserInputModeFoci&);
-        
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
         void updateAfterFociChanged();
         
         // ADD_NEW_MEMBERS_HERE

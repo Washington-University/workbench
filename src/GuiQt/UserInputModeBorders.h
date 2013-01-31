@@ -60,20 +60,33 @@ namespace caret {
         
         virtual ~UserInputModeBorders();
         
-        void processMouseEvent(MouseEvent* mouseEvent,
+        virtual void processMouseEvent(MouseEvent* mouseEvent,
                                BrainOpenGLViewportContent* viewportContent,
                                BrainOpenGLWidget* openGLWidget);
         
-        UserInputMode getUserInputMode() const;
+        virtual UserInputMode getUserInputMode() const;
         
-        void initialize();
+        virtual void initialize();
         
-        void finish();
+        virtual void finish();
 
-        QWidget* getWidgetForToolBar();
+        virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
 
+        virtual AString toString() const;
+        
+
+    private:
+        /*
+         * Some private methods are accessed by this friend class
+         */
+        friend class UserInputModeBordersWidget;
+        
+        UserInputModeBorders(const UserInputModeBorders&);
+
+        UserInputModeBorders& operator=(const UserInputModeBorders&);
+        
         Mode getMode() const;
         
         void setMode(const Mode mode);
@@ -86,19 +99,10 @@ namespace caret {
         
         void setEditOperation(const EditOperation editOperation);
         
-    private:
-        UserInputModeBorders(const UserInputModeBorders&);
-
-        UserInputModeBorders& operator=(const UserInputModeBorders&);
-        
         void drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
                                 const int32_t mouseX,
                                 const int32_t mouseY);
         
-    public:
-        virtual AString toString() const;
-        
-    private:
         void drawOperationFinish();
         
         void drawOperationUndo();
@@ -123,8 +127,6 @@ namespace caret {
         
         int32_t windowIndex;
         
-        friend class UserInputModeBordersWidget;
-
         int32_t mousePressX;
         int32_t mousePressY;
     };
