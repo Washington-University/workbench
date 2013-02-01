@@ -58,6 +58,9 @@ using namespace caret;
 /**
  * \class caret::SceneWriterXml 
  * \brief Writes scenes to an XmlWriter.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

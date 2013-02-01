@@ -43,6 +43,9 @@ using namespace caret;
 /**
  * \class caret::SceneObjectArray 
  * \brief Abstract class for arrays (and other containers).
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

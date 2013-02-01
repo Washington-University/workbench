@@ -201,6 +201,9 @@ namespace caret {
         /**
          * \class caret::SceneClassAssistant::EnumeratedTypeData 
          * \brief An enumeration value added to a scene class.
+         * \ingroup Scene
+         *
+         * See the documentation in the class Scene for how to use the Scene system.
          */
         template <class T, typename ET>
         class EnumeratedTypeData : public Data {

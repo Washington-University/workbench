@@ -46,6 +46,9 @@ using namespace caret;
 /**
  * \class caret::SceneClassArray 
  * \brief Stores an array of scene classes.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

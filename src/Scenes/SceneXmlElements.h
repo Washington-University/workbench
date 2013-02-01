@@ -38,6 +38,9 @@
 /**
  * \class caret::SceneXmlElements 
  * \brief XML Elements for Scenes written with XML.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  *
  * Format of tags is:
  *    XML_<class-name>_<name>_<TAG | ATTRIBUTE>

@@ -42,11 +42,15 @@
 
 using namespace caret;
 
+/**
+ * \defgroup Scene  
+ */
 
     
 /**
  * \class caret::Scene 
  * \brief Contains a scene which is the saved state of workbench.
+ * \ingroup Scene
  *
  * Contains the state of workbench that can be restored.  This is
  * similar to Memento design pattern or Java's Serialization.
@@ -60,21 +64,21 @@ using namespace caret;
  * method, a SceneClass object is created and it's 'add' methods are used to 
  * add the values of members to the SceneClass object.  Add methods exist
  * for primitive data types (int, float, string, etc), arrays, 
- * the Caret enumerated types, and other classes.  Conversely, the restoreFromScene()
+ * the Caret enumerated types, and child classes.  Conversely, the restoreFromScene()
  * method receives a SceneClass object, and uses the SceneClass object's
  * 'get' methods to restore the values of the class' members.
  *
- * When restoring a class, most of the SceneClass' 'get' method contain
+ * When restoring a class, most of the SceneClass' 'get' methods contain
  * a default value parameter.  In some cases a 'get' method may be called
  * for a member that is not in the SceneClass object (perhaps a member was
  * added to the class since the scene was saved).  In these cases, the
  * default value will be returned by the 'get' method.
  *
- * To simplify this process a SceneClassAssistant can be used for 
+ * To simplify this process, a SceneClassAssistant can be used for 
  * members of a class that are not dynamically allocated.  An instance
  * of the SceneClassAssistant is created in the class' constructor.
  * Members of the class (actually the addresses of the members) are 
- * added to the SceneClassAssistant in the constructor.  When saving the
+ * added to the SceneClassAssistant in the constructor's code.  When saving the
  * scene (in saveToScene), the SceneClassAssistant's saveMembers() method
  * is called and it will add the class's members to the SceneClass.  
  * In restoreFromScene(), the SceneClassAssistant's restoreMembers will
@@ -91,17 +95,18 @@ using namespace caret;
  * computer.
  *
  * Example of saving and restoring an instance of a class using
- * a SceneClassAssistant with three members, a boolean, a
- * Caret enumerated type, and a float.
+ * a SceneClassAssistant with four members, a boolean, a
+ * Caret enumerated type, a float, and a child class.
  *
  * <p>
- * \code{.cpp}
+ * \code
  
 SomeClass::SomeClass()
 : SceneableInterface()
 {
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_childClass = new ChildClass();
     m_contralateralIdentificationEnabled = false;
     m_identificationSymbolColor = CaretColorEnum::WHITE;
     m_identifcationSymbolSize = 3.0;
@@ -114,10 +119,13 @@ SomeClass::SomeClass()
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor);
+    m_sceneAssistant->add("m_childClass"
+                          "ChildClass",
+                          m_childClass);
 }
 
 SceneClass*
-SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
+SomeClass::saveToScene(const SceneAttributes* sceneAttributes,
                      const AString& instanceName)
 {
     switch (sceneAttributes->getSceneType()) {
@@ -137,7 +145,7 @@ SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
     return sceneClass;
 }
 
-SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
+SomeClass::restoreFromScene(const SceneAttributes* sceneAttributes,
                                         const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -150,7 +158,84 @@ SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
 
  * \endcode
  *
+ *
+ * Example of saving and restoring an instance of a class without a 
+ * SceneAssistant.  Note that a class may save/restore members using a
+ * SceneClassAssistant for some members and explicitly saving/restoring
+ * members in both saveToScene() and restoreFromScene().
+ * 
+ * \code
+
+SceneClass*
+SomeClass::saveToScene(const SceneAttributes* sceneAttributes,
+                       const AString& instanceName)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "SomeClass",
+                                            1);
+    
+    sceneClass->addBoolean("m_contralateralIdentificationEnabled",
+                           m_contralateralIdentificationEnabled);
+    sceneClass->addFloat("m_identifcationSymbolSize",
+                         m_identifcationSymbolSize);
+    sceneClass->addEnumeratedType<CaretColorEnum,CaretColorEnum::Enum>("m_identificationSymbolColor",
+                                                  m_identificationSymbolColor);
+    sceneClass->addClass(m_childClass->saveToScene(sceneAttributes,
+                                                   "m_childClass"));
+    
+    return sceneClass;
+}
+
+SomeClass::restoreFromScene(const SceneAttributes* sceneAttributes,
+                            const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_contralateralIdentificationEnabled = sceneClass->getBooleanValue("m_contralateralIdentificationEnabled",
+                                                                       false);
+    m_identifcationSymbolSize = sceneClass->getFloatValue("m_identifcationSymbolSize",
+                                                          2.0);
+    m_identificationSymbolColor = sceneClass->getEnumeratedTypeValue<CaretColorEnum,CaretColorEnum::Enum>("m_identificationSymbolColor",
+                                                                                     CaretColorEnum::WHITE);
+    m_childClass->restoreFromScene(sceneAttributes,
+                                   scene->getClass("m_childClass"));
+}
+
+ * \endcode
+ *
+ *
+ * Approximate XML produced by above code serializing its members
+ * including the child class.
+ *
+ * \code
+ <Object Type="class"
+     Class="SomeClass"
+     Name="m_someClass"
+     Version="1">
+        <Object Type="boolean" Name="m_contralateralIdentificationEnabled">false</Object>
+        <Object Type="float" Name="m_identifcationSymbolSize">3</Object>
+        <Object Type="enumeratedType" Name="m_identificationSymbolColor"><![CDATA[WHITE]]></Object>
+        <Object Type="class"
+           Class="ChildClass"
+           Name="m_childClass"
+           Version="1">
+               <Object Type="integer" Name="m_surfaceNumberOfNodes">32492</Object>
+               <Object Type="integer" Name="m_nodeIndex">3096</Object>
+        </Object>
+ </Object>
+ 
+ * \endcode
  */
+
 
 /**
  * Constructor.
@@ -196,7 +281,7 @@ Scene::getAttributes()
     return m_sceneAttributes;
 }
 
-void 
+void
 Scene::addClass(SceneClass* sceneClass)
 {
     if (sceneClass != NULL) {
@@ -208,7 +293,7 @@ Scene::addClass(SceneClass* sceneClass)
 /**
  * @return Number of classes contained in the scene
  */
-int32_t 
+int32_t
 Scene::getNumberOfClasses() const
 {
     return m_sceneClasses.size();

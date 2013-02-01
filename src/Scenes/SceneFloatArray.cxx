@@ -48,6 +48,9 @@ using namespace caret;
 /**
  * \class caret::SceneFloatArray 
  * \brief For storage of a float value in a scene.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

@@ -51,6 +51,9 @@ using namespace caret;
 /**
  * \class caret::SceneClassAssistant 
  * \brief Assists a class with restoring and saving its data to a scene.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  *
  * Assists with the restoration and saving of data for a SceneClass.
  * Rather than the scene class making explicit calls to save and restore
@@ -466,6 +469,9 @@ SceneClassAssistant::saveMembers(const SceneAttributes* sceneAttributes,
 /**
  * \class caret::SceneClassAssistant::Data 
  * \brief Base class for data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::Data::Data(const AString& name) 
 : m_name(name) 
@@ -529,6 +535,9 @@ SceneClassAssistant::FloatData::save(const SceneAttributes& /*sceneAttributes*/,
 /**
  * \class caret::SceneClassAssistant::IntegerData 
  * \brief Integer data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**
@@ -583,6 +592,9 @@ SceneClassAssistant::IntegerData::save(const SceneAttributes& /*sceneAttributes*
 /**
  * \class caret::SceneClassAssistant::BooleanData 
  * \brief Boolean data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**
@@ -637,6 +649,9 @@ SceneClassAssistant::BooleanData::save(const SceneAttributes& /*sceneAttributes*
 /**
  * \class caret::SceneClassAssistant::StringData 
  * \brief String data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**
@@ -693,6 +708,9 @@ SceneClassAssistant::StringData::save(const SceneAttributes& /*sceneAttributes*/
 /**
  * \class caret::SceneClassAssistant::TabIndexArrayMapData
  * \brief Base class for arrays that are index by a tab index.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::TabIndexArrayMapData::TabIndexArrayMapData(const AString& name)
   : Data(name)
@@ -780,6 +798,9 @@ SceneClassAssistant::BooleanTabIndexArrayMapData::save(const SceneAttributes& sc
 /**
  * \class caret::SceneClassAssistant::IntegerTabIndexArrayMapData
  * \brief Integer array that is indexed by a tab index.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**
@@ -851,6 +872,9 @@ SceneClassAssistant::IntegerTabIndexArrayMapData::save(const SceneAttributes& sc
 /**
  * \class caret::SceneClassAssistant::FloatTabIndexArrayMapData
  * \brief Float array that is indexed by a tab index.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**
@@ -925,6 +949,9 @@ SceneClassAssistant::FloatTabIndexArrayMapData::save(const SceneAttributes& scen
 /**
  * \class caret::SceneClassAssistant::BooleanVectorData 
  * \brief Boolean vector added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::ArrayData::ArrayData(const AString& name,
           const int32_t numberOfArrayElements)
@@ -991,6 +1018,9 @@ void SceneClassAssistant::BooleanArrayData::save(const SceneAttributes& /*sceneA
 /**
  * \class caret::SceneClassAssistant::IntegerArrayData 
  * \brief Boolean array added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::IntegerArrayData::IntegerArrayData(const AString& name,
                                                         int32_t* integerArray,
@@ -1044,6 +1074,9 @@ void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& /*sceneA
 /**
  * \class caret::SceneClassAssistant::FloatArrayData 
  * \brief Boolean array added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::FloatArrayData::FloatArrayData(const AString& name,
                                                         float* floatArray,
@@ -1097,6 +1130,9 @@ void SceneClassAssistant::FloatArrayData::save(const SceneAttributes& /*sceneAtt
 /**
  * \class caret::SceneClassAssistant::StringArrayData 
  * \brief Boolean array added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 SceneClassAssistant::StringArrayData::StringArrayData(const AString& name,
                                                     AString* stringArray,
@@ -1150,6 +1186,9 @@ void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAt
 /**
  * \class caret::SceneClassAssistant::ClassArrayData 
  * \brief Scene class added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 //SceneClassAssistant::ClassArrayData::ClassArrayData(const AString& name,
 //                                                    SceneableInterface* sceneInterfaces[],
@@ -1214,6 +1253,9 @@ void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAt
 /**
  * \class caret::SceneClassAssistant::BooleanVectorData 
  * \brief Boolean vector added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 /**
  * Constructor.
@@ -1285,6 +1327,9 @@ void SceneClassAssistant::StringArrayData::save(const SceneAttributes& /*sceneAt
 /**
  * \class caret::SceneClassAssistant::ClassData 
  * \brief Class added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

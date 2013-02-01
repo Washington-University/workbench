@@ -45,6 +45,9 @@ using namespace caret;
 /**
  * \class caret::SceneObject 
  * \brief Abstract class for any item saved to a scene.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

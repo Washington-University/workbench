@@ -38,6 +38,9 @@
 /**
  * \class caret::SceneWriterInterface 
  * \brief Interface for classes that write scenes.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 namespace caret {

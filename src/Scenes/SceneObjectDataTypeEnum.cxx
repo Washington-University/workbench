@@ -45,6 +45,9 @@ using namespace caret;
 /**
  * \class caret::SceneObjectDataTypeEnum 
  * \brief Types of data objects saved in scenes.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

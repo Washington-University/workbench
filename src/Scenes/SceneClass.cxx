@@ -59,6 +59,9 @@ using namespace caret;
 /**
  * \class caret::SceneClass 
  * \brief For storage of a class instance in a scene.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

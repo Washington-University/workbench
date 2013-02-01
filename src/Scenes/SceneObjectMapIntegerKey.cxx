@@ -53,6 +53,9 @@ using namespace caret;
 /**
  * \class caret::SceneObjectMapIntegerKey 
  * \brief Map for saving data to a scene using integers as the key.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

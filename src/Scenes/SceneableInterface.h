@@ -38,7 +38,9 @@
 /**
  * \class caret::SceneableInterface 
  * \brief Interface that must be implemented by classes saved to scenes.
- *       
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 #include "AString.h"

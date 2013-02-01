@@ -48,7 +48,10 @@ using namespace caret;
 /**
  * \class caret::ScenePathName 
  * \brief For storage of a path name in a scene.
- * 
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
+ *
  * Stores a path name (file name) in a scene.
  * When the scene file is written, the a path relative
  * to the scene file's path is stored in the scene file.

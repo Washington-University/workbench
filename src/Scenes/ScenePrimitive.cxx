@@ -43,6 +43,9 @@ using namespace caret;
 /**
  * \class caret::ScenePrimitive 
  * \brief Abstract class for 'primitive' data types for scenes.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  *
  * Design loosely based upon Java.lang.Number but also including
  * boolean and string values.

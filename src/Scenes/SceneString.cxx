@@ -43,6 +43,9 @@ using namespace caret;
 /**
  * \class caret::SceneString 
  * \brief For storage of a string value in a scene.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 
 /**

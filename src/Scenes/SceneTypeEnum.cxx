@@ -44,9 +44,10 @@ using namespace caret;
     
 /**
  * \class caret::SceneTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Saves a Caret enumerated type.
+ * \ingroup Scene
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * See the documentation in the class Scene for how to use the Scene system.
  */
 /**
  * Constructor.
