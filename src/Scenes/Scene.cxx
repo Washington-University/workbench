@@ -50,6 +50,106 @@ using namespace caret;
  *
  * Contains the state of workbench that can be restored.  This is
  * similar to Memento design pattern or Java's Serialization.
+ *
+ * Each class that is to be saved to a scene must implement the
+ * SceneableInterface which contains two virtual methods, one for
+ * saving to the scene, saveScene(), and one for restoring from
+ * the scene, restoreFromScene().  
+ *
+ * The saveToScene() method returns a SceneClass object.  In the saveToScene()
+ * method, a SceneClass object is created and it's 'add' methods are used to 
+ * add the values of members to the SceneClass object.  Add methods exist
+ * for primitive data types (int, float, string, etc), arrays, 
+ * the Caret enumerated types, and other classes.  Conversely, the restoreFromScene()
+ * method receives a SceneClass object, and uses the SceneClass object's
+ * 'get' methods to restore the values of the class' members.
+ *
+ * When restoring a class, most of the SceneClass' 'get' method contain
+ * a default value parameter.  In some cases a 'get' method may be called
+ * for a member that is not in the SceneClass object (perhaps a member was
+ * added to the class since the scene was saved).  In these cases, the
+ * default value will be returned by the 'get' method.
+ *
+ * To simplify this process a SceneClassAssistant can be used for 
+ * members of a class that are not dynamically allocated.  An instance
+ * of the SceneClassAssistant is created in the class' constructor.
+ * Members of the class (actually the addresses of the members) are 
+ * added to the SceneClassAssistant in the constructor.  When saving the
+ * scene (in saveToScene), the SceneClassAssistant's saveMembers() method
+ * is called and it will add the class's members to the SceneClass.  
+ * In restoreFromScene(), the SceneClassAssistant's restoreMembers will
+ * restore the class' members.
+ * 
+ * Some scene data involves saving paths to data files.  When a filename
+ * is "in memory" an absolute path is used.  However, absolute paths
+ * become a problem when data is transferred to other computers.  So,
+ * for this special case, a ScenePathName object can be used.  The 
+ * ScenePathName object contains a pathname that will be an absolute
+ * pathname when in memory.  When written to a SceneFile, the pathname
+ * will be converted to a relative path, relative to the SceneFile so
+ * that the Scene will still function correctly when moved to a different
+ * computer.
+ *
+ * Example of saving and restoring an instance of a class using
+ * a SceneClassAssistant with three members, a boolean, a
+ * Caret enumerated type, and a float.
+ *
+ * <p>
+ * \code{.cpp}
+ 
+SomeClass::SomeClass()
+: SceneableInterface()
+{
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_contralateralIdentificationEnabled = false;
+    m_identificationSymbolColor = CaretColorEnum::WHITE;
+    m_identifcationSymbolSize = 3.0;
+    
+    m_sceneAssistant->add("m_contralateralIdentificationEnabled",
+                          &m_contralateralIdentificationEnabled);
+    
+    m_sceneAssistant->add("m_identifcationSymbolSize",
+                          &m_identifcationSymbolSize);
+    
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
+                                                                &m_identificationSymbolColor);
+}
+
+SceneClass*
+SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
+{
+    switch (sceneAttributes->getSceneType()) {
+        case SceneTypeEnum::SCENE_TYPE_FULL:
+            break;
+        case SceneTypeEnum::SCENE_TYPE_GENERIC:
+            break;
+    }
+    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "SomeClass",
+                                            1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+ 
+    return sceneClass;
+}
+
+SomeClass::SomeClass(const SceneAttributes* sceneAttributes,
+                                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+ 
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);    
+}
+
+ * \endcode
+ *
  */
 
 /**

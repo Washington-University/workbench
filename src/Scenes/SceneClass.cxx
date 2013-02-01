@@ -59,20 +59,6 @@ using namespace caret;
 /**
  * \class caret::SceneClass 
  * \brief For storage of a class instance in a scene.
- *
- * When an instance of a class is saved to a scene,
- * non-transient data is added to an instance of a
- * scene class.
- *
- * There are several types of scenes: (1) Full in which
- * all data is saved, and (2) Generic in which only 
- * non-file parameters are saved.
- * 
- * With full scenes, data files will be loaded and
- * the scene data is appled.
- *
- * With generic scenes, no data is loaded and the
- * scene is applied to any currently loaded data.
  */
 
 /**
