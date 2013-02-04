@@ -87,8 +87,7 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     ret->setHelpText(
         AString("For each structure, compute the correlation of the rows in the structure, and take the gradients of ") +
-        "the resulting rows, then average them.  If -local-method is specified, take only the gradient value at the " +
-        "vertex/voxel being correlated with when generating output, and don't compute data that doesn't have an effect on the output."
+        "the resulting rows, then average them."
     );
     return ret;
 }
@@ -1152,17 +1151,17 @@ float* AlgorithmCiftiCorrelationGradient::getTempRow()
         m_tempRows.resize(threadNum + 1);
         for (int i = oldsize; i <= threadNum; ++i)
         {
-            m_tempRows[i].resize(m_numCols);
+            m_tempRows[i] = CaretArray<float>(m_numCols);
         }
     }
-    return m_tempRows[threadNum].data();
+    return m_tempRows[threadNum].getArray();
 #else
     if (m_tempRows.size() == 0)
     {
         m_tempRows.resize(1);
-        m_tempRows[0].resize(m_numCols);
+        m_tempRows[0] = CaretArray<float>(m_numCols);
     }
-    return m_tempRows[0].data();
+    return m_tempRows[0].getArray();
 #endif
 }
 
@@ -1217,7 +1216,7 @@ int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, co
 #else
         targetBytes -= inrowBytes;//1 row in memory that isn't a reference to cache
 #endif
-        int64_t numPassesPartial = (targetBytes + div - 1) / div;
+        int64_t numPassesPartial = (targetBytes + div - 1) / targetBytes;
         int ret = (numRows + numPassesPartial - 1) / numPassesPartial;
         if (ret < 1) ret = 1;//sanitize, just in case
         if (ret > numRows) ret = numRows;

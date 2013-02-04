@@ -26,6 +26,7 @@
  */
 
 #include "AbstractAlgorithm.h"
+#include "CaretPointer.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -51,7 +52,7 @@ namespace caret {
         };
         std::vector<CacheRow> m_rowCache;
         std::vector<RowInfo> m_rowInfo;
-        std::vector<std::vector<float> > m_tempRows;//reuse return values in getRow instead of reallocating
+        std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
         std::vector<float> m_outColumn;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
