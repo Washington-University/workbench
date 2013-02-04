@@ -363,12 +363,10 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             break;
         }
         case VAR:
-            addParens = false;
             CaretAssertVectorIndex(varNames, m_varIndex);
             ret = varNames[m_varIndex];
             break;
         case CONST:
-            addParens = false;
             ret = AString::number(m_constVal);
             break;
         case INVALID:
@@ -391,6 +389,7 @@ bool CaretMathExpression::parse(CaretMathExpression::MathNode& node, const AStri
 {
     CaretAssert(start >= 0 && start <= end && end <= input.size());
     if (end - start == 0) return false;
+    if (tryConst(node, input, start, end)) return true;
     if (tryGreaterLess(node, input, start, end)) return true;
     if (tryAddSub(node, input, start, end)) return true;
     if (tryMultDiv(node, input, start, end)) return true;
@@ -398,7 +397,6 @@ bool CaretMathExpression::parse(CaretMathExpression::MathNode& node, const AStri
     if (tryPow(node, input, start, end)) return true;
     if (tryParen(node, input, start, end)) return true;
     if (tryFunc(node, input, start, end)) return true;
-    if (tryConst(node, input, start, end)) return true;
     if (tryVar(node, input, start, end)) return true;
     throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
     return false;
