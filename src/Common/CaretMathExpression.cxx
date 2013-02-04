@@ -363,15 +363,18 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             break;
         }
         case VAR:
+            addParens = false;
             CaretAssertVectorIndex(varNames, m_varIndex);
             ret = varNames[m_varIndex];
             break;
         case CONST:
+            addParens = false;
             ret = AString::number(m_constVal);
             break;
         case INVALID:
             ret = "???";
     }
+    if (m_negate) addParens = true;
     if (addParens) ret = "(" + ret + ")";//parenthesize almost everything
     if (m_negate)
     {
