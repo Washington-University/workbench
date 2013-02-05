@@ -80,6 +80,7 @@
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
 #include "SpecFileDialog.h"
+#include "SpecFileManagementDialog.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
 #include "SurfaceSelectionViewController.h"
@@ -641,8 +642,97 @@ BrainBrowserWindow::createMenus()
     }
     menubar->addMenu(createMenuConnect());
     menubar->addMenu(createMenuWindow());
-    menubar->addMenu(createMenuHelp());    
+    menubar->addMenu(createMenuHelp());
+#ifdef VELAB_INTERNAL_RELEASE_ONLY
+    menubar->addMenu(createMenuDeveloper());
+#endif // VELAB_INTERNAL_RELEASE_ONLY
 }
+
+/**
+ * @return Create and return the developer menu.
+ */
+QMenu*
+BrainBrowserWindow::createMenuDeveloper()
+{
+    QMenu* menu = new QMenu("Developer",
+                            this);
+    QObject::connect(menu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processMenuDeveloper(QAction*)));
+    
+    menu->addAction("Open Spec File");
+    menu->addAction("Manage Data Files");
+    return menu;
+}
+
+/**
+ * Process a developer menu selection.
+ */
+void
+BrainBrowserWindow::processMenuDeveloper(QAction* action)
+{
+    const QString text = action->text();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    if (text == "Manage Data Files") {
+        SpecFile specFile;
+        const AString specFileName = brain->getSpecFileName();
+        
+        try {
+            specFile.readFile(specFileName);
+            SpecFileManagementDialog* d =
+            SpecFileManagementDialog::createManageFilesDialog(brain,
+                                                              &specFile,
+                                                              this);
+            d->exec();
+        }
+        catch (const DataFileException& e) {
+            WuQMessageBox::errorOk(this,
+                                   e.whatString());
+        }
+    }
+    else if (text == "Open Spec File") {
+        /*
+         * Setup file selection dialog.
+         */
+        QStringList filenameFilterList;
+        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+        CaretFileDialogExtendable fd(this);
+        fd.setAcceptMode(CaretFileDialog::AcceptOpen);
+        fd.setNameFilters(filenameFilterList);
+        fd.setFileMode(CaretFileDialog::ExistingFile);
+        fd.setViewMode(CaretFileDialog::List);
+        if (fd.exec() == CaretFileDialogExtendable::Accepted) {
+            QStringList files = fd.selectedFiles();
+            if (files.isEmpty() == false) {
+                AString specFileName = files.at(0);
+                
+                SpecFile specFile;
+                try {
+                    specFile.readFile(specFileName);
+                }
+                catch (const DataFileException& e) {
+                    QMessageBox::critical(this,
+                                          "ERROR",
+                                          e.whatString());
+                    return;
+                }
+                SpecFileManagementDialog* d =
+                SpecFileManagementDialog::createOpenSpecFileDialog(brain,
+                                                                   &specFile,
+                                                                   this);
+                d->exec();
+            }
+        }        
+    }
+    else {
+        const QString msg = ("Unrecognized selection from Developer Menu: "
+                              + text);
+        
+        WuQMessageBox::errorOk(this,
+                               msg);
+    }
+}
+
 
 /**
  * Create the file menu.
@@ -1728,6 +1818,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                           this,
                                           "Loading Data Files");
         errorMessages.appendWithNewLine(loadFilesEvent.getErrorMessage());
+        if (loadFilesEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
+            errorMessages.appendWithNewLine(loadFilesEvent.getAddToSpecFileErrorMessages());
+        }
         
         /*
          * Check for errors
@@ -1767,6 +1860,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                                       ("Loading " + shortName));
                     if (loadFileEventStructure.isError()) {
                         errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
+                    }
+                    if (loadFileEventStructure.getAddToSpecFileErrorMessages().isEmpty() == false) {
+                        errorMessages.appendWithNewLine(loadFileEventStructure.getAddToSpecFileErrorMessages());
                     }
                 }
                 else {

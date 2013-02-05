@@ -872,10 +872,12 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
  *
  * @param filename
  *    Name of the file.
+ * @return
+ *    File that was read.
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+VolumeFile*
 Brain::readVolumeFile(CaretDataFile* reloadThisFileIfNotNull,
                       const AString& filename) throw (DataFileException)
 {
@@ -904,6 +906,8 @@ Brain::readVolumeFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_volumeFiles.push_back(vf);
     }
+    
+    return vf;
 }
 
 /**
@@ -948,10 +952,12 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
  *
  * @param filename
  *    Name of the file.
+ * @return
+ *    File that was read.
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+BorderFile*
 Brain::readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
                       const AString& filename) throw (DataFileException)
 {
@@ -976,6 +982,8 @@ Brain::readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
         }
         throw dfe;
     }
+    
+    return bf;
 }
 
 /**
@@ -986,7 +994,7 @@ Brain::readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+FociFile*
 Brain::readFociFile(CaretDataFile* reloadThisFileIfNotNull,
                     const AString& filename) throw (DataFileException)
 {
@@ -1011,6 +1019,8 @@ Brain::readFociFile(CaretDataFile* reloadThisFileIfNotNull,
         }
         throw dfe;
     }
+    
+    return ff;
 }
 
 /**
@@ -1018,10 +1028,12 @@ Brain::readFociFile(CaretDataFile* reloadThisFileIfNotNull,
  *
  * @param filename
  *    Name of the file.
+ * @return
+ *    File that was read.
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+CiftiConnectivityMatrixDenseFile*
 Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
                                  const AString& filename) throw (DataFileException)
 {
@@ -1047,6 +1059,8 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityMatrixDenseFiles.push_back(cmdf);
     }
+    
+    return cmdf;
 }
 
 /**
@@ -1054,10 +1068,12 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
  *
  * @param filename
  *    Name of the file.
+ * @return
+ *    File that was read.
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiBrainordinateLabelFile*
 Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
                                       const AString& filename) throw (DataFileException)
 {
@@ -1084,6 +1100,8 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityDenseLabelFiles.push_back(file);
     }
+    
+    return file;
 }
 
 /**
@@ -1094,7 +1112,7 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiConnectivityMatrixDenseParcelFile*
 Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotNull,
                                              const AString& filename) throw (DataFileException)
 {
@@ -1122,6 +1140,8 @@ Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotN
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityMatrixDenseParcelFiles.push_back(file);
     }
+    
+    return file;
 }
 
 /**
@@ -1132,7 +1152,7 @@ Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotN
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiBrainordinateScalarFile*
 Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
                                        const AString& filename) throw (DataFileException)
 {
@@ -1158,6 +1178,8 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityDenseScalarFiles.push_back(clf);
     }
+    
+    return clf;
 }
 
 /**
@@ -1168,7 +1190,7 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiFiberOrientationFile*
 Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNull,
                                             const AString& filename) throw (DataFileException)
 {
@@ -1209,6 +1231,8 @@ Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNu
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityFiberOrientationFiles.push_back(cfof);
     }
+    
+    return cfof;
 }
 
 /**
@@ -1219,7 +1243,7 @@ Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNu
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiFiberTrajectoryFile*
 Brain::readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNull,
                                            const AString& filename) throw (DataFileException)
 {
@@ -1245,6 +1269,8 @@ Brain::readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNul
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityFiberTrajectoryFiles.push_back(cftf);
     }
+    
+    return cftf;
 }
 
 /**
@@ -1255,7 +1281,7 @@ Brain::readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNul
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiConnectivityMatrixParcelFile*
 Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
                                         const AString& filename) throw (DataFileException)
 {
@@ -1283,6 +1309,8 @@ Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityMatrixParcelFiles.push_back(file);
     }
+    
+    return file;
 }
 
 /**
@@ -1293,7 +1321,7 @@ Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
  * @throws DataFileException
  *    If reading failed.
  */
-void
+CiftiConnectivityMatrixParcelDenseFile*
 Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotNull,
                                              const AString& filename) throw (DataFileException)
 {
@@ -1321,6 +1349,8 @@ Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotN
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityMatrixParcelDenseFiles.push_back(file);
     }
+    
+    return file;
 }
 
 /**
@@ -1331,7 +1361,7 @@ Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotN
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+ConnectivityLoaderFile*
 Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
                                       const AString& filename) throw (DataFileException)
 {
@@ -1369,6 +1399,8 @@ Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
     if (reloadThisFileIfNotNull == NULL) {
         m_connectivityTimeSeriesFiles.push_back(clf);
     }
+    
+    return clf;
 }
 
 /**
@@ -1415,11 +1447,12 @@ Brain::validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFi
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+PaletteFile*
 Brain::readPaletteFile(CaretDataFile* /* reloadThisFileIfNotNull */,
                        const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: palette");
+    return NULL;
 }
 
 /**
@@ -1430,7 +1463,7 @@ Brain::readPaletteFile(CaretDataFile* /* reloadThisFileIfNotNull */,
  * @throws DataFileException
  *    If reading failed.
  */
-void 
+SceneFile*
 Brain::readSceneFile(CaretDataFile* reloadThisFileIfNotNull,
                      const AString& filename) throw (DataFileException)
 {
@@ -1455,6 +1488,8 @@ Brain::readSceneFile(CaretDataFile* reloadThisFileIfNotNull,
         }
         throw dfe;
     }
+    
+    return sf;
 }
 
 /**
@@ -1916,7 +1951,7 @@ Brain::getConnectivityTimeSeriesFile(int32_t indx)
  *    Index of file.
  * @return Conectivity file at index.
  */
-const ConnectivityLoaderFile* 
+const ConnectivityLoaderFile*
 Brain::getConnectivityTimeSeriesFile(int32_t indx) const
 {
     CaretAssertVectorIndex(m_connectivityTimeSeriesFiles, indx);
@@ -2661,11 +2696,16 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         }
         
         try {
-            readDataFile(dataFileType,
+            AString addToSpecFileErrorMessages;
+            CaretDataFile* fileRead = readDataFile(dataFileType,
                          structure,
                          filename,
                          setFileModifiedStatus,
-                         readDataFileEvent->isAddDataFileToSpecFile());
+                         readDataFileEvent->isAddDataFileToSpecFile(),
+                                                   addToSpecFileErrorMessages);
+            readDataFileEvent->setDataFileRead(i,
+                                               fileRead);
+            readDataFileEvent->setAddToSpecFileErrorMessages(addToSpecFileErrorMessages);
         }
         catch (const DataFileException& e) {
             if (e.isErrorInvalidStructure()) {
@@ -2720,63 +2760,63 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
     
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
-            readBorderFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readBorderFile(reloadThisDataFileIfNotNull,
                            dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            readConnectivityDenseFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityDenseFile(reloadThisDataFileIfNotNull,
                                       dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            readConnectivityDenseLabelFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityDenseLabelFile(reloadThisDataFileIfNotNull,
                                            dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-            readConnectivityMatrixDenseParcelFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityMatrixDenseParcelFile(reloadThisDataFileIfNotNull,
                                                   dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
                                             dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            readConnectivityTimeSeriesFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityTimeSeriesFile(reloadThisDataFileIfNotNull,
                                            dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-            readConnectivityFiberOrientationFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityFiberOrientationFile(reloadThisDataFileIfNotNull,
                                                  dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-            readConnectivityFiberTrajectoryFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityFiberTrajectoryFile(reloadThisDataFileIfNotNull,
                                                 dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-            readConnectivityMatrixParcelFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityMatrixParcelFile(reloadThisDataFileIfNotNull,
                                              dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-            readConnectivityMatrixParcelDenseFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readConnectivityMatrixParcelDenseFile(reloadThisDataFileIfNotNull,
                                                   dataFileName);
             break;
         case DataFileTypeEnum::FOCI:
-            readFociFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readFociFile(reloadThisDataFileIfNotNull,
                          dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
-            caretDataFileRead = readLabelFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = caretDataFileRead = readLabelFile(reloadThisDataFileIfNotNull,
                                               dataFileName,
                                               structure,
                                               markDataFileAsModified);
             break;
         case DataFileTypeEnum::METRIC:
-            caretDataFileRead = readMetricFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = caretDataFileRead = readMetricFile(reloadThisDataFileIfNotNull,
                                                dataFileName,
                                                structure,
                                                markDataFileAsModified);
             break;
         case DataFileTypeEnum::PALETTE:
-            readPaletteFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readPaletteFile(reloadThisDataFileIfNotNull,
                             dataFileName);
             break;
         case DataFileTypeEnum::RGBA:
@@ -2786,7 +2826,7 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                                              markDataFileAsModified);
             break;
         case DataFileTypeEnum::SCENE:
-            readSceneFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readSceneFile(reloadThisDataFileIfNotNull,
                           dataFileName);
             break;
         case DataFileTypeEnum::SPECIFICATION:
@@ -2803,7 +2843,7 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
             throw DataFileException("Unable to read files of type");
             break;
         case DataFileTypeEnum::VOLUME:
-            readVolumeFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readVolumeFile(reloadThisDataFileIfNotNull,
                            dataFileName);
             break;
     }
@@ -2829,15 +2869,20 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
  *    Name of data file to read.
  * @param markDataFileAsModified
  *    If file has invalid structure and settings structure, mark file modified
+ * @param addToSpecFileErrorMessageOut
+ *    Upon exit, will contain any message concerning problems updating spec file
  * @throws DataFileException
  *    If there is an error reading the file.
+ * @return
+ *    Pointer to file that was read, if no errors.
  */
-void 
+CaretDataFile*
 Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const StructureEnum::Enum structure,
                     const AString& dataFileNameIn,
                     const bool markDataFileAsModified,
-                    const bool addDataFileToSpecFile) throw (DataFileException)
+                    const bool addDataFileToSpecFile,
+                    AString& addToSpecFileErrorMessageOut) throw (DataFileException)
 {
     AString dataFileName = dataFileNameIn;
     
@@ -2864,7 +2909,6 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                                                             markDataFileAsModified);
     
     
-    AString addToSpecFileErrorMessage;
     if (addDataFileToSpecFile) {
         if (m_specFileName.isEmpty() == false) {
             FileInformation specFileInfo(m_specFileName);
@@ -2890,22 +2934,20 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 sf.writeFile(m_specFileName);
             }
             catch (const DataFileException& e) {
-                addToSpecFileErrorMessage = ("Unable to add file \""
+                addToSpecFileErrorMessageOut = ("Unable to add file \""
                                              + dataFileName
                                              + "\" to SpecFile \""
                                              + m_specFileName
                                              + "\", Error:"
                                              + e.whatString());
-                CaretLogWarning(addToSpecFileErrorMessage);
+                CaretLogWarning(addToSpecFileErrorMessageOut);
             }
         }
     }
     
     postReadDataFileProcessing();
     
-    if (addToSpecFileErrorMessage.isEmpty() == false) {
-        throw DataFileException(addToSpecFileErrorMessage);
-    }
+    return caretDataFileRead;
 }
 
 /**
@@ -2983,11 +3025,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                 }
                 
                 try {
+                    AString addToSpecFileErrorMessages; // should not be any
                     readDataFile(dataFileType,
                                  structure,
                                  filename,
                                  false,
-                                 false);
+                                 false,
+                                 addToSpecFileErrorMessages);
                 }
                 catch (const DataFileException& e) {
                     if (errorMessage.isEmpty() == false) {
@@ -3214,11 +3258,13 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                     }
                 }
                 try {
+                    AString addToSpecFileErrorMessages; // should not be any
                     readDataFile(dataFileType,
                                        structure, 
                                        filename,
                                        false,
-                                 false);
+                                 false,
+                                 addToSpecFileErrorMessages);
                 }
                 catch (const DataFileException& e) {
                     sceneAttributes->addToErrorMessage(e.whatString());

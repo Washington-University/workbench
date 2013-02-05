@@ -184,6 +184,10 @@ CaretFileRemoteDialog::okButtonClicked()
                                    readFileEvent.getErrorMessage());
             isError = true;
         }
+        if (readFileEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
+            WuQMessageBox::errorOk(this,
+                                   readFileEvent.getAddToSpecFileErrorMessages());
+        }
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         

@@ -78,6 +78,7 @@ RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
+SpecFileManagementDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
@@ -194,6 +195,7 @@ SceneDialog.h
 SceneWindowGeometry.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
+SpecFileManagementDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
@@ -307,6 +309,7 @@ SceneDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileCreateAddToDialog.cxx
 SpecFileDialog.cxx
+SpecFileManagementDialog.cxx
 SplashScreen.cxx
 StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx

@@ -32,6 +32,7 @@
 namespace caret {
 
     class Brain;
+    class CaretDataFile;
     
     /**
      * Event for reading one or more data files.
@@ -84,6 +85,15 @@ namespace caret {
         
         bool isFileToBeMarkedModified(const int32_t dataFileIndex) const;
         
+        CaretDataFile* getDataFileRead(const int32_t dataFileIndex);
+        
+        void setDataFileRead(const int32_t dataFileIndex,
+                         CaretDataFile* caretDataFile);
+        
+        AString getAddToSpecFileErrorMessages() const;
+        
+        void setAddToSpecFileErrorMessages(const AString& msg);
+        
     private:
         class FileData {
         public:
@@ -96,6 +106,7 @@ namespace caret {
             m_dataFileName(dataFileName),
             m_markFileAsModified(markFileAsModified) {
                 m_invalidStructureError = false;
+                m_caretDataFileThatWasRead = NULL;
             }
             
             ~FileData() { }
@@ -104,6 +115,7 @@ namespace caret {
             DataFileTypeEnum::Enum m_dataFileType;
             AString m_dataFileName;
             AString m_errorMessage;
+            CaretDataFile* m_caretDataFileThatWasRead;
             bool m_markFileAsModified;
             bool m_invalidStructureError;
         };
@@ -119,6 +131,8 @@ namespace caret {
         AString username;
         
         AString password;
+        
+        AString m_addToSpecFileErrorMessages;
         
         bool addDataFileToSpecFile;
     };

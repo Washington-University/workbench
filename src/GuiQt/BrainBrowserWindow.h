@@ -165,6 +165,8 @@ namespace caret {
         
         void processProjectFoci();
         
+        void processMenuDeveloper(QAction*);
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -202,6 +204,7 @@ namespace caret {
         void createActionsUsedByToolBar();
         void createMenus();
         
+        QMenu* createMenuDeveloper();
         QMenu* createMenuFile();
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();

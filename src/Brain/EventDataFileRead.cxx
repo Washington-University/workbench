@@ -236,6 +236,32 @@ EventDataFileRead::setFileErrorInvalidStructure(const int32_t dataFileIndex,
 }
 
 /**
+ * @return File that was read for the given index.
+ */
+CaretDataFile*
+EventDataFileRead::getDataFileRead(const int32_t dataFileIndex)
+{
+    CaretAssertVectorIndex(m_dataFiles, dataFileIndex);
+    return m_dataFiles[dataFileIndex].m_caretDataFileThatWasRead;
+}
+
+/**
+ * Set the file that was read.
+ *
+ * @param dataFileIndex
+ *    Index of the file.
+ * @param caretDataFile
+ *    Pointer to file that was read for given index.
+ */
+void
+EventDataFileRead::setDataFileRead(const int32_t dataFileIndex,
+                                   CaretDataFile* caretDataFile)
+{
+    CaretAssertVectorIndex(m_dataFiles, dataFileIndex);
+    m_dataFiles[dataFileIndex].m_caretDataFileThatWasRead = caretDataFile;
+}
+
+/**
  * @return The username.
  */
 AString 
@@ -288,6 +314,28 @@ EventDataFileRead::isFileToBeMarkedModified(const int32_t dataFileIndex) const
 {
     CaretAssertVectorIndex(m_dataFiles, dataFileIndex);
     return m_dataFiles[dataFileIndex].m_markFileAsModified;
+}
+
+/**
+ * @return Any add to spec file error messages.
+ */
+AString
+EventDataFileRead::getAddToSpecFileErrorMessages() const
+{
+    return m_addToSpecFileErrorMessages;
+}
+
+/**
+ * Set the add to spec file error messages.
+ * @param msg
+ *     New value for messages.
+ */
+void
+EventDataFileRead::setAddToSpecFileErrorMessages(const AString& msg)
+{
+    if (msg.isEmpty() == false) {
+        m_addToSpecFileErrorMessages.appendWithNewLine(msg);
+    }
 }
 
 
