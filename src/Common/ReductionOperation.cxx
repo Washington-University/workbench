@@ -25,8 +25,11 @@
 #include "ReductionOperation.h"
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "MathFunctions.h"
 
+#include <algorithm>
 #include <cmath>
+#include <vector>
 
 using namespace caret;
 using namespace std;
@@ -89,8 +92,80 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
             for (int64_t i = 1; i < numElems; ++i) if (data[i] < min) min = data[i];
             return min;
         }
+        case ReductionEnum::MEDIAN:
+        {
+            vector<float> dataCopy(numElems);
+            for (int64_t i = 0; i < numElems; ++i) dataCopy[i] = data[i];
+            sort(dataCopy.begin(), dataCopy.end());
+            return dataCopy[numElems / 2];//do not do averaging of the middle two when even?
+        }
+        case ReductionEnum::MODE:
+        {
+            vector<float> dataCopy(numElems);
+            for (int64_t i = 0; i < numElems; ++i) dataCopy[i] = data[i];
+            sort(dataCopy.begin(), dataCopy.end());//sort to put same-value next to each other, a hash based map could be faster for large arrays, but oh well
+            int bestCount = 0, curCount = 1;
+            float bestval = -1.0f, curval = dataCopy[0];
+            for (int64_t i = 1; i < numElems; ++i)//search for largest contiguous region
+            {
+                if (dataCopy[i] == curval)
+                {
+                    ++curCount;
+                } else {
+                    if (curCount > bestCount)
+                    {
+                        bestval = curval;
+                        bestCount = curCount;
+                    }
+                    curval = dataCopy[i];
+                    curCount = 1;
+                }
+            }
+            if (curCount > bestCount)
+            {
+                bestval = curval;
+                bestCount = curCount;
+            }
+            return bestval;
+        }
     }
     return 0.0f;
+}
+
+float ReductionOperation::reduceExcludeDev(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type, const float& numDevBelow, const float& numDevAbove)
+{
+    CaretAssert(numElems > 0);
+    double sum = 0.0;
+    int64_t validNum = 0;
+    for (int64_t i = 0; i < numElems; ++i)
+    {
+        if (MathFunctions::isNumeric(data[i]))
+        {
+            ++validNum;
+            sum += data[i];
+        }
+    }
+    if (validNum == 0) throw CaretException("all input values to reduceExcludeDev were non-numeric");
+    float mean = sum / validNum;
+    double residsqr = 0.0;
+    for (int64_t i = 0; i < numElems; ++i)
+    {
+        if (MathFunctions::isNumeric(data[i]))
+        {
+            float tempf = data[i] - mean;
+            residsqr += tempf * tempf;
+        }
+    }
+    float stdev = sqrt(residsqr / validNum);
+    float low = mean - numDevBelow * stdev, high = mean + numDevAbove * stdev;
+    vector<float> excluded;
+    excluded.reserve(validNum);
+    for (int64_t i = 0; i < numElems; ++i)
+    {
+        if (MathFunctions::isNumeric(data[i]) && data[i] >= low && data[i] <= high) excluded.push_back(data[i]);
+    }
+    if (excluded.size() == 0) throw CaretException("exclusion parameters to reduceExcludeDev resulted in no usable data");
+    return reduce(excluded.data(), excluded.size(), type);
 }
 
 AString ReductionOperation::getHelpInfo()

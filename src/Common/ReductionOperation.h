@@ -34,6 +34,8 @@ namespace caret {
     {
     public:
         static float reduce(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type);
+        ///reduce, with exclusion based on number of standard deviations
+        static float reduceExcludeDev(const float* data, const int64_t& numElems, const ReductionEnum::Enum& type, const float& numDevBelow, const float& numDevAbove);
         static AString getHelpInfo();
     };
     

@@ -51,7 +51,9 @@ public:
             MEAN,
             STDEV,
             SAMPSTDEV,
-            VARIANCE
+            VARIANCE,
+            MEDIAN,
+            MODE
     };
 
     ~ReductionEnum();

@@ -51,6 +51,10 @@ OperationParameters* AlgorithmCiftiReduce::getParameters()
     
     ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
     
+    OptionalParameter* excludeOpt = ret->createOptionalParameter(4, "-exclude-outliers", "exclude outliers from each row by standard deviation");
+    excludeOpt->addDoubleParameter(1, "sigma-below", "number of standard deviations below the mean to include");
+    excludeOpt->addDoubleParameter(2, "sigma-above", "number of standard deviations above the mean to include");
+    
     ret->setHelpText(
         AString("For each cifti row, takes the data along a row as a vector, and performs the specified reduction on it, putting the result ") +
         "into the single output column in that row.  The reduction operators are as follows:\n\n" + ReductionOperation::getHelpInfo()
@@ -63,10 +67,16 @@ void AlgorithmCiftiReduce::useParameters(OperationParameters* myParams, Progress
     CiftiFile* ciftiIn = myParams->getCifti(1);
     AString opString = myParams->getString(2);
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
+    OptionalParameter* excludeOpt = myParams->getOptionalParameter(4);
     bool ok = false;
     ReductionEnum::Enum myReduce = ReductionEnum::fromName(opString, &ok);
     if (!ok) throw AlgorithmException("unrecognized operation string '" + opString + "'");
-    AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut);
+    if (excludeOpt->m_present)
+    {
+        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut, excludeOpt->getDouble(1), excludeOpt->getDouble(2));
+    } else {
+        AlgorithmCiftiReduce(myProgObj, ciftiIn, myReduce, ciftiOut);
+    }
 }
 
 AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
@@ -84,6 +94,25 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     {
         ciftiIn->getRow(scratchRow.data(), i);
         outCol[i] = ReductionOperation::reduce(scratchRow.data(), numCols, myReduce);
+    }
+    ciftiOut->setColumn(outCol.data(), 0);
+}
+
+AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const ReductionEnum::Enum& myReduce, CiftiFile* ciftiOut, const float& sigmaBelow, const float& sigmaAbove) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    int64_t numRows = ciftiIn->getNumberOfRows();
+    int64_t numCols = ciftiIn->getNumberOfColumns();
+    if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
+    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    myOutXML.resetRowsToScalars(1);
+    myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
+    ciftiOut->setCiftiXML(myOutXML);
+    vector<float> scratchRow(numCols), outCol(numRows);
+    for (int64_t i = 0; i < numRows; ++i)
+    {
+        ciftiIn->getRow(scratchRow.data(), i);
+        outCol[i] = ReductionOperation::reduceExcludeDev(scratchRow.data(), numCols, myReduce, sigmaBelow, sigmaAbove);
     }
     ciftiOut->setColumn(outCol.data(), 0);
 }
