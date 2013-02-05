@@ -97,7 +97,12 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
             vector<float> dataCopy(numElems);
             for (int64_t i = 0; i < numElems; ++i) dataCopy[i] = data[i];
             sort(dataCopy.begin(), dataCopy.end());
-            return dataCopy[numElems / 2];//do not do averaging of the middle two when even?
+            if ((numElems & 1) == 0)//if even, average middle two
+            {
+                return (dataCopy[numElems / 2 - 1] + dataCopy[numElems / 2]) / 2.0f;
+            } else {
+                return dataCopy[numElems / 2];//otherwise, take the center
+            }
         }
         case ReductionEnum::MODE:
         {
