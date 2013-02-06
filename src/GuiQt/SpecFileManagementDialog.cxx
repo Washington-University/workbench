@@ -427,7 +427,7 @@ SpecFileManagementDialog::createFilesTypesToolBar()
         action->setData(qVariantFromValue(DataFileTypeEnum::toIntegerCode(dataFileType)));
     }
     
-    QToolBar* toolbar = createToolBarWithActionGroup("View Files: ",
+    QToolBar* toolbar = createToolBarWithActionGroup("View File Types: ",
                                                      m_fileTypesActionGroup);
     return toolbar;
 }
@@ -438,6 +438,8 @@ SpecFileManagementDialog::createFilesTypesToolBar()
 QToolBar*
 SpecFileManagementDialog::createFilesSelectionToolBar()
 {
+//    * When loading, ALL or NONE but only ones that are visibleRegion()
+//    * When managing, ALL LOADED NON-LOADED
     
     m_fileSelectionActionGroup = new QActionGroup(this);
     m_fileSelectionActionGroup->setExclusive(true);

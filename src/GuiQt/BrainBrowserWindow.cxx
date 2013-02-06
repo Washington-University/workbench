@@ -643,9 +643,9 @@ BrainBrowserWindow::createMenus()
     menubar->addMenu(createMenuConnect());
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());
-#ifdef VELAB_INTERNAL_RELEASE_ONLY
-    menubar->addMenu(createMenuDeveloper());
-#endif // VELAB_INTERNAL_RELEASE_ONLY
+//#ifdef VELAB_INTERNAL_RELEASE_ONLY
+//    menubar->addMenu(createMenuDeveloper());
+//#endif // VELAB_INTERNAL_RELEASE_ONLY
 }
 
 /**
