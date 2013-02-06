@@ -1037,6 +1037,25 @@ PaletteFile::addDefaultPalettes()
         addPalette(posNeg);
     }
     
+    if (this->getPaletteByName("red-yellow") == NULL) {
+        this->addColor("_red_yellow_interp_red",  255, 0, 0 );
+        this->addColor("_red_yellow_interp_yellow",  255, 255, 0 );
+        this->addColor("_blue_lightblue_interp_blue",  0, 0, 255 );
+        this->addColor("_blue_lightblue_interp_lightblue",  0, 255, 255 );
+
+        Palette palRedYellowInterp;
+        palRedYellowInterp.setName("red-yellow");
+        palRedYellowInterp.addScalarAndColor(1.0f, "_red_yellow_interp_yellow");
+        palRedYellowInterp.addScalarAndColor(0.0f, "_red_yellow_interp_red");
+        addPalette(palRedYellowInterp);
+
+        Palette palBlueLightblueInterp;
+        palBlueLightblueInterp.setName("blue-lightblue");
+        palBlueLightblueInterp.addScalarAndColor(1.0f, "_blue_lightblue_interp_lightblue");
+        palBlueLightblueInterp.addScalarAndColor(0.0f, "_blue_lightblue_interp_blue");
+        addPalette(palBlueLightblueInterp);
+    }
+
     if (modifiedStatus == false) {
         this->clearModified();
     }
