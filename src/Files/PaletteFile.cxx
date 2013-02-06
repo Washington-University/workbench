@@ -1042,6 +1042,7 @@ PaletteFile::addDefaultPalettes()
         this->addColor("_red_yellow_interp_yellow",  255, 255, 0 );
         this->addColor("_blue_lightblue_interp_blue",  0, 0, 255 );
         this->addColor("_blue_lightblue_interp_lightblue",  0, 255, 255 );
+        this->addColor("_fslview_zero", 0, 0, 0);
 
         Palette palRedYellowInterp;
         palRedYellowInterp.setName("red-yellow");
@@ -1054,6 +1055,16 @@ PaletteFile::addDefaultPalettes()
         palBlueLightblueInterp.addScalarAndColor(1.0f, "_blue_lightblue_interp_lightblue");
         palBlueLightblueInterp.addScalarAndColor(0.0f, "_blue_lightblue_interp_blue");
         addPalette(palBlueLightblueInterp);
+        
+        Palette palFSLView;
+        palFSLView.setName("FSL");
+        palFSLView.addScalarAndColor( 1.0f, "_red_yellow_interp_yellow");
+        palFSLView.addScalarAndColor( 0.00001f, "_red_yellow_interp_red");
+        palFSLView.addScalarAndColor( 0.0000099f, "_fslview_zero");
+        palFSLView.addScalarAndColor(-0.0000099f, "_fslview_zero");
+        palFSLView.addScalarAndColor(-0.00001f, "_blue_lightblue_interp_blue");
+        palFSLView.addScalarAndColor(-1.0f, "_blue_lightblue_interp_lightblue");
+        addPalette(palFSLView);
     }
 
     if (modifiedStatus == false) {
