@@ -26,15 +26,14 @@
  */ 
 
 
-#include "CaretObject.h"
+#include "CaretObjectTracksModification.h"
 #include "DataFileTypeEnum.h"
-#include "SpecFileDataFile.h"
 
 namespace caret {
 
     class SpecFileDataFile;
     
-    class SpecFileDataFileTypeGroup : public CaretObject {
+    class SpecFileDataFileTypeGroup : public CaretObjectTracksModification {
         
     public:
         SpecFileDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType);
@@ -62,6 +61,10 @@ namespace caret {
         void removeFilesTaggedForRemoval();
     
         bool hasBeenEdited() const;
+        
+        virtual void clearModified();
+        
+        virtual bool isModified() const;
         
     private:
         SpecFileDataFileTypeGroup(const SpecFileDataFileTypeGroup&);

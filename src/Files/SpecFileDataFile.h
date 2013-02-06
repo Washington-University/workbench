@@ -25,19 +25,21 @@
  * 
  */ 
 
-
-#include "CaretObject.h"
-
+#include "CaretDataFile.h"
+#include "CaretObjectTracksModification.h"
+#include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 
 namespace caret {
 
     
-    class SpecFileDataFile : public CaretObject {
+    class SpecFileDataFile : public CaretObjectTracksModification {
         
     public:
         SpecFileDataFile(const AString& filename,
-                          const StructureEnum::Enum structure);
+                         const DataFileTypeEnum::Enum dataFileType,
+                         const StructureEnum::Enum structure,
+                         const bool specFileMember);
         
         virtual ~SpecFileDataFile();
         
@@ -46,6 +48,12 @@ namespace caret {
         SpecFileDataFile& operator=(const SpecFileDataFile& sfdf);
         
         AString getFileName() const;
+        
+        CaretDataFile* getCaretDataFile();
+        
+        void setCaretDataFile(CaretDataFile* caretDataFile);
+        
+        DataFileTypeEnum::Enum getDataFileType() const;
         
         StructureEnum::Enum getStructure() const;
         
@@ -61,6 +69,10 @@ namespace caret {
         
         bool hasBeenEdited() const;
         
+        bool isSpecFileMember() const;
+        
+        void setSpecFileMember(const bool status);
+        
     public:
         virtual AString toString() const;
         
@@ -69,15 +81,21 @@ namespace caret {
         
         void copyHelper(const SpecFileDataFile& sfdf);
         
-        AString filename;
+        AString m_filename;
         
-        StructureEnum::Enum structure;
+        CaretDataFile* m_caretDataFile;
         
-        StructureEnum::Enum originalStructure;
+        StructureEnum::Enum m_structure;
         
-        bool selected;
+        StructureEnum::Enum m_originalStructure;
         
-        bool removeFromSpecFileWhenWritten;
+        DataFileTypeEnum::Enum m_dataFileType;
+        
+        bool m_selected;
+        
+        bool m_removeFromSpecFileWhenWritten;
+        
+        bool m_specFileMember;
     };
     
 #ifdef __SPEC_FILE_GROUP_FILE_DECLARE__

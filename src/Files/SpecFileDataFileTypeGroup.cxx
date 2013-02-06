@@ -28,6 +28,7 @@
 #undef __SPEC_FILE_GROUP_DECLARE__
 
 #include "CaretAssert.h"
+#include "SpecFileDataFile.h"
 
 using namespace caret;
 
@@ -44,7 +45,7 @@ using namespace caret;
  *     Type of data file.
  */
 SpecFileDataFileTypeGroup::SpecFileDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType)
-: CaretObject()
+: CaretObjectTracksModification()
 {
     this->dataFileType = dataFileType;
 }
@@ -104,6 +105,7 @@ SpecFileDataFileTypeGroup::addFileInformation(SpecFileDataFile* fileInformation)
 {
     CaretAssert(fileInformation);
     this->files.push_back(fileInformation);
+    setModified();
 }
 
 /**
@@ -118,6 +120,7 @@ SpecFileDataFileTypeGroup::removeFileInformation(const int32_t fileIndex)
                            fileIndex);
     delete this->files[fileIndex];
     this->files.erase(this->files.begin() + fileIndex);
+    setModified();
 }
 
 /**
@@ -132,6 +135,7 @@ SpecFileDataFileTypeGroup::removeAllFileInformation()
         delete *iter;
     }
     this->files.clear();
+    setModified();
 }
 
 /**
@@ -230,6 +234,45 @@ SpecFileDataFileTypeGroup::hasBeenEdited() const
             return true;
         }
     }
+    return false;
+}
+
+/**
+ * Set the status to unmodified.
+ */
+void
+SpecFileDataFileTypeGroup::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    
+    for (std::vector<SpecFileDataFile*>::iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        SpecFileDataFile* sfdf = *iter;
+        sfdf->clearModified();
+    }
+}
+
+/**
+ * Is the object modified?
+ * @return true if modified, else false.
+ */
+bool
+SpecFileDataFileTypeGroup::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    
+    for (std::vector<SpecFileDataFile*>::const_iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        const SpecFileDataFile* sfdf = *iter;
+        if (sfdf->isModified()) {
+            return true;
+        }
+    }
+    
     return false;
 }
 

@@ -104,6 +104,7 @@ Brain::Brain()
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
+    m_specFile = new SpecFile();
     m_specFileName = "";
     m_surfaceMontageController = NULL;
     m_volumeSliceController = NULL;
@@ -194,6 +195,7 @@ Brain::~Brain()
     
     resetBrain();
 
+    delete m_specFile;
     delete m_ciftiConnectivityMatrixDataFileManager;
     delete m_connectivityLoaderManager;
     delete m_paletteFile;
@@ -443,6 +445,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     switch (keepSpecFile) {
         case RESET_BRAIN_KEEP_SPEC_FILE_NO:
+            m_specFile->clear();
             m_specFileName = "";
             break;
         case RESET_BRAIN_KEEP_SPEC_FILE_YES:
@@ -2332,6 +2335,24 @@ Brain::getSceneFile(const int32_t indx) const
 }
 
 /**
+ * @return The Spec File.
+ */
+const SpecFile*
+Brain::getSpecFile() const
+{
+    return m_specFile;
+}
+
+/**
+ * @return The Spec File.
+ */
+SpecFile*
+Brain::getSpecFile()
+{
+    return m_specFile;
+}
+
+/**
  * @return Name of the spec file.
  */
 AString 
@@ -2848,6 +2869,16 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
             break;
     }
     
+    if (caretDataFileRead != NULL) {
+        m_specFile->addCaretDataFile(caretDataFileRead);
+        
+    }
+    m_specFile->addDataFile(dataFileType,
+                            structure,
+                            dataFileName,
+                            true,
+                            false);
+    
     AString msg = ("Time to read "
                    + dataFileName
                    + " was "
@@ -2930,7 +2961,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                 sf.addDataFile(dataFileType,
                                dataFileStructure,
                                relativePathDataFileName,
-                               true);
+                               true,
+                               false);
                 sf.writeFile(m_specFileName);
             }
             catch (const DataFileException& e) {
@@ -2978,6 +3010,15 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     CaretAssert(sf);
 
     resetBrain();
+    
+    try  {
+        m_specFile->clear();
+        *m_specFile = *sf;
+    }
+    catch (const DataFileException& e) {
+        CaretLogSevere("SPEC FILE TODO: "
+                       + e.whatString());
+    }
     
     m_isSpecFileBeingRead = true;
     
@@ -3631,11 +3672,18 @@ Brain::determineDisplayedDataFiles()
  * Get all loaded data files.
  * @param allDataFilesOut
  *    Data files are loaded into this parameter.
+ * @param includeSpecFile
+ *    If true, the spec file is included as the first file.
  */
 void 
-Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const
+Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
+                       const bool includeSpecFile) const
 {
     allDataFilesOut.clear();
+    
+    if (m_specFile->isEmpty() == false) {
+        allDataFilesOut.push_back(m_specFile);
+    }
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
@@ -3806,6 +3854,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
                 sf.addDataFile(caretDataFile->getDataFileType(), 
                                caretDataFile->getStructure(), 
                                caretDataFile->getFileName(),
+                               true,
                                true);
                 sf.writeFile(m_specFileName);
             }
@@ -4018,6 +4067,8 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     }
     
     if (wasRemoved) {
+        m_specFile->removeCaretDataFile(caretDataFile);
+        
         updateVolumeSliceController();
         updateWholeBrainController();
         updateSurfaceMontageController();
@@ -4199,6 +4250,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
             sf.addDataFile(cdf->getDataFileType(), 
                            cdf->getStructure(), 
                            cdf->getFileName(), 
+                           true,
                            true);
         }
         

@@ -69,7 +69,6 @@ namespace caret {
                                                                   QWidget* parent);
         
         static SpecFileManagementDialog* createManageFilesDialog(Brain* brain,
-                                                                 SpecFile* specFile,
                                                                  QWidget* parent);
         
         virtual ~SpecFileManagementDialog();
@@ -81,6 +80,8 @@ namespace caret {
         
         void toolBarSelectFilesActionTriggered(QAction* action);
         
+        void chooseSpecFileNameActionTriggered();
+
     private:
         friend class GuiSpecFileDataFileTypeGroup;
         friend class GuiSpecFileDataFile;
@@ -131,6 +132,12 @@ namespace caret {
         
         std::vector<GuiSpecFileDataFileTypeGroup*> m_guiSpecFileDataFileTypeGroups;
         
+        QCheckBox* m_specFileSaveCheckBox;
+        
+        QLabel* m_specFileStatusLabel;
+        
+        QLabel* m_specFileNameLabel;
+        
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_LOADED;
 
@@ -150,8 +157,6 @@ namespace caret {
         ~GuiSpecFileDataFileTypeGroup();
         
         void addSpecFileDataFile(SpecFileDataFile* specFileDataFile);
-        
-        bool addDataFile(CaretDataFile* caretDataFile);
         
         int32_t getNumberOfGuiSpecFileDataFiles() const;
         
@@ -191,18 +196,10 @@ namespace caret {
     public:
         GuiSpecFileDataFile(Brain* brain,
                             const SpecFileManagementDialog::Mode dialogMode,
-                            const DataFileTypeEnum::Enum dataFileType,
                             SpecFileDataFile* specFileDataFile,
                             QObject* parent);
         
-        GuiSpecFileDataFile(Brain* brain,
-                            const SpecFileManagementDialog::Mode dialogMode,
-                            CaretDataFile* caretDataFile,
-                            QObject* parent);
-        
         ~GuiSpecFileDataFile();
-        
-        bool addMatchingCaretDataFile(CaretDataFile* caretDataFile);
         
         void setSpecFileDataFile(SpecFileDataFile* specFileDataFile);
         
@@ -226,9 +223,7 @@ namespace caret {
 
     public:
         
-        void initialize(SpecFileDataFile* specFileDataFile,
-                        const DataFileTypeEnum::Enum dataFileType,
-                        CaretDataFile* caretDataFile);
+        void initialize(SpecFileDataFile* specFileDataFile);
         
         Brain* m_brain;
         
@@ -236,13 +231,9 @@ namespace caret {
         
         SpecFileDataFile* m_specFileDataFile;
 
-        DataFileTypeEnum::Enum m_dataFileType;
+        QCheckBox* m_loadCheckBox;
         
-        bool m_specFileDataFileNeedsToBeDeleted;
-        
-        CaretDataFile* m_caretDataFile;
-        
-        QCheckBox* m_loadOrSaveCheckBox;
+        QCheckBox* m_saveCheckBox;
         
         QCheckBox* m_inSpecFileCheckBox;
         
@@ -250,7 +241,7 @@ namespace caret {
         
         QToolButton* m_reloadOrOpenFileToolButton;
         
-        QLabel* m_loadedModifiedAndDisplayedLabel;
+        QLabel* m_statusLabel;
         
         QAction* m_optionsButtonAction;
         

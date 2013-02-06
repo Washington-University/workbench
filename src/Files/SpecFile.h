@@ -28,7 +28,7 @@
 
 #include <AString.h>
 
-#include "DataFile.h"
+#include "CaretDataFile.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
@@ -40,7 +40,7 @@ namespace caret {
     class SpecFileDataFileTypeGroup;
     class XmlWriter;
     
-    class SpecFile : public DataFile, SceneableInterface {
+    class SpecFile : public CaretDataFile, SceneableInterface {
         
     public:
         SpecFile();
@@ -56,15 +56,29 @@ namespace caret {
         
         virtual bool isEmpty() const;
         
+        virtual StructureEnum::Enum getStructure() const;
+        
+        virtual void setStructure(const StructureEnum::Enum structure);
+        
+        virtual GiftiMetaData* getFileMetaData();
+        
+        virtual const GiftiMetaData* getFileMetaData() const;
+        
+        void addCaretDataFile(CaretDataFile* caretDataFile);
+        
+        void removeCaretDataFile(CaretDataFile* caretDataFile);
+        
         void addDataFile(const DataFileTypeEnum::Enum dataFileType,
                          const StructureEnum::Enum structure,
                          const AString& filename,
-                         const bool fileSelectionStatus = true) throw (DataFileException);
+                         const bool fileSelectionStatus,
+                         const bool specFileMemberStatus) throw (DataFileException);
         
         void addDataFile(const AString& dataFileTypeName,
                          const AString& structureName,
                          const AString& filename,
-                         const bool fileSelectionStatus = true) throw (DataFileException);
+                         const bool fileSelectionStatus,
+                         const bool specFileMemberStatus) throw (DataFileException);
         
         void setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
                                     const StructureEnum::Enum structure,
@@ -101,8 +115,6 @@ namespace caret {
         
         void setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
         
-        GiftiMetaData* getMetaData() { return this->metadata; }
-        
         static float getFileVersion();
         
         static AString getFileVersionAsString();
@@ -116,6 +128,10 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
         void appendSpecFile(const SpecFile& toAppend);
+        
+        virtual bool isModified() const;
+        
+        virtual void clearModified();
         
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
@@ -154,6 +170,12 @@ namespace caret {
         void initializeSpecFile();
         
         void clearData();
+        
+        SpecFileDataFile* addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
+                                             const StructureEnum::Enum structure,
+                                             const AString& filename,
+                                             const bool fileSelectionStatus,
+                                             const bool specFileMemberStatus) throw (DataFileException);
         
         void removeFilesTaggedForRemoval();
         

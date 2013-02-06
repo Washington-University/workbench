@@ -32,6 +32,7 @@ using namespace caret;
 /**
  * \class caret::SpecFileDataFile
  * \brief  Name of file and its attributes including structure.
+ * \ingroup Files
  *
  * Contains the name of a file and is attributes including
  * the file's structure.  Note that not all files use a 
@@ -40,20 +41,31 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
  * @param filename
  *    Name of file.
+ * @param dataFileType
+ *    Type of data file.
  * @param structure
  *    Structure file represents (not all files have structure).
+ * @param specFileMember
+ *    True if this file is a member of the spec file and is thus
+ *    written to the spec file.
  */
 SpecFileDataFile::SpecFileDataFile(const AString& filename,
-                                   const StructureEnum::Enum structure)
-: CaretObject()
+                                   const DataFileTypeEnum::Enum dataFileType,
+                                   const StructureEnum::Enum structure,
+                                   const bool specFileMember)
+: CaretObjectTracksModification()
 {
-    this->removeFromSpecFileWhenWritten = false;
-    this->filename  = filename;
-    this->structure = structure;
-    this->originalStructure = this->structure;
-    this->selected  = true;
+    m_caretDataFile = NULL;
+    m_removeFromSpecFileWhenWritten = false;
+    m_filename  = filename;
+    m_dataFileType = dataFileType;
+    m_structure = structure;
+    m_originalStructure = m_structure;
+    m_selected  = true;
+    m_specFileMember = specFileMember;
 }
 
 /**
@@ -62,9 +74,9 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
  *    Object of this type that is copied.
  */
 SpecFileDataFile::SpecFileDataFile(const SpecFileDataFile& sfdf)
-: CaretObject(sfdf)
+: CaretObjectTracksModification(sfdf)
 {
-    this->copyHelper(sfdf);
+    copyHelper(sfdf);
 }
 
 /**
@@ -78,7 +90,8 @@ SpecFileDataFile&
 SpecFileDataFile::operator=(const SpecFileDataFile& sfdf)
 {
     if (this != &sfdf) {
-        this->copyHelper(sfdf);
+        CaretObjectTracksModification::operator=(sfdf);
+        copyHelper(sfdf);
     }
     
     return *this;
@@ -92,11 +105,14 @@ SpecFileDataFile::operator=(const SpecFileDataFile& sfdf)
 void 
 SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
 {
-    this->removeFromSpecFileWhenWritten = false; // do not copy!
-    this->filename  = sfdf.filename;
-    this->structure = sfdf.structure;
-    this->originalStructure = this->structure;
-    this->selected  = sfdf.selected;    
+    m_caretDataFile = sfdf.m_caretDataFile;
+    m_removeFromSpecFileWhenWritten = false; // do not copy!
+    m_filename  = sfdf.m_filename;
+    m_dataFileType = sfdf.m_dataFileType;
+    m_structure = sfdf.m_structure;
+    m_originalStructure = sfdf.m_originalStructure;
+    m_selected  = sfdf.m_selected;
+    m_specFileMember = sfdf.m_specFileMember;
 }
 
 
@@ -114,7 +130,28 @@ SpecFileDataFile::~SpecFileDataFile()
 AString 
 SpecFileDataFile::getFileName() const
 {
-    return this->filename;
+    return m_filename;
+}
+
+/**
+ * @return The caret data file that is loaded for this spec file entry.
+ * Will return NULL if the file has not been loaded.
+ */
+CaretDataFile*
+SpecFileDataFile::getCaretDataFile()
+{
+    return m_caretDataFile;
+}
+
+/**
+ * Set the caret data file for this spec file entry.
+ * @param caretDataFile
+ *    The caret data file.
+ */
+void
+SpecFileDataFile::setCaretDataFile(CaretDataFile* caretDataFile)
+{
+    m_caretDataFile = caretDataFile;
 }
 
 /**
@@ -123,7 +160,7 @@ SpecFileDataFile::getFileName() const
 StructureEnum::Enum 
 SpecFileDataFile::getStructure() const
 {
-    return this->structure;
+    return m_structure;
 }
 
 /**
@@ -134,7 +171,19 @@ SpecFileDataFile::getStructure() const
 void 
 SpecFileDataFile::setStructure(const StructureEnum::Enum structure)
 {
-    this->structure = structure;
+    if (m_structure != structure) {
+        m_structure = structure;
+        setModified();
+    }
+}
+
+/**
+ * @return The data file type for this group.
+ */
+DataFileTypeEnum::Enum
+SpecFileDataFile::getDataFileType() const
+{
+    return m_dataFileType;
 }
 
 /**
@@ -143,7 +192,7 @@ SpecFileDataFile::setStructure(const StructureEnum::Enum structure)
 bool 
 SpecFileDataFile::isSelected() const
 {
-    return this->selected;
+    return m_selected;
 }
 
 /**
@@ -154,7 +203,8 @@ SpecFileDataFile::isSelected() const
 void 
 SpecFileDataFile::setSelected(const bool selected)
 {
-    this->selected = selected;
+    // note: does not cause modification status to change
+    m_selected = selected;
 }
 
 /**
@@ -165,9 +215,10 @@ AString
 SpecFileDataFile::toString() const
 {
     const AString info =
-    "name=" + this->filename
-    + ", structure=" + StructureEnum::toGuiName(this->structure);
-    //+ ", selected=" + AString::fromBool(this->selected);
+    "name=" + m_filename
+    + ", structure=" + StructureEnum::toGuiName(m_structure)
+    + ", dataFileType=" + DataFileTypeEnum::toGuiName(m_dataFileType);
+    //+ ", selected=" + AString::fromBool(m_selected);
     return info;
 }
    
@@ -178,7 +229,7 @@ SpecFileDataFile::toString() const
 bool 
 SpecFileDataFile::isRemovedFromSpecFileWhenWritten() const
 {
-    return this->removeFromSpecFileWhenWritten;
+    return m_removeFromSpecFileWhenWritten;
 }
 
 /**
@@ -189,7 +240,7 @@ SpecFileDataFile::isRemovedFromSpecFileWhenWritten() const
 void 
 SpecFileDataFile::setRemovedFromSpecFileWhenWritten(const bool removeIt)
 {
-    this->removeFromSpecFileWhenWritten = removeIt;
+    m_removeFromSpecFileWhenWritten = removeIt;
 }
 
 /**
@@ -201,14 +252,41 @@ SpecFileDataFile::setRemovedFromSpecFileWhenWritten(const bool removeIt)
 bool 
 SpecFileDataFile::hasBeenEdited() const
 {
-    if (this->removeFromSpecFileWhenWritten) {
+    if (m_removeFromSpecFileWhenWritten) {
         return true;
     }
-    if (this->structure != this->originalStructure) {
+    if (m_structure != m_originalStructure) {
         return true;
     }
     
     return false;
+}
+
+/**
+ * @return True if this file is a selected as a member of the spec file.
+ * If true, then the spec file is written, this file will be listed in 
+ * the spec file.
+ */
+bool
+SpecFileDataFile::isSpecFileMember() const
+{
+    return m_specFileMember;
+}
+
+/**
+ * Set this file is a selected as a member of the spec file using the given
+ * status.
+ * 
+ * @param status  If true, then the spec file is written, this file will
+ * be listed in the spec file.
+ */
+void
+SpecFileDataFile::setSpecFileMember(const bool status)
+{
+    if (m_specFileMember != status) {
+        m_specFileMember = status;
+        setModified();
+    }
 }
 
 

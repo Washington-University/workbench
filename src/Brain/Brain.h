@@ -78,6 +78,7 @@ namespace caret {
     class SceneClassAssistant;
     class SceneFile;
     class SelectionManager;
+    class SpecFile;
     class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -168,6 +169,10 @@ namespace caret {
         SceneFile* getSceneFile(const int32_t indx);
         
         const SceneFile* getSceneFile(const int32_t indx) const;
+        
+        const SpecFile* getSpecFile() const;
+        
+        SpecFile* getSpecFile();
         
         AString getSpecFileName() const;
         
@@ -284,7 +289,8 @@ namespace caret {
         
         void setCurrentDirectory(const AString& currentDirectory);
         
-        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
+                             const bool includeSpecFile = false) const;
         
         bool isFileValid(const CaretDataFile* caretDataFile) const;
 
@@ -485,6 +491,8 @@ namespace caret {
         mutable AString m_currentDirectory;
         
         AString m_specFileName;
+        
+        SpecFile* m_specFile;
         
         std::vector<VolumeFile*> m_volumeFiles;
         

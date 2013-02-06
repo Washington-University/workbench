@@ -124,7 +124,7 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_SPEC_FILE:
          if (qName == GiftiXmlElements::TAG_METADATA) {
              this->state = STATE_METADATA;
-             this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->specFile->getMetaData());
+             this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->specFile->getFileMetaData());
              this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          }
          else if (qName == SpecFile::XML_TAG_DATA_FILE) {
@@ -187,7 +187,8 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                this->specFile->addDataFile(this->fileAttributeTypeName, 
                                            this->fileAttributeStructureName, 
                                            filename,
-                                           this->fileAttributeSelectionStatus);
+                                           this->fileAttributeSelectionStatus,
+                                           true); // is a member of spec file since read from spec file
                
                this->fileAttributeTypeName = "";
                this->fileAttributeStructureName = "";

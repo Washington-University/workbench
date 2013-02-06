@@ -38,6 +38,7 @@
 #define __SPEC_FILE_DEFINE__
 #include "SpecFile.h"
 #undef __SPEC_FILE_DEFINE__
+#include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "SpecFileSaxReader.h"
 #include "SystemUtilities.h"
@@ -49,6 +50,7 @@ using namespace caret;
 /**
  * \class caret::SpecFile
  * \brief A spec file groups caret data files.
+ * \ingroup Files
  */
 
 
@@ -56,7 +58,7 @@ using namespace caret;
  * Constructor.
  */
 SpecFile::SpecFile()
-: DataFile()
+: CaretDataFile(DataFileTypeEnum::SPECIFICATION)
 {
     this->initializeSpecFile();
 }
@@ -83,7 +85,7 @@ SpecFile::~SpecFile()
  *    Spec file whose data is copied.
  */
 SpecFile::SpecFile(const SpecFile& sf)
-: DataFile(sf),
+: CaretDataFile(sf),
   SceneableInterface(sf)
 {
     this->initializeSpecFile();
@@ -101,13 +103,55 @@ SpecFile&
 SpecFile::operator=(const SpecFile& sf)
 {
     if (this != &sf) {
+        CaretDataFile::operator=(sf);
         this->copyHelperSpecFile(sf);
     }
     
     return *this;
 }
 
-void 
+/**
+ * @return The structure for this file.
+ */
+StructureEnum::Enum
+SpecFile::getStructure() const
+{
+    return StructureEnum::ALL;
+}
+
+/**
+ * Set the structure for this file.
+ * @param structure
+ *   New structure for this file.
+ */
+void
+SpecFile::setStructure(const StructureEnum::Enum /* structure */)
+{
+    /* nothing since spec file not structure type file */
+}
+
+/**
+ * @return Get access to the file's metadata.
+ */
+GiftiMetaData*
+SpecFile::getFileMetaData()
+{
+    return metadata;
+}
+
+/**
+ * @return Get access to unmodifiable file's metadata.
+ */
+const GiftiMetaData*
+SpecFile::getFileMetaData() const
+{
+    return metadata;
+}
+
+/**
+ * Initialize this spec file.
+ */
+void
 SpecFile::initializeSpecFile()
 {
     this->metadata = new GiftiMetaData();
@@ -174,7 +218,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
             this->addDataFile(group->getDataFileType(), 
                               file->getStructure(), 
                               file->getFileName(),
-                              file->isSelected());
+                              file->isSelected(),
+                              file->isSpecFileMember());
         }
     }
     
@@ -183,7 +228,84 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
 }
 
 /**
+ * Add a Caret Data File.
+ *
+ * @param If there is a a spec file entry with the same name as the Caret
+ * Data File, the caret data file is added to the spec file entry.  
+ * Otherwise, a new Spec File Entry is created with the given Caret
+ * Data File.
+ *
+ * @param caretDataFile
+ *    Caret data file that is added to, or creates, a spec file entry.
+ */
+void
+SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
+{
+    CaretAssert(caretDataFile);
+    
+    SpecFileDataFile* sfdf = addDataFilePrivate(caretDataFile->getDataFileType(),
+                                                caretDataFile->getStructure(),
+                                                caretDataFile->getFileName(),
+                                                true,
+                                                false);
+    if (sfdf != NULL) {
+        sfdf->setStructure(caretDataFile->getStructure());
+        sfdf->setCaretDataFile(caretDataFile);
+    }
+    else {
+        CaretLogSevere("Failed to add CaretDataFile "
+                       + caretDataFile->getFileName()
+                       + " to SpecFile: "
+                       + getFileName());
+    }
+}
+
+/**
+ * Remove a Caret Data File.
+ *
+ * @param If there is a a spec file entry with the same name as the Caret
+ * Data File, the caret data file is removed from the spec file entry.
+ *
+ * @param caretDataFile
+ *    Caret data file that is removed from a spec file entry.
+ */
+void
+SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
+{
+    CaretAssert(caretDataFile);
+    
+    /*
+     * Get the entry
+     */
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (dataFileTypeGroup->getDataFileType() == caretDataFile->getDataFileType()) {
+            /*
+             * If already in file, no need to add it a second time but do update
+             * its selection status if new entry has file selected
+             */
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+                if (sfdf->getFileName() == caretDataFile->getFileName()) {
+                    sfdf->setCaretDataFile(NULL);
+                }
+            }
+        }
+    }
+    
+    CaretLogSevere("Failed to remove CaretDataFile "
+                   + caretDataFile->getFileName()
+                   + " to SpecFile: "
+                   + getFileName());
+}
+
+
+/**
  * Add a data file to this spec file.
+ *
  * @param dataFileType
  *   Type of data file.
  * @param structure
@@ -192,6 +314,9 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
  *   Name of the file.
  * @param fileSelectionStatus
  *   Selection status of the file.
+ * @param specFileMemberStatus
+ *   True if the file is a member of the spec file and is written
+ *   into the spec file.
  *
  * @throws DataFileException
  *   If data file type is UNKNOWN.
@@ -200,7 +325,42 @@ void
 SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const StructureEnum::Enum structure,
                       const AString& filename,
-                      const bool fileSelectionStatus) throw (DataFileException)
+                      const bool fileSelectionStatus,
+                      const bool specFileMemberStatus) throw (DataFileException)
+{
+    addDataFilePrivate(dataFileType,
+                       structure,
+                       filename,
+                       fileSelectionStatus,
+                       specFileMemberStatus);
+}
+
+/**
+ * Add a data file to this spec file.
+ *
+ * @param dataFileType
+ *   Type of data file.
+ * @param structure
+ *   Structure of data file (not all files use structure).
+ * @param filename
+ *   Name of the file.
+ * @param fileSelectionStatus
+ *   Selection status of the file.
+ * @param specFileMemberStatus
+ *   True if the file is a member of the spec file and is written
+ *   into the spec file.
+ * @return
+ *   SpecFileDataFile that was created or matched.  NULL if error.
+ *
+ * @throws DataFileException
+ *   If data file type is UNKNOWN.
+ */
+SpecFileDataFile*
+SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
+                             const StructureEnum::Enum structure,
+                             const AString& filename,
+                             const bool fileSelectionStatus,
+                             const bool specFileMemberStatus) throw (DataFileException)
 {
     AString name = filename;
 
@@ -260,15 +420,17 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                     if (fileSelectionStatus) {
                         sfdf->setSelected(fileSelectionStatus);
                     }
-                    return;
+                    return sfdf;
                 }
             }
             
             SpecFileDataFile* sfdf = new SpecFileDataFile(name,
-                                                          structure);
+                                                          dataFileType,
+                                                          structure,
+                                                          specFileMemberStatus);
             sfdf->setSelected(fileSelectionStatus);
             dataFileTypeGroup->addFileInformation(sfdf);
-            return;
+            return sfdf;
         }
     }
                         
@@ -279,6 +441,8 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                         + filename);
     CaretLogThrowing(e);
     throw e;
+    
+    return NULL; // will never get here since exception thrown
 }
 
 /**
@@ -348,15 +512,19 @@ SpecFile::setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
  *   Name of the file.
  * @param fileSelectionStatus
  *   Selection status of file.
+ * @param specFileMemberStatus
+ *   True if the file is a member of the spec file and is written
+ *   into the spec file.
  *
  * @throws DataFileException
  *   If data file type is UNKNOWN.
  */
 void 
 SpecFile::addDataFile(const AString& dataFileTypeName,
-                 const AString& structureName,
+                      const AString& structureName,
                       const AString& filename,
-                      const bool fileSelectionStatus) throw (DataFileException)
+                      const bool fileSelectionStatus,
+                      const bool specFileMemberStatus) throw (DataFileException)
 {
     bool validType = false;
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromName(dataFileTypeName, &validType);
@@ -365,7 +533,8 @@ SpecFile::addDataFile(const AString& dataFileTypeName,
     this->addDataFile(dataFileType,
                       structure,
                       filename,
-                      fileSelectionStatus);
+                      fileSelectionStatus,
+                      specFileMemberStatus);
 }
 
 
@@ -642,65 +811,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         this->writeFileContentToXML(xmlWriter, 
                                     WRITE_META_DATA_YES,
                                     WRITE_ALL_FILES);
-        
-//        //
-//        // Write header info
-//        //
-//        xmlWriter.writeStartDocument("1.0");
-//        
-//        //
-//        // Write GIFTI root element
-//        //
-//        XmlAttributes attributes;
-//        
-//        //attributes.addAttribute("xmlns:xsi",
-//        //                        "http://www.w3.org/2001/XMLSchema-instance");
-//        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
-//        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
-//        attributes.addAttribute(SpecFile::XML_ATTRIBUTE_VERSION,
-//                                versionString);
-//        xmlWriter.writeStartElement(SpecFile::XML_TAG_SPEC_FILE,
-//                                           attributes);
-//        
-//        //
-//        // Write Metadata
-//        //
-//        if (metadata != NULL) {
-//            metadata->writeAsXML(xmlWriter);
-//        }
-//    
-//        /*
-//         * Remove any files that are tagged for removal.
-//         */
-//        this->removeFilesTaggedForRemoval();
-//        
-//        //
-//        // Write files
-//        //
-//        const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
-//        for (int32_t i = 0; i < numGroups; i++) {
-//            SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
-//            const int32_t numFiles = group->getNumberOfFiles();
-//            for (int32_t j = 0; j < numFiles; j++) {
-//                SpecFileDataFile* file = group->getFileInformation(j);
-//                
-//                if (file->isRemovedFromSpecFileWhenWritten() == false) {
-//                    XmlAttributes atts;
-//                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
-//                                      StructureEnum::toGuiName(file->getStructure()));
-//                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
-//                                      DataFileTypeEnum::toName(group->getDataFileType()));
-//                    xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
-//                                                atts);
-//                    xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
-//                    xmlWriter.writeEndElement();
-//                }
-//            }
-//        }
-//        
-//        xmlWriter.writeEndElement();
-//        xmlWriter.writeEndDocument();
-        
+                
         file.close();
         
         this->clearModified();
@@ -782,31 +893,6 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                 
                 if (writeIt) {
                     const AString name = updateFileNameAndPathForWriting(file->getFileName());
-
-//                    AString name = file->getFileName();
-//                    FileInformation fileInfo(name);
-//                    if (fileInfo.isAbsolute()) {
-//                        const AString specFileName = getFileName();
-//                        FileInformation specFileInfo(specFileName);
-//                        if (specFileInfo.isAbsolute()) {
-//                            const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
-//                                                                 specFileInfo.getPathName());
-//                            if (newPath.isEmpty()) {
-//                                name = fileInfo.getFileName();
-//                            }
-//                            else {
-//                                name = (newPath
-//                                        + "/"
-//                                        + fileInfo.getFileName());
-//                            }
-//                        }
-//                    }
-//                    
-//                    AString message = ("When writing, " 
-//                                       + file->getFileName()
-//                                       + " becomes " 
-//                                       + name);
-//                    CaretLogFine(message);
                     
                     XmlAttributes atts;
                     atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
@@ -1209,12 +1295,19 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
             this->addDataFile(dataFileType, 
                               structure, 
                               dataFileName, 
-                              selected);
+                              selected,
+                              true);
         }
     }
 }
 
-void SpecFile::appendSpecFile(const SpecFile& toAppend)
+/**
+ * Append content of a spec file to this spec file.
+ * @param toAppend
+ *    Spec file that is appended.
+ */
+void
+SpecFile::appendSpecFile(const SpecFile& toAppend)
 {
     int numOtherGroups = (int)toAppend.dataFileTypeGroups.size();
     AString otherDirectory = FileInformation(toAppend.getFileName()).getAbsolutePath();//hopefully the filename is already absolute, if it isn't and we changed directory, we can't recover the correct path
@@ -1235,7 +1328,51 @@ void SpecFile::appendSpecFile(const SpecFile& toAppend)
             {
                 fileName = otherDirectory + fileName;//don't trust the file to exist from current directory, use string manipulation only
             }
-            addDataFile(thisGroup->getDataFileType(), fileData->getStructure(), fileName);//absolute paths should get converted to relative on writing
+            addDataFile(thisGroup->getDataFileType(),
+                        fileData->getStructure(),
+                        fileName,
+                        fileData->isSelected(),
+                        fileData->isSpecFileMember());//absolute paths should get converted to relative on writing
         }
     }
 }
+
+/**
+ * @return true if this file has been modified.
+ */
+bool
+SpecFile::isModified() const
+{
+    if (CaretDataFile::isModified()) {
+        return true;
+    }
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        const SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (dataFileTypeGroup->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Clear the modification status.
+ */
+void
+SpecFile::clearModified()
+{
+    CaretDataFile::clearModified();
+
+    for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        dataFileTypeGroup->clearModified();
+    }
+}
+
+

@@ -643,9 +643,9 @@ BrainBrowserWindow::createMenus()
     menubar->addMenu(createMenuConnect());
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());
-//#ifdef VELAB_INTERNAL_RELEASE_ONLY
-//    menubar->addMenu(createMenuDeveloper());
-//#endif // VELAB_INTERNAL_RELEASE_ONLY
+#ifdef VELAB_INTERNAL_RELEASE_ONLY
+    menubar->addMenu(createMenuDeveloper());
+#endif // VELAB_INTERNAL_RELEASE_ONLY
 }
 
 /**
@@ -674,21 +674,10 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
     
     Brain* brain = GuiManager::get()->getBrain();
     if (text == "Manage Data Files") {
-        SpecFile specFile;
-        const AString specFileName = brain->getSpecFileName();
-        
-        try {
-            specFile.readFile(specFileName);
-            SpecFileManagementDialog* d =
-            SpecFileManagementDialog::createManageFilesDialog(brain,
-                                                              &specFile,
-                                                              this);
-            d->exec();
-        }
-        catch (const DataFileException& e) {
-            WuQMessageBox::errorOk(this,
-                                   e.whatString());
-        }
+        SpecFileManagementDialog* d =
+        SpecFileManagementDialog::createManageFilesDialog(brain,
+                                                          this);
+        d->exec();
     }
     else if (text == "Open Spec File") {
         /*
