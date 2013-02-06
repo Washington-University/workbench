@@ -438,7 +438,7 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
             switch (input[i].toAscii())
             {
                 case '<':
-                    ret = true;//prepare to say successful parse, because we found a divide operator
+                    ret = true;//prepare to say successful parse, because we found a less than operator
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
@@ -452,7 +452,7 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
                         inclusive = false;
                         --i;
                     }
-                    invertElement = true;//negation applies to the element AFTER the divide sign, this is the element BEFORE it
+                    invertElement = true;//inversion applies to the element AFTER the less than sign, this is the element BEFORE it
                     if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
                     {
                         throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
@@ -460,7 +460,7 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
                     nextStart = i + 1;
                     break;
                 case '>':
-                    ret = true;//prepare to say successful parse, because we found a minus operator
+                    ret = true;//prepare to say successful parse, because we found a greather than operator
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
@@ -474,7 +474,7 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
                         inclusive = false;
                         --i;
                     }
-                    invertElement = false;//negation applies to the element AFTER the multiply sign, this is the element BEFORE it
+                    invertElement = false;//inversion applies to the element AFTER the greater than sign, this is the element BEFORE it
                     if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess on the element
                     {
                         throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
@@ -501,10 +501,11 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
             }
         }
     }
-    if (ret)//don't try to parse the inside if we didn't find a times or divide operator, to avoid infinite recursion
+    if (ret)//don't try to parse the inside if we didn't find a greater or less operator, to avoid infinite recursion
     {
         node.m_arguments.push_back(MathNode());//and parse the final element
         node.m_invert.push_back(invertElement);
+        node.m_inclusive.push_back(inclusive);
         if (!parse(node.m_arguments.back(), input, nextStart, end))//NOTE: this uneccessarily does tryGreaterLess on the element
         {
             throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
@@ -561,11 +562,11 @@ bool CaretMathExpression::tryAddSub(CaretMathExpression::MathNode& node, const A
                         break;
                     }
                     afterOp = true;
-                    ret = true;//prepare to say successful parse, because we found a minus operator
+                    ret = true;//prepare to say successful parse, because we found a plus operator
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
-                    invertElement = false;//negation applies to the element AFTER the minus sign, this is the element BEFORE it
+                    invertElement = false;//negation applies to the element AFTER the plus sign, this is the element BEFORE it
                     if (!parse(node.m_arguments.back(), input, nextStart, nextEnd))//NOTE: this uneccessarily does tryGreaterLess and tryAddSub on the element
                     {
                         throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
@@ -637,7 +638,7 @@ bool CaretMathExpression::tryMultDiv(CaretMathExpression::MathNode& node, const 
                     nextStart = i + 1;
                     break;
                 case '*':
-                    ret = true;//prepare to say successful parse, because we found a minus operator
+                    ret = true;//prepare to say successful parse, because we found a times operator
                     nextEnd = i;
                     node.m_arguments.push_back(MathNode());
                     node.m_invert.push_back(invertElement);
@@ -739,7 +740,7 @@ bool CaretMathExpression::tryPow(CaretMathExpression::MathNode& node, const AStr
 bool CaretMathExpression::tryParen(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
     int mystart = start;
-    while (mystart < end && input[mystart].isSpace()) ++mystart;//trim whitespace
+    while (mystart < end && input[mystart].isSpace()) ++mystart;//skip whitespace
     if (mystart >= end) return false;
     if (input[mystart] != '(') return false;//all operators have already been parsed out
     int myend = mystart + 1;
