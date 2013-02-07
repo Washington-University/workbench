@@ -68,6 +68,9 @@ namespace caret {
         
         void removeCaretDataFile(CaretDataFile* caretDataFile);
         
+        void changeFileName(SpecFileDataFile* specFileDataFile,
+                            const AString& newFileName);
+        
         void addDataFile(const DataFileTypeEnum::Enum dataFileType,
                          const StructureEnum::Enum structure,
                          const AString& filename,

@@ -710,6 +710,8 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
                                                                    &specFile,
                                                                    this);
                 d->exec();
+                
+                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
             }
         }        
     }

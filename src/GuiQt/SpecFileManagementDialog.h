@@ -114,6 +114,14 @@ namespace caret {
         
         void updateDisplayedFiles();
         
+        virtual void okButtonClicked();
+        
+        void okButtonClickedOpenSpecFile();
+        
+        bool okButtonClickedManageFiles();
+        
+        AString writeSpecFile(const bool writeOnlyIfModified);
+        
         // ADD_NEW_MEMBERS_HERE
         
         const Mode m_dialogMode;
@@ -137,6 +145,8 @@ namespace caret {
         QLabel* m_specFileStatusLabel;
         
         QLabel* m_specFileNameLabel;
+        
+        QToolButton* m_chooseSpecFileToolButton;
         
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_LOADED;
@@ -220,7 +230,13 @@ namespace caret {
         void optionsMenuActionTriggered();
         
         void selectFileNameActionTriggered();
+        
+        void loadCheckBoxClicked(bool checked);
 
+        void saveCheckBoxClicked(bool checked);
+        
+        void inSpecCheckBoxClicked(bool checked);
+        
     public:
         
         void initialize(SpecFileDataFile* specFileDataFile);

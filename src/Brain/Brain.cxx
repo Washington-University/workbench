@@ -2676,6 +2676,7 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
                              false);
     }
     catch (const DataFileException& dfe) {
+        m_specFile->removeCaretDataFile(caretDataFile);
         reloadDataFileEvent->setErrorMessage(dfe.whatString());
     }
     postReadDataFileProcessing();
@@ -3681,8 +3682,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
 {
     allDataFilesOut.clear();
     
-    if (m_specFile->isEmpty() == false) {
-        allDataFilesOut.push_back(m_specFile);
+    if (includeSpecFile) {
+        if (m_specFile->isEmpty() == false) {
+            allDataFilesOut.push_back(m_specFile);
+        }
     }
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();

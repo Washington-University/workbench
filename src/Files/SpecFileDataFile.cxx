@@ -130,7 +130,20 @@ SpecFileDataFile::~SpecFileDataFile()
 AString 
 SpecFileDataFile::getFileName() const
 {
+    if (m_caretDataFile != NULL) {
+        m_filename = m_caretDataFile->getFileName();
+    }
     return m_filename;
+}
+
+void
+SpecFileDataFile::setFileName(const AString& fileName)
+{
+    m_filename = fileName;
+    if (m_caretDataFile != NULL) {
+        m_caretDataFile->setFileName(fileName);
+    }
+    setModified();
 }
 
 /**
@@ -160,6 +173,9 @@ SpecFileDataFile::setCaretDataFile(CaretDataFile* caretDataFile)
 StructureEnum::Enum 
 SpecFileDataFile::getStructure() const
 {
+    if (m_caretDataFile != NULL) {
+        m_structure = m_caretDataFile->getStructure();
+    }
     return m_structure;
 }
 

@@ -47,13 +47,17 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
+#include "CaretFileDialog.h"
+#include "CursorDisplayScoped.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
+#include "ProgressReportingDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
@@ -200,9 +204,13 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
     bool enableOpenItems   = false;
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
+            setOkButtonText("Save");
+            setCancelButtonText("Close");
             enableManageItems = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
+            setOkButtonText("Open");
+            setCancelButtonText("Cancel");
             enableOpenItems = true;
             break;
     }
@@ -285,34 +293,24 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
         leftHorizLineColumn = COLUMN_SAVE_CHECKBOX;
     }
     
+    m_specFileSaveCheckBox = NULL;
+    m_specFileStatusLabel = NULL;
+    m_chooseSpecFileToolButton = NULL;
+    m_specFileNameLabel = NULL;
+    
     if (m_dialogMode == MODE_MANAGE_FILES) {
         m_specFileSaveCheckBox = new QCheckBox("");
         m_specFileStatusLabel = new QLabel("    ");
-        if (m_specFile->isModified()) {
-            m_specFileStatusLabel->setText(" L<font color=\"#ff0000\">M</font> ");
-        }
         
         QAction* chooseSpecFileNameAction = WuQtUtilities::createAction("Name",
                                                                         "Choose Spec File Name",
                                                                         this,
                                                                         this,
                                                                         SLOT(chooseSpecFileNameActionTriggered()));
-        QToolButton* chooseSpecFileToolButton = new QToolButton();
-        chooseSpecFileToolButton->setDefaultAction(chooseSpecFileNameAction);
+        m_chooseSpecFileToolButton = new QToolButton();
+        m_chooseSpecFileToolButton->setDefaultAction(chooseSpecFileNameAction);
         
-        /*
-         * Format the file label's text: name (path)
-         */
-        FileInformation fileInfo(m_specFile->getFileName());
-        const QString path = fileInfo.getAbsolutePath();
-        const QString name = fileInfo.getFileName();
-        QString fileNameText = name;
-        if (path.isEmpty() == false) {
-            fileNameText += (" ("
-                             + path
-                             + ")");
-        }
-        m_specFileNameLabel = new QLabel(fileNameText);
+        m_specFileNameLabel = new QLabel("");
         
         /*
          * Spec File title row
@@ -339,7 +337,7 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
         filesGridLayout->addWidget(m_specFileStatusLabel,
                                    row, COLUMN_STATUS_LABEL,
                                    Qt::AlignLeft);
-        filesGridLayout->addWidget(chooseSpecFileToolButton,
+        filesGridLayout->addWidget(m_chooseSpecFileToolButton,
                                    row, COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
                                    Qt::AlignHCenter);
         filesGridLayout->addWidget(m_specFileNameLabel,
@@ -464,12 +462,169 @@ SpecFileManagementDialog::~SpecFileManagementDialog()
 }
 
 /**
+ * Gets called when the OK button is pressed.
+ */
+void
+SpecFileManagementDialog::okButtonClicked ()
+{
+    bool allowDialogToClose = false;
+    
+    switch (m_dialogMode) {
+        case SpecFileManagementDialog::MODE_MANAGE_FILES:
+            allowDialogToClose = okButtonClickedManageFiles();
+            break;
+        case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
+            okButtonClickedOpenSpecFile();
+            allowDialogToClose = true;
+            break;
+    }
+    
+    if (allowDialogToClose) {
+        WuQDialogModal::okButtonClicked();
+    }
+}
+
+/**
+ * Perform processing when the Open button is pressed for Open Spec File mode.
+ */
+void
+SpecFileManagementDialog::okButtonClickedOpenSpecFile()
+{
+    AString specFileErrorMessage = writeSpecFile(true);
+    AString errorMessages;
+    errorMessages.appendWithNewLine(specFileErrorMessage);
+    
+    EventSpecFileReadDataFiles readSpecFileEvent(m_brain,
+                                                 m_specFile);
+    
+    ProgressReportingDialog::runEvent(&readSpecFileEvent,
+                                      this,
+                                      m_specFile->getFileNameNoPath());
+    
+    errorMessages.appendWithNewLine(readSpecFileEvent.getErrorMessage());
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    if (errorMessages.isEmpty() == false) {
+        WuQMessageBox::errorOk(this,
+                               errorMessages);
+    }
+}
+
+/**
+ * Perform processing when the Open button is pressed for Manage Files mode.
+ */
+bool
+SpecFileManagementDialog::okButtonClickedManageFiles()
+{
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
+    AString errorMessages;
+    
+    const int32_t numGuiGroups = static_cast<int32_t>(m_guiSpecFileDataFileTypeGroups.size());
+    for (int32_t iGroup = 0; iGroup < numGuiGroups; iGroup++) {
+        GuiSpecFileDataFileTypeGroup* guiSpecGroup = m_guiSpecFileDataFileTypeGroups[iGroup];
+        const int32_t numFiles = guiSpecGroup->getNumberOfGuiSpecFileDataFiles();
+        for (int32_t iFile = 0; iFile < numFiles; iFile++) {
+            GuiSpecFileDataFile* guiDataFile = guiSpecGroup->getGuiSpecFileDataFile(iFile);
+            if (guiDataFile->m_saveCheckBox->isEnabled()) {
+                if (guiDataFile->m_saveCheckBox->isChecked()) {
+                    
+                    CaretDataFile* caretDataFile = guiDataFile->m_specFileDataFile->getCaretDataFile();
+                    if (caretDataFile != NULL) {
+                        try {
+                            m_brain->writeDataFile(caretDataFile,
+                                                   false);
+                            guiDataFile->m_saveCheckBox->setChecked(false);
+                        }
+                        catch (const DataFileException& e) {
+                            errorMessages.appendWithNewLine(e.whatString());
+                        }
+                        guiDataFile->updateContent();
+                    }
+                }
+            }
+        }
+    }
+    
+    if (m_specFileSaveCheckBox->isEnabled()) {
+        if (m_specFileSaveCheckBox->isChecked()) {
+            AString specFileErrorMessage = writeSpecFile(false);
+            m_specFileSaveCheckBox->setChecked(false);
+        }
+    }
+    
+    updateDisplayedFiles();
+    
+    cursor.restoreCursor();
+    
+    if (errorMessages.isEmpty() == false) {
+        WuQMessageBox::errorOk(this, errorMessages);
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Write the spec file if it is modified.
+ *
+ * @param writeOnlyIfModified
+ *     Write only if the spec file is modified.
+ * @return Non-empty string if there was an error writing the spec file.
+ */
+AString
+SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
+{
+    if (writeOnlyIfModified) {
+        if (m_specFile->isModified() == false) {
+            return "";
+        }
+    }
+    
+    AString errorMessage;
+    
+    try {
+        m_specFile->writeFile(m_specFile->getFileName());
+    }
+    catch (const DataFileException& e) {
+        errorMessage = e.whatString();
+    }
+    
+    return errorMessage;
+}
+
+
+/**
  * Called to choose the name of the spec file.
  */
 void
 SpecFileManagementDialog::chooseSpecFileNameActionTriggered()
 {
-    
+    QStringList filenameFilterList;
+    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+    CaretFileDialog fd(m_chooseSpecFileToolButton);
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setNameFilters(filenameFilterList);
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.selectFile(m_specFile->getFileName());
+    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+    fd.setWindowTitle("Choose Spec File Name");
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList files = fd.selectedFiles();
+        if (files.isEmpty() == false) {
+            AString newFileName = files.at(0);
+            m_specFile->setFileName(newFileName);
+            updateDisplayedFiles();
+        }
+    }
 }
 
 
@@ -734,6 +889,34 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
 void
 SpecFileManagementDialog::updateDisplayedFiles()
 {
+    /*
+     * Update spec file data
+     */
+    
+    if (m_specFileStatusLabel != NULL) {
+        QString statusText = "    ";
+        if (m_specFile->isModified()) {
+            statusText = "  <font color=\"#ff0000\">M</font> ";
+        }
+        m_specFileStatusLabel->setText(statusText);
+    }
+    
+    if (m_specFileNameLabel != NULL) {
+        FileInformation fileInfo(m_specFile->getFileName());
+        const QString path = fileInfo.getAbsolutePath();
+        const QString name = fileInfo.getFileName();
+        QString fileNameText = name;
+        if (path.isEmpty() == false) {
+            fileNameText += (" ("
+                             + path
+                             + ")");
+        }
+        m_specFileNameLabel->setText(fileNameText);
+    }
+    
+    /*
+     * Update list of displayed files using filters
+     */
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
     QAction* fileTypeAction = m_fileTypesActionGroup->checkedAction();
     if (fileTypeAction != NULL) {
@@ -768,7 +951,6 @@ SpecFileManagementDialog::updateDisplayedFiles()
         }
     }
 }
-
 
 /* =================================================================== */
 
@@ -1013,9 +1195,12 @@ GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
                     m_saveCheckBox->setChecked(true);
                 }
             }
+            QObject::connect(m_saveCheckBox, SIGNAL(clicked(bool)),
+                             this, SLOT(saveCheckBoxClicked(bool)));
             
             m_inSpecFileCheckBox= new QCheckBox("");
-            m_inSpecFileCheckBox->setChecked(m_specFileDataFile->isSpecFileMember());
+            QObject::connect(m_inSpecFileCheckBox, SIGNAL(clicked(bool)),
+                             this, SLOT(inSpecCheckBoxClicked(bool)));
 
             m_reloadOrOpenFileAction = WuQtUtilities::createAction("Open",
                                                                    "tooltip",
@@ -1040,9 +1225,8 @@ GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
             m_loadCheckBox = new QCheckBox("");
-            m_loadCheckBox->setChecked(false);
-            
-            m_loadCheckBox->setChecked(m_specFileDataFile->isSelected());
+            QObject::connect(m_loadCheckBox, SIGNAL(clicked(bool)),
+                             this, SLOT(loadCheckBoxClicked(bool)));
             break;
     }
     
@@ -1080,6 +1264,8 @@ GuiSpecFileDataFile::~GuiSpecFileDataFile()
 void
 GuiSpecFileDataFile::updateContent()
 {
+    m_widgetGroup->blockAllSignals(true);
+    
     QString loadedText = " ";
     QString modifiedText = " ";
     QString displayedText = " ";
@@ -1164,17 +1350,28 @@ GuiSpecFileDataFile::updateContent()
     }
     
     if (isFileSavable == false) {
-        if (m_selectFileNameButtonAction != NULL) {
-            m_selectFileNameButtonAction->setEnabled(false);
-            m_selectFileNameButtonAction->setChecked(false);
-        }
-        
         if (m_saveCheckBox != NULL) {
             m_saveCheckBox->setEnabled(false);
             m_saveCheckBox->setChecked(false);
         }
         
         modifiedText = " ";
+    }
+    
+    if (m_selectFileNameButtonAction != NULL) {
+        m_selectFileNameButtonAction->setEnabled(false);
+        if (m_specFileDataFile->getCaretDataFile() != NULL) {
+            if (isFileSavable) {
+                m_selectFileNameButtonAction->setEnabled(true);
+            }
+        }
+    }
+    
+    if (m_loadCheckBox != NULL) {
+        m_loadCheckBox->setChecked(m_specFileDataFile->isSelected());
+    }
+    if (m_inSpecFileCheckBox != NULL) {
+        m_inSpecFileCheckBox->setChecked(m_specFileDataFile->isSpecFileMember());
     }
     
     /*
@@ -1202,6 +1399,44 @@ GuiSpecFileDataFile::updateContent()
         
         m_statusLabel->setText(lmdText);
     }
+    
+    m_widgetGroup->blockAllSignals(false);
+}
+
+/**
+ * Called when load check box value changed.
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+GuiSpecFileDataFile::loadCheckBoxClicked(bool checked)
+{
+    m_specFileDataFile->setSelected(checked);
+}
+
+/**
+ * Called when save check box value changed.
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+GuiSpecFileDataFile::saveCheckBoxClicked(bool /* checked */)
+{
+    /* nothing at this time */
+}
+
+/**
+ * Called when in-spec check box value changed.
+ *
+ * @param checked
+ *    New checked status.
+ */
+void
+GuiSpecFileDataFile::inSpecCheckBoxClicked(bool checked)
+{
+    m_specFileDataFile->setSpecFileMember(checked);
 }
 
 /**
@@ -1334,6 +1569,30 @@ GuiSpecFileDataFile::optionsMenuActionTriggered()
 void
 GuiSpecFileDataFile::selectFileNameActionTriggered()
 {
-    
+    QStringList filenameFilterList;
+    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(m_specFileDataFile->getDataFileType()));
+    CaretFileDialog fd(m_selectFileNameToolButton);
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setNameFilters(filenameFilterList);
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.selectFile(m_specFileDataFile->getFileName());
+    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+    fd.setWindowTitle("Choose File Name");
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList files = fd.selectedFiles();
+        if (files.isEmpty() == false) {
+            AString newFileName = files.at(0);
+            if (newFileName != m_specFileDataFile->getFileName()) {
+                /*
+                 * Clone current item, remove file from it,
+                 * and create new item.
+                 */
+//                SpecFileDataFile* sfdf = m_specFile->changeFileName(m_specFileDataFile,
+//                                           newFileName);
+//                m_dialog->addSpecFileDataFile(sfdf);
+            }
+        }
+    }
 }
 

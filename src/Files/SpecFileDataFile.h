@@ -49,6 +49,8 @@ namespace caret {
         
         AString getFileName() const;
         
+        void setFileName(const AString& fileName);
+        
         CaretDataFile* getCaretDataFile();
         
         void setCaretDataFile(CaretDataFile* caretDataFile);
@@ -81,11 +83,11 @@ namespace caret {
         
         void copyHelper(const SpecFileDataFile& sfdf);
         
-        AString m_filename;
+        mutable AString m_filename;
         
         CaretDataFile* m_caretDataFile;
         
-        StructureEnum::Enum m_structure;
+        mutable StructureEnum::Enum m_structure;
         
         StructureEnum::Enum m_originalStructure;
         

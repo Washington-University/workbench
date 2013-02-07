@@ -228,6 +228,42 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
 }
 
 /**
+ * Change the name of a file.  The existing SpecFileDataFile remains with 
+ * its CaretDataFile removed and a new SpecFileDataFile is created with 
+ * the CaretDataFile.
+ *
+ * @param specFileDataFile
+ *    The SpecFileDataFile that has its name changed.
+ * @param newFileName
+ *    New name for file.
+ */
+void
+SpecFile::changeFileName(SpecFileDataFile* specFileDataFile,
+                         const AString& newFileName)
+{
+    CaretAssert(specFileDataFile);
+    
+    SpecFileDataFile* newSpecFileDataFile = new SpecFileDataFile(*specFileDataFile);
+    newSpecFileDataFile->setFileName(newFileName);
+    newSpecFileDataFile->setCaretDataFile(specFileDataFile->getCaretDataFile());
+
+    specFileDataFile->setCaretDataFile(NULL);
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* group = *iter;
+        if (group->getDataFileType() == newSpecFileDataFile->getDataFileType()) {
+            group->addFileInformation(newSpecFileDataFile);
+            return;
+        }
+    }
+    
+    CaretAssert(0);
+    CaretLogSevere("PROGRAM ERROR: Failed to match DataFileType");
+}
+
+/**
  * Add a Caret Data File.
  *
  * @param If there is a a spec file entry with the same name as the Caret
@@ -243,21 +279,82 @@ SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
 {
     CaretAssert(caretDataFile);
     
-    SpecFileDataFile* sfdf = addDataFilePrivate(caretDataFile->getDataFileType(),
-                                                caretDataFile->getStructure(),
-                                                caretDataFile->getFileName(),
-                                                true,
-                                                false);
-    if (sfdf != NULL) {
-        sfdf->setStructure(caretDataFile->getStructure());
-        sfdf->setCaretDataFile(caretDataFile);
+    /*
+     * Matches to first file found that has matching name and data file type
+     */
+    SpecFileDataFile* matchedSpecFileDataFile = NULL;
+    
+    /*
+     * Matches to first file found that has matching name and data file type
+     * AND has its caret data file with a NULL value.
+     */
+    SpecFileDataFile* matchedSpecFileDataFileWithNULL = NULL;
+    
+    /*
+     * Group that matches data file type
+     */
+    SpecFileDataFileTypeGroup* matchedDataFileTypeGroup = NULL;
+    
+    /*
+     * Find matches
+     */
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (dataFileTypeGroup->getDataFileType() == caretDataFile->getDataFileType()) {
+            matchedDataFileTypeGroup = dataFileTypeGroup;
+
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+                if (sfdf->getCaretDataFile() == caretDataFile) {
+                    return;
+                }
+                if (sfdf->getFileName() == caretDataFile->getFileName()) {
+                    matchedSpecFileDataFile = sfdf;
+                    if (sfdf->getCaretDataFile() == NULL) {
+                        matchedSpecFileDataFileWithNULL = sfdf;
+                        break;
+                    }
+                }
+            }
+        }
+        if (matchedSpecFileDataFileWithNULL != NULL) {
+            break;
+        }
+    }
+    
+    CaretAssert(matchedDataFileTypeGroup);
+    
+    SpecFileDataFile* specFileDataFileToUpdate = NULL;
+    if (matchedSpecFileDataFileWithNULL != NULL) {
+        /*
+         * Found item that matched with a NULL value for caret data file
+         */
+        specFileDataFileToUpdate = matchedSpecFileDataFileWithNULL;
+    }
+    else if (matchedSpecFileDataFile != NULL) {
+        /*
+         * Found item that matched but had non-NULL value for caret data file.
+         * This means that there is a copy of a file loaded (two files same name)
+         */
+        specFileDataFileToUpdate = new SpecFileDataFile(*matchedSpecFileDataFile);
+        matchedDataFileTypeGroup->addFileInformation(specFileDataFileToUpdate);
     }
     else {
-        CaretLogSevere("Failed to add CaretDataFile "
-                       + caretDataFile->getFileName()
-                       + " to SpecFile: "
-                       + getFileName());
+        /*
+         * No matches found, file is not in spec file
+         */
+        specFileDataFileToUpdate = new SpecFileDataFile(caretDataFile->getFileName(),
+                                                        caretDataFile->getDataFileType(),
+                                                        caretDataFile->getStructure(),
+                                                        false);
+        matchedDataFileTypeGroup->addFileInformation(specFileDataFileToUpdate);
     }
+    
+    specFileDataFileToUpdate->setStructure(caretDataFile->getStructure());
+    specFileDataFileToUpdate->setCaretDataFile(caretDataFile);
 }
 
 /**
@@ -290,7 +387,9 @@ SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
             for (int32_t i = 0; i < numFiles; i++) {
                 SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
                 if (sfdf->getFileName() == caretDataFile->getFileName()) {
-                    sfdf->setCaretDataFile(NULL);
+                    if (sfdf->getCaretDataFile() == caretDataFile) {
+                        sfdf->setCaretDataFile(NULL);
+                    }
                 }
             }
         }
