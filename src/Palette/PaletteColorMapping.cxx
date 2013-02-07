@@ -1208,11 +1208,11 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
             mappingMostPositive  = this->getUserScalePositiveMaximum();
             break;
     }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive);
+    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive) * 0.99999f;//reserve [0, 0.00001] as "zero" range
     if (mappingPositiveDenominator == 0.0) {
         mappingPositiveDenominator = 1.0;
     }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative);
+    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative) * 0.99999f;
     if (mappingNegativeDenominator == 0.0) {
         mappingNegativeDenominator = 1.0;
     }
@@ -1230,10 +1230,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
             }
             else if (scalar >= mappingLeastPositive) {
                 float numerator = scalar - mappingLeastPositive;
-                normalized = numerator / mappingPositiveDenominator;
+                normalized = numerator / mappingPositiveDenominator + 0.00001f;//don't return less than 0.00001f if input is positive
             }
             else {
-                normalized = 0.00001;
+                normalized = 0.00001f;
             }
         }
         else if (scalar < 0.0) {
@@ -1242,17 +1242,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
             }
             else if (scalar <= mappingLeastNegative) {
                 float numerator = scalar - mappingLeastNegative;
-                float denominator = mappingNegativeDenominator;
-                if (denominator == 0.0f) {
-                    denominator = 1.0f;
-                }
-                else if (denominator < 0.0f) {
-                    denominator = -denominator;
-                }
-                normalized = numerator / denominator;
+                normalized = numerator / mappingNegativeDenominator - 0.00001f;
             }
             else {
-                normalized = -0.00001;
+                normalized = -0.00001f;
             }
         }
         normalizedValuesOut[i] = normalized;
