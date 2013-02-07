@@ -49,57 +49,38 @@ OperationParameters* AlgorithmCiftiAverage::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addStringParameter(1, "cifti-list-file", "a text file containing a list of cifti filenames to average together");
+    ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
     
-    ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
+    ParameterComponent* ciftiOpt = ret->createRepeatableParameter(2, "-cifti", "specify an input file");
+    ciftiOpt->addCiftiParameter(1, "cifti-in", "the input cifti file");
     
-    OptionalParameter* weightOpt = ret->createOptionalParameter(3, "-weights", "use per-file weights");
-    weightOpt->addStringParameter(1, "weight-list-file", "a text file containing one weight for each file in cifti-list-file");
+    OptionalParameter* weightOpt = ciftiOpt->createOptionalParameter(2, "-weight", "give a weight for this file");
+    weightOpt->addDoubleParameter(1, "weight", "the weight to use");
     
     ret->setHelpText(
-        AString("Averages cifti files together.")
+        AString("Averages cifti files together.  Files without -weight specified are given a weight of 1.")
     );
     return ret;
 }
 
 void AlgorithmCiftiAverage::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    AString listFileName = myParams->getString(1);
-    CiftiFile* ciftiOut = myParams->getOutputCifti(2);
-    fstream textFile(listFileName.toLocal8Bit().constData(), fstream::in);
-    if (!textFile.good())
-    {
-        throw AlgorithmException("error opening input file for reading");
-    }
-    vector<CaretPointer<CiftiFile> > ciftiFileList;//use this for memory management in case something throws
+    CiftiFile* ciftiOut = myParams->getOutputCifti(1);
     vector<const CiftiInterface*> ciftiList;//this is just so that it can pass them to the algorithm
-    string myline;
-    while (getline(textFile, myline))
-    {
-        if (myline == "") continue;
-        FileInformation ciftiFileInfo(myline.c_str());
-        if (!ciftiFileInfo.exists())
-        {
-            throw AlgorithmException(AString("file does not exist: ") + myline.c_str());
-        }
-        ciftiFileList.push_back(CaretPointer<CiftiFile>(new CiftiFile(myline.c_str(), ON_DISK)));
-        ciftiList.push_back(ciftiFileList.back());
-    }
-    vector<float>* weightsPtr = NULL;
     vector<float> weights;
-    OptionalParameter* weightOpt = myParams->getOptionalParameter(3);
-    if (weightOpt->m_present)
+    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(2));
+    for (int i = 0; i < (int)myInstances.size(); ++i)
     {
-        weightsPtr = &weights;
-        AString weightFileName = weightOpt->getString(1);
-        fstream weightFile(weightFileName.toLocal8Bit().constData(), fstream::in);
-        float weight;
-        while (weightFile >> weight)
+        ciftiList.push_back(myInstances[i]->getCifti(1));
+        OptionalParameter* weightOpt = myInstances[i]->getOptionalParameter(2);
+        if (weightOpt->m_present)
         {
-            weights.push_back(weight);
+            weights.push_back((float)weightOpt->getDouble(1));
+        } else {
+            weights.push_back(1.0f);
         }
     }
-    AlgorithmCiftiAverage(myProgObj, ciftiList, ciftiOut, weightsPtr);//executes the algorithm
+    AlgorithmCiftiAverage(myProgObj, ciftiList, ciftiOut, &weights);//executes the algorithm
 }
 
 AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const vector<float>* weightsPtr) : AbstractAlgorithm(myProgObj)
