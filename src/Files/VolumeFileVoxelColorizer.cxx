@@ -313,7 +313,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                 rgbaOffset = m_volumeFile->getIndex(i,
                                                     j,
                                                     k,
-                                                    mapIndex);
+                                                    0);
                 rgbaOffset *= 4;
                 CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
                 rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];

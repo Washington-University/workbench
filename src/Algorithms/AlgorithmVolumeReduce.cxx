@@ -93,7 +93,7 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
         CaretLogWarning("reduction operation performed on label volume");
         *(volumeOut->getMapLabelTable(0)) = *(volumeIn->getMapLabelTable(0));
     }
-    int64_t frameSize = myDims[0] + myDims[1] + myDims[2];
+    int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
     vector<float> scratchArray(myDims[3]), outFrame(frameSize);
     for (int c = 0; c < myDims[4]; ++c)
     {
@@ -122,7 +122,7 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
         CaretLogWarning("reduction operation performed on label volume");
         *(volumeOut->getMapLabelTable(0)) = *(volumeIn->getMapLabelTable(0));
     }
-    int64_t frameSize = myDims[0] + myDims[1] + myDims[2];
+    int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
     vector<float> scratchArray(myDims[3]), outFrame(frameSize);
     for (int c = 0; c < myDims[4]; ++c)
     {
