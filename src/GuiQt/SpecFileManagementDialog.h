@@ -35,6 +35,7 @@
 /*LICENSE_END*/
 
 #include <QGroupBox>
+#include <QSignalMapper>
 
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
@@ -82,6 +83,18 @@ namespace caret {
         
         void chooseSpecFileNameActionTriggered();
 
+        void fileLoadCheckBoxSelected(int indx);
+        
+        void fileSaveCheckBoxSelected(int indx);
+        
+        void fileInSpecCheckBoxSelected(int indx);
+        
+        void fileReloadOrOpenFileActionSelected(int indx);
+        
+        void fileOptionsActionSelected(int indx);
+        
+        void fileSelectFileNameActionSelected(int indx);
+        
     private:
         friend class GuiSpecFileDataFileTypeGroup;
         friend class GuiSpecFileDataFile;
@@ -111,6 +124,8 @@ namespace caret {
                                                QActionGroup* actionGroup);
         
         AString getEditedGroupName(const AString& groupName) const;
+        
+        GuiSpecFileDataFile* getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex);
         
         void updateDisplayedFiles();
         
@@ -148,6 +163,20 @@ namespace caret {
         
         QToolButton* m_chooseSpecFileToolButton;
         
+        QSignalMapper* m_fileLoadCheckBoxSignalMapper;
+        
+        QSignalMapper* m_fileSaveCheckBoxSignalMapper;
+        
+        QSignalMapper* m_fileInSpecCheckBoxSignalMapper;
+        
+        QSignalMapper* m_fileReloadOrOpenFileActionSignalMapper;
+        
+        QSignalMapper* m_fileOptionsActionSignalMapper;
+        
+        QSignalMapper* m_fileSelectFileNameActionSignalMapper;
+        
+        int m_specFileDataFileCounter;
+        
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_LOADED;
 
@@ -166,7 +195,7 @@ namespace caret {
         
         ~GuiSpecFileDataFileTypeGroup();
         
-        void addSpecFileDataFile(SpecFileDataFile* specFileDataFile);
+        void addGuiSpecFileDataFile(GuiSpecFileDataFile* guiSpecFileDataFile);
         
         int32_t getNumberOfGuiSpecFileDataFiles() const;
         
@@ -204,8 +233,10 @@ namespace caret {
         Q_OBJECT
         
     public:
-        GuiSpecFileDataFile(Brain* brain,
+        GuiSpecFileDataFile(const int signalMapperIndex,
+                            Brain* brain,
                             const SpecFileManagementDialog::Mode dialogMode,
+                            SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
                             SpecFileDataFile* specFileDataFile,
                             QObject* parent);
         
@@ -217,33 +248,25 @@ namespace caret {
         
         void setWidgetsVisible(const bool visible);
         
+        DataFileTypeEnum::Enum getDataFileType() const;
+        
         StructureEnum::Enum getStructure() const;
         
         void setStructure(const StructureEnum::Enum structure);
         
         void updateContent();
         
-    private slots:
-    
-        void reloadOrOpenFileActionTriggered();
-        
-        void optionsMenuActionTriggered();
-        
-        void selectFileNameActionTriggered();
-        
-        void loadCheckBoxClicked(bool checked);
-
-        void saveCheckBoxClicked(bool checked);
-        
-        void inSpecCheckBoxClicked(bool checked);
+        int getSignalMapperIndex() const;
         
     public:
         
-        void initialize(SpecFileDataFile* specFileDataFile);
+        const int m_signalMapperIndex;
         
         Brain* m_brain;
         
         const SpecFileManagementDialog::Mode m_dialogMode;
+        
+        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
         
         SpecFileDataFile* m_specFileDataFile;
 

@@ -236,31 +236,50 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
  *    The SpecFileDataFile that has its name changed.
  * @param newFileName
  *    New name for file.
+ * @return New SpecFileDataFile that is created or NULL if filename did not
+ * change of there is an error.
  */
-void
+SpecFileDataFile*
 SpecFile::changeFileName(SpecFileDataFile* specFileDataFile,
                          const AString& newFileName)
 {
     CaretAssert(specFileDataFile);
     
+    /*
+     * Make sure name changed.
+     */
+    if (specFileDataFile->getFileName() == newFileName) {
+        return NULL;
+    }
+    
+    /*
+     * Create a new SpecFileDataFile
+     */
     SpecFileDataFile* newSpecFileDataFile = new SpecFileDataFile(*specFileDataFile);
     newSpecFileDataFile->setFileName(newFileName);
     newSpecFileDataFile->setCaretDataFile(specFileDataFile->getCaretDataFile());
 
+    /*
+     * Remove CaretDataFile from previous SpecFileDataFile
+     */
     specFileDataFile->setCaretDataFile(NULL);
     
+    /*
+     * Add new SpecFileDataFile to appropriate group.
+     */
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* group = *iter;
         if (group->getDataFileType() == newSpecFileDataFile->getDataFileType()) {
             group->addFileInformation(newSpecFileDataFile);
-            return;
+            return newSpecFileDataFile;
         }
     }
     
     CaretAssert(0);
     CaretLogSevere("PROGRAM ERROR: Failed to match DataFileType");
+    return NULL;
 }
 
 /**

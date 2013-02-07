@@ -160,6 +160,7 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
   m_specFile(specFile)
 {
     setDeleteWhenClosed(true);
+    m_specFileDataFileCounter = 0;
     
     /*
      * Mac wheel event causes unintentional selection of combo box
@@ -170,6 +171,31 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
                                                         true);
 #endif // CARET_OS_MACOSX
     
+    m_fileLoadCheckBoxSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileLoadCheckBoxSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileLoadCheckBoxSelected(int)));
+    
+    m_fileSaveCheckBoxSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileSaveCheckBoxSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileSaveCheckBoxSelected(int)));
+    
+    m_fileInSpecCheckBoxSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileInSpecCheckBoxSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileInSpecCheckBoxSelected(int)));
+    
+    m_fileReloadOrOpenFileActionSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileReloadOrOpenFileActionSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileReloadOrOpenFileActionSelected(int)));
+    
+    m_fileOptionsActionSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileOptionsActionSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileOptionsActionSelected(int)));
+    
+    m_fileSelectFileNameActionSignalMapper = new QSignalMapper(this);
+    QObject::connect(m_fileSelectFileNameActionSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(fileSelectFileNameActionSelected(int)));
+    
+
     bool haveConnectivityFiles = false;
     bool haveSceneFiles = false;
     
@@ -194,6 +220,59 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
                                                                                       groupName,
                                                                                       this);
         m_guiSpecFileDataFileTypeGroups.push_back(guiSpecGroup);
+        
+        const int32_t numFiles = group->getNumberOfFiles();
+        for (int iFile = 0; iFile < numFiles; iFile++) {
+            SpecFileDataFile* sfdf = group->getFileInformation(iFile);
+            
+            GuiSpecFileDataFile* guiFile = new GuiSpecFileDataFile(m_specFileDataFileCounter,
+                                                                   m_brain,
+                                                                   m_dialogMode,
+                                                                   group,
+                                                                   sfdf,
+                                                                   this);
+            
+            guiSpecGroup->addGuiSpecFileDataFile(guiFile);
+            
+            if (guiFile->m_loadCheckBox != NULL) {
+                QObject::connect(guiFile->m_loadCheckBox, SIGNAL(clicked(bool)),
+                                 m_fileLoadCheckBoxSignalMapper, SLOT(map()));
+                m_fileLoadCheckBoxSignalMapper->setMapping(guiFile->m_loadCheckBox,
+                                                           m_specFileDataFileCounter);
+            }
+            if (guiFile->m_saveCheckBox != NULL) {
+                QObject::connect(guiFile->m_saveCheckBox, SIGNAL(clicked(bool)),
+                                 m_fileSaveCheckBoxSignalMapper, SLOT(map()));
+                m_fileSaveCheckBoxSignalMapper->setMapping(guiFile->m_saveCheckBox,
+                                                           m_specFileDataFileCounter);
+            }
+            if (guiFile->m_inSpecFileCheckBox != NULL) {
+                QObject::connect(guiFile->m_inSpecFileCheckBox, SIGNAL(clicked(bool)),
+                                 m_fileInSpecCheckBoxSignalMapper, SLOT(map()));
+                m_fileInSpecCheckBoxSignalMapper->setMapping(guiFile->m_inSpecFileCheckBox,
+                                                           m_specFileDataFileCounter);
+            }
+            if (guiFile->m_reloadOrOpenFileAction != NULL) {
+                QObject::connect(guiFile->m_reloadOrOpenFileAction, SIGNAL(triggered(bool)),
+                                 m_fileReloadOrOpenFileActionSignalMapper, SLOT(map()));
+                m_fileReloadOrOpenFileActionSignalMapper->setMapping(guiFile->m_reloadOrOpenFileAction,
+                                                             m_specFileDataFileCounter);
+            }
+            if (guiFile->m_optionsButtonAction != NULL) {
+                QObject::connect(guiFile->m_optionsButtonAction, SIGNAL(triggered(bool)),
+                                 m_fileOptionsActionSignalMapper, SLOT(map()));
+                m_fileOptionsActionSignalMapper->setMapping(guiFile->m_optionsButtonAction,
+                                                             m_specFileDataFileCounter);
+            }
+            if (guiFile->m_selectFileNameButtonAction != NULL) {
+                QObject::connect(guiFile->m_selectFileNameButtonAction, SIGNAL(triggered(bool)),
+                                 m_fileSelectFileNameActionSignalMapper, SLOT(map()));
+                m_fileSelectFileNameActionSignalMapper->setMapping(guiFile->m_selectFileNameButtonAction,
+                                                             m_specFileDataFileCounter);
+            }
+            
+            m_specFileDataFileCounter++;
+        }
         
         if (dataFileType == DataFileTypeEnum::SCENE) {
             haveSceneFiles = true;
@@ -600,6 +679,183 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
     return errorMessage;
 }
 
+/**
+ * Called when a file load check box is toggled.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileLoadCheckBoxSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+    specFileDataFile->setSelected(guiSpecFileDataFile->m_loadCheckBox->isChecked());
+}
+
+/**
+ * Called when a file save check box is toggled.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileSaveCheckBoxSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+}
+
+/**
+ * Called when a file in spec check box is toggled.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileInSpecCheckBoxSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+    specFileDataFile->setSpecFileMember(guiSpecFileDataFile->m_inSpecFileCheckBox->isChecked());
+}
+
+/**
+ * Called when a file reload or open button is clicked.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+    
+    CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+    if (caretDataFile != NULL) {
+        EventDataFileReload reloadEvent(m_brain,
+                                        caretDataFile);
+        EventManager::get()->sendEvent(reloadEvent.getPointer());
+        
+        if (reloadEvent.isError()) {
+            WuQMessageBox::errorOk(guiSpecFileDataFile->m_reloadOrOpenFileToolButton,
+                                   reloadEvent.getErrorMessage());
+            guiSpecFileDataFile->setWidgetsEnabled(false);
+        }
+        if (guiSpecFileDataFile->m_saveCheckBox != NULL) {
+            guiSpecFileDataFile->m_saveCheckBox->setChecked(false);
+        }
+    }
+    else {
+        EventDataFileRead readEvent(m_brain,
+                                    false);
+        readEvent.addDataFile(specFileDataFile->getStructure(),
+                              specFileDataFile->getDataFileType(),
+                              specFileDataFile->getFileName());
+        
+        EventManager::get()->sendEvent(readEvent.getPointer());
+        
+        if (readEvent.isError()) {
+            WuQMessageBox::errorOk(guiSpecFileDataFile->m_reloadOrOpenFileToolButton,
+                                   readEvent.getErrorMessage());
+        }
+        
+        if (readEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
+            WuQMessageBox::errorOk(guiSpecFileDataFile->m_reloadOrOpenFileToolButton,
+                                   readEvent.getAddToSpecFileErrorMessages());
+        }
+    }
+    guiSpecFileDataFile->m_selectFileNameButtonAction->setChecked(false);
+    
+    guiSpecFileDataFile->updateContent();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when a file options button is clicked.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileOptionsActionSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+}
+
+/**
+ * Called when a file name button is clicked.
+ *
+ * @param indx
+ *    Index of the SpecFileDataFile item.
+ */
+void
+SpecFileManagementDialog::fileSelectFileNameActionSelected(int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+    
+    QStringList filenameFilterList;
+    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(guiSpecFileDataFile->getDataFileType()));
+    CaretFileDialog fd(guiSpecFileDataFile->m_selectFileNameToolButton);
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setNameFilters(filenameFilterList);
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.selectFile(specFileDataFile->getFileName());
+    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+    fd.setWindowTitle("Choose File Name");
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList files = fd.selectedFiles();
+        if (files.isEmpty() == false) {
+            AString newFileName = files.at(0);
+            if (newFileName != specFileDataFile->getFileName()) {
+                /*
+                 * Clone current item, remove file from it,
+                 * and create new item.
+                 */
+                SpecFileDataFile* sfdf = m_specFile->changeFileName(specFileDataFile,
+                                                                    newFileName);
+                if (sfdf != NULL) {
+                //                m_dialog->addSpecFileDataFile(sfdf);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Find the GuiSpecFileDataFile with the given signal mapper index.
+ *
+ * @param signalMapperIndex
+ *    The signal mapper index requested.
+ * @return
+ *    GuiSpecFileDataFile using the given signal mapper index.
+ */
+GuiSpecFileDataFile*
+SpecFileManagementDialog::getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex)
+{
+    const int32_t numGuiGroups = static_cast<int32_t>(m_guiSpecFileDataFileTypeGroups.size());
+    for (int32_t iGroup = 0; iGroup < numGuiGroups; iGroup++) {
+        GuiSpecFileDataFileTypeGroup* guiSpecGroup = m_guiSpecFileDataFileTypeGroups[iGroup];
+        const int32_t numFiles = guiSpecGroup->getNumberOfGuiSpecFileDataFiles();
+        for (int32_t iFile = 0; iFile < numFiles; iFile++) {
+            GuiSpecFileDataFile* guiDataFile = guiSpecGroup->getGuiSpecFileDataFile(iFile);
+            if (guiDataFile->getSignalMapperIndex() == signalMapperIndex) {
+                std::cout << "SignalMapperIndex: " << signalMapperIndex << std::endl;
+                return guiDataFile;
+            }
+        }
+    }
+    
+    CaretAssert(0);
+    return NULL;
+}
+
 
 /**
  * Called to choose the name of the spec file.
@@ -981,12 +1237,6 @@ m_specFileDataFileTypeGroup(specFileDataFileTypeGroup)
     m_groupNameLabel = new QLabel(groupName);
     m_leftHorizontalLineWidget = WuQtUtilities::createHorizontalLineWidget();
     m_rightHorizontalLineWidget = WuQtUtilities::createHorizontalLineWidget();
-    
-    const int32_t numFiles = specFileDataFileTypeGroup->getNumberOfFiles();
-    for (int32_t i = 0; i < numFiles; i++) {
-        SpecFileDataFile* specFileDataFile = specFileDataFileTypeGroup->getFileInformation(i);
-        addSpecFileDataFile(specFileDataFile);
-    }
 }
 
 /**
@@ -1123,19 +1373,15 @@ GuiSpecFileDataFileTypeGroup::getGuiSpecFileDataFile(const int32_t indx)
 }
 
 /**
- * Add a spec file data file to this group.
+ * Add a gui spec file data file to this group.
  *
- * @param specFileDataFile
+ * @param guiSpecFileDataFile
  *    Added to this group if same type.
  */
 void
-GuiSpecFileDataFileTypeGroup::addSpecFileDataFile(SpecFileDataFile* specFileDataFile)
+GuiSpecFileDataFileTypeGroup::addGuiSpecFileDataFile(GuiSpecFileDataFile* guiSpecFileDataFile)
 {
-    GuiSpecFileDataFile* guiSpecDataFile = new GuiSpecFileDataFile(m_brain,
-                                                                   m_dialogMode,
-                                                                   specFileDataFile,
-                                                                   this);
-    m_guiDataFiles.push_back(guiSpecDataFile);    
+    m_guiDataFiles.push_back(guiSpecFileDataFile);    
 }
 
 /* =================================================================== */
@@ -1147,6 +1393,8 @@ GuiSpecFileDataFileTypeGroup::addSpecFileDataFile(SpecFileDataFile* specFileData
  *    Brain
  * @param dialogMode
  *    Mode of dialog.
+ * @param specFileDataFileTypeGroup
+ *    Group
  * @param specFileDataFile
  *    Entry in a spec file for a data file.
  * @param caretDataFile
@@ -1154,28 +1402,19 @@ GuiSpecFileDataFileTypeGroup::addSpecFileDataFile(SpecFileDataFile* specFileData
  * @param parent
  *    Parent of this object.
  */
-GuiSpecFileDataFile::GuiSpecFileDataFile(Brain* brain,
+GuiSpecFileDataFile::GuiSpecFileDataFile(const int signalMapperIndex,
+                                         Brain* brain,
                                          const SpecFileManagementDialog::Mode dialogMode,
+                                         SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
                                          SpecFileDataFile* specFileDataFile,
                                          QObject* parent)
 : QObject(parent),
+m_signalMapperIndex(signalMapperIndex),
 m_brain(brain),
-m_dialogMode(dialogMode)
-{
-    initialize(specFileDataFile);
-}
-
-/**
- * Initialize and instance.
- *
- * @param specFileDataFile
- *     Data from the spec file about the file.
- */
-void
-GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
-{
-    m_specFileDataFile = specFileDataFile;
-    
+m_dialogMode(dialogMode),
+m_specFileDataFileTypeGroup(specFileDataFileTypeGroup),
+m_specFileDataFile(specFileDataFile)
+{    
     CaretDataFile* caretDataFile = m_specFileDataFile->getCaretDataFile();
     
     m_inSpecFileCheckBox = NULL;
@@ -1195,18 +1434,12 @@ GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
                     m_saveCheckBox->setChecked(true);
                 }
             }
-            QObject::connect(m_saveCheckBox, SIGNAL(clicked(bool)),
-                             this, SLOT(saveCheckBoxClicked(bool)));
             
             m_inSpecFileCheckBox= new QCheckBox("");
-            QObject::connect(m_inSpecFileCheckBox, SIGNAL(clicked(bool)),
-                             this, SLOT(inSpecCheckBoxClicked(bool)));
 
             m_reloadOrOpenFileAction = WuQtUtilities::createAction("Open",
                                                                    "tooltip",
-                                                                   this,
-                                                                   this,
-                                                                   SLOT(reloadOrOpenFileActionTriggered()));
+                                                                   this);
             m_reloadOrOpenFileToolButton = new QToolButton();
             m_reloadOrOpenFileToolButton->setDefaultAction(m_reloadOrOpenFileAction);
 
@@ -1217,24 +1450,18 @@ GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
             
             m_selectFileNameButtonAction  = WuQtUtilities::createAction("Name",
                                                                         "tooltip",
-                                                                        this,
-                                                                        this,
-                                                                        SLOT(selectFileNameActionTriggered()));
+                                                                        this);
             m_selectFileNameToolButton = new QToolButton();
             m_selectFileNameToolButton->setDefaultAction(m_selectFileNameButtonAction);
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
             m_loadCheckBox = new QCheckBox("");
-            QObject::connect(m_loadCheckBox, SIGNAL(clicked(bool)),
-                             this, SLOT(loadCheckBoxClicked(bool)));
             break;
     }
     
     m_optionsButtonAction  = WuQtUtilities::createAction("Options",
                                                                   "tooltip",
-                                                                  this,
-                                                                  this,
-                                                                  SLOT(optionsMenuActionTriggered()));
+                                                                  this);
     m_optionsToolButton = new QToolButton();
     m_optionsToolButton->setDefaultAction(m_optionsButtonAction);
     
@@ -1256,6 +1483,15 @@ GuiSpecFileDataFile::initialize(SpecFileDataFile* specFileDataFile)
  */
 GuiSpecFileDataFile::~GuiSpecFileDataFile()
 {
+}
+
+/**
+ * @return The signal mapper index.
+ */
+int
+GuiSpecFileDataFile::getSignalMapperIndex() const
+{
+    return m_signalMapperIndex;
 }
 
 /**
@@ -1377,17 +1613,21 @@ GuiSpecFileDataFile::updateContent()
     /*
      * Format the file label's text: name (path)
      */
-    FileInformation fileInfo(filename);
-    const QString path = fileInfo.getAbsolutePath();
-    const QString name = fileInfo.getFileName();
-    QString fileNameText = name;
-    if (path.isEmpty() == false) {
-        fileNameText += (" ("
-                         + path
-                         + ")");
+    if (filename.isEmpty()) {
+        m_filenameLabel->setText("");
     }
-    m_filenameLabel->setText(fileNameText);
-    
+    else {
+        FileInformation fileInfo(filename);
+        const QString path = fileInfo.getAbsolutePath();
+        const QString name = fileInfo.getFileName();
+        QString fileNameText = name;
+        if (path.isEmpty() == false) {
+            fileNameText += (" ("
+                             + path
+                             + ")");
+            m_filenameLabel->setText(fileNameText);
+        }
+    }
     
     if (m_statusLabel != NULL) {
         AString lmdText = ("<html>"
@@ -1404,42 +1644,6 @@ GuiSpecFileDataFile::updateContent()
 }
 
 /**
- * Called when load check box value changed.
- *
- * @param checked
- *    New checked status.
- */
-void
-GuiSpecFileDataFile::loadCheckBoxClicked(bool checked)
-{
-    m_specFileDataFile->setSelected(checked);
-}
-
-/**
- * Called when save check box value changed.
- *
- * @param checked
- *    New checked status.
- */
-void
-GuiSpecFileDataFile::saveCheckBoxClicked(bool /* checked */)
-{
-    /* nothing at this time */
-}
-
-/**
- * Called when in-spec check box value changed.
- *
- * @param checked
- *    New checked status.
- */
-void
-GuiSpecFileDataFile::inSpecCheckBoxClicked(bool checked)
-{
-    m_specFileDataFile->setSpecFileMember(checked);
-}
-
-/**
  * Set the spec file data file for this instance.  This typically occurs
  * when a data file is saved AND added to the spec file.
  *
@@ -1452,6 +1656,19 @@ GuiSpecFileDataFile::setSpecFileDataFile(SpecFileDataFile* specFileDataFile)
     m_specFileDataFile = specFileDataFile;
     
     updateContent();
+}
+
+/**
+ * @return The data file type.
+ */
+DataFileTypeEnum::Enum
+GuiSpecFileDataFile::getDataFileType() const
+{
+    CaretDataFile* caretDataFile = m_specFileDataFile->getCaretDataFile();
+    if (caretDataFile != NULL) {
+        return caretDataFile->getDataFileType();
+    }
+    return m_specFileDataFile->getDataFileType();
 }
 
 /**
@@ -1507,92 +1724,5 @@ void
 GuiSpecFileDataFile::setWidgetsVisible(const bool visible)
 {
     m_widgetGroup->setVisible(visible);
-}
-
-/**
- * Called when Reload/Open button is clicked.
- */
-void
-GuiSpecFileDataFile::reloadOrOpenFileActionTriggered()
-{
-    CaretDataFile* caretDataFile = m_specFileDataFile->getCaretDataFile();
-    if (caretDataFile != NULL) {
-        EventDataFileReload reloadEvent(m_brain,
-                                        caretDataFile);
-        EventManager::get()->sendEvent(reloadEvent.getPointer());
-        
-        if (reloadEvent.isError()) {
-            WuQMessageBox::errorOk(m_reloadOrOpenFileToolButton,
-                                         reloadEvent.getErrorMessage());
-        }
-    }
-    else {
-        EventDataFileRead readEvent(m_brain,
-                                      false);
-        readEvent.addDataFile(m_specFileDataFile->getStructure(),
-                              m_specFileDataFile->getDataFileType(),
-                              m_specFileDataFile->getFileName());
-        
-        EventManager::get()->sendEvent(readEvent.getPointer());
-        
-        if (readEvent.isError()) {
-            WuQMessageBox::errorOk(m_reloadOrOpenFileToolButton,
-                                         readEvent.getErrorMessage());
-        }
-        
-        if (readEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
-            WuQMessageBox::errorOk(m_reloadOrOpenFileToolButton,
-                                   readEvent.getAddToSpecFileErrorMessages());
-        }
-    }
-    m_selectFileNameButtonAction->setChecked(false);
-    
-    this->updateContent();
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Called when Options Menu action is triggered.
- */
-void
-GuiSpecFileDataFile::optionsMenuActionTriggered()
-{
-    
-}
-
-/**
- * Called when Filename action is triggered.
- */
-void
-GuiSpecFileDataFile::selectFileNameActionTriggered()
-{
-    QStringList filenameFilterList;
-    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(m_specFileDataFile->getDataFileType()));
-    CaretFileDialog fd(m_selectFileNameToolButton);
-    fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(CaretFileDialog::AnyFile);
-    fd.setViewMode(CaretFileDialog::List);
-    fd.selectFile(m_specFileDataFile->getFileName());
-    fd.setLabelText(CaretFileDialog::Accept, "Choose");
-    fd.setWindowTitle("Choose File Name");
-    if (fd.exec() == CaretFileDialog::Accepted) {
-        QStringList files = fd.selectedFiles();
-        if (files.isEmpty() == false) {
-            AString newFileName = files.at(0);
-            if (newFileName != m_specFileDataFile->getFileName()) {
-                /*
-                 * Clone current item, remove file from it,
-                 * and create new item.
-                 */
-//                SpecFileDataFile* sfdf = m_specFile->changeFileName(m_specFileDataFile,
-//                                           newFileName);
-//                m_dialog->addSpecFileDataFile(sfdf);
-            }
-        }
-    }
 }
 
