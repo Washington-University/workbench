@@ -197,94 +197,132 @@ MapSettingsPaletteColorMappingWidget::applyAndUpdate()
 
 /**
  * Called when low value spin box changed.
- * @param d
+ * @param thresholdLow
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdLowSpinBoxValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdLowSpinBoxValueChanged(double thresholdLow)
 {
-    if (d > this->thresholdHighSpinBox->value()) {
-        this->thresholdHighSpinBox->blockSignals(true);
-        this->thresholdHighSpinBox->setValue(d);
-        this->thresholdHighSpinBox->blockSignals(false);
-        this->thresholdHighSlider->blockSignals(true);
-        this->thresholdHighSlider->setValue(d);
-        this->thresholdHighSlider->blockSignals(false);
+    float thresholdHigh = this->thresholdHighSpinBox->value();
+    if (thresholdLow > thresholdHigh) {
+        thresholdHigh = thresholdLow;
     }
+    
+    /*
+     * Update OTHER threshold controls with new value.
+     */
+    this->thresholdHighSpinBox->blockSignals(true);
+    this->thresholdHighSpinBox->setValue(thresholdHigh);
+    this->thresholdHighSpinBox->blockSignals(false);
+    
+    this->thresholdHighSlider->blockSignals(true);
+    this->thresholdHighSlider->setValue(thresholdHigh);
+    this->thresholdHighSlider->blockSignals(false);
+    
+//    this->thresholdLowSpinBox->blockSignals(true);
+//    this->thresholdLowSpinBox->setValue(thresholdLow);
+//    this->thresholdLowSpinBox->blockSignals(false);
+    
     this->thresholdLowSlider->blockSignals(true);
-    this->thresholdLowSlider->setValue(d);
+    this->thresholdLowSlider->setValue(thresholdLow);
     this->thresholdLowSlider->blockSignals(false);
     
-    this->applyAndUpdate();
+    this->applySelections();
 }
 
 /**
  * Called when high value spin box changed.
- * @param d
+ * @param thresholdHigh
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdHighSpinBoxValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdHighSpinBoxValueChanged(double thresholdHigh)
 {
-    if (d < this->thresholdLowSpinBox->value()) {
-        this->thresholdLowSpinBox->blockSignals(true);
-        this->thresholdLowSpinBox->setValue(d);
-        this->thresholdLowSpinBox->blockSignals(false);
-        this->thresholdLowSlider->blockSignals(true);
-        this->thresholdLowSlider->setValue(d);
-        this->thresholdLowSlider->blockSignals(false);
+    float thresholdLow = this->thresholdLowSpinBox->value();
+    if (thresholdHigh < thresholdLow) {
+        thresholdLow = thresholdHigh;
     }
+    //    this->thresholdHighSpinBox->blockSignals(true);
+    //    this->thresholdHighSpinBox->setValue(thresholdHigh);
+    //    this->thresholdHighSpinBox->blockSignals(false);
+    
     this->thresholdHighSlider->blockSignals(true);
-    this->thresholdHighSlider->setValue(d);
+    this->thresholdHighSlider->setValue(thresholdHigh);
     this->thresholdHighSlider->blockSignals(false);
     
-    this->applyAndUpdate();
+    this->thresholdLowSpinBox->blockSignals(true);
+    this->thresholdLowSpinBox->setValue(thresholdLow);
+    this->thresholdLowSpinBox->blockSignals(false);
+    
+    this->thresholdLowSlider->blockSignals(true);
+    this->thresholdLowSlider->setValue(thresholdLow);
+    this->thresholdLowSlider->blockSignals(false);
+    
+    this->applySelections();
 }
 
 /**
  * Called when low value slider changed.
- * @param d
+ * @param thresholdLow
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdLowSliderValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdLowSliderValueChanged(double thresholdLow)
 {
-    if (d > this->thresholdHighSlider->value()) {
-        this->thresholdHighSlider->blockSignals(true);
-        this->thresholdHighSlider->setValue(d);
-        this->thresholdHighSlider->blockSignals(false);
-        this->thresholdHighSpinBox->blockSignals(true);
-        this->thresholdHighSpinBox->setValue(d);
-        this->thresholdHighSpinBox->blockSignals(false);
+    float thresholdHigh = this->thresholdHighSpinBox->value();
+    if (thresholdLow > thresholdHigh) {
+        thresholdHigh = thresholdLow;
     }
+    
+    this->thresholdHighSpinBox->blockSignals(true);
+    this->thresholdHighSpinBox->setValue(thresholdHigh);
+    this->thresholdHighSpinBox->blockSignals(false);
+    
+    this->thresholdHighSlider->blockSignals(true);
+    this->thresholdHighSlider->setValue(thresholdHigh);
+    this->thresholdHighSlider->blockSignals(false);
+    
     this->thresholdLowSpinBox->blockSignals(true);
-    this->thresholdLowSpinBox->setValue(d);
+    this->thresholdLowSpinBox->setValue(thresholdLow);
     this->thresholdLowSpinBox->blockSignals(false);
     
-    this->applyAndUpdate();
+//    this->thresholdLowSlider->blockSignals(true);
+//    this->thresholdLowSlider->setValue(thresholdLow);
+//    this->thresholdLowSlider->blockSignals(false);
+    
+    this->applySelections();
 }
 
 /**
  * Called when high value slider changed.
- * @param d
+ * @param thresholdHigh
  *    New value.
  */
 void 
-MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double d)
+MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double thresholdHigh)
 {
-    if (d < this->thresholdLowSlider->value()) {
-        this->thresholdLowSlider->blockSignals(true);
-        this->thresholdLowSlider->setValue(d);
-        this->thresholdLowSlider->blockSignals(false);
-        this->thresholdLowSpinBox->blockSignals(true);
-        this->thresholdLowSpinBox->setValue(d);
-        this->thresholdLowSpinBox->blockSignals(false);
+    float thresholdLow = this->thresholdLowSpinBox->value();
+    if (thresholdHigh < thresholdLow) {
+        thresholdLow = thresholdHigh;
     }
+    
     this->thresholdHighSpinBox->blockSignals(true);
-    this->thresholdHighSpinBox->setValue(d);
+    this->thresholdHighSpinBox->setValue(thresholdHigh);
     this->thresholdHighSpinBox->blockSignals(false);
     
-    this->applyAndUpdate();
+//    this->thresholdHighSlider->blockSignals(true);
+//    this->thresholdHighSlider->setValue(thresholdHigh);
+//    this->thresholdHighSlider->blockSignals(false);
+    
+    this->thresholdLowSpinBox->blockSignals(true);
+    this->thresholdLowSpinBox->setValue(thresholdLow);
+    this->thresholdLowSpinBox->blockSignals(false);
+    
+    this->thresholdLowSlider->blockSignals(true);
+    this->thresholdLowSlider->setValue(thresholdLow);
+    this->thresholdLowSlider->blockSignals(false);
+    
+    this->applySelections();
 }
 
 /**
@@ -335,6 +373,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
     this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
     this->thresholdLowSpinBox->setSingleStep(0.10);
+    this->thresholdLowSpinBox->setDecimals(3);
     QObject::connect(this->thresholdLowSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdLowSpinBoxValueChanged(double)));
     this->thresholdHighSpinBox = new QDoubleSpinBox();
@@ -343,6 +382,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
     this->thresholdHighSpinBox->setFixedWidth(spinBoxWidth);
     this->thresholdHighSpinBox->setSingleStep(0.10);
+    this->thresholdHighSpinBox->setDecimals(3);
     QObject::connect(this->thresholdHighSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdHighSpinBoxValueChanged(double)));
 
@@ -656,6 +696,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(applySelections()));
+    
     /*
      * Fixed mapping
      */
@@ -665,7 +706,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMaximumSpinBox->setMaximum(0.0);
+    this->scaleFixedNegativeMaximumSpinBox->setMaximum(0);
     this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
     this->scaleFixedNegativeMaximumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
