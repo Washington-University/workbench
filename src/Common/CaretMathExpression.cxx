@@ -92,11 +92,12 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 double temp = m_arguments[i].eval(values);
                 if (m_inclusive[i])
                 {
+                    float adjust = min(abs(ret), abs(temp)) / (1<<20);//because = doesn't always work as expected, include a fudge factor based on the approximate precision of float
                     if (m_invert[i])
                     {
-                        ret = (ret <= temp ? 1.0 : 0.0);//don't trust booleans to cast to 0 and 1, just because
+                        ret = (ret <= temp + adjust ? 1.0 : 0.0);//don't trust booleans to cast to 0 and 1, just because
                     } else {
-                        ret = (ret >= temp ? 1.0 : 0.0);
+                        ret = (ret >= temp - adjust ? 1.0 : 0.0);
                     }
                 } else {
                     if (m_invert[i])
@@ -572,6 +573,13 @@ bool CaretMathExpression::tryAddSub(CaretMathExpression::MathNode& node, const A
                         throw CaretException("error parsing expression '" + input.mid(start, end - start) + "'");
                     }
                     nextStart = i + 1;
+                    break;
+                case '*':
+                case '/':
+                case '^':
+                case '<':
+                case '=':
+                    afterOp = true;//check for unary negation/negative constant after other operators
                     break;
                 case '('://NOTE: we do not test for ')' in order to generate (hopefully) more specific error messages about unbalanced parens
                     afterOp = false;
