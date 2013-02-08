@@ -387,11 +387,16 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                      this, SLOT(thresholdHighSpinBoxValueChanged(double)));
 
     this->thresholdShowInsideRadioButton = new QRadioButton("Show Data Inside Thresholds");
-    WuQtUtilities::setToolTipAndStatusTip(this->thresholdShowInsideRadioButton, 
-                                          "Displays only data greater than low threshold AND less than high threshold");
+    WuQtUtilities::setWordWrappedToolTip(this->thresholdShowInsideRadioButton,
+                                          "Displays data that is greater than or equal to "
+                                          "the minimum threshold value and less than or "
+                                          "equal to the maximum threshold value.");
+    
     this->thresholdShowOutsideRadioButton = new QRadioButton("Show Data Outside Thresholds");
-    WuQtUtilities::setToolTipAndStatusTip(this->thresholdShowOutsideRadioButton, 
-                                          "Displays data less than low threshold OR greater than high threshold");
+    WuQtUtilities::setWordWrappedToolTip(this->thresholdShowOutsideRadioButton, 
+                                         "Displays data that is less than the minimum "
+                                         "threshold value or greater than the maximum "
+                                         "threshold value.");
     
     QButtonGroup* thresholdShowButtonGroup = new QButtonGroup(this);
     this->thresholdWidgetGroup->add(thresholdShowButtonGroup);
