@@ -45,6 +45,7 @@ class QActionGroup;
 class QCheckBox;
 class QGridLayout;
 class QLabel;
+class QTableWidget;
 class QToolBar;
 class QToolButton;
 
@@ -57,6 +58,7 @@ namespace caret {
     class SpecFile;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
+    class StructureEnumComboBox;
     class WuQEventBlockingFilter;
     class WuQWidgetObjectGroup;
     
@@ -65,11 +67,18 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static SpecFileManagementDialog* createOpenSpecFileDialog(Brain* brain,
+        static SpecFileManagementDialog* createOpenSpecFileDialogGridLayout(Brain* brain,
                                                                   SpecFile* specFile,
                                                                   QWidget* parent);
         
-        static SpecFileManagementDialog* createManageFilesDialog(Brain* brain,
+        static SpecFileManagementDialog* createOpenSpecFileDialogTableLayout(Brain* brain,
+                                                                  SpecFile* specFile,
+                                                                  QWidget* parent);
+        
+        static SpecFileManagementDialog* createManageFilesDialogGridLayout(Brain* brain,
+                                                                 QWidget* parent);
+        
+        static SpecFileManagementDialog* createManageFilesDialogTableLayout(Brain* brain,
                                                                  QWidget* parent);
         
         virtual ~SpecFileManagementDialog();
@@ -95,6 +104,8 @@ namespace caret {
         
         void fileSelectFileNameActionSelected(int indx);
         
+        void fileStructureComboBoxSelected(int);
+        
     private:
         friend class GuiSpecFileDataFileTypeGroup;
         friend class GuiSpecFileDataFile;
@@ -104,7 +115,13 @@ namespace caret {
             MODE_OPEN_SPEC_FILE
         };
         
-        SpecFileManagementDialog(const Mode dialogMode,
+        enum LayoutType {
+            LAYOUT_TYPE_GRID,
+            LAYOUT_TYPE_TABLE
+        };
+        
+        SpecFileManagementDialog(const LayoutType layoutType,
+                                 const Mode dialogMode,
                                  Brain* brain,
                                  SpecFile* specFile,
                                  const AString& dialogTitle,
@@ -175,10 +192,14 @@ namespace caret {
         
         QSignalMapper* m_fileSelectFileNameActionSignalMapper;
         
+        QSignalMapper* m_fileStructureComboBoxSignalMapper;
+        
         int m_specFileDataFileCounter;
         
+        QTableWidget* m_filesTableWidget;
+        
         static const int SHOW_FILES_ALL;
-        static const int SHOW_FILES_LOADED;
+        static const int SHOW_FILES_NONE;
 
     };
     
@@ -191,6 +212,7 @@ namespace caret {
                                      const SpecFileManagementDialog::Mode dialogMode,
                                      SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
                                      const AString& groupName,
+                                     const bool createTitleWidgets,
                                      QObject* parent);
         
         ~GuiSpecFileDataFileTypeGroup();
@@ -258,8 +280,10 @@ namespace caret {
         
         int getSignalMapperIndex() const;
         
+        bool isVisibleByFileTypeAndStructure(const DataFileTypeEnum::Enum dataFileType,
+                                             const StructureEnum::Enum structure);
+    
     public:
-        
         const int m_signalMapperIndex;
         
         Brain* m_brain;
@@ -286,6 +310,8 @@ namespace caret {
         
         QToolButton* m_optionsToolButton;
         
+        StructureEnumComboBox* m_structureComboBox;
+        
         QAction* m_selectFileNameButtonAction;
         
         QToolButton* m_selectFileNameToolButton;
@@ -293,11 +319,13 @@ namespace caret {
         QLabel* m_filenameLabel;
         
         WuQWidgetObjectGroup* m_widgetGroup;
+        
+        int m_tableRowIndex;
     };
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
     const int SpecFileManagementDialog::SHOW_FILES_ALL = -1;
-    const int SpecFileManagementDialog::SHOW_FILES_LOADED = -2;
+    const int SpecFileManagementDialog::SHOW_FILES_NONE = -2;
 #endif // __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
 
 } // namespace

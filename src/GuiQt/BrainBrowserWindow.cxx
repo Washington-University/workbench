@@ -648,6 +648,11 @@ BrainBrowserWindow::createMenus()
 #endif // VELAB_INTERNAL_RELEASE_ONLY
 }
 
+const QString menuTextOpenSpecGrid = "Open Spec File";
+const QString menuTextOpenSpecTable = "Open Spec File - Table";
+const QString menuTextManageSpecGrid = "Manage Data Files";
+const QString menuTextManageSpecTable = "Manage Data Files - Table";
+
 /**
  * @return Create and return the developer menu.
  */
@@ -659,8 +664,10 @@ BrainBrowserWindow::createMenuDeveloper()
     QObject::connect(menu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processMenuDeveloper(QAction*)));
     
-    menu->addAction("Open Spec File");
-    menu->addAction("Manage Data Files");
+    menu->addAction(menuTextOpenSpecGrid);
+    menu->addAction(menuTextOpenSpecTable);
+    menu->addAction(menuTextManageSpecGrid);
+    menu->addAction(menuTextManageSpecTable);
     return menu;
 }
 
@@ -673,13 +680,19 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
     const QString text = action->text();
     
     Brain* brain = GuiManager::get()->getBrain();
-    if (text == "Manage Data Files") {
+    if (text == menuTextManageSpecGrid) {
         SpecFileManagementDialog* d =
-        SpecFileManagementDialog::createManageFilesDialog(brain,
+        SpecFileManagementDialog::createManageFilesDialogGridLayout(brain,
                                                           this);
         d->exec();
     }
-    else if (text == "Open Spec File") {
+    else if (text == menuTextManageSpecTable) {
+        SpecFileManagementDialog* d =
+        SpecFileManagementDialog::createManageFilesDialogTableLayout(brain,
+                                                                    this);
+        d->exec();
+    }
+    else if (text == menuTextOpenSpecGrid) {
         /*
          * Setup file selection dialog.
          */
@@ -706,7 +719,7 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
                     return;
                 }
                 SpecFileManagementDialog* d =
-                SpecFileManagementDialog::createOpenSpecFileDialog(brain,
+                SpecFileManagementDialog::createOpenSpecFileDialogGridLayout(brain,
                                                                    &specFile,
                                                                    this);
                 d->exec();
@@ -714,6 +727,42 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
                 m_toolbar->addDefaultTabsAfterLoadingSpecFile();
             }
         }        
+    }
+    else if (text == menuTextOpenSpecTable) {
+        /*
+         * Setup file selection dialog.
+         */
+        QStringList filenameFilterList;
+        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+        CaretFileDialogExtendable fd(this);
+        fd.setAcceptMode(CaretFileDialog::AcceptOpen);
+        fd.setNameFilters(filenameFilterList);
+        fd.setFileMode(CaretFileDialog::ExistingFile);
+        fd.setViewMode(CaretFileDialog::List);
+        if (fd.exec() == CaretFileDialogExtendable::Accepted) {
+            QStringList files = fd.selectedFiles();
+            if (files.isEmpty() == false) {
+                AString specFileName = files.at(0);
+                
+                SpecFile specFile;
+                try {
+                    specFile.readFile(specFileName);
+                }
+                catch (const DataFileException& e) {
+                    QMessageBox::critical(this,
+                                          "ERROR",
+                                          e.whatString());
+                    return;
+                }
+                SpecFileManagementDialog* d =
+                SpecFileManagementDialog::createOpenSpecFileDialogTableLayout(brain,
+                                                                             &specFile,
+                                                                             this);
+                d->exec();
+                
+                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+            }
+        }
     }
     else {
         const QString msg = ("Unrecognized selection from Developer Menu: "
