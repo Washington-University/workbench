@@ -1601,16 +1601,20 @@ SpecFileManagementDialog::updateDisplayedFiles()
     }
     
     if (m_specFileNameLabel != NULL) {
-        FileInformation fileInfo(m_specFile->getFileName());
-        const QString path = fileInfo.getAbsolutePath();
-        const QString name = fileInfo.getFileName();
-//        QString fileNameText = name;
-//        if (path.isEmpty() == false) {
-//            fileNameText += (" ("
-//                             + path
-//                             + ")");
-//        }
-//        m_specFileNameLabel->setText(fileNameText);
+        QString path;
+        QString name;
+        if (m_specFile->getFileName().isEmpty() == false) {
+            FileInformation fileInfo(m_specFile->getFileName());
+            path = fileInfo.getAbsolutePath();
+            name = fileInfo.getFileName();
+            //        QString fileNameText = name;
+            //        if (path.isEmpty() == false) {
+            //            fileNameText += (" ("
+            //                             + path
+            //                             + ")");
+            //        }
+            //        m_specFileNameLabel->setText(fileNameText);
+        }
         m_specFileNameLabel->setText(name);
         m_specFilePathLabel->setText(path);
     }
