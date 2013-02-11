@@ -83,6 +83,9 @@ namespace caret {
         
         virtual ~SpecFileManagementDialog();
         
+    protected:
+        WuQDialogModal::ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
     private slots:
         void toolBarFileTypeActionTriggered(QAction* action);
         
@@ -164,6 +167,8 @@ namespace caret {
         
         SpecFile* m_specFile;
     
+        QPushButton* m_loadScenesPushButton;
+        
         WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
         
         QActionGroup* m_fileTypesActionGroup;
@@ -179,6 +184,8 @@ namespace caret {
         QLabel* m_specFileStatusLabel;
         
         QLabel* m_specFileNameLabel;
+        
+        QLabel* m_specFilePathLabel;
         
         QToolButton* m_chooseSpecFileToolButton;
         
@@ -318,7 +325,9 @@ namespace caret {
         
         QToolButton* m_selectFileNameToolButton;
         
-        QLabel* m_filenameLabel;
+        QLabel* m_fileNameLabel;
+        
+        QLabel* m_filePathLabel;
         
         WuQWidgetObjectGroup* m_widgetGroup;
         
