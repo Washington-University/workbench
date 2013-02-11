@@ -2827,13 +2827,13 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                          dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
-            caretDataFileRead = caretDataFileRead = readLabelFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readLabelFile(reloadThisDataFileIfNotNull,
                                               dataFileName,
                                               structure,
                                               markDataFileAsModified);
             break;
         case DataFileTypeEnum::METRIC:
-            caretDataFileRead = caretDataFileRead = readMetricFile(reloadThisDataFileIfNotNull,
+            caretDataFileRead = readMetricFile(reloadThisDataFileIfNotNull,
                                                dataFileName,
                                                structure,
                                                markDataFileAsModified);
