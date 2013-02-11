@@ -36,8 +36,10 @@
 #include "UserInputModeFoci.h"
 #undef __USER_INPUT_MODE_FOCI_DECLARE__
 
+#include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -47,6 +49,7 @@
 #include "FociFile.h"
 #include "FociPropertiesEditorDialog.h"
 #include "Focus.h"
+#include "GuiManager.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
@@ -200,15 +203,16 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                     SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
                     SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
                     if (idNode->isValid()) {
-                        const Surface* surface = idNode->getSurface();
-                        CaretAssert(surface);
-                        const StructureEnum::Enum structure = surface->getStructure();
+                        Surface* surfaceViewed = idNode->getSurface();
+                        CaretAssert(surfaceViewed);
+                        const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+                        const StructureEnum::Enum anatStructure = anatSurface->getStructure();
                         const int32_t nodeIndex = idNode->getNodeNumber();
                         
-                        const AString focusName = (StructureEnum::toGuiName(structure)
+                        const AString focusName = (StructureEnum::toGuiName(anatStructure)
                                                    + " Vertex "
                                                    + AString::number(nodeIndex));
-                        const float* xyz = surface->getCoordinate(nodeIndex);
+                        const float* xyz = anatSurface->getCoordinate(nodeIndex);
                         
                         const AString comment = ("Created from "
                                                  + focusName);
@@ -389,6 +393,25 @@ UserInputModeFoci::updateAfterFociChanged()
      */
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addFoci().getPointer());
+}
+
+/**
+ * Determine the structure for the given surface.  Find the volume interaction
+ * surface for the structure and return it.  If no volume interaction surface
+ * is found, the return the surface that was passed in.
+ */
+Surface*
+UserInputModeFoci::getAnatomicalSurfaceForSurface(Surface* surface)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const StructureEnum::Enum structure = surface->getStructure();
+    BrainStructure* bs = brain->getBrainStructure(structure,
+                                                  false);
+    Surface* anatSurf = bs->getVolumeInteractionSurface();
+    if (anatSurf != NULL) {
+        return anatSurf;
+    }
+    return surface;
 }
 
 

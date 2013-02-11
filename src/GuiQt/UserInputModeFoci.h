@@ -43,6 +43,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
     class MouseEvent;
+    class Surface;
     class UserInputModeFociWidget;
     
     class UserInputModeFoci : public CaretObject, public UserInputReceiverInterface {
@@ -98,6 +99,8 @@ namespace caret {
         void setEditOperation(const EditOperation editOperation);
         
         void updateAfterFociChanged();
+        
+        Surface* getAnatomicalSurfaceForSurface(Surface* surface);
         
         // ADD_NEW_MEMBERS_HERE
         
