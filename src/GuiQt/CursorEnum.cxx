@@ -96,7 +96,11 @@ CursorEnum::initialize()
                                     "CURSOR_ARROW", 
                                     "Arrow Cursor"));
     
-    enumData.push_back(CursorEnum(CURSOR_DRAWING_PEN, 
+    enumData.push_back(CursorEnum(CURSOR_CROSS,
+                                  "CURSOR_CROSS",
+                                  "Cross Cursor"));
+    
+    enumData.push_back(CursorEnum(CURSOR_DRAWING_PEN,
                                     "CURSOR_DRAWING_PEN", 
                                     "Drawing Pen Cursor"));
     
@@ -107,6 +111,10 @@ CursorEnum::initialize()
     enumData.push_back(CursorEnum(CURSOR_WAIT, 
                                     "CURSOR_WAIT", 
                                     "Wait Cursor"));
+    
+    enumData.push_back(CursorEnum(CURSOR_WHATS_THIS,
+                                  "CURSOR_WHATS_THIS",
+                                  "What's this Cursor"));
     
 }
 

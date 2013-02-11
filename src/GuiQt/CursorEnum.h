@@ -52,12 +52,16 @@ public:
         CURSOR_DEFAULT,
         /** Arrow (typically same as CURSOR_DEFAULT but overrides cursor provided by parent widget, Qt::ArrowCursor) */
         CURSOR_ARROW,
+        /** Cross (plus symbol) */
+        CURSOR_CROSS,
         /** Drawing Pen */
         CURSOR_DRAWING_PEN,
         /** Pointing hand, Qt::PointingHandCursor*/
         CURSOR_POINTING_HAND,
         /** Wait, Qt::WaitCursor*/
-        CURSOR_WAIT
+        CURSOR_WAIT,
+        /** What's this? Arrow with question mark */
+        CURSOR_WHATS_THIS
     };
 
 

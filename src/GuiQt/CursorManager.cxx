@@ -61,12 +61,14 @@ CursorManager::CursorManager()
 {
     this->defaultCursor = QCursor();
     this->arrowCursor = QCursor(Qt::ArrowCursor);
+    this->crossCursor = QCursor(Qt::CrossCursor);
     this->penCursor     = this->loadCursor(":/cursor_pen_eraser_32x32.png", 
                                            6, 
                                            32 - 7, 
                                            Qt::UpArrowCursor);
     this->pointingHandCursor = QCursor(Qt::PointingHandCursor);
     this->waitCursor = QCursor(Qt::WaitCursor);
+    this->whatsThisCursor = QCursor(Qt::WhatsThisCursor);
 }
 
 /**
@@ -95,6 +97,9 @@ CursorManager::setCursorForWidget(QWidget* widget,
         case CursorEnum::CURSOR_ARROW:
             widget->setCursor(this->arrowCursor);
             break;
+        case CursorEnum::CURSOR_CROSS:
+            widget->setCursor(this->crossCursor);
+            break;
         case CursorEnum::CURSOR_DRAWING_PEN:
             widget->setCursor(this->penCursor);
             break;
@@ -103,6 +108,9 @@ CursorManager::setCursorForWidget(QWidget* widget,
             break;
         case CursorEnum::CURSOR_WAIT:
             widget->setCursor(this->waitCursor);
+            break;
+        case CursorEnum::CURSOR_WHATS_THIS:
+            widget->setCursor(this->whatsThisCursor);
             break;
     }
 }

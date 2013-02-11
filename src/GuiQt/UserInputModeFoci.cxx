@@ -368,19 +368,24 @@ UserInputModeFoci::getCursor() const
     
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
-//    switch (this->mode) {
-//        case MODE_DRAW:
-//            if (this->borderToolsWidget->isDrawModeTransformSelected() == false) {
-//                cursor = CursorEnum::CURSOR_DRAWING_PEN;
-//            }
-//            break;
-//        case MODE_EDIT:
-//            cursor = CursorEnum::CURSOR_POINTING_HAND;
-//            break;
-//        case MODE_ROI:
-//            cursor = CursorEnum::CURSOR_POINTING_HAND;
-//            break;
-//    }
+    switch (m_mode) {
+        case MODE_CREATE:
+            break;
+        case MODE_EDIT:
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            switch (m_editOperation) {
+                case EDIT_OPERATION_DELETE:
+                    cursor = CursorEnum::CURSOR_CROSS;
+                    break;
+                case EDIT_OPERATION_PROPERTIES:
+                    cursor = CursorEnum::CURSOR_WHATS_THIS;
+                    break;
+            }
+            break;
+        case MODE_OPERATIONS:
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            break;
+    }
     
     return cursor;
 }

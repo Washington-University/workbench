@@ -64,10 +64,12 @@ namespace caret {
                            const Qt::CursorShape& cursorShapeIfImageLoadingFails) const;
         
         QCursor arrowCursor;
+        QCursor crossCursor;
         QCursor defaultCursor;
         QCursor penCursor;
         QCursor pointingHandCursor;
         QCursor waitCursor;
+        QCursor whatsThisCursor;
         
     };
     
