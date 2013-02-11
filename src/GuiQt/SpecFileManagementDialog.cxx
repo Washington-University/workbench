@@ -41,6 +41,7 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QMenu>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QToolButton>
@@ -59,6 +60,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
+#include "GuiManager.h"
 #include "ProgressReportingDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
@@ -801,8 +803,9 @@ m_specFile(specFile)
     WuQtUtilities::setLayoutMargins(toolbarLayout, 0, 0);
     toolbarLayout->addWidget(createFilesTypesToolBar());
     toolbarLayout->addWidget(createStructureToolBar());
-    toolbarLayout->addWidget(createFilesSelectionToolBar());
-    
+    if (enableOpenItems) {
+        toolbarLayout->addWidget(createFilesSelectionToolBar());
+    }
     setTopBottomAndCentralWidgets(toolbarWidget,
                                   centralWidget,
                                   NULL,
@@ -861,9 +864,7 @@ SpecFileManagementDialog::okButtonClickedOpenSpecFile()
     
     errorMessages.appendWithNewLine(readSpecFileEvent.getErrorMessage());
     
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateGraphicWindowsAndUserInterface();
     
     if (errorMessages.isEmpty() == false) {
         WuQMessageBox::errorOk(this,
@@ -1049,10 +1050,20 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int indx)
     
     guiSpecFileDataFile->updateContent();
     
+    updateGraphicWindowsAndUserInterface();
+}
+
+/**
+ * Updates graphics windows and user interface
+ */
+void
+SpecFileManagementDialog::updateGraphicWindowsAndUserInterface()
+{
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
 
 /**
  * Called when a file options button is clicked.
@@ -1063,10 +1074,48 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int indx)
 void
 SpecFileManagementDialog::fileOptionsActionSelected(int indx)
 {
-    const QString msg = ("Will allow removing files from memory, editing metadata, etc.");
     GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
-    WuQMessageBox::informationOk(guiSpecFileDataFile->m_optionsToolButton,
-                                 msg);
+    SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
+
+    const QString menuTextUnload("Unload File");
+    const QString menuTextUnloadMap("Unload Map(s) from File");
+    const QString menuTextMetaEdit("Metadata...");
+    
+    QAction *unloadFileAction = NULL;
+    QAction *unloadFileMapsAction = NULL;
+    
+    QMenu menu;
+    QAction *metadataAction = menu.addAction("Edit Metadata...");
+    metadataAction->setEnabled(false);
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+            if (specFileDataFile->getCaretDataFile() != NULL) {
+                unloadFileAction = menu.addAction("Unload File");
+                unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
+                unloadFileMapsAction->setEnabled(false);
+            }
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+    }
+    
+    QAction* selectedAction = menu.exec(QCursor::pos());
+    if (selectedAction == unloadFileAction) {
+        CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
+        GuiManager::get()->getBrain()->removeDataFile(cdf);
+        guiSpecFileDataFile->updateContent();
+        updateGraphicWindowsAndUserInterface();
+    }
+    else if (selectedAction == unloadFileMapsAction) {
+        
+    }
+    else if (selectedAction == metadataAction) {
+        
+    }
+    else if (selectedAction != NULL) {
+        CaretAssertMessage(0,
+                           ("Unhandled Menu Action: " + selectedAction->text()));
+    }
 }
 
 /**

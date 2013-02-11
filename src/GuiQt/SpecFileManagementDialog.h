@@ -144,6 +144,8 @@ namespace caret {
         
         GuiSpecFileDataFile* getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex);
         
+        void updateGraphicWindowsAndUserInterface();
+        
         void updateDisplayedFiles();
         
         virtual void okButtonClicked();

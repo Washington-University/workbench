@@ -379,8 +379,9 @@ SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
 /**
  * Remove a Caret Data File.
  *
- * @param If there is a a spec file entry with the same name as the Caret
- * Data File, the caret data file is removed from the spec file entry.
+ * @param If there is a a spec file entry with the given caret data file
+ * remove it.  Note: file has likely already been deleted so only the
+ * the caret data file pointer but to not deference it.
  *
  * @param caretDataFile
  *    Caret data file that is removed from a spec file entry.
@@ -397,25 +398,18 @@ SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        if (dataFileTypeGroup->getDataFileType() == caretDataFile->getDataFileType()) {
-            /*
-             * If already in file, no need to add it a second time but do update
-             * its selection status if new entry has file selected
-             */
-            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
-            for (int32_t i = 0; i < numFiles; i++) {
-                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
-                if (sfdf->getFileName() == caretDataFile->getFileName()) {
-                    if (sfdf->getCaretDataFile() == caretDataFile) {
-                        sfdf->setCaretDataFile(NULL);
-                    }
-                }
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+            if (sfdf->getCaretDataFile() == caretDataFile) {
+                sfdf->setCaretDataFile(NULL);
+                return;
             }
         }
     }
     
-    CaretLogSevere("Failed to remove CaretDataFile "
-                   + caretDataFile->getFileName()
+    CaretLogSevere("Failed to remove CaretDataFile at "
+                   + AString::number((qulonglong)caretDataFile)
                    + " to SpecFile: "
                    + getFileName());
 }

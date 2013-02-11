@@ -3892,6 +3892,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     }
 
     bool wasRemoved = false;
+    CaretDataFile* caretDataFileForRemovalFromSpecFile = caretDataFile;
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
@@ -4070,7 +4071,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     }
     
     if (wasRemoved) {
-        m_specFile->removeCaretDataFile(caretDataFile);
+        m_specFile->removeCaretDataFile(caretDataFileForRemovalFromSpecFile);
         
         updateVolumeSliceController();
         updateWholeBrainController();
