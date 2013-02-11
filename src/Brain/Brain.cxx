@@ -3046,8 +3046,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
     for (int32_t ig = -1; ig < numFileGroups; ig++) {
         const SpecFileDataFileTypeGroup* group = ((ig == -1)
-                                               ? sf->getDataFileTypeGroup(DataFileTypeEnum::PALETTE)
-                                               : sf->getDataFileTypeGroup(ig));
+                                               ? sf->getDataFileTypeGroupByType(DataFileTypeEnum::PALETTE)
+                                               : sf->getDataFileTypeGroupByIndex(ig));
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         if (ig >= 0) {
             if (dataFileType == DataFileTypeEnum::PALETTE) {
@@ -3281,11 +3281,11 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     
     const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
-        SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroup(ig);
+        const SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroupByIndex(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
-            SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
+            const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
             if (fileInfo->isSelected()) {
                 AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();

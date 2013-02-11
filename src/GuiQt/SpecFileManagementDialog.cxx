@@ -279,7 +279,7 @@ m_specFile(specFile)
         /*
          * File type of group
          */
-        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroup(ig);
+        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroupByIndex(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         
         std::vector<SpecFileDataFile*> dataFileInfoVector;

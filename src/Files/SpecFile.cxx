@@ -988,7 +988,7 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
     //
     const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
     for (int32_t i = 0; i < numGroups; i++) {
-        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroupByIndex(i);
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t j = 0; j < numFiles; j++) {
             SpecFileDataFile* file = group->getFileInformation(j);
@@ -1150,7 +1150,7 @@ SpecFile::getNumberOfDataFileTypeGroups() const
  * @return Data file type group at given index.
  */
 SpecFileDataFileTypeGroup* 
-SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex)
+SpecFile::getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex)
 {
     CaretAssertVectorIndex(this->dataFileTypeGroups, dataFileTypeGroupIndex);
     return this->dataFileTypeGroups[dataFileTypeGroupIndex];
@@ -1163,7 +1163,7 @@ SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex)
  * @return Data file type group at given index.
  */
 const SpecFileDataFileTypeGroup* 
-SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex) const
+SpecFile::getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex) const
 {
     CaretAssertVectorIndex(this->dataFileTypeGroups, dataFileTypeGroupIndex);
     return this->dataFileTypeGroups[dataFileTypeGroupIndex];
@@ -1177,9 +1177,9 @@ SpecFile::getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex) const
  *    NULL if no matching item found.
  */
 SpecFileDataFileTypeGroup* 
-SpecFile::getDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType)
+SpecFile::getDataFileTypeGroupByType(const DataFileTypeEnum::Enum dataFileType) const
 {
-    for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
      iter != dataFileTypeGroups.end();
      iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
@@ -1299,7 +1299,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
     //
     const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
     for (int32_t i = 0; i < numGroups; i++) {
-        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+        SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroupByIndex(i);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         if (dataFileType == DataFileTypeEnum::SCENE) {
             //CaretLogInfo("Note: Scene files not added to scene at this time");

@@ -106,11 +106,11 @@ namespace caret {
         
         int32_t getNumberOfDataFileTypeGroups() const;
         
-        SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex);
+        SpecFileDataFileTypeGroup* getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex);
         
-        const SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex) const;
+        const SpecFileDataFileTypeGroup* getDataFileTypeGroupByIndex(const int32_t dataFileTypeGroupIndex) const;
         
-        SpecFileDataFileTypeGroup* getDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType);
+        SpecFileDataFileTypeGroup* getDataFileTypeGroupByType(const DataFileTypeEnum::Enum dataFileType) const;
         
         void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         
