@@ -1170,6 +1170,7 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         clf->readFile(filename);
+        clf->updateScalarColoringForAllMaps(m_paletteFile);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull == NULL) {
@@ -3037,11 +3038,22 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                                        fileReadCounter,
                                        "Starting to read selected files");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
-    
+
+    /*
+     * Note: Need to read palette first since some of the individual file
+     * reading routines update palette coloring when file is read
+     */
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
-    for (int32_t ig = 0; ig < numFileGroups; ig++) {
-        const SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
+    for (int32_t ig = -1; ig < numFileGroups; ig++) {
+        const SpecFileDataFileTypeGroup* group = ((ig == -1)
+                                               ? sf->getDataFileTypeGroup(DataFileTypeEnum::PALETTE)
+                                               : sf->getDataFileTypeGroup(ig));
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
+        if (ig >= 0) {
+            if (dataFileType == DataFileTypeEnum::PALETTE) {
+                continue;
+            }
+        }
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
             const SpecFileDataFile* dataFileInfo = group->getFileInformation(iFile);
