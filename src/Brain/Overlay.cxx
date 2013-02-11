@@ -737,7 +737,7 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 const AString fileName = mapFile->getFileNameNoPath();
                 if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
-                    const int mapIndex = mapFile->getMapIndexFromUniqueID(m_selectedMapUniqueID);
+                    const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
                     if (mapIndex >= 0) {
                         setSelectionData(mapFile, 
                                          mapIndex);
