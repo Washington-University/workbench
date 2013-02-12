@@ -1105,14 +1105,14 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
     /*
      * Get volume attributes and make sure orthogonal
      */
-    VolumeFile::OrientTypes orientation[3];
-    int64_t dimensions[3];
-    float origin[3];
-    float spacing[3];
-    if (ciftiInterface->getVolumeAttributesForPlumb(orientation,
-                                                    dimensions,
-                                                    origin,
-                                                    spacing)) {
+    VolumeFile::OrientTypes ciftiOrientation[3];
+    int64_t ciftiDimensions[3];
+    float ciftiOrigin[3];
+    float ciftiSpacing[3];
+    if (ciftiInterface->getVolumeAttributesForPlumb(ciftiOrientation,
+                                                    ciftiDimensions,
+                                                    ciftiOrigin,
+                                                    ciftiSpacing)) {
         bool createVolumeFlag = false;
         
         if (m_volumeFile == NULL) {
@@ -1127,9 +1127,9 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
              */
             int64_t dimI, dimJ, dimK, dimTime, numComp;
             m_volumeFile->getDimensions(dimI, dimJ, dimK, dimTime, numComp);
-            if ((dimI != dimensions[0])
-                || (dimJ != dimensions[1])
-                || (dimK != dimensions[2])) {
+            if ((dimI != ciftiDimensions[0])
+                || (dimJ != ciftiDimensions[1])
+                || (dimK != ciftiDimensions[2])) {
                 createVolumeFlag = true;
             }
             else {
@@ -1141,15 +1141,15 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
                 const float dz = z1 - z0;
                 
                 const float diffOrigin[3] = {
-                    std::fabs(x0 - origin[0]),
-                    std::fabs(y0 - origin[1]),
-                    std::fabs(z0 - origin[2])
+                    std::fabs(x0 - ciftiOrigin[0]),
+                    std::fabs(y0 - ciftiOrigin[1]),
+                    std::fabs(z0 - ciftiOrigin[2])
                 };
                 
                 const float diffSpacing[3] = {
-                    std::fabs(dx - spacing[0]),
-                    std::fabs(dy - spacing[1]),
-                    std::fabs(dz - spacing[2]),
+                    std::fabs(dx - ciftiSpacing[0]),
+                    std::fabs(dy - ciftiSpacing[1]),
+                    std::fabs(dz - ciftiSpacing[2]),
                 };
                 
                 const float maxDiff = 0.0001;
@@ -1171,27 +1171,27 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
          */
         if (createVolumeFlag) {
             std::vector<int64_t> dimensionsNew;
-            dimensionsNew.push_back(dimensions[0]);
-            dimensionsNew.push_back(dimensions[1]);
-            dimensionsNew.push_back(dimensions[2]);
+            dimensionsNew.push_back(ciftiDimensions[0]);
+            dimensionsNew.push_back(ciftiDimensions[1]);
+            dimensionsNew.push_back(ciftiDimensions[2]);
             
             std::vector<float> row1;
-            row1.push_back(spacing[0]);
+            row1.push_back(ciftiSpacing[0]);
             row1.push_back(0.0);
             row1.push_back(0.0);
-            row1.push_back(origin[0]);
+            row1.push_back(ciftiOrigin[0]);
             
             std::vector<float> row2;
             row2.push_back(0.0);
-            row2.push_back(spacing[1]);
+            row2.push_back(ciftiSpacing[1]);
             row2.push_back(0.0);
-            row2.push_back(origin[1]);
+            row2.push_back(ciftiOrigin[1]);
             
             std::vector<float> row3;
             row3.push_back(0.0);
             row3.push_back(0.0);
-            row3.push_back(spacing[2]);
-            row3.push_back(origin[2]);
+            row3.push_back(ciftiSpacing[2]);
+            row3.push_back(ciftiOrigin[2]);
             
             std::vector<std::vector<float> > indexToSpace;
             indexToSpace.push_back(row1);
@@ -1200,13 +1200,27 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
             
             int64_t numComponents = 1;
             
-            m_volumeFile.grabNew(new VolumeFile(dimensionsNew,
-                                                indexToSpace,
-                                                numComponents));
+            VolumeFile* vf = new VolumeFile(dimensionsNew,
+                                            indexToSpace,
+                                            numComponents);
+            
+//            /*
+//             * For comparison with CIFTI volume.
+//             */
+//            VolumeFile::OrientTypes volumeOrientation[3];
+//            std::vector<int64_t> volumeDimensions;
+//            float volumeOrigin[3];
+//            float volumeSpacing[3];
+//            float volumeCenter[3];
+//            vf->getOrientAndSpacingForPlumb(volumeOrientation,
+//                                            volumeSpacing,
+//                                            volumeCenter);
+//            vf->getDimensions(volumeDimensions);
+//            vf->indexToSpace(0, 0, 0, volumeOrigin);
+            
+            m_volumeFile.grabNew(vf);
         }
-        
     }
-
 }
 
 ///**
