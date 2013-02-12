@@ -47,6 +47,7 @@
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
 #include "DescriptiveStatistics.h"
+#include "EventCaretMappableDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
@@ -1602,8 +1603,6 @@ MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
     
     return optionsGroupBox;
 }
-
-#include "EventCaretMappableDataFilesGet.h"
 
 /**
  * Allows user to select files to which palette settings are applied.
