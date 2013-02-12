@@ -4657,7 +4657,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
                     VolumeFile* vf = volInfo.volumeFile;
-                    const int64_t mapIndex = volInfo.mapIndex;
+//                    const int64_t mapIndex = volInfo.mapIndex;
                     bool valid = false;
 //                    float voxel = 0;
                         int64_t iVoxel, jVoxel, kVoxel;
