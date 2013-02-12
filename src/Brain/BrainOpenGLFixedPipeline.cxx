@@ -2410,9 +2410,18 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
                         
                         if (vf->isMappedWithPalette()) {
-                            PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+                            PaletteColorMapping* paletteColorMapping = NULL;
                             if (connLoadFile != NULL) {
                                 paletteColorMapping = connLoadFile->getPaletteColorMapping(mapIndex);
+                            }
+                            else if (ciftiMatrixFile != NULL) {
+                                paletteColorMapping = ciftiMatrixFile->getMapPaletteColorMapping(mapIndex);
+                            }
+                            else if (ciftiBrainFile != NULL) {
+                                paletteColorMapping = ciftiBrainFile->getMapPaletteColorMapping(mapIndex);
+                            }
+                            else {
+                                paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
                             }
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
                             if (palette != NULL) {

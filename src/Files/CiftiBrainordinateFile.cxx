@@ -305,8 +305,8 @@ CiftiBrainordinateFile::isVolumeMappable() const
 int32_t
 CiftiBrainordinateFile::getNumberOfMaps() const
 {
-    return 1;
-//    return m_mapContent.size();
+//    return 1;
+    return m_mapContent.size();
 }
 
 /**
@@ -670,8 +670,9 @@ CiftiBrainordinateFile::updateScalarColoringForMap(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    m_mapContent[mapIndex]->updateColoring(mapIndex,
-                                           paletteFile);
+//    m_mapContent[mapIndex]->updateColoring(mapIndex,
+//                                           paletteFile);
+    m_mapContent[mapIndex]->updateColoring(paletteFile);
 }
 
 /**
@@ -1208,6 +1209,83 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
 
 }
 
+///**
+// * Update coloring for this map.
+// *
+// * @param mapIndex
+// *    Index of map.
+// * @param paletteFile
+// *    File containing the palettes.
+// */
+//void
+//CiftiBrainordinateFile::MapContent::updateColoring(const int32_t mapIndex,
+//                                                            const PaletteFile* paletteFile)
+//{
+//    if (m_data.empty()) {
+//        return;
+//    }
+//    
+//    switch (m_mapContentDataType) {
+//        case MAP_CONTENT_DATA_TYPE_LABELS:
+//            NodeAndVoxelColoring::colorIndicesWithLabelTable(m_labelTable,
+//                                                             &m_data[0],
+//                                                             m_dataCount,
+//                                                             &m_rgba[0]);
+//            break;
+//        case MAP_CONTENT_DATA_TYPE_SCALARS:
+//        {
+//            CaretAssert(m_paletteColorMapping);
+//            CaretAssert(paletteFile);
+//            const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
+//            const Palette* palette = paletteFile->getPaletteByName(paletteName);
+//            if (palette != NULL) {
+//                NodeAndVoxelColoring::colorScalarsWithPalette(getFastStatistics(),
+//                                                              m_paletteColorMapping,
+//                                                              palette,
+//                                                              &m_data[0],
+//                                                              &m_data[0],
+//                                                              m_dataCount,
+//                                                              &m_rgba[0]);
+//            }
+//            else {
+//                CaretLogWarning("Missing palette named \""
+//                                + paletteName
+//                                + "\" for coloring connectivity data");
+//            }
+//        }
+//            break;
+//    }
+//    
+//    CaretLogFine("Connectivity Data Average/Min/Max: "
+//                 + QString::number(m_fastStatistics->getMean())
+//                 + " "
+//                 + QString::number(m_fastStatistics->getMostNegativeValue())
+//                 + " "
+//                 + QString::number(m_fastStatistics->getMostPositiveValue()));
+//    
+//    
+//    if (m_ciftiToVolumeMapping.empty() == false) {
+//        /*
+//         * Update colors in map.
+//         */
+//        CaretAssert(m_volumeFile);
+//        m_volumeFile->clearVoxelColoringForMap(mapIndex);
+//        
+//        for (std::vector<CiftiVolumeMap>::const_iterator iter = m_ciftiToVolumeMapping.begin();
+//             iter != m_ciftiToVolumeMapping.end();
+//             iter++) {
+//            const CiftiVolumeMap& vm = *iter;
+//            const int64_t dataRGBAIndex = vm.m_ciftiIndex * 4;
+//            const float* rgba = &m_rgba[dataRGBAIndex];
+//            m_volumeFile->setVoxelColorInMap(vm.m_ijk[0],
+//                                             vm.m_ijk[1],
+//                                             vm.m_ijk[2],
+//                                             mapIndex,
+//                                             rgba);
+//        }
+//    }
+//}
+
 /**
  * Update coloring for this map.
  *
@@ -1217,8 +1295,7 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
  *    File containing the palettes.
  */
 void
-CiftiBrainordinateFile::MapContent::updateColoring(const int32_t mapIndex,
-                                                            const PaletteFile* paletteFile)
+CiftiBrainordinateFile::MapContent::updateColoring(const PaletteFile* paletteFile)
 {
     if (m_data.empty()) {
         return;
@@ -1268,7 +1345,7 @@ CiftiBrainordinateFile::MapContent::updateColoring(const int32_t mapIndex,
          * Update colors in map.
          */
         CaretAssert(m_volumeFile);
-        m_volumeFile->clearVoxelColoringForMap(mapIndex);
+        m_volumeFile->clearVoxelColoringForMap(0);
         
         for (std::vector<CiftiVolumeMap>::const_iterator iter = m_ciftiToVolumeMapping.begin();
              iter != m_ciftiToVolumeMapping.end();
@@ -1279,7 +1356,7 @@ CiftiBrainordinateFile::MapContent::updateColoring(const int32_t mapIndex,
             m_volumeFile->setVoxelColorInMap(vm.m_ijk[0],
                                              vm.m_ijk[1],
                                              vm.m_ijk[2],
-                                             mapIndex,
+                                             0,
                                              rgba);
         }
     }

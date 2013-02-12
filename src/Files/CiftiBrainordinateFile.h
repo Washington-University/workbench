@@ -180,9 +180,11 @@ namespace caret {
             
             ~MapContent();
             
-            void updateColoring(const int32_t mapIndex,
-                                const PaletteFile* paletteFile);
+//            void updateColoring(const int32_t mapIndex,
+//                                const PaletteFile* paletteFile);
 
+            void updateColoring(const PaletteFile* paletteFile);
+            
             void createVolume(const CiftiInterface* ciftiInterface);
             
             const FastStatistics* getFastStatistics();
