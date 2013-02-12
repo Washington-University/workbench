@@ -54,6 +54,7 @@ namespace caret {
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class CaretMappableDataFile;
     class FastStatistics;
     class DisplayPropertiesFiberOrientation;
     class DescriptiveStatistics;
@@ -110,7 +111,8 @@ namespace caret {
     private:
         class VolumeDrawInfo {
         public:
-            VolumeDrawInfo(VolumeFile* volumeFile,
+            VolumeDrawInfo(CaretMappableDataFile* mapFile,
+                           VolumeFile* volumeFile,
                            Brain* brain,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
@@ -118,6 +120,7 @@ namespace caret {
                            const int32_t mapIndex,
                            const float opacity);
             Brain* brain;
+            CaretMappableDataFile* mapFile;
             VolumeFile* volumeFile;
             SubvolumeAttributes::VolumeType volumeType;
             PaletteColorMapping* paletteColorMapping;

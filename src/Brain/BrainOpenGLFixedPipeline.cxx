@@ -2390,13 +2390,14 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
                     CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapFile);
                     if (connLoadFile != NULL) {
-                        vf = connLoadFile->getConnectivityVolumeFile();  
+                        vf = connLoadFile->getConnectivityVolumeFile();
                     }
                     else if (ciftiMatrixFile != NULL) {
                         vf = ciftiMatrixFile->getMapVolume(mapIndex);
                     }
                     else if (ciftiBrainFile != NULL) {
                         vf = ciftiBrainFile->getMapVolume(mapIndex);
+
                     }
                     else {
                         vf = dynamic_cast<VolumeFile*>(mapFile);
@@ -2409,20 +2410,24 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         
                         WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
                         
-                        if (vf->isMappedWithPalette()) {
-                            PaletteColorMapping* paletteColorMapping = NULL;
-                            if (connLoadFile != NULL) {
-                                paletteColorMapping = connLoadFile->getPaletteColorMapping(mapIndex);
-                            }
-                            else if (ciftiMatrixFile != NULL) {
-                                paletteColorMapping = ciftiMatrixFile->getMapPaletteColorMapping(mapIndex);
-                            }
-                            else if (ciftiBrainFile != NULL) {
-                                paletteColorMapping = ciftiBrainFile->getMapPaletteColorMapping(mapIndex);
-                            }
-                            else {
-                                paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
-                            }
+                        if (mapFile->isMappedWithPalette()) {
+                            const FastStatistics* statistics = mapFile->getMapFastStatistics(mapIndex);
+                            PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
+//                            if (connLoadFile != NULL) {
+//                                paletteColorMapping = connLoadFile->getPaletteColorMapping(mapIndex);
+//                                statistics = const_cast<FastStatistics*>(connLoadFile->getMapFastStatistics(mapIndex));
+//                            }
+//                            else if (ciftiMatrixFile != NULL) {
+//                                paletteColorMapping = ciftiMatrixFile->getMapPaletteColorMapping(mapIndex);
+//                                statistics = const_cast<FastStatistics*>(ciftiMatrixFile->getMapFastStatistics(mapIndex));
+//                            }
+//                            else if (ciftiBrainFile != NULL) {
+//                                paletteColorMapping = ciftiBrainFile->getMapPaletteColorMapping(mapIndex);
+//                                statistics = const_cast<FastStatistics*>(ciftiBrainFile->getMapFastStatistics(mapIndex));                            }
+//                            else {
+//                                paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+//                                statistics = const_cast<FastStatistics*>(vf->getMapFastStatistics(mapIndex));
+//                            }
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
                             if (palette != NULL) {
                                 bool useIt = true;
@@ -2441,12 +2446,13 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     }
                                 }
                                 if (useIt) {
-                                    const FastStatistics* statistics = 
-                                        (connLoadFile != NULL) 
-                                        ? connLoadFile->getMapFastStatistics(mapIndex)
-                                        : vf->getMapFastStatistics(mapIndex);
+//                                    const FastStatistics* statistics = 
+//                                        (connLoadFile != NULL) 
+//                                        ? connLoadFile->getMapFastStatistics(mapIndex)
+//                                        : vf->getMapFastStatistics(mapIndex);
                                     
-                                        VolumeDrawInfo vdi(vf,
+                                        VolumeDrawInfo vdi(mapFile,
+                                                           vf,
                                                            brain,
                                                            paletteColorMapping,
                                                            statistics,
@@ -2462,7 +2468,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             }
                         }
                         else {
-                            VolumeDrawInfo vdi(vf,
+                            VolumeDrawInfo vdi(mapFile,
+                                               vf,
                                                brain,
                                                NULL,
                                                NULL,
@@ -3259,10 +3266,36 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get colors for all voxels in the slice.
              */
-            volumeFile->getVoxelColorsForSliceInMap(mapIndex,
-                                                    slicePlane,
-                                                    drawingSliceIndex,
-                                                    sliceVoxelsRGBA);
+            CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
+            ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
+            CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
+            if (connLoadFile != NULL) {
+                VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
+                vf->getVoxelColorsForSliceInMap(0,
+                                                slicePlane,
+                                                drawingSliceIndex,
+                                                sliceVoxelsRGBA);
+            }
+            else if (ciftiMatrixFile != NULL) {
+                VolumeFile* vf = ciftiMatrixFile->getMapVolume(mapIndex);
+                vf->getVoxelColorsForSliceInMap(0,
+                                                slicePlane,
+                                                drawingSliceIndex,
+                                                sliceVoxelsRGBA);
+            }
+            else if (ciftiBrainFile != NULL) {
+                VolumeFile* vf = ciftiBrainFile->getMapVolume(mapIndex);
+                vf->getVoxelColorsForSliceInMap(0,
+                                                slicePlane,
+                                                drawingSliceIndex,
+                                                sliceVoxelsRGBA);
+            }
+            else {
+                volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+                                                        slicePlane,
+                                                        drawingSliceIndex,
+                                                        sliceVoxelsRGBA);
+            }
 //            this->colorizeVoxels(volInfo,
 //                                 sliceVoxelValues,
 //                                 sliceVoxelValues,
@@ -4283,15 +4316,45 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
         
+        CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
+        ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
+        CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
+
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-                    volumeFile->getVoxelColorInMap(iVoxel,
-                                                   jVoxel,
-                                                   kVoxel,
-                                                   volInfo.mapIndex,
-                                                   rgba);
+                    if (connLoadFile != NULL) {
+                        VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
+                        vf->getVoxelColorInMap(iVoxel,
+                                               jVoxel,
+                                               kVoxel,
+                                               0,
+                                               rgba);
+                    }
+                    else if (ciftiMatrixFile != NULL) {
+                        VolumeFile* vf = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
+                        vf->getVoxelColorInMap(iVoxel,
+                                               jVoxel,
+                                               kVoxel,
+                                               0,
+                                               rgba);
+                    }
+                    else if (ciftiBrainFile != NULL) {
+                        VolumeFile* vf = ciftiBrainFile->getMapVolume(volInfo.mapIndex);
+                        vf->getVoxelColorInMap(iVoxel,
+                                               jVoxel,
+                                               kVoxel,
+                                               0,
+                                               rgba);
+                    }
+                    else {
+                        volumeFile->getVoxelColorInMap(iVoxel,
+                                                       jVoxel,
+                                                       kVoxel,
+                                                       volInfo.mapIndex,
+                                                       rgba);
+                    }
                     if (rgba[3] > 0) {
                         if (volInfo.opacity < 1.0) {
                             rgba[3] *= volInfo.opacity;
@@ -4599,18 +4662,59 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
 //                    float voxel = 0;
                         int64_t iVoxel, jVoxel, kVoxel;
                         vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
-                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
-//                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
-                            valid = true;
-                        }
+//                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
+////                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
+//                            valid = true;
+//                        }
                     
-                    if (valid) {
+                        CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
+                        ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
+                        CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
+                        
                         uint8_t rgba[4];
-                        vf->getVoxelColorInMap(iVoxel,
-                                               jVoxel,
-                                               kVoxel,
-                                               mapIndex,
-                                               rgba);
+                        if (connLoadFile != NULL) {
+                            VolumeFile* vol = connLoadFile->getConnectivityVolumeFile();
+                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
+                                valid = true;
+                                vol->getVoxelColorInMap(iVoxel,
+                                                        jVoxel,
+                                                        kVoxel,
+                                                        0,
+                                                        rgba);
+                            }
+                        }
+                        else if (ciftiMatrixFile != NULL) {
+                            VolumeFile* vol = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
+                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
+                                valid = true;
+                                vol->getVoxelColorInMap(iVoxel,
+                                                        jVoxel,
+                                                        kVoxel,
+                                                        0,
+                                                        rgba);
+                            }
+                        }
+                        else if (ciftiBrainFile != NULL) {
+                            VolumeFile* vol = ciftiBrainFile->getMapVolume(volInfo.mapIndex);
+                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
+                                valid = true;
+                                vol->getVoxelColorInMap(iVoxel,
+                                                        jVoxel,
+                                                        kVoxel,
+                                                        0,
+                                                        rgba);
+                            }
+                        }
+                        else {
+                            if (vf->indexValid(iVoxel, jVoxel, kVoxel, volInfo.mapIndex)) {
+                                valid = true;
+                                vf->getVoxelColorInMap(iVoxel,
+                                                       jVoxel,
+                                                       kVoxel,
+                                                       volInfo.mapIndex,
+                                                       rgba);
+                            }
+                        }
 //                        this->colorizeVoxels(volInfo,
 //                                             &voxel,
 //                                             &voxel,
@@ -4624,6 +4728,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
 //                                                                      &voxel,
 //                                                                      1,
 //                                                                      rgba);
+                if (valid) {
                         if (rgba[3] > 0) {
                             bool useOpacity = false;
                             if (iVol > 0) {
@@ -8739,7 +8844,8 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
 /**
  * Constructor.
  */
-BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
+BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* mapFile,
+                                                         VolumeFile* volumeFile,
                                                          Brain* brain,
                                                          PaletteColorMapping* paletteColorMapping,
                                                          const FastStatistics* statistics,
@@ -8747,6 +8853,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                          const int32_t mapIndex,
                                                          const float opacity) 
 : statistics(statistics) {
+    this->mapFile = mapFile;
     this->volumeFile = volumeFile;
     this->brain = brain;
     this->volumeType = volumeFile->getType();
