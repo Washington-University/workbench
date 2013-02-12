@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include <set>
 #include <stdint.h> // needed by windows
 #include <QWidget>
 
@@ -34,6 +35,7 @@ class QDoubleSpinBox;
 class QComboBox;
 class QLabel;
 class QLayout;
+class QPushButton;
 class QRadioButton;
 class QwtPlot;
 
@@ -80,6 +82,8 @@ namespace caret {
         
         void applyAllMapsCheckBoxStateChanged(int state);
         
+        void applyToMultipleFilesPushbuttonClicked();
+        
     private:
         QWidget* createPaletteSection();
         QWidget* createThresholdSection();
@@ -100,6 +104,7 @@ namespace caret {
         QComboBox* paletteNameComboBox;
         
         QCheckBox* applyAllMapsCheckBox;
+        QPushButton* applyToMultipleFilesPushButton;
         
         QRadioButton* scaleAutoRadioButton;
         QRadioButton* scaleAutoPercentageRadioButton;
@@ -151,6 +156,8 @@ namespace caret {
         CaretMappableDataFile* caretMappableDataFile;
         
         int32_t mapFileIndex;
+        
+        std::set<CaretMappableDataFile*> previousApplyPaletteToMapFilesSelected;
         
         WuQWidgetObjectGroup* paletteWidgetGroup;
         WuQWidgetObjectGroup* thresholdWidgetGroup;

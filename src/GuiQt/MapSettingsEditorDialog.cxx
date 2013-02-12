@@ -110,6 +110,8 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
 
     this->setCentralWidget(w);
     this->addWidgetToLeftOfButtons(windowOptionsWidget);
+    
+    disableAutoDefaultForAllPushButtons();
 }
 
 /**

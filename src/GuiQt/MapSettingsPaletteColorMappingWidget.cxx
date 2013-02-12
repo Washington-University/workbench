@@ -35,6 +35,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
 #include <QToolButton>
@@ -58,6 +59,7 @@
 #include "PaletteFile.h"
 #include "PaletteEnums.h"
 #include "VolumeFile.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
 #include "WuQtUtilities.h"
@@ -1577,19 +1579,99 @@ MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(int /*sta
 QWidget*
 MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
 {
-    this->applyAllMapsCheckBox = new QCheckBox("Apply to File");
+    this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
     QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(applyAndUpdate()));
     this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
                                            "in the file containing the selected map");
     
+    this->applyToMultipleFilesPushButton = new QPushButton("Apply to Files...");
+    const QString tt("Displays a dialog that allows selection of data files to which the "
+                     "palette settings are applied.");
+    this->applyToMultipleFilesPushButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(tt));
+    QObject::connect(this->applyToMultipleFilesPushButton, SIGNAL(clicked()),
+                     this, SLOT(applyToMultipleFilesPushbuttonClicked()));
+    
     QGroupBox* optionsGroupBox = new QGroupBox("Data Options");
     QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
     this->setLayoutMargins(optionsLayout);
     optionsLayout->addWidget(this->applyAllMapsCheckBox);
+    optionsLayout->addWidget(this->applyToMultipleFilesPushButton);
     optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
                                                QSizePolicy::Fixed));
     
     return optionsGroupBox;
 }
+
+#include "EventCaretMappableDataFilesGet.h"
+
+/**
+ * Allows user to select files to which palette settings are applied.
+ */
+void
+MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
+{
+    EventCaretMappableDataFilesGet mapFilesGet;
+    EventManager::get()->sendEvent(mapFilesGet.getPointer());
+    
+    std::vector<CaretMappableDataFile*> mappableFiles;
+    mapFilesGet.getAllFiles(mappableFiles);
+    
+    const QString filePointerPropertyName("filePointer");
+    
+    WuQDataEntryDialog ded("Apply Palettes Settings",
+                           this->applyToMultipleFilesPushButton,
+                           true);
+    ded.setTextAtTop("Palette settings will be applied to all maps in the selected files.",
+                     true);
+    
+    std::vector<QCheckBox*> mapFileCheckBoxes;
+    for (std::vector<CaretMappableDataFile*>::iterator iter = mappableFiles.begin();
+         iter != mappableFiles.end();
+         iter++) {
+        CaretMappableDataFile* cmdf = *iter;
+        if (cmdf->isMappedWithPalette()) {
+            QCheckBox* cb = ded.addCheckBox(cmdf->getFileNameNoPath());
+            cb->setProperty(filePointerPropertyName.toAscii().constData(),
+                            qVariantFromValue((void*)cmdf));
+            mapFileCheckBoxes.push_back(cb);
+            
+            if (previousApplyPaletteToMapFilesSelected.find(cmdf) != previousApplyPaletteToMapFilesSelected.end()) {
+                cb->setChecked(true);
+            }
+        }
+    }
+    
+    previousApplyPaletteToMapFilesSelected.clear();
+    
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        
+        for (std::vector<QCheckBox*>::iterator iter = mapFileCheckBoxes.begin();
+             iter != mapFileCheckBoxes.end();
+             iter++) {
+            QCheckBox* cb = *iter;
+            if (cb->isChecked()) {
+                void* pointer = cb->property(filePointerPropertyName.toAscii().constData()).value<void*>();
+                CaretMappableDataFile* cmdf = (CaretMappableDataFile*)pointer;
+                
+                const int32_t numMaps = cmdf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    PaletteColorMapping* pcm = cmdf->getMapPaletteColorMapping(iMap);
+                    if (pcm != this->paletteColorMapping) {
+                        pcm->copy(*this->paletteColorMapping);
+                    }
+                }
+                
+                cmdf->updateScalarColoringForAllMaps(paletteFile);
+                
+                previousApplyPaletteToMapFilesSelected.insert(cmdf);
+            }
+        }
+        
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
 
