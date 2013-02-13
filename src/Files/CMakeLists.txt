@@ -89,6 +89,7 @@ VolumeFile.h
 VolumeFileVoxelColorizer.h
 VolumeSliceViewPlaneEnum.h
 VolumeSpline.h
+WarpfieldFile.h
 
 AffineFile.cxx
 BinaryFileReader.cxx
@@ -161,6 +162,7 @@ VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx
 VolumeSliceViewPlaneEnum.cxx
 VolumeSpline.cxx
+WarpfieldFile.cxx
 )
 
 

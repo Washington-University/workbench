@@ -29,6 +29,7 @@
 
 #include <vector>
 #include "stdint.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -103,6 +104,8 @@ namespace caret {
       void getDimensions(int64_t& rows, int64_t& cols) const;
       ///get the matrix as a vector<vector>
       const std::vector<std::vector<float> >& getMatrix() const;
+      ///separate 3x4 or 4x4 into Vector3Ds, throw on wrong dimensions
+      void getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zvec, Vector3D& offset) const;
    };
 
 }

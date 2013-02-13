@@ -31,6 +31,7 @@ OperationConvertAffine.h
 OperationConvertFiberOrientations.h
 OperationConvertMatrix4ToMatrix2.h
 OperationConvertMatrix4ToWorkbenchSparse.h
+OperationConvertWarpfield.h
 OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
@@ -71,6 +72,7 @@ OperationConvertAffine.cxx
 OperationConvertFiberOrientations.cxx
 OperationConvertMatrix4ToMatrix2.cxx
 OperationConvertMatrix4ToWorkbenchSparse.cxx
+OperationConvertWarpfield.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx

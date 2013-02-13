@@ -405,7 +405,7 @@ void Nifti2Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(Nifti
     }
 }
 
-void Nifti2Header::getSForm(std::vector<std::vector<float> >& sForm)
+void Nifti2Header::getSForm(std::vector<std::vector<float> >& sForm) const
 {
     sForm.resize(4);
     for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);

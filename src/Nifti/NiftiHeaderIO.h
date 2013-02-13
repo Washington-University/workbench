@@ -33,7 +33,7 @@
 #include "NiftiAbstractHeader.h"
 #include "zlib.h"
 
-
+#include <vector>
 
 namespace caret {
 
@@ -58,6 +58,13 @@ public:
 
     void getHeader(Nifti2Header &header) const throw (NiftiException);
     void setHeader(const Nifti2Header &header) throw (NiftiException);
+    
+    
+    ///get the true space of the volume as an sform
+    std::vector<std::vector<float> > getSForm() const;
+    ///get the FSL "scale" space for a nifti header
+    std::vector<std::vector<float> > getFSLSpace() const;
+    
     void swapHeaderBytes(nifti_1_header &header);
     void swapHeaderBytes(nifti_2_header &header);
     bool getSwapNeeded();

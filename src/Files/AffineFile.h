@@ -35,7 +35,7 @@ namespace caret {
         FloatMatrix m_matrix;
         static FloatMatrix read34(const AString& filename);//helper to read a simple text affine
         static void write44(const FloatMatrix& out, const AString& filename);//helper for writing
-        void getFlirtInfo(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale) const;
+        static void getFSLQuirks(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale);//just a convenience wrapper around the vector<vector<float> > version in NiftiHeaderIO
     public:
         AffineFile();
         void readWorld(const AString& filename);//forward nifti coordinate transform

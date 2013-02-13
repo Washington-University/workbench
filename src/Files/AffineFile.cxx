@@ -103,8 +103,8 @@ void AffineFile::readFlirt(const AString& filename, const AString& sourceName, c
 {
     FloatMatrix flirtMat = read34(filename);
     FloatMatrix sourceMat, sourceScale, targetMat, targetScale;
-    getFlirtInfo(sourceName, sourceMat, sourceScale);
-    getFlirtInfo(targetName, targetMat, targetScale);
+    getFSLQuirks(sourceName, sourceMat, sourceScale);
+    getFSLQuirks(targetName, targetMat, targetScale);
     //via aff_conv : world = targmat * trgscale^-1 * input * srcscale * sourcemat^-1
     m_matrix = targetMat * targetScale.inverse() * flirtMat * sourceScale * sourceMat.inverse();
 }
@@ -112,66 +112,16 @@ void AffineFile::readFlirt(const AString& filename, const AString& sourceName, c
 void AffineFile::writeFlirt(const AString& filename, const AString& sourceName, const AString& targetName) const
 {
     FloatMatrix sourceMat, sourceScale, targetMat, targetScale;
-    getFlirtInfo(sourceName, sourceMat, sourceScale);
-    getFlirtInfo(targetName, targetMat, targetScale);
+    getFSLQuirks(sourceName, sourceMat, sourceScale);
+    getFSLQuirks(targetName, targetMat, targetScale);
     FloatMatrix flirtMat = targetScale * targetMat.inverse() * m_matrix * sourceMat * sourceScale.inverse();
     write44(flirtMat, filename);
 }
 
-void AffineFile::getFlirtInfo(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale) const
+void AffineFile::getFSLQuirks(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale)
 {
-    float pixDim[3];//don't look at me, blame analyze and flirt
-    vector<int64_t> dimensions;
-    vector<vector<float> > sform;
     NiftiHeaderIO myIO;
     myIO.readFile(niftiName);
-    switch (myIO.getNiftiVersion())
-    {
-        case 1:
-        {
-            Nifti1Header header1;
-            myIO.getHeader(header1);
-            header1.getSForm(sform);
-            header1.getDimensions(dimensions);
-            nifti_1_header mystruct1;
-            header1.getHeaderStruct(mystruct1);
-            pixDim[0] = mystruct1.pixdim[1];//yes, that is really what they use, despite checking the SFORM/QFORM for flipping - ask them, not me
-            pixDim[1] = mystruct1.pixdim[2];
-            pixDim[2] = mystruct1.pixdim[3];
-            break;
-        }
-        case 2:
-        {
-            Nifti2Header header2;
-            myIO.getHeader(header2);
-            header2.getSForm(sform);
-            header2.getDimensions(dimensions);
-            nifti_2_header mystruct2;
-            header2.getHeaderStruct(mystruct2);
-            pixDim[0] = mystruct2.pixdim[1];
-            pixDim[1] = mystruct2.pixdim[2];
-            pixDim[2] = mystruct2.pixdim[3];
-            break;
-        }
-        default:
-            throw DataFileException("AffineFile doesn't know how to handle nifti version " + AString::number(myIO.getNiftiVersion()));
-    }
-    if (dimensions.size() < 3) throw DataFileException("Nifti file '" + niftiName + "' has less than 3 dimensions, can't be used to interpret a flirt affine");
-    float determinant = sform[0][0] * sform[1][1] * sform[2][2] +
-                        sform[0][1] * sform[1][2] * sform[2][0] +
-                        sform[0][2] * sform[1][0] * sform[2][1] -
-                        sform[0][2] * sform[1][1] * sform[2][0] -
-                        sform[0][0] * sform[1][2] * sform[2][1] -
-                        sform[0][1] * sform[1][0] * sform[2][2];//just write out the 3x3 determinant rather than packing it into a FloatMatrix first - and I haven't put a determinant function in yet
-    outScale = FloatMatrix::identity(4);
-    if (determinant > 0.0f)
-    {
-        outScale[0][0] = -pixDim[0];
-        outScale[0][3] = (dimensions[0] - 1) * pixDim[0];
-    } else {
-        outScale[0][0] = pixDim[0];
-    }
-    outScale[1][1] = pixDim[1];
-    outScale[2][2] = pixDim[2];
-    outSform = FloatMatrix(sform);//NOTE: this is expected to return a 4x4 matrix with the 0 0 0 1 row intact
+    outSform = FloatMatrix(myIO.getSForm());//NOTE: this is expected to return a 4x4 matrix with the 0 0 0 1 row intact
+    outScale = FloatMatrix(myIO.getFSLSpace());
 }

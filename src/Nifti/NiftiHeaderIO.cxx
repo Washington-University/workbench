@@ -27,8 +27,10 @@
 #include "NiftiHeaderIO.h"
 #include <QFile>
 #include "zlib.h"
+#include "FloatMatrix.h"
 
 using namespace caret;
+using namespace std;
 /**
  * Constructor
  *
@@ -227,12 +229,12 @@ void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
 
     if(niftiVersion==1)
     {
-
         if(NIFTI2_NEEDS_SWAP(n1header))
         {
             m_swapNeeded=true;
             swapHeaderBytes(n1header);
         }
+        nifti1Header = Nifti1Header();//TSC: reinitialize the header so we don't trip its "set more than once" throw
         nifti1Header.setHeaderStuct(n1header);
         nifti1Header.setNeedsSwapping(m_swapNeeded);
     }
@@ -243,6 +245,7 @@ void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
             m_swapNeeded = true;
             swapHeaderBytes(n2header);
         }
+        nifti2Header = Nifti2Header();//ditto
         nifti2Header.setHeaderStuct(n2header);
         nifti2Header.setNeedsSwapping(m_swapNeeded);
     }
@@ -488,3 +491,72 @@ int64_t NiftiHeaderIO::getExtensionsOffset()
     else return 0;
 }
 
+vector<vector<float> > NiftiHeaderIO::getFSLSpace() const
+{
+    float pixDim[3];//don't look at me, blame analyze and flirt
+    vector<int64_t> dimensions;
+    vector<vector<float> > outScale;
+    vector<vector<float> > sform;
+    switch (niftiVersion)
+    {
+        case 1:
+        {
+            nifti1Header.getSForm(sform);
+            nifti1Header.getDimensions(dimensions);
+            nifti_1_header mystruct1;
+            nifti1Header.getHeaderStruct(mystruct1);
+            pixDim[0] = mystruct1.pixdim[1];//yes, that is really what they use, despite checking the SFORM/QFORM for flipping - ask them, not me
+            pixDim[1] = mystruct1.pixdim[2];
+            pixDim[2] = mystruct1.pixdim[3];
+            break;
+        }
+        case 2:
+        {
+            nifti2Header.getSForm(sform);
+            nifti2Header.getDimensions(dimensions);
+            nifti_2_header mystruct2;
+            nifti2Header.getHeaderStruct(mystruct2);
+            pixDim[0] = mystruct2.pixdim[1];
+            pixDim[1] = mystruct2.pixdim[2];
+            pixDim[2] = mystruct2.pixdim[3];
+            break;
+        }
+        default:
+            throw NiftiException("getFSLSpace called on empty NiftiHeaderIO");
+    }
+    if (dimensions.size() < 3) throw NiftiException("NiftiHeaderIO has less than 3 dimensions, can't generate the FSL space for it");
+    float determinant = sform[0][0] * sform[1][1] * sform[2][2] +
+                        sform[0][1] * sform[1][2] * sform[2][0] +
+                        sform[0][2] * sform[1][0] * sform[2][1] -
+                        sform[0][2] * sform[1][1] * sform[2][0] -
+                        sform[0][0] * sform[1][2] * sform[2][1] -
+                        sform[0][1] * sform[1][0] * sform[2][2];//just write out the 3x3 determinant rather than packing it into a FloatMatrix first - and I haven't put a determinant function in yet
+    outScale = FloatMatrix::identity(4).getMatrix();//generate a 4x4 with 0 0 0 1 last row via FloatMatrix for convenience
+    if (determinant > 0.0f)
+    {
+        outScale[0][0] = -pixDim[0];
+        outScale[0][3] = (dimensions[0] - 1) * pixDim[0];
+    } else {
+        outScale[0][0] = pixDim[0];
+    }
+    outScale[1][1] = pixDim[1];
+    outScale[2][2] = pixDim[2];
+    return outScale;
+}
+
+vector<vector<float> > NiftiHeaderIO::getSForm() const
+{
+    vector<vector<float> > outSform;
+    switch (niftiVersion)
+    {
+        case 1:
+            nifti1Header.getSForm(outSform);
+            break;
+        case 2:
+            nifti2Header.getSForm(outSform);
+            break;
+        default:
+            throw NiftiException("getSform called on empty NiftiHeaderIO");
+    }
+    return outSform;
+}

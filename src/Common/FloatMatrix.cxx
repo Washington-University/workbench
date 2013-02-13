@@ -25,6 +25,7 @@
 /*LICENSE_END*/
 
 #include "CaretAssert.h"
+#include "CaretException.h"
 #include "FloatMatrix.h"
 #include "MatrixFunctions.h"
 
@@ -241,6 +242,18 @@ FloatMatrix FloatMatrix::zeros(const int64_t rows, const int64_t cols)
 const vector<vector<float> >& FloatMatrix::getMatrix() const
 {
    return m_matrix;
+}
+
+void FloatMatrix::getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zvec, Vector3D& offset) const
+{
+    if (m_matrix.size() < 3 || m_matrix.size() > 4 || m_matrix[0].size() != 4)
+    {
+        throw CaretException("getAffineVectors called on incorrectly sized matrix");
+    }
+    xvec[0] = m_matrix[0][0]; xvec[1] = m_matrix[1][0]; xvec[2] = m_matrix[2][0];
+    yvec[0] = m_matrix[0][1]; yvec[1] = m_matrix[1][1]; yvec[2] = m_matrix[2][1];
+    zvec[0] = m_matrix[0][2]; zvec[1] = m_matrix[1][2]; zvec[2] = m_matrix[2][2];
+    offset[0] = m_matrix[0][3]; offset[1] = m_matrix[1][3]; offset[2] = m_matrix[2][3];
 }
 
 FloatMatrix FloatMatrix::operator-() const

@@ -80,6 +80,7 @@
 #include "OperationConvertFiberOrientations.h"
 #include "OperationConvertMatrix4ToMatrix2.h"
 #include "OperationConvertMatrix4ToWorkbenchSparse.h"
+#include "OperationConvertWarpfield.h"
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFociListCoords.h"
 #include "OperationLabelMask.h"
@@ -215,6 +216,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertFiberOrientations()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToMatrix2()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToWorkbenchSparse()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationConvertWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
