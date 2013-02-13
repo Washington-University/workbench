@@ -806,7 +806,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
     }
 
-    const float tolerance = 5.0;
+    const float tolerance = 10.0;
     
     /*
      * Find points in this border nearest the first and
@@ -897,7 +897,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
         throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
     }
     
-    const float tolerance = 5.0;
+    const float tolerance = 10.0;
     
     /*
      * Find points in this border nearest the first and
