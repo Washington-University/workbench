@@ -76,6 +76,7 @@
 using namespace caret;
 
 const bool haveFileNameButton = false;
+const bool haveFilePathDisplay = false;
 
 /**
  * \class caret::SpecFileManagementDialog
@@ -423,7 +424,9 @@ m_specFile(specFile)
         }
     }
     COLUMN_SELECT_FILE_NAME_LABEL = columnCounter++;
-    COLUMN_SELECT_FILE_PATH_LABEL = columnCounter++;
+    if (haveFilePathDisplay) {
+        COLUMN_SELECT_FILE_PATH_LABEL = columnCounter++;
+    }
     COLUMN_COUNT = columnCounter++;
     
     /*
@@ -531,16 +534,20 @@ m_specFile(specFile)
                                            1, 1,
                                            Qt::AlignLeft);
             }
-            filesGridLayout->addWidget(new QLabel("Data File Path"),
-                                       titleRow, COLUMN_SELECT_FILE_PATH_LABEL,
-                                       Qt::AlignLeft);
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                filesGridLayout->addWidget(new QLabel("Data File Path"),
+                                           titleRow, COLUMN_SELECT_FILE_PATH_LABEL,
+                                           Qt::AlignLeft);
+            }
         }
         else {
             if (COLUMN_SELECT_FILE_NAME_TOOLBUTTON >= 0) {
                 tableWidgetColumnLabels.append("Edit");
             }
             tableWidgetColumnLabels.append("Data File Name");
-            tableWidgetColumnLabels.append("Data File Path");
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                tableWidgetColumnLabels.append("Data File Path");
+            }
         }
     }
     if (enableOpenItems) {
@@ -553,15 +560,19 @@ m_specFile(specFile)
                                        titleRow, COLUMN_SELECT_FILE_NAME_LABEL,
                                        1, 1,
                                        Qt::AlignLeft);
-            filesGridLayout->addWidget(new QLabel("Data File Path"),
-                                       titleRow, COLUMN_SELECT_FILE_PATH_LABEL,
-                                       1, 1,
-                                       Qt::AlignLeft);
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                filesGridLayout->addWidget(new QLabel("Data File Path"),
+                                           titleRow, COLUMN_SELECT_FILE_PATH_LABEL,
+                                           1, 1,
+                                           Qt::AlignLeft);
+            }
         }
         else {
             tableWidgetColumnLabels.append("Structure");
             tableWidgetColumnLabels.append("Data File Name");
-            tableWidgetColumnLabels.append("Data File Path");
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                tableWidgetColumnLabels.append("Data File Path");
+            }
         }
     }
     
@@ -608,7 +619,9 @@ m_specFile(specFile)
         m_specFileOptionsToolButton->setDefaultAction(specFileOptionsAction);
 
         m_specFileNameLabel = new QLabel("");
-        m_specFilePathLabel = new QLabel("");
+        if (haveFilePathDisplay) {
+            m_specFilePathLabel = new QLabel("");
+        }
         
         if (useGridLayoutWidget) {
             /*
@@ -648,9 +661,11 @@ m_specFile(specFile)
             filesGridLayout->addWidget(m_specFileNameLabel,
                                        row, COLUMN_SELECT_FILE_NAME_LABEL,
                                        Qt::AlignLeft);
-            filesGridLayout->addWidget(m_specFilePathLabel,
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                filesGridLayout->addWidget(m_specFilePathLabel,
                                        row, COLUMN_SELECT_FILE_PATH_LABEL,
                                        Qt::AlignLeft);
+            }
         }
         else {
             m_filesTableWidget->setCellWidget(tableRowIndex,
@@ -673,9 +688,11 @@ m_specFile(specFile)
             m_filesTableWidget->setCellWidget(tableRowIndex,
                                             COLUMN_SELECT_FILE_NAME_LABEL,
                                             m_specFileNameLabel);
-            m_filesTableWidget->setCellWidget(tableRowIndex,
+            if (COLUMN_SELECT_FILE_PATH_LABEL >= 0) {
+                m_filesTableWidget->setCellWidget(tableRowIndex,
                                               COLUMN_SELECT_FILE_PATH_LABEL,
                                               m_specFilePathLabel);
+            }
             tableRowIndex++;
         }
     }
@@ -882,6 +899,8 @@ m_specFile(specFile)
                                   enableScrollBars);
     
     updateDisplayedFiles();
+    
+    disableAutoDefaultForAllPushButtons();
 }
 
 /**
@@ -1210,7 +1229,15 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
     
     QAction* selectedAction = menu.exec(QCursor::pos());
     
-    if (selectedAction == setFileNameAction) {
+    if (selectedAction == NULL) {
+        /*
+         * If the selected action is NULL, it indicates that the user did
+         * not make a selection.  This test is needed as some of the actions
+         * (such as setFileNameAction) may be NULL and with out this test,
+         * those NULL actions would match.
+         */
+    }
+    else if (selectedAction == setFileNameAction) {
         changeFileName(&menu,
                        indx);
     }
@@ -1727,7 +1754,13 @@ SpecFileManagementDialog::updateDisplayedFiles()
             //        m_specFileNameLabel->setText(fileNameText);
         }
         m_specFileNameLabel->setText(name);
-        m_specFilePathLabel->setText(path);
+        if (haveFilePathDisplay) {
+            m_specFilePathLabel->setText(path);
+        }
+        else {
+            m_specFileNameLabel->setToolTip("Path: "
+                                            + path);
+        }
     }
     
     /*
@@ -2062,8 +2095,10 @@ m_tableRowIndex(-1)
     m_optionsToolButton->setDefaultAction(m_optionsButtonAction);
     
     m_fileNameLabel = new QLabel("");
-    m_filePathLabel = new QLabel("");
-    
+    m_filePathLabel = NULL;
+    if (haveFilePathDisplay) {
+        m_filePathLabel = new QLabel("");
+    }
     m_widgetGroup = new WuQWidgetObjectGroup(this);
     if (m_loadCheckBox != NULL) m_widgetGroup->add(m_loadCheckBox);
     if (m_saveCheckBox != NULL) m_widgetGroup->add(m_saveCheckBox);
@@ -2217,14 +2252,22 @@ GuiSpecFileDataFile::updateContent()
      */
     if (filename.isEmpty()) {
         m_fileNameLabel->setText("");
-        m_filePathLabel->setText("");
+        if (m_filePathLabel != NULL) {
+            m_filePathLabel->setText("");
+        }
     }
     else {
         FileInformation fileInfo(filename);
         const QString path = fileInfo.getAbsolutePath();
         const QString name = fileInfo.getFileName();
         m_fileNameLabel->setText(name);
-        m_filePathLabel->setText(path);
+        if (m_filePathLabel != NULL) {
+            m_filePathLabel->setText(path);
+        }
+        else {
+            m_fileNameLabel->setToolTip("Path: "
+                                        + path);
+        }
 //        QString fileNameText = name;
 //        if (path.isEmpty() == false) {
 //            fileNameText += (" ("
