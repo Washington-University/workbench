@@ -43,7 +43,7 @@ OperationParameters* OperationConvertAffine::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    OptionalParameter* fromWorld = ret->createOptionalParameter(1, "-from-world", "input is a 'world' affine");
+    OptionalParameter* fromWorld = ret->createOptionalParameter(1, "-from-world", "input is a NIFTI 'world' affine");
     fromWorld->addStringParameter(1, "input", "the input affine");
     
     OptionalParameter* fromFlirt = ret->createOptionalParameter(2, "-from-flirt", "input is a flirt matrix");
@@ -51,7 +51,7 @@ OperationParameters* OperationConvertAffine::getParameters()
     fromFlirt->addStringParameter(2, "source-volume", "the source volume used when generating the input affine");
     fromFlirt->addStringParameter(3, "target-volume", "the target volume used when generating the input affine");
     
-    OptionalParameter* toWorld = ret->createOptionalParameter(3, "-to-world", "write output as a 'world' affine");
+    OptionalParameter* toWorld = ret->createOptionalParameter(3, "-to-world", "write output as a NIFTI 'world' affine");
     toWorld->addStringParameter(1, "output", "output - the output affine");//HACK: fake the output formatting, since we don't have a parameter for affine file (hard to do due to multiple on-disk formats)
     
     ParameterComponent* toFlirt = ret->createRepeatableParameter(4, "-to-flirt", "write output as a flirt matrix");
@@ -60,8 +60,8 @@ OperationParameters* OperationConvertAffine::getParameters()
     toFlirt->addStringParameter(3, "target-volume", "the target space you want the transformed volume to match");
     
     ret->setHelpText(
-        AString("World matrices can be used directly on coordinates via matrix multiplication, they use the coordinate system where ") +
-        "X is left to right, Y is posterior to anterior, and Z is inferior to superior.  " +
+        AString("NIFTI world matrices can be used directly on mm coordinates via matrix multiplication, they use the NIFTI coordinate system, that is, ") +
+        "positive X is right, positive Y is anterior, and positive Z is superior.\n\n" +
         "You must specify exactly one -from option, but you may specify multiple -to options, and any -to option that takes volumes may be specified more than once."
     );
     return ret;
