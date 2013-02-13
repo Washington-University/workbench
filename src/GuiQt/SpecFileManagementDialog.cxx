@@ -52,6 +52,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretFileDialog.h"
+#include "CaretMappableDataFile.h"
 #include "CursorDisplayScoped.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
@@ -74,7 +75,7 @@
 
 using namespace caret;
 
-
+const bool haveFileNameButton = false;
 
 /**
  * \class caret::SpecFileManagementDialog
@@ -417,7 +418,9 @@ m_specFile(specFile)
         COLUMN_STRUCTURE_COMBO_BOX = columnCounter++;
     }
     if (enableManageItems) {
-        COLUMN_SELECT_FILE_NAME_TOOLBUTTON = columnCounter++;
+        if (haveFileNameButton) {
+            COLUMN_SELECT_FILE_NAME_TOOLBUTTON = columnCounter++;
+        }
     }
     COLUMN_SELECT_FILE_NAME_LABEL = columnCounter++;
     COLUMN_SELECT_FILE_PATH_LABEL = columnCounter++;
@@ -516,16 +519,26 @@ m_specFile(specFile)
     }
     if (enableManageItems) {
         if (useGridLayoutWidget) {
-            filesGridLayout->addWidget(new QLabel("Data File Name"),
-                                       titleRow, COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
-                                       1, 2,
-                                       Qt::AlignLeft);
+            if (COLUMN_SELECT_FILE_NAME_TOOLBUTTON >= 0) {
+                filesGridLayout->addWidget(new QLabel("Data File Name"),
+                                           titleRow, COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
+                                           1, 2,
+                                           Qt::AlignLeft);
+            }
+            else {
+                filesGridLayout->addWidget(new QLabel("Data File Name"),
+                                           titleRow, COLUMN_SELECT_FILE_NAME_LABEL,
+                                           1, 1,
+                                           Qt::AlignLeft);
+            }
             filesGridLayout->addWidget(new QLabel("Data File Path"),
                                        titleRow, COLUMN_SELECT_FILE_PATH_LABEL,
                                        Qt::AlignLeft);
         }
         else {
-            tableWidgetColumnLabels.append("Edit");
+            if (COLUMN_SELECT_FILE_NAME_TOOLBUTTON >= 0) {
+                tableWidgetColumnLabels.append("Edit");
+            }
             tableWidgetColumnLabels.append("Data File Name");
             tableWidgetColumnLabels.append("Data File Path");
         }
@@ -567,6 +580,7 @@ m_specFile(specFile)
     
     m_specFileSaveCheckBox = NULL;
     m_specFileStatusLabel = NULL;
+    m_specFileOptionsToolButton = NULL;
     m_chooseSpecFileToolButton = NULL;
     m_specFileNameLabel = NULL;
     m_specFilePathLabel = NULL;
@@ -575,14 +589,24 @@ m_specFile(specFile)
         m_specFileSaveCheckBox = new QCheckBox("");
         m_specFileStatusLabel = new QLabel("    ");
         
-        QAction* chooseSpecFileNameAction = WuQtUtilities::createAction("Name",
-                                                                        "Choose Spec File Name",
-                                                                        this,
-                                                                        this,
-                                                                        SLOT(chooseSpecFileNameActionTriggered()));
-        m_chooseSpecFileToolButton = new QToolButton();
-        m_chooseSpecFileToolButton->setDefaultAction(chooseSpecFileNameAction);
+        if (haveFileNameButton) {
+            QAction* chooseSpecFileNameAction = WuQtUtilities::createAction("Name",
+                                                                            "Choose Spec File Name",
+                                                                            this,
+                                                                            this,
+                                                                            SLOT(chooseSpecFileNameActionTriggered()));
+            m_chooseSpecFileToolButton = new QToolButton();
+            m_chooseSpecFileToolButton->setDefaultAction(chooseSpecFileNameAction);
+        }
         
+        QAction* specFileOptionsAction = WuQtUtilities::createAction("Options",
+                                                                        "Options for spec file",
+                                                                        this,
+                                                                        this,
+                                                                        SLOT(specFileOptionsActionTriggered()));
+        m_specFileOptionsToolButton = new QToolButton();
+        m_specFileOptionsToolButton->setDefaultAction(specFileOptionsAction);
+
         m_specFileNameLabel = new QLabel("");
         m_specFilePathLabel = new QLabel("");
         
@@ -613,9 +637,14 @@ m_specFile(specFile)
             filesGridLayout->addWidget(m_specFileStatusLabel,
                                        row, COLUMN_STATUS_LABEL,
                                        Qt::AlignLeft);
-            filesGridLayout->addWidget(m_chooseSpecFileToolButton,
-                                       row, COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
+            filesGridLayout->addWidget(m_specFileOptionsToolButton,
+                                       row, COLUMN_OPTIONS_TOOLBUTTON,
                                        Qt::AlignHCenter);
+            if (COLUMN_SELECT_FILE_NAME_TOOLBUTTON >= 0) {
+                filesGridLayout->addWidget(m_chooseSpecFileToolButton,
+                                           row, COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
+                                           Qt::AlignHCenter);
+            }
             filesGridLayout->addWidget(m_specFileNameLabel,
                                        row, COLUMN_SELECT_FILE_NAME_LABEL,
                                        Qt::AlignLeft);
@@ -634,8 +663,13 @@ m_specFile(specFile)
                                             COLUMN_DATA_FILE_TYPE_LABEL,
                                             new QLabel(DataFileTypeEnum::toGuiName(DataFileTypeEnum::SPECIFICATION)));
             m_filesTableWidget->setCellWidget(tableRowIndex,
-                                            COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
-                                            m_chooseSpecFileToolButton);
+                                              COLUMN_OPTIONS_TOOLBUTTON,
+                                              m_specFileOptionsToolButton);
+            if (COLUMN_SELECT_FILE_NAME_TOOLBUTTON >= 0) {
+                m_filesTableWidget->setCellWidget(tableRowIndex,
+                                                  COLUMN_SELECT_FILE_NAME_TOOLBUTTON,
+                                                  m_chooseSpecFileToolButton);
+            }
             m_filesTableWidget->setCellWidget(tableRowIndex,
                                             COLUMN_SELECT_FILE_NAME_LABEL,
                                             m_specFileNameLabel);
@@ -1145,23 +1179,29 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
 {
     GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
     SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
-
-    const QString menuTextUnload("Unload File");
-    const QString menuTextUnloadMap("Unload Map(s) from File");
-    const QString menuTextMetaEdit("Metadata...");
+    CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+    CaretMappableDataFile* caretMappableDataFile = NULL;
+    if (caretDataFile != NULL) {
+        caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+    }
     
-    QAction *unloadFileAction = NULL;
-    QAction *unloadFileMapsAction = NULL;
+    
+    QAction* setFileNameAction = NULL;
+    QAction* unloadFileAction = NULL;
+    QAction* unloadFileMapsAction = NULL;
     
     QMenu menu;
-    QAction *metadataAction = menu.addAction("Edit Metadata...");
+    QAction* metadataAction = menu.addAction("Edit Metadata...");
     metadataAction->setEnabled(false);
     switch (m_dialogMode) {
         case MODE_MANAGE_FILES:
-            if (specFileDataFile->getCaretDataFile() != NULL) {
+            if (caretDataFile != NULL) {
+                setFileNameAction = menu.addAction("Set File Name...");
                 unloadFileAction = menu.addAction("Unload File");
-                unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
-                unloadFileMapsAction->setEnabled(false);
+                if (caretMappableDataFile != NULL) {
+                    unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
+                    unloadFileMapsAction->setEnabled(false);
+                }
             }
             break;
         case MODE_OPEN_SPEC_FILE:
@@ -1169,7 +1209,12 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
     }
     
     QAction* selectedAction = menu.exec(QCursor::pos());
-    if (selectedAction == unloadFileAction) {
+    
+    if (selectedAction == setFileNameAction) {
+        changeFileName(&menu,
+                       indx);
+    }
+    else if (selectedAction == unloadFileAction) {
         CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
         GuiManager::get()->getBrain()->removeDataFile(cdf);
         guiSpecFileDataFile->updateContent();
@@ -1197,11 +1242,28 @@ void
 SpecFileManagementDialog::fileSelectFileNameActionSelected(int indx)
 {
     GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
+    changeFileName(guiSpecFileDataFile->m_selectFileNameToolButton,
+                   indx);
+}
+
+/**
+ * Change the name of a file.
+ *
+ * @param parent
+ *   Widget on which file dialog is displayed.
+ * @param indx
+ *   Index of item selected.
+ */
+void
+SpecFileManagementDialog::changeFileName(QWidget* parent,
+                                         const int indx)
+{
+    GuiSpecFileDataFile* guiSpecFileDataFile = getSpecFileDataFileBySignalMapperIndex(indx);
     SpecFileDataFile* specFileDataFile = guiSpecFileDataFile->m_specFileDataFile;
     
     QStringList filenameFilterList;
     filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(guiSpecFileDataFile->getDataFileType()));
-    CaretFileDialog fd(guiSpecFileDataFile->m_selectFileNameToolButton);
+    CaretFileDialog fd(parent);
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::AnyFile);
@@ -1269,6 +1331,55 @@ SpecFileManagementDialog::getSpecFileDataFileBySignalMapperIndex(const int signa
     return NULL;
 }
 
+/**
+ * Called when spec file options tool button is triggered.
+ */
+void
+SpecFileManagementDialog::specFileOptionsActionTriggered()
+{
+    QAction* setFileNameAction = NULL;
+    
+    QMenu menu;
+    QAction* metadataAction = menu.addAction("Edit Metadata...");
+    metadataAction->setEnabled(false);
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+            setFileNameAction = menu.addAction("Set File Name...");
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+    }
+    
+    QAction* selectedAction = menu.exec(QCursor::pos());
+    
+    if (selectedAction == setFileNameAction) {
+        QStringList filenameFilterList;
+        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+        CaretFileDialog fd(&menu);
+        fd.setAcceptMode(CaretFileDialog::AcceptSave);
+        fd.setNameFilters(filenameFilterList);
+        fd.setFileMode(CaretFileDialog::AnyFile);
+        fd.setViewMode(CaretFileDialog::List);
+        fd.selectFile(m_specFile->getFileName());
+        fd.setLabelText(CaretFileDialog::Accept, "Choose");
+        fd.setWindowTitle("Choose Spec File Name");
+        if (fd.exec() == CaretFileDialog::Accepted) {
+            QStringList files = fd.selectedFiles();
+            if (files.isEmpty() == false) {
+                AString newFileName = files.at(0);
+                m_specFile->setFileName(newFileName);
+                updateDisplayedFiles();
+            }
+        }
+    }
+    else if (selectedAction == metadataAction) {
+        
+    }
+    else if (selectedAction != NULL) {
+        CaretAssertMessage(0,
+                           ("Unhandled Menu Action: " + selectedAction->text()));
+    }
+}
 
 /**
  * Called to choose the name of the spec file.
@@ -1928,11 +2039,13 @@ m_tableRowIndex(-1)
                                       "M -> file is modified\n"
                                       "D -> file is displayed");
             
-            m_selectFileNameButtonAction  = WuQtUtilities::createAction("Name",
-                                                                        "tooltip",
-                                                                        this);
-            m_selectFileNameToolButton = new QToolButton();
-            m_selectFileNameToolButton->setDefaultAction(m_selectFileNameButtonAction);
+            if (haveFileNameButton) {
+                m_selectFileNameButtonAction  = WuQtUtilities::createAction("Name",
+                                                                            "tooltip",
+                                                                            this);
+                m_selectFileNameToolButton = new QToolButton();
+                m_selectFileNameToolButton->setDefaultAction(m_selectFileNameButtonAction);
+            }
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
             m_loadCheckBox = new QCheckBox("");

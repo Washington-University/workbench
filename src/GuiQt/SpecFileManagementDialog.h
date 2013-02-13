@@ -95,6 +95,8 @@ namespace caret {
         
         void chooseSpecFileNameActionTriggered();
 
+        void specFileOptionsActionTriggered();
+        
         void fileLoadCheckBoxSelected(int indx);
         
         void fileSaveCheckBoxSelected(int indx);
@@ -157,6 +159,9 @@ namespace caret {
         
         bool okButtonClickedManageFiles();
         
+        void changeFileName(QWidget* parent,
+                            const int indx);
+        
         AString writeSpecFile(const bool writeOnlyIfModified);
         
         // ADD_NEW_MEMBERS_HERE
@@ -186,6 +191,8 @@ namespace caret {
         QLabel* m_specFileNameLabel;
         
         QLabel* m_specFilePathLabel;
+        
+        QToolButton* m_specFileOptionsToolButton;
         
         QToolButton* m_chooseSpecFileToolButton;
         
