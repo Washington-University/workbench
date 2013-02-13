@@ -230,6 +230,8 @@ m_dialogMode(dialogMode),
 m_brain(brain),
 m_specFile(specFile)
 {
+    m_fileSelectionActionGroup = NULL;
+    m_manageFilesLoadedNotLoadedActionGroup = NULL;
     setDeleteWhenClosed(true);
     m_specFileDataFileCounter = 0;
     
@@ -595,8 +597,12 @@ m_specFile(specFile)
     m_chooseSpecFileToolButton = NULL;
     m_specFileNameLabel = NULL;
     m_specFilePathLabel = NULL;
+    m_specFileWidgetGroup = NULL;
+    m_specFileTableWidgetRow = -1;
     
     if (m_dialogMode == MODE_MANAGE_FILES) {
+        m_specFileWidgetGroup = new WuQWidgetObjectGroup(this);
+        
         m_specFileSaveCheckBox = new QCheckBox("");
         m_specFileStatusLabel = new QLabel("    ");
         
@@ -623,22 +629,35 @@ m_specFile(specFile)
             m_specFilePathLabel = new QLabel("");
         }
         
+        if (m_specFileSaveCheckBox != NULL) m_specFileWidgetGroup->add(m_specFileSaveCheckBox);
+        if (m_specFileStatusLabel != NULL) m_specFileWidgetGroup->add(m_specFileStatusLabel);
+        if (m_chooseSpecFileToolButton != NULL) m_specFileWidgetGroup->add(m_chooseSpecFileToolButton);
+        if (m_specFileOptionsToolButton != NULL) m_specFileWidgetGroup->add(m_specFileOptionsToolButton);
+        if (m_specFileNameLabel != NULL) m_specFileWidgetGroup->add(m_specFileNameLabel);
+        if (m_specFilePathLabel != NULL) m_specFileWidgetGroup->add(m_specFilePathLabel);
+        
         if (useGridLayoutWidget) {
             /*
              * Spec File title row
              */
             int row = filesGridLayout->rowCount();
-            filesGridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+            QWidget* leftHorizLineWidget = WuQtUtilities::createHorizontalLineWidget();
+            QWidget* rightHorizLineWidget = WuQtUtilities::createHorizontalLineWidget();
+            filesGridLayout->addWidget(leftHorizLineWidget,
                                        row, leftHorizLineColumn,
                                        1, leftHorizLineColumnCount);
             QHBoxLayout* titleLayout = new QHBoxLayout();
             WuQtUtilities::setLayoutMargins(titleLayout, 2, 0);
-            titleLayout->addWidget(new QLabel("Spec File"), 0);
-            titleLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), 100);
+            QLabel* specFileTitleLabel = new QLabel("Spec File");
+            titleLayout->addWidget(specFileTitleLabel, 0);
+            titleLayout->addWidget(rightHorizLineWidget, 100);
             filesGridLayout->addLayout(titleLayout,
                                        row, COLUMN_SELECT_FILE_NAME_LABEL,
                                        1, 2,
                                        Qt::AlignLeft);
+            m_specFileWidgetGroup->add(leftHorizLineWidget);
+            m_specFileWidgetGroup->add(rightHorizLineWidget);
+            m_specFileWidgetGroup->add(specFileTitleLabel);
             
             /*
              * Spec file widgets
@@ -668,6 +687,7 @@ m_specFile(specFile)
             }
         }
         else {
+            m_specFileTableWidgetRow = tableRowIndex;
             m_filesTableWidget->setCellWidget(tableRowIndex,
                                             COLUMN_SAVE_CHECKBOX,
                                             m_specFileSaveCheckBox);
@@ -892,6 +912,9 @@ m_specFile(specFile)
     toolbarLayout->addWidget(createStructureToolBar());
     if (enableOpenItems) {
         toolbarLayout->addWidget(createFilesSelectionToolBar());
+    }
+    else if (enableManageItems) {
+        toolbarLayout->addWidget(createManageFilesLoadedNotLoadedToolBar());
     }
     setTopBottomAndCentralWidgets(toolbarWidget,
                                   centralWidget,
@@ -1168,9 +1191,10 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int indx)
                                    readEvent.getAddToSpecFileErrorMessages());
         }
     }
-    guiSpecFileDataFile->m_selectFileNameButtonAction->setChecked(false);
+    guiSpecFileDataFile->m_saveCheckBox->setChecked(false);
     
     guiSpecFileDataFile->updateContent();
+    updateDisplayedFiles();
     
     updateGraphicWindowsAndUserInterface();
 }
@@ -1245,6 +1269,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
         CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
         GuiManager::get()->getBrain()->removeDataFile(cdf);
         guiSpecFileDataFile->updateContent();
+        updateDisplayedFiles();
         updateGraphicWindowsAndUserInterface();
     }
     else if (selectedAction == unloadFileMapsAction) {
@@ -1493,6 +1518,12 @@ SpecFileManagementDialog::createFilesTypesToolBar()
         action->setData(qVariantFromValue(DataFileTypeEnum::toIntegerCode(dataFileType)));
     }
     
+    if (m_fileTypesActionGroup->actions().isEmpty() == false) {
+        m_fileTypesActionGroup->blockSignals(true);
+        m_fileTypesActionGroup->actions().at(0)->setChecked(true);
+        m_fileTypesActionGroup->blockSignals(false);
+    }
+    
     QToolBar* toolbar = createToolBarWithActionGroup("View File Types: ",
                                                      m_fileTypesActionGroup);
     return toolbar;
@@ -1505,8 +1536,6 @@ QToolBar*
 SpecFileManagementDialog::createFilesSelectionToolBar()
 {
     //    * When loading, ALL or NONE but only ones that are visibleRegion()
-    //    * When managing, ALL LOADED NON-LOADED
-    
     m_fileSelectionActionGroup = new QActionGroup(this);
     QObject::connect(m_fileSelectionActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(toolBarSelectFilesActionTriggered(QAction*)));
@@ -1519,6 +1548,35 @@ SpecFileManagementDialog::createFilesSelectionToolBar()
     
     QToolBar* toolbar = createToolBarWithActionGroup("Select Files: ",
                                                      m_fileSelectionActionGroup);
+    return toolbar;
+}
+
+QToolBar*
+SpecFileManagementDialog::createManageFilesLoadedNotLoadedToolBar()
+{
+    m_manageFilesLoadedNotLoadedActionGroup = new QActionGroup(this);
+    
+    QObject::connect(m_manageFilesLoadedNotLoadedActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(toolBarManageFilesLoadedNotLoadedActionTriggered(QAction*)));
+    
+    QAction* allFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("All");
+    allFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_ALL));
+    allFilesAction->setCheckable(true);
+    
+    QAction* loadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded");
+    loadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED));
+    loadedFilesAction->setCheckable(true);
+    
+    QAction* notLoadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Not-Loaded");
+    notLoadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_NOT_LOADED));
+    notLoadedFilesAction->setCheckable(true);
+    
+    m_manageFilesLoadedNotLoadedActionGroup->blockSignals(true);
+    allFilesAction->setChecked(true);
+    m_manageFilesLoadedNotLoadedActionGroup->blockSignals(false);
+    
+    QToolBar* toolbar = createToolBarWithActionGroup("Show Files: ",
+                                                     m_manageFilesLoadedNotLoadedActionGroup);
     return toolbar;
 }
 
@@ -1573,6 +1631,12 @@ SpecFileManagementDialog::createStructureToolBar()
         QAction* action = m_structureActionGroup->addAction(StructureEnum::toGuiName(structure));
         action->setCheckable(true);
         action->setData(qVariantFromValue(StructureEnum::toIntegerCode(structure)));
+    }
+    
+    if (m_structureActionGroup->actions().isEmpty() == false) {
+        m_structureActionGroup->blockSignals(true);
+        m_structureActionGroup->actions().at(0)->setChecked(true);
+        m_structureActionGroup->blockSignals(false);
     }
     
     QToolBar* toolbar = createToolBarWithActionGroup("View Structures: ",
@@ -1656,6 +1720,18 @@ SpecFileManagementDialog::toolBarStructuresActionTriggered(QAction* action)
         }
     }
     
+    updateDisplayedFiles();
+}
+
+/**
+ * Show loaded/not loaded files when manage files mode.
+ *
+ * @param action
+ *   QAction of item selected.
+ */
+void
+SpecFileManagementDialog::toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* action)
+{
     updateDisplayedFiles();
 }
 
@@ -1763,6 +1839,15 @@ SpecFileManagementDialog::updateDisplayedFiles()
         }
     }
     
+    ManageFilesDisplay manageFilesSelection = MANAGE_FILES_ALL;
+    if (m_manageFilesLoadedNotLoadedActionGroup != NULL) {
+        QAction* manageFilesAction = m_manageFilesLoadedNotLoadedActionGroup->checkedAction();
+        if (manageFilesAction != NULL) {
+            const int dataValue = manageFilesAction->data().toInt();
+            manageFilesSelection = (ManageFilesDisplay)dataValue;
+        }
+    }
+
     /*
      * Update list of displayed files using filters
      */
@@ -1797,8 +1882,30 @@ SpecFileManagementDialog::updateDisplayedFiles()
             const int numFiles = guiSpecGroup->getNumberOfGuiSpecFileDataFiles();
             for (int32_t iFile = 0; iFile < numFiles; iFile++) {
                 GuiSpecFileDataFile* guiFile = guiSpecGroup->getGuiSpecFileDataFile(iFile);
-                const bool showFile = guiFile->isVisibleByFileTypeAndStructure(dataFileType,
+                bool showFile = guiFile->isVisibleByFileTypeAndStructure(dataFileType,
                                                                                structure);
+                switch (m_dialogMode) {
+                    case MODE_MANAGE_FILES:
+                    {
+                        switch (manageFilesSelection) {
+                            case MANAGE_FILES_ALL:
+                                break;
+                            case MANAGE_FILES_LOADED:
+                                if (guiFile->m_specFileDataFile->getCaretDataFile() == NULL) {
+                                    showFile = false;
+                                }
+                                break;
+                            case MANAGE_FILES_NOT_LOADED:
+                                if (guiFile->m_specFileDataFile->getCaretDataFile() != NULL) {
+                                    showFile = false;
+                                }
+                                break;
+                        }
+                    }
+                        break;
+                    case MODE_OPEN_SPEC_FILE:
+                        break;
+                }
                 if (guiFile->m_tableRowIndex >= 0) {
                     m_filesTableWidget->setRowHidden(guiFile->m_tableRowIndex,
                                                      (showFile == false));
@@ -1813,9 +1920,34 @@ SpecFileManagementDialog::updateDisplayedFiles()
             
             const int32_t numFiles = guiSpecGroup->getNumberOfGuiSpecFileDataFiles();
             if (numFiles > 0) {
-                guiSpecGroup->setWidgetsVisibleByFileTypeAndStructure(dataFileType, structure);
+                guiSpecGroup->setWidgetsVisibleByFiltering(dataFileType,
+                                                           structure,
+                                                           manageFilesSelection);
             }
         }
+    }
+    
+    bool showSpecFileWidgets = false;
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+            if ((dataFileType == DataFileTypeEnum::UNKNOWN)
+                && (structure == StructureEnum::ALL)
+                && (manageFilesSelection != MANAGE_FILES_NOT_LOADED)) {
+                showSpecFileWidgets = true;
+            }
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+    }
+    
+    if (m_filesTableWidget != NULL) {
+        if (m_specFileTableWidgetRow >= 0) {
+            m_filesTableWidget->setRowHidden(m_specFileTableWidgetRow,
+                                             (showSpecFileWidgets == false));
+        }
+    }
+    else if (m_specFileWidgetGroup != NULL) {
+        m_specFileWidgetGroup->setVisible(showSpecFileWidgets);
     }
 }
 
@@ -1916,8 +2048,9 @@ GuiSpecFileDataFileTypeGroup::setWidgetsVisible(bool visible)
  *   The structure.
  */
 void
-GuiSpecFileDataFileTypeGroup::setWidgetsVisibleByFileTypeAndStructure(const DataFileTypeEnum::Enum dataFileType,
-                                                                      const StructureEnum::Enum structure)
+GuiSpecFileDataFileTypeGroup::setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
+                                                           const StructureEnum::Enum structure,
+                                                           const SpecFileManagementDialog::ManageFilesDisplay manageFilesDisplay)
 {
     bool showGroup = true;
     
@@ -1955,6 +2088,29 @@ GuiSpecFileDataFileTypeGroup::setWidgetsVisibleByFileTypeAndStructure(const Data
                     || (fileStructure == StructureEnum::CORTEX_RIGHT)) {
                     showFile = false;
                 }
+                break;
+        }
+        
+        switch (m_dialogMode) {
+            case SpecFileManagementDialog::MODE_MANAGE_FILES:
+            {
+                switch (manageFilesDisplay) {
+                    case SpecFileManagementDialog::MANAGE_FILES_ALL:
+                        break;
+                    case SpecFileManagementDialog::MANAGE_FILES_LOADED:
+                        if (gdf->m_specFileDataFile->getCaretDataFile() == NULL) {
+                            showFile = false;
+                        }
+                        break;
+                    case SpecFileManagementDialog::MANAGE_FILES_NOT_LOADED:
+                        if (gdf->m_specFileDataFile->getCaretDataFile() != NULL) {
+                            showFile = false;
+                        }
+                        break;
+                }
+            }
+                break;
+            case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
                 break;
         }
         
@@ -2106,7 +2262,7 @@ m_tableRowIndex(-1)
     if (m_reloadOrOpenFileToolButton != NULL) m_widgetGroup->add(m_reloadOrOpenFileToolButton);
     if (m_statusLabel != NULL) m_widgetGroup->add(m_statusLabel);
     if (m_optionsToolButton != NULL) m_widgetGroup->add(m_optionsToolButton);
-    if (m_structureComboBox != NULL) m_widgetGroup->add(m_structureComboBox);
+    if (m_structureComboBox != NULL) m_widgetGroup->add(m_structureComboBox->getWidget());
     if (m_selectFileNameToolButton != NULL) m_widgetGroup->add(m_selectFileNameToolButton);
     if (m_fileNameLabel != NULL) m_widgetGroup->add(m_fileNameLabel);
     if (m_filePathLabel != NULL) m_widgetGroup->add(m_filePathLabel);

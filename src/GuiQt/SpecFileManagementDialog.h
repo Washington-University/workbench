@@ -93,6 +93,8 @@ namespace caret {
         
         void toolBarSelectFilesActionTriggered(QAction* action);
         
+        void toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* action);
+        
         void chooseSpecFileNameActionTriggered();
 
         void specFileOptionsActionTriggered();
@@ -125,6 +127,12 @@ namespace caret {
             LAYOUT_TYPE_TABLE
         };
         
+        enum ManageFilesDisplay {
+            MANAGE_FILES_ALL,
+            MANAGE_FILES_LOADED,
+            MANAGE_FILES_NOT_LOADED
+        };
+        
         SpecFileManagementDialog(const LayoutType layoutType,
                                  const Mode dialogMode,
                                  Brain* brain,
@@ -139,6 +147,8 @@ namespace caret {
         QToolBar* createFilesTypesToolBar();
         
         QToolBar* createFilesSelectionToolBar();
+        
+        QToolBar* createManageFilesLoadedNotLoadedToolBar();
         
         QToolBar* createStructureToolBar();
         
@@ -180,6 +190,8 @@ namespace caret {
         
         QActionGroup* m_fileSelectionActionGroup;
         
+        QActionGroup* m_manageFilesLoadedNotLoadedActionGroup;
+        
         QActionGroup* m_structureActionGroup;
         
         std::vector<GuiSpecFileDataFileTypeGroup*> m_guiSpecFileDataFileTypeGroups;
@@ -195,6 +207,10 @@ namespace caret {
         QToolButton* m_specFileOptionsToolButton;
         
         QToolButton* m_chooseSpecFileToolButton;
+        
+        WuQWidgetObjectGroup* m_specFileWidgetGroup;
+        
+        int m_specFileTableWidgetRow;
         
         QSignalMapper* m_fileLoadCheckBoxSignalMapper;
         
@@ -245,8 +261,9 @@ namespace caret {
         
         void setWidgetsVisible(bool visible);
         
-        void setWidgetsVisibleByFileTypeAndStructure(const DataFileTypeEnum::Enum dataFileType,
-                                                     const StructureEnum::Enum structure);
+        void setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
+                                                     const StructureEnum::Enum structure,
+                                                     const SpecFileManagementDialog::ManageFilesDisplay manageFilesDisplay);
         
     private:
         friend class SpecFileManagementDialog;
