@@ -69,13 +69,14 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     OptionalParameter* weightsOpt = ret->createOptionalParameter(4, "-weights", "specify column weights");
     weightsOpt->addStringParameter(1, "weight-file", "text file containing one weight per column");
     
-    ret->createOptionalParameter(5, "-fisher-z", "apply fisher z transform to correlation");
+    ret->createOptionalParameter(5, "-fisher-z", "apply fisher small z transform (ie, artanh) to correlation");
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
-        AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.  ") +
+        AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.\n\n") +
+        "When using the -fisher-z option, the output is NOT a Z-score, it is artanh(r), to do further math on this output, consider using -cifti-math.\n\n" +
         "Restricting the memory usage will make it calculate the output in chunks, and if the input file size is more than 70% of the memory limit, " +
         "it will also read through the input file as rows are required, resulting in several passes through the input file (once per chunk).  " +
         "Memory limit does not need to be an integer, you may also specify 0 to calculate a single output row at a time (this may be very slow)."

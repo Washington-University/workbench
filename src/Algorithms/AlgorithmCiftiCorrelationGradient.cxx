@@ -72,7 +72,7 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(7, "-volume-presmooth", "smooth the volume before computing the gradient");
     presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
-    ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher z transformed");
+    ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher small z transformed");
     
     OptionalParameter* surfaceExcludeOpt = ret->createOptionalParameter(9, "-surface-exclude", "exclude vertices near each seed vertex from computation");
     surfaceExcludeOpt->addDoubleParameter(1, "distance", "geodesic distance from seed vertex for the exclusion zone, in mm");
