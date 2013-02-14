@@ -34,20 +34,23 @@ namespace caret {
     class AlgorithmMetricExtrema : public AbstractAlgorithm
     {
         void precomputeNeighborhoods(const SurfaceFile* mySurf, const float* roiColumn, const float& distance, std::vector<std::vector<int32_t> >& neighborhoods);
-        void findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, const bool& threshMode, const float& lowThresh, const float& highThresh, std::vector<int>& minima, std::vector<int>& maxima);
-        void findExtremaNeighborhoods(const float* data, const std::vector<std::vector<int32_t> >& neighborhoods, const bool& threshMode, const float& lowThresh, const float& highThresh, std::vector<int>& minima, std::vector<int>& maxima);
+        void findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, const bool& threshMode,
+                                    const float& lowThresh, const float& highThresh, const bool& ignoreMinima, const bool& ignoreMaxima, std::vector<int>& minima, std::vector<int>& maxima);
+        void findExtremaNeighborhoods(const float* data, const std::vector<std::vector<int32_t> >& neighborhoods, const bool& threshMode,
+                                      const float& lowThresh, const float& highThresh, const bool& ignoreMinima, const bool& ignoreMaxima, std::vector<int>& minima, std::vector<int>& maxima);
         void consolidateStep(const SurfaceFile* mySurf, const float& distance, std::vector<std::pair<int, int> > initExtrema[2], std::vector<int>& minima, std::vector<int>& maxima);
         AlgorithmMetricExtrema();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance, MetricFile* myMetricOut,
+                                               const MetricFile* myRoi = NULL, const float& presmooth = -1.0f, const bool& sumColumns = false, const bool& consolidateMode = false,
+                                               const bool& ignoreMinima = false, const bool& ignoreMaxima = false, const int& columnNum = -1);
         AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
-                                               MetricFile* myMetricOut, const MetricFile* myRoi = NULL, const float& presmooth = -1.0f, const bool& sumColumns = false,
-                                               const bool& consolidateMode = false, const int& columnNum = -1);
-        AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
-                                               MetricFile* myMetricOut, const float& lowThresh, const float& highThresh, const MetricFile* myRoi = NULL, const float& presmooth = -1.0f,
-                                               const bool& sumColumns = false, const bool& consolidateMode = false, const int& columnNum = -1);
+                                               MetricFile* myMetricOut, const float& lowThresh, const float& highThresh, const MetricFile* myRoi = NULL,
+                                               const float& presmooth = -1.0f, const bool& sumColumns = false, const bool& consolidateMode = false,
+                                               const bool& ignoreMinima = false, const bool& ignoreMaxima = false, const int& columnNum = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

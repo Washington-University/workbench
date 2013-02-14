@@ -73,12 +73,17 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     
     ret->createOptionalParameter(9, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
     
+    ret->createOptionalParameter(11, "-only-maxima", "only find the maxima");
+    
+    ret->createOptionalParameter(12, "-only-minima", "only find the minima");
+    
     OptionalParameter* columnSelect = ret->createOptionalParameter(10, "-column", "select a single column to find extrema in");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
         AString("Finds extrema in a metric file, such that no two extrema of the same type are within <distance> of each other.  ") +
-        "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.\n\n" +
+        "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.  " +
+        "If -only-maxima or -only-minima is specified, then it will ignore extrema not of the specified type.  These options are mutually exclusive.\n\n" +
         "If -sum-columns is specified, these extrema columns are summed, and the output has a single column with this result.\n\n" +
         "By default, a datapoint is an extrema only if it is more extreme than every other datapoint that is within <distance> from it.  " +
         "If -consolidate-mode is used, it instead starts by finding all datapoints that are more extreme than their immediate neighbors, " +
@@ -133,19 +138,23 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
             throw AlgorithmException("invalid column specified");
         }
     }
+    bool ignoreMinima = myParams->getOptionalParameter(11)->m_present;
+    bool ignoreMaxima = myParams->getOptionalParameter(12)->m_present;
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("you may not specify both -only-maxima and -only-minima");
     if (thresholdMode)
     {
-        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, lowThresh, highThresh, myRoi, presmooth, sumColumns, consolidateMode, columnNum);
+        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, lowThresh, highThresh, myRoi, presmooth, sumColumns, consolidateMode, ignoreMinima, ignoreMaxima, columnNum);
     } else {
-        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, myRoi, presmooth, sumColumns, consolidateMode, columnNum);
+        AlgorithmMetricExtrema(myProgObj, mySurf, myMetric, distance, myMetricOut, myRoi, presmooth, sumColumns, consolidateMode, ignoreMinima, ignoreMaxima, columnNum);
     }
 }
 
 AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
                                                MetricFile* myMetricOut, const MetricFile* myRoi, const float& presmooth, const bool& sumColumns,
-                                               const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
+                                               const bool& consolidateMode, const bool& ignoreMinima, const bool& ignoreMaxima, const int& columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("AlgorithmMetricExtrema called with ignoreMinima and ignoreMaxima both true");
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes)
     {
@@ -198,9 +207,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, false, 0.0f, 0.0f, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
             } else {
-                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, false, 0.0f, 0.0f, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
             }
             if (sumColumns)
             {
@@ -250,9 +259,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setStructure(mySurf->getStructure());
         if (consolidateMode)
         {
-            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, false, 0.0f, 0.0f, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
         } else {
-            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, false, 0.0f, 0.0f, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -271,9 +280,10 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
 
 AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf,const MetricFile* myMetric, const float& distance,
                                                MetricFile* myMetricOut, const float& lowThresh, const float& highThresh, const MetricFile* myRoi, const float& presmooth,
-                                               const bool& sumColumns, const bool& consolidateMode, const int& columnNum) : AbstractAlgorithm(myProgObj)
+                                               const bool& sumColumns, const bool& consolidateMode, const bool& ignoreMinima, const bool& ignoreMaxima, const int& columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("AlgorithmMetricExtrema called with ignoreMinima and ignoreMaxima both true");
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes)
     {
@@ -324,9 +334,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, true, lowThresh, highThresh, minima, maxima);
+                findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(i), roiColumn, distance, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
             } else {
-                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, true, lowThresh, highThresh, minima, maxima);
+                findExtremaNeighborhoods(toProcess->getValuePointerForColumn(i), neighborhoods, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
             }
             if (sumColumns)
             {
@@ -374,9 +384,9 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         if (consolidateMode)
         {
-            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, true, lowThresh, highThresh, minima, maxima);
+            findExtremaConsolidate(mySurf, toProcess->getValuePointerForColumn(useCol), roiColumn, distance, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
         } else {
-            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, true, lowThresh, highThresh, minima, maxima);
+            findExtremaNeighborhoods(toProcess->getValuePointerForColumn(useCol), neighborhoods, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
         }
         int numelems = (int)minima.size();
         for (int j = 0; j < numelems; ++j)
@@ -447,15 +457,17 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
     }
 }
 
-void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const bool& threshMode, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const vector<vector<int32_t> >& neighborhoods, const bool& threshMode, const float& lowThresh,
+                                                      const float& highThresh, const bool& ignoreMinima, const bool& ignoreMaxima, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = (int)neighborhoods.size();
     minima.clear();
     maxima.clear();
     vector<int> minPos(numNodes, 1), maxPos(numNodes, 1);//mark off things that fail a comparison to reduce the work - these are just used as booleans, but we don't want bitwise packing slowing us down or dropping parallel writes
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
-        bool canBeMin = minPos[i], canBeMax = maxPos[i];
+        bool canBeMin = minPos[i] && !ignoreMinima, canBeMax = maxPos[i] && !ignoreMaxima;
         if (canBeMin || canBeMax)
         {
             const vector<int32_t>& myneighbors = neighborhoods[i];
@@ -534,7 +546,8 @@ void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const v
     }
 }
 
-void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, const bool& threshMode, const float& lowThresh, const float& highThresh, vector<int>& minima, vector<int>& maxima)
+void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, const float* data, const float* roiColumn, const float& distance, const bool& threshMode,
+                                                    const float& lowThresh, const float& highThresh, const bool& ignoreMinima, const bool& ignoreMaxima, vector<int>& minima, vector<int>& maxima)
 {
     int numNodes = mySurf->getNumberOfNodes();
     minima.clear();
@@ -542,9 +555,10 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
     vector<pair<int, int> > tempExtrema[2];
     vector<int> minPos(numNodes, 1), maxPos(numNodes, 1);//mark off things that fail a comparison to reduce the work - these are just used as booleans, but we don't want bitwise packing slowing us down or dropping writes
     CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
-        bool canBeMin = minPos[i], canBeMax = maxPos[i];
+        bool canBeMin = minPos[i] && !ignoreMinima, canBeMax = maxPos[i] && !ignoreMaxima;
         if (canBeMin || canBeMax)
         {
             const vector<int32_t>& myneighbors = myTopoHelp->getNodeNeighbors(i);

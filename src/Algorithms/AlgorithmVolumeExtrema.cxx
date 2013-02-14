@@ -69,12 +69,17 @@ OperationParameters* AlgorithmVolumeExtrema::getParameters()
     
     ret->createOptionalParameter(8, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
     
+    ret->createOptionalParameter(10, "-only-maxima", "only find the maxima");
+    
+    ret->createOptionalParameter(11, "-only-minima", "only find the minima");
+    
     OptionalParameter* subvolOpt = ret->createOptionalParameter(9, "-subvolume", "select a single subvolume to find extrema in");
     subvolOpt->addStringParameter(1, "subvolume", "the subvolume number or name");
     
     ret->setHelpText(
         AString("Finds extrema in a volume file, such that no two extrema of the same type are within <distance> of each other.  ") +
-        "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.\n\n" +
+        "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.  " +
+        "If -only-maxima or -only-minima is specified, then it will ignore extrema not of the specified type.  These options are mutually exclusive.\n\n" +
         "If -sum-subvols is specified, these extrema subvolumes are summed, and the output has a single subvolume with this result.\n\n" +
         "By default, a datapoint is an extrema only if it is more extreme than every other datapoint that is within <distance> from it.  " +
         "If -consolidate-mode is used, it instead starts by finding all datapoints that are more extreme than their immediate neighbors, " +
@@ -128,19 +133,23 @@ void AlgorithmVolumeExtrema::useParameters(OperationParameters* myParams, Progre
             throw AlgorithmException("invalid subvolume specified");
         }
     }
+    bool ignoreMinima = myParams->getOptionalParameter(10)->m_present;
+    bool ignoreMaxima = myParams->getOptionalParameter(11)->m_present;
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("you may not specify both -only-maxima and -only-minima");
     if (thresholdMode)
     {
-        AlgorithmVolumeExtrema(myProgObj, myVolIn, distance, myVolOut, lowThresh, highThresh, myRoi, presmooth, sumSubvols, consolidateMode, subvol);
+        AlgorithmVolumeExtrema(myProgObj, myVolIn, distance, myVolOut, lowThresh, highThresh, myRoi, presmooth, sumSubvols, consolidateMode, ignoreMinima, ignoreMaxima, subvol);
     } else {
-        AlgorithmVolumeExtrema(myProgObj, myVolIn, distance, myVolOut, myRoi, presmooth, sumSubvols, consolidateMode, subvol);
+        AlgorithmVolumeExtrema(myProgObj, myVolIn, distance, myVolOut, myRoi, presmooth, sumSubvols, consolidateMode, ignoreMinima, ignoreMaxima, subvol);
     }
 }
 
 AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const VolumeFile* myVolIn, const float& distance, VolumeFile* myVolOut,
                                                const VolumeFile* myRoi, const float& presmooth, const bool& sumSubvols, const bool& consolidateMode,
-                                               const int& subvol) : AbstractAlgorithm(myProgObj)
+                                               bool ignoreMinima, bool ignoreMaxima, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("AlgorithmVolumeExtrema called with ignoreMinima and ignoreMaxima both true");
     if (myRoi != NULL && !myVolIn->matchesVolumeSpace(myRoi))
     {
         throw AlgorithmException("roi doesn't match input volume space");
@@ -188,9 +197,9 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
             {
                 if (consolidateMode)
                 {
-                    findExtremaConsolidate(toProcess, s, c, myRoi, distance, false, 0.0f, 0.0f, minima, maxima);
+                    findExtremaConsolidate(toProcess, s, c, myRoi, distance, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
                 } else {
-                    findExtremaStencils(toProcess, s, c, myRoi, false, 0.0f, 0.0f, minima, maxima);
+                    findExtremaStencils(toProcess, s, c, myRoi, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
                 }
                 if (sumSubvols)
                 {
@@ -230,9 +239,9 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(toProcess, useSubvol, c, myRoi, distance, false, 0.0f, 0.0f, minima, maxima);
+                findExtremaConsolidate(toProcess, useSubvol, c, myRoi, distance, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
             } else {
-                findExtremaStencils(toProcess, useSubvol, c, myRoi, false, 0.0f, 0.0f, minima, maxima);
+                findExtremaStencils(toProcess, useSubvol, c, myRoi, false, 0.0f, 0.0f, ignoreMinima, ignoreMaxima, minima, maxima);
             }
             int64_t numElems = (int64_t)minima.size();
             for (int64_t i = 0; i < numElems; ++i)
@@ -250,9 +259,10 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
 
 AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const VolumeFile* myVolIn, const float& distance, VolumeFile* myVolOut,
                                                const float& lowThresh, const float& highThresh, const VolumeFile* myRoi, const float& presmooth,
-                                               const bool& sumSubvols, const bool& consolidateMode, const int& subvol) : AbstractAlgorithm(myProgObj)
+                                               const bool& sumSubvols, const bool& consolidateMode, bool ignoreMinima, bool ignoreMaxima, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (ignoreMinima && ignoreMaxima) throw AlgorithmException("AlgorithmVolumeExtrema called with ignoreMinima and ignoreMaxima both true");
     if (myRoi != NULL && !myVolIn->matchesVolumeSpace(myRoi))
     {
         throw AlgorithmException("roi doesn't match input volume space");
@@ -300,9 +310,9 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
             {
                 if (consolidateMode)
                 {
-                    findExtremaConsolidate(toProcess, s, c, myRoi, distance, true, lowThresh, highThresh, minima, maxima);
+                    findExtremaConsolidate(toProcess, s, c, myRoi, distance, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
                 } else {
-                    findExtremaStencils(toProcess, s, c, myRoi, true, lowThresh, highThresh, minima, maxima);
+                    findExtremaStencils(toProcess, s, c, myRoi, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
                 }
                 if (sumSubvols)
                 {
@@ -342,9 +352,9 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         {
             if (consolidateMode)
             {
-                findExtremaConsolidate(toProcess, useSubvol, c, myRoi, distance, true, lowThresh, highThresh, minima, maxima);
+                findExtremaConsolidate(toProcess, useSubvol, c, myRoi, distance, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
             } else {
-                findExtremaStencils(toProcess, useSubvol, c, myRoi, true, lowThresh, highThresh, minima, maxima);
+                findExtremaStencils(toProcess, useSubvol, c, myRoi, true, lowThresh, highThresh, ignoreMinima, ignoreMaxima, minima, maxima);
             }
             int64_t numElems = (int64_t)minima.size();
             for (int64_t i = 0; i < numElems; ++i)
@@ -419,7 +429,7 @@ void AlgorithmVolumeExtrema::precomputeStencil(const VolumeFile* myVolIn, const 
 }
 
 void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, const int& s, const int& c, const VolumeFile* myRoi, const bool& threshMode, const float& lowThresh,
-                                                 const float& highThresh, vector<VoxelIJK>& minima, vector<VoxelIJK>& maxima)
+                                                 const float& highThresh, bool ignoreMinima, bool ignoreMaxima, vector<VoxelIJK>& minima, vector<VoxelIJK>& maxima)
 {
     minima.clear();
     maxima.clear();
@@ -434,6 +444,7 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
     {
         roiFrame = myRoi->getFrame();
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t k = 0; k < myDims[2]; ++k)
     {
         bool ksafe = (k >= m_krange && k < myDims[2] - m_krange);//so we can avoid performing certain bounds checks in the inner loop
@@ -445,9 +456,9 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
                 int64_t myindex = toProcess->getIndex(i, j, k);
                 if (roiFrame == NULL || roiFrame[myindex] > 0.0f)
                 {
-                    bool canBeMin = minPos[myindex];
-                    bool canBeMax = maxPos[myindex];
-                    float myval = toProcess->getValue(i, j, k, s, c);
+                    bool canBeMin = minPos[myindex] && !ignoreMinima;
+                    bool canBeMax = maxPos[myindex] && !ignoreMaxima;
+                    float myval = dataFrame[myindex];
                     if (threshMode)
                     {
                         if (myval > lowThresh) canBeMin = false;//check thresholds
@@ -656,7 +667,7 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
 }
 
 void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess, const int& s, const int& c, const VolumeFile* myRoi, const float& distance,
-                                                    const bool& threshMode, const float& lowThresh, const float& highThresh, vector<VoxelIJK>& minima, vector<VoxelIJK>& maxima)
+                                                    const bool& threshMode, const float& lowThresh, const float& highThresh, bool ignoreMinima, bool ignoreMaxima, vector<VoxelIJK>& minima, vector<VoxelIJK>& maxima)
 {
     const int stencil[18] = {-1, 0, 0,
                              0, -1, 0,
@@ -678,6 +689,7 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
     {
         roiFrame = myRoi->getFrame();
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t k = 0; k < myDims[2]; ++k)
     {
         bool ksafe = (k > 0 && k < myDims[2] - 1);//so we can avoid performing certain bounds checks in the inner loop
@@ -689,9 +701,9 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                 int64_t myindex = toProcess->getIndex(i, j, k);
                 if (roiFrame == NULL || roiFrame[myindex] > 0.0f)
                 {
-                    bool canBeMin = minPos[myindex];
-                    bool canBeMax = maxPos[myindex];
-                    float myval = toProcess->getValue(i, j, k, s, c);
+                    bool canBeMin = minPos[myindex] && !ignoreMinima;
+                    bool canBeMax = maxPos[myindex] && !ignoreMaxima;
+                    float myval = dataFrame[myindex];
                     if (threshMode)
                     {
                         if (myval > lowThresh) canBeMin = false;//check thresholds
