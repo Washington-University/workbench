@@ -207,18 +207,20 @@ GiftiMetaData::replace(const GiftiMetaData& smd)
  *
  */
 void
-GiftiMetaData::set(
-                   const AString& name,
+GiftiMetaData::set(const AString& name,
                    const AString& value)
 {
     MetaDataIterator namePos = this->metadata.find(name);
     if (namePos != this->metadata.end()) {
-        namePos->second = value;
+        if (namePos->second != value) {
+            namePos->second = value;
+            this->setModified();
+        }
     }
     else {
         this->metadata.insert(std::make_pair(name, value));
+        this->setModified();
     }
-    this->setModified();
 }
 
 /**
