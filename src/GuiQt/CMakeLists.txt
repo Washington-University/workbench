@@ -66,6 +66,8 @@ ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
+MetaDataEditorDialog.h
+MetaDataEditorWidget.h
 MovieDialog.h
 OverlaySetViewController.h
 OverlayViewController.h
@@ -180,6 +182,8 @@ ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
+MetaDataEditorDialog.h
+MetaDataEditorWidget.h
 MouseEvent.h
 MouseEventTypeEnum.h
 MovieDialog.h
@@ -294,6 +298,8 @@ ManageLoadedFilesDialog.cxx
 MapSettingsEditorDialog.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
+MetaDataEditorDialog.cxx
+MetaDataEditorWidget.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
 MovieDialog.cxx

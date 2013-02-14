@@ -103,6 +103,23 @@ WuQWidgetObjectGroup::setDisabled(bool disable)
 }
 
 /**
+ * @return true if any of the widgets are visible.
+ */
+bool
+WuQWidgetObjectGroup::isVisible() const
+{
+    for (int i = 0; i < this->objects.size(); i++) {
+        QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+        if (widget != NULL) {
+            if (widget->isVisible()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
  * make the group's widgets visible.
  */
 void 

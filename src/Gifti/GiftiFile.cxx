@@ -1181,6 +1181,8 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
     GiftiFile::clearModified()
     {
         DataFile::clearModified();
+        metaData.clearModified();
+        labelTable.clearModified();
         for (int i = 0; i < this->getNumberOfDataArrays(); i++) {
             this->getDataArray(i)->clearModified();
         }
@@ -1196,6 +1198,12 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
     GiftiFile::isModified() const
     {
         if (DataFile::isModified()) {
+            return true;
+        }
+        if (metaData.isModified()) {
+            return true;
+        }
+        if (labelTable.isModified()) {
             return true;
         }
         for (int i = 0; i < this->getNumberOfDataArrays(); i++) {

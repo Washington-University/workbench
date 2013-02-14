@@ -63,6 +63,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "MetaDataEditorDialog.h"
 #include "ProgressReportingDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
@@ -1245,6 +1246,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
                     unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
                     unloadFileMapsAction->setEnabled(false);
                 }
+                metadataAction->setEnabled(true);
             }
             break;
         case MODE_OPEN_SPEC_FILE:
@@ -1276,7 +1278,12 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
         
     }
     else if (selectedAction == metadataAction) {
-        
+        if (caretDataFile != NULL) {
+            MetaDataEditorDialog mded(caretDataFile,
+                                      &menu);
+            mded.exec();
+            guiSpecFileDataFile->updateContent();
+        }
     }
     else if (selectedAction != NULL) {
         CaretAssertMessage(0,

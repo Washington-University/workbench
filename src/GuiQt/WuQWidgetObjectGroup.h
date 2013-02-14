@@ -52,6 +52,8 @@ namespace caret {
         
         QObject* getObject() { return dynamic_cast<QObject*>(this); }
         
+        bool isVisible() const;
+        
     public slots:
         void blockAllSignals(bool blockTheSignals);
         
