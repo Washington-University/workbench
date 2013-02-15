@@ -48,6 +48,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -415,20 +416,29 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     ModelSurfaceMontage* surfaceMontageController = btc->getDisplayedSurfaceMontageModel();
     
+    Brain* brain = NULL;
     Surface* surface = NULL;
     if (surfaceController != NULL) {
+        brain = surfaceController->getBrain();
         surface = surfaceController->getSurface();
     }
     else if (wholeBrainController != NULL) {
+        brain = wholeBrainController->getBrain();
         const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
         surface = wholeBrainController->getSelectedSurface(structure, btc->getTabNumber());
     }
     else if (surfaceMontageController != NULL) {
+        brain = surfaceMontageController->getBrain();
         const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
         surface = surfaceMontageController->getSelectedSurface(structure, btc->getTabNumber());
     }
     
     if (surface == NULL) {
+        CaretLogSevere("PROGRAM ERROR: Cannot find surface for border drawing.");
+        return;
+    }
+    if (brain == NULL) {
+        CaretLogSevere("PROGRAM ERROR: Cannot find surface for border drawing.");
         return;
     }
     
@@ -457,8 +467,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         case UserInputModeBorders::DRAW_OPERATION_EXTEND:
         case UserInputModeBorders::DRAW_OPERATION_REPLACE:
         {
-            Brain* brain = surfaceController->getBrain();
-            
             float nearestTolerance = 15;
             BorderFile* borderFile;
             int32_t borderFileIndex; 
