@@ -1,0 +1,167 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "AlgorithmVolumeWarpfieldResample.h"
+#include "AlgorithmException.h"
+
+#include "CaretLogger.h"
+#include "Vector3D.h"
+#include "WarpfieldFile.h"
+
+using namespace caret;
+using namespace std;
+
+AString AlgorithmVolumeWarpfieldResample::getCommandSwitch()
+{
+    return "-volume-warpfield-resample";
+}
+
+AString AlgorithmVolumeWarpfieldResample::getShortDescription()
+{
+    return "RESAMPLE VOLUME USING WARPFIELD";
+}
+
+OperationParameters* AlgorithmVolumeWarpfieldResample::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
+    ret->addVolumeParameter(1, "volume-in", "volume to resample");
+    
+    ret->addStringParameter(2, "warpfield", "the warpfield to apply");
+    
+    ret->addVolumeParameter(3, "volume-space", "a volume file in the volume space you want for the output");
+    
+    ret->addStringParameter(4, "method", "the resampling method");
+    
+    ret->addVolumeOutputParameter(5, "volume-out", "the output volume");
+    
+    OptionalParameter* fnirtOpt = ret->createOptionalParameter(6, "-fnirt", "MUST be used if using a fnirt warpfield");
+    fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
+    
+    ret->setHelpText(
+        AString("Resample a volume file with a warpfield.  The parameter <method> must be one of:\n\n") +
+        "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
+    );
+    return ret;
+}
+
+void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    VolumeFile* inVol = myParams->getVolume(1);
+    AString warpName = myParams->getString(2);
+    VolumeFile* refSpace = myParams->getVolume(3);
+    AString method = myParams->getString(4);
+    VolumeFile* outVol = myParams->getOutputVolume(5);
+    OptionalParameter* fnirtOpt = myParams->getOptionalParameter(6);
+    WarpfieldFile myWarpfield;
+    if (fnirtOpt->m_present)
+    {
+        myWarpfield.readFnirt(warpName, fnirtOpt->getString(1));
+    } else {
+        myWarpfield.readWorld(warpName);
+    }
+    VolumeFile::InterpType myMethod = VolumeFile::CUBIC;
+    if (method == "CUBIC")
+    {
+        myMethod = VolumeFile::CUBIC;
+    } else if (method == "TRILINEAR") {
+        myMethod = VolumeFile::TRILINEAR;
+    } else if (method == "ENCLOSING_VOXEL") {
+        myMethod = VolumeFile::ENCLOSING_VOXEL;
+    } else {
+        throw AlgorithmException("unrecognized interpolation method");
+    }
+    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refSpace, myMethod, outVol);
+}
+
+AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* warpfield,
+                                                                   const VolumeFile* refSpace, const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    vector<int64_t> warpDims;
+    warpfield->getDimensions(warpDims);
+    if (warpDims[3] != 3 || warpDims[4] != 1) throw AlgorithmException("provided warpfield volume has wrong number of subvolumes or components");
+    vector<int64_t> outDims = inVol->getOriginalDimensions(); const vector<int64_t>& refDims = refSpace->getOriginalDimensions();
+    if (outDims.size() < 3 || refDims.size() < 3) throw AlgorithmException("input and refspace must have 3 spatial dimensions");
+    outDims[0] = refDims[0];
+    outDims[1] = refDims[1];
+    outDims[2] = refDims[2];
+    int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
+    outVol->reinitialize(outDims, refSpace->getVolumeSpace(), numComponents, inVol->getType());
+    if (inVol->isMappedWithLabelTable())
+    {
+        if (myMethod != VolumeFile::ENCLOSING_VOXEL)
+        {
+            CaretLogWarning("using interpolation type other than ENCLOSING_VOXEL on a label volume");
+        }
+        for (int64_t i = 0; i < numMaps; ++i)
+        {
+            *(outVol->getMapLabelTable(i)) = *(inVol->getMapLabelTable(i));
+        }
+    }
+    for (int64_t c = 0; c < numComponents; ++c)
+    {
+        for (int64_t b = 0; b < numMaps; ++b)
+        {
+            if (myMethod == VolumeFile::CUBIC)
+            {
+                inVol->validateSplines(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
+            }
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int64_t k = 0; k < outDims[2]; ++k)
+            {
+                for (int64_t j = 0; j < outDims[1]; ++j)
+                {
+                    for (int64_t i = 0; i < outDims[0]; ++i)
+                    {
+                        Vector3D outCoord, inCoord, displacement;
+                        outVol->indexToSpace(i, j, k, outCoord);
+                        bool validDisplacement = false;
+                        displacement[0] = warpfield->interpolateValue(outCoord, VolumeFile::TRILINEAR, &validDisplacement, 0);
+                        if (validDisplacement)
+                        {
+                            displacement[1] = warpfield->interpolateValue(outCoord, VolumeFile::TRILINEAR, NULL, 1);
+                            displacement[2] = warpfield->interpolateValue(outCoord, VolumeFile::TRILINEAR, NULL, 2);
+                            inCoord = outCoord + displacement;
+                            float interpVal = inVol->interpolateValue(inCoord, myMethod, NULL, b, c);
+                            outVol->setValue(interpVal, i, j, k, b, c);
+                        } else {
+                            outVol->setValue(VolumeFile::INVALID_INTERP_VALUE, i, j, k, b, c);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+float AlgorithmVolumeWarpfieldResample::getAlgorithmInternalWeight()
+{
+    return 1.0f;//override this if needed, if the progress bar isn't smooth
+}
+
+float AlgorithmVolumeWarpfieldResample::getSubAlgorithmWeight()
+{
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;
+}

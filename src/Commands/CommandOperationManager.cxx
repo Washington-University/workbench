@@ -65,6 +65,7 @@
 #include "AlgorithmVolumeReduce.h"
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
+#include "AlgorithmVolumeWarpfieldResample.h"
 
 #include "OperationAddToSpecFile.h"
 #include "OperationBackendAverageDenseROI.h"
@@ -201,6 +202,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageDenseROI()));

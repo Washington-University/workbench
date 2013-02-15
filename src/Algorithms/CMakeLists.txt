@@ -57,6 +57,7 @@ AlgorithmVolumeParcelSmoothing.h
 AlgorithmVolumeReduce.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
+AlgorithmVolumeWarpfieldResample.h
 
 AbstractAlgorithm.cxx
 AlgorithmCiftiAverage.cxx
@@ -98,6 +99,7 @@ AlgorithmVolumeParcelSmoothing.cxx
 AlgorithmVolumeReduce.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
+AlgorithmVolumeWarpfieldResample.cxx
 )
 
 #

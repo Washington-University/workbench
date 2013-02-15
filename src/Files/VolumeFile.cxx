@@ -258,8 +258,8 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
             float yinterp[2];
             yinterp[0] = ylowWeight * xinterp[0][0] + yhighWeight * xinterp[1][0];
             yinterp[1] = ylowWeight * xinterp[0][1] + yhighWeight * xinterp[1][1];
-            float zlowWeight = index3 - ind3low;
-            float zhighWeight = 1.0f - zlowWeight;
+            float zhighWeight = index3 - ind3low;
+            float zlowWeight = 1.0f - zhighWeight;
             float ret = zlowWeight * yinterp[0] + zhighWeight * yinterp[1];
             if (validOut != NULL) *validOut = true;
             return ret;
