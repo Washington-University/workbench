@@ -46,7 +46,6 @@ OperationSetMapName.h
 OperationSetStructure.h
 OperationShowScene.h
 OperationSpecFileMerge.h
-OperationSurfaceApplyAffine.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
@@ -87,7 +86,6 @@ OperationSetMapName.cxx
 OperationSetStructure.cxx
 OperationShowScene.cxx
 OperationSpecFileMerge.cxx
-OperationSurfaceApplyAffine.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx

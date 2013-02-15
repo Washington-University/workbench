@@ -1,5 +1,5 @@
-#ifndef __OPERATION_SURFACE_APPLY_AFFINE_H__
-#define __OPERATION_SURFACE_APPLY_AFFINE_H__
+#ifndef __ALGORITHM_SURFACE_APPLY_AFFINE_H__
+#define __ALGORITHM_SURFACE_APPLY_AFFINE_H__
 
 /*LICENSE_START*/
 /*
@@ -25,21 +25,27 @@
  *
  */
 
-#include "AbstractOperation.h"
+#include "AbstractAlgorithm.h"
+#include "FloatMatrix.h"
 
 namespace caret {
     
-    class OperationSurfaceApplyAffine : public AbstractOperation
+    class AlgorithmSurfaceApplyAffine : public AbstractAlgorithm
     {
+        AlgorithmSurfaceApplyAffine();
+    protected:
+        static float getSubAlgorithmWeight();
+        static float getAlgorithmInternalWeight();
     public:
+        AlgorithmSurfaceApplyAffine(ProgressObject* myProgObj, const SurfaceFile* mySurf, const FloatMatrix& myMatrix, SurfaceFile* mySurfOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<OperationSurfaceApplyAffine> AutoOperationSurfaceApplyAffine;
+    typedef TemplateAutoOperation<AlgorithmSurfaceApplyAffine> AutoAlgorithmSurfaceApplyAffine;
 
 }
 
-#endif //__OPERATION_SURFACE_APPLY_AFFINE_H__
+#endif //__ALGORITHM_SURFACE_APPLY_AFFINE_H__

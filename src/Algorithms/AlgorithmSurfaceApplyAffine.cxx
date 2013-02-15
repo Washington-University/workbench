@@ -22,27 +22,27 @@
  *
  */
 
+#include "AlgorithmSurfaceApplyAffine.h"
+#include "AlgorithmException.h"
+
 #include "AffineFile.h"
-#include "FloatMatrix.h"
-#include "OperationSurfaceApplyAffine.h"
-#include "OperationException.h"
 #include "SurfaceFile.h"
 #include "Vector3D.h"
 
 using namespace caret;
 using namespace std;
 
-AString OperationSurfaceApplyAffine::getCommandSwitch()
+AString AlgorithmSurfaceApplyAffine::getCommandSwitch()
 {
     return "-surface-apply-affine";
 }
 
-AString OperationSurfaceApplyAffine::getShortDescription()
+AString AlgorithmSurfaceApplyAffine::getShortDescription()
 {
     return "APPLY AFFINE TRANSFORM TO SURFACE FILE";
 }
 
-OperationParameters* OperationSurfaceApplyAffine::getParameters()
+OperationParameters* AlgorithmSurfaceApplyAffine::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "in-surf", "the surface to transform");
@@ -58,13 +58,13 @@ OperationParameters* OperationSurfaceApplyAffine::getParameters()
     return ret;
 }
 
-void OperationSurfaceApplyAffine::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmSurfaceApplyAffine::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     SurfaceFile* mySurf = myParams->getSurface(1);
     AString affineName = myParams->getString(2);
     SurfaceFile* mySurfOut = myParams->getOutputSurface(3);
-    OptionalParameter* flirtOpt = myParams->getOptionalParameter(4);//gets optional parameter with key 3
+    OptionalParameter* flirtOpt = myParams->getOptionalParameter(4);
     AffineFile myAffine;
     if (flirtOpt->m_present)
     {
@@ -72,13 +72,15 @@ void OperationSurfaceApplyAffine::useParameters(OperationParameters* myParams, P
     } else {
         myAffine.readWorld(affineName);
     }
+    AlgorithmSurfaceApplyAffine(myProgObj, mySurf, myAffine.getMatrix(), mySurfOut);
+}
+
+AlgorithmSurfaceApplyAffine::AlgorithmSurfaceApplyAffine(ProgressObject* myProgObj, const SurfaceFile* mySurf, const FloatMatrix& myMatrix, SurfaceFile* mySurfOut) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
     *mySurfOut = *mySurf;//copy rather than initialize, don't currently have much in the way of modification functions
-    const FloatMatrix& affMat = myAffine.getMatrix();
     Vector3D xvec, yvec, zvec, translate;
-    xvec[0] = affMat[0][0]; xvec[1] = affMat[1][0]; xvec[2] = affMat[2][0];
-    yvec[0] = affMat[0][1]; yvec[1] = affMat[1][1]; yvec[2] = affMat[2][1];
-    zvec[0] = affMat[0][2]; zvec[1] = affMat[1][2]; zvec[2] = affMat[2][2];
-    translate[0] = affMat[0][3]; translate[1] = affMat[1][3]; translate[2] = affMat[2][3];
+    myMatrix.getAffineVectors(xvec, yvec, zvec, translate);
     int numNodes = mySurf->getNumberOfNodes();
     const float* coordData = mySurf->getCoordinateData();
     vector<float> coordsOut(numNodes * 3);
@@ -91,4 +93,15 @@ void OperationSurfaceApplyAffine::useParameters(OperationParameters* myParams, P
         coordsOut[base + 2] = transformed[2];
     }
     mySurfOut->setCoordinates(coordsOut.data(), numNodes);
+}
+
+float AlgorithmSurfaceApplyAffine::getAlgorithmInternalWeight()
+{
+    return 1.0f;//override this if needed, if the progress bar isn't smooth
+}
+
+float AlgorithmSurfaceApplyAffine::getSubAlgorithmWeight()
+{
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;
 }

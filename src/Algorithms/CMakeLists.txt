@@ -44,6 +44,7 @@ AlgorithmMetricReduce.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
+AlgorithmSurfaceApplyAffine.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceWedgeVolume.h
@@ -86,6 +87,7 @@ AlgorithmMetricReduce.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
+AlgorithmSurfaceApplyAffine.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceWedgeVolume.cxx
