@@ -388,7 +388,6 @@ MetaDataEditorWidget::isMetaDataModified()
     
     const int numItems = static_cast<int32_t>(m_namesAndValues.size());
     if (numItems != m_unmodifiedNamesAndValues.size()) {
-        std::cout << "MetaData has changed." << std::endl;
         return true;
     }
     
@@ -403,7 +402,6 @@ MetaDataEditorWidget::isMetaDataModified()
                                     m_unmodifiedNamesAndValues.end(),
                                     nameValueMap.begin());
     
-    std::cout << "MetaData modfied: " << (theSame ? "No" : "Yes") << std::endl;
     return (theSame == false);
 }
 
