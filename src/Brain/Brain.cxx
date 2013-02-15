@@ -2799,8 +2799,17 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                                                   dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            caretDataFileRead = readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
-                                            dataFileName);
+        {
+            const bool readAsDataSeriesFileFlag = true;
+            if (readAsDataSeriesFileFlag) {
+                caretDataFileRead = readConnectivityTimeSeriesFile(reloadThisDataFileIfNotNull,
+                                                                             dataFileName);
+            }
+            else {
+                caretDataFileRead = readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
+                                                                    dataFileName);
+            }
+        }
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             caretDataFileRead = readConnectivityTimeSeriesFile(reloadThisDataFileIfNotNull,
