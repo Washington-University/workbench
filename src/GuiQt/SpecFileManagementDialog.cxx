@@ -1074,7 +1074,7 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
         return false;
     }
     
-    return true;
+    return false;
 }
 
 /**
