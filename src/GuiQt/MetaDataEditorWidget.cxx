@@ -72,8 +72,8 @@ using namespace caret;
 MetaDataEditorWidget::MetaDataEditorWidget(QWidget* parent)
 : QWidget(parent)
 {
-    m_metaData = NULL;
-    
+    m_metaDataBeingEdited = NULL;
+
     m_deleteActionSignalMapper = new QSignalMapper();
     QObject::connect(m_deleteActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(deleteActionTriggered(int)));
@@ -104,7 +104,6 @@ MetaDataEditorWidget::MetaDataEditorWidget(QWidget* parent)
  */
 MetaDataEditorWidget::~MetaDataEditorWidget()
 {
-    
 }
 
 /**
@@ -113,8 +112,6 @@ MetaDataEditorWidget::~MetaDataEditorWidget()
 void
 MetaDataEditorWidget::newPushButtonClicked()
 {
-    QString newName;
-    
     WuQDataEntryDialog ded("New Metadata Name",
                            m_newPushButton);
     m_newNameDialogLineEdit = ded.addLineEditWidget("New MetaData Name");
@@ -123,17 +120,15 @@ MetaDataEditorWidget::newPushButtonClicked()
                      this, SLOT(validateNewName(WuQDataEntryDialog*)));
     
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        m_metaData->set(m_newNameDialogLineEdit->text().trimmed(),
-                        "");
+        readNamesAndValues();
         
-        updateContent(m_metaData);
+        m_namesAndValues.push_back(std::make_pair(m_newNameDialogLineEdit->text().trimmed(),
+                                                  ""));
         
-        int32_t numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
-        for (int32_t iRow = 0; iRow < numWidgetRows; iRow++) {
-            if (m_metaDataWidgetRows[iRow]->m_nameLineEdit->text() == newName) {
-                m_metaDataWidgetRows[iRow]->m_nameLineEdit->setFocus();
-            }
-        }
+        displayNamesAndValues();
+        
+        const int32_t numNames = static_cast<int32_t>(m_namesAndValues.size());
+        m_metaDataWidgetRows[numNames - 1]->m_valueLineEdit->setFocus();
     }
 }
 
@@ -172,24 +167,54 @@ MetaDataEditorWidget::validateNewName(WuQDataEntryDialog* dataEntryDialog)
                                   "");
 }
 
-
+/**
+ * Load the given metadata in this widget.
+ *
+ * @param metaData
+ *     Metadata that displayed in widget.
+ */
 void
-MetaDataEditorWidget::updateContent(GiftiMetaData* metaData)
+MetaDataEditorWidget::loadMetaData(GiftiMetaData* metaData)
 {
     CaretAssert(metaData);
-    m_metaData = metaData;
+    m_metaDataBeingEdited = metaData;
     
-    std::vector<AString> metaDataNames = metaData->getAllMetaDataNames();
+    std::vector<AString> metaDataNames = m_metaDataBeingEdited->getAllMetaDataNames();
     const int32_t numMetaData = static_cast<int32_t>(metaDataNames.size());
+    
+    /*
+     * Get names and values
+     */
+    m_unmodifiedNamesAndValues.clear();
+    m_namesAndValues.clear();
+    for (int32_t iRow = 0; iRow < numMetaData; iRow++) {
+        const AString name = metaDataNames[iRow];
+        const AString value = m_metaDataBeingEdited->get(name);
+        m_namesAndValues.push_back(std::make_pair(name,
+                                                  value));
+        m_unmodifiedNamesAndValues.insert(std::make_pair(name,
+                                                         value));
+    }
+    
+    displayNamesAndValues();
+}
+
+/**
+ * Display the names and values.
+ */
+void
+MetaDataEditorWidget::displayNamesAndValues()
+{
+    const int32_t numNamesAndValues = static_cast<int32_t>(m_namesAndValues.size());
     
     int32_t numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
     
     /*
      * Update existing rows and add new rows as needed.
      */
-    for (int32_t iRow = 0; iRow < numMetaData; iRow++) {
-        const AString name = metaDataNames[iRow];
-        const AString value = m_metaData->get(name);
+    for (int32_t iRow = 0; iRow < numNamesAndValues; iRow++) {
+        const AString name  = m_namesAndValues[iRow].first;
+        const AString value = m_namesAndValues[iRow].second;
         
         MetaDataWidgetRow* widgetsRow = NULL;
         if (iRow < numWidgetRows) {
@@ -221,8 +246,29 @@ MetaDataEditorWidget::updateContent(GiftiMetaData* metaData)
      * Hide rows that are no longer used.
      */
     numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
-    for (int32_t iRow = numMetaData; iRow < numWidgetRows; iRow++) {
+    for (int32_t iRow = numNamesAndValues; iRow < numWidgetRows; iRow++) {
         m_metaDataWidgetRows[iRow]->m_widgetGroup->setVisible(false);
+    }
+}
+
+/**
+ * Read the names and values from the GUI.
+ */
+void
+MetaDataEditorWidget::readNamesAndValues()
+{
+    m_namesAndValues.clear();
+    
+    /*
+     * Read from the rows.
+     */
+    int32_t numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
+    for (int32_t iRow = 0; iRow < numWidgetRows; iRow++) {
+        MetaDataWidgetRow* widgetRow = m_metaDataWidgetRows[iRow];
+        if (widgetRow->m_widgetGroup->isVisible()) {
+            m_namesAndValues.push_back(std::make_pair(widgetRow->m_nameLineEdit->text().trimmed(),
+                                                      widgetRow->m_valueLineEdit->text().trimmed()));
+        }
     }
 }
 
@@ -240,8 +286,10 @@ MetaDataEditorWidget::updateContent(GiftiMetaData* metaData)
 bool
 MetaDataEditorWidget::getNamesInDialog(std::set<AString>& namesOut,
                                        std::set<AString>* duplicateNamesOut,
-                                       bool* haveEmptyNamesOut) const
+                                       bool* haveEmptyNamesOut)
 {
+    readNamesAndValues();
+
     namesOut.clear();
     
     if (duplicateNamesOut != NULL) {
@@ -253,32 +301,28 @@ MetaDataEditorWidget::getNamesInDialog(std::set<AString>& namesOut,
     
     bool allValidNames = true;
     
-    const int32_t numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
-    
-    for (int32_t iRow = 0; iRow < numWidgetRows; iRow++) {
-        MetaDataWidgetRow* widgetRow = m_metaDataWidgetRows[iRow];
-        if (widgetRow->m_widgetGroup->isVisible()) {
-            const AString name = widgetRow->m_nameLineEdit->text().trimmed();
-            if (name.isEmpty()) {
-                if (haveEmptyNamesOut != NULL) {
-                    *haveEmptyNamesOut = true;
-                }
-                allValidNames = false;
+    const int32_t numItems = static_cast<int32_t>(m_namesAndValues.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        const AString name = m_namesAndValues[i].first;
+        if (name.isEmpty()) {
+            if (haveEmptyNamesOut != NULL) {
+                *haveEmptyNamesOut = true;
             }
-            else if (std::find(namesOut.begin(),
-                               namesOut.end(),
-                               name) != namesOut.end()) {
-                if (duplicateNamesOut != NULL) {
-                    duplicateNamesOut->insert(name);
-                }
-                allValidNames = false;
+            allValidNames = false;
+        }
+        else if (std::find(namesOut.begin(),
+                           namesOut.end(),
+                           name) != namesOut.end()) {
+            if (duplicateNamesOut != NULL) {
+                duplicateNamesOut->insert(name);
             }
-            else {
-                namesOut.insert(name);
-            }
+            allValidNames = false;
+        }
+        else {
+            namesOut.insert(name);
         }
     }
-    
+
     return allValidNames;
 }
 
@@ -288,10 +332,14 @@ MetaDataEditorWidget::getNamesInDialog(std::set<AString>& namesOut,
  * @return Empty string if no errors, otherwise error message.
  */
 AString
-MetaDataEditorWidget::saveContent()
+MetaDataEditorWidget::saveMetaData()
 {
-    const int32_t numWidgetRows = static_cast<int32_t>(m_metaDataWidgetRows.size());
+    if (isMetaDataModified() == false) {
+        return "";
+    }
     
+    readNamesAndValues();
+
     std::set<AString> allNames;
     std::set<AString> duplicateNames;
     bool haveEmptyNames;
@@ -301,14 +349,13 @@ MetaDataEditorWidget::saveContent()
                                         &haveEmptyNames);
     
     if (valid) {
-        for (int32_t iRow = 0; iRow < numWidgetRows; iRow++) {
-            MetaDataWidgetRow* widgetRow = m_metaDataWidgetRows[iRow];
-            if (widgetRow->m_widgetGroup->isVisible()) {
-                const AString name = widgetRow->m_nameLineEdit->text().trimmed();
-                const AString value = widgetRow->m_valueLineEdit->text().trimmed();
-                m_metaData->set(name,
-                                value);
-            }
+        m_metaDataBeingEdited->clear();
+        const int32_t numItems = static_cast<int32_t>(m_namesAndValues.size());
+        for (int32_t i = 0; i < numItems; i++) {
+            const AString name = m_namesAndValues[i].first;
+            const AString value = m_namesAndValues[i].second;
+            m_metaDataBeingEdited->set(name,
+                                       value);
         }
         return "";
     }
@@ -332,17 +379,47 @@ MetaDataEditorWidget::saveContent()
 }
 
 /**
+ * @return true if the names and values been modified, else false.
+ */
+bool
+MetaDataEditorWidget::isMetaDataModified()
+{
+    readNamesAndValues();
+    
+    const int numItems = static_cast<int32_t>(m_namesAndValues.size());
+    if (numItems != m_unmodifiedNamesAndValues.size()) {
+        std::cout << "MetaData has changed." << std::endl;
+        return true;
+    }
+    
+    std::map<AString, AString> nameValueMap;
+    for (int32_t i = 0; i < numItems; i++) {
+        nameValueMap.insert(std::make_pair(m_namesAndValues[i].first,
+                                           m_namesAndValues[i].second));
+    }
+    
+    
+    const bool theSame = std::equal(m_unmodifiedNamesAndValues.begin(),
+                                    m_unmodifiedNamesAndValues.end(),
+                                    nameValueMap.begin());
+    
+    std::cout << "MetaData modfied: " << (theSame ? "No" : "Yes") << std::endl;
+    return (theSame == false);
+}
+
+
+/**
  * Called when a delete tool button is clicked.
  */
 void
 MetaDataEditorWidget::deleteActionTriggered(int indx)
 {
-    std::cout << "Delete " << indx << std::endl;
-    if (indx >= 0) {
-        const AString name = m_metaDataWidgetRows[indx]->m_nameLineEdit->text().trimmed();
-        m_metaData->remove(name);
-        updateContent(m_metaData);
-    }
+    readNamesAndValues();
+    
+    CaretAssertVectorIndex(m_namesAndValues, indx);
+    m_namesAndValues.erase(m_namesAndValues.begin() + indx);
+    
+    displayNamesAndValues();
 }
 
 /**

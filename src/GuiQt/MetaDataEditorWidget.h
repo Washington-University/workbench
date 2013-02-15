@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <set>
 
 #include <QWidget>
@@ -61,9 +62,18 @@ namespace caret {
         
         virtual ~MetaDataEditorWidget();
         
-        void updateContent(GiftiMetaData* metaData);
+        void loadMetaData(GiftiMetaData* metaData);
         
-        AString saveContent();
+        bool isMetaDataModified();
+        
+        AString saveMetaData();
+        
+    private slots:
+        void newPushButtonClicked();
+        
+        void deleteActionTriggered(int indx);
+        
+        void validateNewName(WuQDataEntryDialog* dataEntryDialog);
         
     private:
         MetaDataEditorWidget(const MetaDataEditorWidget&);
@@ -75,18 +85,7 @@ namespace caret {
             COLUMN_NAME   = 1,
             COLUMN_VALUE  = 2
         };
-    public:
 
-        // ADD_NEW_METHODS_HERE
-
-    private slots:
-        void newPushButtonClicked();
-        
-        void deleteActionTriggered(int indx);
-        
-        void validateNewName(WuQDataEntryDialog* dataEntryDialog);
-        
-    private:
         class MetaDataWidgetRow {
         public:
             MetaDataWidgetRow(QWidget* parent,
@@ -104,11 +103,20 @@ namespace caret {
             WuQWidgetObjectGroup* m_widgetGroup;
         };
 
+        void displayNamesAndValues();
+        
+        void readNamesAndValues();
+        
         bool getNamesInDialog(std::set<AString>& namesOut,
                               std::set<AString>* duplicateNamesOut,
-                                           bool* haveEmptyNamesOut) const;
+                                           bool* haveEmptyNamesOut);
+
+        std::vector<std::pair<AString, AString> > m_namesAndValues;
         
-        GiftiMetaData* m_metaData;
+        std::map<AString, AString> m_unmodifiedNamesAndValues;
+        
+        /** Metadata that is being edited */
+        GiftiMetaData* m_metaDataBeingEdited;
         
         QGridLayout* m_metaDataWidgetLayout;
         

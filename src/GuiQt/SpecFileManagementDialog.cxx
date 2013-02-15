@@ -1229,27 +1229,32 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
         caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
     }
     
-    
+    QAction* editMetaDataAction = NULL;
     QAction* setFileNameAction = NULL;
     QAction* unloadFileAction = NULL;
     QAction* unloadFileMapsAction = NULL;
+    QAction* viewMetaDataAction = NULL;
     
     QMenu menu;
-    QAction* metadataAction = menu.addAction("Edit Metadata...");
-    metadataAction->setEnabled(false);
     switch (m_dialogMode) {
         case MODE_MANAGE_FILES:
             if (caretDataFile != NULL) {
+                editMetaDataAction = menu.addAction("Edit Metadata...");
                 setFileNameAction = menu.addAction("Set File Name...");
                 unloadFileAction = menu.addAction("Unload File");
                 if (caretMappableDataFile != NULL) {
                     unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
                     unloadFileMapsAction->setEnabled(false);
                 }
-                metadataAction->setEnabled(true);
+            }
+            else {
+                viewMetaDataAction = menu.addAction("View Metadata...");
+                viewMetaDataAction->setEnabled(false);
             }
             break;
         case MODE_OPEN_SPEC_FILE:
+            viewMetaDataAction = menu.addAction("View Metadata...");
+            viewMetaDataAction->setEnabled(false);
             break;
     }
     
@@ -1277,13 +1282,16 @@ SpecFileManagementDialog::fileOptionsActionSelected(int indx)
     else if (selectedAction == unloadFileMapsAction) {
         
     }
-    else if (selectedAction == metadataAction) {
+    else if (selectedAction == editMetaDataAction) {
         if (caretDataFile != NULL) {
             MetaDataEditorDialog mded(caretDataFile,
                                       &menu);
             mded.exec();
             guiSpecFileDataFile->updateContent();
         }
+    }
+    else if (selectedAction == viewMetaDataAction) {
+        
     }
     else if (selectedAction != NULL) {
         CaretAssertMessage(0,

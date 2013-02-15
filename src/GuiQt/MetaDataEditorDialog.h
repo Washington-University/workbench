@@ -40,6 +40,7 @@
 namespace caret {
 
     class CaretDataFile;
+    class CaretMappableDataFile;
     class GiftiMetaData;
     class MetaDataEditorWidget;
     
@@ -49,26 +50,25 @@ namespace caret {
 
     public:
         MetaDataEditorDialog(CaretDataFile* caretDataFile,
-                       QWidget* parent);
+                             QWidget* parent);
+        
+        MetaDataEditorDialog(CaretMappableDataFile* caretMappableDataFile,
+                             const int32_t mapIndex,
+                             QWidget* parent);
         
         virtual ~MetaDataEditorDialog();
         
         virtual void okButtonClicked();
+        
+        virtual void cancelButtonClicked();
         
     private:
         MetaDataEditorDialog(const MetaDataEditorDialog&);
 
         MetaDataEditorDialog& operator=(const MetaDataEditorDialog&);
         
-    public:
-
-        // ADD_NEW_METHODS_HERE
-
-    private:
-
-        CaretDataFile* m_caretDataFile;
-
-        GiftiMetaData* m_metaData;
+        void initializeDialog(const AString& dialogTitle,
+                              GiftiMetaData* metaData);
         
         MetaDataEditorWidget* m_metaDataEditorWidget;
         
