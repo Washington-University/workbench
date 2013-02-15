@@ -2229,6 +2229,10 @@ Brain::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                                       borderPointIndex,
                                                       distanceToNearestBorderPoint);
         if (valid) {
+//            std::cout << "Brain: Border: " << qPrintable(border->getName())
+//            << " point index: " << borderPointIndex
+//            << " distance: " << distanceToBorderPointOut << std::endl;
+            
             if (distanceToNearestBorderPoint < distanceToBorderPointOut) {
                 CaretAssert(border);
                 CaretAssert(borderIndex >= 0);

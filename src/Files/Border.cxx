@@ -162,6 +162,21 @@ Border::getStructure()
 }
 
 /**
+ * @return Structure to which this border is assigned.
+ */
+StructureEnum::Enum
+Border::getStructure() const
+{
+    StructureEnum::Enum structure = StructureEnum::INVALID;
+    
+    if (m_points.empty() == false) {
+        structure = m_points[0]->getStructure();
+    }
+    
+    return structure;
+}
+
+/**
  * @return Is the class RGBA color valid?
  */
 bool 
@@ -445,6 +460,10 @@ Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
     CaretAssert(surfaceFile);
     const int32_t numPoints = getNumberOfPoints();
     if (numPoints <= 0) {
+        return -1;
+    }
+    
+    if (surfaceFile->getStructure() != getStructure()) {
         return -1;
     }
 

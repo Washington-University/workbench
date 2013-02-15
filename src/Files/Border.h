@@ -67,6 +67,8 @@ namespace caret {
         
         StructureEnum::Enum getStructure();
         
+        StructureEnum::Enum getStructure() const;
+        
         bool verifyAllPointsOnSameStructure() const;
         
         int32_t getNumberOfPoints() const;

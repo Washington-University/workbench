@@ -322,18 +322,23 @@ BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
             continue;
         }
         float distanceToPoint = 0.0;
-        const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile, 
-                                                              xyz,
-                                                              maximumDistance,
-                                                              distanceToPoint);
-        if (pointIndex >= 0) {
-            SurfaceProjectedItem* borderPoint = border->getPoint(pointIndex);
-            if (distanceToPoint < nearestDistance) {
-                borderOut = border;
-                borderIndexOut = i;
-                borderPointOut = borderPoint;
-                borderPointIndexOut = pointIndex;
-                distanceToNearestPointOut = distanceToPoint;
+        if (border->getStructure() == surfaceFile->getStructure()) {
+            const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile,
+                                                                        xyz,
+                                                                        maximumDistance,
+                                                                        distanceToPoint);
+            if (pointIndex >= 0) {
+//                std::cout << "Border: " << qPrintable(border->getName())
+//                << " point index: " << pointIndex
+//                << " distance: " << distanceToPoint << std::endl;
+                SurfaceProjectedItem* borderPoint = border->getPoint(pointIndex);
+                if (distanceToPoint < nearestDistance) {
+                    borderOut = border;
+                    borderIndexOut = i;
+                    borderPointOut = borderPoint;
+                    borderPointIndexOut = pointIndex;
+                    distanceToNearestPointOut = distanceToPoint;
+                }
             }
         }
     }
