@@ -53,14 +53,13 @@ OperationParameters* AlgorithmSurfaceApplyAffine::getParameters()
     flirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
     ret->setHelpText(
         AString("For flirt matrices, you must use the -flirt option, because flirt matrices are not a complete description of the coordinate transform they represent.  ") +
-        "If the -flirt option is not present, the affine must be a 'world' affine, which can be obtained with the -convert-affine command, or aff_conv from the 4dfp suite."
+        "If the -flirt option is not present, the affine must be a nifti 'world' affine, which can be obtained with the -convert-affine command, or aff_conv from the 4dfp suite."
     );
     return ret;
 }
 
 void AlgorithmSurfaceApplyAffine::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    LevelProgress myProgress(myProgObj);
     SurfaceFile* mySurf = myParams->getSurface(1);
     AString affineName = myParams->getString(2);
     SurfaceFile* mySurfOut = myParams->getOutputSurface(3);
