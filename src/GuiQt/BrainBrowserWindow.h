@@ -95,7 +95,9 @@ namespace caret {
         void loadSceneFromCommandLine(const AString& sceneFileName,
                                       const AString& sceneNameOrNumber);
         
-        void loadFilesFromNetwork(const std::vector<AString>& filenames,
+        bool loadFilesFromNetwork(QWidget* parentForDialogs,
+                                  const std::vector<AString>& filenames,
+                                  const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                                   const AString& username,
                                   const AString& password);
         
@@ -194,7 +196,9 @@ namespace caret {
         BrainBrowserWindow(const BrainBrowserWindow&);
         BrainBrowserWindow& operator=(const BrainBrowserWindow&);
         
-        void loadFiles(const std::vector<AString>& filenames,
+        bool loadFiles(QWidget* parentForDialogs,
+                       const std::vector<AString>& filenames,
+                       const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                        const LoadSpecFileMode loadSpecFileMode,
                        const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
                        const AString& username,

@@ -1496,7 +1496,10 @@ BrainBrowserWindow::processDataFileOpen()
             }
             
             if (isLoadDataFiles) {
-                loadFiles(filenamesVector,
+                std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+                loadFiles(this,
+                          filenamesVector,
+                          dataFileTypesDummyNotUsed,
                           LOAD_SPEC_FILE_WITH_DIALOG,
                           addDataFileToSpecFileMode,
                           "",
@@ -1510,25 +1513,35 @@ BrainBrowserWindow::processDataFileOpen()
 
 /**
  * Load files that are on the network
- * @param
+ *
+ * @param parentForDialogs,
+ *    Parent widget on which dialogs are displayed.
+ * @param filenames
  *    List of filenames to read.
+ * @param dataFileTypes
+ *    Type for each data file (optional, if not available type matched from file's extension).
  * @param username
  *    Username for network file reading
  * @param password
  *    Password for network file reading
  */
-void
-BrainBrowserWindow::loadFilesFromNetwork(const std::vector<AString>& filenames,
+bool
+BrainBrowserWindow::loadFilesFromNetwork(QWidget* parentForDialogs,
+                                         const std::vector<AString>& filenames,
+                                         const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                                          const AString& username,
                                          const AString& password)
 {    
 //    this->loadFilesFromCommandLine(filenames,
 //                                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
-    loadFiles(filenames,
-              BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
-              ADD_DATA_FILE_TO_SPEC_FILE_NO,
-              username,
-              password);
+    const bool successFlag = loadFiles(parentForDialogs,
+                                       filenames,
+                                       dataFileTypes,
+                                       BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
+                                       ADD_DATA_FILE_TO_SPEC_FILE_NO,
+                                       username,
+                                       password);
+    return successFlag;
 }
 
 
@@ -1543,7 +1556,11 @@ void
 BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                              const LoadSpecFileMode loadSpecFileMode)
 {
-    loadFiles(filenames,
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+    
+    loadFiles(this,
+              filenames,
+              dataFileTypesDummyNotUsed,
               loadSpecFileMode,
               ADD_DATA_FILE_TO_SPEC_FILE_NO,
               "",
@@ -1620,8 +1637,13 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
  * Load data files.  If there are errors, an error message dialog
  * will be displayed.
  *
+ * @param parentForDialogs
+ *    Parent widget for any dialogs (if NULL this window is used).
  * @param filenames
  *    Names of files.
+ * @param dataFileTypes
+ *    Type for each filename (optional).  If the type is not present for a 
+ *    filename, the type is inferred from the filename's extension.
  * @param loadSpecFileMode
  *    Specifies handling of SpecFiles
  * @param commandLineFlag
@@ -1630,14 +1652,22 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
  *    Username for network file reading
  * @param password
  *    Password for network file reading
+ * @return true if there are no errors, else false.
  */
-void 
-BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
+bool
+BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
+                              const std::vector<AString>& filenames,
+                              const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                               const LoadSpecFileMode loadSpecFileMode,
                               const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
                               const AString& username,
                               const AString& password)
 {
+    QWidget* parentWidget = parentForDialogs;
+    if (parentWidget == NULL) {
+        parentWidget = this;
+    }
+    
     /*
      * Pick out specific file types.
      */
@@ -1645,19 +1675,37 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     std::vector<AString> volumeFileNames;
     std::vector<AString> surfaceFileNames;
     std::vector<AString> otherFileNames;
+    std::vector<DataFileTypeEnum::Enum> otherDataFileTypes;
+    
+    AString typeErrorMessage = "";
+    
     const int32_t numFiles = static_cast<int32_t>(filenames.size());
+    const int32_t numDataTypes = static_cast<int32_t>(dataFileTypes.size());
     for (int32_t i = 0; i < numFiles; i++) {
         const AString name = filenames[i];
         bool isValidType = false;
-        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::UNKNOWN;
+        if (i < numDataTypes) {
+            fileType = dataFileTypes[i];
+            isValidType = true;
+        }
+        else {
+            fileType = DataFileTypeEnum::fromFileExtension(name,
+                                                           &isValidType);
+            if (isValidType == false) {
+                typeErrorMessage.appendWithNewLine("Extension for "
+                                                   + name
+                                                   + " does not match a suppported file type");
+            }
+        }
+        
         switch (fileType) {
             case DataFileTypeEnum::SPECIFICATION:
                 if (specFileName.isEmpty() == false) {
-                    QMessageBox::critical(this,
+                    QMessageBox::critical(parentWidget,
                                           "ERROR",
                                           "More than one spec file cannot be loaded");
-                    return;
-                    
+                    return false;
                 }
                 specFileName = name;
                 break;
@@ -1669,8 +1717,16 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 break;
             default:
                 otherFileNames.push_back(name);
+                otherDataFileTypes.push_back(fileType);
                 break;
         }
+    }
+    
+    if (typeErrorMessage.isEmpty() == false) {
+        QMessageBox::critical(parentWidget,
+                              "ERROR",
+                              typeErrorMessage);
+        return false;
     }
     
     /*
@@ -1680,19 +1736,27 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
      * (3) Surface File
      * (4) All other files.
      */
-    std::vector<AString> filenamesToLoad;
+    std::vector<std::pair<AString, DataFileTypeEnum::Enum> > filesToLoad;
 //    if (specFileName.isEmpty() == false) {
 //        filenamesToLoad.push_back(specFileName);
 //    }
-    filenamesToLoad.insert(filenamesToLoad.end(),
-                           volumeFileNames.begin(),
-                           volumeFileNames.end());
-    filenamesToLoad.insert(filenamesToLoad.end(),
-                           surfaceFileNames.begin(),
-                           surfaceFileNames.end());
-    filenamesToLoad.insert(filenamesToLoad.end(),
-                           otherFileNames.begin(),
-                           otherFileNames.end());
+    const int32_t numVolumeFiles = static_cast<int32_t>(volumeFileNames.size());
+    for (int32_t i = 0; i < numVolumeFiles; i++) {
+        filesToLoad.push_back(std::make_pair(volumeFileNames[i],
+                                             DataFileTypeEnum::VOLUME));
+    }
+
+    const int32_t numSurfaceFiles = static_cast<int32_t>(surfaceFileNames.size());
+    for (int32_t i = 0; i < numSurfaceFiles; i++) {
+        filesToLoad.push_back(std::make_pair(surfaceFileNames[i],
+                                             DataFileTypeEnum::SURFACE));
+    }
+
+    const int32_t numOtherFiles = static_cast<int32_t>(otherFileNames.size());
+    for (int32_t i = 0; i < numOtherFiles; i++) {
+        filesToLoad.push_back(std::make_pair(otherFileNames[i],
+                                             otherDataFileTypes[i]));
+    }
                            
 
     bool createDefaultTabsFlag = false;
@@ -1725,10 +1789,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         }
         catch (const DataFileException& e) {
             errorMessages += e.whatString();
-            QMessageBox::critical(this,
+            QMessageBox::critical(parentWidget,
                                   "ERROR",
                                   errorMessages);
-            return;
+            return false;
         }
         
         switch (loadSpecFileMode) {
@@ -1750,7 +1814,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 }
                 
                 ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                  this,
+                                                  parentWidget,
                                                   specFile.getFileNameNoPath());
                 
                 if (readSpecFileEvent.isError()) {
@@ -1769,7 +1833,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                  * Allow user to choose files listed in the spec file
                  */
                 SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                               this);
+                                                                               parentWidget);
                 if (sfd->exec() == QDialog::Accepted) {
                     timer.reset();
                     specFileTimeStart = timer.getElapsedTimeSeconds();
@@ -1782,7 +1846,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     }
                     
                     ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                      this,
+                                                      parentWidget,
                                                       specFile.getFileNameNoPath());
                     
                     if (readSpecFileEvent.isError()) {
@@ -1826,27 +1890,28 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     /*
      * Add data files to data file loading event (after loading spec file)
      */
-    const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
+    const int32_t numFilesToLoad = static_cast<int32_t>(filesToLoad.size());
     for (int32_t i = 0; i < numFilesToLoad; i++) {
-        AString name = filenamesToLoad[i];
+        AString name = filesToLoad[i].first;
+        const DataFileTypeEnum::Enum fileType = filesToLoad[i].second;
         
-        //FileInformation fileInfo(name);
-        //if (fileInfo.isAbsolute()) {
-        //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
-        //}
+        loadFilesEvent.addDataFile(fileType,
+                                   name);
         
-        bool isValidType = false;
-        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-        if (isValidType) {
-            loadFilesEvent.addDataFile(fileType,
-                                       name);
-        }
-        else {
-            if (errorMessages.isEmpty() == false) {
-                errorMessages += "\n";
-            }
-            errorMessages += ("Extension for " + name + " does not match a suppported file type");
-        }
+//        bool isValidType = false;
+//        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+//        if (isValidType) {
+//            loadFilesEvent.addDataFile(fileType,
+//                                       name);
+//        }
+//        else {
+//            if (errorMessages.isEmpty() == false) {
+//                errorMessages += "\n";
+//            }
+//            errorMessages += ("Extension for "
+//                              + name
+//                              + " does not match a suppported file type");
+//        }
     }
     
     /*
@@ -1855,7 +1920,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     const int32_t numberOfValidFiles = loadFilesEvent.getNumberOfDataFilesToRead();
     if (numberOfValidFiles > 0) {
         ProgressReportingDialog::runEvent(&loadFilesEvent,
-                                          this,
+                                          parentWidget,
                                           "Loading Data Files");
         errorMessages.appendWithNewLine(loadFilesEvent.getErrorMessage());
         if (loadFilesEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
@@ -1876,7 +1941,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                  * Allow user to specify the structure
                  */
                 WuQDataEntryDialog ded("Structure",
-                                       this);
+                                       parentWidget);
                 StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
                 ded.setTextAtTop(("File \""
                                   + shortName
@@ -1896,7 +1961,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     }
                     
                     ProgressReportingDialog::runEvent(&loadFileEventStructure,
-                                                      this,
+                                                      parentWidget,
                                                       ("Loading " + shortName));
                     if (loadFileEventStructure.isError()) {
                         errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
@@ -2165,8 +2230,10 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                      + AString::number(createTabsTime));
     }
     
+    bool successFlag = true;
     if (errorMessages.isEmpty() == false) {
-        QMessageBox::critical(this, 
+        successFlag = false;
+        QMessageBox::critical(parentWidget, 
                               "ERROR", 
                               errorMessages);
     }
@@ -2174,6 +2241,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     if (sceneFileWasLoaded) {
         GuiManager::get()->processShowSceneDialog(this);
     }
+    
+    return successFlag;
 }
 
 /**

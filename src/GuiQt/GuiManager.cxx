@@ -735,8 +735,11 @@ GuiManager::receiveEvent(Event* event)
         BrainBrowserWindow* bbw = getActiveBrowserWindow();
         if (bbw != NULL) {
             std::vector<AString> filenamesVector;
+            std::vector<DataFileTypeEnum::Enum> dataFileTypeVectorNotUsed;
             filenamesVector.push_back(openFileEvent->getDataFileName());
-            bbw->loadFiles(filenamesVector,
+            bbw->loadFiles(bbw,
+                           filenamesVector,
+                           dataFileTypeVectorNotUsed,
                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
                            BrainBrowserWindow::ADD_DATA_FILE_TO_SPEC_FILE_NO,
                            "",

@@ -32,6 +32,7 @@
 /**
  * \class caret::EnumComboBoxTemplate
  * \brief Create a combo box for a workbench enumerated type.
+ * \ingroup GuiQt
  *
  * Create a combo box for a workbench enumerated type.  Typically,
  * the enumerated types are created with wb_command: 
@@ -40,6 +41,30 @@
  * This class is not a template class because QObject subclasses may
  * not be templates.  See http://doc.trolltech.com/qq/qq15-academic.html
  * While the class cannot be a template, methods in the class be templates.
+ *
+ * <p>
+ * How to Use This Class
+ * <p>
+ * Declare: <br>
+ * EnumComboBoxTemplate* m_someTypeComboBox;
+ *
+ * <p>
+ * Construct: <br>
+ *  m_someTypeComboBox = new EnumComboBoxTemplate(this); <br>
+ *  m_someTypeComboBox->setup<SomeTypeEnum, SomeTypeEnum::Enum>(); <br>
+ *
+ * <p>
+ * Read: <br>
+ * const SomeTypeEnum::Enum enumValue = m_someTypeComboBox->getSelectedItem<SomeTypeEnum, SomeTypeEnum::Enum>();
+ *
+ * <p>
+ * Set: <br>
+ * m_someTypeComboBox->setSelectedItem<SomeTypeEnum, SomeTypeEnum::Enum>(enumValue);
+ *
+ * <p>
+ * Get notified when user makes selection:<br>
+ * The itemSelected() signal is emitted when the user makes a selection.
+ *
  */
 namespace caret {
 

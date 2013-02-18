@@ -39,8 +39,11 @@
 
 class QComboBox;
 class QLineEdit;
+class QRadioButton;
 
 namespace caret {
+    class EnumComboBoxTemplate;
+    class WuQWidgetObjectGroup;
 
     class CaretFileRemoteDialog : public WuQDialogModal {
         Q_OBJECT
@@ -53,27 +56,71 @@ namespace caret {
     protected:
         void okButtonClicked();
         
+    private slots:
+        void locationSourceRadioButtonClicked(QAbstractButton* button);
+        
     private:
         CaretFileRemoteDialog(const CaretFileRemoteDialog&);
 
         CaretFileRemoteDialog& operator=(const CaretFileRemoteDialog&);
         
-        QComboBox* m_fileTypeComboBox;
-        QLineEdit* m_urlLineEdit;
+        class StandardData {
+        public:
+            StandardData(const AString& userFriendlyName,
+                         const AString locationUrl,
+                         const DataFileTypeEnum::Enum dataFileType)
+            : m_userFriendlyName(userFriendlyName),
+            m_locationUrl(locationUrl),
+            m_dataFileType(dataFileType) { }
+            
+            AString m_userFriendlyName;
+            AString m_locationUrl;
+            DataFileTypeEnum::Enum m_dataFileType;
+        };
+        
+        class PreviousSelections {
+        public:
+            PreviousSelections() {
+                m_customURL = "https://";
+                m_customDataFileType = DataFileTypeEnum::CONNECTIVITY_DENSE;
+                m_standardFileComboBoxIndex = 0;
+                m_username = "wbuser";
+                m_password = "hcpWb0512";
+            }
+            
+            AString m_customURL;
+            DataFileTypeEnum::Enum m_customDataFileType;
+            int m_standardFileComboBoxIndex;
+            AString m_username;
+            AString m_password;
+            AString m_radioButtonText;
+        };
+        
+        QWidget* createLocationWidget();
+        
+        QWidget* createLoginWidget();
+        
+        void createAndLoadStandardData();
+        
+        QRadioButton* m_locationCustomRadioButton;
+        QRadioButton* m_locationStardardRadioButton;
+        
+        QComboBox* m_standardFileComboBox;
+        EnumComboBoxTemplate* m_customUrlFileTypeComboBox;
+        QLineEdit* m_customUrlLineEdit;
         QLineEdit* m_usernameLineEdit;
         QLineEdit* m_passwordLineEdit;
         
-        static DataFileTypeEnum::Enum previousNetworkDataFileType;
-        static AString previousNetworkFileName;
-        static AString previousNetworkUsername;
-        static AString previousNetworkPassword;
+        WuQWidgetObjectGroup* m_customWidgetGroup;
+        WuQWidgetObjectGroup* m_standardWidgetGroup;
+        
+        std::vector<StandardData> m_standardData;
+        
+        static PreviousSelections s_previousSelections;
     };
     
 #ifdef __CARET_FILE_REMOTE_DIALOG_DECLARE__
-    DataFileTypeEnum::Enum CaretFileRemoteDialog::previousNetworkDataFileType = DataFileTypeEnum::CONNECTIVITY_DENSE;
-    AString CaretFileRemoteDialog::previousNetworkFileName = "";
-    AString CaretFileRemoteDialog::previousNetworkUsername = "";
-    AString CaretFileRemoteDialog::previousNetworkPassword = "";
+    CaretFileRemoteDialog::PreviousSelections CaretFileRemoteDialog::s_previousSelections;
 #endif // __CARET_FILE_REMOTE_DIALOG_DECLARE__
 
 } // namespace
