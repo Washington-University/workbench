@@ -30,6 +30,9 @@
 #include "FileInformation.h"
 #undef __FILE_INFORMATION_DECLARE__
 
+#include "CaretLogger.h"
+#include "DataFile.h"
+
 using namespace caret;
 
 /**
@@ -49,6 +52,9 @@ using namespace caret;
 FileInformation::FileInformation(const AString& file)
 : CaretObject(), m_fileInfo(file)
 {
+    if (DataFile::isFileOnNetwork(file)) {
+        CaretLogSevere("PROGRAM ERROR: file is on network which does not function in FileInformation");
+    }
 }
 
 /**
@@ -61,6 +67,10 @@ FileInformation::FileInformation(const AString& file)
 FileInformation::FileInformation(const AString& path,
                                  const AString& file) : CaretObject(), m_fileInfo(path, file)
 {
+    if (DataFile::isFileOnNetwork(path)) {
+        CaretLogSevere("PROGRAM ERROR: file is on network which does not function in FileInformation");
+    }
+    
     /*
      * Clean up path to remove any ".." (up a directory level).
      * Note that canonicalFilePath() will return an empty string

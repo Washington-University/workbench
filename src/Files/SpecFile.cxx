@@ -781,20 +781,23 @@ SpecFile::areAllSelectedFilesSceneFiles() const
 /**
  * Read the file.
  *
- * @param filename
+ * @param filenameIn
  *    Name of file to read.
  *
  * @throws DataFileException
  *    If there is an error reading the file.
  */
 void 
-SpecFile::readFile(const AString& filename) throw (DataFileException)
+SpecFile::readFile(const AString& filenameIn) throw (DataFileException)
 {
     clear();
     
-    FileInformation specInfo(filename);
-    AString absFileName = specInfo.getFilePath();
-    this->setFileName(absFileName);
+    AString filename = filenameIn;
+    if (DataFile::isFileOnNetwork(filename) == false) {
+        FileInformation specInfo(filename);
+        filename = specInfo.getFilePath();
+    }
+    this->setFileName(filename);
     
     checkFileReadability(filename);
     
@@ -829,7 +832,7 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
         throw dfe;
     }
 
-    this->setFileName(absFileName);
+    this->setFileName(filename);
     this->setAllFilesSelected(true);
     
     this->clearModified();

@@ -325,8 +325,11 @@ SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
 {
     clear();
     
-    FileInformation fileInfo(filenameIn);
-    const AString filename = fileInfo.getFilePath();
+    AString filename = filenameIn;
+    if (DataFile::isFileOnNetwork(filename) == false) {
+        FileInformation specInfo(filename);
+        filename = specInfo.getFilePath();
+    }
     checkFileReadability(filename);
     
     this->setFileName(filename);
