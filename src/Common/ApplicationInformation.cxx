@@ -56,7 +56,7 @@ ApplicationInformation::ApplicationInformation()
 : CaretObject()
 {
     this->name    = "Workbench";
-    this->version = "Beta 0.70";
+    this->version = "Beta 0.80";
 }
 
 /**
