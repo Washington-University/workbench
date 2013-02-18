@@ -101,13 +101,7 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
     MetricFile* myMetric = myParams->getMetric(2);
     float distance = (float)myParams->getDouble(3);
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
-    MetricFile* myRoi = NULL;
-    if (roiOpt->m_present)
-    {
-        myRoi = roiOpt->getMetric(1);
-    }
-    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(5);
     float presmooth = -1.0f;
     if (presmoothOpt->m_present)
     {
@@ -116,6 +110,12 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
         {
             throw AlgorithmException("smoothing kernel must be positive");
         }
+    }
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(6);
+    MetricFile* myRoi = NULL;
+    if (roiOpt->m_present)
+    {
+        myRoi = roiOpt->getMetric(1);
     }
     OptionalParameter* thresholdOpt = myParams->getOptionalParameter(7);
     bool thresholdMode = false;
