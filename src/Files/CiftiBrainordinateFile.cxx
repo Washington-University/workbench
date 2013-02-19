@@ -44,6 +44,7 @@
 #include "CiftiXnat.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
+#include "FileInformation.h"
 #include "GiftiLabel.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
@@ -174,14 +175,41 @@ CiftiBrainordinateFile::readFile(const AString& filename) throw (DataFileExcepti
     try {
         if (DataFile::isFileOnNetwork(filename)) {
             CiftiXnat* ciftiXnat = new CiftiXnat();
-            const AString username = CaretDataFile::getFileReadingUsername();
-            if (username.isEmpty() == false) {
-                ciftiXnat->setAuthentication(filename,
-                                             username,
-                                             CaretDataFile::getFileReadingPassword());
+            AString username = "";
+            AString password = "";
+            AString filenameToOpen = "";
+            
+            /*
+             * Username and password may be embedded in URL, so extract them.
+             */
+            FileInformation fileInfo(filename);
+            fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
+                                                     username,
+                                                     password);
+            
+            /*
+             * Always override with a password entered by the user.
+             */
+            if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
+                username = CaretDataFile::getFileReadingUsername();
+                password = CaretDataFile::getFileReadingPassword();
             }
-            ciftiXnat->openURL(filename);
+            
+            ciftiXnat->setAuthentication(filenameToOpen,
+                                         username,
+                                         password);
+            ciftiXnat->openURL(filenameToOpen);
             m_ciftiInterface.grabNew(ciftiXnat);
+            
+//            CiftiXnat* ciftiXnat = new CiftiXnat();
+//            const AString username = CaretDataFile::getFileReadingUsername();
+//            if (username.isEmpty() == false) {
+//                ciftiXnat->setAuthentication(filename,
+//                                             username,
+//                                             CaretDataFile::getFileReadingPassword());
+//            }
+//            ciftiXnat->openURL(filename);
+//            m_ciftiInterface.grabNew(ciftiXnat);
         }
         else {
             CiftiFile* ciftiFile = new CiftiFile();
