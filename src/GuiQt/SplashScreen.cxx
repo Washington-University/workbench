@@ -369,6 +369,15 @@ SplashScreen::addRecentSpecFiles()
         QString name;
         QString fullPath;
         
+        if (firstItem == NULL) {
+            QStringList itemText;
+            itemText.append("Recent Spec Files");
+            itemText.append("-------------------------------");
+            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
+            titleItem->setDisabled(true);
+            m_specFileTreeWidget->addTopLevelItem(titleItem);
+        }
+        
         const QString specFileName = recentSpecFiles[i];
         if (DataFile::isFileOnNetwork(specFileName)) {
             const int lastSlash = specFileName.lastIndexOf('/');
@@ -378,20 +387,9 @@ SplashScreen::addRecentSpecFiles()
         }
         else {
             FileInformation fileInfo(specFileName);
-//            if (fileInfo.exists()) {
-                if (firstItem == NULL) {
-                    QStringList itemText;
-                    itemText.append("Recent Spec Files");
-                    itemText.append("-------------------------------");
-                    QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-                    titleItem->setDisabled(true);
-                    m_specFileTreeWidget->addTopLevelItem(titleItem);
-                }
-                
                 path = fileInfo.getPathName().trimmed();
                 name = fileInfo.getFileName().trimmed();
                 fullPath = fileInfo.getFilePath();
-//            }
         }
             
         if (name.isEmpty() == false) {
