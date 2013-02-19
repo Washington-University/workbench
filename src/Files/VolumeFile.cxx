@@ -20,8 +20,10 @@
  *  along with CARET; if not, write to the Free Software 
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
- */ 
+ */
+#include <QTemporaryFile>
 
+#include "CaretHttpManager.h"
 #include "VolumeFile.h"
 #include <cmath>
 #include "NiftiFile.h"
@@ -166,8 +168,67 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
     
     try {
         NiftiFile myNifti(true);
-        this->setFileName(filename);
-        myNifti.readVolumeFile(*this, filename);
+        
+        if (DataFile::isFileOnNetwork(filename)) {
+            /*
+             * Read file on network.
+             * Sort of a kludge, read from the network as a string of bytes
+             * and then write the bytes to a temporary file.  Lastly,
+             * read the temporary file as a VolumeFile.
+             */
+            CaretHttpRequest request;
+            request.m_method = CaretHttpManager::GET;
+            request.m_url = filename;
+            CaretHttpResponse response;
+            CaretHttpManager::httpRequest(request,
+                                          response);
+            if (response.m_ok == false) {
+                QString msg = ("HTTP error retrieving: "
+                               + filename
+                               + "\nHTTP Response Code="
+                               + AString::number(response.m_responseCode));
+                throw XmlSaxParserException(msg);
+            }
+            
+            const int64_t numBytes = response.m_body.size();
+            if (numBytes > 0) {
+                QTemporaryFile tempFile;
+                if (tempFile.open()) {
+                    const int64_t numBytesWritten = tempFile.write(&response.m_body[0],
+                                                                   numBytes);
+                    if (numBytesWritten != numBytes) {
+                        throw DataFileException("Error reading remote file "
+                                                + filename
+                                                + "  Tried to write "
+                                                + QString::number(numBytes)
+                                                + " bytes to temporary file but only wrote "
+                                                + AString::number(numBytesWritten)
+                                                + " bytes.");
+                    }
+                    
+                    tempFile.close();
+                }
+                else {
+                    throw DataFileException("Unable to create temporary file for reading remote file: "
+                                            + filename);
+                }
+                
+                myNifti.readVolumeFile(*this,
+                                       tempFile.fileName());
+                this->setFileName(filename);
+            }
+            else {
+                throw DataFileException("Failed to read any data from remote file: "
+                                        + filename);
+            }
+        }
+        else {
+            /*
+             * Read local file.
+             */
+            this->setFileName(filename);
+            myNifti.readVolumeFile(*this, filename);
+        }
         parseExtensions();
         clearModified();
     } catch (const CaretException& e) {
