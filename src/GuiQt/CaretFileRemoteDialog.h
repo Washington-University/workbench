@@ -59,6 +59,10 @@ namespace caret {
     private slots:
         void locationSourceRadioButtonClicked(QAbstractButton* button);
         
+        void selectCustomRadioButton();
+        
+        void selectStandardRadioButton();
+        
     private:
         CaretFileRemoteDialog(const CaretFileRemoteDialog&);
 
@@ -103,7 +107,7 @@ namespace caret {
         void createAndLoadStandardData();
         
         QRadioButton* m_locationCustomRadioButton;
-        QRadioButton* m_locationStardardRadioButton;
+        QRadioButton* m_locationStandardRadioButton;
         
         QComboBox* m_standardFileComboBox;
         EnumComboBoxTemplate* m_customUrlFileTypeComboBox;

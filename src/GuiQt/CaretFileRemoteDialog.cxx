@@ -107,8 +107,8 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
     if (m_locationCustomRadioButton->text() == s_previousSelections.m_radioButtonText) {
         defaultRadioButton = m_locationCustomRadioButton;
     }
-    else if (m_locationStardardRadioButton->text() == s_previousSelections.m_radioButtonText) {
-        defaultRadioButton = m_locationStardardRadioButton;
+    else if (m_locationStandardRadioButton->text() == s_previousSelections.m_radioButtonText) {
+        defaultRadioButton = m_locationStandardRadioButton;
     }
 
     if (defaultRadioButton != NULL) {
@@ -136,11 +136,11 @@ CaretFileRemoteDialog::createLocationWidget()
     DataFileTypeEnum::getAllEnums(dataFileTypes);
     
     m_locationCustomRadioButton = new QRadioButton("Custom");
-    m_locationStardardRadioButton = new QRadioButton("Standard");
+    m_locationStandardRadioButton = new QRadioButton("Standard");
     
     QButtonGroup* locationButtonGroup = new QButtonGroup(this);
     locationButtonGroup->addButton(m_locationCustomRadioButton);
-    locationButtonGroup->addButton(m_locationStardardRadioButton);
+    locationButtonGroup->addButton(m_locationStandardRadioButton);
     QObject::connect(locationButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(locationSourceRadioButtonClicked(QAbstractButton*)));
     
@@ -181,7 +181,7 @@ CaretFileRemoteDialog::createLocationWidget()
                                   1, 3);
     
     row++;
-    locationGridLayout->addWidget(m_locationStardardRadioButton,
+    locationGridLayout->addWidget(m_locationStandardRadioButton,
                                   row, 0, 1, 2);
     locationGridLayout->addWidget(m_standardFileComboBox,
                                   row, 2);
@@ -195,7 +195,33 @@ CaretFileRemoteDialog::createLocationWidget()
     m_standardWidgetGroup = new WuQWidgetObjectGroup(this);
     m_standardWidgetGroup->add(m_standardFileComboBox);
     
+    QObject::connect(m_customUrlLineEdit, SIGNAL(textEdited(const QString&)),
+                     this, SLOT(selectCustomRadioButton()));
+    QObject::connect(m_customUrlFileTypeComboBox, SIGNAL(itemSelected()),
+                     this, SLOT(selectCustomRadioButton()));
+    
+    QObject::connect(m_standardFileComboBox, SIGNAL(activated(int)),
+                     this, SLOT(selectStandardRadioButton()));
+    
     return locationGroupBox;
+}
+
+/**
+ * To select standard radio button.
+ */
+void
+CaretFileRemoteDialog::selectStandardRadioButton()
+{
+    m_locationStandardRadioButton->setChecked(true);
+}
+
+/**
+ * To select custom radio button.
+ */
+void
+CaretFileRemoteDialog::selectCustomRadioButton()
+{
+    m_locationCustomRadioButton->setChecked(true);
 }
 
 /**
@@ -211,15 +237,15 @@ CaretFileRemoteDialog::locationSourceRadioButtonClicked(QAbstractButton* button)
     if (button == m_locationCustomRadioButton) {
         customEnabled = true;
     }
-    else if (button == m_locationStardardRadioButton) {
+    else if (button == m_locationStandardRadioButton) {
         standardEnabled = true;
     }
     else {
         okButtonEnabled = false;
     }
     
-    m_customWidgetGroup->setEnabled(customEnabled);
-    m_standardWidgetGroup->setEnabled(standardEnabled);
+//    m_customWidgetGroup->setEnabled(customEnabled);
+//    m_standardWidgetGroup->setEnabled(standardEnabled);
     
     getDialogButtonBox()->button(QDialogButtonBox::Ok)->setEnabled(okButtonEnabled);
 }
@@ -257,6 +283,8 @@ CaretFileRemoteDialog::createLoginWidget()
 void
 CaretFileRemoteDialog::createAndLoadStandardData()
 {
+    m_standardFileComboBox->blockSignals(true);
+    
     m_standardData.push_back(StandardData("Pilot1 Average Dense Connectome",
                                           "https://db.humanconnectome.org/data/services/cifti-average?searchID=PILOT1_AVG_xnat:subjectData",
                                           DataFileTypeEnum::CONNECTIVITY_DENSE));
@@ -266,6 +294,8 @@ CaretFileRemoteDialog::createAndLoadStandardData()
         m_standardFileComboBox->addItem(m_standardData[i].m_userFriendlyName,
                                         qVariantFromValue(i));
     }
+
+    m_standardFileComboBox->blockSignals(false);
 }
 
 
@@ -279,7 +309,7 @@ CaretFileRemoteDialog::okButtonClicked()
     if (m_locationCustomRadioButton->isChecked()) {
         customSelected = true;
     }
-    else if (m_locationStardardRadioButton->isChecked()) {
+    else if (m_locationStandardRadioButton->isChecked()) {
         customSelected = false;
     }
     else {
@@ -305,7 +335,7 @@ CaretFileRemoteDialog::okButtonClicked()
         }
         
         s_previousSelections.m_standardFileComboBoxIndex = indx;
-        s_previousSelections.m_radioButtonText = m_locationStardardRadioButton->text();
+        s_previousSelections.m_radioButtonText = m_locationStandardRadioButton->text();
     }
 
     const AString username = m_usernameLineEdit->text().trimmed();
@@ -313,10 +343,6 @@ CaretFileRemoteDialog::okButtonClicked()
     
     s_previousSelections.m_username = username;
     s_previousSelections.m_password = password;
-//    CaretFileRemoteDialog::previousNetworkDataFileType = dataFileType;
-//    CaretFileRemoteDialog::previousNetworkFileName = dataFileURL;
-//    CaretFileRemoteDialog::previousNetworkUsername = m_usernameLineEdit->text().trimmed();
-//    CaretFileRemoteDialog::previousNetworkPassword = m_passwordLineEdit->text().trimmed();
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getActiveBrowserWindow();
     std::vector<AString> files;
@@ -324,117 +350,14 @@ CaretFileRemoteDialog::okButtonClicked()
     std::vector<DataFileTypeEnum::Enum> dataFileTypes;
     dataFileTypes.push_back(dataFileType);
     
-    browserWindow->loadFilesFromNetwork(this,
-                                        files,
-                                        dataFileTypes,
-                                        username,
-                                        password);
-//    
-//    
-//    Brain* brain = GuiManager::get()->getBrain();
-//    
-////    std::vector<DataFileTypeEnum::Enum> connectivityDataFileTypes;
-////    DataFileTypeEnum::getAllConnectivityEnums(connectivityDataFileTypes);
-//
-//    SpecFile specFile;
-//    if (dataFileType == DataFileTypeEnum::SPECIFICATION) {
-//        
-//        EventDataFileRead readSpecFileEvent(brain,
-//                                            &specFile);
-//    }
-//    /*
-//     * Event to read file.
-//     */
-//    EventDataFileRead readFileEvent(brain,
-//                                    false);
-//    readFileEvent.addDataFile(dataFileType,
-//                              dataFileURL);
-//    if (username.isEmpty() == false) {
-//        readFileEvent.setUsernameAndPassword(username,
-//                                             password);
-//    }
-////    if (CaretFileRemoteDialog::previousNetworkUsername.isEmpty() == false) {
-////        readFileEvent.setUsernameAndPassword(CaretFileRemoteDialog::previousNetworkUsername,
-////                                             CaretFileRemoteDialog::previousNetworkPassword);
-////    }
-//
-//    /*
-//     * Use progress dialog.
-//     */
-//    bool isError = false;
-//    ProgressReportingDialog::runEvent(&readFileEvent,
-//                                      this,
-//                                      "Loading Remote File");
-//    if (readFileEvent.isError()) {
-//        WuQMessageBox::errorOk(this,
-//                               readFileEvent.getErrorMessage());
-//        isError = true;
-//    }
-//    
-//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    
-//    EventUserInterfaceUpdate uiUpdateEvent;
-//    if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
-//        uiUpdateEvent.addConnectivity();
-//    }
-//    EventManager::get()->sendEvent(uiUpdateEvent.getPointer());
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    
-//    if (isError) {
-//        return;
-//    }
-//
-////    /*
-////     * Is this a connectivity file?
-////     */
-////    if (std::find(connectivityDataFileTypes.begin(),
-////                  connectivityDataFileTypes.end(),
-////                  dataFileType)
-////        != connectivityDataFileTypes.end()) {
-////        EventDataFileRead readFileEvent(brain,
-////                                        false);
-////        readFileEvent.addDataFile(dataFileType,
-////                                  dataFileURL);
-////        readFileEvent.setUsernameAndPassword(CaretFileRemoteDialog::previousNetworkUsername,
-////                                             CaretFileRemoteDialog::previousNetworkPassword);
-////        
-////        bool isError = false;
-////        ProgressReportingDialog::runEvent(&readFileEvent,
-////                                          this,
-////                                          "Loading Remote File");
-////        if (readFileEvent.isError()) {
-////            WuQMessageBox::errorOk(this,
-////                                   readFileEvent.getErrorMessage());
-////            isError = true;
-////        }
-////        if (readFileEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
-////            WuQMessageBox::errorOk(this,
-////                                   readFileEvent.getAddToSpecFileErrorMessages());
-////        }
-////        
-////        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-////        
-////        EventUserInterfaceUpdate uiUpdateEvent;
-////        if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
-////            uiUpdateEvent.addConnectivity();
-////        }
-////        EventManager::get()->sendEvent(uiUpdateEvent.getPointer());
-////        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-////        
-////        if (isError) {
-////            return;
-////        }
-////    }
-////    else {
-////        BrainBrowserWindow* browserWindow = GuiManager::get()->getActiveBrowserWindow();
-////        std::vector<AString> files;
-////        files.push_back(filename);
-////        
-////        browserWindow->loadFilesFromNetwork(files,
-////                                            CaretFileRemoteDialog::previousNetworkUsername,
-////                                            CaretFileRemoteDialog::previousNetworkPassword);
-////    }
+    const bool successFlag = browserWindow->loadFilesFromNetwork(this,
+                                                                 files,
+                                                                 dataFileTypes,
+                                                                 username,
+                                                                 password);
     
-    WuQDialogModal::okButtonClicked();
+    if (successFlag) {
+        WuQDialogModal::okButtonClicked();
+    }
 }
 
