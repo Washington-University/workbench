@@ -147,7 +147,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
         {
             QFile *f = new QFile();
             f->setFileName(m_cacheFileName);
-            f->open(QIODevice::ReadWrite);
+            f->open(QIODevice::ReadWrite | QIODevice::Truncate);
             m_cacheFile = f;
         }
 
