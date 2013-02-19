@@ -461,3 +461,36 @@ FileInformation::toString() const
     return ("FileInformation for " + m_fileInfo.absoluteFilePath());
 }
 
+/**
+ * For a remote file, strip the username and password from the URL
+ * and return the URL (without username and password), the username, 
+ * and the password.  If the file is local or does not contain
+ * username/password, the equivalent of getFilePath() is the output URL.
+ *
+ * @param urlOut
+ *     The URL with the username and password removed.
+ * @param
+ *     The username that was in the URL.
+ * @param
+ *     The password that was in the URL.
+ */
+void
+FileInformation::getRemoteUrlUsernameAndPassword(AString& urlOut,
+                                                 AString& usernameOut,
+                                                 AString& passwordOut) const
+{
+    urlOut      = "";
+    usernameOut = "";
+    passwordOut = "";
+    
+    if (m_isRemoteFile) {
+        urlOut = m_urlInfo.toString(QUrl::RemoveUserInfo);
+        usernameOut = m_urlInfo.userName();
+        passwordOut = m_urlInfo.password();
+        return;
+    }
+    
+    urlOut = getFilePath();
+}
+
+

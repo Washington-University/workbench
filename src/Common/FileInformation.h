@@ -84,6 +84,10 @@ namespace caret {
         
         bool remove();
         
+        void getRemoteUrlUsernameAndPassword(AString& urlOut,
+                                             AString& usernameOut,
+                                             AString& passwordOut) const;
+        
     private:
         FileInformation(const FileInformation&);
 
