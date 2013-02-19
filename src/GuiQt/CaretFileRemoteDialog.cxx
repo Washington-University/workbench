@@ -148,7 +148,6 @@ CaretFileRemoteDialog::createLocationWidget()
     QLabel* customUrlTypeLabel = new QLabel("Type: ");
     m_customUrlLineEdit = new QLineEdit();
     m_customUrlLineEdit->setMinimumWidth(400);
-    m_customUrlLineEdit->setText("http://");
     
     m_customUrlFileTypeComboBox = new EnumComboBoxTemplate(this);
     m_customUrlFileTypeComboBox->setup<DataFileTypeEnum, DataFileTypeEnum::Enum>();
@@ -213,6 +212,7 @@ void
 CaretFileRemoteDialog::selectStandardRadioButton()
 {
     m_locationStandardRadioButton->setChecked(true);
+    locationSourceRadioButtonClicked(m_locationStandardRadioButton);
 }
 
 /**
@@ -222,6 +222,7 @@ void
 CaretFileRemoteDialog::selectCustomRadioButton()
 {
     m_locationCustomRadioButton->setChecked(true);
+    locationSourceRadioButtonClicked(m_locationCustomRadioButton);
 }
 
 /**

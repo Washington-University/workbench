@@ -85,7 +85,7 @@ namespace caret {
         class PreviousSelections {
         public:
             PreviousSelections() {
-                m_customURL = "https://";
+                m_customURL = "http://";
                 m_customDataFileType = DataFileTypeEnum::CONNECTIVITY_DENSE;
                 m_standardFileComboBoxIndex = 0;
                 m_username = "wbuser";
