@@ -24,7 +24,6 @@
  */ 
 
 #include <QDir>
-#include <QFileInfo>
 
 #define __FILE_INFORMATION_DECLARE__
 #include "FileInformation.h"
@@ -37,10 +36,12 @@ using namespace caret;
 
 /**
  * \class caret::FileInformation
- *
  * \brief Information about a file path.
+ * \ingroup Common
  *
- * Provides information about a path (file, directory, etc).
+ * Provides information about a path (file, directory, etc).  Support for
+ * remote files is provided.  Some of the methods are not appropriate for
+ * remote files and the method's documentation indicates any limitations.
  */
 
 
@@ -50,10 +51,18 @@ using namespace caret;
  *    Name of path for which information is obtained.
  */
 FileInformation::FileInformation(const AString& file)
-: CaretObject(), m_fileInfo(file)
+: CaretObject()
 {
+    m_isLocalFile  = false;
+    m_isRemoteFile = false;
+    
     if (DataFile::isFileOnNetwork(file)) {
-        CaretLogSevere("PROGRAM ERROR: file is on network which does not function in FileInformation");
+        m_urlInfo.setUrl(file);
+        m_isRemoteFile = true;
+    }
+    else {
+        m_fileInfo.setFile(file);
+        m_isLocalFile = true;
     }
 }
 
@@ -65,22 +74,34 @@ FileInformation::FileInformation(const AString& file)
  *    Name of path for which information is obtained.
  */
 FileInformation::FileInformation(const AString& path,
-                                 const AString& file) : CaretObject(), m_fileInfo(path, file)
+                                 const AString& file) : CaretObject()
 {
-    if (DataFile::isFileOnNetwork(path)) {
-        CaretLogSevere("PROGRAM ERROR: file is on network which does not function in FileInformation");
-    }
+    m_isLocalFile  = false;
+    m_isRemoteFile = false;
     
-    /*
-     * Clean up path to remove any ".." (up a directory level).
-     * Note that canonicalFilePath() will return an empty string
-     * if the path does not point to a valid file.
-     */
-    if (getFilePath().contains("..")) {
-        const AString cleanedPath = m_fileInfo.canonicalFilePath();
-        if (cleanedPath.isEmpty() == false) {
-            m_fileInfo.setFile(cleanedPath);
+    if (DataFile::isFileOnNetwork(file)) {
+        QUrl baseUrl(path);
+        QUrl relativeUrl(file);
+        m_urlInfo = baseUrl.resolved(relativeUrl);
+        m_isRemoteFile = true;
+    }
+    else {
+        m_fileInfo.setFile(path,
+                           file);
+        
+        /*
+         * Clean up path to remove any ".." (up a directory level).
+         * Note that canonicalFilePath() will return an empty string
+         * if the path does not point to a valid file.
+         */
+        if (getFilePath().contains("..")) {
+            const AString cleanedPath = m_fileInfo.canonicalFilePath();
+            if (cleanedPath.isEmpty() == false) {
+                m_fileInfo.setFile(cleanedPath);
+            }
         }
+        
+        m_isLocalFile = true;
     }
 }
 
@@ -92,39 +113,351 @@ FileInformation::~FileInformation()
     
 }
 
-//some logic that seems to be missing from QFileInfo: if absolute, return path() + file() rather than using system call
+/**
+ * @return True if the file is a local file, else false.
+ */
+bool
+FileInformation::isLocalFile() const
+{
+    return m_isLocalFile;
+}
+
+/**
+ * @return True if the file is a remote file, else false.
+ */
+bool
+FileInformation::isRemoteFile() const
+{
+    return m_isRemoteFile;
+}
+
+/**
+ * @return Path including the name of the file.
+ *
+ * some logic that seems to be missing from QFileInfo: if absolute, 
+ * return path() + file() rather than using system call.
+ *
+ * Note: A remote file returns the original, full URL.
+ */
 AString FileInformation::getFilePath() const
 {
-    if (m_fileInfo.isAbsolute())
-    {
+    if (m_isRemoteFile) {
+        return m_urlInfo.toString();
+    }
+    
+    if (m_fileInfo.isAbsolute()) {
         return m_fileInfo.filePath();
-    } else {
+    }
+    else {
         return m_fileInfo.absoluteFilePath();
     }
 }
 
 /**
  * Removes the file.
+ * Remove files cannot be removed.
+ *
  * @return
  *    true if file deleted successfully.
  */
 bool 
 FileInformation::remove()
-{   bool result = false;
+{
+    if (m_isRemoteFile) {
+        CaretLogSevere("Deleting remote file is not allowed: "
+                       + m_urlInfo.toString());
+        return false;
+    }
+    
+    bool result = false;
     if (m_fileInfo.exists()) {
         result = QFile::remove(m_fileInfo.absoluteFilePath());
     }
     return result;
 }
 
+/**
+ * @return true if it exists, else false.
+ *
+ * A remote file always returns true.
+ */
+bool
+FileInformation::exists() const
+{
+    if (m_isRemoteFile) {
+        return true;
+    }
+    
+    return m_fileInfo.exists();
+}
+
+/**
+ * @return true if it is file, else false.
+ *
+ * A remote file always returns true.
+ */
+bool
+FileInformation::isFile() const
+{
+    if (m_isRemoteFile) {
+        return true;
+    }
+    
+    return m_fileInfo.isFile();
+}
+
+/**
+ * @return true if it is directory, else false.
+ *
+ * A remote file always returns false.
+ */
+bool
+FileInformation::isDirectory() const
+{
+    if (m_isRemoteFile) {
+        return false;
+    }
+    
+    return m_fileInfo.isDir();
+}
+
+/**
+ * @return true if it is symbolic link, else false.0
+ *
+ * A remote file always returns false.
+ */
+bool
+FileInformation::isSymbolicLink() const
+{
+    if (m_isRemoteFile) {
+        return false;
+    }
+    
+    return m_fileInfo.isSymLink();
+}
+
+/**
+ * @return true if it is readable, else false.
+ *
+ * A remote file always returns true.
+ */
+bool
+FileInformation::isReadable() const
+{
+    if (m_isRemoteFile) {
+        return true;
+    }
+    
+    return m_fileInfo.isReadable();
+}
+
+/**
+ * @return true if it is writable, else false.
+ *
+ * A remote file always returns false.
+ */
+bool
+FileInformation::isWritable() const
+{
+    if (m_isRemoteFile) {
+        return false;
+    }
+    
+    return m_fileInfo.isWritable();
+}
+
+/**
+ * @return true if it is absolute path, else false.
+ *
+ * A remote file always returns true.
+ */
+bool
+FileInformation::isAbsolute() const
+{
+    if (m_isRemoteFile) {
+        return true;
+    }
+    
+    return m_fileInfo.isAbsolute();
+}
+
+/**
+ * @return true if it is relative path, else false (remote file is never relative)
+ *
+ * A remote file always returns false.
+ */
+bool
+FileInformation::isRelative() const
+{
+    if (m_isRemoteFile) {
+        return false;
+    }
+    
+    return m_fileInfo.isRelative();
+}
+
+/**
+ * @return true if it is hidden, else false.
+ *
+ * A remote file always returns false.
+ */
+bool
+FileInformation::isHidden() const
+{
+    if (m_isRemoteFile) {
+        return false;
+    }
+    
+    return m_fileInfo.isHidden();
+}
+
+/**
+ * @return Size of the file in bytes.
+ *
+ * A remote file always returns 0.
+ */
+int64_t
+FileInformation::size() const
+{
+    if (m_isRemoteFile) {
+        return 0;
+    }
+    
+    return m_fileInfo.size();
+}
+
+/**
+ * @return Name of the file excluding any path.
+ *
+ * A remote file always anything after the last slash (/).  If there is
+ * no slash, an emtpy string is returned.
+ */
+AString
+FileInformation::getFileName() const
+{
+    if (m_isRemoteFile) {
+        QString name = m_urlInfo.toString();
+        const int indx = name.lastIndexOf('/');
+        if ((indx >= 0) && (indx < name.length())) {
+            name = name.mid(indx + 1);
+            return name;
+        }
+        else {
+            return "";
+        }
+    }
+    
+    return m_fileInfo.fileName();
+}
+
+/**
+ * @return The file's path excluding the file's name.
+ *
+ * A remote file always everything before the last slash (/).  If there is
+ * no slash, the URL is returned.
+ */
+AString
+FileInformation::getPathName() const
+{
+    if (m_isRemoteFile) {
+        QString path = m_urlInfo.toString();
+        const int indx = path.lastIndexOf('/');
+        if (indx >= 1) {
+            path = path.left(indx - 1);
+            return path;
+        }
+        else {
+            return path;
+        }
+    }
+    
+    return m_fileInfo.path();
+}
+
+/**
+ * @return The full path to the file including the file name, resolving 
+ * any symlinks or ".." or "." components.  This should give exactly one 
+ * string per file, no matter how many ways to get to a file there are 
+ * (except for hardlinks).
+ *
+ * Note: A remote file returns the original, full URL.
+ */
+AString
+FileInformation::getCanonicalFilePath() const
+{
+    if (m_isRemoteFile) {
+        return m_urlInfo.toString();
+    }
+    
+    return m_fileInfo.canonicalFilePath();
+}
+
+/**
+ * @return The full path to the file (excluding the file name), 
+ * resolving any symlinks or ".." or "." components.
+ *
+ * For a remote file, this returns getPathName().
+ */
+AString
+FileInformation::getCanonicalPath() const
+{
+    if (m_isRemoteFile) {
+        return getPathName();
+    }
+    
+    return m_fileInfo.canonicalPath();
+}
+
+/**
+ * @return The file name's extension.
+ *
+ * For a remote file, the extension is anything after the last
+ * "." in the file's name.  If there is no "." an empty string
+ * is returned.
+ */
+AString
+FileInformation::getFileExtension() const
+{
+    if (m_isRemoteFile) {
+        AString ext = getFileName();
+        const int indx = ext.lastIndexOf('.');
+        if ((indx >= 0) && (indx < ext.length())) {
+            ext = ext.mid(indx + 1);
+            return ext;
+        }
+        else {
+            return "";
+        }
+    }
+    
+    return m_fileInfo.suffix();
+}
+
+/**
+ * @return The file's absolute path.
+ * Note: A remote file returns the original, full URL.
+ */
+AString
+FileInformation::getAbsolutePath() const
+{
+    if (m_isRemoteFile) {
+        return m_urlInfo.toString();
+    }
+    
+    return m_fileInfo.absolutePath();
+}
 
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
-AString 
+AString
 FileInformation::toString() const
 {
+    if (m_isRemoteFile) {
+        return ("FileInformation for " + m_urlInfo.toString());
+    }
+    
     return ("FileInformation for " + m_fileInfo.absoluteFilePath());
 }
 

@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 
 #include <QFileInfo>
+#include <QUrl>
 
 namespace caret {
 
@@ -43,87 +44,43 @@ namespace caret {
         
         virtual ~FileInformation();
         
-        /**
-         * @return true if it exists, else false.
-         */
-        bool exists() const { return m_fileInfo.exists(); }
+        bool isLocalFile() const;
         
-        /**
-         * @return true if it is file, else false.
-         */
-        bool isFile() const { return m_fileInfo.isFile(); }
+        bool isRemoteFile() const;
         
-        /**
-         * @return true if it is directory, else false.
-         */
-        bool isDirectory() const { return m_fileInfo.isDir(); }
+        bool exists() const;
         
-        /**
-         * @return true if it is symbolic link, else false.
-         */
-        bool isSymbolicLink() const { return m_fileInfo.isSymLink(); }
+        bool isFile() const;
         
-        /**
-         * @return true if it is readable, else false.
-         */
-        bool isReadable() const { return m_fileInfo.isReadable(); }
+        bool isDirectory() const;
         
-        /**
-         * @return true if it is writable, else false.
-         */
-        bool isWritable() const { return m_fileInfo.isWritable(); }
+        bool isSymbolicLink() const;
         
-        /**
-         * @return true if it is absolute path, else false.
-         */
-        bool isAbsolute() const { return m_fileInfo.isAbsolute(); }
+        bool isReadable() const;
         
-        /**
-         * @return true if it is relative path, else false.
-         */
-        bool isRelative() const { return m_fileInfo.isRelative(); }
+        bool isWritable() const;
         
-        /**
-         * @return true if it is hidden, else false.
-         */
-        bool isHidden() const { return m_fileInfo.isHidden(); }
+        bool isAbsolute() const;
         
-        /**
-         * @return Size of the file in bytes.
-         */
-        int64_t size() const { return m_fileInfo.size(); }
+        bool isRelative() const;
         
-        /**
-         * @return Name of the file excluding any path.
-         */
-        AString getFileName() const { return m_fileInfo.fileName(); }
+        bool isHidden() const;
         
-        /**
-         * @return The file's path excluding the file's name.
-         */
-        AString getPathName() const { return m_fileInfo.path(); }
+        int64_t size() const;
         
-        /**
-         * @return The full path to the file. 
-         */
+        AString getFileName() const;
+        
+        AString getPathName() const;
+        
         AString getFilePath() const;
         
-        /**
-         * @return The full path to the file including the file name, resolving any symlinks or ".." or "." components.  This should give exactly one string per file, no matter how many ways to get to a file there are (except for hardlinks).
-         */
-        AString getCanonicalFilePath() const { return m_fileInfo.canonicalFilePath(); }
+        AString getCanonicalFilePath() const;
         
-        /**
-         * @return The full path to the file (excluding the file name), resolving any symlinks or ".." or "." components.
-         */
-        AString getCanonicalPath() const { return m_fileInfo.canonicalPath(); }
+        AString getCanonicalPath() const;
         
-        /**
-         * @return The file name's extension.
-         */
-        AString getFileExtension() const { return m_fileInfo.suffix(); }
+        AString getFileExtension() const;
         
-        AString getAbsolutePath() const { return m_fileInfo.absolutePath(); }
+        AString getAbsolutePath() const;
         
         bool remove();
         
@@ -137,6 +94,12 @@ namespace caret {
         
     private:
         QFileInfo m_fileInfo;
+        
+        QUrl m_urlInfo;
+        
+        bool m_isRemoteFile;
+        
+        bool m_isLocalFile;
     };
     
 #ifdef __FILE_INFORMATION_DECLARE__
