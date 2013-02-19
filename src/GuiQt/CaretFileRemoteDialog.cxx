@@ -197,7 +197,7 @@ CaretFileRemoteDialog::createLocationWidget()
     
     QObject::connect(m_customUrlLineEdit, SIGNAL(textEdited(const QString&)),
                      this, SLOT(selectCustomRadioButton()));
-    QObject::connect(m_customUrlFileTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_customUrlFileTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(selectCustomRadioButton()));
     
     QObject::connect(m_standardFileComboBox, SIGNAL(activated(int)),

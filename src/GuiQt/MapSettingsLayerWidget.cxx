@@ -66,7 +66,7 @@ MapSettingsLayerWidget::MapSettingsLayerWidget(QWidget* parent)
     QLabel* wholeBrainVoxelDrawingModeLabel = new QLabel("Voxel Drawing Mode");
     m_wholeBrainVoxelDrawingModeComboBox = new EnumComboBoxTemplate(this);
     m_wholeBrainVoxelDrawingModeComboBox->setup<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>();
-    QObject::connect(m_wholeBrainVoxelDrawingModeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_wholeBrainVoxelDrawingModeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(applySelections()));
     
     QGroupBox* wholeBrainGroupBox = new QGroupBox("Whole Brain");

@@ -210,14 +210,14 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
     m_coloringTypeComboBox->getWidget()->setToolTip("Selects method for assigning the red, green, and blue\n"
                                                     "color components when drawing fibers");
-    QObject::connect(m_coloringTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_coloringTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
     m_coloringTypeComboBox->setup<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>();
     
     QLabel* symbolTypeLabel = new QLabel("Symbol");
     m_symbolTypeComboBox = new EnumComboBoxTemplate(this);
     m_symbolTypeComboBox->getWidget()->setToolTip("Selects type of symbol for drawing fibers");
-    QObject::connect(m_symbolTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_symbolTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
     m_symbolTypeComboBox->setup<FiberOrientationSymbolTypeEnum, FiberOrientationSymbolTypeEnum::Enum>();
     

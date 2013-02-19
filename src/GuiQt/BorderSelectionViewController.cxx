@@ -172,7 +172,7 @@ BorderSelectionViewController::createAttributesWidget()
     m_coloringTypeComboBox->setup<FeatureColoringTypeEnum,
     FeatureColoringTypeEnum::Enum>();
     m_coloringTypeComboBox->getWidget()->setToolTip("Select the coloring assignment for borders");
-    QObject::connect(m_coloringTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_coloringTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
     
     float minLineWidth = 0;

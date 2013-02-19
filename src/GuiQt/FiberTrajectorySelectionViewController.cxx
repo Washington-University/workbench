@@ -54,7 +54,6 @@
 #include "ConnectivityLoaderFile.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFiberTrajectory.h"
-#include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"

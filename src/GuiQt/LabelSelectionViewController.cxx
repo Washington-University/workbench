@@ -143,7 +143,7 @@ LabelSelectionViewController::createAttributesWidget()
 {
     QLabel* drawAsLabel = new QLabel("Draw as: ");
     m_labelDrawingTypeComboBox = new EnumComboBoxTemplate(this);
-    QObject::connect(m_labelDrawingTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_labelDrawingTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
     m_labelDrawingTypeComboBox->setup<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
     

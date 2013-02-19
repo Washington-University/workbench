@@ -73,7 +73,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     
     QLabel* surfaceDrawingTypeLabel = new QLabel("Drawing Type: ");
     m_surfaceDrawingTypeComboBox = new EnumComboBoxTemplate(this);
-    QObject::connect(m_surfaceDrawingTypeComboBox, SIGNAL(itemSelected()),
+    QObject::connect(m_surfaceDrawingTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(surfaceDisplayPropertyChanged()));
     m_surfaceDrawingTypeComboBox->setup<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>();
     

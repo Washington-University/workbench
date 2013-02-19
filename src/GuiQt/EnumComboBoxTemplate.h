@@ -63,7 +63,7 @@
  *
  * <p>
  * Get notified when user makes selection:<br>
- * The itemSelected() signal is emitted when the user makes a selection.
+ * See itemActivated() and itemChanged().
  *
  */
 namespace caret {
@@ -84,6 +84,8 @@ namespace caret {
 
             QObject::connect(m_itemComboBox, SIGNAL(currentIndexChanged(int)),
                              this, SLOT(itemComboBoxIndexChanged(int)));
+            QObject::connect(m_itemComboBox, SIGNAL(activated(int)),
+                             this, SLOT(itemComboBoxActivated(int)));
         }
         
         /**
@@ -155,20 +157,37 @@ namespace caret {
         
     signals:
         /**
-         * Emitted when an item is selected in the combo box.
-         * @param integerCode
-         *     Integer code for new value.
+         * This signal is sent when the user chooses an item in the combobox. 
+         * The item's index is passed. Note that this signal is sent even 
+         * when the choice is not changed. If you need to know when the 
+         * choice actually changes, use signal itemChanged().
          */
-        void itemSelected();
+        void itemActivated();
+        
+        /**
+         * This signal is sent whenever the currentIndex in the 
+         * combobox changes either through user interaction or
+         * programmatically.
+         */
+        void itemChanged();
         
     private slots:
         /**
-         * Called when a item is selected.
+         * Called when the user selects an item 
          * @param indx
          *   Index of item selected.
          */
         void itemComboBoxIndexChanged(int) {
-            emit itemSelected();
+            emit itemChanged();
+        }
+        
+        /**
+         * Called when the user selects an item
+         * @param indx
+         *   Index of item selected.
+         */
+        void itemComboBoxActivated(int) {
+            emit itemActivated();
         }
         
     private:
