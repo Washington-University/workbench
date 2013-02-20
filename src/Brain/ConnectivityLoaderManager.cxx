@@ -630,6 +630,24 @@ ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     sceneClass->addClass(m_denseDataLoadedForScene.saveToScene(sceneAttributes,
                                                                "m_denseDataLoadedForScene"));
+
+    /**
+     *   Save TimeSeries Selected Frame
+     */
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    bool haveData = false;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if ((clf->isEmpty() == false)
+            && clf->isDenseTimeSeries()) {
+            //clf->saveToScene(sceneAttributes, instanceName);
+            sceneClass->addInteger(AString(clf->getFileName()+".selectedFrame"),clf->getSelectedFrame());
+        }
+    }
     
     return sceneClass;
 }
@@ -659,6 +677,27 @@ ConnectivityLoaderManager::restoreFromScene(const SceneAttributes* sceneAttribut
                                                denseDataSceneClass,
                                                m_brain,
                                                this);
+
+    /**
+     *   Restore TimeSeries Selected Frame
+     */
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    bool haveData = false;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if ((clf->isEmpty() == false)
+            && clf->isDenseTimeSeries()) {
+            //clf->restoreFromScene(sceneAttributes, sceneClass);
+            int frame = 0;
+            frame = sceneClass->getIntegerValue(clf->getFileName()+AString(".selectedFrame"), 0);
+            clf->loadFrame(frame);
+        }
+    }
+    
 }
 
 /*============================================================================*/
