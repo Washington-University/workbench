@@ -137,21 +137,21 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                  parent)
 {
     CaretAssert(border);
-    this->finishBorderSurfaceFile = finishBorderSurfaceFile;
-    this->editModeBorderFile = editModeBorderFile;
-    this->mode   = mode;
-    this->border = border;
-    this->classComboBox = NULL;
+    m_finishBorderSurfaceFile = finishBorderSurfaceFile;
+    m_editModeBorderFile = editModeBorderFile;
+    m_mode   = mode;
+    m_border = border;
+    m_classComboBox = NULL;
     
     QString borderName = border->getName();
     QString className = border->getClassName();
-    switch (this->mode) {
+    switch (m_mode) {
         case MODE_EDIT:
             break;
         case MODE_FINISH_DRAWING:
             if (s_previousDataValid) {
-                borderName = BorderPropertiesEditorDialog::previousName;
-                className = BorderPropertiesEditorDialog::previousClassName;
+                borderName = s_previousName;
+                className = s_previousClassName;
             }
             break;
     }
@@ -160,11 +160,11 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * File selection combo box
      */
     QLabel* borderFileLabel = new QLabel("Border File");
-    this->borderFileSelectionComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->borderFileSelectionComboBox, 
+    m_borderFileSelectionComboBox = new QComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(m_borderFileSelectionComboBox, 
                                           "Selects an existing border file\n"
                                           "to which new borders are added.");
-    QObject::connect(this->borderFileSelectionComboBox, SIGNAL(activated(int)),
+    QObject::connect(m_borderFileSelectionComboBox, SIGNAL(activated(int)),
                      this, SLOT(borderFileSelected()));
     QAction* newFileAction = WuQtUtilities::createAction("New",
                                                          "Create a new border file", 
@@ -183,8 +183,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Name
      */
     QLabel* nameLabel = new QLabel("Name");
-    this->nameComboBox = new GiftiLabelTableSelectionComboBox(this);
-//    this->nameLineEdit->setText(borderName);
+    m_nameComboBox = new GiftiLabelTableSelectionComboBox(this);
+//    m_nameLineEdit->setText(borderName);
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                     "Add and/or edit name colors",
                                                                     this,
@@ -197,8 +197,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
-    this->classComboBox = new GiftiLabelTableSelectionComboBox(this);
-    WuQtUtilities::setToolTipAndStatusTip(this->classComboBox->getWidget(),
+    m_classComboBox = new GiftiLabelTableSelectionComboBox(this);
+    WuQtUtilities::setToolTipAndStatusTip(m_classComboBox->getWidget(),
                                           "The class is used to group borders with similar\n"
                                           "characteristics.  Controls are available to\n"
                                           "display borders by their class attributes.");
@@ -213,23 +213,23 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     /*
      * Closed
      */
-    this->closedCheckBox = new QCheckBox("Closed Border");
-    WuQtUtilities::setToolTipAndStatusTip(this->closedCheckBox, 
+    m_closedCheckBox = new QCheckBox("Closed Border");
+    WuQtUtilities::setToolTipAndStatusTip(m_closedCheckBox, 
                                           "If checked, additional points will be added\n"
                                           "to the border so that the border forms a loop\n"
                                           "with the last point adjacent to the first point.");
-    if (BorderPropertiesEditorDialog::previousClosedSelected) {
-        this->closedCheckBox->setChecked(true);
+    if (s_previousClosedSelected) {
+        m_closedCheckBox->setChecked(true);
     }
     else {
-        this->closedCheckBox->setChecked(false);
+        m_closedCheckBox->setChecked(false);
     }
     
     /*
      * Reverse point order
      */
-    this->reversePointOrderCheckBox = new QCheckBox("Reverse Point Order");
-    WuQtUtilities::setToolTipAndStatusTip(this->reversePointOrderCheckBox, 
+    m_reversePointOrderCheckBox = new QCheckBox("Reverse Point Order");
+    WuQtUtilities::setToolTipAndStatusTip(m_reversePointOrderCheckBox, 
                                           "If checked, the order of the points in the \n"
                                           "border are reversed when the OK button is pressed.");
     
@@ -240,22 +240,22 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     QGridLayout* gridLayout = new QGridLayout(widget);
     int row = 0;
     gridLayout->addWidget(borderFileLabel, row, 0);
-    gridLayout->addWidget(this->borderFileSelectionComboBox, row, 1);
+    gridLayout->addWidget(m_borderFileSelectionComboBox, row, 1);
     gridLayout->addWidget(newFileToolButton, row, 2);
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(this->nameComboBox->getWidget(), row, 1);
+    gridLayout->addWidget(m_nameComboBox->getWidget(), row, 1);
     gridLayout->addWidget(displayNameColorEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
-    gridLayout->addWidget(this->classComboBox->getWidget(), row, 1);
+    gridLayout->addWidget(m_classComboBox->getWidget(), row, 1);
     gridLayout->addWidget(displayClassEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(this->closedCheckBox, row, 0, 1, 3, Qt::AlignLeft);
+    gridLayout->addWidget(m_closedCheckBox, row, 0, 1, 3, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(this->reversePointOrderCheckBox, row, 0, 1, 3, Qt::AlignLeft);
+    gridLayout->addWidget(m_reversePointOrderCheckBox, row, 0, 1, 3, Qt::AlignLeft);
     
     /*
      * Show/Hide options based upon mode
@@ -263,7 +263,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     bool showFileOptionFlag   = false;
     bool showClosedOptionFlag = false;
     bool showReverseOptionFlag = false;
-    switch (this->mode) {
+    switch (m_mode) {
         case MODE_EDIT:
             showReverseOptionFlag = true;
             break;
@@ -274,19 +274,19 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     }
     
     borderFileLabel->setVisible(showFileOptionFlag);
-    this->borderFileSelectionComboBox->setVisible(showFileOptionFlag);
+    m_borderFileSelectionComboBox->setVisible(showFileOptionFlag);
     newFileToolButton->setVisible(showFileOptionFlag);
-    this->closedCheckBox->setVisible(showClosedOptionFlag);
-    this->reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
+    m_closedCheckBox->setVisible(showClosedOptionFlag);
+    m_reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
     
-    this->loadBorderFileComboBox();
-    this->loadNameComboBox(borderName);
-    this->loadClassComboBox(className);
+    loadBorderFileComboBox();
+    loadNameComboBox(borderName);
+    loadClassComboBox(className);
     
     /*
      * Set the widget for the dialog.
      */
-    this->setCentralWidget(widget);
+    setCentralWidget(widget);
 }
 
 /**
@@ -304,14 +304,14 @@ BorderPropertiesEditorDialog::~BorderPropertiesEditorDialog()
 BorderFile* 
 BorderPropertiesEditorDialog::getSelectedBorderFile()
 {
-    if (this->editModeBorderFile != NULL) {
-        return this->editModeBorderFile;
+    if (m_editModeBorderFile != NULL) {
+        return m_editModeBorderFile;
     }
     
-    const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
-    void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
+    const int fileComboBoxIndex = m_borderFileSelectionComboBox->currentIndex();
+    void* filePointer = m_borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
     BorderFile* borderFile = (BorderFile*)filePointer;
-    BorderPropertiesEditorDialog::previousBorderFile = borderFile;
+    s_previousBorderFile = borderFile;
     
     return borderFile;
 }
@@ -324,19 +324,19 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
 {
     Brain* brain = GuiManager::get()->getBrain();
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
-    this->borderFileSelectionComboBox->clear();
+    m_borderFileSelectionComboBox->clear();
     
     int defaultFileComboIndex = 0;
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
         const AString name = borderFile->getFileNameNoPath();
-        this->borderFileSelectionComboBox->addItem(name,
+        m_borderFileSelectionComboBox->addItem(name,
                                                    qVariantFromValue((void*)borderFile));
-        if (BorderPropertiesEditorDialog::previousBorderFile == borderFile) {
-            defaultFileComboIndex = this->borderFileSelectionComboBox->count() - 1;
+        if (s_previousBorderFile == borderFile) {
+            defaultFileComboIndex = m_borderFileSelectionComboBox->count() - 1;
         }
     }
-    this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+    m_borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
 
     const BorderFile* borderFile = getSelectedBorderFile();
     if (borderFile != NULL) {
@@ -376,9 +376,9 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
      * Set name of new scene file
      */
     newBorderFile->setFileName(newBorderFileName);
-    BorderPropertiesEditorDialog::previousBorderFile = newBorderFile;
-    this->loadBorderFileComboBox();
-    this->borderFileSelected();
+    s_previousBorderFile = newBorderFile;
+    loadBorderFileComboBox();
+    borderFileSelected();
     
     
 //    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER);
@@ -402,9 +402,9 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 //            BorderFile* borderFile = GuiManager::get()->getBrain()->addBorderFile();
 //            borderFile->setFileName(borderFileName);
 //            
-//            BorderPropertiesEditorDialog::previousBorderFile = borderFile;
-//            this->loadBorderFileComboBox();
-//            this->borderFileSelected();
+//            s_previousBorderFile = borderFile;
+//            loadBorderFileComboBox();
+//            m_borderFileSelected();
 //        }
 //        catch (const DataFileException& dfe) {
 //            WuQMessageBox::errorOk(this, 
@@ -420,41 +420,43 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 void 
 BorderPropertiesEditorDialog::borderFileSelected()
 {
-    if (this->classComboBox != NULL) {
-        this->loadNameComboBox();
-        this->loadClassComboBox();
+    loadNameComboBox();
+    if (m_classComboBox != NULL) {
+        loadClassComboBox();
     }
 }
 
 /**
  * Load the class combo box.
+ *
+ * @param name
+ *   If not empty, make this name the selected name.
  */
 void 
-BorderPropertiesEditorDialog::loadClassComboBox(const QString& className)
+BorderPropertiesEditorDialog::loadClassComboBox(const QString& name)
 {
-    BorderFile* borderFile = this->getSelectedBorderFile();
-    if (borderFile != NULL) {
-        this->classComboBox->updateContent(borderFile->getClassColorTable());
-    }
+    BorderFile* borderFile = getSelectedBorderFile();
+    m_classComboBox->updateContent(borderFile->getClassColorTable());
     
-    if (className.isEmpty() == false) {
-        this->classComboBox->setSelectedLabelName(className);
+    if (name.isEmpty() == false) {
+        m_classComboBox->setSelectedLabelName(name);
     }
 }
 
 /**
  * Load the name combo box.
+ *
+ * @param name
+ *   If not empty, make this name the selected name.
  */
 void
 BorderPropertiesEditorDialog::loadNameComboBox(const QString& name)
 {
-    BorderFile* borderFile = this->getSelectedBorderFile();
-    if (borderFile != NULL) {
-        this->nameComboBox->updateContent(borderFile->getNameColorTable());
-    }
+    BorderFile* borderFile = getSelectedBorderFile();
+    m_nameComboBox->updateContent(borderFile->getNameColorTable());
     
     if (name.isEmpty() == false) {
-        this->nameComboBox->setSelectedLabelName(name);
+        m_nameComboBox->setSelectedLabelName(name);
     }
 }
 
@@ -469,7 +471,7 @@ BorderPropertiesEditorDialog::okButtonClicked()
     /*
      * Get border file.
      */
-    BorderFile* borderFile = this->getSelectedBorderFile();
+    BorderFile* borderFile = getSelectedBorderFile();
     if (borderFile == NULL) {
         WuQMessageBox::errorOk(this, 
                                "Border file is not valid, use the New button to create a border file.");
@@ -479,11 +481,11 @@ BorderPropertiesEditorDialog::okButtonClicked()
     /*
      * Get data entered by the user.
      */
-    const AString name = this->nameComboBox->getSelectedLabelName();
+    const AString name = m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    const QString className = this->classComboBox->getSelectedLabelName();
+    const QString className = m_classComboBox->getSelectedLabelName();
     
     /*
      * Error?
@@ -497,12 +499,12 @@ BorderPropertiesEditorDialog::okButtonClicked()
     
     Border* borderBeingEdited = NULL;
     bool finishModeFlag = false;
-    switch (this->mode) {
+    switch (m_mode) {
         case MODE_EDIT:
-            borderBeingEdited = this->border;
+            borderBeingEdited = m_border;
             break;
         case MODE_FINISH_DRAWING:
-            borderBeingEdited = new Border(*this->border);
+            borderBeingEdited = new Border(*m_border);
             finishModeFlag = true;
             break;
     }
@@ -517,8 +519,8 @@ BorderPropertiesEditorDialog::okButtonClicked()
         /*
          * Close border
          */
-        if (this->closedCheckBox->isChecked()) {
-            borderBeingEdited->addPointsToCloseBorderWithGeodesic(this->finishBorderSurfaceFile);    
+        if (m_closedCheckBox->isChecked()) {
+            borderBeingEdited->addPointsToCloseBorderWithGeodesic(m_finishBorderSurfaceFile);    
         }
         
         /*
@@ -533,14 +535,14 @@ BorderPropertiesEditorDialog::okButtonClicked()
          * time it is displayed.
          */
         s_previousDataValid = true;
-        BorderPropertiesEditorDialog::previousName = name;
-        BorderPropertiesEditorDialog::previousClassName = className;
-        BorderPropertiesEditorDialog::previousClosedSelected = this->closedCheckBox->isChecked();
-        BorderPropertiesEditorDialog::previousBorderFile = borderFile;
+        s_previousName = name;
+        s_previousClassName = className;
+        s_previousClosedSelected = m_closedCheckBox->isChecked();
+        s_previousBorderFile = borderFile;
     }
     else {
-        if (this->reversePointOrderCheckBox->isChecked()) {
-            this->border->reverse();
+        if (m_reversePointOrderCheckBox->isChecked()) {
+            m_border->reverse();
         }
     }
     
@@ -562,7 +564,7 @@ BorderPropertiesEditorDialog::okButtonClicked()
 void 
 BorderPropertiesEditorDialog::displayClassEditor()
 {
-    BorderFile* borderFile = this->getSelectedBorderFile();
+    BorderFile* borderFile = getSelectedBorderFile();
     if (borderFile == NULL) {
         WuQMessageBox::errorOk(this, 
                                "Border file is not valid, use the New button to create a border file.");
@@ -573,19 +575,17 @@ BorderPropertiesEditorDialog::displayClassEditor()
                                  borderFile->getClassColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString className = this->classComboBox->getSelectedLabelName();
+    const QString className = m_classComboBox->getSelectedLabelName();
     if (className.isEmpty() == false) {
-        if (this->mode == MODE_EDIT) {
-            editor.selectLabelWithName(className);
-        }
+        editor.selectLabelWithName(className);
     }
     editor.exec();
     
-    this->loadClassComboBox();
+    loadClassComboBox();
 
     const QString selectedClassName = editor.getLastSelectedLabelName();
     if (selectedClassName.isEmpty() == false) {
-        this->classComboBox->setSelectedLabelName(selectedClassName);
+        m_classComboBox->setSelectedLabelName(selectedClassName);
     }
 }
 
@@ -595,7 +595,7 @@ BorderPropertiesEditorDialog::displayClassEditor()
 void
 BorderPropertiesEditorDialog::displayNameEditor()
 {
-    BorderFile* borderFile = this->getSelectedBorderFile();
+    BorderFile* borderFile = getSelectedBorderFile();
     if (borderFile == NULL) {
         WuQMessageBox::errorOk(this,
                                "Border file is not valid, use the New button to create a border file.");
@@ -606,7 +606,7 @@ BorderPropertiesEditorDialog::displayNameEditor()
                                  borderFile->getNameColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString name = this->nameComboBox->getSelectedLabelName();
+    const QString name = m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {
         const GiftiLabel* label = borderFile->getNameColorTable()->getLabelBestMatching(name);
         if (label != NULL) {
@@ -615,11 +615,11 @@ BorderPropertiesEditorDialog::displayNameEditor()
     }
     editor.exec();
     
-    this->loadNameComboBox();
+    loadNameComboBox();
     
     const QString selectedName = editor.getLastSelectedLabelName();
     if (selectedName.isEmpty() == false) {
-        this->nameComboBox->setSelectedLabelName(selectedName);
+        m_nameComboBox->setSelectedLabelName(selectedName);
     }
 }
 

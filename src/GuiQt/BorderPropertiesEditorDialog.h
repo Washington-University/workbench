@@ -94,39 +94,39 @@ namespace caret {
         
         void loadClassComboBox(const QString& className = "");
         
-        Mode mode;
+        Mode m_mode;
         
-        BorderFile* editModeBorderFile;
-        Border* border;
+        BorderFile* m_editModeBorderFile;
+        Border* m_border;
         
-        QComboBox* borderFileSelectionComboBox;
+        QComboBox* m_borderFileSelectionComboBox;
         
-        GiftiLabelTableSelectionComboBox* nameComboBox;
+        GiftiLabelTableSelectionComboBox* m_nameComboBox;
         
         QStringList m_nameCompleterStringList;
         QStringListModel* m_nameCompleterStringListModel;
         
-        QCheckBox* closedCheckBox;
+        QCheckBox* m_closedCheckBox;
         
-        GiftiLabelTableSelectionComboBox* classComboBox;
+        GiftiLabelTableSelectionComboBox* m_classComboBox;
 
-        QCheckBox* reversePointOrderCheckBox;
+        QCheckBox* m_reversePointOrderCheckBox;
         
-        SurfaceFile* finishBorderSurfaceFile;
+        SurfaceFile* m_finishBorderSurfaceFile;
         
         static bool s_previousDataValid;
-        static AString previousName;
-        static BorderFile* previousBorderFile;
-        static bool previousClosedSelected;
-        static AString previousClassName;
+        static AString s_previousName;
+        static BorderFile* s_previousBorderFile;
+        static bool s_previousClosedSelected;
+        static AString s_previousClassName;
     };
     
 #ifdef __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
     bool BorderPropertiesEditorDialog::s_previousDataValid = false;
-    AString BorderPropertiesEditorDialog::previousName = "Name";
-    BorderFile* BorderPropertiesEditorDialog::previousBorderFile = NULL;
-    bool BorderPropertiesEditorDialog::previousClosedSelected = false;
-    AString BorderPropertiesEditorDialog::previousClassName = "None";
+    AString BorderPropertiesEditorDialog::s_previousName = "Name";
+    BorderFile* BorderPropertiesEditorDialog::s_previousBorderFile = NULL;
+    bool BorderPropertiesEditorDialog::s_previousClosedSelected = false;
+    AString BorderPropertiesEditorDialog::s_previousClassName = "None";
 #endif // __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
 } // namespace

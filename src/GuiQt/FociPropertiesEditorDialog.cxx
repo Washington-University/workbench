@@ -43,7 +43,6 @@
 #include "Focus.h"
 #include "FociFile.h"
 #include "CaretAssert.h"
-#include "CaretColorEnumComboBox.h"
 #include "CaretFileDialog.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -52,6 +51,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
+#include "GiftiLabelTableSelectionComboBox.h"
 #include "CaretLogger.h"
 #include "GuiManager.h"
 #include "SurfaceProjector.h"
@@ -197,7 +197,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
 {
     CaretAssert(focus);
     m_focus = focus;
-    m_classNameComboBox = NULL;
+    m_classComboBox = NULL;
     
     /*
      * File selection combo box
@@ -226,13 +226,9 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      * Name
      */
     QLabel* nameLabel = new QLabel("Name");
-    m_nameLineEdit = new QLineEdit();
-    QCompleter* nameCompleter = new QCompleter(m_nameCompleterStringListModel,
-                                               this);
-    nameCompleter->setCaseSensitivity(Qt::CaseSensitive);
-    nameCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
-    m_nameLineEdit->setCompleter(nameCompleter);
-    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
+    m_nameComboBox = new GiftiLabelTableSelectionComboBox(this);
+
+    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                         "Add and/or edit name colors",
                                                                         this,
                                                                         this,
@@ -241,22 +237,15 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
 
     /*
-     * Color
-     */
-    QLabel* colorLabel = new QLabel("Color");
-    m_colorSelectionComboBox = new CaretColorEnumComboBox(this);
-    m_colorSelectionComboBox->setSelectedColor(focus->getColor());
-
-    /*
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
-    m_classNameComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(m_classNameComboBox, 
+    m_classComboBox = new GiftiLabelTableSelectionComboBox(this);
+    WuQtUtilities::setToolTipAndStatusTip(m_classComboBox->getWidget(),
                                           "The class is used to group focuss with similar\n"
                                           "characteristics.  Controls are available to\n"
                                           "display focuss by their class attributes.");
-    QAction* displayClassEditorAction = WuQtUtilities::createAction("Edit...", 
+    QAction* displayClassEditorAction = WuQtUtilities::createAction("Add/Edit...", 
                                                                     "Add and/or edit classes", 
                                                                     this, 
                                                                     this, 
@@ -335,14 +324,11 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 5);
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(m_nameLineEdit, row, 1, 1, 3);
+    gridLayout->addWidget(m_nameComboBox->getWidget(), row, 1, 1, 3);
     gridLayout->addWidget(displayNameColorEditorToolButton, row, 4);
     row++;
-    gridLayout->addWidget(colorLabel, row, 0);
-    gridLayout->addWidget(m_colorSelectionComboBox->getWidget(), row, 1, 1, 3);
-    row++;
     gridLayout->addWidget(classLabel, row, 0);
-    gridLayout->addWidget(m_classNameComboBox, row, 1, 1, 3);
+    gridLayout->addWidget(m_classComboBox->getWidget(), row, 1, 1, 3);
     gridLayout->addWidget(displayClassEditorToolButton, row, 4);
     row++;
     gridLayout->addWidget(coordLabel, row, 0);
@@ -490,40 +476,43 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
 void 
 FociPropertiesEditorDialog::fociFileSelected()
 {
-    if (m_classNameComboBox != NULL) {
-        loadClassNameComboBox();
+    loadNameComboBox();
+    if (m_classComboBox != NULL) {
+        loadClassComboBox();
     }
 }
 
 /**
- * Load the class name combo box.
+ * Load the class combo box.
+ *
+ * @param name
+ *   If not empty, make this name the selected name.
  */
-void 
-FociPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
+void
+FociPropertiesEditorDialog::loadClassComboBox(const QString& name)
 {
-    AString selectedClassName = m_classNameComboBox->currentText();
-    if (className.isEmpty() == false) {
-        selectedClassName = className;
-    }
-    
-    m_classNameComboBox->clear();
-    
     FociFile* fociFile = getSelectedFociFile();
-    if (fociFile != NULL) {
-        const GiftiLabelTable* classLabelTable = fociFile->getClassColorTable();
-        std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
-        for (std::vector<int32_t>::iterator keyIterator = keys.begin();
-             keyIterator != keys.end();
-             keyIterator++) {
-            const int32_t key = *keyIterator;
-            const GiftiLabel* gl = classLabelTable->getLabel(key);
-            
-            m_classNameComboBox->addItem(gl->getName());
-        }
+    m_classComboBox->updateContent(fociFile->getClassColorTable());
+    
+    if (name.isEmpty() == false) {
+        m_classComboBox->setSelectedLabelName(name);
     }
-    const int previousClassIndex = m_classNameComboBox->findText(selectedClassName);
-    if (previousClassIndex >= 0) {
-        m_classNameComboBox->setCurrentIndex(previousClassIndex);
+}
+
+/**
+ * Load the name combo box.
+ *
+ * @param name
+ *   If not empty, make this name the selected name.
+ */
+void
+FociPropertiesEditorDialog::loadNameComboBox(const QString& name)
+{
+    FociFile* fociFile = getSelectedFociFile();
+    m_nameComboBox->updateContent(fociFile->getNameColorTable());
+    
+    if (name.isEmpty() == false) {
+        m_nameComboBox->setSelectedLabelName(name);
     }
 }
 
@@ -548,11 +537,12 @@ FociPropertiesEditorDialog::okButtonClicked()
     /*
      * Get data entered by the user.
      */
-    const AString name = m_nameLineEdit->text();
+    const AString name = m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    const QString className = m_classNameComboBox->currentText().trimmed();
+    
+    const QString className = m_classComboBox->getSelectedLabelName();
     
     if ((m_xCoordSpinBox->value() == 0.0)
         && (m_yCoordSpinBox->value() == 0.0)
@@ -628,9 +618,8 @@ FociPropertiesEditorDialog::updateGraphicsAndUserInterface()
 void
 FociPropertiesEditorDialog::loadFromFocusDataIntoDialog(const Focus* focus)
 {
-    m_nameLineEdit->setText(focus->getName());
-    m_colorSelectionComboBox->setSelectedColor(focus->getColor());
-    loadClassNameComboBox(focus->getClassName());
+    loadNameComboBox(focus->getName());
+    loadClassComboBox(focus->getClassName());
     float xyz[3] = { 0.0, 0.0, 0.0 };
     if (focus->getNumberOfProjections() > 0) {
         focus->getProjection(0)->getStereotaxicXYZ(xyz);
@@ -654,9 +643,8 @@ FociPropertiesEditorDialog::loadFromFocusDataIntoDialog(const Focus* focus)
 void
 FociPropertiesEditorDialog::loadFromDialogIntoFocusData(Focus* focus) const
 {
-    focus->setName(m_nameLineEdit->text().trimmed());
-    focus->setColor(m_colorSelectionComboBox->getSelectedColor());
-    focus->setClassName(m_classNameComboBox->currentText().trimmed());
+    focus->setName(m_nameComboBox->getSelectedLabelName());
+    focus->setClassName(m_classComboBox->getSelectedLabelName());
     const float xyz[3] = {
         m_xCoordSpinBox->value(),
         m_yCoordSpinBox->value(),
@@ -691,25 +679,22 @@ FociPropertiesEditorDialog::displayClassEditor()
                                  fociFile->getClassColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString className = m_classNameComboBox->currentText();
+    const QString className = m_classComboBox->getSelectedLabelName();
     if (className.isEmpty() == false) {
         editor.selectLabelWithName(className);
     }
     editor.exec();
     
-    loadClassNameComboBox();
+    loadClassComboBox();
 
     const QString selectedClassName = editor.getLastSelectedLabelName();
     if (selectedClassName.isEmpty() == false) {
-        const int indx = m_classNameComboBox->findText(selectedClassName);
-        if (indx >= 0) {
-            m_classNameComboBox->setCurrentIndex(indx);
-        }
+        m_classComboBox->setSelectedLabelName(selectedClassName);
     }
 }
 
 /**
- * Display the class editor
+ * Display the name editor
  */
 void
 FociPropertiesEditorDialog::displayNameEditor()
@@ -725,7 +710,7 @@ FociPropertiesEditorDialog::displayNameEditor()
                                  fociFile->getNameColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString name = this->m_nameLineEdit->text();
+    const QString name = this->m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {
         const GiftiLabel* label = fociFile->getNameColorTable()->getLabelBestMatching(name);
         if (label != NULL) {
@@ -733,6 +718,13 @@ FociPropertiesEditorDialog::displayNameEditor()
         }
     }
     editor.exec();
+    
+    this->loadNameComboBox();
+    
+    const QString selectedName = editor.getLastSelectedLabelName();
+    if (selectedName.isEmpty() == false) {
+        m_nameComboBox->setSelectedLabelName(selectedName);
+    }
 }
 
 /**

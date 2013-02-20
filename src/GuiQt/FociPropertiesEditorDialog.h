@@ -43,7 +43,7 @@ namespace caret {
     class BrowserTabContent;
     class Focus;
     class FociFile;
-    class CaretColorEnumComboBox;
+    class GiftiLabelTableSelectionComboBox;
     
     class FociPropertiesEditorDialog : public WuQDialogModal {
         Q_OBJECT
@@ -96,7 +96,9 @@ namespace caret {
         
         void loadFociFileComboBox(const FociFile* fociFile);
         
-        void loadClassNameComboBox(const QString& className = "");
+        void loadClassComboBox(const QString& name = "");
+        
+        void loadNameComboBox(const QString& name = "");
         
         void updateGraphicsAndUserInterface();
         
@@ -104,12 +106,10 @@ namespace caret {
         
         QComboBox* m_fociFileSelectionComboBox;
         
-        QLineEdit* m_nameLineEdit;
+        GiftiLabelTableSelectionComboBox* m_nameComboBox;
         
-        QComboBox* m_classNameComboBox;
+        GiftiLabelTableSelectionComboBox* m_classComboBox;
 
-        CaretColorEnumComboBox* m_colorSelectionComboBox;
-        
         QDoubleSpinBox* m_xCoordSpinBox;
         QDoubleSpinBox* m_yCoordSpinBox;
         QDoubleSpinBox* m_zCoordSpinBox;

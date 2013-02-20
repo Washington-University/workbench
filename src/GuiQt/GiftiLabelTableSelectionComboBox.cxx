@@ -116,10 +116,8 @@ GiftiLabelTableSelectionComboBox::rowsWereInserted(const QModelIndex& parent,
         return;
     }
     
-    std::cout << "Rows were inserted " << start << " " << end << std::endl;
     for (int i = start; i <= end; i++) {
         const QString text = m_comboBox->itemText(i);
-        std::cout << "New item is " << qPrintable(text) << std::endl;
         
         QVariant userData = m_comboBox->itemData(i);
         void* pointer = userData.value<void*>();
@@ -162,8 +160,6 @@ GiftiLabelTableSelectionComboBox::addEditButtonClicked()
 void
 GiftiLabelTableSelectionComboBox::currentIndexChanged(int indx)
 {
-    std::cout << "Item changed: " << indx << std::endl;
-    
     GiftiLabel* gl = getSelectedLabel();
     
     emit labelChanged(gl);
@@ -186,8 +182,6 @@ GiftiLabelTableSelectionComboBox::currentIndexChanged(int indx)
 void
 GiftiLabelTableSelectionComboBox::itemActivated(int indx)
 {
-    std::cout << "Item activated: " << indx << std::endl;
-    
     GiftiLabel* gl = getSelectedLabel();
     
     emit labelActivated(gl);
