@@ -54,6 +54,7 @@ FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
+GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -169,6 +170,7 @@ FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GiftiLabelTableEditor.h
+GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
@@ -285,6 +287,7 @@ FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx
 GiftiLabelTableEditor.cxx
+GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx

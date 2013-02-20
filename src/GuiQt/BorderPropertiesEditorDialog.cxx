@@ -41,12 +41,12 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
-#include "CaretColorEnumComboBox.h"
 #include "CaretFileDialog.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
+#include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
@@ -141,10 +141,9 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->editModeBorderFile = editModeBorderFile;
     this->mode   = mode;
     this->border = border;
-    this->classNameComboBox = NULL;
+    this->classComboBox = NULL;
     
     QString borderName = border->getName();
-    CaretColorEnum::Enum borderColor = border->getColor();
     QString className = border->getClassName();
     switch (this->mode) {
         case MODE_EDIT:
@@ -152,7 +151,6 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
         case MODE_FINISH_DRAWING:
             if (s_previousDataValid) {
                 borderName = BorderPropertiesEditorDialog::previousName;
-                borderColor = BorderPropertiesEditorDialog::previousCaretColor;
                 className = BorderPropertiesEditorDialog::previousClassName;
             }
             break;
@@ -185,14 +183,9 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Name
      */
     QLabel* nameLabel = new QLabel("Name");
-    this->nameLineEdit = new QLineEdit();
-    this->nameLineEdit->setText(borderName);
-    QCompleter* nameCompleter = new QCompleter(m_nameCompleterStringListModel,
-                                               this);
-    nameCompleter->setCaseSensitivity(Qt::CaseSensitive);
-    nameCompleter->setModelSorting(QCompleter::CaseSensitivelySortedModel);
-    this->nameLineEdit->setCompleter(nameCompleter);
-    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Color...",
+    this->nameComboBox = new GiftiLabelTableSelectionComboBox(this);
+//    this->nameLineEdit->setText(borderName);
+    QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                     "Add and/or edit name colors",
                                                                     this,
                                                                     this,
@@ -201,22 +194,15 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     displayNameColorEditorToolButton->setDefaultAction(displayNameColorEditorAction);
     
     /*
-     * Color
-     */
-    QLabel* colorLabel = new QLabel("Color");
-    this->colorSelectionComboBox = new CaretColorEnumComboBox(this);
-    this->colorSelectionComboBox->setSelectedColor(borderColor);
-
-    /*
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
-    this->classNameComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->classNameComboBox, 
+    this->classComboBox = new GiftiLabelTableSelectionComboBox(this);
+    WuQtUtilities::setToolTipAndStatusTip(this->classComboBox->getWidget(),
                                           "The class is used to group borders with similar\n"
                                           "characteristics.  Controls are available to\n"
                                           "display borders by their class attributes.");
-    QAction* displayClassEditorAction = WuQtUtilities::createAction("Edit...", 
+    QAction* displayClassEditorAction = WuQtUtilities::createAction("Add/Edit...", 
                                                                     "Add and/or edit classes", 
                                                                     this, 
                                                                     this, 
@@ -258,14 +244,11 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     gridLayout->addWidget(newFileToolButton, row, 2);
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(this->nameLineEdit, row, 1);
+    gridLayout->addWidget(this->nameComboBox->getWidget(), row, 1);
     gridLayout->addWidget(displayNameColorEditorToolButton, row, 2);
     row++;
-    gridLayout->addWidget(colorLabel, row, 0);
-    gridLayout->addWidget(this->colorSelectionComboBox->getWidget(), row, 1);
-    row++;
     gridLayout->addWidget(classLabel, row, 0);
-    gridLayout->addWidget(this->classNameComboBox, row, 1);
+    gridLayout->addWidget(this->classComboBox->getWidget(), row, 1);
     gridLayout->addWidget(displayClassEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3, Qt::AlignLeft);
@@ -297,7 +280,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
     
     this->loadBorderFileComboBox();
-    this->loadClassNameComboBox(className);
+    this->loadNameComboBox(borderName);
+    this->loadClassComboBox(className);
     
     /*
      * Set the widget for the dialog.
@@ -436,43 +420,41 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 void 
 BorderPropertiesEditorDialog::borderFileSelected()
 {
-    if (this->classNameComboBox != NULL) {
-        this->loadClassNameComboBox();
+    if (this->classComboBox != NULL) {
+        this->loadNameComboBox();
+        this->loadClassComboBox();
     }
 }
 
 /**
- * Load the class name combo box.
+ * Load the class combo box.
  */
 void 
-BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
+BorderPropertiesEditorDialog::loadClassComboBox(const QString& className)
 {
-    AString selectedClassName = this->classNameComboBox->currentText();
-    if (className.isEmpty() == false) {
-        selectedClassName = className;
-    }
-    if (selectedClassName.isEmpty()) {
-        selectedClassName = BorderPropertiesEditorDialog::previousClassName;
-    }
-    
-    this->classNameComboBox->clear();
-    
     BorderFile* borderFile = this->getSelectedBorderFile();
     if (borderFile != NULL) {
-        const GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
-        std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
-        for (std::vector<int32_t>::iterator keyIterator = keys.begin();
-             keyIterator != keys.end();
-             keyIterator++) {
-            const int32_t key = *keyIterator;
-            const GiftiLabel* gl = classLabelTable->getLabel(key);
-            
-            this->classNameComboBox->addItem(gl->getName());
-        }
+        this->classComboBox->updateContent(borderFile->getClassColorTable());
     }
-    const int previousClassIndex = this->classNameComboBox->findText(selectedClassName);
-    if (previousClassIndex >= 0) {
-        this->classNameComboBox->setCurrentIndex(previousClassIndex);
+    
+    if (className.isEmpty() == false) {
+        this->classComboBox->setSelectedLabelName(className);
+    }
+}
+
+/**
+ * Load the name combo box.
+ */
+void
+BorderPropertiesEditorDialog::loadNameComboBox(const QString& name)
+{
+    BorderFile* borderFile = this->getSelectedBorderFile();
+    if (borderFile != NULL) {
+        this->nameComboBox->updateContent(borderFile->getNameColorTable());
+    }
+    
+    if (name.isEmpty() == false) {
+        this->nameComboBox->setSelectedLabelName(name);
     }
 }
 
@@ -497,12 +479,11 @@ BorderPropertiesEditorDialog::okButtonClicked()
     /*
      * Get data entered by the user.
      */
-    const AString name = this->nameLineEdit->text();
+    const AString name = this->nameComboBox->getSelectedLabelName();
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    const QString className = this->classNameComboBox->currentText().trimmed();
-    const CaretColorEnum::Enum color = this->colorSelectionComboBox->getSelectedColor();
+    const QString className = this->classComboBox->getSelectedLabelName();
     
     /*
      * Error?
@@ -531,7 +512,6 @@ BorderPropertiesEditorDialog::okButtonClicked()
      */
     borderBeingEdited->setName(name);
     borderBeingEdited->setClassName(className);
-    borderBeingEdited->setColor(color);
     
     if (finishModeFlag) {
         /*
@@ -557,7 +537,6 @@ BorderPropertiesEditorDialog::okButtonClicked()
         BorderPropertiesEditorDialog::previousClassName = className;
         BorderPropertiesEditorDialog::previousClosedSelected = this->closedCheckBox->isChecked();
         BorderPropertiesEditorDialog::previousBorderFile = borderFile;
-        BorderPropertiesEditorDialog::previousCaretColor = color;
     }
     else {
         if (this->reversePointOrderCheckBox->isChecked()) {
@@ -594,7 +573,7 @@ BorderPropertiesEditorDialog::displayClassEditor()
                                  borderFile->getClassColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString className = this->classNameComboBox->currentText();
+    const QString className = this->classComboBox->getSelectedLabelName();
     if (className.isEmpty() == false) {
         if (this->mode == MODE_EDIT) {
             editor.selectLabelWithName(className);
@@ -602,19 +581,16 @@ BorderPropertiesEditorDialog::displayClassEditor()
     }
     editor.exec();
     
-    this->loadClassNameComboBox();
+    this->loadClassComboBox();
 
     const QString selectedClassName = editor.getLastSelectedLabelName();
     if (selectedClassName.isEmpty() == false) {
-        const int indx = this->classNameComboBox->findText(selectedClassName);
-        if (indx >= 0) {
-            this->classNameComboBox->setCurrentIndex(indx);
-        }
+        this->classComboBox->setSelectedLabelName(selectedClassName);
     }
 }
 
 /**
- * Display the class editor
+ * Display the name editor
  */
 void
 BorderPropertiesEditorDialog::displayNameEditor()
@@ -630,7 +606,7 @@ BorderPropertiesEditorDialog::displayNameEditor()
                                  borderFile->getNameColorTable(),
                                  "Edit Class Attributes",
                                  this);
-    const QString name = this->nameLineEdit->text();
+    const QString name = this->nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {
         const GiftiLabel* label = borderFile->getNameColorTable()->getLabelBestMatching(name);
         if (label != NULL) {
@@ -638,6 +614,13 @@ BorderPropertiesEditorDialog::displayNameEditor()
         }
     }
     editor.exec();
+    
+    this->loadNameComboBox();
+    
+    const QString selectedName = editor.getLastSelectedLabelName();
+    if (selectedName.isEmpty() == false) {
+        this->nameComboBox->setSelectedLabelName(selectedName);
+    }
 }
 
 

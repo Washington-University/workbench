@@ -25,7 +25,6 @@
  * 
  */ 
 
-#include "CaretColorEnum.h"
 #include "WuQDialogModal.h"
 
 class QCheckBox;
@@ -39,7 +38,7 @@ namespace caret {
 
     class Border;
     class BorderFile;
-    class CaretColorEnumComboBox;
+    class GiftiLabelTableSelectionComboBox;
     class SurfaceFile;
     
     class BorderPropertiesEditorDialog : public WuQDialogModal {
@@ -91,7 +90,9 @@ namespace caret {
         
         void loadBorderFileComboBox();
         
-        void loadClassNameComboBox(const QString& className = "");
+        void loadNameComboBox(const QString& name = "");
+        
+        void loadClassComboBox(const QString& className = "");
         
         Mode mode;
         
@@ -100,18 +101,16 @@ namespace caret {
         
         QComboBox* borderFileSelectionComboBox;
         
-        QLineEdit* nameLineEdit;
+        GiftiLabelTableSelectionComboBox* nameComboBox;
         
         QStringList m_nameCompleterStringList;
         QStringListModel* m_nameCompleterStringListModel;
         
         QCheckBox* closedCheckBox;
         
-        QComboBox* classNameComboBox;
+        GiftiLabelTableSelectionComboBox* classComboBox;
 
         QCheckBox* reversePointOrderCheckBox;
-        
-        CaretColorEnumComboBox* colorSelectionComboBox;
         
         SurfaceFile* finishBorderSurfaceFile;
         
@@ -119,8 +118,7 @@ namespace caret {
         static AString previousName;
         static BorderFile* previousBorderFile;
         static bool previousClosedSelected;
-        static AString previousClassName;     
-        static CaretColorEnum::Enum previousCaretColor;
+        static AString previousClassName;
     };
     
 #ifdef __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
@@ -129,7 +127,6 @@ namespace caret {
     BorderFile* BorderPropertiesEditorDialog::previousBorderFile = NULL;
     bool BorderPropertiesEditorDialog::previousClosedSelected = false;
     AString BorderPropertiesEditorDialog::previousClassName = "None";
-    CaretColorEnum::Enum BorderPropertiesEditorDialog::previousCaretColor;
 #endif // __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
 } // namespace
