@@ -146,9 +146,11 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
                m_surfaceProjectedItemSaxReader = new SurfaceProjectedItemSaxReader(m_surfaceProjectedItem);
                m_surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
+           else if (qName == "ColorName") {
+               // ignore, obsolete tag
+           }
            else if ((qName != Border::XML_TAG_NAME) 
-                    && (qName != Border::XML_TAG_CLASS_NAME)
-                    && (qName != Border::XML_TAG_COLOR_NAME)) {
+                    && (qName != Border::XML_TAG_CLASS_NAME)) {
                const AString msg = XmlUtilities::createInvalidChildElementMessage(Border::XML_TAG_BORDER, 
                                                                                   qName);
                XmlSaxParserException e(msg);
@@ -256,11 +258,8 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
            else if (qName == Border::XML_TAG_CLASS_NAME) {
                m_border->setClassName(m_elementText.trimmed());
            }
-           else if (qName == Border::XML_TAG_COLOR_NAME) {
-               bool valid = false;
-               CaretColorEnum::Enum colorEnum = CaretColorEnum::fromName(m_elementText.trimmed(), 
-                                                                         &valid);
-               m_border->setColor(colorEnum);
+           else if (qName == "ColorName") {
+               // obsolete element
            }
            else if (qName == Border::XML_TAG_BORDER) {
                m_borderFile->addBorder(m_border);

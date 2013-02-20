@@ -451,8 +451,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
         {
-            const CaretColorEnum::Enum savedColor = this->inputModeBorders->borderBeingDrawnByOpenGL->getColor();
-            this->inputModeBorders->borderBeingDrawnByOpenGL->setColor(CaretColorEnum::BLACK);
             std::auto_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
                     BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawnByOpenGL,
                                                                           surface,
@@ -460,7 +458,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             if (finishBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
                 this->inputModeBorders->drawOperationFinish();
             }
-            this->inputModeBorders->borderBeingDrawnByOpenGL->setColor(savedColor);
         }
             break;
         case UserInputModeBorders::DRAW_OPERATION_ERASE:

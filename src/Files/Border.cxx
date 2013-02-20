@@ -142,7 +142,6 @@ Border::clear()
     
     m_name = "";
     m_className = "";
-    m_color = CaretColorEnum::BLACK;
     setNameOrClassModified(); // new name/class so modified
 }
 
@@ -372,26 +371,6 @@ Border::setClassName(const AString& className)
         setModified();
         setNameOrClassModified();
     }
-}
-
-/**
- * @return Color of the border.
- */
-CaretColorEnum::Enum 
-Border::getColor() const
-{
-    return m_color;
-}
-
-/**
- * Set the color of the border.
- * @param color
- *    New color for border.
- */
-void 
-Border::setColor(const CaretColorEnum::Enum color)
-{
-    m_color = color;
 }
 
 /**
@@ -1063,8 +1042,6 @@ Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     if (m_className.isEmpty() == false) {
         xmlWriter.writeElementCharacters(XML_TAG_CLASS_NAME, m_className);
     }
-    xmlWriter.writeElementCharacters(XML_TAG_COLOR_NAME, CaretColorEnum::toName(m_color));
-    
     const int32_t numPoints = getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
         m_points[i]->writeAsXML(xmlWriter);    

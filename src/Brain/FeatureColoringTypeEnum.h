@@ -50,8 +50,6 @@ public:
     enum Enum {
         /** Use class for coloring */
         FEATURE_COLORING_TYPE_CLASS,
-        /** Use color list for coloring */
-        FEATURE_COLORING_TYPE_COLOR_LIST,
         /** Use name for coloring */
         FEATURE_COLORING_TYPE_NAME
     };

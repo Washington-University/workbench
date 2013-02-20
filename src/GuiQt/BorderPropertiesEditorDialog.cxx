@@ -436,10 +436,14 @@ void
 BorderPropertiesEditorDialog::loadClassComboBox(const QString& name)
 {
     BorderFile* borderFile = getSelectedBorderFile();
-    m_classComboBox->updateContent(borderFile->getClassColorTable());
-    
-    if (name.isEmpty() == false) {
-        m_classComboBox->setSelectedLabelName(name);
+    if (borderFile != NULL) {
+        m_classComboBox->updateContent(borderFile->getClassColorTable());
+        if (name.isEmpty() == false) {
+            m_classComboBox->setSelectedLabelName(name);
+        }
+    }
+    else {
+        m_classComboBox->updateContent(NULL);
     }
 }
 
@@ -453,11 +457,15 @@ void
 BorderPropertiesEditorDialog::loadNameComboBox(const QString& name)
 {
     BorderFile* borderFile = getSelectedBorderFile();
-    m_nameComboBox->updateContent(borderFile->getNameColorTable());
-    
-    if (name.isEmpty() == false) {
-        m_nameComboBox->setSelectedLabelName(name);
+    if (borderFile != NULL) {
+        m_nameComboBox->updateContent(borderFile->getNameColorTable());
+        if (name.isEmpty() == false) {
+            m_nameComboBox->setSelectedLabelName(name);
+        }
     }
+    else {
+        m_nameComboBox->updateContent(NULL);
+    }    
 }
 
 /**

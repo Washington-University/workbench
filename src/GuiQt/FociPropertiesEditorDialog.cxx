@@ -86,31 +86,14 @@ FociPropertiesEditorDialog::createFocus(Focus* focus,
     CaretAssert(focus);
     
     if (s_previousCreateFocus != NULL) {
-        if (focus->getName().isEmpty()) {
-            focus->setName(s_previousCreateFocus->getName());
-        }
-        if (focus->getArea().isEmpty()) {
-            focus->setArea(s_previousCreateFocus->getArea());
-        }
-        if (focus->getClassName().isEmpty()) {
-            focus->setClassName(s_previousCreateFocus->getClassName());
-        }
-        if (focus->getComment().isEmpty()) {
-            focus->setComment(s_previousCreateFocus->getComment());
-        }
-        if (focus->getExtent() == 0.0) {
-            focus->setExtent(s_previousCreateFocus->getExtent());
-        }
-        if (focus->getGeography().isEmpty()) {
-            focus->setGeography(s_previousCreateFocus->getGeography());
-        }
-        if (focus->getRegionOfInterest().isEmpty()) {
-            focus->setRegionOfInterest(s_previousCreateFocus->getRegionOfInterest());
-        }
-        if (focus->getStatistic().isEmpty()) {
-            focus->setStatistic(s_previousCreateFocus->getStatistic());
-        }
-        focus->setColor(s_previousCreateFocus->getColor());
+        focus->setName(s_previousCreateFocus->getName());
+        focus->setArea(s_previousCreateFocus->getArea());
+        focus->setClassName(s_previousCreateFocus->getClassName());
+        focus->setComment(s_previousCreateFocus->getComment());
+        focus->setExtent(s_previousCreateFocus->getExtent());
+        focus->setGeography(s_previousCreateFocus->getGeography());
+        focus->setRegionOfInterest(s_previousCreateFocus->getRegionOfInterest());
+        focus->setStatistic(s_previousCreateFocus->getStatistic());
     }
     
     FociPropertiesEditorDialog focusCreateDialog("Create Focus",
@@ -492,10 +475,14 @@ void
 FociPropertiesEditorDialog::loadClassComboBox(const QString& name)
 {
     FociFile* fociFile = getSelectedFociFile();
-    m_classComboBox->updateContent(fociFile->getClassColorTable());
-    
-    if (name.isEmpty() == false) {
-        m_classComboBox->setSelectedLabelName(name);
+    if (fociFile != NULL) {
+        m_classComboBox->updateContent(fociFile->getClassColorTable());
+        if (name.isEmpty() == false) {
+            m_classComboBox->setSelectedLabelName(name);
+        }
+    }
+    else {
+        m_classComboBox->updateContent(NULL);
     }
 }
 
@@ -509,11 +496,15 @@ void
 FociPropertiesEditorDialog::loadNameComboBox(const QString& name)
 {
     FociFile* fociFile = getSelectedFociFile();
-    m_nameComboBox->updateContent(fociFile->getNameColorTable());
-    
-    if (name.isEmpty() == false) {
-        m_nameComboBox->setSelectedLabelName(name);
+    if (fociFile != NULL) {
+        m_nameComboBox->updateContent(fociFile->getNameColorTable());
+        if (name.isEmpty() == false) {
+            m_nameComboBox->setSelectedLabelName(name);
+        }
     }
+    else {
+        m_nameComboBox->updateContent(NULL);
+    }    
 }
 
 /**

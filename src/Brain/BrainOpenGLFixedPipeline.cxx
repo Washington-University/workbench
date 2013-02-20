@@ -2067,15 +2067,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     focus->getClassRgba(rgba);
                     break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
-                {
-                    const float* colorRGBA = CaretColorEnum::toRGB(focus->getColor());
-                    rgba[0] = colorRGBA[0];
-                    rgba[1] = colorRGBA[1];
-                    rgba[2] = colorRGBA[2];
-                    rgba[3] = colorRGBA[3];
-                }
-                    break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
@@ -2268,15 +2259,6 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                         }
                     }
                     border->getClassRgba(rgba);
-                    break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
-                {
-                    const float* colorRGBA = CaretColorEnum::toRGB(border->getColor());
-                    rgba[0] = colorRGBA[0];
-                    rgba[1] = colorRGBA[1];
-                    rgba[2] = colorRGBA[2];
-                    rgba[3] = colorRGBA[3];
-                }
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (border->isNameRgbaValid() == false) {
@@ -5493,15 +5475,6 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                         }
                     }
                     focus->getClassRgba(rgba);
-                    break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_COLOR_LIST:
-                {
-                    const float* colorRGBA = CaretColorEnum::toRGB(focus->getColor());
-                    rgba[0] = colorRGBA[0];
-                    rgba[1] = colorRGBA[1];
-                    rgba[2] = colorRGBA[2];
-                    rgba[3] = colorRGBA[3];
-                }
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {

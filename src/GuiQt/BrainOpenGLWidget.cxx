@@ -80,7 +80,6 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 {
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
-    this->borderBeingDrawn->setColor(CaretColorEnum::RED);
     this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,

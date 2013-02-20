@@ -90,10 +90,6 @@ FeatureColoringTypeEnum::initialize()
                                                "FEATURE_COLORING_TYPE_CLASS",
                                                "Class"));
     
-    enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_COLOR_LIST,
-                                               "FEATURE_COLORING_TYPE_COLOR_LIST",
-                                               "Color List"));
-    
     enumData.push_back(FeatureColoringTypeEnum(FEATURE_COLORING_TYPE_NAME,
                                                "FEATURE_COLORING_TYPE_NAME",
                                                "Name"));

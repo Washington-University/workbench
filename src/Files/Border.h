@@ -26,7 +26,6 @@
  */ 
 
 #include "BorderException.h"
-#include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "StructureEnum.h"
 #include "XmlException.h"
@@ -60,10 +59,6 @@ namespace caret {
         AString getClassName() const;
         
         void setClassName(const AString& name);
-        
-        CaretColorEnum::Enum getColor() const;
-        
-        void setColor(const CaretColorEnum::Enum color);
         
         StructureEnum::Enum getStructure();
         
@@ -138,7 +133,6 @@ namespace caret {
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
-        static const AString XML_TAG_COLOR_NAME;
         
     private:
         void copyHelperBorder(const Border& obj);
@@ -148,8 +142,6 @@ namespace caret {
         AString m_name;
         
         AString m_className;
-        
-        CaretColorEnum::Enum m_color;
         
         std::vector<SurfaceProjectedItem*> m_points;
         
@@ -172,7 +164,6 @@ namespace caret {
 #ifdef __BORDER_DECLARE__
     const AString Border::XML_TAG_BORDER = "Border";
     const AString Border::XML_TAG_CLASS_NAME   = "ClassName";
-    const AString Border::XML_TAG_COLOR_NAME   = "ColorName";
     const AString Border::XML_TAG_NAME   = "Name";
 #endif // __BORDER_DECLARE__
 

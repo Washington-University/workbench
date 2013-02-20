@@ -205,32 +205,37 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
 {
     m_ignoreInsertedRowsFlag = true;
     
-    CaretAssert(giftiLabelTable);
     m_giftiLabelTable = giftiLabelTable;
 
     const AString selectedLabelName = m_comboBox->currentText();
     m_comboBox->clear();
     
-    const std::set<int32_t> keySet = giftiLabelTable->getKeys();
-    for (std::set<int32_t>::const_iterator iter = keySet.begin();
-         iter != keySet.end();
-         iter++) {
-        const int32_t key = *iter;
-        
-        GiftiLabel* label = giftiLabelTable->getLabel(key);
-        const AString labelName = label->getName();
-        
-        QPixmap pm(10, 10);
-        pm.fill(QColor::fromRgbF(label->getRed(),
-                                 label->getGreen(),
-                                 label->getBlue()));
-        QIcon icon(pm);
-
-        QVariant userData = qVariantFromValue((void*)label);
-        
-        m_comboBox->addItem(icon,
-                            labelName,
-                            userData);
+    if (m_giftiLabelTable != NULL) {
+        const std::set<int32_t> keySet = m_giftiLabelTable->getKeys();
+        for (std::set<int32_t>::const_iterator iter = keySet.begin();
+             iter != keySet.end();
+             iter++) {
+            const int32_t key = *iter;
+            
+            GiftiLabel* label = giftiLabelTable->getLabel(key);
+            const AString labelName = label->getName();
+            
+            QPixmap pm(10, 10);
+            pm.fill(QColor::fromRgbF(label->getRed(),
+                                     label->getGreen(),
+                                     label->getBlue()));
+            QIcon icon(pm);
+            
+            QVariant userData = qVariantFromValue((void*)label);
+            
+            m_comboBox->addItem(icon,
+                                labelName,
+                                userData);
+        }
+        m_comboBox->setEnabled(true);
+    }
+    else {
+        m_comboBox->setEnabled(false);
     }
     
     m_ignoreInsertedRowsFlag = false;
