@@ -644,8 +644,8 @@ ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
         ConnectivityLoaderFile* clf = *iter;
         if ((clf->isEmpty() == false)
             && clf->isDenseTimeSeries()) {
-            sceneClass->addInteger(AString(clf->getFileName()+".selectedFrame"),clf->getSelectedFrame());
-            sceneClass->addBoolean(AString(clf->getFileName()+".yokeEnabled"),clf->isYokeEnabled());
+            sceneClass->addInteger(AString(clf->getFileNameNoPath()+".selectedFrame"),clf->getSelectedFrame());
+            sceneClass->addBoolean(AString(clf->getFileNameNoPath()+".yokeEnabled"),clf->isYokeEnabled());
         }
     }
     
@@ -691,8 +691,8 @@ ConnectivityLoaderManager::restoreFromScene(const SceneAttributes* sceneAttribut
         ConnectivityLoaderFile* clf = *iter;
         if ((clf->isEmpty() == false)
             && clf->isDenseTimeSeries()) {            
-            clf->loadFrame(sceneClass->getIntegerValue(clf->getFileName()+AString(".selectedFrame"), 0));
-            clf->setYokeEnabled(sceneClass->getBooleanValue(clf->getFileName()+AString(".yokeEnabled"),false));
+            clf->loadFrame(sceneClass->getIntegerValue(clf->getFileNameNoPath()+AString(".selectedFrame"), 0));
+            clf->setYokeEnabled(sceneClass->getBooleanValue(clf->getFileNameNoPath()+AString(".yokeEnabled"),false));
         }
     }
     
