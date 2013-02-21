@@ -78,16 +78,20 @@ using namespace caret;
  *    Label table being edited.
  * @param dialogTitle
  *    Title for the dialog.
+ * @param options
+ *    Bitwise OR'ed Options values.
  * @param parent
  *    Parent on which this dialog is displayed.
  */
 GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
                                              const AString& dialogTitle,
+                                             const uint32_t options,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
-    initializeDialog(giftiLabelTable);
+    initializeDialog(giftiLabelTable,
+                     options);
 }
 
 /**
@@ -106,18 +110,22 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
  *    Label table being edited.
  * @param dialogTitle
  *    Title for the dialog.
+ * @param options
+ *    Bitwise OR'ed Options values.
  * @param parent
  *    Parent on which this dialog is displayed.
  */
 GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
                                              GiftiLabelTable* giftiLableTable,
                                              const AString& dialogTitle,
+                                             const uint32_t options,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
     CaretAssert(fociFile);
-    initializeDialog(giftiLableTable);
+    initializeDialog(giftiLableTable,
+                     options);
     m_fociFile = fociFile;
 }
 
@@ -131,18 +139,22 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(FociFile* fociFile,
  *    Label table being edited.
  * @param dialogTitle
  *    Title for the dialog.
+ * @param options
+ *    Bitwise OR'ed Options values.
  * @param parent
  *    Parent on which this dialog is displayed.
  */
 GiftiLabelTableEditor::GiftiLabelTableEditor(BorderFile* borderFile,
                                              GiftiLabelTable* giftiLableTable,
                                              const AString& dialogTitle,
+                                             const uint32_t options,
                                              QWidget* parent)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
     CaretAssert(borderFile);
-    initializeDialog(giftiLableTable);
+    initializeDialog(giftiLableTable,
+                     options);
     m_borderFile = borderFile;
 }
 
@@ -157,11 +169,25 @@ GiftiLabelTableEditor::~GiftiLabelTableEditor()
     }
 }
 
+/**
+ * Initialize the dialog.
+ *
+ * @param giftiLabelTable
+ *    Label table being edited.
+ * @param options
+ *    Bitwise OR'ed Options values.
+ */
 void
-GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable)
+GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
+                                        const uint32_t options)
 {
     m_borderFile = NULL;
     m_fociFile = NULL;
+    
+    m_showUnassignedLabelInEditor = true;
+    if (options & OPTION_HIDE_UNASSIGNED_LABEL) {
+        m_showUnassignedLabelInEditor = false;
+    }
     
     CaretAssert(giftiLabelTable);
     m_giftiLableTable = giftiLabelTable;
@@ -399,11 +425,20 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
     m_labelSelectionListWidget->clear();
     int defaultIndex = -1;
     
+    const int32_t unassignedLabelKey = m_giftiLableTable->getUnassignedLabelKey();
+    
     std::vector<int32_t> keys = m_giftiLableTable->getLabelKeysSortedByName();
     for (std::vector<int32_t>::iterator keyIterator = keys.begin();
          keyIterator != keys.end();
          keyIterator++) {
         const int32_t key = *keyIterator;
+        
+        if (m_showUnassignedLabelInEditor == false) {
+            if (key == unassignedLabelKey) {
+                continue;
+            }
+        }
+        
         const GiftiLabel* gl = m_giftiLableTable->getLabel(key);
         float rgba[4];
         gl->getColor(rgba);

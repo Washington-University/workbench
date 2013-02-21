@@ -55,18 +55,33 @@ namespace caret {
         Q_OBJECT
         
     public:
+        enum Options {
+            /** 
+             * No options 
+             */
+            OPTION_NONE = 0,
+            /** 
+             * Hide the unassigned label so that it is not shown in editor.
+             * May be bitwise OR'ed with other options.
+             */
+            OPTION_HIDE_UNASSIGNED_LABEL = 1
+        };
+        
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
+                              const uint32_t options,
                               QWidget* parent);
         
         GiftiLabelTableEditor(FociFile* fociFile,
                               GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
+                              const uint32_t options,
                               QWidget* parent);
         
         GiftiLabelTableEditor(BorderFile* borderFile,
                               GiftiLabelTable* giftiLableTable,
                               const AString& dialogTitle,
+                              const uint32_t options,
                               QWidget* parent);
         
         virtual ~GiftiLabelTableEditor();
@@ -95,7 +110,8 @@ namespace caret {
         virtual void okButtonClicked();
 
     private:
-        void initializeDialog(GiftiLabelTable* giftiLabelTable);
+        void initializeDialog(GiftiLabelTable* giftiLabelTable,
+                              const uint32_t options);
         
         void loadLabels(const AString& selectedName,
                         const bool usePreviouslySelectedIndex);
@@ -120,6 +136,8 @@ namespace caret {
         AString m_lastSelectedLabelName;
         
         GiftiLabel* m_undoGiftiLabel;
+        
+        bool m_showUnassignedLabelInEditor;
         
         WuQWidgetObjectGroup* m_editingGroup;
     };

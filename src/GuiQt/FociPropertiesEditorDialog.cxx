@@ -210,6 +210,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      */
     QLabel* nameLabel = new QLabel("Name");
     m_nameComboBox = new GiftiLabelTableSelectionComboBox(this);
+    m_nameComboBox->setUnassignedLabelTextOverride("Select Name");
 
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                         "Add and/or edit name colors",
@@ -532,6 +533,14 @@ FociPropertiesEditorDialog::okButtonClicked()
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
+    else {
+        const int32_t unassignedNameKey = fociFile->getNameColorTable()->getUnassignedLabelKey();
+        const int32_t selectedNameKey = m_nameComboBox->getSelectedLabelKey();
+        if (selectedNameKey == unassignedNameKey) {
+            errorMessage += "Choose or create a name for the border";
+        }
+    }
+    
     
     const QString className = m_classComboBox->getSelectedLabelName();
     
@@ -669,6 +678,7 @@ FociPropertiesEditorDialog::displayClassEditor()
     GiftiLabelTableEditor editor(fociFile,
                                  fociFile->getClassColorTable(),
                                  "Edit Class Attributes",
+                                 GiftiLabelTableEditor::OPTION_NONE,
                                  this);
     const QString className = m_classComboBox->getSelectedLabelName();
     if (className.isEmpty() == false) {
@@ -700,13 +710,11 @@ FociPropertiesEditorDialog::displayNameEditor()
     GiftiLabelTableEditor editor(fociFile,
                                  fociFile->getNameColorTable(),
                                  "Edit Class Attributes",
+                                 GiftiLabelTableEditor::OPTION_HIDE_UNASSIGNED_LABEL,
                                  this);
     const QString name = this->m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {
-        const GiftiLabel* label = fociFile->getNameColorTable()->getLabelBestMatching(name);
-        if (label != NULL) {
-            editor.selectLabelWithName(label->getName());
-        }
+        editor.selectLabelWithName(name);
     }
     editor.exec();
     

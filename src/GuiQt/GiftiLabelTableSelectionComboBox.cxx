@@ -64,6 +64,8 @@ GiftiLabelTableSelectionComboBox::GiftiLabelTableSelectionComboBox(QObject* pare
 : WuQWidget(parent)
 {
     m_ignoreInsertedRowsFlag = true;
+    m_giftiLabelTable = NULL;
+    m_unassignedLabelTextOverride = "";
     
     m_comboBox = new QComboBox();
     
@@ -95,6 +97,19 @@ GiftiLabelTableSelectionComboBox::~GiftiLabelTableSelectionComboBox()
 {
     
 }
+
+/**
+ * Override the text of the unassigned label.
+ *
+ * @param text
+ *    Text that overrides the text of the unassigned label.
+ */
+void
+GiftiLabelTableSelectionComboBox::setUnassignedLabelTextOverride(const AString& text)
+{
+    m_unassignedLabelTextOverride = text;
+}
+
 
 /**
  * If the combo box is editable, this can be used to create the new
@@ -210,7 +225,11 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
     const AString selectedLabelName = m_comboBox->currentText();
     m_comboBox->clear();
     
+    int32_t defaultIndex = -1;
+    
     if (m_giftiLabelTable != NULL) {
+        const int32_t unassignedKey = m_giftiLabelTable->getUnassignedLabelKey();
+        
         const std::set<int32_t> keySet = m_giftiLabelTable->getKeys();
         for (std::set<int32_t>::const_iterator iter = keySet.begin();
              iter != keySet.end();
@@ -218,7 +237,17 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
             const int32_t key = *iter;
             
             GiftiLabel* label = giftiLabelTable->getLabel(key);
-            const AString labelName = label->getName();
+            
+            AString labelName = label->getName();
+            if (key == unassignedKey) {
+                if (m_unassignedLabelTextOverride.isEmpty() == false) {
+                    labelName = m_unassignedLabelTextOverride;
+                }
+            }
+            
+            if (labelName == selectedLabelName) {
+                defaultIndex = m_comboBox->count();
+            }
             
             QPixmap pm(10, 10);
             pm.fill(QColor::fromRgbF(label->getRed(),
@@ -233,6 +262,12 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
                                 userData);
         }
         m_comboBox->setEnabled(true);
+        
+        if (defaultIndex >= 0) {
+            m_comboBox->blockSignals(true);
+            m_comboBox->setCurrentIndex(defaultIndex);
+            m_comboBox->blockSignals(false);
+        }
     }
     else {
         m_comboBox->setEnabled(false);
@@ -258,7 +293,7 @@ GiftiLabelTableSelectionComboBox::getSelectedLabel() const
 {
     const int indx = m_comboBox->currentIndex();
     
-    if (indx > 0) {
+    if (indx >= 0) {
         QVariant userData = m_comboBox->itemData(indx);
         void* pointer = userData.value<void*>();
         GiftiLabel* giftiLabel = (GiftiLabel*)pointer;
@@ -276,7 +311,7 @@ GiftiLabelTableSelectionComboBox::getSelectedLabel()
 {
     const int indx = m_comboBox->currentIndex();
     
-    if (indx > 0) {
+    if (indx >= 0) {
         QVariant userData = m_comboBox->itemData(indx);
         void* pointer = userData.value<void*>();
         GiftiLabel* giftiLabel = (GiftiLabel*)pointer;

@@ -184,6 +184,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      */
     QLabel* nameLabel = new QLabel("Name");
     m_nameComboBox = new GiftiLabelTableSelectionComboBox(this);
+    m_nameComboBox->setUnassignedLabelTextOverride("Select Name");
 //    m_nameLineEdit->setText(borderName);
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                     "Add and/or edit name colors",
@@ -493,6 +494,14 @@ BorderPropertiesEditorDialog::okButtonClicked()
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
+    else {
+        const int32_t unassignedNameKey = borderFile->getNameColorTable()->getUnassignedLabelKey();
+        const int32_t selectedNameKey = m_nameComboBox->getSelectedLabelKey();
+        if (selectedNameKey == unassignedNameKey) {
+            errorMessage += "Choose or create a name for the border";
+        }
+    }
+    
     const QString className = m_classComboBox->getSelectedLabelName();
     
     /*
@@ -582,6 +591,7 @@ BorderPropertiesEditorDialog::displayClassEditor()
     GiftiLabelTableEditor editor(borderFile,
                                  borderFile->getClassColorTable(),
                                  "Edit Class Attributes",
+                                 GiftiLabelTableEditor::OPTION_NONE,
                                  this);
     const QString className = m_classComboBox->getSelectedLabelName();
     if (className.isEmpty() == false) {
@@ -613,13 +623,11 @@ BorderPropertiesEditorDialog::displayNameEditor()
     GiftiLabelTableEditor editor(borderFile,
                                  borderFile->getNameColorTable(),
                                  "Edit Class Attributes",
+                                 GiftiLabelTableEditor::OPTION_HIDE_UNASSIGNED_LABEL,
                                  this);
     const QString name = m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {
-        const GiftiLabel* label = borderFile->getNameColorTable()->getLabelBestMatching(name);
-        if (label != NULL) {
-            editor.selectLabelWithName(label->getName());
-        }
+        editor.selectLabelWithName(name);
     }
     editor.exec();
     

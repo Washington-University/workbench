@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 
+#include "AString.h"
 #include "WuQWidget.h"
 
 class QComboBox;
@@ -71,6 +72,8 @@ namespace caret {
         QString getSelectedLabelName() const;
         
         void setSelectedLabelName(const QString& labelName);
+        
+        void setUnassignedLabelTextOverride(const AString& text);
         
     signals:
         /**
@@ -127,6 +130,8 @@ namespace caret {
         QComboBox* m_comboBox;
         
         bool m_ignoreInsertedRowsFlag;
+        
+        AString m_unassignedLabelTextOverride;
         
         // ADD_NEW_MEMBERS_HERE
 
