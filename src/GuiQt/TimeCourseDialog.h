@@ -88,6 +88,8 @@ private slots:
 
     void on_TDHistoryList_itemActivated(QListWidgetItem *item);
 
+    void on_TDHistoryList_itemClicked(QListWidgetItem *item);
+
 public slots:
     virtual void plotTimeEndValueChanged(double time);
     virtual void plotTimeStartValueChanged(double time);
@@ -96,6 +98,9 @@ public slots:
 
 private:
     void populateHistory();
+    void saveImageFile(AString &fileName);
+    void saveDvarsFile(AString &fileName,TimeLine &tl);
+
     TimeCoursePlotter *plot;
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
@@ -104,6 +109,7 @@ private:
     double startOffset; 
     bool ctrlKeyDown;
     bool shiftKeyDown;
+    int m_selectedItem;
 
 };
 

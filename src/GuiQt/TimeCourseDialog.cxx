@@ -87,6 +87,8 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     //CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     double time = 0.0;    
     this->setAnimationStartTime(time);
+
+    m_selectedItem = 0;
 }
 
 
@@ -333,35 +335,61 @@ void TimeCourseDialog::on_exportImageButton_clicked()
         if(i<(QImageWriter::supportedImageFormats().count()-1)) formatString.append(" ");
         else formatString.append(")");
     }
+    formatString.append(";;Dvars Files (*.txt)");
     QStringList files;
 
-    QString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+    AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
     if ( !fileName.isEmpty() )
     {
-        /*QPixmap *image = new QPixmap(this->plot->width(),this->plot->height());
-        //image->setDotsPerMeterX(1000);
-        //image->setDotsPerMeterY(1000);
-        QwtPlotRenderer *renderer = new QwtPlotRenderer();
-        renderer->renderDocument(this->plot, filename, QRectF(this->plot->width(),this->plot->height());
-        image->save(filename, "*.jpg");
-        std::cout << "File Saved" << std::endl;
-        delete image;*/
-
-        const QRect imageRect = this->plot->rect();
-        //const int dotsPerMeter = 3863;//85 DPI converted to meters
-        QImage image( imageRect.size(), QImage::Format_ARGB32 );
-        image.setDotsPerMeterX( float(QApplication::desktop()->physicalDpiX())/0.0254);//dotsPerMeter );
-        image.setDotsPerMeterY( float(QApplication::desktop()->physicalDpiY())/0.0254);//dotsPerMeter );
-        image.fill( QColor( Qt::white ).rgb() );
-
-        QPainter painter( &image );
-        
-        QwtPlotRenderer * renderer = new QwtPlotRenderer();
-        renderer->render( plot, &painter, imageRect );
-        painter.end();
-
-        image.save( fileName );
+        if(QFileInfo(fileName).suffix()!=QString("txt"))
+        {
+            saveImageFile(fileName);
+        }
+        else
+        {
+            if(tlV.count()) saveDvarsFile(fileName,tlV[m_selectedItem]);
+            //else QMessageBox()
+        }        
     }
+}
+
+void TimeCourseDialog::saveDvarsFile(AString &fileName, TimeLine &tl)
+{
+    
+    QFile dvarsFile(fileName);
+    dvarsFile.open(QFile::WriteOnly);
+    for(int i = 0;i<tl.y.count();i++)
+    {
+        AString line = AString::number(tl.y[i],'g',10)+"\n";
+        dvarsFile.write(line,line.length());
+    }
+}
+
+void TimeCourseDialog::saveImageFile(AString &fileName)
+{
+    /*QPixmap *image = new QPixmap(this->plot->width(),this->plot->height());
+    //image->setDotsPerMeterX(1000);
+    //image->setDotsPerMeterY(1000);
+    QwtPlotRenderer *renderer = new QwtPlotRenderer();
+    renderer->renderDocument(this->plot, filename, QRectF(this->plot->width(),this->plot->height());
+    image->save(filename, "*.jpg");
+    std::cout << "File Saved" << std::endl;
+    delete image;*/
+
+    const QRect imageRect = this->plot->rect();
+    //const int dotsPerMeter = 3863;//85 DPI converted to meters
+    QImage image( imageRect.size(), QImage::Format_ARGB32 );
+    image.setDotsPerMeterX( float(QApplication::desktop()->physicalDpiX())/0.0254);//dotsPerMeter );
+    image.setDotsPerMeterY( float(QApplication::desktop()->physicalDpiY())/0.0254);//dotsPerMeter );
+    image.fill( QColor( Qt::white ).rgb() );
+
+    QPainter painter( &image );
+        
+    QwtPlotRenderer * renderer = new QwtPlotRenderer();
+    renderer->render( plot, &painter, imageRect );
+    painter.end();
+
+    image.save( fileName );
 }
 
 void TimeCourseDialog::on_openTimeLineButton_clicked()
@@ -391,7 +419,26 @@ void TimeCourseDialog::on_openTimeLineButton_clicked()
     this->updateDialog();
 }
 
-void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem* /*item*/)
+void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem* item)
 {
+    /*for(int i = 0;i<tlV.count();i++)
+    {
+        if(item->text() == tlV[i].label)
+        {
+            m_selectedItem = i;
+            return;
+        }
+    }*/
+}
 
+void TimeCourseDialog::on_TDHistoryList_itemClicked(QListWidgetItem *item)
+{
+    for(int i = 0;i<tlV.count();i++)
+    {
+        if(item->text() == tlV[i].label)
+        {
+            m_selectedItem = i;
+            return;
+        }
+    }
 }
