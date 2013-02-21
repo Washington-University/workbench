@@ -94,8 +94,7 @@ ModelSurfaceSelector::getSelectedStructure()
  *    Controller that is selected.
  */
 void 
-ModelSurfaceSelector::setSelectedSurfaceController(
-                                                               ModelSurface* surfaceController)
+ModelSurfaceSelector::setSelectedSurfaceController(ModelSurface* surfaceController)
 {
     m_selectedSurfaceController = surfaceController;
     if (m_selectedStructure != StructureEnum::ALL) {
@@ -401,15 +400,29 @@ ModelSurfaceSelector::restoreFromScene(const SceneAttributes* /*sceneAttributes*
     
     const AString surfaceFileName = sceneClass->getStringValue("surfaceFileName",
                                                                "");
+    ModelSurface* matchedSurfaceModel = NULL;
+    
     if (surfaceFileName.isEmpty() == false) {
         for (std::vector<ModelSurface*>::iterator iter = m_availableSurfaceControllers.begin();
              iter != m_availableSurfaceControllers.end();
              iter++) {
             const Surface* surface = (*iter)->getSurface();
             if (surfaceFileName == surface->getFileNameNoPath()) {
-                setSelectedSurfaceController(*iter);
+                matchedSurfaceModel = *iter;
+                break;
             }
         }
+    }
+    
+    /*
+     * Note: setSelectedSurfaceController() will update the content of
+     * m_availableSurfaceControllers and the above iterators will become
+     * invalid.  So setSelectedSurfaceController() must be called outside
+     * of the loop.
+     * Bug found by JS.
+     */
+    if (matchedSurfaceModel != NULL) {
+        setSelectedSurfaceController(matchedSurfaceModel);        
     }
 }
 
