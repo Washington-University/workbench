@@ -263,7 +263,7 @@ CiftiBrainordinateFile::readFile(const AString& filename) throw (DataFileExcepti
                                  + " Columns=" + AString::number(numCols)
                                  + " RowType=" + AString::number(rowType)
                                  + " ColType=" + AString::number(colType));
-            CaretLogSevere(msg);
+            CaretLogFine(msg);
             
             std::vector<float> dataVector(numRows);
             float* dataPointer = &dataVector[0];
