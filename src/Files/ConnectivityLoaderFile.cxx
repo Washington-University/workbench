@@ -69,6 +69,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->dataLoadingEnabled = true;
     this->yokeEnabled = false;
     this->uniqueID = SystemUtilities::createUniqueID();
+    this->animationEnabled = false;
     this->setFileName("");
 }
 
