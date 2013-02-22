@@ -638,12 +638,19 @@ ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
     m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
     bool haveData = false;
+	QList<QString> list;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if ((clf->isEmpty() == false)
             && clf->isDenseTimeSeries()) {
+			if(list.indexOf(clf->getFileNameNoPath())!=-1) 
+			{
+				CaretLogWarning("Warning, scenes currently do not work properly if the same data series file is loaded more than once.  Currently the first file listed in the Data Series tab will override the properties for all other files.");
+				continue;
+			}
+			list.append(clf->getFileNameNoPath());
             sceneClass->addInteger(AString(clf->getFileNameNoPath()+".selectedFrame"),clf->getSelectedFrame());
             sceneClass->addBoolean(AString(clf->getFileNameNoPath()+".yokeEnabled"),clf->isYokeEnabled());
         }
