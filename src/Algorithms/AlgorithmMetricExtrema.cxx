@@ -415,7 +415,7 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
         if (roiColumn == NULL || roiColumn[i] > 0.0f)
         {
             myGeoHelp->getNodesToGeoDist(i, distance, neighborhoods[i], junk);
-            int numelems = (int)junk.size();
+            int numelems = (int)neighborhoods[i].size();
             if (numelems < 7)
             {
                 neighborhoods[i] = myTopoHelp->getNodeNeighbors(i);
@@ -428,6 +428,7 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
                         {
                             neighborhoods[i].erase(neighborhoods[i].begin() + j);//erase it
                             --j;//don't skip any or walk off the vector
+                            --numelems;
                         }
                     }
                 }
@@ -449,6 +450,7 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
                         {
                             neighborhoods[i].erase(neighborhoods[i].begin() + j);//erase it
                             --j;//don't skip any or walk off the vector
+                            --numelems;
                         }
                     }
                 }
