@@ -37,6 +37,8 @@
 #undef __GIFTI_LABEL_TABLE_SELECTION_COMBO_BOX_DECLARE__
 
 #include <QComboBox>
+#include <QStyle>
+#include <QStyleFactory>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -74,6 +76,22 @@ GiftiLabelTableSelectionComboBox::GiftiLabelTableSelectionComboBox(QObject* pare
                      this, SLOT(itemActivated(int)));
     QObject::connect(m_comboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(currentIndexChanged(int)));
+    
+//#ifdef CARET_OS_MACOSX
+//    QStyle* style = NULL;
+//    QStringList styleNames;
+//    styleNames << "Plastique" << "Windows";
+//    QStringListIterator styleNameIterator(styleNames);
+//    while (styleNameIterator.hasNext()) {
+//        style = QStyleFactory::create(styleNameIterator.next());
+//        if (style != NULL) {
+//            break;
+//        }
+//    }
+//    if (style != NULL) {
+//        m_comboBox->setStyle(style);
+//    }
+//#endif // CARET_OS_MACOSX
     
     const bool allowEditingFlag = false;
     if (allowEditingFlag) {

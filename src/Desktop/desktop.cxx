@@ -29,6 +29,7 @@
 #include <QLabel>
 #include <QGLPixelBuffer>
 #include <QSplashScreen>
+#include <QStyleFactory>
 #include <QThread>
 
 #include <cstdlib>
@@ -621,12 +622,16 @@ void printHelp(const AString& progName)
     << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
-    << "        the following styles should always be valid:" << endl
-    << "        motif" << endl
-    << "        windows" << endl
-    << "        platinum" << endl
-    << endl
-    << "        other styles may be available" << endl
+    << "        the following styles are valid on this system:" << endl;
+    
+    QStringList styleList = QStyleFactory::keys();
+    QStringListIterator styleListIterator(styleList);
+    while (styleListIterator.hasNext()) {
+        cout << "           " << qPrintable(styleListIterator.next()) << endl;
+    }
+    
+    cout
+    << "        other styles may be available on other systems" << endl
     << endl
     << "    -spec-load-all" << endl
     << "        load all files in the given spec file, don't show spec file dialog" << endl
