@@ -58,6 +58,7 @@
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmSurfaceWedgeVolume.h"
 #include "AlgorithmVolumeAffineResample.h"
+#include "AlgorithmVolumeDilate.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeMerge.h"
@@ -196,6 +197,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));

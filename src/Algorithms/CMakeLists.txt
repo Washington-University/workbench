@@ -50,6 +50,7 @@ AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
+AlgorithmVolumeDilate.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeMerge.h
@@ -94,6 +95,7 @@ AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
+AlgorithmVolumeDilate.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeMerge.cxx
