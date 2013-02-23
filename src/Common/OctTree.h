@@ -28,6 +28,7 @@ namespace caret
         Oct* makeParent(const int octant[3]);
         Oct* makeContains(const float pointToContain[3]);
         float distToPoint(const float point[3]);
+        float distSquaredToPoint(const float point[3]);
         bool lineIntersects(const float p1[3], const float p2[3]);
         bool rayIntersects(const float start[3], const float p2[3]);
         bool lineSegmentIntersects(const float start[3], const float end[3]);
@@ -221,6 +222,27 @@ namespace caret
             }
         }
         return MathFunctions::vectorLength(temp);
+    }
+    
+    template<typename T>
+    float Oct<T>::distSquaredToPoint(const float point[3])
+    {
+        float temp[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            if (point[i] < m_bounds[i][0])
+            {
+                temp[i] = m_bounds[i][0] - point[i];
+            } else {
+                if (point[i] > m_bounds[i][2])
+                {
+                    temp[i] = m_bounds[i][2] - point[i];
+                } else {
+                    temp[i] = 0.0f;
+                }
+            }
+        }
+        return temp[0] * temp[0] + temp[1] * temp[1] + temp[2] * temp[2];
     }
     
     template<typename T>

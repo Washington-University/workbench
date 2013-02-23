@@ -28,14 +28,27 @@
 
 #include "OctTree.h"
 #include "Vector3D.h"
+
+#include <set>
 #include <vector>
 
 namespace caret {
     
     struct LocatorInfo
     {
-        int32_t node, whichSet;
+        int32_t index, whichSet;
         Vector3D coords;
+        LocatorInfo(const int32_t& indexIn, const int32_t& whichSetIn, const Vector3D& coordsIn) : index(indexIn), whichSet(whichSetIn), coords(coordsIn) { }
+        bool operator==(const LocatorInfo& rhs) const { return (index == rhs.index) && (whichSet == rhs.whichSet); }//ignore coords
+        bool operator<(const LocatorInfo& rhs) const
+        {
+            if (whichSet == rhs.whichSet)//expect multi-set usage with pointsInRange to be rare, but still separate by whichSet
+            {
+                return index < rhs.index;
+            } else {
+                return whichSet < rhs.whichSet;
+            }
+        }
     };
     
     class CaretPointLocator
@@ -58,6 +71,7 @@ namespace caret {
         int32_t newIndex();
         static const int NUM_POINTS_SPLIT = 100;
         void removeSetHelper(Oct<LeafVector<Point> >* thisOct, const int32_t thisSet);
+        CaretPointLocator();
     public:
         ///make an empty point locator with given bounding box (bounding box can expand later, but may be less efficient
         CaretPointLocator(const float minBounds[3], const float maxBounds[3]);
@@ -69,7 +83,8 @@ namespace caret {
         void removePointSet(const int32_t whichSet);
         ///returns the index of the closest point, and optionally which point set and the coords
         int32_t closestPoint(const float target[3], LocatorInfo* infoOut = NULL) const;
-        int32_t closestPointLimited(const float target[3], float maxDist, LocatorInfo* infoOut = NULL) const;
+        int32_t closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut = NULL) const;
+        std::set<LocatorInfo> pointsInRange(const float target[3], const float& maxDist) const;
     };
 }
 
