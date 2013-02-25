@@ -245,7 +245,7 @@ UserInputModeFociWidget::createCreateOperationWidget()
                                                              "Display the create focus findow with position mouse click\n",
                                                              this);
     m_createFocusMouseClickAction->setCheckable(true);
-    m_createFocusMouseClickAction->setChecked(false);
+    m_createFocusMouseClickAction->setChecked(true);
     QToolButton* mouseClickFocusToolButton = new QToolButton();
     mouseClickFocusToolButton->setDefaultAction(m_createFocusMouseClickAction);
     
