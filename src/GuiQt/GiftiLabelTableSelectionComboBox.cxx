@@ -69,7 +69,7 @@ GiftiLabelTableSelectionComboBox::GiftiLabelTableSelectionComboBox(QObject* pare
     m_unassignedLabelTextOverride = "";
     
     m_comboBox = new QComboBox();
-    
+    m_comboBox->setMaxVisibleItems(20);
     
     QObject::connect(m_comboBox, SIGNAL(activated(int)),
                      this, SLOT(itemActivated(int)));
@@ -77,20 +77,27 @@ GiftiLabelTableSelectionComboBox::GiftiLabelTableSelectionComboBox(QObject* pare
                      this, SLOT(currentIndexChanged(int)));
     
 #ifdef CARET_OS_MACOSX
-    QStyle* style = NULL;
-    QStringList styleNames;
-    //styleNames << "Windows" << "Plastique";
-    QStringListIterator styleNameIterator(styleNames);
-    while (styleNameIterator.hasNext()) {
-        style = QStyleFactory::create(styleNameIterator.next());
-        if (style != NULL) {
-            break;
-        }
-    }
+    /*
+     * On Mac, use a windows combo box so that 
+     * the pop-up is not a list the covers the
+     * full vertical dimension of the monitor.
+     */
+    QStyle* style = QStyleFactory::create("Windows");
     if (style != NULL) {
         m_comboBox->setStyle(style);
+        //QPalette macPalette(QPalette(m_comboBox->palette()));
+        //m_comboBox->setPalette(macPalette);
     }
-#endif // CARET_OS_MACOSX
+//    QStringList styleNames;
+//    //styleNames << "Windows" << "Plastique";
+//    QStringListIterator styleNameIterator(styleNames);
+//    while (styleNameIterator.hasNext()) {
+//        style = QStyleFactory::create(styleNameIterator.next());
+//        if (style != NULL) {
+//            break;
+//        }
+//    }
+#endif // CARET_OS_MACOSX  QStyle::SH_ComboBox_Popup
     
     const bool allowEditingFlag = false;
     if (allowEditingFlag) {
