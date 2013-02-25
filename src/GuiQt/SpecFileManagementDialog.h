@@ -43,9 +43,9 @@
 
 class QActionGroup;
 class QCheckBox;
-class QGridLayout;
 class QLabel;
 class QTableWidget;
+class QTableWidgetItem;
 class QToolBar;
 class QToolButton;
 
@@ -67,16 +67,9 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static SpecFileManagementDialog* createOpenSpecFileDialogGridLayout(Brain* brain,
-                                                                  SpecFile* specFile,
-                                                                  QWidget* parent);
-        
         static SpecFileManagementDialog* createOpenSpecFileDialogTableLayout(Brain* brain,
                                                                   SpecFile* specFile,
                                                                   QWidget* parent);
-        
-        static SpecFileManagementDialog* createManageFilesDialogGridLayout(Brain* brain,
-                                                                 QWidget* parent);
         
         static SpecFileManagementDialog* createManageFilesDialogTableLayout(Brain* brain,
                                                                  QWidget* parent);
@@ -122,19 +115,13 @@ namespace caret {
             MODE_OPEN_SPEC_FILE
         };
         
-        enum LayoutType {
-            LAYOUT_TYPE_GRID,
-            LAYOUT_TYPE_TABLE
-        };
-        
         enum ManageFilesDisplay {
             MANAGE_FILES_ALL,
             MANAGE_FILES_LOADED,
             MANAGE_FILES_NOT_LOADED
         };
         
-        SpecFileManagementDialog(const LayoutType layoutType,
-                                 const Mode dialogMode,
+        SpecFileManagementDialog(const Mode dialogMode,
                                  Brain* brain,
                                  SpecFile* specFile,
                                  const AString& dialogTitle,
@@ -244,7 +231,6 @@ namespace caret {
                                      const SpecFileManagementDialog::Mode dialogMode,
                                      SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
                                      const AString& groupName,
-                                     const bool createTitleWidgets,
                                      QObject* parent);
         
         ~GuiSpecFileDataFileTypeGroup();
@@ -275,12 +261,6 @@ namespace caret {
         SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
         
         std::vector<GuiSpecFileDataFile*> m_guiDataFiles;
-        
-        QLabel* m_groupNameLabel;
-        
-        QWidget* m_leftHorizontalLineWidget;
-        
-        QWidget* m_rightHorizontalLineWidget;
     };
     
     
