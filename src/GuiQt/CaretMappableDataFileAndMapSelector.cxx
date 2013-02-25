@@ -718,9 +718,11 @@ CaretMappableDataFileAndMapSelector::showLabelsEditor()
                                                "Edit Labels",
                                                GiftiLabelTableEditor::OPTION_NONE,
                                                this->getWidget());
-            //labelsEditor.selectLabelWithName(this->getSelectedLabelName());
-            if (labelsEditor.exec() == GiftiLabelTableEditor::Accepted) {
-                this->loadLabelNameComboBox();
+
+            const int dialogResult = labelsEditor.exec();
+            this->loadLabelNameComboBox();
+            
+            if (dialogResult == GiftiLabelTableEditor::Accepted) {
                 
                 const AString labelName = labelsEditor.getLastSelectedLabelName();
                 const int32_t labelKey  = labelTable->getLabelKeyFromName(labelName);

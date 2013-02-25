@@ -597,13 +597,16 @@ BorderPropertiesEditorDialog::displayClassEditor()
     if (className.isEmpty() == false) {
         editor.selectLabelWithName(className);
     }
-    editor.exec();
+    
+    const int dialogResult = editor.exec();
     
     loadClassComboBox();
 
-    const QString selectedClassName = editor.getLastSelectedLabelName();
-    if (selectedClassName.isEmpty() == false) {
-        m_classComboBox->setSelectedLabelName(selectedClassName);
+    if (dialogResult == GiftiLabelTableEditor::Accepted) {
+        const QString selectedClassName = editor.getLastSelectedLabelName();
+        if (selectedClassName.isEmpty() == false) {
+            m_classComboBox->setSelectedLabelName(selectedClassName);
+        }
     }
 }
 
@@ -629,13 +632,16 @@ BorderPropertiesEditorDialog::displayNameEditor()
     if (name.isEmpty() == false) {
         editor.selectLabelWithName(name);
     }
-    editor.exec();
+    
+    const int dialogResult = editor.exec();
     
     loadNameComboBox();
     
-    const QString selectedName = editor.getLastSelectedLabelName();
-    if (selectedName.isEmpty() == false) {
-        m_nameComboBox->setSelectedLabelName(selectedName);
+    if (dialogResult == GiftiLabelTableEditor::Accepted) {
+        const QString selectedName = editor.getLastSelectedLabelName();
+        if (selectedName.isEmpty() == false) {
+            m_nameComboBox->setSelectedLabelName(selectedName);
+        }
     }
 }
 

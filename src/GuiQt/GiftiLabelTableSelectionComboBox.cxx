@@ -44,7 +44,6 @@
 #include "CaretLogger.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
-#include "GiftiLabelTableEditor.h"
 
 using namespace caret;
 
@@ -77,21 +76,21 @@ GiftiLabelTableSelectionComboBox::GiftiLabelTableSelectionComboBox(QObject* pare
     QObject::connect(m_comboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(currentIndexChanged(int)));
     
-//#ifdef CARET_OS_MACOSX
-//    QStyle* style = NULL;
-//    QStringList styleNames;
-//    styleNames << "Plastique" << "Windows";
-//    QStringListIterator styleNameIterator(styleNames);
-//    while (styleNameIterator.hasNext()) {
-//        style = QStyleFactory::create(styleNameIterator.next());
-//        if (style != NULL) {
-//            break;
-//        }
-//    }
-//    if (style != NULL) {
-//        m_comboBox->setStyle(style);
-//    }
-//#endif // CARET_OS_MACOSX
+#ifdef CARET_OS_MACOSX
+    QStyle* style = NULL;
+    QStringList styleNames;
+    //styleNames << "Windows" << "Plastique";
+    QStringListIterator styleNameIterator(styleNames);
+    while (styleNameIterator.hasNext()) {
+        style = QStyleFactory::create(styleNameIterator.next());
+        if (style != NULL) {
+            break;
+        }
+    }
+    if (style != NULL) {
+        m_comboBox->setStyle(style);
+    }
+#endif // CARET_OS_MACOSX
     
     const bool allowEditingFlag = false;
     if (allowEditingFlag) {

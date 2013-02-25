@@ -282,7 +282,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     loadLabels("", false);
     
     //setOkButtonText("Close");
-    setCancelButtonText("");
+    //setCancelButtonText("");
     
     /*
      * No auto default button processing (Qt highlights button)
