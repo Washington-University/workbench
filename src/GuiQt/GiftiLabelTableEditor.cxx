@@ -599,6 +599,7 @@ GiftiLabelTableEditor::newButtonClicked()
 //    m_labelNameLineEdit->grabKeyboard();
 //    m_labelNameLineEdit->grabMouse();
     m_labelNameLineEdit->setFocus();
+    listWidgetLabelSelected(-1);
 }
 
 /**
@@ -628,6 +629,7 @@ GiftiLabelTableEditor::deleteButtonClicked()
                                            "Delete " + gl->getName())) {
             m_giftiLableTable->deleteLabel(gl);
             loadLabels("", true);
+            listWidgetLabelSelected(-1);
         }
     }
 }
