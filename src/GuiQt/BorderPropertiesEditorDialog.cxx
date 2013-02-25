@@ -623,7 +623,7 @@ BorderPropertiesEditorDialog::displayNameEditor()
     GiftiLabelTableEditor editor(borderFile,
                                  borderFile->getNameColorTable(),
                                  "Edit Class Attributes",
-                                 GiftiLabelTableEditor::OPTION_HIDE_UNASSIGNED_LABEL,
+                                 GiftiLabelTableEditor::OPTION_UNASSIGNED_LABEL_HIDDEN,
                                  this);
     const QString name = m_nameComboBox->getSelectedLabelName();
     if (name.isEmpty() == false) {

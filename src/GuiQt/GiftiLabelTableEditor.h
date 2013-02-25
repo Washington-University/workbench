@@ -64,7 +64,7 @@ namespace caret {
              * Hide the unassigned label so that it is not shown in editor.
              * May be bitwise OR'ed with other options.
              */
-            OPTION_HIDE_UNASSIGNED_LABEL = 1
+            OPTION_UNASSIGNED_LABEL_HIDDEN = 1
         };
         
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
@@ -101,6 +101,8 @@ namespace caret {
         void undoButtonClicked();
         
         void listWidgetLabelSelected(int row);
+        
+        void listWidgetLabelSelected(QListWidgetItem* item);
         
         void colorEditorColorChanged(const float*);
         

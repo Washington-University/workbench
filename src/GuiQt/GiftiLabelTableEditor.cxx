@@ -185,7 +185,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     m_fociFile = NULL;
     
     m_showUnassignedLabelInEditor = true;
-    if (options & OPTION_HIDE_UNASSIGNED_LABEL) {
+    if (options & OPTION_UNASSIGNED_LABEL_HIDDEN) {
         m_showUnassignedLabelInEditor = false;
     }
     
@@ -198,8 +198,10 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
      */
     m_labelSelectionListWidget = new QListWidget();
     m_labelSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
-    QObject::connect(m_labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
-                     this, SLOT(listWidgetLabelSelected(int)));
+//    QObject::connect(m_labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
+//                     this, SLOT(listWidgetLabelSelected(int)));
+    QObject::connect(m_labelSelectionListWidget, SIGNAL(itemClicked(QListWidgetItem*)), //SIGNAL(currentRowChanged(int)),
+                     this, SLOT(listWidgetLabelSelected(QListWidgetItem*)));
     
     /*
      * New color button.
@@ -279,7 +281,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     
     loadLabels("", false);
     
-    setOkButtonText("Close");
+    //setOkButtonText("Close");
     setCancelButtonText("");
     
     /*
@@ -328,7 +330,9 @@ GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
     QList<QListWidgetItem*> itemsWithLabelName = m_labelSelectionListWidget->findItems(labelName,
                                                                                            Qt::MatchExactly);
     if (itemsWithLabelName.empty() == false) {
-        m_labelSelectionListWidget->setCurrentItem(itemsWithLabelName.at(0));
+        QListWidgetItem* item = itemsWithLabelName.at(0);
+        m_labelSelectionListWidget->setCurrentItem(item);
+        listWidgetLabelSelected(item);
     }
 }
 
@@ -337,8 +341,47 @@ GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
  * @param row
  *    Row of label selected.
  */
-void 
+void
 GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
+{
+    if (m_undoGiftiLabel != NULL) {
+        delete m_undoGiftiLabel;
+        m_undoGiftiLabel = NULL;
+    }
+    
+    bool isEditingAllowed = false;
+    GiftiLabel* gl = getSelectedLabel();
+    if (gl != NULL) {
+        const bool isUnassignedLabel = (gl->getKey() == m_giftiLableTable->getUnassignedLabelKey());
+        float rgba[4];
+        gl->getColor(rgba);
+        m_colorEditorWidget->setColor(rgba);
+        m_labelNameLineEdit->setText(gl->getName());
+        
+        m_lastSelectedLabelName = gl->getName();
+        
+        if (isUnassignedLabel) {
+            m_undoGiftiLabel = NULL;
+        }
+        else {
+            m_undoGiftiLabel = new GiftiLabel(*gl);
+            isEditingAllowed = true;
+        }
+    }
+    else {
+        m_lastSelectedLabelName = "";
+    }
+    
+    m_editingGroup->setEnabled(isEditingAllowed);
+}
+
+/**
+ * Called when a label in the list widget is selected.
+ * @param row
+ *    Row of label selected.
+ */
+void 
+GiftiLabelTableEditor::listWidgetLabelSelected(QListWidgetItem* /*item*/)
 {
     if (m_undoGiftiLabel != NULL) {
         delete m_undoGiftiLabel;
@@ -462,9 +505,11 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
         }
     }
     
-    if (defaultIndex < 0) {
-        if (m_labelSelectionListWidget->count() > 0) {
-            defaultIndex = 0;
+    if (usePreviouslySelectedIndex) {
+        if (defaultIndex < 0) {
+            if (m_labelSelectionListWidget->count() > 0) {
+                defaultIndex = 0;
+            }
         }
     }
     
@@ -472,6 +517,9 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
     
     if (defaultIndex >= 0) {        
         m_labelSelectionListWidget->setCurrentRow(defaultIndex);
+    }
+    else {
+        m_editingGroup->setEnabled(false);
     }
 }
 
