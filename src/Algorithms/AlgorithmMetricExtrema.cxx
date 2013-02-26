@@ -84,6 +84,8 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
         AString("Finds extrema in a metric file, such that no two extrema of the same type are within <distance> of each other.  ") +
         "The extrema are labeled as -1 for minima, 1 for maxima, 0 otherwise.  " +
         "If -only-maxima or -only-minima is specified, then it will ignore extrema not of the specified type.  These options are mutually exclusive.\n\n" +
+        "If -roi is specified, not only is data outside the roi not used, but any vertex on the edge of the ROI will never be counted as an extrema, " +
+        "in case the ROI cuts across a gradient, which would otherwise generate extrema where there should be none.\n\n" +
         "If -sum-columns is specified, these extrema columns are summed, and the output has a single column with this result.\n\n" +
         "By default, a datapoint is an extrema only if it is more extreme than every other datapoint that is within <distance> from it.  " +
         "If -consolidate-mode is used, it instead starts by finding all datapoints that are more extreme than their immediate neighbors, " +
@@ -414,6 +416,25 @@ void AlgorithmMetricExtrema::precomputeNeighborhoods(const SurfaceFile* mySurf, 
     {
         if (roiColumn == NULL || roiColumn[i] > 0.0f)
         {
+            if (roiColumn != NULL)
+            {
+                const vector<int32_t>& neighbors = myTopoHelp->getNodeNeighbors(i);
+                int numNeigh = (int)neighbors.size();
+                bool good = true;
+                for (int j = 0; j < numNeigh; ++j)
+                {
+                    if (roiColumn[neighbors[j]] <= 0.0f)
+                    {
+                        good = false;
+                        break;
+                    }
+                }
+                if (!good)
+                {
+                    neighborhoods[i].push_back(-1);//use a single neighbor of -1 to denote "do not use due to being on the edge of the ROI" - a bit of a hack, but means we don't need a second array, and still separates it from "no neighbors"
+                    continue;
+                }
+            }
             myGeoHelp->getNodesToGeoDist(i, distance, neighborhoods[i], junk);
             int numelems = (int)neighborhoods[i].size();
             if (numelems < 7)
@@ -475,6 +496,7 @@ void AlgorithmMetricExtrema::findExtremaNeighborhoods(const float* data, const v
             const vector<int32_t>& myneighbors = neighborhoods[i];
             int numNeigh = (int)myneighbors.size();
             if (numNeigh == 0) continue;//don't count isolated nodes as minima or maxima
+            if (numNeigh == 1 && myneighbors[0] == -1) continue;//ignore nodes on the edge of the ROI, because this often generates artificial extrema
             float myval = data[i];
             if (threshMode)
             {
@@ -594,6 +616,10 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
                             canBeMax = false;
                         }
                         break;//now we can go to the shorter loops, because one of the two possibilities is gone
+                    } else {
+                        canBeMin = false;//if we neighbor something outside the ROI, do not allow counting as max or min
+                        canBeMax = false;
+                        break;
                     }
                 }
             }
@@ -612,6 +638,9 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
                             canBeMax = false;
                             break;
                         }
+                    } else {
+                        canBeMax = false;//if we neighbor something outside the ROI, do not allow counting as max or min
+                        break;
                     }
                 }
             }
@@ -630,6 +659,9 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
                             canBeMin = false;
                             break;
                         }
+                    } else {
+                        canBeMin = false;//if we neighbor something outside the ROI, do not allow counting as max or min
+                        break;
                     }
                 }
             }
