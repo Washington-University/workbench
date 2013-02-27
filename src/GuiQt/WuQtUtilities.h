@@ -151,6 +151,10 @@ namespace caret {
         static void setWordWrappedToolTip(QWidget* widget,
                                           const QString& tooltipText);
         
+        static bool checkStateToBool(const Qt::CheckState checkState);
+        
+        static Qt::CheckState boolToCheckState(const bool value);
+        
     private:
         WuQtUtilities();
         ~WuQtUtilities();

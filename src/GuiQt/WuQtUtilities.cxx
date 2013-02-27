@@ -873,4 +873,39 @@ WuQtUtilities::setWordWrappedToolTip(QWidget* widget,
     widget->setToolTip(createWordWrappedToolTipText(tooltipText));
 }
 
+/**
+ * Convert a Qt::CheckState to a boolean value.
+ *
+ * @param checkState
+ *    The check state value.
+ * @return 
+ *    true if checked or partially checked, else false.
+ */
+bool
+WuQtUtilities::checkStateToBool(const Qt::CheckState checkState)
+{
+    if (checkState == Qt::Unchecked) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Convert a boolean value to a Qt::CheckState
+ *
+ * @param value
+ *    The boolean value.
+ * @return
+ *    Check state indicating checked or not checked.
+ */
+Qt::CheckState
+WuQtUtilities::boolToCheckState(const bool value)
+{
+    if (value) {
+        return Qt::Checked;
+    }
+    return Qt::Unchecked;
+}
+
 
