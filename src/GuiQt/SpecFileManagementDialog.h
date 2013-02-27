@@ -37,6 +37,7 @@
 #include <QGroupBox>
 #include <QSignalMapper>
 
+#include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
@@ -53,12 +54,14 @@ namespace caret {
 
     class Brain;
     class CaretDataFile;
+    class DataFileTableRow;
     class GuiSpecFileDataFile;
     class GuiSpecFileDataFileTypeGroup;
     class SpecFile;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
     class StructureEnumComboBox;
+    class TableRowDataFileContent;
     class WuQEventBlockingFilter;
     class WuQWidgetObjectGroup;
     
@@ -99,6 +102,8 @@ namespace caret {
         void fileInSpecCheckBoxSelected(int indx);
         
         void fileReloadOrOpenFileActionSelected(int indx);
+        
+        void fileRemoveActionSelected(int indx);
         
         void fileOptionsActionSelected(int indx);
         
@@ -142,13 +147,15 @@ namespace caret {
         QToolBar* createToolBarWithActionGroup(const QString& text,
                                                QActionGroup* actionGroup);
         
-        AString getEditedGroupName(const AString& groupName) const;
+        static AString getEditedGroupName(const AString& groupName);
         
         GuiSpecFileDataFile* getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex);
         
         void updateGraphicWindowsAndUserInterface();
         
         void updateDisplayedFiles();
+        
+        void setTableColumnLabels();
         
         virtual void okButtonClicked();
         
@@ -158,6 +165,12 @@ namespace caret {
         
         void changeFileName(QWidget* parent,
                             const int indx);
+        
+        void createOrUpdateTableDimensions();
+        
+        QTableWidgetItem* createTextItem();
+        
+        QTableWidgetItem* createCheckableItem();
         
         AString writeSpecFile(const bool writeOnlyIfModified);
         
@@ -181,23 +194,23 @@ namespace caret {
         
         QActionGroup* m_structureActionGroup;
         
+        std::vector<TableRowDataFileContent*> m_tableRowDataFileContent;
+        
+        int m_specFileTableRowIndex;
+        
         std::vector<GuiSpecFileDataFileTypeGroup*> m_guiSpecFileDataFileTypeGroups;
         
-        QCheckBox* m_specFileSaveCheckBox;
+        QTableWidgetItem* m_specFileSaveCheckedItem;
         
-        QLabel* m_specFileStatusLabel;
+        QTableWidgetItem* m_specFileStatusItem;
         
-        QLabel* m_specFileNameLabel;
-        
-        QLabel* m_specFilePathLabel;
+        QTableWidgetItem* m_specFileNameItem;
         
         QToolButton* m_specFileOptionsToolButton;
         
         QToolButton* m_chooseSpecFileToolButton;
         
         WuQWidgetObjectGroup* m_specFileWidgetGroup;
-        
-        int m_specFileTableWidgetRow;
         
         QSignalMapper* m_fileLoadCheckBoxSignalMapper;
         
@@ -206,6 +219,8 @@ namespace caret {
         QSignalMapper* m_fileInSpecCheckBoxSignalMapper;
         
         QSignalMapper* m_fileReloadOrOpenFileActionSignalMapper;
+        
+        QSignalMapper* m_fileRemoveFileActionSignalMapper;
         
         QSignalMapper* m_fileOptionsActionSignalMapper;
         
@@ -220,8 +235,37 @@ namespace caret {
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;
 
+        int m_COLUMN_LOAD_CHECKBOX;
+        int m_COLUMN_SAVE_CHECKBOX;
+        int m_COLUMN_STATUS_LABEL;
+        int m_COLUMN_IN_SPEC_FILE_CHECKBOX;
+        int m_COLUMN_READ_BUTTON;
+        int m_COLUMN_REMOVE_BUTTON;
+        int m_COLUMN_OPTIONS_TOOLBUTTON;
+        int m_COLUMN_DATA_FILE_TYPE_LABEL;
+        int m_COLUMN_STRUCTURE;
+        int m_COLUMN_FILE_NAME_LABEL;
+        int m_COLUMN_COUNT;
     };
     
+    /**
+     * Data in a row of the table widget
+     */
+    class TableRowDataFileContent : public CaretObject {
+    public:
+        TableRowDataFileContent(SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
+                                SpecFileDataFile* specFileDataFile) {
+            m_tableRowIndex             = -1;
+            m_specFileDataFileTypeGroup = specFileDataFileTypeGroup;
+            m_specFileDataFile          = specFileDataFile;
+        }
+        
+        int m_tableRowIndex;
+        
+        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
+     
+        SpecFileDataFile* m_specFileDataFile;
+    };
     
     class GuiSpecFileDataFileTypeGroup : public QObject {
         Q_OBJECT
@@ -307,31 +351,31 @@ namespace caret {
         
         SpecFileDataFile* m_specFileDataFile;
 
-        QCheckBox* m_loadCheckBox;
+        QTableWidgetItem* m_loadCheckedItem;
         
-        QCheckBox* m_saveCheckBox;
+        QTableWidgetItem* m_saveCheckedItem;
         
-        QCheckBox* m_inSpecFileCheckBox;
+        QTableWidgetItem* m_inSpecFileCheckedItem;
+        
+        QTableWidgetItem* m_dataTypeLabelItem;
         
         QAction* m_reloadOrOpenFileAction;
         
         QToolButton* m_reloadOrOpenFileToolButton;
         
-        QLabel* m_statusLabel;
+        QTableWidgetItem* m_statusLabelItem;
         
         QAction* m_optionsButtonAction;
         
         QToolButton* m_optionsToolButton;
         
-        StructureEnumComboBox* m_structureComboBox;
+        QTableWidgetItem* m_structureLabelItem;
         
         QAction* m_selectFileNameButtonAction;
         
         QToolButton* m_selectFileNameToolButton;
         
-        QLabel* m_fileNameLabel;
-        
-        QLabel* m_filePathLabel;
+        QTableWidgetItem* m_fileNameLabelItem;
         
         WuQWidgetObjectGroup* m_widgetGroup;
         
