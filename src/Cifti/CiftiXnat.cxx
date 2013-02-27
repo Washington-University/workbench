@@ -34,12 +34,23 @@
 using namespace caret;
 using namespace std;
 
+/**
+ * Open the given URL.
+ * 
+ * @param url
+ *    The URL.
+ *
+ * Examples:
+ *    https://db.humanconnectome.org/data/services/cifti-average?searchID=PILOT1_AVG_xnat:subjectData
+ *    http://hcpx-demo.humanconnectome.org/spring/cifti-average?resource=HCP_Q1:Q1:Demo_HCP_unrelated20_FunctionalConnectivity_mgt-regression
+ */
 void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
 {
     m_baseRequest.m_url = url;
     int32_t start = url.indexOf('?');
     bool foundSearchID = false;
-    while (!foundSearchID)
+    bool foundResource = false;
+    while ((!foundSearchID) && (!foundResource))
     {
         if (start == -1)
         {
@@ -49,11 +60,22 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         {
             foundSearchID = true;
         }
+        else if (url.mid(start + 1, QString("resource=").length()) == "resource=")
+        {
+            foundResource = true;
+        }
         start = url.indexOf('&', start + 1);
     }
     m_baseRequest.m_queries.push_back(make_pair(AString("type"), AString("dconn")));
     CaretHttpRequest metadata = m_baseRequest;
-    metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
+    if (foundResource)
+    {
+        metadata.m_queries.push_back(make_pair(AString("metadata"), AString("true")));
+    }
+    else
+    {
+        metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
+    }
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(metadata, myResponse);
     if (!myResponse.m_ok)
