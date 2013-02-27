@@ -84,6 +84,8 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     }
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
+    CaretLogSevere("Received text:"
+                   + theBody);
     try {
         m_xml.readXML(theBody);
     }
