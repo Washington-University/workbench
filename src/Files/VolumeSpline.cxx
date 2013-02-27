@@ -184,7 +184,7 @@ float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float
             int64_t indexk = (k + lowk - 1) * zstep;
             for (int j = jstart; j < jend; ++j)
             {
-                int64_t indexj = indexk + (j + lowj - 1) * m_dims[0];
+                int64_t indexj = indexk + (j + lowj - 1) * m_dims[0] + lowi - 1;
                 if (lowedgei)//have to do these tests for the simple reason that otherwise we might access off the end of the array in two of the 8 corners
                 {
                     if (highedgei)
