@@ -286,11 +286,14 @@ CaretFileRemoteDialog::createAndLoadStandardData()
 {
     m_standardFileComboBox->blockSignals(true);
     
+    m_standardData.push_back(StandardData("HCP-Q1 Regression",
+                                          "https://hcpx-demo.humanconnectome.org/spring/cifti-average?resource=HCP_Q1:Q1:Demo_HCP_unrelated20_FunctionalConnectivity_mgt-regression",
+                                          DataFileTypeEnum::CONNECTIVITY_DENSE));
+    m_standardData.push_back(StandardData("HCP-Q1 Correlation",
+                                          "https://hcpx-demo.humanconnectome.org/spring/cifti-average?resource=HCP_Q1:Q1:Demo_HCP_unrelated20_FunctionalConnectivity_FullCorrel",
+                                          DataFileTypeEnum::CONNECTIVITY_DENSE));
     m_standardData.push_back(StandardData("Pilot1 Average Dense Connectome",
                                           "https://db.humanconnectome.org/data/services/cifti-average?searchID=PILOT1_AVG_xnat:subjectData",
-                                          DataFileTypeEnum::CONNECTIVITY_DENSE));
-    m_standardData.push_back(StandardData("New URL from Kevin",
-                                          "http://hcpx-demo.humanconnectome.org/spring/cifti-average?resource=HCP_Q1:Q1:Demo_HCP_unrelated20_FunctionalConnectivity_mgt-regression",
                                           DataFileTypeEnum::CONNECTIVITY_DENSE));
     
     const int numStandardData = static_cast<int>(m_standardData.size());
