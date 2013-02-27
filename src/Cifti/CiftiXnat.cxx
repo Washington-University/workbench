@@ -88,6 +88,12 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     bool fixedDims = false;
     m_numberOfColumns = m_xml.getNumberOfColumns();
     m_numberOfRows = m_xml.getNumberOfRows();
+    CaretLogSevere("Connected URL: "
+                   + url
+                   + "\nRows/Columns:"
+                   + QString::number(m_numberOfRows)
+                   + "/"
+                   + QString::number(m_numberOfColumns));
     if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS && m_numberOfColumns < 1)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
