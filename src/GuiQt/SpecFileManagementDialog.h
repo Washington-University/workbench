@@ -147,13 +147,13 @@ namespace caret {
         QToolBar* createToolBarWithActionGroup(const QString& text,
                                                QActionGroup* actionGroup);
         
-        static AString getEditedGroupName(const AString& groupName);
+        static AString getEditedDataFileTypeName(const DataFileTypeEnum::Enum dataFileType);
         
         GuiSpecFileDataFile* getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex);
         
         void updateGraphicWindowsAndUserInterface();
         
-        void updateDisplayedFiles();
+        void loadSpecFileContentIntoDialog();
         
         void setTableColumnLabels();
         
