@@ -558,6 +558,15 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
                                             } else {
                                                 canBeMax = false;
                                             }
+                                            ++v;//don't test the same voxel again
+                                            break;//we have eliminated one possibility, so we can move to a loop with fewer tests
+                                        } else {
+                                            if (abs(offset.m_ijk[0]) + abs(offset.m_ijk[1]) + abs(offset.m_ijk[2]) == 1)
+                                            {
+                                                canBeMax = false;//if we find a face neighbor outside the roi, don't count this as an extrema
+                                                canBeMin = false;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -578,6 +587,12 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
                                                 minPos[otherindex] = 0;
                                             } else {
                                                 canBeMin = false;
+                                                break;
+                                            }
+                                        } else {
+                                            if (abs(offset.m_ijk[0]) + abs(offset.m_ijk[1]) + abs(offset.m_ijk[2]))
+                                            {
+                                                canBeMin = false;//if we find a face neighbor outside the roi, don't count this as an extrema
                                                 break;
                                             }
                                         }
@@ -602,6 +617,12 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
                                                 canBeMax = false;
                                                 break;
                                             }
+                                        } else {
+                                            if (abs(offset.m_ijk[0]) + abs(offset.m_ijk[1]) + abs(offset.m_ijk[2]) == 1)
+                                            {
+                                                canBeMax = false;//if we find a face neighbor outside the roi, don't count this as an extrema
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -612,38 +633,56 @@ void AlgorithmVolumeExtrema::findExtremaStencils(const VolumeFile* toProcess, co
                                 }
                             }
                         } else {//if we are near an edge, we have to check all the neighbor indexes
-                            for (int v = 0; v < stencilSize; ++v)
+                            if (i < 1 || i >= myDims[0] - 1 ||
+                                j < 1 || j >= myDims[1] - 1 ||
+                                k < 1 || k >= myDims[2] - 1)
                             {
-                                VoxelIJK& offset = m_stencil[v];
-                                int64_t testVox[3] = { i + offset.m_ijk[0],
-                                                    j + offset.m_ijk[1],
-                                                    k + offset.m_ijk[2] };
-                                if (!ksafe && (testVox[2] < 0 || testVox[2] >= myDims[2])) continue;
-                                if (!jsafe && (testVox[1] < 0 || testVox[1] >= myDims[1])) continue;
-                                if (!isafe && (testVox[0] < 0 || testVox[0] >= myDims[0])) continue;
-                                int64_t otherindex = toProcess->getIndex(testVox);
-                                if (roiFrame != NULL && roiFrame[otherindex] <= 0.0f) continue;
-                                float otherval = dataFrame[otherindex];
-                                if (myval < otherval)//since we are checking index bounds anyway, just do the double test to make the code simpler
+                                canBeMax = false;//but if we are on the edge of the volume, that is effectively the same as on the edge of the roi
+                                canBeMin = false;//so, don't count any extrema here
+                            } else {
+                                for (int v = 0; v < stencilSize; ++v)
                                 {
-                                    minPos[otherindex] = 0;
-                                } else {
-                                    canBeMin = false;
-                                    if (!canBeMax) break;
-                                }
-                                if (myval > otherval)
-                                {
-                                    maxPos[otherindex] = 0;
-                                } else {
-                                    canBeMax = false;
-                                    if (!canBeMin) break;
+                                    VoxelIJK& offset = m_stencil[v];
+                                    int64_t testVox[3] = { i + offset.m_ijk[0],
+                                                        j + offset.m_ijk[1],
+                                                        k + offset.m_ijk[2] };
+                                    if (!ksafe && (testVox[2] < 0 || testVox[2] >= myDims[2])) continue;
+                                    if (!jsafe && (testVox[1] < 0 || testVox[1] >= myDims[1])) continue;
+                                    if (!isafe && (testVox[0] < 0 || testVox[0] >= myDims[0])) continue;
+                                    int64_t otherindex = toProcess->getIndex(testVox);
+                                    if (roiFrame != NULL && roiFrame[otherindex] <= 0.0f)
+                                    {
+                                        if (abs(offset.m_ijk[0]) + abs(offset.m_ijk[1]) + abs(offset.m_ijk[2]) == 1)
+                                        {
+                                            canBeMax = false;
+                                            canBeMin = false;
+                                            break;
+                                        } else {
+                                            continue;
+                                        }
+                                    }
+                                    float otherval = dataFrame[otherindex];
+                                    if (myval < otherval)//since we are checking index bounds anyway, just do the double test to make the code simpler
+                                    {
+                                        minPos[otherindex] = 0;
+                                    } else {
+                                        canBeMin = false;
+                                        if (!canBeMax) break;
+                                    }
+                                    if (myval > otherval)
+                                    {
+                                        maxPos[otherindex] = 0;
+                                    } else {
+                                        canBeMax = false;
+                                        if (!canBeMin) break;
+                                    }
                                 }
                             }
-                            if (canBeMin && canBeMax)//only way for this to happen is if there are no neighbors in the roi
+                            /*if (canBeMin && canBeMax)//this can't happen anymore
                             {
                                 canBeMax = false;//don't count isolated voxels as extrema
                                 canBeMin = false;
-                            }
+                            }//*/
                         }
                         if (canBeMin)
                         {
@@ -775,33 +814,33 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                                     }
                                 }
                             } else {
-                                int v = 0;
-                                if (canBeMin && canBeMax)//we have an roi, so we may need to loop before the double test hits a valid neighbor
+                                if (canBeMin && canBeMax)//we have an roi, but if a neighbor falls outside it, we are done anyway, we don't count extrema on the edge
                                 {
-                                    for (; v < STENCIL_SIZE; v += 3)
+                                    int64_t testVox[3] = { i + stencil[0],
+                                                           j + stencil[1],
+                                                           k + stencil[2] };
+                                    int64_t otherindex = toProcess->getIndex(testVox);
+                                    if (roiFrame[otherindex] > 0.0f)
                                     {
-                                        int64_t testVox[3] = { i + stencil[v],
-                                                            j + stencil[v + 1],
-                                                            k + stencil[v + 2] };
-                                        int64_t otherindex = toProcess->getIndex(testVox);
-                                        if (roiFrame[otherindex] > 0.0f)
+                                        float otherval = dataFrame[otherindex];
+                                        if (myval < otherval)
                                         {
-                                            float otherval = dataFrame[otherindex];
-                                            if (myval < otherval)
-                                            {
-                                                minPos[otherindex] = 0;
-                                            } else {
-                                                canBeMin = false;
-                                            }
-                                            if (myval > otherval)
-                                            {
-                                                maxPos[otherindex] = 0;
-                                            } else {
-                                                canBeMax = false;
-                                            }
+                                            minPos[otherindex] = 0;
+                                        } else {
+                                            canBeMin = false;
                                         }
+                                        if (myval > otherval)
+                                        {
+                                            maxPos[otherindex] = 0;
+                                        } else {
+                                            canBeMax = false;
+                                        }
+                                    } else {
+                                        canBeMax = false;//we are next to an roi edge, do not count this as an extrema
+                                        canBeMin = false;
                                     }
                                 }
+                                int v = 3;
                                 if (canBeMin)
                                 {
                                     for (; v < STENCIL_SIZE; v += 3)
@@ -820,6 +859,9 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                                                 canBeMin = false;
                                                 break;
                                             }
+                                        } else {
+                                            canBeMin = false;//we are next to an roi edge, do not count this as an extrema
+                                            break;
                                         }
                                     }
                                 }
@@ -841,14 +883,16 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                                                 canBeMax = false;
                                                 break;
                                             }
+                                        } else {
+                                            canBeMax = false;//we are next to an roi edge, do not count this as an extrema
                                         }
                                     }
                                 }
-                                if (canBeMin && canBeMax)//only way for this to happen is if there are no neighbors in the roi
+                                /*if (canBeMin && canBeMax)//this can't happen anymore
                                 {
                                     canBeMax = false;//don't count isolated voxels as extrema
                                     canBeMin = false;
-                                }
+                                }//*/
                             }
                         } else {//if we are near an edge, we have to check all the neighbor indexes
                             for (int v = 0; v < STENCIL_SIZE; v += 3)
@@ -860,7 +904,12 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                                 if (!jsafe && (testVox[1] < 0 || testVox[1] >= myDims[1])) continue;
                                 if (!isafe && (testVox[0] < 0 || testVox[0] >= myDims[0])) continue;
                                 int64_t otherindex = toProcess->getIndex(testVox);
-                                if (roiFrame != NULL && roiFrame[otherindex] <= 0.0f) continue;
+                                if (roiFrame != NULL && roiFrame[otherindex] <= 0.0f)
+                                {
+                                    canBeMax = false;//neighbor outside the roi means on the roi edge, don't count as extrema
+                                    canBeMin = false;
+                                    break;
+                                }
                                 float otherval = dataFrame[otherindex];
                                 if (myval < otherval)//since we are checking index bounds anyway, just do the double test to make the code simpler
                                 {
@@ -877,11 +926,11 @@ void AlgorithmVolumeExtrema::findExtremaConsolidate(const VolumeFile* toProcess,
                                     if (!canBeMin) break;
                                 }
                             }
-                            if (canBeMin && canBeMax)//only way for this to happen is if there are no neighbors in the roi
+                            /*if (canBeMin && canBeMax)//this can't happen anymore
                             {
                                 canBeMax = false;//don't count isolated voxels as extrema
                                 canBeMin = false;
-                            }
+                            }//*/
                         }
                         if (canBeMax)
                         {

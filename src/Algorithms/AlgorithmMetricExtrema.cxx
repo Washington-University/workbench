@@ -594,35 +594,30 @@ void AlgorithmMetricExtrema::findExtremaConsolidate(const SurfaceFile* mySurf, c
                 if (myval > lowThresh) canBeMin = false;//check thresholds
                 if (myval < highThresh) canBeMax = false;
             }
-            int j = 0;
             if (canBeMin && canBeMax)//avoid the double-test unless both options are on the table
             {//NOTE: the equals case should set one of these to false, so that only one of the two below loops needs to execute
-                for (; j < numNeigh; ++j)//but, due to ROI, we may need to loop before we find a valid neighbor
+                int32_t neighNode = myneighbors[0];
+                if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
                 {
-                    int32_t neighNode = myneighbors[j];
-                    if (roiColumn == NULL || roiColumn[neighNode] > 0.0f)
+                    float otherval = data[neighNode];
+                    if (myval < otherval)
                     {
-                        float otherval = data[neighNode];
-                        if (myval < otherval)
-                        {
-                            minPos[neighNode] = 0;
-                        } else {
-                            canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
-                        }
-                        if (myval > otherval)
-                        {
-                            maxPos[neighNode] = 0;
-                        } else {
-                            canBeMax = false;
-                        }
-                        break;//now we can go to the shorter loops, because one of the two possibilities is gone
+                        minPos[neighNode] = 0;
                     } else {
-                        canBeMin = false;//if we neighbor something outside the ROI, do not allow counting as max or min
-                        canBeMax = false;
-                        break;
+                        canBeMin = false;//center being equal or greater means it is not a minimum, so stop testing that
                     }
+                    if (myval > otherval)
+                    {
+                        maxPos[neighNode] = 0;
+                    } else {
+                        canBeMax = false;
+                    }
+                } else {
+                    canBeMin = false;//if we neighbor something outside the ROI, do not allow counting as max or min
+                    canBeMax = false;
                 }
             }
+            int j = 1;//don't retest the first neighbor
             if (canBeMax)
             {
                 for (; j < numNeigh; ++j)
