@@ -28,7 +28,7 @@
 #include "CaretLogger.h"
 #include "CiftiXMLElements.h"
 #include "CiftiXMLReader.h"
-#include "DataFileException.h"
+#include "CiftiFileException.h"
 #include "GiftiLabelTable.h"
 
 using namespace caret;
@@ -61,7 +61,7 @@ void CiftiXMLReader::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &root
     }
     if(xml.hasError())
     {
-        throw DataFileException("XML error: " + xml.errorString());
+        throw CiftiFileException("XML error: " + xml.errorString());
     }
     else if(!xml.atEnd())
     {
