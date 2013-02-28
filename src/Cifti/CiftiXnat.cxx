@@ -84,13 +84,13 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     }
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
-    CaretLogFine("Received text:"
-                   + theBody);
-    const int ciftiTagOffset = theBody.indexOf("<CIFTI");
-    if (ciftiTagOffset > 0) {
-        theBody.remove(0, ciftiTagOffset);
-    }
-    CaretLogWarning("Invalid text prior to CIFTI XML tag was removed.");
+//    CaretLogFine("Received text:"
+//                   + theBody);
+//    const int ciftiTagOffset = theBody.indexOf("<CIFTI");
+//    if (ciftiTagOffset > 0) {
+//        theBody.remove(0, ciftiTagOffset);
+//        CaretLogWarning("Invalid text prior to CIFTI XML tag was removed.");
+//    }
     m_xml.readXML(theBody);
     bool fixedDims = false;
     m_numberOfColumns = m_xml.getNumberOfColumns();
