@@ -86,17 +86,12 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     AString theBody(myResponse.m_body.data());
     CaretLogFine("Received text:"
                    + theBody);
-    try {
-        const int ciftiTagOffset = theBody.indexOf("<CIFTI");
-        if (ciftiTagOffset > 0) {
-           theBody.remove(0, ciftiTagOffset);
-        }
-        CaretLogWarning("Invalid text prior to CIFTI XML tag was removed.");
-        m_xml.readXML(theBody);
+    const int ciftiTagOffset = theBody.indexOf("<CIFTI");
+    if (ciftiTagOffset > 0) {
+        theBody.remove(0, ciftiTagOffset);
     }
-    catch (const DataFileException& dfe) {
-        throw CiftiFileException(dfe);
-    }
+    CaretLogWarning("Invalid text prior to CIFTI XML tag was removed.");
+    m_xml.readXML(theBody);
     bool fixedDims = false;
     m_numberOfColumns = m_xml.getNumberOfColumns();
     m_numberOfRows = m_xml.getNumberOfRows();
