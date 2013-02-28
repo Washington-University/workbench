@@ -4491,7 +4491,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
     }
     
-    CaretLogFine("Toolbar width/height: "
+    CaretLogFinest("Toolbar width/height: "
                    + AString::number(width())
                    + "/"
                    + AString::number(height()));
