@@ -78,7 +78,7 @@ using namespace caret;
  * Constructor.
  */
 CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
-: WuQDialogModal("Open Remote File",
+: WuQDialogModal("Open Location",
                  parent)
 {
     QWidget* locationWidget = createLocationWidget();
