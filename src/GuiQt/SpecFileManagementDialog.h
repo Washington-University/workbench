@@ -55,8 +55,6 @@ namespace caret {
     class Brain;
     class CaretDataFile;
     class DataFileTableRow;
-    class GuiSpecFileDataFile;
-    class GuiSpecFileDataFileTypeGroup;
     class SpecFile;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
@@ -95,22 +93,14 @@ namespace caret {
 
         void specFileOptionsActionTriggered();
         
-        void fileLoadCheckBoxSelected(int indx);
-        
-        void fileSaveCheckBoxSelected(int indx);
-        
-        void fileInSpecCheckBoxSelected(int indx);
-        
         void fileReloadOrOpenFileActionSelected(int indx);
         
         void fileRemoveActionSelected(int indx);
         
         void fileOptionsActionSelected(int indx);
         
-        void fileSelectFileNameActionSelected(int indx);
-        
-        void fileStructureComboBoxSelected(int);
-        
+        void filesTableWidgetCellChanged(int row, int column);
+
     private:
         friend class GuiSpecFileDataFileTypeGroup;
         friend class GuiSpecFileDataFile;
@@ -149,7 +139,7 @@ namespace caret {
         
         static AString getEditedDataFileTypeName(const DataFileTypeEnum::Enum dataFileType);
         
-        GuiSpecFileDataFile* getSpecFileDataFileBySignalMapperIndex(const int signalMapperIndex);
+        TableRowDataFileContent* getFileContentInRow(const int rowIndex);
         
         void updateGraphicWindowsAndUserInterface();
         
@@ -166,13 +156,16 @@ namespace caret {
         void changeFileName(QWidget* parent,
                             const int indx);
         
-        void createOrUpdateTableDimensions();
+        void updateTableDimensionsToFitFiles();
         
         QTableWidgetItem* createTextItem();
         
         QTableWidgetItem* createCheckableItem();
         
         AString writeSpecFile(const bool writeOnlyIfModified);
+        
+        void setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
+                                          const StructureEnum::Enum structure);
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -198,8 +191,6 @@ namespace caret {
         
         int m_specFileTableRowIndex;
         
-        std::vector<GuiSpecFileDataFileTypeGroup*> m_guiSpecFileDataFileTypeGroups;
-        
         QTableWidgetItem* m_specFileSaveCheckedItem;
         
         QTableWidgetItem* m_specFileStatusItem;
@@ -210,23 +201,11 @@ namespace caret {
         
         QToolButton* m_chooseSpecFileToolButton;
         
-        WuQWidgetObjectGroup* m_specFileWidgetGroup;
-        
-        QSignalMapper* m_fileLoadCheckBoxSignalMapper;
-        
-        QSignalMapper* m_fileSaveCheckBoxSignalMapper;
-        
-        QSignalMapper* m_fileInSpecCheckBoxSignalMapper;
-        
         QSignalMapper* m_fileReloadOrOpenFileActionSignalMapper;
         
         QSignalMapper* m_fileRemoveFileActionSignalMapper;
         
         QSignalMapper* m_fileOptionsActionSignalMapper;
-        
-        QSignalMapper* m_fileSelectFileNameActionSignalMapper;
-        
-        QSignalMapper* m_fileStructureComboBoxSignalMapper;
         
         int m_specFileDataFileCounter;
         
@@ -265,121 +244,6 @@ namespace caret {
         SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
      
         SpecFileDataFile* m_specFileDataFile;
-    };
-    
-    class GuiSpecFileDataFileTypeGroup : public QObject {
-        Q_OBJECT
-        
-    public:
-        GuiSpecFileDataFileTypeGroup(Brain* brain,
-                                     const SpecFileManagementDialog::Mode dialogMode,
-                                     SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
-                                     const AString& groupName,
-                                     QObject* parent);
-        
-        ~GuiSpecFileDataFileTypeGroup();
-        
-        void addGuiSpecFileDataFile(GuiSpecFileDataFile* guiSpecFileDataFile);
-        
-        int32_t getNumberOfGuiSpecFileDataFiles() const;
-        
-        GuiSpecFileDataFile* getGuiSpecFileDataFile(const int32_t indx);
-        
-        DataFileTypeEnum::Enum getDataFileType() const;
-        
-        void updateContent();
-        
-        void setWidgetsVisible(bool visible);
-        
-        void setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
-                                                     const StructureEnum::Enum structure,
-                                                     const SpecFileManagementDialog::ManageFilesDisplay manageFilesDisplay);
-        
-    private:
-        friend class SpecFileManagementDialog;
-        
-        Brain* m_brain;
-        
-        const SpecFileManagementDialog::Mode m_dialogMode;
-
-        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
-        
-        std::vector<GuiSpecFileDataFile*> m_guiDataFiles;
-    };
-    
-    
-    class GuiSpecFileDataFile : public QObject {
-        Q_OBJECT
-        
-    public:
-        GuiSpecFileDataFile(const int signalMapperIndex,
-                            Brain* brain,
-                            const SpecFileManagementDialog::Mode dialogMode,
-                            SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
-                            SpecFileDataFile* specFileDataFile,
-                            QObject* parent);
-        
-        ~GuiSpecFileDataFile();
-        
-        void setSpecFileDataFile(SpecFileDataFile* specFileDataFile);
-        
-        void setWidgetsEnabled(const bool enabled);
-        
-        void setWidgetsVisible(const bool visible);
-        
-        DataFileTypeEnum::Enum getDataFileType() const;
-        
-        StructureEnum::Enum getStructure() const;
-        
-        void setStructure(const StructureEnum::Enum structure);
-        
-        void updateContent();
-        
-        int getSignalMapperIndex() const;
-        
-        bool isVisibleByFileTypeAndStructure(const DataFileTypeEnum::Enum dataFileType,
-                                             const StructureEnum::Enum structure);
-    
-    public:
-        const int m_signalMapperIndex;
-        
-        Brain* m_brain;
-        
-        const SpecFileManagementDialog::Mode m_dialogMode;
-        
-        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
-        
-        SpecFileDataFile* m_specFileDataFile;
-
-        QTableWidgetItem* m_loadCheckedItem;
-        
-        QTableWidgetItem* m_saveCheckedItem;
-        
-        QTableWidgetItem* m_inSpecFileCheckedItem;
-        
-        QTableWidgetItem* m_dataTypeLabelItem;
-        
-        QAction* m_reloadOrOpenFileAction;
-        
-        QToolButton* m_reloadOrOpenFileToolButton;
-        
-        QTableWidgetItem* m_statusLabelItem;
-        
-        QAction* m_optionsButtonAction;
-        
-        QToolButton* m_optionsToolButton;
-        
-        QTableWidgetItem* m_structureLabelItem;
-        
-        QAction* m_selectFileNameButtonAction;
-        
-        QToolButton* m_selectFileNameToolButton;
-        
-        QTableWidgetItem* m_fileNameLabelItem;
-        
-        WuQWidgetObjectGroup* m_widgetGroup;
-        
-        int m_tableRowIndex;
     };
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
