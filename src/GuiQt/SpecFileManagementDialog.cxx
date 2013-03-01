@@ -215,38 +215,10 @@ m_specFile(specFile)
     int tableRowCounter = 0;
     
     /*
-     * Is there a spec file?
+     * Is there a spec file?  If so, set its table row index
      */
     if (enableManageItems) {
         m_specFileTableRowIndex = tableRowCounter++;
-    }
-    
-    bool haveSceneFiles = false;
-    
-    /*
-     * Display each type of data file
-     */
-    const int32_t numGroups = m_specFile->getNumberOfDataFileTypeGroups();
-    for (int32_t ig = 0 ; ig < numGroups; ig++) {
-        /*
-         * File type of group
-         */
-        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroupByIndex(ig);
-        const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
-        
-        const int32_t numFiles = group->getNumberOfFiles();
-        for (int iFile = 0; iFile < numFiles; iFile++) {
-            SpecFileDataFile* sfdf = group->getFileInformation(iFile);
-            
-            TableRowDataFileContent* rowContent = new TableRowDataFileContent(group,
-                                                                              sfdf);
-            m_tableRowDataFileContent.push_back(rowContent);
-            m_specFileDataFileCounter++;
-        }
-        
-        if (dataFileType == DataFileTypeEnum::SCENE) {
-            haveSceneFiles = true;
-        }
     }
     
     m_loadScenesPushButton = NULL;
@@ -260,7 +232,6 @@ m_specFile(specFile)
             setCancelButtonText("Cancel");
             m_loadScenesPushButton = addUserPushButton("Load Scenes",
                                                        QDialogButtonBox::AcceptRole);
-            m_loadScenesPushButton->setEnabled(haveSceneFiles);
             break;
     }
     
@@ -334,6 +305,7 @@ m_specFile(specFile)
                                   NULL,
                                   enableScrollBars);
     
+    getDataFileContentFromSpecFile();
     updateTableDimensionsToFitFiles();
     loadSpecFileContentIntoDialog();
     
@@ -352,26 +324,142 @@ SpecFileManagementDialog::~SpecFileManagementDialog()
     m_tableRowDataFileContent.clear();
 }
 
+/**
+ * Get the info about the data files from the spec file.
+ */
 void
-SpecFileManagementDialog::filesTableWidgetCellChanged(int row, int column)
+SpecFileManagementDialog::getDataFileContentFromSpecFile()
 {
-    std::cout << "Cell changed row/col ("
-    << row
-    << ", "
-    << column
-    << ")"
-    << std::endl;
+    m_tableRowDataFileContent.clear();
     
-    QTableWidgetItem* item = m_filesTableWidget->item(row, column);
+    bool haveSceneFiles = false;
+    
+    /*
+     * Display each type of data file
+     */
+    const int32_t numGroups = m_specFile->getNumberOfDataFileTypeGroups();
+    for (int32_t ig = 0 ; ig < numGroups; ig++) {
+        /*
+         * File type of group
+         */
+        SpecFileDataFileTypeGroup* group = m_specFile->getDataFileTypeGroupByIndex(ig);
+        const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
+        
+        const int32_t numFiles = group->getNumberOfFiles();
+        for (int iFile = 0; iFile < numFiles; iFile++) {
+            SpecFileDataFile* sfdf = group->getFileInformation(iFile);
+            
+            TableRowDataFileContent* rowContent = new TableRowDataFileContent(group,
+                                                                              sfdf);
+            m_tableRowDataFileContent.push_back(rowContent);
+            m_specFileDataFileCounter++;
+        }
+        
+        if (dataFileType == DataFileTypeEnum::SCENE) {
+            haveSceneFiles = true;
+        }
+    }
+    
+    if (m_loadScenesPushButton != NULL) {
+        m_loadScenesPushButton->setEnabled(haveSceneFiles);
+    }
+}
+
+/**
+ * Called when the content of a cell changes.
+ * Update corresponding item in the spec file.
+ *
+ * @param rowIndex
+ *    The row of the cell that was clicked.
+ * @param columnIndex
+ *    The columnof the cell that was clicked.
+ */
+void
+SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIndex)
+{
+    QTableWidgetItem* item = getTableWidgetItem(rowIndex, columnIndex);
     if (item != NULL) {
         std::cout << "Text: "
         << qPrintable(item->text())
         << " Flags:"
         << QString::number(item->flags(), 16)
+        << " Checked: "
+        << AString::fromBool(WuQtUtilities::checkStateToBool(item->checkState()))
         << std::endl;
+        
+        /*
+         * Is this the row containing the spec file?
+         */
+        if (rowIndex == m_specFileTableRowIndex) {
+            
+        }
+        else {
+            TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+            CaretAssert(rowContent);
+            SpecFileDataFile* sfdf = rowContent->m_specFileDataFile;
+            
+            const bool isSelected = WuQtUtilities::checkStateToBool(item->checkState());
+            
+            if (columnIndex == m_COLUMN_SAVE_CHECKBOX) {
+                sfdf->setSelected(isSelected);
+            }
+            else if (columnIndex == m_COLUMN_LOAD_CHECKBOX) {
+                sfdf->setSelected(isSelected);
+            }
+            else if (columnIndex == m_COLUMN_IN_SPEC_FILE_CHECKBOX) {
+                sfdf->setSpecFileMember(isSelected);
+                updateSpecFileRowInTable();
+            }
+        }
     }
 }
 
+/**
+ * Get the table widget item at the given row and column.  If compiled
+ * debug the assertions will fail if the row or column is invalid.
+ *
+ * @param rowIndex
+ *    The row of the desired cell.
+ * @param columnIndex
+ *    The column of the desired cell.
+ * @return
+ *    item at row and column.
+ */
+QTableWidgetItem*
+SpecFileManagementDialog::getTableWidgetItem(const int rowIndex,
+                                             const int columnIndex)
+{
+    CaretAssert((rowIndex >= 0) && (rowIndex < m_filesTableWidget->rowCount()));
+    CaretAssert((columnIndex >= 0) && (columnIndex < m_filesTableWidget->columnCount()));
+    return m_filesTableWidget->item(rowIndex,
+                                    columnIndex);
+}
+
+/**
+ * Set the table widget item at the given row and column.  If compiled
+ * debug the assertions will fail if the row or column is invalid.
+ *
+ * @param rowIndex
+ *    The row of the desired cell.
+ * @param columnIndex
+ *    The column of the desired cell.
+ * @param item
+ *    The item to add.
+ */
+void
+SpecFileManagementDialog::setTableWidgetItem(const int rowIndex,
+                        const int columnIndex,
+                        QTableWidgetItem* item)
+{
+    CaretAssert(item);
+    CaretAssert((rowIndex >= 0) && (rowIndex < m_filesTableWidget->rowCount()));
+    CaretAssert((columnIndex >= 0) && (columnIndex < m_filesTableWidget->columnCount()));
+    m_filesTableWidget->blockSignals(true);
+    m_filesTableWidget->setItem(rowIndex,
+                                columnIndex,
+                                item);
+    m_filesTableWidget->blockSignals(false);
+}
 
 /**
  * Set the labels for the column names in the table.
@@ -472,22 +560,22 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
      */
     for (int32_t iRow = firstNewRowIndex; iRow < lastNewRowIndex; iRow++) {
         if (m_COLUMN_LOAD_CHECKBOX >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_LOAD_CHECKBOX,
                                         createCheckableItem());
         }
         if (m_COLUMN_SAVE_CHECKBOX >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_SAVE_CHECKBOX,
                                         createCheckableItem());
         }
         if (m_COLUMN_STATUS_LABEL >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_STATUS_LABEL,
                                         createTextItem());
         }
         if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_IN_SPEC_FILE_CHECKBOX,
                                         createCheckableItem());
         }
@@ -539,17 +627,17 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                               optionsToolButton);            
         }
         if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_DATA_FILE_TYPE_LABEL,
                                         createTextItem());
         }
         if (m_COLUMN_STRUCTURE >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_STRUCTURE,
                                         createTextItem());
         }
         if (m_COLUMN_FILE_NAME_LABEL >= 0) {
-            m_filesTableWidget->setItem(iRow,
+            setTableWidgetItem(iRow,
                                         m_COLUMN_FILE_NAME_LABEL,
                                         createTextItem());
         }
@@ -558,10 +646,10 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
 }
 
 /**
- * Load the spec file data into the dialog.
+ * Update the table row containing the spec file.
  */
 void
-SpecFileManagementDialog::loadSpecFileContentIntoDialog()
+SpecFileManagementDialog::updateSpecFileRowInTable()
 {
     /*
      * Update spec file data
@@ -569,14 +657,14 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
     if (m_dialogMode == MODE_MANAGE_FILES) {
         if (m_specFileTableRowIndex >= 0) {
             CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
-            QTableWidgetItem* saveItem = m_filesTableWidget->item(m_specFileTableRowIndex,
-                                                                  m_COLUMN_SAVE_CHECKBOX);
+            QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
+                                                            m_COLUMN_SAVE_CHECKBOX);
             CaretAssert(saveItem);
             // saveItem->setCheckState(WuQtUtilities::boolToCheckState(m_specFile->is()));
             
             CaretAssert(m_COLUMN_FILE_NAME_LABEL >= 0);
-            QTableWidgetItem* nameItem = m_filesTableWidget->item(m_specFileTableRowIndex,
-                                                                  m_COLUMN_FILE_NAME_LABEL);
+            QTableWidgetItem* nameItem = getTableWidgetItem(m_specFileTableRowIndex,
+                                                            m_COLUMN_FILE_NAME_LABEL);
             CaretAssert(nameItem);
             
             FileInformation fileInfo(m_specFile->getFileName());
@@ -587,8 +675,8 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
             nameItem->setToolTip(path);
             
             CaretAssert(m_COLUMN_STATUS_LABEL >= 0);
-            QTableWidgetItem* statusItem = m_filesTableWidget->item(m_specFileTableRowIndex,
-                                                                    m_COLUMN_STATUS_LABEL);
+            QTableWidgetItem* statusItem = getTableWidgetItem(m_specFileTableRowIndex,
+                                                              m_COLUMN_STATUS_LABEL);
             CaretAssert(statusItem);
             if (m_specFile->isModified()) {
                 statusItem->setText("YES");
@@ -598,7 +686,29 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
             }
         }
     }
+}
+
+
+/**
+ * Load the spec file data into the dialog.
+ */
+void
+SpecFileManagementDialog::loadSpecFileContentIntoDialog()
+{
+    /*
+     * Disable signals so cell changed signal not emitted while
+     * modifying table content.
+     */
+    m_filesTableWidget->blockSignals(true);
     
+    /*
+     * Update the row containing the spec file
+     */
+    updateSpecFileRowInTable();
+    
+    /*
+     * Load all of the data file content.
+     */
     const int32_t numDataFiles = static_cast<int32_t>(m_tableRowDataFileContent.size());
     for (int32_t i = 0; i < numDataFiles; i++) {
         const int rowIndex = m_tableRowDataFileContent[i]->m_tableRowIndex;
@@ -672,7 +782,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                  * Save checkbox
                  */
                 CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
-                QTableWidgetItem* saveItem = m_filesTableWidget->item(rowIndex,
+                QTableWidgetItem* saveItem = getTableWidgetItem(rowIndex,
                                                                       m_COLUMN_SAVE_CHECKBOX);
                 CaretAssert(saveItem);
                 saveItem->setCheckState(WuQtUtilities::boolToCheckState(specFileDataFile->isSelected()));
@@ -687,19 +797,21 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                  * Status label
                  */
                 CaretAssert(m_COLUMN_STATUS_LABEL >= 0);
-                QTableWidgetItem* statusItem = m_filesTableWidget->item(rowIndex,
+                QTableWidgetItem* statusItem = getTableWidgetItem(rowIndex,
                                                                       m_COLUMN_STATUS_LABEL);
                 CaretAssert(statusItem);
                 statusItem->setText("");
-                if (specFileDataFile->isModified()) {
-                    statusItem->setText("YES");
+                if (caretDataFile != NULL) {
+                    if (caretDataFile->isModified()) {
+                        statusItem->setText("YES");
+                    }
                 }
                 
                 /*
                  * In-spec checkbox
                  */
                 CaretAssert(m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0);
-                QTableWidgetItem* inSpecItem = m_filesTableWidget->item(rowIndex,
+                QTableWidgetItem* inSpecItem = getTableWidgetItem(rowIndex,
                                                                         m_COLUMN_IN_SPEC_FILE_CHECKBOX);
                 CaretAssert(inSpecItem);
                 inSpecItem->setCheckState(WuQtUtilities::boolToCheckState(specFileDataFile->isSpecFileMember()));
@@ -731,7 +843,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                  * Load checkbox
                  */
                 CaretAssert(m_COLUMN_LOAD_CHECKBOX >= 0);
-                QTableWidgetItem* loadItem = m_filesTableWidget->item(rowIndex,
+                QTableWidgetItem* loadItem = getTableWidgetItem(rowIndex,
                                                                       m_COLUMN_LOAD_CHECKBOX);
                 CaretAssert(loadItem);
                 loadItem->setCheckState(WuQtUtilities::boolToCheckState(specFileDataFile->isSelected()));
@@ -747,7 +859,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
          * Data file type label
          */
         CaretAssert(m_COLUMN_DATA_FILE_TYPE_LABEL >= 0);
-        QTableWidgetItem* dataTypeItem = m_filesTableWidget->item(rowIndex,
+        QTableWidgetItem* dataTypeItem = getTableWidgetItem(rowIndex,
                                                                    m_COLUMN_DATA_FILE_TYPE_LABEL);
         CaretAssert(dataTypeItem);
         dataTypeItem->setText(SpecFileManagementDialog::getEditedDataFileTypeName(dataFileType));
@@ -756,7 +868,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
          * Structure label
          */
         CaretAssert(m_COLUMN_STRUCTURE >= 0);
-        QTableWidgetItem* structureItem = m_filesTableWidget->item(rowIndex,
+        QTableWidgetItem* structureItem = getTableWidgetItem(rowIndex,
                                                                 m_COLUMN_STRUCTURE);
         CaretAssert(structureItem);
         structureItem->setText("");
@@ -768,7 +880,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
          * File name and path
          */
         CaretAssert(m_COLUMN_FILE_NAME_LABEL >= 0);
-        QTableWidgetItem* nameItem = m_filesTableWidget->item(rowIndex,
+        QTableWidgetItem* nameItem = getTableWidgetItem(rowIndex,
                                                               m_COLUMN_FILE_NAME_LABEL);
         CaretAssert(nameItem);
         
@@ -780,6 +892,14 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
         nameItem->setToolTip(path);
     }
     
+    /*
+     * Enable cell changed signal now that table has been updated.
+     */
+    m_filesTableWidget->blockSignals(false);
+    
+    /*
+     * Fix table geometry.
+     */
     m_filesTableWidget->horizontalHeader()->setStretchLastSection(true);
     m_filesTableWidget->resizeColumnsToContents();
     m_filesTableWidget->resizeRowsToContents();
@@ -792,7 +912,8 @@ QTableWidgetItem*
 SpecFileManagementDialog::createTextItem()
 {
     QTableWidgetItem* item = new QTableWidgetItem();
-    item->setFlags(Qt::ItemIsEnabled);
+    Qt::ItemFlags flags(Qt::ItemIsEnabled);
+    item->setFlags(flags);
     
     return item;
 }
@@ -804,8 +925,8 @@ QTableWidgetItem*
 SpecFileManagementDialog::createCheckableItem()
 {
     QTableWidgetItem* item = new QTableWidgetItem();
-    item->setFlags(Qt::ItemIsEnabled
-                   | Qt::ItemIsUserCheckable);
+    Qt::ItemFlags flags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+    item->setFlags(flags);
     item->setCheckState(Qt::Unchecked);
     
     return item;
@@ -1009,10 +1130,17 @@ SpecFileManagementDialog::fileRemoveActionSelected(int indx)
 TableRowDataFileContent*
 SpecFileManagementDialog::getFileContentInRow(const int rowIndex)
 {
-    CaretAssertVectorIndex(m_tableRowDataFileContent,
-                           rowIndex);
-    
-    return m_tableRowDataFileContent[rowIndex];
+    const int numDataFiles = static_cast<int32_t>(m_tableRowDataFileContent.size());
+    for (int32_t i = 0; i < numDataFiles; i++) {
+        if (m_tableRowDataFileContent[i]->m_tableRowIndex == rowIndex) {
+            return m_tableRowDataFileContent[i];
+        }
+    }
+
+    CaretAssertMessage(0,
+                       ("Invalid data file rowIndex (0 is spec file!!!): "
+                        + AString::number(rowIndex)));
+    return NULL;
 }
 
 
@@ -1584,7 +1712,7 @@ SpecFileManagementDialog::toolBarManageFilesLoadedNotLoadedActionTriggered(QActi
 void
 SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
 {
-    m_filesTableWidget->blockSignals(true);
+//    m_filesTableWidget->blockSignals(true);
 
     if (action != NULL) {
         const int dataValue = action->data().toInt();
@@ -1602,22 +1730,25 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
         for (int32_t i = 0; i < numFiles; i++) {
             const int32_t rowIndex = m_tableRowDataFileContent[i]->m_tableRowIndex;
             if (m_filesTableWidget->isRowHidden(rowIndex) == false) {
-                QTableWidgetItem* loadItem = m_filesTableWidget->item(rowIndex,
-                                                                      m_COLUMN_LOAD_CHECKBOX);
-                if (loadItem != NULL) {
+                if (m_COLUMN_LOAD_CHECKBOX >= 0) {
+                    QTableWidgetItem* loadItem = getTableWidgetItem(rowIndex,
+                                                                          m_COLUMN_LOAD_CHECKBOX);
+                    CaretAssert(loadItem);
                     std::cout << "Setting check state for <" << qPrintable(loadItem->text()) << ">" << std::endl;
                     loadItem->setCheckState(WuQtUtilities::boolToCheckState(newStatus));
                 }
-                QTableWidgetItem* saveItem = m_filesTableWidget->item(rowIndex,
+                
+                if (m_COLUMN_SAVE_CHECKBOX >= 0) {
+                    QTableWidgetItem* saveItem = getTableWidgetItem(rowIndex,
                                                                       m_COLUMN_SAVE_CHECKBOX);
-                if (saveItem != NULL) {
+                    CaretAssert(saveItem);
                     saveItem->setCheckState(WuQtUtilities::boolToCheckState(newStatus));
                 }
             }
         }
     }
 
-    m_filesTableWidget->blockSignals(false);
+//    m_filesTableWidget->blockSignals(false);
 }
 
 /**

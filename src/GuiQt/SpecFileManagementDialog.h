@@ -143,7 +143,13 @@ namespace caret {
         
         void updateGraphicWindowsAndUserInterface();
         
+        void getDataFileContentFromSpecFile();
+        
         void loadSpecFileContentIntoDialog();
+        
+        void loadDialogContentIntoSpecFile();
+        
+        void updateSpecFileRowInTable();
         
         void setTableColumnLabels();
         
@@ -166,6 +172,13 @@ namespace caret {
         
         void setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
                                           const StructureEnum::Enum structure);
+        
+        QTableWidgetItem* getTableWidgetItem(const int rowIndex,
+                                             const int columnIndex);
+        
+        void setTableWidgetItem(const int rowIndex,
+                                const int columnIndex,
+                                QTableWidgetItem* item);
         
         // ADD_NEW_MEMBERS_HERE
         
