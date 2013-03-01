@@ -711,7 +711,7 @@ FociPropertiesEditorDialog::displayNameEditor()
     
     GiftiLabelTableEditor editor(fociFile,
                                  fociFile->getNameColorTable(),
-                                 "Edit Class Attributes",
+                                 "Edit Name Attributes",
                                  GiftiLabelTableEditor::OPTION_UNASSIGNED_LABEL_HIDDEN,
                                  this);
     const QString name = this->m_nameComboBox->getSelectedLabelName();

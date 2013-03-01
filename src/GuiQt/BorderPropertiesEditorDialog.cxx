@@ -625,7 +625,7 @@ BorderPropertiesEditorDialog::displayNameEditor()
     
     GiftiLabelTableEditor editor(borderFile,
                                  borderFile->getNameColorTable(),
-                                 "Edit Class Attributes",
+                                 "Edit Name Attributes",
                                  GiftiLabelTableEditor::OPTION_UNASSIGNED_LABEL_HIDDEN,
                                  this);
     const QString name = m_nameComboBox->getSelectedLabelName();
