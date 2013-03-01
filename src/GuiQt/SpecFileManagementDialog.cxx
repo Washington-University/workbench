@@ -680,7 +680,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                     saveItem->setFlags(saveItem->flags() | Qt::ItemIsSelectable);
                 }
                 else {
-//                    saveItem->setFlags(saveItem->flags() & (! Qt::ItemIsSelectable));
+                    saveItem->setFlags(saveItem->flags() & (~ Qt::ItemIsSelectable));
                 }
                                 
                 /*
