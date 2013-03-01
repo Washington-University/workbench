@@ -79,11 +79,32 @@ FileInformation::FileInformation(const AString& path,
     m_isLocalFile  = false;
     m_isRemoteFile = false;
     
-    if (DataFile::isFileOnNetwork(file)) {
-        QUrl baseUrl(path);
+    if (DataFile::isFileOnNetwork(file)
+        || DataFile::isFileOnNetwork(path)) {
+        AString pathCopy = path;
+        if (pathCopy.endsWith("/") == false) {
+            /*
+             * With adding a trailing slash:
+             *   path: http://brainvis.wustl.edu/john/workbench
+             *   file: ParcellationPilot_AverageT1w.nii.gz
+             *   CORRECT: http://brainvis.wustl.edu/john/workbench/ParcellationPilot_AverageT1w.nii.gz
+             *
+             * Without adding the trailing slash "workbench" is chopped off
+             *   INCORRECT: http://brainvis.wustl.edu/john/ParcellationPilot_AverageT1w.nii.gz
+             */
+            pathCopy += "/";
+        }
+        QUrl baseUrl(pathCopy);
         QUrl relativeUrl(file);
         m_urlInfo = baseUrl.resolved(relativeUrl);
         m_isRemoteFile = true;
+        
+        CaretLogFine("Path: "
+                       + path
+                       + "\n   File: "
+                       + file
+                       + "\n   Becomes     "
+                       + m_urlInfo.toString());
     }
     else {
         m_fileInfo.setFile(path,
@@ -363,7 +384,7 @@ FileInformation::getPathName() const
         QString path = m_urlInfo.toString();
         const int indx = path.lastIndexOf('/');
         if (indx >= 1) {
-            path = path.left(indx - 1);
+            path = path.left(indx);
             return path;
         }
         else {
