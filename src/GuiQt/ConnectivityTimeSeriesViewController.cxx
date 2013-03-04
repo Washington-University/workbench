@@ -150,14 +150,14 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
         
         int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0, 2, 1, Qt::AlignCenter);
+        this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0, 3, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1, 1, 3);
         row++;
-        this->gridLayoutGroup->addWidget(this->graphToolButton, row, 1, Qt::AlignCenter);
-        this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
+        this->gridLayoutGroup->addWidget(this->graphToolButton, row, 1,  Qt::AlignLeft);
+        this->gridLayoutGroup->addWidget(animateToolButton, row, 2, Qt::AlignLeft);
         row++;
-        this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 3, Qt::AlignLeft);
-        this->gridLayoutGroup->addWidget(this->frameName, row, 4);
+        this->gridLayoutGroup->addWidget(this->frameSpinBox, row, 1, Qt::AlignLeft);
+        this->gridLayoutGroup->addWidget(this->frameName, row, 2);
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
