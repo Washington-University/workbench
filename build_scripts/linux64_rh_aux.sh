@@ -69,10 +69,10 @@ make -j2
 #
 echo "COPYING PROGRAMS"
 DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/exe_rh_linux64
-scp -rv Desktop/workbench caret@myelin1:${DIST_DIR}
-scp -rv CommandLine/wb_command caret@myelin1:${DIST_DIR}
+scp -rv Desktop/workbench caret@myelin1.wustl.edu:${DIST_DIR}
+scp -rv CommandLine/wb_command caret@myelin1.wustl.edu:${DIST_DIR}
 
-ssh caret@myelin1 touch ${DIST_DIR}/workbench
+ssh caret@myelin1.wustl.edu touch ${DIST_DIR}/workbench
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 
