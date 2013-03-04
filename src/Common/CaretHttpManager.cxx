@@ -136,7 +136,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     default:
         CaretAssertMessage(false, "Unrecognized http request method");
     };
-    QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
+    //QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
     //QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
     QObject::connect(myReply, SIGNAL(finished()), &myLoop, SLOT(quit()));//this is safe, because nothing will hand this thread events except queued through this thread's event mechanism
     /*QObject::connect(myReply,
