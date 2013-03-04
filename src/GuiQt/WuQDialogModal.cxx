@@ -168,6 +168,7 @@ WuQDialogModal::clicked(QAbstractButton* button)
 WuQDialogModal::ModalDialogUserButtonResult 
 WuQDialogModal::userButtonPressed(QPushButton* userPushButton)
 {
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     CaretAssertMessage(0, "Subclass of WuQDialogModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
                        + userPushButton->text()
                        + "\"");

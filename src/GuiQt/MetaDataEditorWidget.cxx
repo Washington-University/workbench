@@ -386,8 +386,8 @@ MetaDataEditorWidget::isMetaDataModified()
 {
     readNamesAndValues();
     
-    const int numItems = static_cast<int32_t>(m_namesAndValues.size());
-    if (numItems != m_unmodifiedNamesAndValues.size()) {
+    const int32_t numItems = static_cast<int32_t>(m_namesAndValues.size());
+    if (numItems != static_cast<int32_t>(m_unmodifiedNamesAndValues.size())) {
         return true;
     }
     

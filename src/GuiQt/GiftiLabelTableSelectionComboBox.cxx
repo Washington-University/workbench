@@ -147,7 +147,7 @@ GiftiLabelTableSelectionComboBox::setUnassignedLabelTextOverride(const AString& 
  *    Last new row index.
  */
 void
-GiftiLabelTableSelectionComboBox::rowsWereInserted(const QModelIndex& parent,
+GiftiLabelTableSelectionComboBox::rowsWereInserted(const QModelIndex& /*parent*/,
                   int start,
                   int end)
 {
@@ -197,7 +197,7 @@ GiftiLabelTableSelectionComboBox::addEditButtonClicked()
  *     Index of item.
  */
 void
-GiftiLabelTableSelectionComboBox::currentIndexChanged(int indx)
+GiftiLabelTableSelectionComboBox::currentIndexChanged(int /*indx*/)
 {
     GiftiLabel* gl = getSelectedLabel();
     
@@ -219,7 +219,7 @@ GiftiLabelTableSelectionComboBox::currentIndexChanged(int indx)
  *     Index of item.
  */
 void
-GiftiLabelTableSelectionComboBox::itemActivated(int indx)
+GiftiLabelTableSelectionComboBox::itemActivated(int /*indx*/)
 {
     GiftiLabel* gl = getSelectedLabel();
     

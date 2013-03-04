@@ -126,7 +126,7 @@ FociFileSaxReader::startElement(const AString& namespaceURI,
                 try {
                     versionBeingRead = attributes.getValueAsInt(FociFile::XML_ATTRIBUTE_VERSION);
                 }
-                catch (const XmlSaxParserException& e) {
+                catch (const XmlSaxParserException& /*e*/) {
                     const float floatVersion = attributes.getValueAsFloat(FociFile::XML_ATTRIBUTE_VERSION);
                     versionBeingRead = static_cast<int32_t>(floatVersion);
                 }
