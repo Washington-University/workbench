@@ -79,6 +79,13 @@ ENDIF(APPLE)
 SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displayed")
 
 #
+# Intel compiler
+#
+IF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
+        ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
+ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
+
+#
 # IF GNU compiler, functions without a return type or switch
 # statements that do not handle all of the enumerated types
 # are treated as an error.  Also, all warnings.
