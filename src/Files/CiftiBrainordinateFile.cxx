@@ -38,6 +38,7 @@
 #include "CiftiBrainordinateFile.h"
 #undef __CIFTI_BRAINORDINATE_FILE_DECLARE__
 
+#include "CaretTemporaryFile.h"
 #include "CiftiFile.h"
 #include "CaretLogger.h"
 #include "CiftiInterface.h"
@@ -174,42 +175,50 @@ CiftiBrainordinateFile::readFile(const AString& filename) throw (DataFileExcepti
     
     try {
         if (DataFile::isFileOnNetwork(filename)) {
-            CiftiXnat* ciftiXnat = new CiftiXnat();
-            AString username = "";
-            AString password = "";
-            AString filenameToOpen = "";
+            bool readFromXnat = true;
             
-            /*
-             * Username and password may be embedded in URL, so extract them.
-             */
-            FileInformation fileInfo(filename);
-            fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
-                                                     username,
-                                                     password);
-            
-            /*
-             * Always override with a password entered by the user.
-             */
-            if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
-                username = CaretDataFile::getFileReadingUsername();
-                password = CaretDataFile::getFileReadingPassword();
+            if (filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL))
+                || filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR))) {
+                readFromXnat = false;
             }
             
-            ciftiXnat->setAuthentication(filenameToOpen,
-                                         username,
-                                         password);
-            ciftiXnat->openURL(filenameToOpen);
-            m_ciftiInterface.grabNew(ciftiXnat);
-            
-//            CiftiXnat* ciftiXnat = new CiftiXnat();
-//            const AString username = CaretDataFile::getFileReadingUsername();
-//            if (username.isEmpty() == false) {
-//                ciftiXnat->setAuthentication(filename,
-//                                             username,
-//                                             CaretDataFile::getFileReadingPassword());
-//            }
-//            ciftiXnat->openURL(filename);
-//            m_ciftiInterface.grabNew(ciftiXnat);
+            if (readFromXnat) {
+                CiftiXnat* ciftiXnat = new CiftiXnat();
+                AString username = "";
+                AString password = "";
+                AString filenameToOpen = "";
+                
+                /*
+                 * Username and password may be embedded in URL, so extract them.
+                 */
+                FileInformation fileInfo(filename);
+                fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
+                                                         username,
+                                                         password);
+                
+                /*
+                 * Always override with a password entered by the user.
+                 */
+                if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
+                    username = CaretDataFile::getFileReadingUsername();
+                    password = CaretDataFile::getFileReadingPassword();
+                }
+                
+                ciftiXnat->setAuthentication(filenameToOpen,
+                                             username,
+                                             password);
+                ciftiXnat->openURL(filenameToOpen);
+                m_ciftiInterface.grabNew(ciftiXnat);
+            }
+            else {
+                CaretTemporaryFile tempFile;
+                tempFile.readFile(filename);
+                
+                CiftiFile* ciftiFile = new CiftiFile();
+                ciftiFile->openFile(tempFile.getFileName(),
+                                    IN_MEMORY);
+                m_ciftiInterface.grabNew(ciftiFile);
+            }            
         }
         else {
             CiftiFile* ciftiFile = new CiftiFile();
