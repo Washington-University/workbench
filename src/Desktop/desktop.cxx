@@ -616,15 +616,15 @@ void printHelp(const AString& progName)
     
     std::vector<LogLevelEnum::Enum> logLevels;
     LogLevelEnum::getAllEnums(logLevels);
-//    for (std::vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
-//         iter != logLevels.end();
-//         iter++) {
-//        cout << "           " << qPrintable(LogLevelEnum::toName(*iter)) << endl;
-//    }
-//    foreach (LogLevelEnum::Enum level , logLevels) {
-    for (LogLevelEnum::Enum level : logLevels) {
-        cout << "           " << qPrintable(LogLevelEnum::toName(level)) << endl;
+    for (std::vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
+         iter != logLevels.end();
+         iter++) {
+        cout << "           " << qPrintable(LogLevelEnum::toName(*iter)) << endl;
     }
+//    foreach (LogLevelEnum::Enum level , logLevels) {
+//    for (LogLevelEnum::Enum level : logLevels) {
+//        cout << "           " << qPrintable(LogLevelEnum::toName(level)) << endl;
+//    }
     
     cout
     << endl
