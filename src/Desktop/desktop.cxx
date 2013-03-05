@@ -610,6 +610,23 @@ void printHelp(const AString& progName)
     << "    -help" << endl
     << "        display this usage text" << endl
     << endl
+    << "    -logging <level>" << endl
+    << "       Set the logging level." << endl
+    << "       Valid Levels are:" << endl;
+    
+    std::vector<LogLevelEnum::Enum> logLevels;
+    LogLevelEnum::getAllEnums(logLevels);
+//    for (std::vector<LogLevelEnum::Enum>::iterator iter = logLevels.begin();
+//         iter != logLevels.end();
+//         iter++) {
+//        cout << "           " << qPrintable(LogLevelEnum::toGuiName(*iter)) << endl;
+//    }
+    for (const LogLevelEnum::Enum level : logLevels) {
+        cout << "           " << qPrintable(LogLevelEnum::toName(level)) << endl;
+    }
+    
+    cout
+    << endl
     << "    -no-splash" << endl
     << "        disable all splash screens" << endl
     << endl
@@ -660,6 +677,27 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                 } else if (thisParam == "-help") {
                     printHelp(progName);
                     exit(0);
+                } else if (thisParam == "-logging") {
+                    if (myParams->hasNext()) {
+                        const AString logLevelName = myParams->nextString("Logging Level").toUpper();
+                        bool valid = false;
+                        const LogLevelEnum::Enum level = LogLevelEnum::fromName(logLevelName, &valid);
+                        if (valid)
+                        {
+                            /*
+                             * Note settings logging level in preferences will also
+                             * set logging level in the caret logger.
+                             */
+                            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                            prefs->setLoggingLevel(level);
+                        }
+                        else {
+                            cerr << "Invalid logging level \""
+                            << qPrintable(logLevelName)
+                            << "\" for \"-logging\" option" << std::endl;
+                            hasFatalError = true;
+                        }
+                    }
                 } else if (thisParam == "-no-splash") {
                     myState.showSplash = false;
                 } else if (thisParam == "-scene-load") {
