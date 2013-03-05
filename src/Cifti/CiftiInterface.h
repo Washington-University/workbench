@@ -42,8 +42,8 @@ namespace caret
         ///simple enum for interaction between various cifti methods
         enum CiftiDirection
         {
-            ALONG_ROW,
-            ALONG_COLUMN
+            ALONG_ROW = 0,
+            ALONG_COLUMN = 1
         };
 
         ///get a row

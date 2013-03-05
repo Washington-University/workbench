@@ -65,7 +65,7 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
-    presmoothSurfOpt->addDoubleParameter(1, "presmooth-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
     
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(8, "-volume-presmooth", "smooth on the surface before computing the gradient");
     presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");

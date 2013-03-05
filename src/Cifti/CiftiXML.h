@@ -326,6 +326,9 @@ namespace caret {
         ///set columns to be of type scalars
         void resetColumnsToScalars(const int& numMaps);
         
+        ///set a direction to scalars
+        void resetDirectionToScalars(const int& direction, const int& numMaps);
+        
         ///set rows to be of type labels
         void resetRowsToLabels(const int& numMaps);
         
@@ -355,6 +358,9 @@ namespace caret {
         
         ///set the map name for an index along a row
         bool setMapNameForRowIndex(const int& index, const AString& name);
+        
+        ///set the map name for an index
+        bool setMapNameForIndex(const int& direction, const int& index, const AString& name);
         
         ///set the label table for an index along a column
         bool setLabelTableForColumnIndex(const int& index, const GiftiLabelTable& labelTable);
@@ -450,7 +456,6 @@ namespace caret {
         bool setTimestep(const float& seconds, const int& myMapIndex);
         bool setTimestart(const float& seconds, const int& myMapIndex);
         AString getMapName(const int& index, const int& myMapIndex) const;
-        bool setMapName(const int& index, const AString& name, const int& myMapIndex);
         const GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;
         bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
