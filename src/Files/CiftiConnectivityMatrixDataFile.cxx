@@ -40,6 +40,7 @@
 
 #include "CiftiFile.h"
 #include "CaretLogger.h"
+#include "CaretTemporaryFile.h"
 #include "CiftiInterface.h"
 #include "CiftiXnat.h"
 #include "DescriptiveStatistics.h"
@@ -178,32 +179,58 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
     
     try {
         if (DataFile::isFileOnNetwork(filename)) {
-            CiftiXnat* ciftiXnat = new CiftiXnat();
-            AString username = "";
-            AString password = "";
-            AString filenameToOpen = "";
-            
-            /*
-             * Username and password may be embedded in URL, so extract them.
-             */
-            FileInformation fileInfo(filename);
-            fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
-                                                     username,
-                                                     password);
-            
-            /*
-             * Always override with a password entered by the user.
-             */
-            if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
-                username = CaretDataFile::getFileReadingUsername();
-                password = CaretDataFile::getFileReadingPassword();
+            bool readFromXnat = true;
+
+            if (filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL))
+                || filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_PARCEL))
+                || filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE))) {
+                readFromXnat = false;
+            }
+            else if (filename.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::CONNECTIVITY_DENSE))) {
+                throw DataFileException("Dense Connectivity files ("
+                                        + filename
+                                        + ") are too large to read from an http server "
+                                        "and functionality does not exist at this time to read rows as "
+                                        "needed.");
             }
             
-            ciftiXnat->setAuthentication(filenameToOpen,
-                                         username,
-                                         password);
-            ciftiXnat->openURL(filenameToOpen);
-            m_ciftiInterface.grabNew(ciftiXnat);
+            if (readFromXnat) {
+                CiftiXnat* ciftiXnat = new CiftiXnat();
+                AString username = "";
+                AString password = "";
+                AString filenameToOpen = "";
+                
+                /*
+                 * Username and password may be embedded in URL, so extract them.
+                 */
+                FileInformation fileInfo(filename);
+                fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
+                                                         username,
+                                                         password);
+                
+                /*
+                 * Always override with a password entered by the user.
+                 */
+                if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
+                    username = CaretDataFile::getFileReadingUsername();
+                    password = CaretDataFile::getFileReadingPassword();
+                }
+                
+                ciftiXnat->setAuthentication(filenameToOpen,
+                                             username,
+                                             password);
+                ciftiXnat->openURL(filenameToOpen);
+                m_ciftiInterface.grabNew(ciftiXnat);
+            }
+            else {
+                CaretTemporaryFile tempFile;
+                tempFile.readFile(filename);
+                
+                CiftiFile* ciftiFile = new CiftiFile();
+                ciftiFile->openFile(tempFile.getFileName(),
+                                    IN_MEMORY);
+                m_ciftiInterface.grabNew(ciftiFile);
+            }
         }
         else {
             /*
