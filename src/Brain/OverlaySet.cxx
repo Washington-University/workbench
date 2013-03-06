@@ -722,6 +722,7 @@ OverlaySet::initializeOverlays()
     for (int32_t i = 0; i < numOverlayMapFiles; i++) {
         getOverlay(i)->setSelectionData(overlayMapFiles[i],
                                         overlayMapFileIndices[i]);
+        CaretAssertVectorIndex(overlayInitializedFlag, i);
         overlayInitializedFlag[i] = true;
     }
 
@@ -733,16 +734,20 @@ OverlaySet::initializeOverlays()
         firstShapeOverlayIndex = 0;
     }
     for (int32_t i = 0; i < numShapeFiles; i++) {
-        const int32_t overlayIndex = i + firstShapeOverlayIndex;
-        getOverlay(overlayIndex)->setSelectionData(shapeMapFiles[i],
-                                        shapeMapFileIndices[i]);
-        overlayInitializedFlag[overlayIndex] = true;
+        if (i < numDisplayedOverlays) {
+            const int32_t overlayIndex = i + firstShapeOverlayIndex;
+            getOverlay(overlayIndex)->setSelectionData(shapeMapFiles[i],
+                                                       shapeMapFileIndices[i]);
+            CaretAssertVectorIndex(overlayInitializedFlag, overlayIndex);
+            overlayInitializedFlag[overlayIndex] = true;
+        }
     }
     
     /*
      * Disable overlays that were not initialized
      */
     for (int32_t i = 0; i < numDisplayedOverlays; i++) {
+        CaretAssertVectorIndex(overlayInitializedFlag, i);
         if (overlayInitializedFlag[i] == false) {
             getOverlay(i)->setEnabled(false);
         }
