@@ -268,6 +268,12 @@ m_specFile(specFile)
     m_COLUMN_COUNT = columnCounter++;
 
     /*
+     * Get the content from the spec file.
+     * It is examined when creating some of the toolbars.
+     */
+    getDataFileContentFromSpecFile();
+
+    /*
      * Create the table
      */
     m_filesTableWidget = new QTableWidget();
@@ -305,7 +311,9 @@ m_specFile(specFile)
                                   NULL,
                                   enableScrollBars);
     
-    getDataFileContentFromSpecFile();
+    /*
+     * Display the data files.
+     */
     updateTableDimensionsToFitFiles();
     loadSpecFileContentIntoDialog();
     
