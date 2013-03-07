@@ -81,7 +81,9 @@ CaretTemporaryFile::~CaretTemporaryFile()
 void
 CaretTemporaryFile::initializeCaretTemporaryFile()
 {
-    delete m_temporaryFile;
+    if (m_temporaryFile != NULL) {
+        delete m_temporaryFile;
+    }
     m_temporaryFile = new QTemporaryFile();
     setFileName(m_temporaryFile->fileName());
 }
