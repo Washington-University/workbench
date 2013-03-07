@@ -431,9 +431,12 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
             }
             else
             {
+                this->frameSpinBox->blockSignals(true);
                 this->frameSpinBox->setValue(frame+1);
                 this->frameSpinBox->update();
-                alreadyLoaded.insert(this->connectivityLoaderFile, true);
+                alreadyLoaded.insert(this->connectivityLoaderFile, true);                
+                this->connectivityLoaderFile->loadFrame(frame);
+                this->frameSpinBox->blockSignals(false);
             }            
         }
     }
