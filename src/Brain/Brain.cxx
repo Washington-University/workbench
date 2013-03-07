@@ -2892,6 +2892,7 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                             structure,
                             dataFileName,
                             true,
+                            false,
                             false);
     
     AString msg = ("Time to read "
@@ -2977,6 +2978,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                                dataFileStructure,
                                relativePathDataFileName,
                                true,
+                               false,
                                false);
                 sf.writeFile(m_specFileName);
             }
@@ -3043,7 +3045,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     FileInformation fileInfo(sf->getFileName());
     setCurrentDirectory(fileInfo.getPathName());
     
-    const int32_t numberOfFilesToRead = sf->getNumberOfFilesSelected();
+    const int32_t numberOfFilesToRead = sf->getNumberOfFilesSelectedForLoading();
     int32_t fileReadCounter = 0;
     
     EventProgressUpdate progressUpdate(0,
@@ -3070,7 +3072,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
             const SpecFileDataFile* dataFileInfo = group->getFileInformation(iFile);
-            if (dataFileInfo->isSelected()) {
+            if (dataFileInfo->isLoadingSelected()) {
                 const AString filename = dataFileInfo->getFileName();
                 const StructureEnum::Enum structure = dataFileInfo->getStructure();
 
@@ -3299,7 +3301,7 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         const int32_t numFiles = group->getNumberOfFiles();
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
             const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
-            if (fileInfo->isSelected()) {
+            if (fileInfo->isLoadingSelected()) {
                 AString filename = fileInfo->getFileName();
                 const StructureEnum::Enum structure = fileInfo->getStructure();
                 
@@ -3883,6 +3885,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile,
                                caretDataFile->getStructure(), 
                                caretDataFile->getFileName(),
                                true,
+                               false,
                                true);
                 sf.writeFile(m_specFileName);
             }
@@ -4280,6 +4283,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                            cdf->getStructure(), 
                            cdf->getFileName(), 
                            true,
+                           false,
                            true);
         }
         

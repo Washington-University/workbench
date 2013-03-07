@@ -170,15 +170,16 @@ namespace caret {
         
         AString writeSpecFile(const bool writeOnlyIfModified);
         
-        void setWidgetsVisibleByFiltering(const DataFileTypeEnum::Enum dataFileType,
-                                          const StructureEnum::Enum structure);
-        
         QTableWidgetItem* getTableWidgetItem(const int rowIndex,
                                              const int columnIndex);
         
         void setTableWidgetItem(const int rowIndex,
                                 const int columnIndex,
                                 QTableWidgetItem* item);
+        
+        void getFilterSelections(ManageFilesDisplay& manageFilesDisplayOut,
+                                 DataFileTypeEnum::Enum& filteredDataFileTypeOut,
+                                 StructureEnum::Enum& filteredStructureTypeOut) const;
         
         // ADD_NEW_MEMBERS_HERE
         

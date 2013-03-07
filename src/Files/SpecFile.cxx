@@ -218,7 +218,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
             this->addDataFile(group->getDataFileType(), 
                               file->getStructure(), 
                               file->getFileName(),
-                              file->isSelected(),
+                              file->isLoadingSelected(),
+                              file->isSavingSelected(),
                               file->isSpecFileMember());
         }
     }
@@ -263,6 +264,7 @@ SpecFile::changeFileName(SpecFileDataFile* specFileDataFile,
      * Remove CaretDataFile from previous SpecFileDataFile
      */
     specFileDataFile->setCaretDataFile(NULL);
+    specFileDataFile->setSavingSelected(false);
     
     /*
      * Add new SpecFileDataFile to appropriate group.
@@ -424,8 +426,10 @@ SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
  *   Structure of data file (not all files use structure).
  * @param filename
  *   Name of the file.
- * @param fileSelectionStatus
- *   Selection status of the file.
+ * @param fileLoadingSelectionStatus
+ *   Selection status for loading of the file.
+ * @param fileSavingSelectionStatus
+ *   Selection status for saving of the file.
  * @param specFileMemberStatus
  *   True if the file is a member of the spec file and is written
  *   into the spec file.
@@ -437,13 +441,15 @@ void
 SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const StructureEnum::Enum structure,
                       const AString& filename,
-                      const bool fileSelectionStatus,
+                      const bool fileLoadingSelectionStatus,
+                      const bool fileSavingSelectionStatus,
                       const bool specFileMemberStatus) throw (DataFileException)
 {
     addDataFilePrivate(dataFileType,
                        structure,
                        filename,
-                       fileSelectionStatus,
+                       fileLoadingSelectionStatus,
+                       fileSavingSelectionStatus,
                        specFileMemberStatus);
 }
 
@@ -456,8 +462,10 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
  *   Structure of data file (not all files use structure).
  * @param filename
  *   Name of the file.
- * @param fileSelectionStatus
- *   Selection status of the file.
+ * @param fileLoadingSelectionStatus
+ *   Selection status for loading of the file.
+ * @param fileSavingSelectionStatus
+ *   Selection status for saving of the file.
  * @param specFileMemberStatus
  *   True if the file is a member of the spec file and is written
  *   into the spec file.
@@ -471,7 +479,8 @@ SpecFileDataFile*
 SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                              const StructureEnum::Enum structure,
                              const AString& filename,
-                             const bool fileSelectionStatus,
+                             const bool fileLoadingSelectionStatus,
+                             const bool fileSavingSelectionStatus,
                              const bool specFileMemberStatus) throw (DataFileException)
 {
     AString name = filename;
@@ -529,8 +538,8 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
             for (int32_t i = 0; i < numFiles; i++) {
                 SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
                 if (sfdf->getFileName() == name) {
-                    if (fileSelectionStatus) {
-                        sfdf->setSelected(fileSelectionStatus);
+                    if (fileLoadingSelectionStatus) {
+                        sfdf->setLoadingSelected(fileLoadingSelectionStatus);
                     }
                     return sfdf;
                 }
@@ -540,7 +549,7 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                                                           dataFileType,
                                                           structure,
                                                           specFileMemberStatus);
-            sfdf->setSelected(fileSelectionStatus);
+            sfdf->setLoadingSelected(fileLoadingSelectionStatus);
             dataFileTypeGroup->addFileInformation(sfdf);
             return sfdf;
         }
@@ -590,7 +599,7 @@ SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivi
  *   Selection status of file.
  */
 void 
-SpecFile::setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
+SpecFile::setFileLoadingSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
                                  const StructureEnum::Enum structure,
                                  const AString& filename,
                                  const bool fileSelectionStatus)
@@ -605,7 +614,7 @@ SpecFile::setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
                 SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
                 if (sfdf->getStructure() == structure) {
                     if (sfdf->getFileName().endsWith(filename)) {
-                        sfdf->setSelected(fileSelectionStatus);
+                        sfdf->setLoadingSelected(fileSelectionStatus);
                     }
                 }
             }
@@ -622,8 +631,10 @@ SpecFile::setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
  *   Name of Structure of data file (not all files use structure).
  * @param filename
  *   Name of the file.
- * @param fileSelectionStatus
- *   Selection status of file.
+ * @param fileLoadingSelectionStatus
+ *   Selection status for loading of file.
+ * @param fileSavingSelectionStatus
+ *   Selection status for saving of file.
  * @param specFileMemberStatus
  *   True if the file is a member of the spec file and is written
  *   into the spec file.
@@ -635,18 +646,20 @@ void
 SpecFile::addDataFile(const AString& dataFileTypeName,
                       const AString& structureName,
                       const AString& filename,
-                      const bool fileSelectionStatus,
+                      const bool fileLoadingSelectionStatus,
+                      const bool fileSavingSelectionStatus,
                       const bool specFileMemberStatus) throw (DataFileException)
 {
     bool validType = false;
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromName(dataFileTypeName, &validType);
     bool validStructure = false;
     StructureEnum::Enum structure = StructureEnum::fromGuiName(structureName, &validStructure);
-    this->addDataFile(dataFileType,
-                      structure,
-                      filename,
-                      fileSelectionStatus,
-                      specFileMemberStatus);
+    this->addDataFilePrivate(dataFileType,
+                             structure,
+                             filename,
+                             fileLoadingSelectionStatus,
+                             fileSavingSelectionStatus,
+                             specFileMemberStatus);
 }
 
 
@@ -710,10 +723,10 @@ SpecFile::getNumberOfFiles() const
 }
 
 /**
- * @return The number of files selected.
+ * @return The number of files selected for loading.
  */
 int32_t 
-SpecFile::getNumberOfFilesSelected() const
+SpecFile::getNumberOfFilesSelectedForLoading() const
 {
     int count = 0;
     
@@ -721,7 +734,25 @@ SpecFile::getNumberOfFilesSelected() const
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        count += dataFileTypeGroup->getNumberOfFilesSelected();
+        count += dataFileTypeGroup->getNumberOfFilesSelectedForLoading();
+    }
+    
+    return count;
+}
+
+/**
+ * @return The number of files selected for saving.
+ */
+int32_t
+SpecFile::getNumberOfFilesSelectedForSaving() const
+{
+    int count = 0;
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        count += dataFileTypeGroup->getNumberOfFilesSelectedForSaving();
     }
     
     return count;
@@ -751,10 +782,10 @@ SpecFile::getAllDataFileNames() const
 }
 
 /**
- * @return True if the only files selected are scene files.
+ * @return True if the only files selected for loading are scene files.
  */
 bool
-SpecFile::areAllSelectedFilesSceneFiles() const
+SpecFile::areAllFilesSelectedForLoadingSceneFiles() const
 {
     int32_t sceneFileCount = 0;
     int32_t allFilesCount  = 0;
@@ -762,10 +793,10 @@ SpecFile::areAllSelectedFilesSceneFiles() const
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        allFilesCount += dataFileTypeGroup->getNumberOfFilesSelected();
+        allFilesCount += dataFileTypeGroup->getNumberOfFilesSelectedForLoading();
         
         if (dataFileTypeGroup->getDataFileType() == DataFileTypeEnum::SCENE) {
-            sceneFileCount += dataFileTypeGroup->getNumberOfFilesSelected();
+            sceneFileCount += dataFileTypeGroup->getNumberOfFilesSelectedForLoading();
         }
     }
 
@@ -833,7 +864,8 @@ SpecFile::readFile(const AString& filenameIn) throw (DataFileException)
     }
 
     this->setFileName(filename);
-    this->setAllFilesSelected(true);
+    this->setAllFilesSelectedForLoading(true);
+    this->setAllFilesSelectedForSaving(false);
     
     this->clearModified();
 }
@@ -1002,7 +1034,7 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                     case WRITE_ALL_FILES:
                         break;
                     case WRITE_SELECTED_FILES:
-                        writeIt = file->isSelected();
+                        writeIt = file->isLoadingSelected();
                         break;
                 }
                 
@@ -1015,7 +1047,7 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                     atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
                                       DataFileTypeEnum::toName(group->getDataFileType()));
                     atts.addAttribute(SpecFile::XML_ATTRIBUTE_SELECTED, 
-                                      file->isSelected());
+                                      file->isLoadingSelected());
                     xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
                                                 atts);
                     xmlWriter.writeCharacters("      " 
@@ -1195,33 +1227,49 @@ SpecFile::getDataFileTypeGroupByType(const DataFileTypeEnum::Enum dataFileType) 
 }
 
 /**
- * Set the file's selection status.
+ * Set all file's selection status for loading.
  * @param selected
- *    New selection status.
+ *    New selection status for loading.
  */   
 void 
-SpecFile::setAllFilesSelected(bool selectionStatus)
+SpecFile::setAllFilesSelectedForLoading(bool selectionStatus)
 {
     for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        dataFileTypeGroup->setAllFilesSelected(selectionStatus);
+        dataFileTypeGroup->setAllFilesSelectedForLoading(selectionStatus);
     }    
+}
+
+/**
+ * Set all file's selection status for saving.
+ * @param selected
+ *    New selection status for saving.
+ */
+void
+SpecFile::setAllFilesSelectedForSaving(bool selectionStatus)
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        dataFileTypeGroup->setAllFilesSelectedForSaving(selectionStatus);
+    }
 }
 
 /**
  * Set all scene files selected and all other files not selected.
  */
 void 
-SpecFile::setAllSceneFilesSelectedAndAllOtherFilesNotSelected()
+SpecFile::setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected()
 {
     for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
         const bool selectionStatus = (dataFileTypeGroup->getDataFileType() == DataFileTypeEnum::SCENE);
-        dataFileTypeGroup->setAllFilesSelected(selectionStatus);
+        dataFileTypeGroup->setAllFilesSelectedForLoading(selectionStatus);
     }    
 }
 
@@ -1328,7 +1376,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                         fileClass->addPathName("fileName", 
                                                file->getFileName());
                         fileClass->addBoolean("selected", 
-                                              file->isSelected());
+                                              file->isLoadingSelected());
                         
                         dataFileClasses.push_back(fileClass);
                     }
@@ -1389,7 +1437,8 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                    + " for displaying scene: "
                                                    + e.whatString());
             }
-            setAllFilesSelected(false);
+            setAllFilesSelectedForLoading(false);
+            setAllFilesSelectedForSaving(false);
         }
     }
     
@@ -1398,7 +1447,7 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
         const int32_t numberOfFiles = dataFileClassArray->getNumberOfArrayElements();
         for (int32_t i = 0; i < numberOfFiles; i++) {
             const SceneClass* dataFileClass = dataFileClassArray->getClassAtIndex(i);
-            const bool selected = dataFileClass->getBooleanValue("selected");
+            const bool selectedForLoading = dataFileClass->getBooleanValue("selected");
             const AString dataFileName = dataFileClass->getPathNameValue("fileName");
             const DataFileTypeEnum::Enum dataFileType = dataFileClass->getEnumeratedTypeValue<DataFileTypeEnum, 
                                                                                               DataFileTypeEnum::Enum>("dataFileType",
@@ -1410,7 +1459,8 @@ SpecFile::restoreFromScene(const SceneAttributes* sceneAttributes,
             this->addDataFile(dataFileType, 
                               structure, 
                               dataFileName, 
-                              selected,
+                              selectedForLoading,
+                              false, // not selected for saving
                               true);
         }
     }
@@ -1446,7 +1496,8 @@ SpecFile::appendSpecFile(const SpecFile& toAppend)
             addDataFile(thisGroup->getDataFileType(),
                         fileData->getStructure(),
                         fileName,
-                        fileData->isSelected(),
+                        fileData->isLoadingSelected(),
+                        fileData->isSavingSelected(),
                         fileData->isSpecFileMember());//absolute paths should get converted to relative on writing
         }
     }

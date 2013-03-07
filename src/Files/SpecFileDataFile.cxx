@@ -64,7 +64,8 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
     m_dataFileType = dataFileType;
     m_structure = structure;
     m_originalStructure = m_structure;
-    m_selected  = true;
+    m_loadingSelected  = true;
+    m_savingSelected = false;
     m_specFileMember = specFileMember;
 }
 
@@ -111,7 +112,8 @@ SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
     m_dataFileType = sfdf.m_dataFileType;
     m_structure = sfdf.m_structure;
     m_originalStructure = sfdf.m_originalStructure;
-    m_selected  = sfdf.m_selected;
+    m_loadingSelected  = sfdf.m_loadingSelected;
+    m_savingSelected  = sfdf.m_savingSelected;
     m_specFileMember = sfdf.m_specFileMember;
 }
 
@@ -203,24 +205,47 @@ SpecFileDataFile::getDataFileType() const
 }
 
 /**
- * @return The file's selection status.
+ * @return The file's saving selection status.
  */
 bool 
-SpecFileDataFile::isSelected() const
+SpecFileDataFile::isSavingSelected() const
 {
-    return m_selected;
+    return m_savingSelected;
 }
 
 /**
- * Set the file's selection status.
+ * Set the file's saving selection status.
  * @param selected
  *    New selection status.
  */   
 void 
-SpecFileDataFile::setSelected(const bool selected)
+SpecFileDataFile::setSavingSelected(const bool selected)
+{
+    if (m_savingSelected != selected) {
+        m_savingSelected = selected;
+        setModified();
+    }
+}
+
+/**
+ * @return The file's loading selection status.
+ */
+bool
+SpecFileDataFile::isLoadingSelected() const
+{
+    return m_loadingSelected;
+}
+
+/**
+ * Set the file's loading selection status.
+ * @param selected
+ *    New selection status.
+ */
+void
+SpecFileDataFile::setLoadingSelected(const bool selected)
 {
     // note: does not cause modification status to change
-    m_selected = selected;
+    m_loadingSelected = selected;
 }
 
 /**

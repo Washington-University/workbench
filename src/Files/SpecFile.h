@@ -74,27 +74,31 @@ namespace caret {
         void addDataFile(const DataFileTypeEnum::Enum dataFileType,
                          const StructureEnum::Enum structure,
                          const AString& filename,
-                         const bool fileSelectionStatus,
+                         const bool fileLoadingSelectionStatus,
+                         const bool fileSavingSelectionStatus,
                          const bool specFileMemberStatus) throw (DataFileException);
         
         void addDataFile(const AString& dataFileTypeName,
                          const AString& structureName,
                          const AString& filename,
-                         const bool fileSelectionStatus,
+                         const bool fileLoadingSelectionStatus,
+                         const bool fileSavingSelectionStatus,
                          const bool specFileMemberStatus) throw (DataFileException);
         
-        void setFileSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
+        void setFileLoadingSelectionStatus(const DataFileTypeEnum::Enum dataFileType,
                                     const StructureEnum::Enum structure,
                                     const AString& filename,
                                     const bool fileSelectionStatus);
         
         int32_t getNumberOfFiles() const;
         
-        int32_t getNumberOfFilesSelected() const;
+        int32_t getNumberOfFilesSelectedForLoading() const;
+        
+        int32_t getNumberOfFilesSelectedForSaving() const;
         
         std::vector<AString> getAllDataFileNames() const;
         
-        bool areAllSelectedFilesSceneFiles() const;
+        bool areAllFilesSelectedForLoadingSceneFiles() const;
         
         virtual void readFile(const AString& filename) throw (DataFileException);
         
@@ -114,9 +118,11 @@ namespace caret {
         
         void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         
-        void setAllFilesSelected(bool selectionStatus);
+        void setAllFilesSelectedForLoading(bool selectionStatus);
         
-        void setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
+        void setAllFilesSelectedForSaving(bool selectionStatus);
+        
+        void setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected();
         
         static float getFileVersion();
         
@@ -177,7 +183,8 @@ namespace caret {
         SpecFileDataFile* addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                                              const StructureEnum::Enum structure,
                                              const AString& filename,
-                                             const bool fileSelectionStatus,
+                                             const bool fileLoadingSelectionStatus,
+                                             const bool fileSavingSelectionStatus,
                                              const bool specFileMemberStatus) throw (DataFileException);
         
         void removeFilesTaggedForRemoval();

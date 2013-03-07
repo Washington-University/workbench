@@ -40,6 +40,7 @@ class QObject;
 class QPixmap;
 class QPushButton;
 class QString;
+class QTableWidget;
 class QWidget;
 
 namespace caret {
@@ -112,6 +113,10 @@ namespace caret {
                                       const int32_t h,
                                       int32_t* xywhOut);
         
+        static void resizeWindow(QWidget* window,
+                                 const int32_t width,
+                                 const int32_t height);
+        
         static void matchWidgetHeights(QWidget* w1,
                                        QWidget* w2,
                                        QWidget* w3 = 0,
@@ -137,6 +142,8 @@ namespace caret {
         static void setLayoutMargins(QLayout* layout,
                                      const int spacing,
                                      const int contentsMargin);
+        
+        static QSize estimateTableWidgetSize(QTableWidget* tableWidget);
         
         static QSize getMinimumScreenSize();
         

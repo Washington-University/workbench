@@ -33,10 +33,13 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFrame>
+#include <QHeaderView>
 #include <QIcon>
 #include <QLabel>
 #include <QPushButton>
 #include <QSound>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QTextDocument>
 
 #include "CaretAssert.h"
@@ -457,6 +460,148 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
         xywhOut[2] = window->width();
         xywhOut[3] = window->height();
     }
+}
+
+/**
+ * Resize a window but limit maximum size of window
+ * to an area less than the full size of the display.
+ * Has no effect on position of the window so part
+ * of window may end up being outside the display.
+ *
+ * @param window
+ *     Window that is resized.
+ * @param width
+ *     Desired width of the window.
+ * @param height
+ *     Desired width of the window.
+ */
+void
+WuQtUtilities::resizeWindow(QWidget* window,
+                            const int32_t width,
+                            const int32_t height)
+{
+    QDesktopWidget* dw = QApplication::desktop();
+    QPoint pXY(window->x(),
+               window->y());
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+        const int32_t screenWidth  = screenRect.width() - 100;
+        const int32_t screenHeight = screenRect.height() - 100;
+        
+        const int windowWidth = std::min(width,
+                               screenWidth);
+        const int windowHeight = std::min(height,
+                               screenHeight);
+        
+        window->resize(windowWidth,
+                       windowHeight);
+    }
+}
+
+/**
+ * Table widget has a default size of 640 x 480.
+ * Estimate the size of the dialog with the table fully expanded.
+ *
+ * @param tableWidget
+ *    Table widget whose size is estimated.
+ */
+QSize
+WuQtUtilities::estimateTableWidgetSize(QTableWidget* tableWidget)
+{
+    QSize tableSize(0, 0);
+    
+    /*
+     * Table widget has a default size of 640 x 480.
+     * So estimate the size of the dialog with the table fully
+     * expanded.
+     */
+    const int numRows = tableWidget->rowCount();
+    const int numCols = tableWidget->columnCount();
+    const int cellGap = (tableWidget->showGrid()
+                         ? 3
+                         : 0);
+    if ((numRows > 0)
+        && (numCols > 0)) {
+        int tableWidth = 10; // start out with a little extra space
+        int tableHeight = 0;
+        
+        if (tableWidget->horizontalHeader()->isHidden() == false) {
+            QHeaderView* columnHeader = tableWidget->horizontalHeader();
+            const int columnHeaderHeight = columnHeader->sizeHint().height();
+            tableHeight += columnHeaderHeight;
+        }
+        
+        if (tableWidget->verticalHeader()->isHidden() == false) {
+            QHeaderView* rowHeader = tableWidget->verticalHeader();
+            const int rowHeaderHeight = rowHeader->sizeHint().width();
+            tableHeight += rowHeaderHeight;
+        }
+        
+        std::vector<int> columnWidths(numCols, 0);
+        std::vector<int> rowHeights(numRows, 0);
+        
+        for (int iCol = 0; iCol < numCols; iCol++) {
+            columnWidths[iCol] = tableWidget->columnWidth(iCol) + cellGap;
+        }
+        
+        for (int jRow = 0; jRow < numRows; jRow++) {
+            rowHeights[jRow]= (tableWidget->rowHeight(jRow) + cellGap);
+        }
+
+        for (int iCol = 0; iCol < numCols; iCol++) {
+            for (int jRow = 0; jRow < numRows; jRow++) {
+                QWidget* widget = tableWidget->cellWidget(jRow, iCol);
+                if (widget != NULL) {
+                    const QSize widgetSizeHint = widget->sizeHint();
+                    columnWidths[iCol] = std::max(columnWidths[iCol],
+                                                  widgetSizeHint.width());
+                    rowHeights[jRow] = std::max(rowHeights[jRow],
+                                                  widgetSizeHint.height());
+                }
+                
+                QTableWidgetItem* item = tableWidget->item(jRow, iCol);
+                if (item != NULL) {
+                    int itemWidth = 0;
+                    int itemHeight = 0;
+                    if (item->flags() && Qt::ItemIsUserCheckable) {
+                        itemWidth += 12;
+                    }
+                    
+                    QFont font = item->font();
+                    const QString text = item->text();
+                    if (text.isEmpty() == false) {
+                        QFont font = item->font();
+                        QFontMetrics fontMetrics(font);
+                        const int textWidth =  fontMetrics.width(text);
+                        const int textHeight = fontMetrics.height();
+                        
+                        itemWidth += textWidth;
+                        itemHeight = std::max(itemHeight,
+                                              textHeight);
+                    }
+                    
+                    columnWidths[iCol] = std::max(columnWidths[iCol],
+                                                  itemWidth);
+                    rowHeights[jRow] = std::max(rowHeights[jRow],
+                                                   itemHeight);
+                }
+            }
+        }
+    
+        for (int iCol = 0; iCol < numCols; iCol++) {
+            tableWidth += columnWidths[iCol];
+        }
+        
+        for (int jRow = 0; jRow < numRows; jRow++) {
+            tableHeight += (rowHeights[jRow] - 2);
+        }
+        
+        tableSize.setWidth(tableWidth);
+        tableSize.setHeight(tableHeight);
+    }
+    
+    return tableSize;
 }
 
 /**

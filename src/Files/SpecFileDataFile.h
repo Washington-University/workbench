@@ -61,9 +61,13 @@ namespace caret {
         
         void setStructure(const StructureEnum::Enum structure);
         
-        bool isSelected() const;
+        bool isLoadingSelected() const;
         
-        void setSelected(const bool selected);
+        void setLoadingSelected(const bool selected);
+        
+        bool isSavingSelected() const;
+        
+        void setSavingSelected(const bool selected);
         
         bool isRemovedFromSpecFileWhenWritten() const;
         
@@ -93,7 +97,9 @@ namespace caret {
         
         DataFileTypeEnum::Enum m_dataFileType;
         
-        bool m_selected;
+        bool m_loadingSelected;
+        
+        bool m_savingSelected;
         
         bool m_removeFromSpecFileWhenWritten;
         

@@ -188,6 +188,7 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                                            this->fileAttributeStructureName, 
                                            filename,
                                            this->fileAttributeSelectionStatus,
+                                           false, // not selected for saving
                                            true); // is a member of spec file since read from spec file
                
                this->fileAttributeTypeName = "";

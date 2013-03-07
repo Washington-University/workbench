@@ -528,7 +528,7 @@ SpecFileDialog::userButtonPressed(QPushButton* userPushButton)
         /*
          * Load all of the scene files but nothing else
          */
-        m_specFile->setAllSceneFilesSelectedAndAllOtherFilesNotSelected();
+        m_specFile->setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected();
         
         writeUpdatedSpecFile(true);
         
@@ -555,7 +555,7 @@ SpecFileDialog::okButtonClicked()
         const int32_t numFiles = static_cast<int32_t>(guiSpecGroup->dataFiles.size());
         for (int j = 0; j < numFiles; j++) {
             GuiSpecDataFileInfo* fileInfo = guiSpecGroup->dataFiles[j];
-            fileInfo->m_dataFileInfo->setSelected(fileInfo->m_selectionCheckBox->isChecked());
+            fileInfo->m_dataFileInfo->setLoadingSelected(fileInfo->m_selectionCheckBox->isChecked());
         }        
     }
 
@@ -651,7 +651,7 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
                      this, SLOT(openFilePushButtonClicked()));
     
     m_selectionCheckBox = new QCheckBox(" ");
-    m_selectionCheckBox->setChecked(dataFileInfo->isSelected());
+    m_selectionCheckBox->setChecked(dataFileInfo->isLoadingSelected());
     
     m_metadataAction = WuQtUtilities::createAction("M",
                                                      "View the file's metadata",

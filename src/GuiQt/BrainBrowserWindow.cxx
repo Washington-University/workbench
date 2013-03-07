@@ -1758,7 +1758,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                 /*
                  * Load all files listed in spec file
                  */
-                specFile.setAllFilesSelected(true);
+                specFile.setAllFilesSelectedForLoading(true);
                 
                 EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                              &specFile);
@@ -1819,7 +1819,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                 break;
         }
         
-        sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
+        sceneFileWasLoaded = specFile.areAllFilesSelectedForLoadingSceneFiles();
     }
     
     /*

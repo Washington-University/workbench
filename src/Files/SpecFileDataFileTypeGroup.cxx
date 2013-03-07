@@ -77,10 +77,10 @@ SpecFileDataFileTypeGroup::getNumberOfFiles() const
 }
 
 /**
- * @return The number of files selected.
+ * @return The number of files selected for loading.
  */
 int32_t 
-SpecFileDataFileTypeGroup::getNumberOfFilesSelected() const
+SpecFileDataFileTypeGroup::getNumberOfFilesSelectedForLoading() const
 {
     int count = 0;
     
@@ -88,7 +88,26 @@ SpecFileDataFileTypeGroup::getNumberOfFilesSelected() const
          iter != this->files.end();
          iter++) {
         SpecFileDataFile* file = *iter;
-        if (file->isSelected()) {
+        if (file->isLoadingSelected()) {
+            count++;
+        }
+    }
+    return count;
+}
+
+/**
+ * @return The number of files selected for saving.
+ */
+int32_t
+SpecFileDataFileTypeGroup::getNumberOfFilesSelectedForSaving() const
+{
+    int count = 0;
+    
+    for (std::vector<SpecFileDataFile*>::const_iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        SpecFileDataFile* file = *iter;
+        if (file->isSavingSelected()) {
             count++;
         }
     }
@@ -169,18 +188,34 @@ SpecFileDataFileTypeGroup::getFileInformation(const int32_t fileIndex) const
 }
 
 /**
- * Set the selection status of all files.
+ * Set the loading selection status of all files.
  * @param selectionStatus
- *   New selection status for all files.
+ *   New loading selection status for all files.
  */
 void 
-SpecFileDataFileTypeGroup::setAllFilesSelected(bool selectionStatus)
+SpecFileDataFileTypeGroup::setAllFilesSelectedForLoading(bool selectionStatus)
 {
     for (std::vector<SpecFileDataFile*>::iterator iter = this->files.begin();
          iter != this->files.end();
          iter++) {
         SpecFileDataFile* file = *iter;
-        file->setSelected(selectionStatus);
+        file->setLoadingSelected(selectionStatus);
+    }
+}
+
+/**
+ * Set the saving selection status of all files.
+ * @param selectionStatus
+ *   New saving selection status for all files.
+ */
+void
+SpecFileDataFileTypeGroup::setAllFilesSelectedForSaving(bool selectionStatus)
+{
+    for (std::vector<SpecFileDataFile*>::iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        SpecFileDataFile* file = *iter;
+        file->setSavingSelected(selectionStatus);
     }
 }
 

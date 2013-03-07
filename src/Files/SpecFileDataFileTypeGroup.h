@@ -44,7 +44,9 @@ namespace caret {
         
         int32_t getNumberOfFiles() const;
         
-        int32_t getNumberOfFilesSelected() const;
+        int32_t getNumberOfFilesSelectedForLoading() const;
+        
+        int32_t getNumberOfFilesSelectedForSaving() const;
         
         void addFileInformation(SpecFileDataFile* fileInformation);
         
@@ -56,7 +58,9 @@ namespace caret {
         
         const SpecFileDataFile* getFileInformation(const int32_t fileIndex) const;
         
-        void setAllFilesSelected(bool selectionStatus);
+        void setAllFilesSelectedForLoading(bool selectionStatus);
+        
+        void setAllFilesSelectedForSaving(bool selectionStatus);
         
         void removeFilesTaggedForRemoval();
     
