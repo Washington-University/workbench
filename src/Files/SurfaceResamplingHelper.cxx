@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "CaretOMP.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "Vector3D.h"
@@ -38,7 +39,7 @@ using namespace std;
 using namespace caret;
 
 SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                                 const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf)
+                                                 const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi)
 {
     if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
     SurfaceFile currentSphereMod, newSphereMod;
@@ -57,10 +58,10 @@ SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEn
         case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
             CaretAssert(currentAreaSurf != NULL && newAreaSurf != NULL);
             if (currentAreaSurf == NULL || newAreaSurf == NULL) throw CaretException("ADAP_BARY_AREA method requires area surfaces");
-            computeWeightsAdapBaryArea(&currentSphereMod, &newSphereMod, currentAreaSurf, newAreaSurf);
+            computeWeightsAdapBaryArea(&currentSphereMod, &newSphereMod, currentAreaSurf, newAreaSurf, currentRoi);
             break;
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
-            computeWeightsBarycentric(&currentSphereMod, &newSphereMod);
+            computeWeightsBarycentric(&currentSphereMod, &newSphereMod, currentRoi);
             break;
     }
 }
@@ -68,6 +69,7 @@ SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEn
 void SurfaceResamplingHelper::resampleNormal(const float* input, float* output)
 {
     int numNodes = (int)m_weights.size() - 1;
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
         output[i] = 0.0f;
@@ -82,6 +84,7 @@ void SurfaceResamplingHelper::resampleNormal(const float* input, float* output)
 void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
 {
     int numNodes = (int)m_weights.size() - 1;
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
         Vector3D tempvec;
@@ -97,14 +100,15 @@ void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
     }
 }
 
-void SurfaceResamplingHelper::resamplePopular(const int* input, int* output)
+void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* output)
 {
     int numNodes = (int)m_weights.size() - 1;
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
         map<int, float> accum;
         float maxweight = -1.0f;
-        int bestlabel = 0;
+        int32_t bestlabel = 0;
         WeightElem* end = m_weights[i + 1];
         for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
         {
@@ -131,12 +135,64 @@ void SurfaceResamplingHelper::resamplePopular(const int* input, int* output)
     }
 }
 
+void SurfaceResamplingHelper::resampleLargest(const float* input, float* output)
+{
+    int numNodes = (int)m_weights.size() - 1;
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int i = 0; i < numNodes; ++i)
+    {
+        WeightElem* end = m_weights[i + 1];
+        float largest = -1.0f;
+        int largestNode = -1;
+        for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
+        {
+            if (elem->weight > largest)
+            {
+                largest = elem->weight;
+                largestNode = elem->node;
+            }
+        }
+        if (largestNode != -1)
+        {
+            output[i] = input[largestNode];
+        } else {
+            output[i] = 0.0f;
+        }
+    }
+}
+
+void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* output)
+{
+    int numNodes = (int)m_weights.size() - 1;
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int i = 0; i < numNodes; ++i)
+    {
+        WeightElem* end = m_weights[i + 1];
+        float largest = -1.0f;
+        int largestNode = -1;
+        for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
+        {
+            if (elem->weight > largest)
+            {
+                largest = elem->weight;
+                largestNode = elem->node;
+            }
+        }
+        if (largestNode != -1)
+        {
+            output[i] = input[largestNode];
+        } else {
+            output[i] = 0;
+        }
+    }
+}
+
 void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                                         const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf)
+                                                         const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi)
 {
     vector<map<int, float> > forward, reverse, reverse_gather;
-    makeBarycentricWeights(currentSphere, newSphere, forward);
-    makeBarycentricWeights(newSphere, currentSphere, reverse);
+    makeBarycentricWeights(currentSphere, newSphere, forward, NULL);//don't use an roi until after we have done area correction, because area correction MUST ignore ROI
+    makeBarycentricWeights(newSphere, currentSphere, reverse, NULL);
     int numNewNodes = (int)forward.size(), numOldNodes = currentSphere->getNumberOfNodes();
     reverse_gather.resize(numNewNodes);
     for (int oldNode = 0; oldNode < numOldNodes; ++oldNode)//this loop can't be parallelized
@@ -156,7 +212,8 @@ void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* curr
     vector<float> currentAreas, newAreas;
     currentAreaSurf->computeNodeAreas(currentAreas);
     newAreaSurf->computeNodeAreas(newAreas);
-    for (int newNode = 0; newNode < numNewNodes; ++newNode)//this loop can be parallelized
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int newNode = 0; newNode < numNewNodes; ++newNode)
     {
         set<int> forwardused;//build set of all nodes used by forward weights (really only 3, but this is a bit cleaner and more generic)
         for (map<int, float>::iterator iter = forward[newNode].begin(); iter != forward[newNode].end(); ++iter)
@@ -191,26 +248,41 @@ void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* curr
             correctionSum[iter->first] += iter->second;//now, sum the scattering weights to prepare for first normalization
         }
     }
-    for (int newNode = 0; newNode < numNewNodes; ++newNode)//this one can
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int newNode = 0; newNode < numNewNodes; ++newNode)
     {
         double weightsum = 0.0f;
+        vector<map<int, float>::iterator> toRemove;
         for (map<int, float>::iterator iter = adap_gather[newNode].begin(); iter != adap_gather[newNode].end(); ++iter)
         {
-            iter->second *= currentAreas[iter->first] / correctionSum[iter->first];//divide the weights by their scatter sum, then multiply by current areas
-            weightsum += iter->second;//and compute the sum
+            if (currentRoi == NULL || currentRoi[iter->first] > 0.0f)
+            {
+                iter->second *= currentAreas[iter->first] / correctionSum[iter->first];//divide the weights by their scatter sum, then multiply by current areas
+                weightsum += iter->second;//and compute the sum
+            } else {
+                toRemove.push_back(iter);
+            }
         }
-        for (map<int, float>::iterator iter = adap_gather[newNode].begin(); iter != adap_gather[newNode].end(); ++iter)
+        int numToRemove = (int)toRemove.size();
+        for (int i = 0; i < numToRemove; ++i)
         {
-            iter->second /= weightsum;//and normalize to a sum of 1
+            adap_gather[newNode].erase(toRemove[i]);
+        }
+        if (weightsum != 0.0f)//this shouldn't happen unless no nodes remain due to roi, or node areas can be zero
+        {
+            for (map<int, float>::iterator iter = adap_gather[newNode].begin(); iter != adap_gather[newNode].end(); ++iter)
+            {
+                iter->second /= weightsum;//and normalize to a sum of 1
+            }
         }
     }
     compactWeights(adap_gather);//and compact them into the internal weight storage
 }
 
-void SurfaceResamplingHelper::computeWeightsBarycentric(const SurfaceFile* currentSphere, const SurfaceFile* newSphere)
+void SurfaceResamplingHelper::computeWeightsBarycentric(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const float* currentRoi)
 {
     vector<map<int, float> > forward;
-    makeBarycentricWeights(currentSphere, newSphere, forward);//barycentric weights should already sum to 1, so we are done
+    makeBarycentricWeights(currentSphere, newSphere, forward, currentRoi);//this should ensure they sum to 1, so we are done
     compactWeights(forward);
 }
 
@@ -247,6 +319,7 @@ void SurfaceResamplingHelper::changeRadius(const float& radius, const SurfaceFil
     int numNodes3 = numNodes * 3;
     vector<float> newCoordData(numNodes3);
     const float* oldCoordData = output->getCoordinateData();
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes3; i += 3)
     {
         Vector3D tempvec = Vector3D(oldCoordData + i).normal() * radius;
@@ -281,18 +354,59 @@ void SurfaceResamplingHelper::compactWeights(const vector<map<int, float> >& wei
     m_weights[numNodes] = m_storagechunk + compactsize;
 }
 
-void SurfaceResamplingHelper::makeBarycentricWeights(const SurfaceFile* from, const SurfaceFile* to, vector<map<int, float> >& weights)
+void SurfaceResamplingHelper::makeBarycentricWeights(const SurfaceFile* from, const SurfaceFile* to, vector<map<int, float> >& weights, const float* currentRoi)
 {
-    CaretPointer<SignedDistanceHelper> mySignedHelp = from->getSignedDistanceHelper();
     int numToNodes = to->getNumberOfNodes();
     weights.resize(numToNodes);
     const float* toCoordData = to->getCoordinateData();
-    for (int i = 0; i < numToNodes; ++i)
+    if (currentRoi == NULL)
     {
-        BarycentricInfo myInfo;
-        mySignedHelp->barycentricWeights(toCoordData + i * 3, myInfo);
-        if (myInfo.baryWeights[0] != 0.0f) weights[i][myInfo.nodes[0]] = myInfo.baryWeights[0];
-        if (myInfo.baryWeights[1] != 0.0f) weights[i][myInfo.nodes[1]] = myInfo.baryWeights[1];
-        if (myInfo.baryWeights[2] != 0.0f) weights[i][myInfo.nodes[2]] = myInfo.baryWeights[2];
+#pragma omp CARET_PAR
+        {
+            CaretPointer<SignedDistanceHelper> mySignedHelp = from->getSignedDistanceHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < numToNodes; ++i)
+            {
+                BarycentricInfo myInfo;
+                mySignedHelp->barycentricWeights(toCoordData + i * 3, myInfo);
+                if (myInfo.baryWeights[0] != 0.0f) weights[i][myInfo.nodes[0]] = myInfo.baryWeights[0];
+                if (myInfo.baryWeights[1] != 0.0f) weights[i][myInfo.nodes[1]] = myInfo.baryWeights[1];
+                if (myInfo.baryWeights[2] != 0.0f) weights[i][myInfo.nodes[2]] = myInfo.baryWeights[2];
+            }
+        }
+    } else {
+#pragma omp CARET_PAR
+        {
+            CaretPointer<SignedDistanceHelper> mySignedHelp = from->getSignedDistanceHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < numToNodes; ++i)
+            {
+                BarycentricInfo myInfo;
+                float weightsum = 0.0f;//there are only 3 weights, so don't bother with double precision
+                mySignedHelp->barycentricWeights(toCoordData + i * 3, myInfo);
+                if (myInfo.baryWeights[0] != 0.0f && currentRoi[myInfo.nodes[0]] > 0.0f)
+                {
+                    weights[i][myInfo.nodes[0]] = myInfo.baryWeights[0];
+                    weightsum += myInfo.baryWeights[0];
+                }
+                if (myInfo.baryWeights[1] != 0.0f && currentRoi[myInfo.nodes[1]] > 0.0f)
+                {
+                    weights[i][myInfo.nodes[1]] = myInfo.baryWeights[1];
+                    weightsum += myInfo.baryWeights[1];
+                }
+                if (myInfo.baryWeights[2] != 0.0f && currentRoi[myInfo.nodes[2]] > 0.0f)
+                {
+                    weights[i][myInfo.nodes[2]] = myInfo.baryWeights[2];
+                    weightsum += myInfo.baryWeights[2];
+                }
+                if (weightsum != 0.0f)
+                {
+                    for (map<int, float>::iterator iter = weights[i].begin(); iter != weights[i].end(); ++iter)
+                    {
+                        iter->second /= weightsum;
+                    }
+                }
+            }
+        }
     }
 }

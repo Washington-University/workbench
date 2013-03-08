@@ -37,7 +37,6 @@ namespace caret {
     
     class SurfaceResamplingHelper
     {
-        SurfaceResamplingHelper();
         struct WeightElem
         {
             int node;
@@ -49,19 +48,24 @@ namespace caret {
         CaretArray<WeightElem*> m_weights;
         bool checkSphere(const SurfaceFile* surface);
         void changeRadius(const float& radius, const SurfaceFile* input, SurfaceFile* output);
-        void computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf);
-        void computeWeightsBarycentric(const SurfaceFile* currentSphere, const SurfaceFile* newSphere);
-        void makeBarycentricWeights(const SurfaceFile* from, const SurfaceFile* to, std::vector<std::map<int, float> >& weights);
+        void computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi);
+        void computeWeightsBarycentric(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const float* currentRoi);
+        void makeBarycentricWeights(const SurfaceFile* from, const SurfaceFile* to, std::vector<std::map<int, float> >& weights, const float* currentRoi);
         void compactWeights(const std::vector<std::map<int, float> >& weights);
     public:
+        SurfaceResamplingHelper() { }
         SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                const SurfaceFile* currentAreaSurf = NULL, const SurfaceFile* newAreaSurf = NULL);
-        ///resample real-valued data by means of weights
+                                const SurfaceFile* currentAreaSurf = NULL, const SurfaceFile* newAreaSurf = NULL, const float* currentRoi = NULL);
+        ///resample real-valued data by means of weights, optional roi in SOURCE mesh
         void resampleNormal(const float* input, float* output);
-        ///resample 3D coordinate data by means of weights
+        ///resample 3D coordinate data by means of weights, optional roi in SOURCE mesh
         void resample3DCoord(const float* input, float* output);
-        ///resample label-like data according to which value gets the largest weight sum
-        void resamplePopular(const int* input, int* output);
+        ///resample label-like data according to which value gets the largest weight sum, optional roi in SOURCE mesh
+        void resamplePopular(const int32_t* input, int32_t* output);
+        ///resample float data according to what weight is largest, optional roi in SOURCE mesh
+        void resampleLargest(const float* input, float* output);
+        ///resample int data according to what weight is largest, optional roi in SOURCE mesh
+        void resampleLargest(const int32_t* input, int32_t* output);
     };
 
 }

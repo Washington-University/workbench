@@ -61,6 +61,9 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant anatomical surface with <current-sphere> mesh");
     areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant anatomical surface with <new-sphere> mesh");
     
+    OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
+    roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
+    
     AString myHelpText =
         AString("Resamples a metric file, given two spherical surfaces that are in register.  ") +
         "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.\n\n" +
@@ -105,14 +108,19 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
         curArea = areaSurfsOpt->getSurface(1);
         newArea = areaSurfsOpt->getSurface(2);
     }
-    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea);
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
+    MetricFile* currentRoi = NULL;
+    if (roiOpt->m_present) currentRoi = roiOpt->getMetric(1);
+    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi);
 }
 
 AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curArea, const SurfaceFile* newArea) : AbstractAlgorithm(myProgObj)
+                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curArea, const SurfaceFile* newArea,
+                                                 const MetricFile* currentRoi) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (metricIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input metric has different number of nodes than input sphere");
+    if (currentRoi != NULL && currentRoi->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("roi metric has different number of nodes than input sphere");
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
@@ -126,7 +134,9 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     metricOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
     metricOut->setStructure(newSphere->getStructure());
     vector<float> colScratch(numNewNodes, 0.0f);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
+    const float* roiCol = NULL;
+    if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea, roiCol);
     for (int i = 0; i < numColumns; ++i)
     {
         metricOut->setColumnName(i, metricIn->getColumnName(i));
