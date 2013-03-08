@@ -15,7 +15,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 # of source code that should only be used within the Van Essen Lab and
 # others but not for a release to everybody.
 #
-ADD_DEFINITIONS(-DVELAB_INTERNAL_RELEASE_ONLY)
+#ADD_DEFINITIONS(-DVELAB_INTERNAL_RELEASE_ONLY)
 
 #
 # Setting the compiler MUST be done before the PROJECT
