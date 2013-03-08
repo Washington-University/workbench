@@ -153,7 +153,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
     }
     
     if (count > 0) {
-        std::cout << count << " objects were not deleted." << std::endl;
+        std::cout << std::dec << count << " objects were not deleted." << std::endl;
     }
 #endif
 }
