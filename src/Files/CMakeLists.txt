@@ -81,6 +81,8 @@ SurfaceProjectionBarycentric.h
 SurfaceProjectionVanEssen.h
 SurfaceProjector.h
 SurfaceProjectorException.h
+SurfaceResamplingHelper.h
+SurfaceResamplingMethodEnum.h
 SurfaceTypeEnum.h
 TimeLine.h
 TextFile.h
@@ -154,6 +156,8 @@ SurfaceProjectionBarycentric.cxx
 SurfaceProjectionVanEssen.cxx
 SurfaceProjector.cxx
 SurfaceProjectorException.cxx
+SurfaceResamplingHelper.cxx
+SurfaceResamplingMethodEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 TimeLine.cxx
