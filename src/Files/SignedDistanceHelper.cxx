@@ -43,37 +43,40 @@ float SignedDistanceHelper::dist(const float coord[3], WindingLogic myWinding)
     int numChanged = 0;
     while (!myHeap.isEmpty())
     {
-        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.pop();
-        if (curOct->m_leaf)
+        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.pop(&tempf);
+        if (first || tempf < bestTriDist)
         {
-            vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
-            int numTris = (int)myVecRef.size();
-            for (int i = 0; i < numTris; ++i)
+            if (curOct->m_leaf)
             {
-                if (m_triMarked[myVecRef[i]] != 1)
+                vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
+                int numTris = (int)myVecRef.size();
+                for (int i = 0; i < numTris; ++i)
                 {
-                    m_triMarked[myVecRef[i]] = 1;
-                    m_triMarkChanged[numChanged++] = myVecRef[i];
-                    tempf = unsignedDistToTri(coord, myVecRef[i], tempInfo);
-                    if (first || tempf < bestTriDist)
+                    if (m_triMarked[myVecRef[i]] != 1)
                     {
-                        bestInfo = tempInfo;
-                        bestTriDist = tempf;
-                        first = false;
-                    }
-                }
-            }
-        } else {
-            for (int ci = 0; ci < 2; ++ci)
-            {
-                for (int cj = 0; cj < 2; ++cj)
-                {
-                    for (int ck = 0; ck < 2; ++ck)
-                    {
-                        tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
+                        m_triMarked[myVecRef[i]] = 1;
+                        m_triMarkChanged[numChanged++] = myVecRef[i];
+                        tempf = unsignedDistToTri(coord, myVecRef[i], tempInfo);
                         if (first || tempf < bestTriDist)
                         {
-                            myHeap.push(curOct->m_children[ci][cj][ck], tempf);
+                            bestInfo = tempInfo;
+                            bestTriDist = tempf;
+                            first = false;
+                        }
+                    }
+                }
+            } else {
+                for (int ci = 0; ci < 2; ++ci)
+                {
+                    for (int cj = 0; cj < 2; ++cj)
+                    {
+                        for (int ck = 0; ck < 2; ++ck)
+                        {
+                            tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
+                            if (first || tempf < bestTriDist)
+                            {
+                                myHeap.push(curOct->m_children[ci][cj][ck], tempf);
+                            }
                         }
                     }
                 }
@@ -98,37 +101,40 @@ void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricI
     int numChanged = 0;
     while (!myHeap.isEmpty())
     {
-        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.pop();
-        if (curOct->m_leaf)
+        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.pop(&tempf);
+        if (first || tempf < bestTriDist)
         {
-            vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
-            int numTris = (int)myVecRef.size();
-            for (int i = 0; i < numTris; ++i)
+            if (curOct->m_leaf)
             {
-                if (m_triMarked[myVecRef[i]] != 1)
+                vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
+                int numTris = (int)myVecRef.size();
+                for (int i = 0; i < numTris; ++i)
                 {
-                    m_triMarked[myVecRef[i]] = 1;
-                    m_triMarkChanged[numChanged++] = myVecRef[i];
-                    tempf = unsignedDistToTri(coord, myVecRef[i], tempInfo);
-                    if (first || tempf < bestTriDist)
+                    if (m_triMarked[myVecRef[i]] != 1)
                     {
-                        bestInfo = tempInfo;
-                        bestTriDist = tempf;
-                        first = false;
-                    }
-                }
-            }
-        } else {
-            for (int ci = 0; ci < 2; ++ci)
-            {
-                for (int cj = 0; cj < 2; ++cj)
-                {
-                    for (int ck = 0; ck < 2; ++ck)
-                    {
-                        tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
+                        m_triMarked[myVecRef[i]] = 1;
+                        m_triMarkChanged[numChanged++] = myVecRef[i];
+                        tempf = unsignedDistToTri(coord, myVecRef[i], tempInfo);
                         if (first || tempf < bestTriDist)
                         {
-                            myHeap.push(curOct->m_children[ci][cj][ck], tempf);
+                            bestInfo = tempInfo;
+                            bestTriDist = tempf;
+                            first = false;
+                        }
+                    }
+                }
+            } else {
+                for (int ci = 0; ci < 2; ++ci)
+                {
+                    for (int cj = 0; cj < 2; ++cj)
+                    {
+                        for (int ck = 0; ck < 2; ++ck)
+                        {
+                            tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
+                            if (first || tempf < bestTriDist)
+                            {
+                                myHeap.push(curOct->m_children[ci][cj][ck], tempf);
+                            }
                         }
                     }
                 }
@@ -537,7 +543,7 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
     Vector3D v20 = verts[2] - verts[0];
     float sanity;
     Vector3D yhat = (v20 - xhat * xhat.dot(v20)).normal(&sanity);//now we have our orthogonal basis vectors for projection
-    if (sanity == 0.0f || xhat.dot(yhat) > 0.01f)//if our triangle is (mostly) degenerate, find the closest point on its edges instead of trying to project to the NaN plane
+    if (sanity == 0.0f || abs(xhat.dot(yhat)) > 0.01f)//if our triangle is (mostly) degenerate, find the closest point on its edges instead of trying to project to the NaN plane
     {
         bool first = true;
         float bestLengthSqr = -1.0f;//track best squared length from edge to PROJECTED point, still have to back-figure by including the distance out of the plane (or just subtract coords and take length)
@@ -582,16 +588,16 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
             j = i;//consecutive vertices, does 2,0 then 0,1 then 1,2
         }
     } else {
-        Vector3D zhat = xhat.cross(yhat);
         float vertxy[3][2];
         for (int i = 0; i < 3; ++i)//project everything to the new plane with basis vectors xhat, yhat
         {
-            vertxy[i][0] = xhat.dot(verts[i]);
-            vertxy[i][1] = yhat.dot(verts[i]);
+            vertxy[i][0] = xhat.dot(verts[i] - verts[0]);
+            vertxy[i][1] = yhat.dot(verts[i] - verts[0]);
         }
         bool inside = true;
-        float p[2] = { xhat.dot(point), yhat.dot(point) };
+        float p[2] = { xhat.dot(point - verts[0]), yhat.dot(point - verts[0]) };
         float bestxy[2];
+        float bestDist = -1.0f;
         for (int i = 0, j = 2, k = 1; i < 3; ++i)//start with the wraparound case
         {
             float norm[2] = { vertxy[j][0] - vertxy[i][0], vertxy[j][1] - vertxy[i][1] };
@@ -605,26 +611,66 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
                 direction[0] -= dot * norm[0];//direction is orthogonal to norm, in the direction of the third vertex
                 direction[1] -= dot * norm[1];
                 if (diff[0] * direction[0] + diff[1] * direction[1] < 0.0f)//if dot product with (projected point - vert[i]) is negative
-                {//we are outside the triangle, find the projection to this edge and break
-                    inside = false;
-                    dot = diff[0] * norm[0] + diff[1] * norm[1];
-                    if (dot <= 0.0f)
+                {//we are outside the triangle, find the projection to this edge and break if it is the second time or otherwise known to be finished
+                    if (bestDist < 0.0f)
                     {
-                        type = 0;
-                        node1 = triNodes[i];
-                        bestPoint = verts[i];
-                    } else if (dot >= edgelen) {
-                        type = 0;
-                        node1 = triNodes[j];
-                        bestPoint = verts[j];
+                        inside = false;
+                        dot = diff[0] * norm[0] + diff[1] * norm[1];
+                        if (dot <= 0.0f)//if closest point on this edge is an endpoint, it is possible for another edge that we count as outside of to have a closer point
+                        {
+                            type = 0;
+                            node1 = triNodes[i];
+                            bestPoint = verts[i];
+                            bestxy[0] = vertxy[i][0]; bestxy[1] = vertxy[i][1];
+                        } else if (dot >= edgelen) {
+                            type = 0;
+                            node1 = triNodes[j];
+                            bestPoint = verts[j];
+                            bestxy[0] = vertxy[j][0]; bestxy[1] = vertxy[j][1];
+                        } else {//if closest point on the edge is in the middle of the edge, nothing can be closer, break
+                            type = 1;
+                            node1 = triNodes[i];
+                            node2 = triNodes[j];
+                            bestxy[0] = vertxy[i][0] + dot * norm[0];
+                            bestxy[1] = vertxy[i][1] + dot * norm[1];
+                            break;
+                        }
+                        diff[0] = p[0] - bestxy[0]; diff[1] = p[1] - bestxy[1];
+                        bestDist = diff[0] * diff[0] + diff[1] * diff[1];
                     } else {
-                        type = 1;
-                        node1 = triNodes[i];
-                        node2 = triNodes[j];
-                        bestxy[0] = vertxy[i][0] + dot * norm[0];
-                        bestxy[1] = vertxy[i][1] + dot * norm[1];
+                        int tempnode1;
+                        Vector3D tempbestPoint;
+                        float tempxy[2];
+                        inside = false;
+                        dot = diff[0] * norm[0] + diff[1] * norm[1];
+                        if (dot <= 0.0f)
+                        {
+                            tempnode1 = triNodes[i];
+                            tempbestPoint = verts[i];
+                            tempxy[0] = vertxy[i][0]; tempxy[1] = vertxy[i][1];
+                        } else if (dot >= edgelen) {
+                            tempnode1 = triNodes[j];
+                            tempbestPoint = verts[j];
+                            tempxy[0] = vertxy[j][0]; tempxy[1] = vertxy[j][1];
+                        } else {//again, middle of edge always wins, don't bother with the extra test
+                            type = 1;
+                            node1 = triNodes[i];
+                            node2 = triNodes[j];
+                            bestxy[0] = vertxy[i][0] + dot * norm[0];
+                            bestxy[1] = vertxy[i][1] + dot * norm[1];
+                            break;
+                        }
+                        diff[0] = p[0] - tempxy[0]; diff[1] = p[1] - tempxy[1];
+                        float tempdist = diff[0] * diff[0] + diff[1] * diff[1];
+                        if (tempdist < bestDist)
+                        {
+                            type = 0;//if it were in the middle of the edge, we wouldn't be here
+                            node1 = tempnode1;
+                            bestPoint = tempbestPoint;
+                            bestxy[0] = tempxy[0]; bestxy[0] = tempxy[0];
+                        }
+                        break;//this is our second time outside an edge, we have now covered all 3 possible endpoints, so break
                     }
-                    break;
                 }
             } else {
                 if (diff[0] * direction[0] + diff[1] * direction[1] < 0.0f)//since we don't have an edge, we don't need to othrogonalize direction, or project to the edge
@@ -646,7 +692,7 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
         }
         if (type != 0)
         {
-            bestPoint = bestxy[0] * xhat + bestxy[1] * yhat + zhat * zhat.dot(verts[0]);
+            bestPoint = bestxy[0] * xhat + bestxy[1] * yhat + verts[0];
         }
     }
     Vector3D result = point - bestPoint;
