@@ -64,9 +64,15 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
     
+    ret->createOptionalParameter(8, "-largest", "use only the value of the largest weight");
+    
     AString myHelpText =
         AString("Resamples a metric file, given two spherical surfaces that are in register.  ") +
         "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.\n\n" +
+        "The -current-roi option only masks the input, the output may be slightly dilated in comparison, consider using -metric-mask on the output " +
+        "when using -current-roi.\n\n" +
+        "The -largest option results in nearest node behavior when used with BARYCENTRIC, instead of doing a weighted average, it uses the value " +
+        "of the source vertex that has the largest weight for each target vertex.  This is mainly intended for resampling ROI metrics.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
     vector<SurfaceResamplingMethodEnum::Enum> allEnums;
@@ -76,7 +82,7 @@ OperationParameters* AlgorithmMetricResample::getParameters()
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
     
-    myHelpText += "\nThe ADAP_BARY_AREA method is recommended for metric data, because it should use all data while downsampling, unlike BARYCENTRIC.";
+    myHelpText += "\nThe ADAP_BARY_AREA method is recommended for ordinary metric data, because it should use all data while downsampling, unlike BARYCENTRIC.";
     ret->setHelpText(myHelpText);
     return ret;
 }
@@ -111,12 +117,13 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
     MetricFile* currentRoi = NULL;
     if (roiOpt->m_present) currentRoi = roiOpt->getMetric(1);
-    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi);
+    bool largest = myParams->getOptionalParameter(8)->m_present;
+    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi, largest);
 }
 
 AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                  const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curArea, const SurfaceFile* newArea,
-                                                 const MetricFile* currentRoi) : AbstractAlgorithm(myProgObj)
+                                                 const MetricFile* currentRoi, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (metricIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input metric has different number of nodes than input sphere");
@@ -141,7 +148,12 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     {
         metricOut->setColumnName(i, metricIn->getColumnName(i));
         *metricOut->getPaletteColorMapping(i) = *metricIn->getPaletteColorMapping(i);
-        myHelp.resampleNormal(metricIn->getValuePointerForColumn(i), colScratch.data());
+        if (largest)
+        {
+            myHelp.resampleLargest(metricIn->getValuePointerForColumn(i), colScratch.data());
+        } else {
+            myHelp.resampleNormal(metricIn->getValuePointerForColumn(i), colScratch.data());
+        }
         metricOut->setValuesForColumn(i, colScratch.data());
     }
 }
