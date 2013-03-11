@@ -47,7 +47,7 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface-in", "the surface file to resample");
     
-    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the metric is currently on");
+    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the input surface is currently on");
     
     ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that is in register with <current-sphere> and has the desired output mesh");
     

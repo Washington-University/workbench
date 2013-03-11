@@ -49,7 +49,7 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addLabelParameter(1, "label-in", "the label file to resample");
     
-    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the metric is currently on");
+    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the label file is currently on");
     
     ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that is in register with <current-sphere> and has the desired output mesh");
     
