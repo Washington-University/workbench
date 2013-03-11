@@ -56,15 +56,15 @@ namespace caret {
         SurfaceResamplingHelper() { }
         SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
                                 const SurfaceFile* currentAreaSurf = NULL, const SurfaceFile* newAreaSurf = NULL, const float* currentRoi = NULL);
-        ///resample real-valued data by means of weights, optional roi in SOURCE mesh
+        ///resample real-valued data by means of weights
         void resampleNormal(const float* input, float* output);
-        ///resample 3D coordinate data by means of weights, optional roi in SOURCE mesh
+        ///resample 3D coordinate data by means of weights
         void resample3DCoord(const float* input, float* output);
-        ///resample label-like data according to which value gets the largest weight sum, optional roi in SOURCE mesh
+        ///resample label-like data according to which value gets the largest weight sum
         void resamplePopular(const int32_t* input, int32_t* output);
-        ///resample float data according to what weight is largest, optional roi in SOURCE mesh
+        ///resample float data according to what weight is largest
         void resampleLargest(const float* input, float* output);
-        ///resample int data according to what weight is largest, optional roi in SOURCE mesh
+        ///resample int data according to what weight is largest
         void resampleLargest(const int32_t* input, int32_t* output);
     };
 

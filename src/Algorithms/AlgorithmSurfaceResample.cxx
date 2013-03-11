@@ -22,32 +22,30 @@
  *
  */
 
-#include "AlgorithmLabelResample.h"
+#include "AlgorithmSurfaceResample.h"
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
-#include "GiftiLabelTable.h"
-#include "LabelFile.h"
 #include "SurfaceFile.h"
 #include "SurfaceResamplingHelper.h"
 
 using namespace caret;
 using namespace std;
 
-AString AlgorithmLabelResample::getCommandSwitch()
+AString AlgorithmSurfaceResample::getCommandSwitch()
 {
-    return "-label-resample";
+    return "-surface-resample";
 }
 
-AString AlgorithmLabelResample::getShortDescription()
+AString AlgorithmSurfaceResample::getShortDescription()
 {
-    return "RESAMPLE A LABEL FILE TO A DIFFERENT MESH";
+    return "RESAMPLE A SURFACE TO A DIFFERENT MESH";
 }
 
-OperationParameters* AlgorithmLabelResample::getParameters()
+OperationParameters* AlgorithmSurfaceResample::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addLabelParameter(1, "label-in", "the label file to resample");
+    ret->addSurfaceParameter(1, "surface-in", "the surface file to resample");
     
     ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the metric is currently on");
     
@@ -55,19 +53,17 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     
     ret->addStringParameter(4, "method", "the method name");
     
-    ret->addLabelOutputParameter(5, "label-out", "the output label file");
+    ret->addSurfaceOutputParameter(5, "surface-out", "the output surface file");
     
+    //TODO: figure out if this should be here
     OptionalParameter* areaSurfsOpt = ret->createOptionalParameter(6, "-area-surfs", "specify surfaces to do vertex area correction based on");
-    areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant anatomical surface with <current-sphere> mesh");
-    areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant anatomical surface with <new-sphere> mesh");
-    
-    ret->createOptionalParameter(7, "-largest", "use only the label of the vertex with the largest weight");
+    areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant surface with <current-sphere> mesh");
+    areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant surface with <new-sphere> mesh");
     
     AString myHelpText =
-        AString("Resamples a label file, given two spherical surfaces that are in register.  ") +
-        "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.\n\n" +
-        "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, it uses the value of the source vertex that has the largest weight.  " +
-        "When -largest is not specified, the vertex weights are summed according to which label they correspond to, and the label with the largest sum is used.\n\n" +
+        AString("Resamples a surface file, given two spherical surfaces that are in register.  ") +
+        "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.  " +
+        "This option is not used in normal circumstances, but is provided for completeness.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
     vector<SurfaceResamplingMethodEnum::Enum> allEnums;
@@ -77,14 +73,15 @@ OperationParameters* AlgorithmLabelResample::getParameters()
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
     
-    myHelpText += "\nThe ADAP_BARY_AREA method is recommended for label data, because it should be better at resolving vertices that are near multiple labels, or in case of downsampling.";
+    myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.  ") +
+        "For resampling a spherical surface, ADAP_BARY_AREA is recommended, followed by restoring sphericity without recentering.";
     ret->setHelpText(myHelpText);
     return ret;
 }
 
-void AlgorithmLabelResample::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmSurfaceResample::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    LabelFile* labelIn = myParams->getLabel(1);
+    SurfaceFile* surfaceIn = myParams->getSurface(1);
     SurfaceFile* curSphere = myParams->getSurface(2);
     SurfaceFile* newSphere = myParams->getSurface(3);
     bool ok = false;
@@ -93,7 +90,7 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
     {
         throw AlgorithmException("invalid method name");
     }
-    LabelFile* labelOut = myParams->getOutputLabel(5);
+    SurfaceFile* surfaceOut = myParams->getOutputSurface(5);
     SurfaceFile* curArea = curSphere, *newArea = newSphere;
     OptionalParameter* areaSurfsOpt = myParams->getOptionalParameter(6);
     if (areaSurfsOpt->m_present)
@@ -109,16 +106,14 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
         curArea = areaSurfsOpt->getSurface(1);
         newArea = areaSurfsOpt->getSurface(2);
     }
-    bool largest = myParams->getOptionalParameter(7)->m_present;
-    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curArea, newArea, largest);
+    AlgorithmSurfaceResample(myProgObj, surfaceIn, curSphere, newSphere, myMethod, surfaceOut, curArea, newArea);
 }
 
-AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const LabelFile* labelIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                               const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const SurfaceFile* curArea,
-                                               const SurfaceFile* newArea, const bool& largest) : AbstractAlgorithm(myProgObj)
+AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, const SurfaceFile* surfaceIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
+                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curArea, const SurfaceFile* newArea) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (labelIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input label file has different number of nodes than input sphere");
+    if (surfaceIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input surface has different number of nodes than input sphere");
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
@@ -128,31 +123,22 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
             if (curSphere->getNumberOfNodes() != curArea->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
             if (newSphere->getNumberOfNodes() != newArea->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
     }
-    int numColumns = labelIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
-    labelOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
-    labelOut->setStructure(newSphere->getStructure());
-    *labelOut->getLabelTable() = *labelIn->getLabelTable();
-    vector<int32_t> colScratch(numNewNodes, 0.0f);
+    int numNewNodes = newSphere->getNumberOfNodes();
+    *surfaceOut = *newSphere;
+    surfaceOut->setStructure(newSphere->getStructure());
+    surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
+    vector<float> coordScratch(numNewNodes * 3, 0.0f);
     SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
-    for (int i = 0; i < numColumns; ++i)
-    {
-        labelOut->setColumnName(i, labelIn->getColumnName(i));
-        if (largest)
-        {
-            myHelp.resampleLargest(labelIn->getLabelKeyPointerForColumn(i), colScratch.data());
-        } else {
-            myHelp.resamplePopular(labelIn->getLabelKeyPointerForColumn(i), colScratch.data());
-        }
-        labelOut->setLabelKeysForColumn(i, colScratch.data());
-    }
+    myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
+    surfaceOut->setCoordinates(coordScratch.data(), numNewNodes);
 }
 
-float AlgorithmLabelResample::getAlgorithmInternalWeight()
+float AlgorithmSurfaceResample::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmLabelResample::getSubAlgorithmWeight()
+float AlgorithmSurfaceResample::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
