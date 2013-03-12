@@ -377,9 +377,10 @@ void MetricSmoothingObject::precomputeWeightsGeoGaussArea(const SurfaceFile* myS
         for (int32_t i = 0; i < numNodes; ++i)
         {
             myGeoHelp->getNodesToGeoDist(i, myGeoDist, tempList[i].m_nodes, distances, true);
-            if (distances.size() < 7)
+            const vector<int32_t>& tempneighbors = myTopoHelp->getNodeNeighbors(i);
+            if (distances.size() <= tempneighbors.size())//because neighbors doesn't include center, so if they are equal, geo is missing a neighbor
             {
-                tempList[i].m_nodes = myTopoHelp->getNodeNeighbors(i);
+                tempList[i].m_nodes = tempneighbors;
                 tempList[i].m_nodes.push_back(i);
                 myGeoHelp->getGeoToTheseNodes(i, tempList[i].m_nodes, distances, true);
             }
@@ -444,9 +445,10 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* 
             if (myRoiColumn[i] > 0.0f)//we don't need to scatter from things outside the ROI
             {
                 myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
-                if (distances.size() < 7)
+                const vector<int32_t>& tempneighbors = myTopoHelp->getNodeNeighbors(i);
+                if (distances.size() <= tempneighbors.size())//because neighbors doesn't include center, so if they are equal, geo is missing a neighbor
                 {
-                    nodes = myTopoHelp->getNodeNeighbors(i);
+                    tempList[i].m_nodes = tempneighbors;
                     nodes.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
                 }
