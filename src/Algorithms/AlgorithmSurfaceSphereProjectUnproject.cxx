@@ -88,6 +88,7 @@ AlgorithmSurfaceSphereProjectUnproject::AlgorithmSurfaceSphereProjectUnproject(P
     int numNodes = sphereIn->getNumberOfNodes();
     vector<float> outCoords(numNodes * 3);
     *sphereOut = *sphereIn;
+    sphereOut->setStructure(unprojectSphere->getStructure());
     CaretPointer<SignedDistanceHelper> myHelper = projectMod.getSignedDistanceHelper();
     for (int i = 0; i < numNodes; ++i)
     {
