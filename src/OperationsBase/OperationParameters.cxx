@@ -354,25 +354,25 @@ FociFile* ParameterComponent::getOutputFoci(const int32_t key)
     return ((FociParameter*)getOutputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
-double* ParameterComponent::getOutputDouble(const int32_t key)
+/*double* ParameterComponent::getOutputDouble(const int32_t key)
 {
     return &(((DoubleParameter*)getOutputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter);
-}
+}//*/
 
-int64_t* ParameterComponent::getOutputInteger(const int32_t key)
+/*int64_t* ParameterComponent::getOutputInteger(const int32_t key)
 {
     return &(((IntegerParameter*)getOutputParameter(key, OperationParametersEnum::INT))->m_parameter);
-}
+}//*/
 
 LabelFile* ParameterComponent::getOutputLabel(const int32_t key)
 {
     return ((LabelParameter*)getOutputParameter(key, OperationParametersEnum::LABEL))->m_parameter.getPointer();
 }
 
-AString* ParameterComponent::getOutputString(const int32_t key)
+/*AString* ParameterComponent::getOutputString(const int32_t key)
 {
     return &(((StringParameter*)getOutputParameter(key, OperationParametersEnum::STRING))->m_parameter);
-}
+}//*/
 
 SurfaceFile* ParameterComponent::getOutputSurface(const int32_t key)
 {
