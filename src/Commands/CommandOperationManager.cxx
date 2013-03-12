@@ -59,6 +59,7 @@
 #include "AlgorithmSurfaceApplyWarpfield.h"
 #include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmSurfaceMatch.h"
+#include "AlgorithmSurfaceModifySphere.h"
 #include "AlgorithmSurfaceResample.h"
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
 #include "AlgorithmSurfaceWedgeVolume.h"
@@ -203,6 +204,7 @@ CommandOperationManager::CommandOperationManager()
 #endif // VELAB_INTERNAL_RELEASE_ONLY
 
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceModifySphere()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
