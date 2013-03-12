@@ -74,7 +74,7 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     }
     
     myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.  ") +
-        "For resampling a spherical surface, ADAP_BARY_AREA is recommended, followed by restoring sphericity without recentering.";
+        "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended when applicable.";
     ret->setHelpText(myHelpText);
     return ret;
 }
