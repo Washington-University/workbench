@@ -160,9 +160,12 @@ namespace caret {
         bool okButtonClickedManageFiles();
         
         void changeFileName(QWidget* parent,
-                            const int indx);
+                            SpecFileDataFile* specFileDataFile,
+                            CaretDataFile* caretDataFile);
         
         void updateTableDimensionsToFitFiles();
+        
+        QTableWidgetItem* createHeaderTextItem(const QString& text);
         
         QTableWidgetItem* createTextItem();
         
@@ -204,17 +207,7 @@ namespace caret {
         std::vector<TableRowDataFileContent*> m_tableRowDataFileContent;
         
         int m_specFileTableRowIndex;
-        
-        QTableWidgetItem* m_specFileSaveCheckedItem;
-        
-        QTableWidgetItem* m_specFileStatusItem;
-        
-        QTableWidgetItem* m_specFileNameItem;
-        
-        QToolButton* m_specFileOptionsToolButton;
-        
-        QToolButton* m_chooseSpecFileToolButton;
-        
+                
         QSignalMapper* m_fileReloadOrOpenFileActionSignalMapper;
         
         QSignalMapper* m_fileRemoveFileActionSignalMapper;

@@ -51,6 +51,9 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * Note: If reload fails, the caretDataFile WILL BE DELETED and the pointer
+ * must no longer be deferenced.
+ *
  * @param brain
  *    Brain into which file is reloaded.
  * @param caretDataFile

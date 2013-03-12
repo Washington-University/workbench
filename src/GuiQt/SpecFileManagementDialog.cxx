@@ -37,8 +37,10 @@
 #undef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
 
 #include <QAction>
+#include <QBrush>
 #include <QCheckBox>
 #include <QDialogButtonBox>
+#include <QFontDatabase>
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -433,14 +435,6 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
 {
     QTableWidgetItem* item = getTableWidgetItem(rowIndex, columnIndex);
     if (item != NULL) {
-        std::cout << "Text: "
-        << qPrintable(item->text())
-        << " Flags:"
-        << QString::number(item->flags(), 16)
-        << " Checked: "
-        << AString::fromBool(WuQtUtilities::checkStateToBool(item->checkState()))
-        << std::endl;
-        
         /*
          * Is this the row containing the spec file?
          */
@@ -521,48 +515,123 @@ SpecFileManagementDialog::setTableWidgetItem(const int rowIndex,
 void
 SpecFileManagementDialog::setTableColumnLabels()
 {
+//    /*
+//     * Set names of table's columns
+//     */
+//    QStringList tableWidgetColumnLabels;
+//    tableWidgetColumnLabels.reserve(m_COLUMN_COUNT);
+//    for (int32_t i = 0; i < m_COLUMN_COUNT; i++) {
+//        tableWidgetColumnLabels.append("");
+//    }
+//    if (m_COLUMN_LOAD_CHECKBOX >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_LOAD_CHECKBOX, "Load");
+//    }
+//    if (m_COLUMN_SAVE_CHECKBOX >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_SAVE_CHECKBOX, "Save");
+//    }
+//    if (m_COLUMN_STATUS_LABEL >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_STATUS_LABEL, "Modified");
+//    }
+//    if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_IN_SPEC_FILE_CHECKBOX, "In Spec");
+//    }
+//    if (m_COLUMN_READ_BUTTON >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_READ_BUTTON, "Read");
+//    }
+//    if (m_COLUMN_REMOVE_BUTTON >= 0) {
+//        tableWidgetColumnLabels.replace(m_COLUMN_REMOVE_BUTTON, "Remove");
+//    }
+//    if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_OPTIONS_TOOLBUTTON, "More");
+//    }
+//    if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_DATA_FILE_TYPE_LABEL, "Data Type");
+//    }
+//    if (m_COLUMN_STRUCTURE >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_STRUCTURE, "Structure");
+//    }
+//    if (m_COLUMN_FILE_NAME_LABEL >= 0){
+//        tableWidgetColumnLabels.replace(m_COLUMN_FILE_NAME_LABEL, "Data File Name");
+//    }
+//    
+//    m_filesTableWidget->setHorizontalHeaderLabels(tableWidgetColumnLabels);
+    
     /*
      * Set names of table's columns
      */
-    QStringList tableWidgetColumnLabels;
-    tableWidgetColumnLabels.reserve(m_COLUMN_COUNT);
-    for (int32_t i = 0; i < m_COLUMN_COUNT; i++) {
-        tableWidgetColumnLabels.append("");
-    }
     if (m_COLUMN_LOAD_CHECKBOX >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_LOAD_CHECKBOX, "Load");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_LOAD_CHECKBOX,
+                                                    createHeaderTextItem("Load"));
     }
     if (m_COLUMN_SAVE_CHECKBOX >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_SAVE_CHECKBOX, "Save");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_SAVE_CHECKBOX,
+                                                    createHeaderTextItem("Save"));
     }
     if (m_COLUMN_STATUS_LABEL >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_STATUS_LABEL, "Modified");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_STATUS_LABEL,
+                                                    createHeaderTextItem("Modified"));
     }
     if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_IN_SPEC_FILE_CHECKBOX, "In Spec");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_IN_SPEC_FILE_CHECKBOX,
+                                                    createHeaderTextItem("In Spec"));
     }
     if (m_COLUMN_READ_BUTTON >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_READ_BUTTON, "Read");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_READ_BUTTON,
+                                                    createHeaderTextItem("Read"));
     }
     if (m_COLUMN_REMOVE_BUTTON >= 0) {
-        tableWidgetColumnLabels.replace(m_COLUMN_REMOVE_BUTTON, "Remove");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_REMOVE_BUTTON,
+                                                    createHeaderTextItem("Remove"));
     }
     if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_OPTIONS_TOOLBUTTON, "More");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_OPTIONS_TOOLBUTTON,
+                                                    createHeaderTextItem("More"));
     }
     if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_DATA_FILE_TYPE_LABEL, "Data Type");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_DATA_FILE_TYPE_LABEL,
+                                                    createHeaderTextItem("Data Type"));
     }
     if (m_COLUMN_STRUCTURE >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_STRUCTURE, "Structure");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_STRUCTURE,
+                                                    createHeaderTextItem("Structure"));
     }
     if (m_COLUMN_FILE_NAME_LABEL >= 0){
-        tableWidgetColumnLabels.replace(m_COLUMN_FILE_NAME_LABEL, "Data File Name");
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_FILE_NAME_LABEL,
+                                                    createHeaderTextItem("Data File Name"));
     }
-    
-    m_filesTableWidget->setHorizontalHeaderLabels(tableWidgetColumnLabels);
 }
 
+/**
+ * @return A table widget item used in the column header.
+ *
+ * @param text
+ *    Text for the item.
+ * @return
+      Table widget item containing the given text.
+ */
+QTableWidgetItem*
+SpecFileManagementDialog::createHeaderTextItem(const QString& text)
+{
+    QList<int> sizesList = QFontDatabase::standardSizes();
+    std::sort(sizesList.begin(), sizesList.end());
+    
+    QTableWidgetItem* item = createTextItem();
+    item->setText(text);
+    QFont font = item->font();
+    
+    QListIterator<int> sizeIter(sizesList);
+    while (sizeIter.hasNext()) {
+        const int nextSize = sizeIter.next();
+        if (nextSize > font.pointSize()) {
+            font.setPointSize(nextSize);
+            break;
+        }
+    }
+    
+    font.setBold(true);
+    item->setFont(font);
+    return item;
+}
 
 /**
  * Load items into the table widget adding rows as needed.
@@ -593,9 +662,14 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
     /*
      * If the number of rows has not changed, no need to update table dimensions
      */
+    bool needToCreateColumnHeaders = false;
     if (numberOfRows == m_filesTableWidget->rowCount()) {
         return;
     }
+    else if (m_filesTableWidget->rowCount() == 0) {
+        needToCreateColumnHeaders = true;
+    }
+    
     
     /*
      * Update the dimensions of the table
@@ -606,7 +680,9 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
     m_filesTableWidget->verticalHeader()->hide();
     m_filesTableWidget->setGridStyle(Qt::NoPen);
     m_filesTableWidget->setSortingEnabled(false);
-    setTableColumnLabels();
+    if (needToCreateColumnHeaders) {
+        setTableColumnLabels();
+    }
     const int32_t lastNewRowIndex  = m_filesTableWidget->rowCount(); // value changed by setRowCount()
     
     /*
@@ -617,29 +693,44 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
         
         if (isDataFileRow) {
             if (m_COLUMN_LOAD_CHECKBOX >= 0) {
+                QTableWidgetItem* item = createCheckableItem();
+                item->setTextAlignment(Qt::AlignHCenter);
                 setTableWidgetItem(iRow,
                                    m_COLUMN_LOAD_CHECKBOX,
-                                   createCheckableItem());
+                                   item);
             }
         }
 
         if (m_COLUMN_SAVE_CHECKBOX >= 0) {
+            QTableWidgetItem* item = createCheckableItem();
+            item->setTextAlignment(Qt::AlignHCenter);
             setTableWidgetItem(iRow,
                                m_COLUMN_SAVE_CHECKBOX,
-                               createCheckableItem());
+                               item);
         }
         
         if (m_COLUMN_STATUS_LABEL >= 0) {
+            QTableWidgetItem* item = createTextItem();
             setTableWidgetItem(iRow,
-                                        m_COLUMN_STATUS_LABEL,
-                                        createTextItem());
+                               m_COLUMN_STATUS_LABEL,
+                               item);
+            
+            /*
+             * Text for modified cell is always red and centered
+             */
+            item->setTextAlignment(Qt::AlignHCenter);
+            QBrush modifiedBrush = item->foreground();
+            modifiedBrush.setColor(Qt::red);
+            item->setForeground(modifiedBrush);
         }
         
         if (isDataFileRow) {
             if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0) {
+                QTableWidgetItem* item = createCheckableItem();
+                item->setTextAlignment(Qt::AlignHCenter);
                 setTableWidgetItem(iRow,
                                    m_COLUMN_IN_SPEC_FILE_CHECKBOX,
-                                   createCheckableItem());
+                                   item);
             }
             if (m_COLUMN_READ_BUTTON >= 0) {
                 QAction* loadFileAction = WuQtUtilities::createAction("Reload",
@@ -736,9 +827,14 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                                                             m_COLUMN_FILE_NAME_LABEL);
             CaretAssert(nameItem);
             
-            FileInformation fileInfo(m_specFile->getFileName());
-            const AString path = fileInfo.getAbsolutePath();
-            const AString name = fileInfo.getFileName();
+            const AString specFileName = m_specFile->getFileName();
+            AString path;
+            AString name;
+            if (specFileName.isEmpty() == false) {
+                FileInformation fileInfo(specFileName);
+                path = fileInfo.getAbsolutePath();
+                name = fileInfo.getFileName();
+            }
             
             nameItem->setText(name);
             nameItem->setToolTip(path);
@@ -961,7 +1057,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 }
                                 
                 /*
-                 * Status label
+                 * Status label.
                  */
                 CaretAssert(m_COLUMN_STATUS_LABEL >= 0);
                 QTableWidgetItem* statusItem = getTableWidgetItem(rowIndex,
@@ -1282,7 +1378,10 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
 //        }
 //    }
     
-    if (m_specFileSaveCheckedItem->checkState() == Qt::Checked) {
+    CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
+    QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
+                                                    m_COLUMN_SAVE_CHECKBOX);
+    if (saveItem->checkState() == Qt::Checked) {
         AString specFileName = m_specFile->getFileName();
         if (m_specFile->getFileName().isEmpty()) {
             errorMessages.appendWithNewLine("Spec File name is empty.");
@@ -1292,7 +1391,7 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
             if (specFileErrorMessage.isEmpty() == false) {
                 errorMessages.appendWithNewLine(specFileErrorMessage);
             }
-            m_specFileSaveCheckedItem->setCheckState(Qt::Unchecked);
+            saveItem->setCheckState(Qt::Unchecked);
         }
     }
     
@@ -1347,8 +1446,18 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
     TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
     SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
     
-    CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
-    GuiManager::get()->getBrain()->removeDataFile(cdf);
+    QWidget* removeButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
+                                                               m_COLUMN_REMOVE_BUTTON);
+    CaretAssert(removeButtonWidget);
+    CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+    if (caretDataFile->isModified()) {
+        const QString msg = (caretDataFile->getFileNameNoPath()
+                             + " is modified.  Remove without saving changes?");
+        if (WuQMessageBox::warningOkCancel(removeButtonWidget, msg) == false) {
+            return;
+        }
+    }
+    GuiManager::get()->getBrain()->removeDataFile(caretDataFile);
     loadSpecFileContentIntoDialog();
     updateGraphicWindowsAndUserInterface();
 }
@@ -1387,8 +1496,6 @@ SpecFileManagementDialog::getFileContentInRow(const int rowIndex)
 void
 SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
 {
-    std::cout << "File open/reload row: " << rowIndex << std::endl;
-    
     TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
     SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
     
@@ -1396,17 +1503,27 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
                                                                m_COLUMN_READ_BUTTON);
     CaretAssert(toolButtonWidget);
     
+    AString errorMessage;
+    
     CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
     if (caretDataFile != NULL) {
+        if (caretDataFile->isModified()) {
+            const QString msg = (caretDataFile->getFileNameNoPath()
+                                 + " is modified.  Reopen without saving changes?");
+            if (WuQMessageBox::warningOkCancel(toolButtonWidget, msg) == false) {
+                return;
+            }
+        }
+        
+        specFileDataFile->setSavingSelected(false);
+        
         EventDataFileReload reloadEvent(m_brain,
                                         caretDataFile);
         EventManager::get()->sendEvent(reloadEvent.getPointer());
         
         if (reloadEvent.isError()) {
-            WuQMessageBox::errorOk(toolButtonWidget,
-                                   reloadEvent.getErrorMessage());
+            errorMessage.appendWithNewLine(reloadEvent.getErrorMessage());
         }
-        specFileDataFile->setSavingSelected(false);
     }
     else {
         EventDataFileRead readEvent(m_brain,
@@ -1418,19 +1535,22 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         EventManager::get()->sendEvent(readEvent.getPointer());
         
         if (readEvent.isError()) {
-            WuQMessageBox::errorOk(toolButtonWidget,
-                                   readEvent.getErrorMessage());
+            errorMessage.appendWithNewLine(readEvent.getErrorMessage());
         }
         
         if (readEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
-            WuQMessageBox::errorOk(toolButtonWidget,
-                                   readEvent.getAddToSpecFileErrorMessages());
+            errorMessage.appendWithNewLine(readEvent.getAddToSpecFileErrorMessages());
         }
     }
+    
+    updateGraphicWindowsAndUserInterface();
 
     loadSpecFileContentIntoDialog();
     
-    updateGraphicWindowsAndUserInterface();
+    if (errorMessage.isEmpty() == false) {
+        WuQMessageBox::errorOk(toolButtonWidget,
+                               errorMessage);
+    }
 }
 
 /**
@@ -1454,87 +1574,118 @@ SpecFileManagementDialog::updateGraphicWindowsAndUserInterface()
 void
 SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
 {
-    std::cout << "File options row: " << rowIndex << std::endl;
-    
-    TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
-    SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
-    CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
-    CaretMappableDataFile* caretMappableDataFile = NULL;
-    if (caretDataFile != NULL) {
-        caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
-    }
-    
-    QAction* editMetaDataAction = NULL;
-    QAction* setFileNameAction = NULL;
-    QAction* setStructureAction = NULL;
-    //QAction* unloadFileAction = NULL;
-    QAction* unloadFileMapsAction = NULL;
-    QAction* viewMetaDataAction = NULL;
-    
-    QMenu menu;
-    switch (m_dialogMode) {
-        case MODE_MANAGE_FILES:
-            if (caretDataFile != NULL) {
-                editMetaDataAction = menu.addAction("Edit Metadata...");
-                setFileNameAction = menu.addAction("Set File Name...");
-//                unloadFileAction = menu.addAction("Unload File");
-                if (caretMappableDataFile != NULL) {
-                    unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
-                    unloadFileMapsAction->setEnabled(false);
-                }
-            }
-            else {
-                viewMetaDataAction = menu.addAction("View Metadata...");
-                viewMetaDataAction->setEnabled(false);
-            }
-            break;
-        case MODE_OPEN_SPEC_FILE:
-            setStructureAction = menu.addAction("Set Structure...");
-            setStructureAction->setEnabled(false);
-            viewMetaDataAction = menu.addAction("View Metadata...");
-            viewMetaDataAction->setEnabled(false);
-            break;
-    }
-    
-    QAction* selectedAction = menu.exec(QCursor::pos());
-    
-    if (selectedAction == NULL) {
-        /*
-         * If the selected action is NULL, it indicates that the user did
-         * not make a selection.  This test is needed as some of the actions
-         * (such as setFileNameAction) may be NULL and with out this test,
-         * those NULL actions would match.
-         */
-    }
-    else if (selectedAction == setFileNameAction) {
-        changeFileName(&menu,
-                       rowIndex);
-    }
-    else if (selectedAction == setStructureAction) {
-        CaretAssert(0);
-    }
-//    else if (selectedAction == unloadFileAction) {
-//        CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
-//        GuiManager::get()->getBrain()->removeDataFile(cdf);
-//        loadSpecFileContentIntoDialog();
-//        updateGraphicWindowsAndUserInterface();
-//    }
-    else if (selectedAction == unloadFileMapsAction) {
+    if (rowIndex == m_specFileTableRowIndex) {
+        QMenu menu;
+        QAction* editMetaDataAction = menu.addAction("Edit Metadata...");;
+        QAction* setFileNameAction = menu.addAction("Set File Name...");
+
+        QAction* selectedAction = menu.exec(QCursor::pos());
         
-    }
-    else if (selectedAction == editMetaDataAction) {
-        if (caretDataFile != NULL) {
-            MetaDataEditorDialog mded(caretDataFile,
+        if (selectedAction == NULL) {
+            /*
+             * If the selected action is NULL, it indicates that the user did
+             * not make a selection.  This test is needed as some of the actions
+             * (such as setFileNameAction) may be NULL and with out this test,
+             * those NULL actions would match.
+             */
+        }
+        else if (selectedAction == setFileNameAction) {
+            changeFileName(&menu,
+                           NULL,
+                           m_specFile);
+        }
+        else if (selectedAction == editMetaDataAction) {
+            MetaDataEditorDialog mded(m_specFile,
                                       &menu);
             mded.exec();
         }
+        else if (selectedAction != NULL) {
+            CaretAssertMessage(0,
+                               ("Unhandled Menu Action: " + selectedAction->text()));
+        }
     }
-    else if (selectedAction == viewMetaDataAction) {
+    else {
+        TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+        SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
+        CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+        CaretMappableDataFile* caretMappableDataFile = NULL;
+        if (caretDataFile != NULL) {
+            caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+        }
         
-    }
-    else if (selectedAction != NULL) {
-        CaretAssertMessage(0,
-                           ("Unhandled Menu Action: " + selectedAction->text()));
+        QAction* editMetaDataAction = NULL;
+        QAction* setFileNameAction = NULL;
+        QAction* setStructureAction = NULL;
+        //QAction* unloadFileAction = NULL;
+        QAction* unloadFileMapsAction = NULL;
+        QAction* viewMetaDataAction = NULL;
+        
+        QMenu menu;
+        switch (m_dialogMode) {
+            case MODE_MANAGE_FILES:
+                if (caretDataFile != NULL) {
+                    editMetaDataAction = menu.addAction("Edit Metadata...");
+                    setFileNameAction = menu.addAction("Set File Name...");
+                    //                unloadFileAction = menu.addAction("Unload File");
+                    if (caretMappableDataFile != NULL) {
+                        unloadFileMapsAction = menu.addAction("Unload Map(s) from File");
+                        unloadFileMapsAction->setEnabled(false);
+                    }
+                }
+                else {
+                    viewMetaDataAction = menu.addAction("View Metadata...");
+                    viewMetaDataAction->setEnabled(false);
+                }
+                break;
+            case MODE_OPEN_SPEC_FILE:
+                setStructureAction = menu.addAction("Set Structure...");
+                setStructureAction->setEnabled(false);
+                viewMetaDataAction = menu.addAction("View Metadata...");
+                viewMetaDataAction->setEnabled(false);
+                break;
+        }
+        
+        QAction* selectedAction = menu.exec(QCursor::pos());
+        
+        if (selectedAction == NULL) {
+            /*
+             * If the selected action is NULL, it indicates that the user did
+             * not make a selection.  This test is needed as some of the actions
+             * (such as setFileNameAction) may be NULL and with out this test,
+             * those NULL actions would match.
+             */
+        }
+        else if (selectedAction == setFileNameAction) {
+            changeFileName(&menu,
+                           specFileDataFile,
+                           caretDataFile);
+        }
+        else if (selectedAction == setStructureAction) {
+            CaretAssert(0);
+        }
+        //    else if (selectedAction == unloadFileAction) {
+        //        CaretDataFile* cdf = specFileDataFile->getCaretDataFile();
+        //        GuiManager::get()->getBrain()->removeDataFile(cdf);
+        //        loadSpecFileContentIntoDialog();
+        //        updateGraphicWindowsAndUserInterface();
+        //    }
+        else if (selectedAction == unloadFileMapsAction) {
+            
+        }
+        else if (selectedAction == editMetaDataAction) {
+            if (caretDataFile != NULL) {
+                MetaDataEditorDialog mded(caretDataFile,
+                                          &menu);
+                mded.exec();
+            }
+        }
+        else if (selectedAction == viewMetaDataAction) {
+            
+        }
+        else if (selectedAction != NULL) {
+            CaretAssertMessage(0,
+                               ("Unhandled Menu Action: " + selectedAction->text()));
+        }
     }
 }
 
@@ -1543,39 +1694,46 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
  *
  * @param parent
  *   Widget on which file dialog is displayed.
- * @param rowIndex
- *   Index of item selected.
+ * @param specFileDataFile
+ *   Entry in spec file (NULL if caretDataFile is spec file).
+ * @param caretDataFileIn
+ *   Caret Data File that is having name changed.
  */
 void
 SpecFileManagementDialog::changeFileName(QWidget* parent,
-                                         const int rowIndex)
+                                         SpecFileDataFile* specFileDataFile,
+                                         CaretDataFile* caretDataFileIn)
 {
-    std::cout << "File name row: " << rowIndex << std::endl;
-    TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
-    SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
+    CaretDataFile* caretDataFile = caretDataFileIn;
+    CaretAssert(caretDataFile);
+    if (caretDataFile != m_specFile) {
+        CaretAssert(m_specFile);
+    }
     
     QStringList filenameFilterList;
-    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(specFileDataFile->getDataFileType()));
+    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(caretDataFile->getDataFileType()));
     CaretFileDialog fd(parent);
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::AnyFile);
     fd.setViewMode(CaretFileDialog::List);
-    fd.selectFile(specFileDataFile->getFileName());
+    fd.selectFile(caretDataFile->getFileName());
     fd.setLabelText(CaretFileDialog::Accept, "Choose");
     fd.setWindowTitle("Choose File Name");
     if (fd.exec() == CaretFileDialog::Accepted) {
         QStringList files = fd.selectedFiles();
         if (files.isEmpty() == false) {
             AString newFileName = files.at(0);
-            if (newFileName != specFileDataFile->getFileName()) {
+            if (newFileName != caretDataFile->getFileName()) {
                 /*
                  * Clone current item, remove file from it,
                  * and create new item.
                  */
-                SpecFileDataFile* sfdf = m_specFile->changeFileName(specFileDataFile,
-                                                                    newFileName);
-                CaretDataFile* caretDataFile = sfdf->getCaretDataFile();
+                if (specFileDataFile != NULL) {
+                    SpecFileDataFile* sfdf = m_specFile->changeFileName(specFileDataFile,
+                                                                        newFileName);
+                    caretDataFile = sfdf->getCaretDataFile();
+                }
                 CaretAssert(caretDataFile);
                 caretDataFile->setFileName(newFileName);
 
@@ -1659,9 +1817,13 @@ SpecFileManagementDialog::specFileOptionsActionTriggered()
 void
 SpecFileManagementDialog::chooseSpecFileNameActionTriggered()
 {
+    QWidget* toolButtonWidget = m_filesTableWidget->cellWidget(m_specFileTableRowIndex,
+                                                               m_COLUMN_OPTIONS_TOOLBUTTON);
+    CaretAssert(toolButtonWidget);
+    
     QStringList filenameFilterList;
     filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-    CaretFileDialog fd(m_chooseSpecFileToolButton);
+    CaretFileDialog fd(toolButtonWidget);
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::AnyFile);
@@ -1906,12 +2068,6 @@ SpecFileManagementDialog::toolBarFileTypeActionTriggered(QAction* action)
         bool isValid = false;
         const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromIntegerCode(dataValue,
                                                                                       &isValid);
-        if (isValid) {
-            std::cout << "Selected file type: " << qPrintable(DataFileTypeEnum::toGuiName(dataFileType)) << std::endl;
-        }
-        else {
-            std::cout << "Invalid file type index: " << dataValue << std::endl;
-        }
     }
     
     loadSpecFileContentIntoDialog();
@@ -1931,12 +2087,6 @@ SpecFileManagementDialog::toolBarStructuresActionTriggered(QAction* action)
         bool isValid = false;
         const StructureEnum::Enum structure = StructureEnum::fromIntegerCode(dataValue,
                                                                              &isValid);
-        if (isValid) {
-            std::cout << "Selected structure: " << qPrintable(StructureEnum::toGuiName(structure)) << std::endl;
-        }
-        else {
-            std::cout << "Invalid structure index: " << dataValue << std::endl;
-        }
     }
     
     loadSpecFileContentIntoDialog();
@@ -1971,7 +2121,6 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
         bool newStatus = false;
         if (dataValue == SHOW_FILES_ALL) {
             newStatus = true;
-            std::cout << "Select ALL files: " << std::endl;
         }
         else if (dataValue == SHOW_FILES_NONE) {
             newStatus = false;
@@ -1985,7 +2134,6 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
                     QTableWidgetItem* loadItem = getTableWidgetItem(rowIndex,
                                                                           m_COLUMN_LOAD_CHECKBOX);
                     CaretAssert(loadItem);
-                    std::cout << "Setting check state for <" << qPrintable(loadItem->text()) << ">" << std::endl;
                     loadItem->setCheckState(WuQtUtilities::boolToCheckState(newStatus));
                 }
                 

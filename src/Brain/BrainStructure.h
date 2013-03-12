@@ -89,7 +89,7 @@ namespace caret {
                         const bool isReloadingFile,
                         const bool initilizeOverlaysFlag) throw (DataFileException);
         
-        void deleteSurface(Surface* surface);
+        void removeSurface(Surface* surface);
         
         int getNumberOfSurfaces() const;
         

@@ -106,7 +106,7 @@ BrainStructure::~BrainStructure()
     std::vector<Surface*> allSurfaces(m_surfaces);
     
     for (uint64_t i = 0; i < allSurfaces.size(); i++) {
-        deleteSurface(allSurfaces[i]);
+        removeSurface(allSurfaces[i]);
     }
     m_surfaces.clear();
     
@@ -383,8 +383,15 @@ BrainStructure::addSurface(Surface* surface,
     }
 }
 
+/**
+ * Remove a surface from this brain structure and delete both the surface
+ * and its model.
+ * 
+ * @surface
+ *    Surface that is removed.
+ */
 void 
-BrainStructure::deleteSurface(Surface* surface)
+BrainStructure::removeSurface(Surface* surface)
 {
     CaretAssert(surface);
     
@@ -1070,7 +1077,7 @@ BrainStructure::removeDataFile(CaretDataFile* caretDataFile)
                   caretDataFile);
     if (surfaceIterator != m_surfaces.end()) {
         Surface* s = *surfaceIterator;
-        deleteSurface(s);
+        removeSurface(s);
         return true;
     }
     

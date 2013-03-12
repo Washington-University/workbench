@@ -410,9 +410,9 @@ SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
         }
     }
     
-    CaretLogSevere("Failed to remove CaretDataFile at "
+    CaretLogSevere("Failed to remove CaretDataFile at address "
                    + AString::number((qulonglong)caretDataFile)
-                   + " to SpecFile: "
+                   + " from SpecFile: "
                    + getFileName());
 }
 
