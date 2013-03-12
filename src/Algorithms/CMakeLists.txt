@@ -52,6 +52,7 @@ AlgorithmSurfaceApplyWarpfield.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceResample.h
+AlgorithmSurfaceSphereProjectUnproject.h
 AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
 AlgorithmVolumeDilate.h
@@ -101,6 +102,7 @@ AlgorithmSurfaceApplyWarpfield.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceResample.cxx
+AlgorithmSurfaceSphereProjectUnproject.cxx
 AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeDilate.cxx

@@ -161,7 +161,13 @@ namespace caret {
 
         void getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const;
 
-		void invalidateNormals();
+        void invalidateNormals();
+        
+        ///check that it has EXACTLY the same topology, with no flipped normals or rotated or reordered triangles
+        bool matchesTopology(const SurfaceFile& rhs) const;
+        
+        ///check only that each node is connected to the same set of other nodes, allow any other form of mischief
+        bool hasNodeCorrespondence(const SurfaceFile& rhs) const;
         
     protected:
         /**

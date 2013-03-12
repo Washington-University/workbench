@@ -23,6 +23,7 @@
  */ 
 
 #include <limits>
+#include <set>
 
 #include <QThread>
 
@@ -534,7 +535,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
         
 #pragma omp CARET_PAR
         {
-			int32_t i = 0;
+            int32_t i = 0;
 #pragma omp CARET_FOR schedule(static,1000) private(i)
             for (i = 0; i < numCoords; i++) {
                 const int32_t i3 = i * 3;
@@ -1374,4 +1375,42 @@ SurfaceFile::receiveEvent(Event* event)
     }    
 }
 
+bool SurfaceFile::matchesTopology(const SurfaceFile& rhs) const
+{
+    if (getNumberOfNodes() != rhs.getNumberOfNodes()) return false;
+    int numTriangles = getNumberOfTriangles();
+    if (numTriangles != rhs.getNumberOfTriangles()) return false;
+    for (int i = 0; i < numTriangles; ++i)
+    {
+        int i3 = i * 3;
+        if (trianglePointer[i3] != rhs.trianglePointer[i3]) return false;//naively assume exactly same order of triangles and nodes, for strictest topology equivalence
+        if (trianglePointer[i3 + 1] != rhs.trianglePointer[i3 + 1]) return false;
+        if (trianglePointer[i3 + 2] != rhs.trianglePointer[i3 + 2]) return false;
+    }
+    return true;
+}
 
+bool SurfaceFile::hasNodeCorrespondence(const SurfaceFile& rhs) const
+{
+    int numNodes = getNumberOfNodes();
+    if (numNodes != rhs.getNumberOfNodes()) return false;
+    if (getNumberOfTriangles() != rhs.getNumberOfTriangles()) return false;
+    CaretPointer<TopologyHelper> myHelp = getTopologyHelper(), rightHelp = rhs.getTopologyHelper();
+    for (int i = 0; i < numNodes; ++i)
+    {
+        const std::vector<int32_t>& myNeigh = myHelp->getNodeNeighbors(i);
+        const std::vector<int32_t>& rightNeigh = rightHelp->getNodeNeighbors(i);
+        int mySize = (int)myNeigh.size();
+        if (mySize != rightNeigh.size()) return false;
+        std::set<int32_t> myUsed;
+        for (int j = 0; j < mySize; ++j)
+        {
+            myUsed.insert(myNeigh[j]);
+        }
+        for (int j = 0; j < mySize; ++j)
+        {
+            if (myUsed.find(rightNeigh[j]) == myUsed.end()) return false;
+        }
+    }
+    return true;
+}
