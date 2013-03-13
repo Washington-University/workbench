@@ -53,7 +53,40 @@ namespace caret {
     class SpecFile;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
-    class TableRowDataFileContent;
+    class SpecFileManagementDialogRowContent;
+    
+    /**
+     * Data in a row of the table widget
+     */
+    class SpecFileManagementDialogRowContent : public CaretObject {
+    public:
+        /**
+         * Type of sorting
+         */
+        enum Sorting {
+            SORTING_TYPE_STRUCTURE_NAME,
+            SORTING_STRUCTURE_TYPE_NAME,
+            SORTING_NAME
+        };
+        
+        SpecFileManagementDialogRowContent(SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
+                                SpecFileDataFile* specFileDataFile);
+        
+        ~SpecFileManagementDialogRowContent();
+        
+        void setSortingKey(const Sorting sorting);
+        
+        int m_tableRowIndex;
+        
+        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
+        
+        SpecFileDataFile* m_specFileDataFile;
+        
+        QString m_sortingKey;
+        
+        static bool lessThanForSorting(const SpecFileManagementDialogRowContent* item1,
+                                       const SpecFileManagementDialogRowContent* item2);
+    };
     
     class SpecFileManagementDialog : public WuQDialogModal {
         
@@ -131,7 +164,7 @@ namespace caret {
         
         static AString getEditedDataFileTypeName(const DataFileTypeEnum::Enum dataFileType);
         
-        TableRowDataFileContent* getFileContentInRow(const int rowIndex);
+        SpecFileManagementDialogRowContent* getFileContentInRow(const int rowIndex);
         
         void updateGraphicWindowsAndUserInterface();
         
@@ -142,6 +175,8 @@ namespace caret {
         void loadDialogContentIntoSpecFile();
         
         void updateSpecFileRowInTable();
+        
+        void sortFileContent();
         
         void setTableColumnLabels();
         
@@ -176,7 +211,7 @@ namespace caret {
                                  DataFileTypeEnum::Enum& filteredDataFileTypeOut,
                                  StructureEnum::Enum& filteredStructureTypeOut) const;
         
-        void clearTableRowDataFileContent();
+        void clearSpecFileManagementDialogRowContent();
         
         void enableLoadOrSaveButton();
         
@@ -198,7 +233,7 @@ namespace caret {
         
         QActionGroup* m_structureActionGroup;
         
-        std::vector<TableRowDataFileContent*> m_tableRowDataFileContent;
+        std::vector<SpecFileManagementDialogRowContent*> m_tableRowDataFileContent;
         
         int m_specFileTableRowIndex;
                 
@@ -211,6 +246,8 @@ namespace caret {
         int m_specFileDataFileCounter;
         
         QTableWidget* m_filesTableWidget;
+        
+        SpecFileManagementDialogRowContent::Sorting m_fileSorting;
         
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;
@@ -226,26 +263,10 @@ namespace caret {
         int m_COLUMN_STRUCTURE;
         int m_COLUMN_FILE_NAME_LABEL;
         int m_COLUMN_COUNT;
+        
+        friend class SpecFileManagementDialogRowContent;
     };
     
-    /**
-     * Data in a row of the table widget
-     */
-    class TableRowDataFileContent : public CaretObject {
-    public:
-        TableRowDataFileContent(SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
-                                SpecFileDataFile* specFileDataFile) {
-            m_tableRowIndex             = -1;
-            m_specFileDataFileTypeGroup = specFileDataFileTypeGroup;
-            m_specFileDataFile          = specFileDataFile;
-        }
-        
-        int m_tableRowIndex;
-        
-        SpecFileDataFileTypeGroup* m_specFileDataFileTypeGroup;
-     
-        SpecFileDataFile* m_specFileDataFile;
-    };
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
     const int SpecFileManagementDialog::SHOW_FILES_ALL = -1;

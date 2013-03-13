@@ -79,6 +79,7 @@
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
+
 using namespace caret;
 
 /**
@@ -180,6 +181,7 @@ m_specFile(specFile)
     m_manageFilesLoadedNotLoadedActionGroup = NULL;
     m_specFileDataFileCounter = 0;
     m_specFileTableRowIndex = -1;
+    m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
 
     /*
      * Open Spec File or Manage Files?
@@ -281,6 +283,8 @@ m_specFile(specFile)
                      this, SLOT(filesTableWidgetCellChanged(int,int)));
     QObject::connect(m_filesTableWidget->horizontalHeader(), SIGNAL(sectionClicked(int)),
                      this, SLOT(horizontalHeaderSelectedForSorting(int)));
+    const QString headerToolTip = ("Click on the column names (of those columns that contain text) to sort.");
+    m_filesTableWidget->horizontalHeader()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(headerToolTip));
     
     /*
      * Widget and layout for files.
@@ -386,14 +390,14 @@ m_specFile(specFile)
  */
 SpecFileManagementDialog::~SpecFileManagementDialog()
 {
-    clearTableRowDataFileContent();
+    clearSpecFileManagementDialogRowContent();
 }
 
 /**
  * Clear content of all of the table row.
  */
 void
-SpecFileManagementDialog::clearTableRowDataFileContent()
+SpecFileManagementDialog::clearSpecFileManagementDialogRowContent()
 {
     const int32_t numRows = static_cast<int32_t>(m_tableRowDataFileContent.size());
     for (int32_t i = 0; i < numRows; i++) {
@@ -409,7 +413,7 @@ SpecFileManagementDialog::clearTableRowDataFileContent()
 void
 SpecFileManagementDialog::getDataFileContentFromSpecFile()
 {
-    clearTableRowDataFileContent();
+    clearSpecFileManagementDialogRowContent();
     
     bool haveSceneFiles = false;
     
@@ -428,7 +432,7 @@ SpecFileManagementDialog::getDataFileContentFromSpecFile()
         for (int iFile = 0; iFile < numFiles; iFile++) {
             SpecFileDataFile* sfdf = group->getFileInformation(iFile);
             
-            TableRowDataFileContent* rowContent = new TableRowDataFileContent(group,
+            SpecFileManagementDialogRowContent* rowContent = new SpecFileManagementDialogRowContent(group,
                                                                               sfdf);
             m_tableRowDataFileContent.push_back(rowContent);
             m_specFileDataFileCounter++;
@@ -467,7 +471,7 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
             
         }
         else {
-            TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+            SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
             CaretAssert(rowContent);
             SpecFileDataFile* sfdf = rowContent->m_specFileDataFile;
             
@@ -828,7 +832,7 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
         
         if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
             QAction* optionsAction = WuQtUtilities::createAction("Options",
-                                                                 "Options for file",
+                                                                 "",
                                                                  this);
             QToolButton* optionsToolButton = new QToolButton();
             optionsToolButton->setDefaultAction(optionsAction);
@@ -966,7 +970,18 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
 void
 SpecFileManagementDialog::horizontalHeaderSelectedForSorting(int logicalIndex)
 {
-    std::cout << "Header selected index: " << logicalIndex << std::endl;
+    if (logicalIndex == m_COLUMN_DATA_FILE_TYPE_LABEL) {
+        m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
+        loadSpecFileContentIntoDialog();
+    }
+    else if (logicalIndex == m_COLUMN_FILE_NAME_LABEL) {
+        m_fileSorting = SpecFileManagementDialogRowContent::SORTING_NAME;
+        loadSpecFileContentIntoDialog();
+    }
+    else if (logicalIndex == m_COLUMN_STRUCTURE) {
+        m_fileSorting = SpecFileManagementDialogRowContent::SORTING_STRUCTURE_TYPE_NAME;
+        loadSpecFileContentIntoDialog();
+    }
 }
 
 /**
@@ -1018,6 +1033,59 @@ SpecFileManagementDialog::getFilterSelections(ManageFilesDisplay& manageFilesDis
     }
 }
 
+///**
+// * Less than method for sorting using the sorting key.
+// *
+// * @param item1
+// *    Tested for less than the item2
+// * @param item2
+// *    Tested for greater than the item1
+// * @return
+// *    True if item1 is less than item2, else false.
+// */
+//bool
+//lessThanForSorting(const SpecFileManagementDialogRowContent *item1,
+//                                                       const SpecFileManagementDialogRowContent* item2)
+//{
+//    return (item1->m_sortingKey < item2->m_sortingKey);
+//}
+
+
+/**
+ * Sort the file content.
+ */
+void
+SpecFileManagementDialog::sortFileContent()
+{
+    /*
+     * Update key used for sorting
+     */
+    const int32_t numDataFiles = static_cast<int32_t>(m_tableRowDataFileContent.size());
+    for (int32_t i = 0; i < numDataFiles; i++) {
+        m_tableRowDataFileContent[i]->setSortingKey(m_fileSorting);
+    }
+    
+    /*
+     * Sort
+     */
+    std::sort(m_tableRowDataFileContent.begin(),
+              m_tableRowDataFileContent.end(),
+              SpecFileManagementDialogRowContent::lessThanForSorting);
+    
+    /*
+     * Update row indices in table
+     */
+    int rowCounter = 0;
+    if (m_specFileTableRowIndex >= 0) {
+        rowCounter = 1;
+    }
+    for (int32_t i = 0; i < numDataFiles; i++) {
+        m_tableRowDataFileContent[i]->m_tableRowIndex= rowCounter;
+        rowCounter++;
+    }
+}
+
+
 /**
  * Load the spec file data into the dialog.
  */
@@ -1029,6 +1097,11 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
      * modifying table content.
      */
     m_filesTableWidget->blockSignals(true);
+    
+    /*
+     * Sort the rows
+     */
+    sortFileContent();
     
     ManageFilesDisplay manageFilesDisplay;
     DataFileTypeEnum::Enum filteredDataFileType;
@@ -1542,7 +1615,7 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
 void
 SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
 {
-    TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+    SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
     SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
     
     QWidget* removeButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
@@ -1569,7 +1642,7 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
  * @return 
  *    Content for the given row.
  */
-TableRowDataFileContent*
+SpecFileManagementDialogRowContent*
 SpecFileManagementDialog::getFileContentInRow(const int rowIndex)
 {
     const int numDataFiles = static_cast<int32_t>(m_tableRowDataFileContent.size());
@@ -1595,7 +1668,7 @@ SpecFileManagementDialog::getFileContentInRow(const int rowIndex)
 void
 SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
 {
-    TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+    SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
     SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
     
     QWidget* toolButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
@@ -1704,7 +1777,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         }
     }
     else {
-        TableRowDataFileContent* rowContent = getFileContentInRow(rowIndex);
+        SpecFileManagementDialogRowContent* rowContent = getFileContentInRow(rowIndex);
         SpecFileDataFile* specFileDataFile = rowContent->m_specFileDataFile;
         CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
         CaretMappableDataFile* caretMappableDataFile = NULL;
@@ -2273,4 +2346,102 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
 
 //    m_filesTableWidget->blockSignals(false);
 }
+
+/* ======================================================================= */
+/**
+ * \class caret::SpecFileManagementDialogRowContent
+ * \brief Content of a row in the SpecFileManagementDialog.
+ * \ingroup GuiQt
+ */
+
+SpecFileManagementDialogRowContent::SpecFileManagementDialogRowContent(SpecFileDataFileTypeGroup* specFileDataFileTypeGroup,
+                        SpecFileDataFile* specFileDataFile)
+{
+    m_tableRowIndex             = -1;
+    m_specFileDataFileTypeGroup = specFileDataFileTypeGroup;
+    m_specFileDataFile          = specFileDataFile;
+}
+
+SpecFileManagementDialogRowContent::~SpecFileManagementDialogRowContent()
+{
+    
+}
+
+/**
+ * Less than method for sorting using the sorting key.
+ *
+ * @param item1
+ *    Tested for less than the item2
+ * @param item2
+ *    Tested for greater than the item1
+ * @return
+ *    True if item1 is less than item2, else false.
+ */
+bool
+SpecFileManagementDialogRowContent::lessThanForSorting(const SpecFileManagementDialogRowContent* item1,
+                                            const SpecFileManagementDialogRowContent* item2)
+{
+    return (item1->m_sortingKey < item2->m_sortingKey);
+}
+
+/**
+ * Set the sorting key for the given sorting type prior to sorting.
+ * Creates a text string that is used for sorting that is used by
+ * the static sorting method.
+ *
+ * @param sorting
+ *    Type of sorting.
+ */
+void
+SpecFileManagementDialogRowContent::setSortingKey(const Sorting sorting)
+{
+    FileInformation fileInfo(m_specFileDataFile->getFileName());
+    const QString filename = fileInfo.getFileName().toUpper();
+    
+    const DataFileTypeEnum::Enum dataFileType = m_specFileDataFile->getDataFileType();
+    QString typeName = SpecFileManagementDialog::getEditedDataFileTypeName(dataFileType);
+
+    /*
+     * Push surface files to the top???
+     */
+//    if (dataFileType == DataFileTypeEnum::SURFACE) {
+//        typeName = "AAAAAA";
+//    }
+
+    /*
+     * Push non-specific structures to the bottom
+     */
+    const StructureEnum::Enum structure = m_specFileDataFile->getStructure();
+    QString structureName = StructureEnum::toGuiName(structure);
+    switch (structure) {
+        case StructureEnum::ALL:
+        case StructureEnum::ALL_GREY_MATTER:
+        case StructureEnum::ALL_WHITE_MATTER:
+        case StructureEnum::INVALID:
+        case StructureEnum::OTHER:
+            structureName = "zzzzzz";
+            break;
+        default:
+            break;
+    }
+    
+    m_sortingKey = "";
+    
+    switch (sorting) {
+        case SORTING_TYPE_STRUCTURE_NAME:
+            m_sortingKey = (typeName
+                            + structureName
+                            + filename);
+            break;
+        case SORTING_NAME:
+            m_sortingKey = filename;
+            break;
+        case SORTING_STRUCTURE_TYPE_NAME:
+            m_sortingKey = (structureName
+                            + typeName
+                            + filename);
+            break;
+    }
+}
+
 
