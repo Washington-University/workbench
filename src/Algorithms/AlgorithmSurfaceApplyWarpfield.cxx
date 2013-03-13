@@ -99,7 +99,7 @@ AlgorithmSurfaceApplyWarpfield::AlgorithmSurfaceApplyWarpfield(ProgressObject* m
         coordsOut[base + 1] = newCoord[1];
         coordsOut[base + 2] = newCoord[2];
     }
-    mySurfOut->setCoordinates(coordsOut.data(), numNodes);
+    mySurfOut->setCoordinates(coordsOut.data());
 }
 
 float AlgorithmSurfaceApplyWarpfield::getAlgorithmInternalWeight()

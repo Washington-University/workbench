@@ -130,7 +130,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     vector<float> coordScratch(numNewNodes * 3, 0.0f);
     SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
     myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
-    surfaceOut->setCoordinates(coordScratch.data(), numNewNodes);
+    surfaceOut->setCoordinates(coordScratch.data());
 }
 
 float AlgorithmSurfaceResample::getAlgorithmInternalWeight()

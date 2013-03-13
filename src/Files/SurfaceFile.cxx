@@ -326,12 +326,11 @@ SurfaceFile::setCoordinate(const int32_t nodeIndex,
 }
 
 void 
-SurfaceFile::setCoordinates(const float *coordinates, const int64_t coordCount)
+SurfaceFile::setCoordinates(const float *coordinates)
 {
     CaretAssert(this->coordinatePointer);
     
-    CaretAssert(this->getNumberOfNodes() == coordCount);
-    memcpy(this->coordinatePointer,coordinates,12*coordCount);    
+    memcpy(this->coordinatePointer, coordinates, 3 * sizeof(float) * getNumberOfNodes());    
     invalidateHelpers();
     //setModified();
 }
@@ -1401,7 +1400,7 @@ bool SurfaceFile::hasNodeCorrespondence(const SurfaceFile& rhs) const
         const std::vector<int32_t>& myNeigh = myHelp->getNodeNeighbors(i);
         const std::vector<int32_t>& rightNeigh = rightHelp->getNodeNeighbors(i);
         int mySize = (int)myNeigh.size();
-        if (mySize != rightNeigh.size()) return false;
+        if (mySize != (int)rightNeigh.size()) return false;
         std::set<int32_t> myUsed;
         for (int j = 0; j < mySize; ++j)
         {

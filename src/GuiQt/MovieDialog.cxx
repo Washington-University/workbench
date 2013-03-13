@@ -745,7 +745,7 @@ void MovieDialog::processUpdateSurfaceInterpolation()
 			coords[i*3+1] += centerdelta[1];
 			coords[i*3+2] += centerdelta[2];
 		}
-        m_surface2->setCoordinates(coords,coordsCount);
+        m_surface2->setCoordinates(coords);
 		m_surface2->invalidateNormals();
 		m_surface2->computeNormals();
         btc1->getSurfaceModelSelector()->setSelectedSurfaceController(btc2->getSurfaceModelSelector()->getSelectedSurfaceController());
@@ -759,7 +759,7 @@ void MovieDialog::processUpdateSurfaceInterpolation()
         {
             coords[i] += m_delta[i];
         }
-        m_surface2->setCoordinates(coords,coordsCount);
+        m_surface2->setCoordinates(coords);
 		m_surface2->invalidateNormals();
 		m_surface2->computeNormals();
         m_interpolationIndex++;        
@@ -778,7 +778,7 @@ void MovieDialog::CleanupInterpolation()
 	{
 		coords[i] = m_surfaceCoords2Back[i];
 	}
-	m_surface2->setCoordinates(coords,coordsCount);   
+	m_surface2->setCoordinates(coords);   
 	m_surface2->invalidateNormals();
 	m_surface2->computeNormals();
 	m_isInterpolating = false;

@@ -327,7 +327,7 @@ void SurfaceResamplingHelper::changeRadius(const float& radius, const SurfaceFil
         newCoordData[i + 1] = tempvec[1];
         newCoordData[i + 2] = tempvec[2];
     }
-    output->setCoordinates(newCoordData.data(), numNodes);
+    output->setCoordinates(newCoordData.data());
 }
 
 void SurfaceResamplingHelper::compactWeights(const vector<map<int, float> >& weights)

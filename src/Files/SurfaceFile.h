@@ -82,7 +82,7 @@ namespace caret {
         void setCoordinate(const int32_t nodeIndex,
                            const float xyzIn[3]);
 
-        void setCoordinates(const float *coordinates, const int64_t coordCount);
+        void setCoordinates(const float *coordinates);
         
         const float* getCoordinateData() const;
         

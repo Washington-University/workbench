@@ -102,7 +102,7 @@ AlgorithmSurfaceSphereProjectUnproject::AlgorithmSurfaceSphereProjectUnproject(P
         outCoords[i3 + 1] = outCoord[1];
         outCoords[i3 + 2] = outCoord[2];
     }
-    sphereOut->setCoordinates(outCoords.data(), numNodes);
+    sphereOut->setCoordinates(outCoords.data());
     changeRadius(100.0f, sphereOut);
 }
 
@@ -146,7 +146,7 @@ void AlgorithmSurfaceSphereProjectUnproject::changeRadius(const float& radius, S
         newCoordData[i + 1] = tempvec[1];
         newCoordData[i + 2] = tempvec[2];
     }
-    inout->setCoordinates(newCoordData.data(), numNodes);
+    inout->setCoordinates(newCoordData.data());
 }
 
 float AlgorithmSurfaceSphereProjectUnproject::getAlgorithmInternalWeight()

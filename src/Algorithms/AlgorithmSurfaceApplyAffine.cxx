@@ -91,7 +91,7 @@ AlgorithmSurfaceApplyAffine::AlgorithmSurfaceApplyAffine(ProgressObject* myProgO
         coordsOut[base + 1] = transformed[1];
         coordsOut[base + 2] = transformed[2];
     }
-    mySurfOut->setCoordinates(coordsOut.data(), numNodes);
+    mySurfOut->setCoordinates(coordsOut.data());
 }
 
 float AlgorithmSurfaceApplyAffine::getAlgorithmInternalWeight()

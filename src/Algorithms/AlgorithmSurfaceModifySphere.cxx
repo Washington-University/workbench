@@ -125,7 +125,7 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
             CaretLogWarning("input sphere is either unusually irregular or not centered, inspect the input");
         }
     }
-    outSphere->setCoordinates(outCoords.data(), numNodes);
+    outSphere->setCoordinates(outCoords.data());
 }
 
 float AlgorithmSurfaceModifySphere::getAlgorithmInternalWeight()
