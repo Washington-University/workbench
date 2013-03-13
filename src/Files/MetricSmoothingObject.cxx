@@ -448,7 +448,7 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* 
                 const vector<int32_t>& tempneighbors = myTopoHelp->getNodeNeighbors(i);
                 if (distances.size() <= tempneighbors.size())//because neighbors doesn't include center, so if they are equal, geo is missing a neighbor
                 {
-                    tempList[i].m_nodes = tempneighbors;
+                    nodes = tempneighbors;
                     nodes.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
                 }
