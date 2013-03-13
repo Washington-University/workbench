@@ -677,10 +677,8 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
     
     Brain* brain = GuiManager::get()->getBrain();
     if (text == menuTextManageSpecTable) {
-        SpecFileManagementDialog* d =
-        SpecFileManagementDialog::createManageFilesDialogTableLayout(brain,
+        SpecFileManagementDialog::runManageFilesDialog(brain,
                                                                     this);
-        d->exec();
     }
     else if (text == menuTextOpenSpecTable) {
         /*
@@ -708,13 +706,12 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
                                           e.whatString());
                     return;
                 }
-                SpecFileManagementDialog* d =
-                SpecFileManagementDialog::createOpenSpecFileDialogTableLayout(brain,
-                                                                             &specFile,
-                                                                             this);
-                d->exec();
                 
-                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
+                                                                    &specFile,
+                                                                    this)) {
+                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+                }
             }
         }
     }

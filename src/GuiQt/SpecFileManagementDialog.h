@@ -34,46 +34,38 @@
  */
 /*LICENSE_END*/
 
-#include <QGroupBox>
-#include <QSignalMapper>
-
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
 class QActionGroup;
-class QCheckBox;
 class QLabel;
+class QSignalMapper;
 class QTableWidget;
 class QTableWidgetItem;
 class QToolBar;
-class QToolButton;
 
 namespace caret {
 
     class Brain;
     class CaretDataFile;
-    class DataFileTableRow;
     class SpecFile;
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
-    class StructureEnumComboBox;
     class TableRowDataFileContent;
-    class WuQEventBlockingFilter;
-    class WuQWidgetObjectGroup;
     
     class SpecFileManagementDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        static SpecFileManagementDialog* createOpenSpecFileDialogTableLayout(Brain* brain,
-                                                                  SpecFile* specFile,
-                                                                  QWidget* parent);
+        static bool runOpenSpecFileDialog(Brain* brain,
+                                          SpecFile* specFile,
+                                          QWidget* parent);
         
-        static SpecFileManagementDialog* createManageFilesDialogTableLayout(Brain* brain,
-                                                                 QWidget* parent);
+        static void runManageFilesDialog(Brain* brain,
+                                         QWidget* parent);
         
         virtual ~SpecFileManagementDialog();
         
@@ -101,10 +93,9 @@ namespace caret {
         
         void filesTableWidgetCellChanged(int row, int column);
 
-    private:
-        friend class GuiSpecFileDataFileTypeGroup;
-        friend class GuiSpecFileDataFile;
+        void horizontalHeaderSelectedForSorting(int logicalIndex);
         
+    private:
         enum Mode {
             MODE_MANAGE_FILES,
             MODE_OPEN_SPEC_FILE
@@ -126,15 +117,16 @@ namespace caret {
 
         SpecFileManagementDialog& operator=(const SpecFileManagementDialog&);
         
-        QToolBar* createFilesTypesToolBar();
+        QToolBar* createFilesTypesToolBar(QLabel* &labelOut);
         
-        QToolBar* createFilesSelectionToolBar();
+        QToolBar* createFilesSelectionToolBar(QLabel* &labelOut);
         
-        QToolBar* createManageFilesLoadedNotLoadedToolBar();
+        QToolBar* createManageFilesLoadedNotLoadedToolBar(QLabel* &labelOut);
         
-        QToolBar* createStructureToolBar();
+        QToolBar* createStructureToolBar(QLabel* &labelOut);
         
         QToolBar* createToolBarWithActionGroup(const QString& text,
+                                               QLabel* &labelOut,
                                                QActionGroup* actionGroup);
         
         static AString getEditedDataFileTypeName(const DataFileTypeEnum::Enum dataFileType);
@@ -184,6 +176,10 @@ namespace caret {
                                  DataFileTypeEnum::Enum& filteredDataFileTypeOut,
                                  StructureEnum::Enum& filteredStructureTypeOut) const;
         
+        void clearTableRowDataFileContent();
+        
+        void enableLoadOrSaveButton();
+        
         // ADD_NEW_MEMBERS_HERE
         
         const Mode m_dialogMode;
@@ -193,8 +189,6 @@ namespace caret {
         SpecFile* m_specFile;
     
         QPushButton* m_loadScenesPushButton;
-        
-        WuQEventBlockingFilter* m_comboBoxWheelEventBlockingFilter;
         
         QActionGroup* m_fileTypesActionGroup;
         

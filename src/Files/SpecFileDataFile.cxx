@@ -215,6 +215,7 @@ SpecFileDataFile::isSavingSelected() const
 
 /**
  * Set the file's saving selection status.
+ * DOES NOT alter modification status.
  * @param selected
  *    New selection status.
  */   
@@ -223,7 +224,6 @@ SpecFileDataFile::setSavingSelected(const bool selected)
 {
     if (m_savingSelected != selected) {
         m_savingSelected = selected;
-        setModified();
     }
 }
 
