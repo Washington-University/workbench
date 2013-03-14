@@ -94,7 +94,7 @@ EventDataFileRead::addDataFile(const StructureEnum::Enum structure,
                  const DataFileTypeEnum::Enum dataFileType,
                  const AString& dataFileName)
 {
-    CaretAssert(structure != StructureEnum::INVALID);
+    //CaretAssert(structure != StructureEnum::INVALID);
     CaretAssert(dataFileType != DataFileTypeEnum::UNKNOWN);
     CaretAssert(dataFileName.isEmpty() == false);
 
