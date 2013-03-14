@@ -41,8 +41,10 @@ AlgorithmLabelDilate.h
 AlgorithmLabelResample.h
 AlgorithmMetricDilate.h
 AlgorithmMetricExtrema.h
+AlgorithmMetricFillHoles.h
 AlgorithmMetricGradient.h
 AlgorithmMetricReduce.h
+AlgorithmMetricRemoveIslands.h
 AlgorithmMetricResample.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
@@ -93,8 +95,10 @@ AlgorithmLabelDilate.cxx
 AlgorithmLabelResample.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricExtrema.cxx
+AlgorithmMetricFillHoles.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricReduce.cxx
+AlgorithmMetricRemoveIslands.cxx
 AlgorithmMetricResample.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx

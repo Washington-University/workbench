@@ -50,8 +50,10 @@
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricExtrema.h"
+#include "AlgorithmMetricFillHoles.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricReduce.h"
+#include "AlgorithmMetricRemoveIslands.h"
 #include "AlgorithmMetricResample.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -192,8 +194,10 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricReduce()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
