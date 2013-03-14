@@ -42,9 +42,12 @@ OperationParameters* OperationName::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
-    //ret->addMetricOutputParameter(2, "metric", "the output metric");
+    
+    //ret->addMetricOutputParameter(2, "metric-out", "the output metric");
+    
     //OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "select a single column");
     //columnSelect->addStringParameter(1, "column", "the column number or name");
+    
     ret->setHelpText(
         AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
         "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +

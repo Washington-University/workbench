@@ -99,7 +99,7 @@ AlgorithmSurfaceAverage::AlgorithmSurfaceAverage(ProgressObject* myProgObj, Surf
     int numNodes = inputSurfs[0]->getNumberOfNodes();
     for (int i = 1; i < numSurfs; ++i)
     {
-        if (!inputSurfs[i]->hasNodeCorrespondence(*(inputSurfs[0]))) throw CaretException("surface '" + inputSurfs[i]->getFileName() +
+        if (!inputSurfs[i]->hasNodeCorrespondence(*(inputSurfs[0]))) throw AlgorithmException("surface '" + inputSurfs[i]->getFileName() +
                                                                                       "' does not have node correspondence to surface '" + inputSurfs[0]->getFileName() + "'");
     }
     *myAvgOut = *(inputSurfs[0]);
