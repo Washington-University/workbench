@@ -338,7 +338,7 @@ MovieDialog::receiveEvent(Event* event)
 
             AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
             CaretLogFine(temp);
-            CaretLogFine("frame number:" + frame_number);
+            CaretLogFine("frame number:" + QString::number(frame_number));
             frame_number++;
         }
 
@@ -689,12 +689,12 @@ void MovieDialog::processUpdateSurfaceInterpolation()
 
     BrowserTabContent *btc1 = bw->getBrowserTabContent(0);    
     if(!btc1) return;
-    int32_t tabIndex1 = btc1->getTabNumber();
+//    int32_t tabIndex1 = btc1->getTabNumber();
     ModelSurface *ms1 = btc1->getDisplayedSurfaceModel();
 
     BrowserTabContent *btc2 = bw->getBrowserTabContent(1);
     if(!btc2) return;
-    int32_t tabIndex2 = btc2->getTabNumber();
+//    int32_t tabIndex2 = btc2->getTabNumber();
     ModelSurface *ms2 = btc2->getDisplayedSurfaceModel();
     
     if(!(ms1&&ms2)) return;

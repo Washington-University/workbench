@@ -493,7 +493,7 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
 			}
 			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
 			CaretLogFine(temp);
-            CaretLogFine("frame number:" + frame_number);
+            CaretLogFine("frame number:" + QString::number(frame_number));
 			frame_number++;
         }
     }
@@ -534,7 +534,7 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
             }
             AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
             CaretLogFine(temp);
-            CaretLogFine("frame number:" + frame_number);
+            CaretLogFine("frame number:" + QString::number(frame_number));
             frame_number++;
         }
     }
