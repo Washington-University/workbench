@@ -880,11 +880,11 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                                                             m_COLUMN_DATA_FILE_TYPE_LABEL);
             dataTypeItem->setText(getEditedDataFileTypeName(DataFileTypeEnum::SPECIFICATION));
             
-            CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
-            QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
-                                                            m_COLUMN_SAVE_CHECKBOX);
-            CaretAssert(saveItem);
-            // saveItem->setCheckState(WuQtUtilities::boolToCheckState(m_specFile->is()));
+//            CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
+//            QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
+//                                                            m_COLUMN_SAVE_CHECKBOX);
+//            CaretAssert(saveItem);
+//            // saveItem->setCheckState(WuQtUtilities::boolToCheckState(m_specFile->is()));
             
             CaretAssert(m_COLUMN_FILE_NAME_LABEL >= 0);
             QTableWidgetItem* nameItem = getTableWidgetItem(m_specFileTableRowIndex,
@@ -1504,10 +1504,8 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
     
     const int32_t numDataFiles = static_cast<int32_t>(m_tableRowDataFileContent.size());
     for (int32_t i = 0; i < numDataFiles; i++) {
-        const int rowIndex = m_tableRowDataFileContent[i]->m_tableRowIndex;
-        CaretAssert((rowIndex >= 0) && (rowIndex < m_filesTableWidget->rowCount()));
-        
         SpecFileDataFile* specFileDataFile = m_tableRowDataFileContent[i]->m_specFileDataFile;
+        CaretAssert(specFileDataFile);
         if (specFileDataFile->isSavingSelected()) {
             CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
             if (caretDataFile != NULL) {
@@ -2296,7 +2294,7 @@ SpecFileManagementDialog::toolBarStructuresActionTriggered(QAction* /*action*/)
  *   QAction of item selected.
  */
 void
-SpecFileManagementDialog::toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* action)
+SpecFileManagementDialog::toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* /*action*/)
 {
     loadSpecFileContentIntoDialog();
 }

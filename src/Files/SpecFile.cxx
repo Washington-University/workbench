@@ -541,6 +541,9 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                     if (fileLoadingSelectionStatus) {
                         sfdf->setLoadingSelected(fileLoadingSelectionStatus);
                     }
+                    if (fileSavingSelectionStatus) {
+                        sfdf->setSavingSelected(fileSavingSelectionStatus);
+                    }
                     return sfdf;
                 }
             }
@@ -550,6 +553,7 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                                                           structure,
                                                           specFileMemberStatus);
             sfdf->setLoadingSelected(fileLoadingSelectionStatus);
+            sfdf->setSavingSelected(fileSavingSelectionStatus);
             dataFileTypeGroup->addFileInformation(sfdf);
             return sfdf;
         }

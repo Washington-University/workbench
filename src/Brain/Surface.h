@@ -64,8 +64,6 @@ namespace caret {
         
         void copyHelperSurface(const Surface& s);
 
-        bool defaultScalingInitializedFlag;
-        
         BrainStructure* brainStructure;
     };
 
