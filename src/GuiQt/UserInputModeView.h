@@ -63,6 +63,18 @@ namespace caret {
                                                    const int32_t mouseClickX,
                                                    const int32_t mouseClickY);
         
+        virtual void mouseLeftClick(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithCtrl(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
+
     private:
         UserInputModeView(const UserInputModeView&);
 

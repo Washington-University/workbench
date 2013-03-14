@@ -105,6 +105,55 @@ namespace caret {
          */
         virtual CursorEnum::Enum getCursor() const = 0;
         
+        /**
+         * Process a mouse left click event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftClick(const MouseEvent& mouseEvent) { }
+        
+        /**
+         * Process a mouse left click with shift key down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent) { }
+        
+        /**
+         * Process a mouse left drag with no keys down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent) { }
+        
+        /**
+         * Process a mouse left drag with only the alt key down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent) { }
+        
+        /**
+         * Process a mouse left drag with ctrl key down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDragWithCtrl(const MouseEvent& mouseEvent) { }
+        
+        /**
+         * Process a mouse left drag with shift key down event.
+         *
+         * @param mouseEvent
+         *     Mouse event information.
+         */
+        virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent) { }
+        
+        
     protected:
         UserInputReceiverInterface() { }
         

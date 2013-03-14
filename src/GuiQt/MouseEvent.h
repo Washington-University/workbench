@@ -36,19 +36,26 @@ class QMouseEvent;
 
 namespace caret {
     
+    class BrainOpenGLViewportContent;
+    class BrainOpenGLWidget;
+    
     /**
      * Contains information about a mouse event in the OpenGL region.
      */
     class MouseEvent : public CaretObject {
         
     public:
-        MouseEvent(const int32_t browserWindowIndex,
+        MouseEvent(BrainOpenGLViewportContent* viewportContent,
+                   BrainOpenGLWidget* openGLWidget,
+                   const int32_t browserWindowIndex,
                    const MouseEventTypeEnum::Enum mouseEventType,
                    const Qt::KeyboardModifiers keyModifiers,
                    const int32_t x,
                    const int32_t y,
                    const int32_t dx,
-                   const int32_t dy);
+                   const int32_t dy,
+                   const int32_t mousePressX,
+                   const int32_t mousePressY);
         
         MouseEvent(const QWheelEvent& event);
         
@@ -66,6 +73,10 @@ namespace caret {
         
         AString toString() const;
         
+        BrainOpenGLViewportContent* getViewportContent() const;
+        
+        BrainOpenGLWidget* getOpenGLWidget() const;
+
         int32_t getBrowserWindowIndex() const;
         
         int32_t getDx() const;
@@ -77,6 +88,10 @@ namespace caret {
         int32_t getX() const;
         
         int32_t getY() const;
+        
+        int32_t getPressedX() const;
+        
+        int32_t getPressedY() const;
         
         int32_t getWheelRotation() const;
         
@@ -91,25 +106,33 @@ namespace caret {
         void setNoKeysDown();
         
     private:
-        MouseEventTypeEnum::Enum mouseEventType;
+        MouseEventTypeEnum::Enum m_mouseEventType;
         
-        int32_t browserWindowIndex;
+        BrainOpenGLViewportContent* m_viewportContent;
         
-        int32_t x;
+        BrainOpenGLWidget* m_openGLWidget;
         
-        int32_t y;
+        int32_t m_browserWindowIndex;
         
-        int32_t dx;
+        int32_t m_x;
         
-        int32_t dy;
+        int32_t m_y;
+        
+        int32_t m_dx;
+        
+        int32_t m_dy;
 
-        int32_t wheelRotation;
+        int32_t m_pressX;
         
-        bool keyDownControlAndShift;
+        int32_t m_pressY;
         
-        bool keyDownControl;
+        int32_t m_wheelRotation;
         
-        bool keyDownShift;
+        bool m_keyDownControlAndShift;
+        
+        bool m_keyDownControl;
+        
+        bool m_keyDownShift;
     };
     
 } // namespace
