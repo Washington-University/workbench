@@ -57,6 +57,7 @@
 #include "AlgorithmSignedDistanceToSurface.h"
 #include "AlgorithmSurfaceApplyAffine.h"
 #include "AlgorithmSurfaceApplyWarpfield.h"
+#include "AlgorithmSurfaceAverage.h"
 #include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmSurfaceModifySphere.h"
@@ -198,6 +199,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyAffine()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyWarpfield()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAverage()));
 
 #ifdef VELAB_INTERNAL_RELEASE_ONLY
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));

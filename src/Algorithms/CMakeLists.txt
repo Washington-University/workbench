@@ -49,6 +49,7 @@ AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
 AlgorithmSurfaceApplyAffine.h
 AlgorithmSurfaceApplyWarpfield.h
+AlgorithmSurfaceAverage.h
 AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceModifySphere.h
@@ -100,6 +101,7 @@ AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
 AlgorithmSurfaceApplyAffine.cxx
 AlgorithmSurfaceApplyWarpfield.cxx
+AlgorithmSurfaceAverage.cxx
 AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceModifySphere.cxx
