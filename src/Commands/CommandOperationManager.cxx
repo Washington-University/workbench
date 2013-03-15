@@ -64,6 +64,7 @@
 #include "AlgorithmSurfaceMatch.h"
 #include "AlgorithmSurfaceModifySphere.h"
 #include "AlgorithmSurfaceResample.h"
+#include "AlgorithmSurfaceSmoothing.h"
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
 #include "AlgorithmSurfaceWedgeVolume.h"
 #include "AlgorithmVolumeAffineResample.h"
@@ -212,6 +213,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceModifySphere()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));

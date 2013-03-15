@@ -56,6 +56,7 @@ AlgorithmSurfaceCortexLayer.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceModifySphere.h
 AlgorithmSurfaceResample.h
+AlgorithmSurfaceSmoothing.h
 AlgorithmSurfaceSphereProjectUnproject.h
 AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
@@ -110,6 +111,7 @@ AlgorithmSurfaceCortexLayer.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceModifySphere.cxx
 AlgorithmSurfaceResample.cxx
+AlgorithmSurfaceSmoothing.cxx
 AlgorithmSurfaceSphereProjectUnproject.cxx
 AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
