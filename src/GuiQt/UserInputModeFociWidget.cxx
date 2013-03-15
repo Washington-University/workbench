@@ -91,6 +91,15 @@ UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoc
 : QWidget(parent),
   m_windowIndex(windowIndex)
 {
+    m_transformToolTipText = ("\n\n"
+                              "At any time, the view of the surface may be changed by\n"
+                              "  PAN:    Move the mouse with the left mouse button down while "
+                              "holding down the Shift key.\n"
+                              "  ROTATE: Move the mouse with the left mouse button down.\n"
+                              "  ZOOM:   Move the mouse with the left mouse button down while "
+                              "holding down the Ctrl key (Apple key on Macs)."
+                              );
+    
     m_inputModeFoci = inputModeFoci;
     QLabel* nameLabel = new QLabel("Foci ");
     
@@ -225,29 +234,31 @@ UserInputModeFociWidget::modeComboBoxSelection(int indx)
 QWidget*
 UserInputModeFociWidget::createCreateOperationWidget()
 {
+    const AString newToolTipText = ("Press this button to display a dialog for creating a new focus. "
+                            "If the mouse is clicked over a model, the dialog for creating a focus is "
+                            "displayed with the focus' coordinates set to the stereotaxic coordinates at "
+                            "the location of the mouse click."
+                            + m_transformToolTipText);
     QAction* newFocusAction = WuQtUtilities::createAction("New...",
-                                                          "Display the create focus window for entering new focus data\n",
+                                                          WuQtUtilities::createWordWrappedToolTipText(newToolTipText),
                                                           this,
                                                           this,
                                                           SLOT(createNewFocusActionTriggered()));
     QToolButton* newFocusToolButton = new QToolButton();
     newFocusToolButton->setDefaultAction(newFocusAction);
     
+    const AString lastIDToolTipText = ("Press this button to display a dialog for creating a new focus "
+                                       "with the focus' coordinates set to the stereotaxic location of the "
+                                       "last identification operation.  While in focus mode, an identification "
+                                       "is performed by holding down the Shift key and clicking the mouse."
+                                       + m_transformToolTipText);
     QAction* lastIdFocusAction = WuQtUtilities::createAction("Last ID",
-                                                          "Display the create focus findow with position of last ID\n",
+                                                          WuQtUtilities::createWordWrappedToolTipText(lastIDToolTipText),
                                                           this,
                                                           this,
                                                           SLOT(createLastIdentificationFocusActionTriggered()));
     QToolButton* lastIdFocusToolButton = new QToolButton();
     lastIdFocusToolButton->setDefaultAction(lastIdFocusAction);
-    
-    m_createFocusMouseClickAction = WuQtUtilities::createAction("From Mouse-Click",
-                                                             "Display the create focus findow with position mouse click\n",
-                                                             this);
-    m_createFocusMouseClickAction->setCheckable(true);
-    m_createFocusMouseClickAction->setChecked(true);
-    QToolButton* mouseClickFocusToolButton = new QToolButton();
-    mouseClickFocusToolButton->setDefaultAction(m_createFocusMouseClickAction);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -255,23 +266,10 @@ UserInputModeFociWidget::createCreateOperationWidget()
     layout->addWidget(newFocusToolButton);
     layout->addSpacing(5);
     layout->addWidget(lastIdFocusToolButton);
-    layout->addSpacing(10);
-    layout->addWidget(mouseClickFocusToolButton);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
-
-/**
- * @return true if a mouse click should pop create focus window
- * in Create Mode.
- */
-bool
-UserInputModeFociWidget::isMouseClickCreateFocusEnabled() const
-{
-    return m_createFocusMouseClickAction->isChecked();
-}
-
 
 /**
  * Called when new focus button is triggered
@@ -388,19 +386,21 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
 QWidget*
 UserInputModeFociWidget::createEditOperationWidget()
 {
+    const AString deleteToolTipText = ("Delete a focus by clicking the mouse over the focus."
+                               + m_transformToolTipText);
     QAction* deleteAction = WuQtUtilities::createAction("Delete",
-                                                        "Delete a border by clicking\n"
-                                                        "the mouse over the border",
+                                                        WuQtUtilities::createWordWrappedToolTipText(deleteToolTipText),
                                                         this);
     deleteAction->setCheckable(true);
     deleteAction->setData(static_cast<int>(UserInputModeFoci::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
     
+    const AString propertiesToolTipText = ("Click the mouse over a focus to display a dialog "
+                                           "for editing the focus' properties."
+                                           + m_transformToolTipText);
     QAction* propertiesAction = WuQtUtilities::createAction("Properties",
-                                                            "Edit the properties of a border by clicking\n"
-                                                            "on a border which causes a border properties\n"
-                                                            "editor to appear",
+                                                            WuQtUtilities::createWordWrappedToolTipText(propertiesToolTipText),
                                                             this);
     propertiesAction->setCheckable(true);
     propertiesAction->setData(static_cast<int>(UserInputModeFoci::EDIT_OPERATION_PROPERTIES));

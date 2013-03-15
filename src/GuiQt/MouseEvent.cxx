@@ -31,10 +31,12 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param mouseEventType
- *    Type of mouse event.
- * @param keyModifiers
- *    Mouse key modifiers.
+ * @param viewportContent
+ *    Content of viewport.
+ * @param openGLWidget
+ *    OpenGL Widget in which mouse activity took place.
+ * @param browserWindowIndex
+ *    Index of the browser winddow in which mouse activity took place.
  * @param x
  *    Current mouse X-coordinate (left == 0)
  * @param y
@@ -51,8 +53,6 @@ using namespace caret;
 MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget,
                        const int32_t browserWindowIndex,
-                       const MouseEventTypeEnum::Enum mouseEventType,
-                       const Qt::KeyboardModifiers keyModifiers, 
                        const int32_t x,
                        const int32_t y,
                        const int32_t dx,
@@ -66,49 +66,12 @@ MouseEvent::MouseEvent(BrainOpenGLViewportContent* viewportContent,
     m_viewportContent = viewportContent;
     m_openGLWidget    = openGLWidget;
     m_browserWindowIndex = browserWindowIndex;
-    m_mouseEventType = mouseEventType;
     m_x = x;
     m_y = y;
     m_dx = dx;
     m_dy = dy;
     m_pressX = mousePressX;
     m_pressY = mousePressY;
-
-    if (keyModifiers == Qt::NoButton) {
-        // nothing
-    }
-    else if (keyModifiers == Qt::ControlModifier) {
-        m_keyDownControl = true;           
-    }
-    else if (keyModifiers == Qt::ShiftModifier) {
-        m_keyDownShift = true;            
-    }
-    else if ((keyModifiers & Qt::ControlModifier)
-             && (keyModifiers & Qt::ShiftModifier)) {
-        m_keyDownControlAndShift = true;           
-    }
-    else {
-        /*
-         * Combinations of keys NOT allowed.
-         */
-        m_mouseEventType = MouseEventTypeEnum::INVALID;
-    }
-}
-
-/**
- * Constructor.
- * @param event
- *    The mouse wheel event.
- */
-MouseEvent::MouseEvent(const QWheelEvent& event)
-: CaretObject()
-{
-    initializeMembersMouseEvent();
-    
-    m_mouseEventType = MouseEventTypeEnum::WHEEL_MOVED;
-    m_x = event.x();
-    m_y = event.y();
-    m_wheelRotation = event.delta();
 }
 
 /**
@@ -126,7 +89,6 @@ MouseEvent::initializeMembersMouseEvent()
 {
     m_viewportContent = NULL;
     m_openGLWidget = NULL;
-    m_mouseEventType = MouseEventTypeEnum::INVALID;
     m_browserWindowIndex = -1;
     m_x = 0;
     m_y = 0;
@@ -135,32 +97,6 @@ MouseEvent::initializeMembersMouseEvent()
     m_pressX = 0;
     m_pressY = 0;
     m_wheelRotation = 0;
-    m_keyDownControl = false;
-    m_keyDownControlAndShift = false;
-    m_keyDownShift = false;
-    setNoKeysDown();
-}
-
-void 
-MouseEvent::setNoKeysDown()
-{
-    m_keyDownControlAndShift = false;
-    m_keyDownControl = false;
-    m_keyDownShift = false;
-}
-
-/**
- * Is this mouse event valid?
- *
- * Some key combinations are not allowed and they
- * will cause the event to be invalid.
- *
- * @return true if mouse event is valid, else false.
- */
-bool 
-MouseEvent::isValid() const
-{
-    return (m_mouseEventType != MouseEventTypeEnum::INVALID);
 }
 
 /**
@@ -189,14 +125,12 @@ AString
 MouseEvent::toString() const
 {
     const AString msg = 
-    "type=" + MouseEventTypeEnum::toName(m_mouseEventType)
-    + ", x=" + AString::number(m_x)
+      ", x=" + AString::number(m_x)
     + ", y=" + AString::number(m_y)
     + ", dx=" + AString::number(m_dx)
     + ", dy=" + AString::number(m_dy);
-    + ", keyDownControlAndShift=" + AString::fromBool(m_keyDownControlAndShift)
-    + ", keyDownControl=" + AString::fromBool(m_keyDownControl)
-    + ", keyDownShift=" + AString::fromBool(m_keyDownShift)
+    + ", pressX=" + AString::number(m_pressX)
+    + ", pressY=" + AString::number(m_pressY);
     + ", wheelRotation=" + AString::number(m_wheelRotation);
     
     return msg;
@@ -232,17 +166,6 @@ int32_t
 MouseEvent::getDy() const
 {
     return m_dy;
-}
-
-/**
- * Get the type of mouse event.
- * @return Type of mouse event.
- *
- */
-MouseEventTypeEnum::Enum
-MouseEvent::getMouseEventType() const
-{
-    return m_mouseEventType;
 }
 
 /**
@@ -300,44 +223,4 @@ int32_t
 MouseEvent::getWheelRotation() const
 {
     return m_wheelRotation;
-}
-
-/**
- * @return Are any keys down?
- */
-bool 
-MouseEvent::isAnyKeyDown() const
-{
-    const bool anyKeyDown = (m_keyDownControlAndShift
-                             || m_keyDownControl
-                             || m_keyDownShift);
-    
-    return anyKeyDown;
-}
-
-/**
- * @return Is the CONTROL AND SHIFT key down?
- */
-bool 
-MouseEvent::isControlAndShiftKeyDown() const
-{
-    return m_keyDownControlAndShift;
-}
-
-/**
- * @return Is the CONTROL key down?
- */
-bool 
-MouseEvent::isControlKeyDown() const
-{
-    return m_keyDownControl;
-}
-
-/**
- * @return Is the SHIFT key down?
- */
-bool 
-MouseEvent::isShiftKeyDown() const
-{
-    return m_keyDownShift;
 }

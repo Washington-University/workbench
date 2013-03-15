@@ -38,10 +38,6 @@ namespace caret {
         
         virtual ~UserInputModeView();
         
-        virtual void processMouseEvent(MouseEvent* mouseEvent,
-                               BrainOpenGLViewportContent* viewportContent,
-                               BrainOpenGLWidget* openGLWidget);
-        
         virtual UserInputMode getUserInputMode() const;
         
         virtual void initialize();
@@ -51,17 +47,6 @@ namespace caret {
         virtual CursorEnum::Enum getCursor() const;
         
         virtual QWidget* getWidgetForToolBar();
-        
-        static void processModelViewTransformation(MouseEvent* mouseEvent,
-                                                   BrainOpenGLViewportContent* viewportContent,
-                                                   BrainOpenGLWidget* openGLWidget,
-                                                   const int32_t mousePressedX,
-                                                   const int32_t mousePressedY);
-        
-        static void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
-                                                   BrainOpenGLWidget* openGLWidget,
-                                                   const int32_t mouseClickX,
-                                                   const int32_t mouseClickY);
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
@@ -80,16 +65,14 @@ namespace caret {
 
         UserInputModeView& operator=(const UserInputModeView&);
         
-        void processIdentification(MouseEvent* mouseEvent,
-                                   BrainOpenGLViewportContent* viewportContent,
-                                   BrainOpenGLWidget* openGLWidget);
+        void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
+                                            BrainOpenGLWidget* openGLWidget,
+                                            const int32_t mouseClickX,
+                                            const int32_t mouseClickY);
         
     public:
         virtual AString toString() const;
         
-    private:
-        int32_t mousePressX;
-        int32_t mousePressY;
     };
     
 #ifdef __USER_INPUT_MODE_VIEW_DECLARE__

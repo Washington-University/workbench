@@ -52,8 +52,6 @@ namespace caret {
         
         void updateWidget();
         
-        bool isDrawModeTransformSelected() const;
-        
         void executeFinishOperation();
         
         void executeRoiInsideSelectedBorderOperation(Brain* brain,
@@ -105,7 +103,7 @@ namespace caret {
         
         UserInputModeBorders* inputModeBorders;
         
-        QAction* drawModeTransformAction;
+        QString m_transformToolTipText;
     };
     
 #ifdef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__

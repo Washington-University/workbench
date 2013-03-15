@@ -187,7 +187,6 @@ MapSettingsPaletteColorMappingWidget.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
-MouseEventTypeEnum.h
 MovieDialog.h
 OverlaySetViewController.h
 OverlayViewController.h
@@ -304,7 +303,6 @@ MapSettingsPaletteColorMappingWidget.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx
-MouseEventTypeEnum.cxx
 MovieDialog.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx

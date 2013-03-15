@@ -59,10 +59,6 @@ namespace caret {
         
         virtual ~UserInputModeBorders();
         
-        virtual void processMouseEvent(MouseEvent* mouseEvent,
-                               BrainOpenGLViewportContent* viewportContent,
-                               BrainOpenGLWidget* openGLWidget);
-        
         virtual UserInputMode getUserInputMode() const;
         
         virtual void initialize();
@@ -131,9 +127,6 @@ namespace caret {
         Border* borderBeingDrawnByOpenGL;
         
         int32_t windowIndex;
-        
-        int32_t mousePressX;
-        int32_t mousePressY;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

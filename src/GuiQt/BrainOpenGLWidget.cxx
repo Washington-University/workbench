@@ -370,8 +370,6 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 void 
 BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 {
-    const Qt::KeyboardModifiers keyModifiers = we->modifiers();
-    
     const int wheelX = we->x();
     const int wheelY = this->windowHeight[this->windowIndex] - we->y();
     int delta = we->delta();
@@ -385,33 +383,16 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      */
     BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                wheelY);
-    {
-        MouseEvent mouseEvent(viewportContent,
-                              this,
-                              this->windowIndex,
-                              MouseEventTypeEnum::LEFT_DRAGGED,
-                              Qt::ControlModifier,
-                              wheelX,
-                              wheelY,
-                              0,
-                              delta,
-                              0,
-                              0);
-        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
-    }
-    
     MouseEvent mouseEvent(viewportContent,
                           this,
                           this->windowIndex,
-                          MouseEventTypeEnum::WHEEL_MOVED,
-                          keyModifiers,
                           wheelX,
                           wheelY,
                           0,
                           delta,
-                          this->mousePressX,
-                          this->mousePressY);
-    this->processMouseEvent(&mouseEvent);
+                          0,
+                          0);
+    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
     
     we->accept();
 }
@@ -481,28 +462,6 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
-        
-        /*
-         * Use location of mouse press so that the model
-         * being manipulated does not change if mouse moves
-         * out of its viewport without releasing the mouse
-         * button.
-         */
-        BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
-                                                                                   this->mousePressY);
-        
-        MouseEvent mouseEvent(viewportContent,
-                              this,
-                              this->windowIndex,
-                              MouseEventTypeEnum::LEFT_PRESSED,
-                              keyModifiers,
-                              mouseX,
-                              mouseY,
-                              0,
-                              0,
-                              this->mousePressX,
-                              this->mousePressY);
-        this->processMouseEvent(&mouseEvent);
         
         this->lastMouseX = mouseX;
         this->lastMouseY = mouseY;
@@ -580,16 +539,12 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             MouseEvent mouseEvent(viewportContent,
                                   this,
                                   this->windowIndex,
-                                  MouseEventTypeEnum::LEFT_CLICKED,
-                                  keyModifiers,
                                   mouseX,
                                   mouseY,
                                   dx,
                                   dy,
                                   this->mousePressX,
                                   this->mousePressY);
-            this->processMouseEvent(&mouseEvent);
-            
             
             if (keyModifiers == Qt::NoButton) {
                 this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
@@ -597,20 +552,6 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             else if (keyModifiers == Qt::ShiftModifier) {
                 this->selectedUserInputProcessor->mouseLeftClickWithShift(mouseEvent);
             }
-        }
-        else {
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  MouseEventTypeEnum::LEFT_RELEASED,
-                                  keyModifiers,
-                                  mouseX,
-                                  mouseY,
-                                  dx,
-                                  dy,
-                                  this->mousePressX,
-                                  this->mousePressY);
-            this->processMouseEvent(&mouseEvent);
         }
     }
     
@@ -769,15 +710,12 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 MouseEvent mouseEvent(viewportContent,
                                       this,
                                       this->windowIndex,
-                                      MouseEventTypeEnum::LEFT_DRAGGED,
-                                      keyModifiers,
                                       mouseX,
                                       mouseY,
                                       dx,
                                       dy,
                                       this->mousePressX,
                                       this->mousePressY);
-                this->processMouseEvent(&mouseEvent);
 
                 if (keyModifiers == Qt::NoButton) {
                     this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
@@ -799,52 +737,6 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     }
     
     me->accept();
-}
-
-/**
- * Process a mouse event by sending it to the current
- * user input processor.
- *
- * @param mouseEvent
- *    Mouse event for processing.
- */
-void 
-BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
-{
-    CaretLogFiner(mouseEvent->toString());
-    
-    if (mouseEvent->isValid()) {        
-        /*
-         * Ignore mouse movement near edge of graphics
-         */
-        if (this->isMousePressedNearToolBox == false) {
-            /*
-             * Use location of mouse press so that the model
-             * being manipulated does not change if mouse moves
-             * out of its viewport without releasing the mouse
-             * button.
-             */
-            BrainOpenGLViewportContent* viewportContent = NULL;
-            
-            if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
-                viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
-                                                               mouseEvent->getY());
-            }
-            else {
-                viewportContent = this->getViewportContentAtXY(this->mousePressX, 
-                                                               this->mousePressY);
-            }
-            
-            if (viewportContent != NULL) {
-                BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-                if (browserTabContent != NULL) {
-                    this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
-                                                                        viewportContent,
-                                                                        this);
-                }
-            }
-        }
-    }
 }
 
 /**

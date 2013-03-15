@@ -101,8 +101,6 @@ namespace caret {
         void wheelEvent(QWheelEvent* e);
         
     private:
-        void processMouseEvent(MouseEvent* mouseEvent);
-        
         void clearDrawingViewportContents();
         
         BrainOpenGLViewportContent* getViewportContentAtXY(const int x,

@@ -60,21 +60,6 @@ namespace caret {
         };
         
         /**
-         * Called when a mouse events occurs for 'this' 
-         * user input receiver.
-         *
-         * @param mouseEvent
-         *     The mouse event.
-         * @param browserTabContent
-         *     Content of the browser window's tab.
-         * @param openGLWidget
-         *     OpenGL Widget in which mouse event occurred.
-         */
-        virtual void processMouseEvent(MouseEvent* mouseEvent,
-                               BrainOpenGLViewportContent* viewportContent,
-                               BrainOpenGLWidget* openGLWidget) = 0;
-        
-        /**
          * @return The input mode enumerated type.
          */
         virtual UserInputMode getUserInputMode() const = 0;

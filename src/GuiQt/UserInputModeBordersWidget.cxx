@@ -87,6 +87,15 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
                                                        QWidget* parent)
 : QWidget(parent)
 {
+    m_transformToolTipText = ("\n\n"
+                              "At any time, the view of the surface may be changed by\n"
+                              "  PAN:    Move the mouse with the left mouse button down while "
+                              "holding down the Shift key.\n"
+                              "  ROTATE: Move the mouse with the left mouse button down.\n"
+                              "  ZOOM:   Move the mouse with the left mouse button down while "
+                              "holding down the Ctrl key (Apple key on Macs)."
+                              );
+    
     this->inputModeBorders = inputModeBorders;
     
     QLabel* nameLabel = new QLabel("Borders ");
@@ -204,17 +213,6 @@ UserInputModeBordersWidget::createModeWidget()
 }
 
 /**
- * @return Is the transform button selected in draw mode?
- */
-bool 
-UserInputModeBordersWidget::isDrawModeTransformSelected() const
-{
-    return this->drawModeTransformAction->isChecked();
-    
-}
-
-
-/**
  * Called when a mode is selected from the mode combo box.
  * @param indx
  *   Index of item selected.
@@ -233,79 +231,70 @@ UserInputModeBordersWidget::modeComboBoxSelection(int indx)
 QWidget* 
 UserInputModeBordersWidget::createDrawOperationWidget()
 {
-    this->drawModeTransformAction = WuQtUtilities::createAction("Adjust View", 
-                                                                "When selected, border drawing is paused and\n"
-                                                                "the mouse pans/zooms/rotates the surface.\n"
-                                                                "\n"
-                                                                "Note: When this is option is NOT selected, holding\n"
-                                                                "down BOTH the CTRL (Apple on Macs) AND the\n"
-                                                                "SHIFT keys while moving the mouse will rotate\n"
-                                                                "the surface instead of drawing border points.", 
-                                                                this,
-                                                                this,
-                                                                SLOT(adjustViewActionTriggered()));
-    this->drawModeTransformAction->setCheckable(true);
-    QToolButton* transformToolButton = new QToolButton();
-    transformToolButton->setDefaultAction(this->drawModeTransformAction);
-    
-    QAction* drawAction = WuQtUtilities::createAction("Draw", 
-                                                      "Draw a border segment by either clicking the\n"
-                                                      "mouse along the desired border path or by\n"
-                                                      "moving the mouse with the left mouse button\n"
-                                                      "depressed until the end point is reached.\n"
-                                                      "Press the \"Finish\" button to apply the\n"
-                                                      "border segment based upon the selection of\n"
-                                                      "the Draw, Erase, Extend, or Replace button.\n",
+    const AString drawToolTipText = ("To draw a new border segment either click the mouse "
+                                 "to discretely add border points or hold down the Alt/Option key "
+                                 "and move the mouse with the left mouse button down to continuously "
+                                     "add points. "
+                                 "When the border is complete, either press the Finish button "
+                                 "or hold down the Shift key and click the mouse to display a "
+                                 "dialog for assigning the borders attributes (name and color). "
+                                     + m_transformToolTipText);
+    QAction* drawAction = WuQtUtilities::createAction("New",
+                                                      WuQtUtilities::createWordWrappedToolTipText(drawToolTipText),
                                                       this);
     drawAction->setCheckable(true);
     drawAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_CREATE));
     QToolButton* drawToolButton = new QToolButton();
     drawToolButton->setDefaultAction(drawAction);
     
-    QAction* eraseAction = WuQtUtilities::createAction("Erase", 
-                                                       "Erase the an end of the border by \n"
-                                                       "dragging the mouse along the region\n"
-                                                       "that is to be deleted", 
+    const AString eraseToolTipText = ("To erase a section of a border, click the mouse twice, once "
+                                      "at the beginning of the section that is to be removed and a "
+                                      "second time at the end of the section. "
+                                      "Press the Finish button or hold down the Shift key and click the "
+                                      "mouse remove the border section."
+                                      + m_transformToolTipText);
+    QAction* eraseAction = WuQtUtilities::createAction("Erase",
+                                                       WuQtUtilities::createWordWrappedToolTipText(eraseToolTipText),
                                                        this);
     eraseAction->setCheckable(true);
     eraseAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_ERASE));
     QToolButton* eraseToolButton = new QToolButton();
     eraseToolButton->setDefaultAction(eraseAction);
     
+    const AString extendToolTipText = ("To extend a border, move the mouse to the end of the border and "
+                                       "either click the mouse to discretely add points or hold down the Alt/Option "
+                                       "key and move the mouse with the left mouse button down to continuously add points. "
+                                       "Press the Finish button or hold down the Shift key and click the "
+                                       "mouse add the extension to the border."
+                                       + m_transformToolTipText);
     QAction* extendAction = WuQtUtilities::createAction("Extend", 
-                                                        "Extend a border by dragging the mouse\n"
-                                                        "starting at the end of a border and \n"
-                                                        "until its new termination point.", 
+                                                        WuQtUtilities::createWordWrappedToolTipText(extendToolTipText),
                                                         this);
     extendAction->setCheckable(true);
     extendAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_EXTEND));
     QToolButton* extendToolButton = new QToolButton();
     extendToolButton->setDefaultAction(extendAction);
     
-    QAction* replaceAction = WuQtUtilities::createAction("Replace", 
-                                                         "Replace a section of a border by placing\n"
-                                                         "the mouse over a point on the border where\n"
-                                                         "the new segment begins and dragging the \n"
-                                                         "mouse to the end of the section that is\n"
-                                                         "being replaced.", 
+    const AString replaceToolTipText = ("To replace a section of a border, move the mouse to the "
+                                        "start of the section that is being replaced.  Either click "
+                                        "the mouse to discretely add points in the new section or hold down the Alt/Option key "
+                                        "and move the mouse with the left mouse button down to continuously add points. "
+                                        "Press the Finish button or hold down the Shift key and click the "
+                                        "mouse to conclude replacing the section in the border."
+                                        + m_transformToolTipText);
+    QAction* replaceAction = WuQtUtilities::createAction("Replace",
+                                                         WuQtUtilities::createWordWrappedToolTipText(replaceToolTipText),
                                                          this);
     replaceAction->setCheckable(true);
     replaceAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_REPLACE));
     QToolButton* replaceToolButton = new QToolButton();
     replaceToolButton->setDefaultAction(replaceAction);
     
+    const AString finishToolTipText = ("The finish button must be pressed (holding down the Shift key "
+                                       "and clicking the mouse is a shortcut to clicking the Finish "
+                                       "button) to complete any of the border drawing operations.");
     QAction* finishAction = WuQtUtilities::createAction("Finish", 
-                                                        "Apply border segment drawn based upon\n"
-                                                        "the selection of the Draw, Erase, Extend\n"
-                                                        ", or Replace buttons.  If Draw, a dialog\n"
-                                                        "is popped up to set the attributes of \n"
-                                                        "new border.  Erase, Extend, and Replace\n"
-                                                        "are applied immediately upon pressing \n"
-                                                        "this button.\n"
-                                                        "\n"
-                                                        "Note: Holding down the SHIFT key and \n"
-                                                        "clicking the mouse will initiate the\n"
-                                                        "Finish operation.",
+                                                       WuQtUtilities::createWordWrappedToolTipText(finishToolTipText),
                                                         this,
                                                         this,
                                                         SLOT(drawFinishButtonClicked()));
@@ -346,8 +335,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 0);
-    layout->addWidget(transformToolButton);
-    layout->addSpacing(10);
     layout->addWidget(drawToolButton);
     layout->addWidget(eraseToolButton);
     layout->addWidget(extendToolButton);
@@ -540,8 +527,6 @@ UserInputModeBordersWidget::drawOperationActionTriggered(QAction* action)
     const UserInputModeBorders::DrawOperation drawOperation = 
         static_cast<UserInputModeBorders::DrawOperation>(drawModeInteger);
     this->inputModeBorders->setDrawOperation(drawOperation);
-    
-    this->drawModeTransformAction->setChecked(false);
 }
 
 /**
@@ -550,19 +535,22 @@ UserInputModeBordersWidget::drawOperationActionTriggered(QAction* action)
 QWidget* 
 UserInputModeBordersWidget::createEditOperationWidget()
 {
-    QAction* deleteAction = WuQtUtilities::createAction("Delete", 
-                                                        "Delete a border by clicking\n"
-                                                        "the mouse over the border",
+    const AString deleteToolTipText = ("Delete a border by clicking the mouse over "
+                                       "any point in the border."
+                                       + m_transformToolTipText);
+    QAction* deleteAction = WuQtUtilities::createAction("Delete",
+                                                        WuQtUtilities::createWordWrappedToolTipText(deleteToolTipText),
                                                         this);
     deleteAction->setCheckable(true);
     deleteAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
     
+    const AString propertiesToolTipText = ("A dialog for editing a border's properties is displayed by "
+                                           "clicking any point in a border."
+                                           + m_transformToolTipText);
     QAction* propertiesAction = WuQtUtilities::createAction("Properties", 
-                                                         "Edit the properties of a border by clicking\n"
-                                                         "on a border which causes a border properties\n"
-                                                         "editor to appear", 
+                                                         WuQtUtilities::createWordWrappedToolTipText(propertiesToolTipText),
                                                          this);
     propertiesAction->setCheckable(true);
     propertiesAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_PROPERTIES));

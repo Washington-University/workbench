@@ -90,9 +90,6 @@ namespace caret {
         void setActionGroupByActionData(QActionGroup* actionGroup,
                                         const int dataInteger);
         
-
-        bool isMouseClickCreateFocusEnabled() const;
-        
         // ADD_NEW_MEMBERS_HERE
 
         UserInputModeFoci* m_inputModeFoci;
@@ -111,7 +108,7 @@ namespace caret {
         
         QStackedWidget* m_operationStackedWidget;
         
-        QAction* m_createFocusMouseClickAction;
+        QString m_transformToolTipText;
         
         friend class UserInputModeFoci;
     };

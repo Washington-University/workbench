@@ -25,10 +25,7 @@
  * 
  */ 
 
-#include <QMouseEvent>
-
 #include "CaretObject.h"
-#include "MouseEventTypeEnum.h"
 
 #include <stdint.h>
 
@@ -48,16 +45,12 @@ namespace caret {
         MouseEvent(BrainOpenGLViewportContent* viewportContent,
                    BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
-                   const MouseEventTypeEnum::Enum mouseEventType,
-                   const Qt::KeyboardModifiers keyModifiers,
                    const int32_t x,
                    const int32_t y,
                    const int32_t dx,
                    const int32_t dy,
                    const int32_t mousePressX,
                    const int32_t mousePressY);
-        
-        MouseEvent(const QWheelEvent& event);
         
         virtual ~MouseEvent();
         
@@ -69,8 +62,6 @@ namespace caret {
         MouseEvent& operator=(const MouseEvent& o);
         
     public:
-        bool isValid() const;
-        
         AString toString() const;
         
         BrainOpenGLViewportContent* getViewportContent() const;
@@ -83,8 +74,6 @@ namespace caret {
         
         int32_t getDy() const;
         
-        MouseEventTypeEnum::Enum getMouseEventType() const;
-        
         int32_t getX() const;
         
         int32_t getY() const;
@@ -95,19 +84,7 @@ namespace caret {
         
         int32_t getWheelRotation() const;
         
-        bool isControlAndShiftKeyDown() const;
-        
-        bool isControlKeyDown() const;
-        
-        bool isShiftKeyDown() const;
-        
-        bool isAnyKeyDown() const;
-        
-        void setNoKeysDown();
-        
     private:
-        MouseEventTypeEnum::Enum m_mouseEventType;
-        
         BrainOpenGLViewportContent* m_viewportContent;
         
         BrainOpenGLWidget* m_openGLWidget;
@@ -127,12 +104,6 @@ namespace caret {
         int32_t m_pressY;
         
         int32_t m_wheelRotation;
-        
-        bool m_keyDownControlAndShift;
-        
-        bool m_keyDownControl;
-        
-        bool m_keyDownShift;
     };
     
 } // namespace
