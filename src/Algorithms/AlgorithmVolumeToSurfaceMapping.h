@@ -26,14 +26,16 @@
  */
 
 #include "AbstractAlgorithm.h"
-#include <vector>
-#include <algorithm>
+
 #include "Vector3D.h"
+#include "VolumeFile.h"
+
+#include <vector>
 
 namespace caret {
     
     struct VoxelWeight
-    {//for precomputation in ribbon mapping
+    {//for precomputation in ribbon/myelin style mapping
         float weight;
         int64_t ijk[3];
         VoxelWeight() { };
@@ -74,20 +76,27 @@ namespace caret {
     class AlgorithmVolumeToSurfaceMapping : public AbstractAlgorithm
     {
         AlgorithmVolumeToSurfaceMapping();
-        void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* myVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
+        void precomputeWeightsRibbon(std::vector<std::vector<VoxelWeight> >& myWeights, const VolumeFile* myVol, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol, const int& numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
         float computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec);
-    protected:
-        static float getSubAlgorithmWeight();
-        static float getAlgorithmInternalWeight();
-    public:
+        void precomputeWeightsMyelin(std::vector<std::vector<VoxelWeight> >& myWeights, const SurfaceFile* mySurface, const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma);
         enum Method
         {
             TRILINEAR,
             ENCLOSING_VOXEL,
             RIBBON_CONSTRAINED,
-            CUBIC
+            CUBIC,
+            MYELIN_STYLE
         };
-        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, VolumeFile* roiVol = NULL, int32_t subdivisions = 3);
+    protected:
+        static float getSubAlgorithmWeight();
+        static float getAlgorithmInternalWeight();
+    public:
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut, const VolumeFile::InterpType& myMethod,
+                                        const int64_t& mySubVol = -1);
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                        const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol = NULL, const int32_t& subdivisions = 3, const int64_t& mySubVol = -1);
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                        const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

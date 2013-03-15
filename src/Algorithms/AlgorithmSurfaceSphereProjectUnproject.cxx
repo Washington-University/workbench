@@ -77,7 +77,7 @@ AlgorithmSurfaceSphereProjectUnproject::AlgorithmSurfaceSphereProjectUnproject(P
                                                                                const SurfaceFile* unprojectSphere, SurfaceFile* sphereOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (!projectSphere->hasNodeCorrespondence(*unprojectSphere)) throw AlgorithmException("projection sphere and unprojection sphere do not have node correspondence");
+    if (!projectSphere->hasNodeCorrespondence(*unprojectSphere)) throw AlgorithmException("projection sphere and unprojection sphere do not have vertex correspondence");
     if (!checkSphere(sphereIn) || !checkSphere(projectSphere) || !checkSphere(unprojectSphere)) throw AlgorithmException("all inputs must be spheres centered around the origin");
     SurfaceFile inMod = *sphereIn, projectMod = *projectSphere, unprojectMod = *unprojectSphere;
     changeRadius(100.0f, &inMod);

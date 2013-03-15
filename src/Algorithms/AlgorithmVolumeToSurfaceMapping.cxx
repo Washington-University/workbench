@@ -24,14 +24,17 @@
 
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmException.h"
-#include "VolumeFile.h"
+
+#include "CaretOMP.h"
+#include "FloatMatrix.h"
+#include "MathFunctions.h"
+#include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
-#include "MetricFile.h"
-#include "MathFunctions.h"
+#include "Vector3D.h"
+#include "VolumeFile.h"
+
 #include <cmath>
-#include "FloatMatrix.h"
-#include "CaretOMP.h"
 
 using namespace caret;
 using namespace std;
@@ -69,13 +72,18 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
+    OptionalParameter* myelinStyleOpt = ret->createOptionalParameter(9, "-myelin-style", "use the method from myelin mapping");
+    myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
+    myelinStyleOpt->addMetricParameter(2, "thickness", "a metric file of cortical thickness");
+    myelinStyleOpt->addDoubleParameter(3, "sigma", "guassian kernel in mm for weighting voxels within range");
+    
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
         AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the vertex lies inside, while trilinear does a 3D ") + 
-        "linear interpolation based on the voxels immediately on each side of the vertex's position." +
-        "\n\nThe ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
+        "linear interpolation based on the voxels immediately on each side of the vertex's position.\n\n" +
+        "The ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
         "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for sampling.  " +
         "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
         "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
@@ -94,6 +102,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     OptionalParameter* enclosingOpt = myParams->getOptionalParameter(5);
     OptionalParameter* cubicOpt = myParams->getOptionalParameter(8);
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* myelinStyleOpt = myParams->getOptionalParameter(9);
     int64_t mySubVol = -1;
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(7);
     if (subvolumeSelect->m_present)
@@ -105,11 +114,13 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
     }
     bool haveMethod = false;
-    Method myMethod;
+    Method myMethod = CUBIC;//this tracks which constructor to call
+    VolumeFile::InterpType volInterpMethod = VolumeFile::CUBIC;
     if (trilinearOpt->m_present)
     {
         haveMethod = true;
         myMethod = TRILINEAR;
+        volInterpMethod = VolumeFile::TRILINEAR;
     }
     if (enclosingOpt->m_present)
     {
@@ -119,6 +130,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
         haveMethod = true;
         myMethod = ENCLOSING_VOXEL;
+        volInterpMethod = VolumeFile::ENCLOSING_VOXEL;
     }
     if (ribbonOpt->m_present)
     {
@@ -137,6 +149,16 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
         haveMethod = true;
         myMethod = CUBIC;
+        volInterpMethod = VolumeFile::CUBIC;
+    }
+    if (myelinStyleOpt->m_present)
+    {
+        if (haveMethod)
+        {
+            throw AlgorithmException("more than one mapping method specified");
+        }
+        haveMethod = true;
+        myMethod = MYELIN_STYLE;
     }
     if (!haveMethod)
     {
@@ -147,37 +169,47 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         case TRILINEAR:
         case ENCLOSING_VOXEL:
         case CUBIC:
-            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol);//in case we want to separate constructors rather than just having defaults
+            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, volInterpMethod, mySubVol);//because we have separate constructors
             break;
         case RIBBON_CONSTRAINED:
+        {
+            SurfaceFile* innerSurf = ribbonOpt->getSurface(1);
+            SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
+            int32_t subdivisions = 3;
+            OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(3);
+            if (ribbonSubdiv->m_present)
             {
-                SurfaceFile* innerSurf = ribbonOpt->getSurface(1);
-                SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
-                int32_t subdivisions = 3;
-                OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(3);
-                if (ribbonSubdiv->m_present)
+                subdivisions = ribbonSubdiv->getInteger(1);
+                if (subdivisions < 1)
                 {
-                    subdivisions = ribbonSubdiv->getInteger(1);
-                    if (subdivisions < 1)
-                    {
-                        throw AlgorithmException("invalid number of subdivisions specified");
-                    }
+                    throw AlgorithmException("invalid number of subdivisions specified");
                 }
-                OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(4);
-                VolumeFile* myRoiVol = NULL;
-                if (roiVol->m_present)
-                {
-                    myRoiVol = roiVol->getVolume(1);
-                }
-                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, innerSurf, outerSurf, myRoiVol, subdivisions);
             }
+            OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(4);
+            VolumeFile* myRoiVol = NULL;
+            if (roiVol->m_present)
+            {
+                myRoiVol = roiVol->getVolume(1);
+            }
+            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, mySubVol);
             break;
+        }
+        case MYELIN_STYLE:
+        {
+            VolumeFile* roi = myelinStyleOpt->getVolume(1);
+            MetricFile* thickness = myelinStyleOpt->getMetric(2);
+            float sigma = (float)myelinStyleOpt->getDouble(3);
+            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, roi, thickness, sigma, mySubVol);
+            break;
+        }
         default:
             throw AlgorithmException("this method not yet implemented");
     }
 }
 
-AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int32_t subdivisions) : AbstractAlgorithm(myProgObj)
+//interpolation mapping
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                                                 const VolumeFile::InterpType& myMethod, const int64_t& mySubVol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -196,244 +228,253 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     int64_t numNodes = mySurface->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
     myMetricOut->setStructure(mySurface->getStructure());
+    vector<float> myArray(numNodes);
+    AString methodName;
     switch (myMethod)
     {
-        case CUBIC:
-            {
-                CaretArray<float> myCaretArray(numNodes);
-                float* myArray = myCaretArray.getArray();
-                if (mySubVol == -1)
-                {
-                    for (int64_t i = 0; i < myVolDims[3]; ++i)
-                    {
-                        for (int64_t j = 0; j < myVolDims[4]; ++j)
-                        {
-                            AString metricLabel = myVolume->getMapName(i);
-                            if (myVolDims[4] != 1)
-                            {
-                                metricLabel += " component " + AString::number(j);
-                            }
-                            metricLabel += " cubic";
-                            int64_t thisCol = i * myVolDims[4] + j;
-                            myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                            for (int64_t node = 0; node < numNodes; ++node)
-                            {
-                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::CUBIC, NULL, i, j);
-                            }
-                            myMetricOut->setValuesForColumn(thisCol, myArray);
-                        }
-                    }
-                } else {
-                    for (int64_t j = 0; j < myVolDims[4]; ++j)
-                    {
-                        AString metricLabel = myVolume->getMapName(mySubVol);
-                        if (myVolDims[4] != 1)
-                        {
-                            metricLabel += " component " + AString::number(j);
-                        }
-                        metricLabel += " trilinear";
-                        int64_t thisCol = j;
-                        myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                        for (int64_t node = 0; node < numNodes; ++node)
-                        {
-                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, mySubVol, j);
-                        }
-                        myMetricOut->setValuesForColumn(thisCol, myArray);
-                    }
-                }
-            }
+        case VolumeFile::CUBIC:
+            methodName = " cubic";
             break;
-        case TRILINEAR:
-            {
-                CaretArray<float> myCaretArray(numNodes);
-                float* myArray = myCaretArray.getArray();
-                if (mySubVol == -1)
-                {
-                    for (int64_t i = 0; i < myVolDims[3]; ++i)
-                    {
-                        for (int64_t j = 0; j < myVolDims[4]; ++j)
-                        {
-                            AString metricLabel = myVolume->getMapName(i);
-                            if (myVolDims[4] != 1)
-                            {
-                                metricLabel += " component " + AString::number(j);
-                            }
-                            metricLabel += " trilinear";
-                            int64_t thisCol = i * myVolDims[4] + j;
-                            myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                            for (int64_t node = 0; node < numNodes; ++node)
-                            {
-                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, i, j);
-                            }
-                            myMetricOut->setValuesForColumn(thisCol, myArray);
-                        }
-                    }
-                } else {
-                    for (int64_t j = 0; j < myVolDims[4]; ++j)
-                    {
-                        AString metricLabel = myVolume->getMapName(mySubVol);
-                        if (myVolDims[4] != 1)
-                        {
-                            metricLabel += " component " + AString::number(j);
-                        }
-                        metricLabel += " trilinear";
-                        int64_t thisCol = j;
-                        myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                        for (int64_t node = 0; node < numNodes; ++node)
-                        {
-                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, mySubVol, j);
-                        }
-                        myMetricOut->setValuesForColumn(thisCol, myArray);
-                    }
-                }
-            }
+        case VolumeFile::TRILINEAR:
+            methodName = " trilinear";
             break;
-        case ENCLOSING_VOXEL:
-            {
-                CaretArray<float> myCaretArray(numNodes);
-                float* myArray = myCaretArray.getArray();
-                if (mySubVol == -1)
-                {
-                    for (int64_t i = 0; i < myVolDims[3]; ++i)
-                    {
-                        for (int64_t j = 0; j < myVolDims[4]; ++j)
-                        {
-                            AString metricLabel = myVolume->getMapName(i);
-                            if (myVolDims[4] != 1)
-                            {
-                                metricLabel += " component " + AString::number(j);
-                            }
-                            metricLabel += " nearest neighbor";
-                            int64_t thisCol = i * myVolDims[4] + j;
-                            myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                            for (int64_t node = 0; node < numNodes; ++node)
-                            {
-                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, i, j);
-                            }
-                            myMetricOut->setValuesForColumn(thisCol, myArray);
-                        }
-                    }
-                } else {
-                    for (int64_t j = 0; j < myVolDims[4]; ++j)
-                    {
-                        AString metricLabel = myVolume->getMapName(mySubVol);
-                        if (myVolDims[4] != 1)
-                        {
-                            metricLabel += " component " + AString::number(j);
-                        }
-                        metricLabel += " nearest neighbor";
-                        int64_t thisCol = j;
-                        myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR
-                        for (int64_t node = 0; node < numNodes; ++node)
-                        {
-                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, mySubVol, j);
-                        }
-                        myMetricOut->setValuesForColumn(thisCol, myArray);
-                    }
-                }
-            }
+        case VolumeFile::ENCLOSING_VOXEL:
+            methodName = " enclosing voxel";
             break;
-        case RIBBON_CONSTRAINED:
+    }
+    if (mySubVol == -1)
+    {
+        for (int64_t i = 0; i < myVolDims[3]; ++i)
+        {
+            for (int64_t j = 0; j < myVolDims[4]; ++j)
             {
-                if (outerSurf == NULL || innerSurf == NULL)
+                AString metricLabel = myVolume->getMapName(i);
+                if (myVolDims[4] != 1)
                 {
-                    throw AlgorithmException("missing required parameter for this mapping method");
+                    metricLabel += " component " + AString::number(j);
                 }
-                if (mySurface->getNumberOfNodes() != outerSurf->getNumberOfNodes() || mySurface->getNumberOfNodes() != innerSurf->getNumberOfNodes())
-                {//TODO: also compare topologies?
-                    throw AlgorithmException("all surfaces must be in vertex correspondence");
-                }
-                if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
+                metricLabel += methodName;
+                int64_t thisCol = i * myVolDims[4] + j;
+                myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+                for (int64_t node = 0; node < numNodes; ++node)
                 {
-                    throw AlgorithmException("roi volume is not in the same volume space as input volume");
+                    myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), myMethod, NULL, i, j);
                 }
-                vector<vector<VoxelWeight> > myWeights;
-                precomputeWeights(myWeights, myVolume, innerSurf, outerSurf, roiVol, subdivisions);
-                CaretArray<float> myScratchArray(numNodes);
-                float* myScratch = myScratchArray.getArray();
-                if (mySubVol == -1)
-                {
-                    for (int64_t i = 0; i < myVolDims[3]; ++i)
-                    {
-                        for (int64_t j = 0; j < myVolDims[4]; ++j)
-                        {
-                            int64_t thisCol = i * myVolDims[4] + j;
-                            AString metricLabel = myVolume->getMapName(i);
-                            if (myVolDims[4] != 1)
-                            {
-                                metricLabel += " component " + AString::number(j);
-                            }
-                            metricLabel += " ribbon constrained";
-                            myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR schedule(dynamic)
-                            for (int64_t node = 0; node < numNodes; ++node)
-                            {
-                                myScratch[node] = 0.0f;
-                                float totalWeight = 0.0f;
-                                int numVoxels = (int)myWeights[node].size();
-                                for (int voxel = 0; voxel < numVoxels; ++voxel)
-                                {
-                                    float thisWeight = myWeights[node][voxel].weight;
-                                    totalWeight += thisWeight;
-                                    myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);
-                                }
-                                if (totalWeight != 0.0f)
-                                {
-                                    myScratch[node] /= totalWeight;
-                                } else {
-                                    myScratch[node] = 0.0f;
-                                }
-                            }
-                            myMetricOut->setValuesForColumn(thisCol, myScratch);
-                        }
-                    }
-                } else {
-                    for (int64_t j = 0; j < myVolDims[4]; ++j)
-                    {
-                        AString metricLabel = myVolume->getMapName(mySubVol);
-                        if (myVolDims[4] != 1)
-                        {
-                            metricLabel += " component " + AString::number(j);
-                        }
-                        metricLabel += " ribbon constrained";
-                        int64_t thisCol = j;
-                        myMetricOut->setColumnName(thisCol, metricLabel);
-#pragma omp CARET_PARFOR schedule(dynamic)
-                        for (int64_t node = 0; node < numNodes; ++node)
-                        {
-                                myScratch[node] = 0.0f;
-                                float totalWeight = 0.0f;
-                                int numVoxels = (int)myWeights[node].size();
-                                for (int voxel = 0; voxel < numVoxels; ++voxel)
-                                {
-                                    float thisWeight = myWeights[node][voxel].weight;
-                                    totalWeight += thisWeight;
-                                    myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, mySubVol, j);
-                                }
-                                if (totalWeight != 0.0f)
-                                {
-                                    myScratch[node] /= totalWeight;
-                                } else {
-                                    myScratch[node] = 0.0f;
-                                }
-                        }
-                        myMetricOut->setValuesForColumn(thisCol, myScratch);
-                    }
-                }
+                myMetricOut->setValuesForColumn(thisCol, myArray.data());
             }
-            break;
-        default:
-            throw AlgorithmException("unknown mapping method specified");
+        }
+    } else {
+        for (int64_t j = 0; j < myVolDims[4]; ++j)
+        {
+            AString metricLabel = myVolume->getMapName(mySubVol);
+            if (myVolDims[4] != 1)
+            {
+                metricLabel += " component " + AString::number(j);
+            }
+            metricLabel += methodName;
+            int64_t thisCol = j;
+            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
+            for (int64_t node = 0; node < numNodes; ++node)
+            {
+                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), myMethod, NULL, mySubVol, j);
+            }
+            myMetricOut->setValuesForColumn(thisCol, myArray.data());
+        }
     }
 }
 
-void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeight> >& myWeights, VolumeFile* myVolume, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int numDivisions)
+//ribbon mapping
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol,
+                                                                 const int32_t& subdivisions, const int64_t& mySubVol) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    vector<int64_t> myVolDims;
+    myVolume->getDimensions(myVolDims);
+    if (mySubVol >= myVolDims[3] || mySubVol < -1)
+    {
+        throw AlgorithmException("invalid subvolume specified");
+    }
+    int64_t numColumns;
+    if (mySubVol == -1)
+    {
+        numColumns = myVolDims[3] * myVolDims[4];
+    } else {
+        numColumns = myVolDims[4];
+    }
+    int64_t numNodes = mySurface->getNumberOfNodes();
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+    myMetricOut->setStructure(mySurface->getStructure());
+    if (!mySurface->hasNodeCorrespondence(*outerSurf) || !mySurface->hasNodeCorrespondence(*innerSurf))
+    {
+        throw AlgorithmException("all surfaces must be in vertex correspondence");
+    }
+    if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
+    {
+        throw AlgorithmException("roi volume is not in the same volume space as input volume");
+    }
+    vector<vector<VoxelWeight> > myWeights;
+    precomputeWeightsRibbon(myWeights, myVolume, innerSurf, outerSurf, roiVol, subdivisions);
+    CaretArray<float> myScratchArray(numNodes);
+    float* myScratch = myScratchArray.getArray();
+    if (mySubVol == -1)
+    {
+        for (int64_t i = 0; i < myVolDims[3]; ++i)
+        {
+            for (int64_t j = 0; j < myVolDims[4]; ++j)
+            {
+                int64_t thisCol = i * myVolDims[4] + j;
+                AString metricLabel = myVolume->getMapName(i);
+                if (myVolDims[4] != 1)
+                {
+                    metricLabel += " component " + AString::number(j);
+                }
+                metricLabel += " ribbon constrained";
+                myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
+                for (int64_t node = 0; node < numNodes; ++node)
+                {
+                    myScratch[node] = 0.0f;
+                    float totalWeight = 0.0f;
+                    int numVoxels = (int)myWeights[node].size();
+                    for (int voxel = 0; voxel < numVoxels; ++voxel)
+                    {
+                        float thisWeight = myWeights[node][voxel].weight;
+                        totalWeight += thisWeight;
+                        myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);
+                    }
+                    if (totalWeight != 0.0f)
+                    {
+                        myScratch[node] /= totalWeight;
+                    } else {
+                        myScratch[node] = 0.0f;
+                    }
+                }
+                myMetricOut->setValuesForColumn(thisCol, myScratch);
+            }
+        }
+    } else {
+        for (int64_t j = 0; j < myVolDims[4]; ++j)
+        {
+            AString metricLabel = myVolume->getMapName(mySubVol);
+            if (myVolDims[4] != 1)
+            {
+                metricLabel += " component " + AString::number(j);
+            }
+            metricLabel += " ribbon constrained";
+            int64_t thisCol = j;
+            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int64_t node = 0; node < numNodes; ++node)
+            {
+                    myScratch[node] = 0.0f;
+                    float totalWeight = 0.0f;
+                    int numVoxels = (int)myWeights[node].size();
+                    for (int voxel = 0; voxel < numVoxels; ++voxel)
+                    {
+                        float thisWeight = myWeights[node][voxel].weight;
+                        totalWeight += thisWeight;
+                        myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, mySubVol, j);
+                    }
+                    if (totalWeight != 0.0f)
+                    {
+                        myScratch[node] /= totalWeight;
+                    } else {
+                        myScratch[node] = 0.0f;
+                    }
+            }
+            myMetricOut->setValuesForColumn(thisCol, myScratch);
+        }
+    }
+}
+
+//myelin style mapping
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                                                 const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol): AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    vector<int64_t> myVolDims;
+    myVolume->getDimensions(myVolDims);
+    if (mySubVol >= myVolDims[3] || mySubVol < -1)
+    {
+        throw AlgorithmException("invalid subvolume specified");
+    }
+    if (!roiVol->matchesVolumeSpace(myVolume))
+    {
+        throw AlgorithmException("roi volume is not in the same volume space as input volume");
+    }
+    int64_t numColumns;
+    if (mySubVol == -1)
+    {
+        numColumns = myVolDims[3] * myVolDims[4];
+    } else {
+        numColumns = myVolDims[4];
+    }
+    int64_t numNodes = mySurface->getNumberOfNodes();
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+    myMetricOut->setStructure(mySurface->getStructure());
+    vector<vector<VoxelWeight> > myWeights;
+    precomputeWeightsMyelin(myWeights, mySurface, roiVol, thickness, sigma);
+    vector<float> myScratch(numNodes);
+    if (mySubVol == -1)
+    {
+        for (int64_t i = 0; i < myVolDims[3]; ++i)
+        {
+            for (int64_t j = 0; j < myVolDims[4]; ++j)
+            {
+                int64_t thisCol = i * myVolDims[4] + j;
+                AString metricLabel = myVolume->getMapName(i);
+                if (myVolDims[4] != 1)
+                {
+                    metricLabel += " component " + AString::number(j);
+                }
+                metricLabel += " ribbon constrained";
+                myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
+                for (int64_t node = 0; node < numNodes; ++node)
+                {
+                    double accum = 0.0;
+                    int numVoxels = (int)myWeights[node].size();
+                    for (int voxel = 0; voxel < numVoxels; ++voxel)
+                    {
+                        accum += myWeights[node][voxel].weight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);//weights have already been normalized in precompute, for this method
+                    }
+                    myScratch[node] = accum;
+                }
+                myMetricOut->setValuesForColumn(thisCol, myScratch.data());
+            }
+        }
+    } else {
+        for (int64_t j = 0; j < myVolDims[4]; ++j)
+        {
+            AString metricLabel = myVolume->getMapName(mySubVol);
+            if (myVolDims[4] != 1)
+            {
+                metricLabel += " component " + AString::number(j);
+            }
+            metricLabel += " ribbon constrained";
+            int64_t thisCol = j;
+            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int64_t node = 0; node < numNodes; ++node)
+            {
+                double accum = 0.0;
+                int numVoxels = (int)myWeights[node].size();
+                for (int voxel = 0; voxel < numVoxels; ++voxel)
+                {
+                    accum += myWeights[node][voxel].weight * myVolume->getValue(myWeights[node][voxel].ijk, mySubVol, j);//weights have already been normalized in precompute, for this method
+                }
+                myScratch[node] = accum;
+            }
+            myMetricOut->setValuesForColumn(thisCol, myScratch.data());
+        }
+    }
+}
+
+void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<VoxelWeight> >& myWeights, const VolumeFile* myVolume, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                                              const VolumeFile* roiVol, const int& numDivisions)
 {
     int64_t numNodes = outerSurf->getNumberOfNodes();
     myWeights.resize(numNodes);
@@ -522,7 +563,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                 {
                     debugVol.setValue(myWeights[node][i].weight, myWeights[node][i].ijk);
                 }
-                debugVol.writeFile("debug.nii");//doesn't work yet
+                debugVol.writeFile("debug.nii");
             }//*/
             if ((int)myWeights[node].size() > maxVoxelCount)
             {//capacity() would use more memory
@@ -532,7 +573,73 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     }
 }
 
-float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const caret::VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
+void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<VoxelWeight> >& myWeights, const SurfaceFile* mySurface, const VolumeFile* roiVol,
+                                                              const MetricFile* thickness, const float& sigma)
+{
+    int64_t numNodes = mySurface->getNumberOfNodes();
+    myWeights.clear();
+    myWeights.resize(numNodes);
+    vector<int64_t> myDims;
+    roiVol->getDimensions(myDims);
+    vector<vector<float> > volSpace = roiVol->getVolumeSpace();//same as input volume
+    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
+    ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
+    ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
+    ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2]; origin[2] = volSpace[2][3];
+    ijorth = ivec.cross(jvec).normal();//find the box in index space that encloses a sphere of radius 1
+    jkorth = jvec.cross(kvec).normal();
+    kiorth = kvec.cross(ivec).normal();
+    float range[3];
+    range[0] = abs(1.0f / ivec.dot(jkorth));//we can multiply these by thickness to get the range of voxels to check
+    range[1] = abs(1.0f / jvec.dot(kiorth));
+    range[2] = abs(1.0f / kvec.dot(ijorth));
+    const float* thicknessData = thickness->getValuePointerForColumn(0);
+    const float* normals = mySurface->getNormalData();
+    float invnegsigmasquaredx2 = -1.0f / (2.0f * sigma * sigma);
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int node = 0; node < numNodes; ++node)
+    {
+        Vector3D nodeCoord = mySurface->getCoordinate(node), nodeIndices, nodenormal = normals + (node * 3);
+        roiVol->spaceToIndex(nodeCoord, nodeIndices);
+        float nodeThick = thicknessData[node];
+        int64_t min[3], max[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            min[i] = (int)ceil(nodeIndices[i] - range[i] * nodeThick);
+            if (min[i] < 0) min[i] = 0;
+            max[i] = (int)floor(nodeIndices[i] + range[i] * nodeThick) + 1;
+            if (max[i] > myDims[i]) max[i] = myDims[i];
+        }
+        double weightTotal = 0.0;
+        int64_t ijk[3];
+        for (ijk[2] = min[2]; ijk[2] < max[2]; ++ijk[2])
+        {
+            for (ijk[1] = min[1]; ijk[1] < max[1]; ++ijk[1])
+            {
+                for (ijk[0] = min[0]; ijk[0] < max[0]; ++ijk[0])
+                {
+                    Vector3D voxelCoord;
+                    roiVol->indexToSpace(ijk, voxelCoord);
+                    Vector3D delta = voxelCoord - nodeCoord;
+                    if (abs(nodenormal.dot(delta)) < 0.5f * nodeThick && roiVol->getValue(ijk) > 0.0f)
+                    {
+                        float weight = exp(delta.lengthsquared() * invnegsigmasquaredx2);
+                        myWeights[node].push_back(VoxelWeight(weight, ijk));
+                        weightTotal += weight;
+                    }
+                }
+            }
+        }
+        int numWeights = (int)myWeights[node].size();
+        for (int i = 0; i < numWeights; ++i)
+        {
+            myWeights[node][i].weight /= weightTotal;//normalize weights to eliminate the need to divide
+        }
+    }
+}
+
+float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions,
+                                                            const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
 {
     Vector3D myLowCorner;
     myVolume->indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner.m_vec);
