@@ -419,7 +419,7 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
  *     Mouse event information.
  */
 void
-UserInputModeBorders::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
+UserInputModeBorders::mouseLeftClickWithShift(const MouseEvent& /*mouseEvent*/)
 {
     switch (this->mode) {
         case MODE_DRAW:
