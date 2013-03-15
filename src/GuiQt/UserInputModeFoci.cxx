@@ -74,7 +74,7 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
-: CaretObject(),
+: UserInputModeView(),
   m_windowIndex(windowIndex)
 {
     m_inputModeFociWidget = new UserInputModeFociWidget(this,
@@ -161,6 +161,10 @@ UserInputModeFoci::processMouseEvent(MouseEvent* mouseEvent,
                                         BrainOpenGLViewportContent* viewportContent,
                                         BrainOpenGLWidget* openGLWidget)
 {
+    return;
+    
+    
+    
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
@@ -417,6 +421,122 @@ UserInputModeFoci::getAnatomicalSurfaceForSurface(Surface* surface)
         return anatSurf;
     }
     return surface;
+}
+
+/**
+ * Process a mouse left click event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    SelectionManager* idManager =
+    openGLWidget->performIdentification(mouseEvent.getX(),
+                                        mouseEvent.getY(),
+                                        true);
+    
+    switch (m_mode) {
+        case MODE_CREATE:
+        {
+            SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+            SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
+            if (idNode->isValid()) {
+                Surface* surfaceViewed = idNode->getSurface();
+                CaretAssert(surfaceViewed);
+                const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+                const StructureEnum::Enum anatStructure = anatSurface->getStructure();
+                const int32_t nodeIndex = idNode->getNodeNumber();
+                
+                const AString focusName = (StructureEnum::toGuiName(anatStructure)
+                                           + " Vertex "
+                                           + AString::number(nodeIndex));
+                const float* xyz = anatSurface->getCoordinate(nodeIndex);
+                
+                const AString comment = ("Created from "
+                                         + focusName);
+                
+                Focus* focus = new Focus();
+                focus->setName(focusName);
+                focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                focus->setComment(comment);
+                FociPropertiesEditorDialog::createFocus(focus,
+                                                        browserTabContent,
+                                                        m_inputModeFociWidget);
+            }
+            else if (idVoxel->isValid()) {
+                const VolumeFile* vf = idVoxel->getVolumeFile();
+                int64_t ijk[3];
+                idVoxel->getVoxelIJK(ijk);
+                float xyz[3];
+                vf->indexToSpace(ijk, xyz);
+                
+                const AString focusName = (vf->getFileNameNoPath()
+                                           + " IJK ("
+                                           + AString::fromNumbers(ijk, 3, ",")
+                                           + ")");
+                
+                const AString comment = ("Created from "
+                                         + focusName);
+                
+                Focus* focus = new Focus();
+                focus->setName(focusName);
+                focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                focus->setComment(comment);
+                FociPropertiesEditorDialog::createFocus(focus,
+                                                        browserTabContent,
+                                                        m_inputModeFociWidget);
+            }
+        }            break;
+        case MODE_EDIT:
+        {
+            FociFile* fociFile = NULL;
+            Focus*    focus = NULL;
+            
+            SelectionItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
+            if (idVolFocus->isValid()) {
+                fociFile = idVolFocus->getFociFile();
+                CaretAssert(fociFile);
+                focus    = idVolFocus->getFocus();
+                CaretAssert(focus);
+            }
+            SelectionItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
+            if (idFocus->isValid()) {
+                fociFile = idFocus->getFociFile();
+                CaretAssert(fociFile);
+                focus    = idFocus->getFocus();
+                CaretAssert(focus);
+                
+            }
+            
+            if ((fociFile != NULL)
+                && (focus != NULL)) {
+                switch (m_editOperation) {
+                    case EDIT_OPERATION_DELETE:
+                        fociFile->removeFocus(focus);
+                        updateAfterFociChanged();
+                        break;
+                    case EDIT_OPERATION_PROPERTIES:
+                    {
+                        FociPropertiesEditorDialog::editFocus(fociFile,
+                                                              focus,
+                                                              openGLWidget);
+                    }
+                }
+            }
+        }
+            break;
+        case MODE_OPERATIONS:
+            break;
+    }
 }
 
 

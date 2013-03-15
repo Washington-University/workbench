@@ -36,7 +36,7 @@
 
 
 #include "CaretObject.h"
-#include "UserInputReceiverInterface.h"
+#include "UserInputModeView.h"
 
 namespace caret {
 
@@ -46,7 +46,7 @@ namespace caret {
     class Surface;
     class UserInputModeFociWidget;
     
-    class UserInputModeFoci : public CaretObject, public UserInputReceiverInterface {
+    class UserInputModeFoci : public UserInputModeView {
         
     public:
         enum Mode {
@@ -77,6 +77,8 @@ namespace caret {
         virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
+        
+        virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
     private:
         /*

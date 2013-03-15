@@ -383,8 +383,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      * out of its viewport without releasing the mouse
      * button.
      */
-    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
-                                                                               this->mousePressY);
+    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
+                                                                               wheelY);
     {
         MouseEvent mouseEvent(viewportContent,
                               this,

@@ -76,8 +76,7 @@ using namespace caret;
  */
 UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
                                            const int32_t windowIndex)
-: CaretObject(),
-UserInputReceiverInterface()
+: UserInputModeView()
 {
     this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
     this->windowIndex = windowIndex;
@@ -171,6 +170,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                        BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget)
 {
+    return;
+    
+    
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
@@ -506,4 +508,133 @@ UserInputModeBorders::getCursor() const
             
     return cursor;
 }
+
+/**
+ * Process a mouse left click event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            this->drawPointAtMouseXY(openGLWidget,
+                                     mouseX,
+                                     mouseY);
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            break;
+        case MODE_EDIT:
+            switch (this->editOperation) {
+                case EDIT_OPERATION_DELETE:
+                {
+                        SelectionManager* idManager =
+                        openGLWidget->performIdentification(mouseX,
+                                                            mouseY,
+                                                            true);
+                        SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                        if (idBorder->isValid()) {
+                            BorderFile* borderFile = idBorder->getBorderFile();
+                            Border* border = idBorder->getBorder();
+                            borderFile->removeBorder(border);
+                            this->updateAfterBordersChanged();
+                        }
+                    }
+                    break;
+                case EDIT_OPERATION_PROPERTIES:
+                {
+                        SelectionManager* idManager =
+                        openGLWidget->performIdentification(mouseX,
+                                                            mouseY,
+                                                            true);
+                        SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                        if (idBorder->isValid()) {
+                            BorderFile* borderFile = idBorder->getBorderFile();
+                            Border* border = idBorder->getBorder();
+                            std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
+                                                                                         BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
+                                                                                                                                             border,
+                                                                                                                                             openGLWidget));
+                            if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
+                                this->updateAfterBordersChanged();
+                            }
+                        }
+                    }
+                    break;
+            }
+            break;
+        case MODE_ROI:
+        {
+            SelectionManager* idManager =
+            openGLWidget->performIdentification(mouseX,
+                                                mouseY,
+                                                true);
+            SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+            if (idBorder->isValid()) {
+                Brain* brain = idBorder->getBrain();
+                Surface* surface = idBorder->getSurface();
+                //BorderFile* borderFile = idBorder->getBorderFile();
+                Border* border = idBorder->getBorder();
+                this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
+                                                                                 surface,
+                                                                                 border);
+            }
+        }
+            break;
+    }
+}
+
+/**
+ * Process a mouse left click with Shift key event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
+{
+    switch (this->mode) {
+        case MODE_DRAW:
+            this->borderToolsWidget->executeFinishOperation();
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_ROI:
+            break;
+    }
+}
+
+/**
+ * Process a mouse left drag with Alt key event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeBorders::mouseLeftDragWithAlt(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    const int mouseX = mouseEvent.getX();
+    const int mouseY = mouseEvent.getY();
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            this->drawPointAtMouseXY(openGLWidget,
+                                     mouseX,
+                                     mouseY);
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_ROI:
+            break;
+    }    
+}
+
+
 

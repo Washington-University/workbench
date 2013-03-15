@@ -26,15 +26,14 @@
  */ 
 
 
-#include "CaretObject.h"
-#include "UserInputReceiverInterface.h"
+#include "UserInputModeView.h"
 
 namespace caret {
 
     class Border;
     class UserInputModeBordersWidget;
     
-    class UserInputModeBorders : public CaretObject, public UserInputReceiverInterface {
+    class UserInputModeBorders : public UserInputModeView {
         
     public:
         enum Mode {
@@ -70,6 +69,12 @@ namespace caret {
         
         virtual void finish();
 
+        virtual void mouseLeftClick(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent);
+        
         virtual QWidget* getWidgetForToolBar();
         
         virtual CursorEnum::Enum getCursor() const;
