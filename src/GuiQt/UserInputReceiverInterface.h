@@ -96,7 +96,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftClick(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftClick(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Process a mouse left click with shift key down event.
@@ -104,7 +104,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftClickWithShift(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Process a mouse left drag with no keys down event.
@@ -112,7 +112,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftDrag(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftDrag(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Process a mouse left drag with only the alt key down event.
@@ -120,7 +120,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftDragWithAlt(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftDragWithAlt(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Process a mouse left drag with ctrl key down event.
@@ -128,7 +128,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftDragWithCtrl(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftDragWithCtrl(const MouseEvent& /*mouseEvent*/) { }
         
         /**
          * Process a mouse left drag with shift key down event.
@@ -136,7 +136,7 @@ namespace caret {
          * @param mouseEvent
          *     Mouse event information.
          */
-        virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent) { }
+        virtual void mouseLeftDragWithShift(const MouseEvent& /*mouseEvent*/) { }
         
         
     protected:
