@@ -88,7 +88,10 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
         "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
         "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
         "intersects, by splitting each voxel into NxNxN pieces, and checking whether the center of each piece is inside the polyhedron.  If you have very large " +
-        "voxels, consider increasing this if you get zeros in your output."
+        "voxels, consider increasing this if you get zeros in your output.\n\n" +
+        "The myelin style method uses part of the caret5 myelin mapping command to do the mapping: for each surface vertex, take all voxels closer than the thickness at the vertex " +
+        "that are within the ribbon ROI, and less than half the thickness value away from the vertex along the direction of the surface normal, and apply a gaussian kernel " +
+        "with the specified sigma to them to get the weights to use."
     );
     return ret;
 }
@@ -248,6 +251,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
         {
             for (int64_t j = 0; j < myVolDims[4]; ++j)
             {
+                if (myMethod == VolumeFile::CUBIC)
+                {
+                    myVolume->validateSplines(i, j);//to do spline deconvolution in parallel
+                }
                 AString metricLabel = myVolume->getMapName(i);
                 if (myVolDims[4] != 1)
                 {
@@ -267,6 +274,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     } else {
         for (int64_t j = 0; j < myVolDims[4]; ++j)
         {
+            if (myMethod == VolumeFile::CUBIC)
+            {
+                myVolume->validateSplines(mySubVol, j);//to do spline deconvolution in parallel
+            }
             AString metricLabel = myVolume->getMapName(mySubVol);
             if (myVolDims[4] != 1)
             {
