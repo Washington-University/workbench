@@ -81,7 +81,7 @@ AlgorithmSurfaceGenerateInflated::getParameters()
     
     ret->addSurfaceOutputParameter(3, "very-inflated-surface-out", "the output very inflated surface");
     
-    OptionalParameter* weightOpt = ret->createOptionalParameter(4, "-iterations-scale", "optional iterations scaling for nodes with large node count");
+    OptionalParameter* weightOpt = ret->createOptionalParameter(4, "-iterations-scale", "optional iterations scaling");
     weightOpt->addDoubleParameter(1, "iterations-scale-value", "iterations-scale value");
     
     AString helpText = ("Generate inflated and very inflated surfaces. "
