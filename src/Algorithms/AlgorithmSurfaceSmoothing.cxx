@@ -130,7 +130,7 @@ AlgorithmSurfaceSmoothing::useParameters(OperationParameters* myParams,
  *     Parameters for algorithm
  */
 AlgorithmSurfaceSmoothing::AlgorithmSurfaceSmoothing(ProgressObject* myProgObj,
-                                                     SurfaceFile* inputSurfaceFile,
+                                                     const SurfaceFile* inputSurfaceFile,
                                                      SurfaceFile* outputSurfaceFile,
                                                      const float strength,
                                                      const int32_t iterations)
@@ -155,33 +155,9 @@ AlgorithmSurfaceSmoothing::AlgorithmSurfaceSmoothing(ProgressObject* myProgObj,
     
     *outputSurfaceFile = *inputSurfaceFile;
     
-    arealSmoothing(myProgress,
-                   outputSurfaceFile,
-                   strength,
-                   iterations);
+    CaretPointer<TopologyHelper> myTopoHelp = outputSurfaceFile->getTopologyHelper(true);
     
-    myProgress.reportProgress(1.0f);
-}
-
-/**
- * Perform areal smoothing.
- *
- * @param surfaceFile
- *    Surface that is smoothed.
- * @param strength 
- *    Smoothing strength.
- * @param iterations
- *    Iterations of smoothing.
- */
-void
-AlgorithmSurfaceSmoothing::arealSmoothing(LevelProgress& myProgress,
-                                          SurfaceFile* surfaceFile,
-                                          const float strength,
-                                          const int32_t iterations)
-{
-    CaretPointer<TopologyHelper> myTopoHelp = surfaceFile->getTopologyHelper();
-    
-    const int32_t numNodes = surfaceFile->getNumberOfNodes();
+    const int32_t numNodes = outputSurfaceFile->getNumberOfNodes();
     if (numNodes <= 0) {
         return;
     }
@@ -196,7 +172,7 @@ AlgorithmSurfaceSmoothing::arealSmoothing(LevelProgress& myProgress,
      * Copy coordinates from surface
      */
     for (int32_t i = 0; i < numNodes; i++) {
-        const float* xyz = surfaceFile->getCoordinate(i);
+        const float* xyz = outputSurfaceFile->getCoordinate(i);
         
         const int32_t i3 = i * 3;
         coordsIn[i3]   = xyz[0];
@@ -317,7 +293,7 @@ AlgorithmSurfaceSmoothing::arealSmoothing(LevelProgress& myProgress,
                                         + (neighborAverageZ * strength));
             }
         }
-
+        
         /*
          * Update progress
          */
@@ -334,7 +310,9 @@ AlgorithmSurfaceSmoothing::arealSmoothing(LevelProgress& myProgress,
     /*
      * Copy coordinates into surface
      */
-    surfaceFile->setCoordinates(&coordsOut[0]);
+    outputSurfaceFile->setCoordinates(&coordsOut[0]);
+
+    myProgress.reportProgress(1.0f);
 }
 
 

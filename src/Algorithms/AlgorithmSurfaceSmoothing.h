@@ -44,11 +44,6 @@ namespace caret {
     private:
         AlgorithmSurfaceSmoothing(); 
 
-        void arealSmoothing(LevelProgress& myProgress,
-                            SurfaceFile* surfaceFile,
-                            const float strength,
-                            const int32_t iterations);
-        
     protected:
         static float getSubAlgorithmWeight();
 
@@ -56,7 +51,7 @@ namespace caret {
 
     public:
         AlgorithmSurfaceSmoothing(ProgressObject* myProgObj,
-                                  SurfaceFile* inputSurfaceFile,
+                                  const SurfaceFile* inputSurfaceFile,
                                   SurfaceFile* outputSurfaceFile,
                                   const float strength,
                                   const int32_t iterations);
