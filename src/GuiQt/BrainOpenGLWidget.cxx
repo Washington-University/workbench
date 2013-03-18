@@ -281,14 +281,18 @@ BrainOpenGLWidget::paintGL()
             numRows++;
         }
         
+        /*
+         * Arrange models left-to-right and top-to-bottom.
+         */
         int32_t vpX = 0;
-        int32_t vpY = 0;
+        int32_t vpY = this->windowHeight[this->windowIndex];
         const int32_t vpWidth = this->windowWidth[this->windowIndex] / numCols;
         const int32_t vpHeight = this->windowHeight[this->windowIndex] / numRows;
         
         int32_t iModel = 0;
         for (int32_t i = 0; i < numRows; i++) {
             vpX = 0;
+            vpY -= vpHeight;
             for (int32_t j = 0; j < numCols; j++) {
                 if (iModel < numToDraw) {
                     const int modelViewport[4] = {
@@ -297,17 +301,16 @@ BrainOpenGLWidget::paintGL()
                         vpWidth,
                         vpHeight
                     };
-                    BrainOpenGLViewportContent* vc = 
-                       new BrainOpenGLViewportContent(modelViewport,
-                                                      modelViewport,
-                                                      GuiManager::get()->getBrain(),
-                                                      getModelEvent.getTabContentToDraw(iModel));
+                    BrainOpenGLViewportContent* vc =
+                    new BrainOpenGLViewportContent(modelViewport,
+                                                   modelViewport,
+                                                   GuiManager::get()->getBrain(),
+                                                   getModelEvent.getTabContentToDraw(iModel));
                     this->drawingViewportContents.push_back(vc);
                 }
                 iModel++;
                 vpX += vpWidth;
             }
-            vpY += vpHeight;
         }
     }
     
