@@ -66,9 +66,9 @@ OperationParameters* AlgorithmMetricRegression::getParameters()
     keepColOpt->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("For each regressor, its mean across the surface is subtracted from its data.  ") +
+        "Each input map is then regressed against these, and a constant term.  The resulting regressed slopes of all regressors specified with -remove " +
+        "are multiplied with their respective regressor maps, and these are subtracted from the input map."
     );
     return ret;
 }
