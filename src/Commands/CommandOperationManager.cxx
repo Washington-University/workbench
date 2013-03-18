@@ -53,6 +53,7 @@
 #include "AlgorithmMetricFillHoles.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricReduce.h"
+#include "AlgorithmMetricRegression.h"
 #include "AlgorithmMetricRemoveIslands.h"
 #include "AlgorithmMetricResample.h"
 #include "AlgorithmMetricSmoothing.h"
@@ -200,6 +201,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricReduce()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRegression()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));

@@ -44,6 +44,7 @@ AlgorithmMetricExtrema.h
 AlgorithmMetricFillHoles.h
 AlgorithmMetricGradient.h
 AlgorithmMetricReduce.h
+AlgorithmMetricRegression.h
 AlgorithmMetricRemoveIslands.h
 AlgorithmMetricResample.h
 AlgorithmMetricSmoothing.h
@@ -101,6 +102,7 @@ AlgorithmMetricExtrema.cxx
 AlgorithmMetricFillHoles.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricReduce.cxx
+AlgorithmMetricRegression.cxx
 AlgorithmMetricRemoveIslands.cxx
 AlgorithmMetricResample.cxx
 AlgorithmMetricSmoothing.cxx

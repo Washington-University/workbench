@@ -47,7 +47,7 @@ namespace caret {
       ///
       /// matrix multiplication
       ///
-      template <typename T1, typename T2, typename T3>
+      template <typename T1, typename T2, typename T3, typename A>
       static void multiply(const vector<vector<T1> > &left, const vector<vector<T2> > &right, vector<vector<T3> > &result);
 
       ///
@@ -111,6 +111,12 @@ namespace caret {
       static void zeros(const msize_t rows, const msize_t columns, vector<vector<T> > &result);
       
       ///
+      /// allocate a matrix of specified size
+      ///
+      template <typename T>
+      static void ones(const msize_t rows, const msize_t columns, vector<vector<T> > &result);
+      
+      ///
       /// make an identity matrix
       ///
       template <typename T>
@@ -142,7 +148,7 @@ namespace caret {
       static void rref_big(vector<vector<T> > &inout);
    };
 
-   template <typename T1, typename T2, typename T3>
+   template <typename T1, typename T2, typename T3, typename A>
    void MatrixFunctions::multiply(const vector<vector<T1> >& left, const vector<vector<T2> >& right, vector<vector<T3> >& result)
    {//the stupid multiply O(n^3) - the O(n^2.78) version might not be that hard to implement with the other functions here, but not as stable
       msize_t leftrows = (msize_t)left.size(), rightrows = (msize_t)right.size(), leftcols, rightcols;
@@ -165,11 +171,12 @@ namespace caret {
             {
                for (j = 0; j < rightcols; ++j)
                {
-                  (*tresult)[i][j] = 0;
+                  A accum = 0;
                   for (k = 0; k < leftcols; ++k)
                   {
-                     (*tresult)[i][j] += left[i][k] * right[k][j];
+                     accum += left[i][k] * right[k][j];
                   }
+                  (*tresult)[i][j] = accum;
                }
             }
          } else {
@@ -190,25 +197,23 @@ namespace caret {
    void MatrixFunctions::multiply(const vector<vector<T1> > &left, const T2 right, vector<vector<T3> > &result)
    {
       msize_t leftrows = (msize_t)left.size(), leftcols;
-      vector<vector<T3> > tempstorage, *tresult = &result;//pointer because you can't change a reference
-      bool copyout = false;
+      bool doresize = true;
       if (&left == &result)
       {
-         copyout = true;
-         tresult = &tempstorage;
+         doresize = false;//don't resize if an input is an output
       }
       if (leftrows)
       {
          leftcols = (msize_t)left[0].size();
          if (leftcols)
          {
-            resize(leftrows, leftcols, (*tresult), true);
+            if (doresize) resize(leftrows, leftcols, result, true);
             msize_t i, j;
             for (i = 0; i < leftrows; ++i)
             {
                for (j = 0; j < leftcols; ++j)
                {
-                  (*tresult)[i][j] = left[i][j] * right;
+                  result[i][j] = left[i][j] * right;
                }
             }
          } else {
@@ -218,10 +223,6 @@ namespace caret {
       } else {
          result.resize(0);
          return;
-      }
-      if (copyout)
-      {
-         result = tempstorage;
       }
    }
 
@@ -408,24 +409,22 @@ namespace caret {
    void MatrixFunctions::add(const vector<vector<T1> >& left, const vector<vector<T2> >& right, vector<vector<T3> >& result)
    {
       msize_t inrows = (msize_t)left.size(), incols;
-      vector<vector<T3> > tempstorage, *tresult = &result;
-      bool copyout = false;
+      bool doresize = true;
       if (&left == &result || &right == &result)
       {
-         copyout = true;
-         tresult = &tempstorage;
+         doresize = false;//don't resize if an input is an output - this is ok for addition, don't need a copy
       }
       if (inrows)
       {
          incols = (msize_t)left[0].size();
          if (inrows == (msize_t)right.size() && incols == (msize_t)right[0].size())//short circuit evaluation will protect against segfault
          {
-            resize(inrows, incols, (*tresult), true);
+            if (doresize) resize(inrows, incols, result, true);
             for (msize_t i = 0; i < inrows; ++i)
             {
                for (msize_t j = 0; j < incols; ++j)
                {
-                  (*tresult)[i][j] = left[i][j] + right[i][j];
+                  result[i][j] = left[i][j] + right[i][j];
                }
             }
          } else {
@@ -436,41 +435,31 @@ namespace caret {
          result.resize(0);
          return;
       }
-      if (copyout)
-      {
-         result = tempstorage;
-      }
    }
 
    template <typename T1, typename T2, typename T3>
    void MatrixFunctions::add(const vector<vector<T1> >& left, const T2 right, vector<vector<T3> >& result)
    {
       msize_t inrows = (msize_t)left.size(), incols;
-      vector<vector<T3> > tempstorage, *tresult = &result;
-      bool copyout = false;
+      bool doresize = true;
       if (&left == &result)
       {
-         copyout = true;
-         tresult = &tempstorage;
+         doresize = false;//don't resize if an input is an output - this is ok for addition, don't need a copy
       }
       if (inrows)
       {
          incols = (msize_t)left[0].size();
-         resize(inrows, incols, (*tresult), true);
+         if (doresize) resize(inrows, incols, result, true);
          for (msize_t i = 0; i < inrows; ++i)
          {
             for (msize_t j = 0; j < incols; ++j)
             {
-               (*tresult)[i][j] = left[i][j] + right;
+               result[i][j] = left[i][j] + right;
             }
          }
       } else {
          result.resize(0);
          return;
-      }
-      if (copyout)
-      {
-         result = tempstorage;
       }
    }
 
@@ -478,24 +467,22 @@ namespace caret {
    void MatrixFunctions::subtract(const vector<vector<T1> >& left, const vector<vector<T2> >& right, vector<vector<T3> >& result)
    {
       msize_t inrows = (msize_t)left.size(), incols;
-      vector<vector<T3> > tempstorage, *tresult = &result;
-      bool copyout = false;
+      bool doresize = true;
       if (&left == &result || &right == &result)
       {
-         copyout = true;
-         tresult = &tempstorage;
+         doresize = false;//don't resize if an input is an output
       }
       if (inrows)
       {
          incols = (msize_t)left[0].size();
          if (inrows == (msize_t)right.size() && incols == (msize_t)right[0].size())//short circuit evaluation will protect against segfault
          {
-            resize(inrows, incols, (*tresult), true);
+            if (doresize) resize(inrows, incols, result, true);
             for (msize_t i = 0; i < inrows; ++i)
             {
                for (msize_t j = 0; j < incols; ++j)
                {
-                  (*tresult)[i][j] = left[i][j] - right[i][j];
+                  result[i][j] = left[i][j] - right[i][j];
                }
             }
          } else {
@@ -505,10 +492,6 @@ namespace caret {
       } else {
          result.resize(0);
          return;
-      }
-      if (copyout)
-      {
-         result = tempstorage;
       }
    }
 
@@ -585,6 +568,19 @@ namespace caret {
          for (msize_t j = 0; j < columns; ++j)
          {
             result[i][j] = 0;//should cast to float or double fine
+         }
+      }
+   }
+
+   template<typename T>
+   void MatrixFunctions::ones(const msize_t rows, const msize_t columns, vector<vector<T> >& result)
+   {
+      resize(rows, columns, result, true);
+      for (msize_t i = 0; i < rows; ++i)
+      {
+         for (msize_t j = 0; j < columns; ++j)
+         {
+            result[i][j] = 1;//should cast to float or double fine
          }
       }
    }

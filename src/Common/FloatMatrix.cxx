@@ -32,7 +32,7 @@
 using namespace caret;
 using namespace std;
 
-bool caret::FloatMatrix::checkDimensions() const
+bool FloatMatrix::checkDimensions() const
 {
    uint64_t rows = m_matrix.size(), cols;
    if (rows == 0) return true;//treat it as fine for now
@@ -53,6 +53,11 @@ FloatMatrix::FloatMatrix(const vector<vector<float> >& matrixIn)
    CaretAssert(checkDimensions());
 }
 
+FloatMatrix::FloatMatrix(const int64_t& rows, const int64_t& cols)
+{
+    resize(rows, cols, true);
+}
+
 bool FloatMatrix::operator!=(const FloatMatrix& right) const
 {
    return !(*this == right);
@@ -60,14 +65,14 @@ bool FloatMatrix::operator!=(const FloatMatrix& right) const
 
 FloatMatrix FloatMatrix::operator*(const FloatMatrix& right) const
 {
-   FloatMatrix ret(*this);
-   ret *= right;
+   FloatMatrix ret;
+   MatrixFunctions::multiply<float, float, float, double>(m_matrix, right.m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix& FloatMatrix::operator*=(const FloatMatrix& right)
 {
-   MatrixFunctions::multiply(m_matrix, right.m_matrix, m_matrix);//would need a copy anyway, so let it make the copy internally
+   MatrixFunctions::multiply<float, float, float, double>(m_matrix, right.m_matrix, m_matrix);//would need a copy anyway, so let it make the copy internally
    return *this;
 }
 
@@ -114,39 +119,39 @@ FloatMatrix& FloatMatrix::operator*=(const float& right)
 
 FloatMatrix FloatMatrix::operator+(const FloatMatrix& right) const
 {
-   FloatMatrix ret(*this);
-   ret += right;
+   FloatMatrix ret;
+   MatrixFunctions::add(m_matrix, right.m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix& FloatMatrix::operator+=(const FloatMatrix& right)
 {
-   MatrixFunctions::add(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, right.m_matrix, m_matrix);
    return *this;
 }
 
 FloatMatrix& FloatMatrix::operator+=(const float& right)
 {
-   MatrixFunctions::add(m_matrix, right, m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, right, m_matrix);
    return *this;
 }
 
 FloatMatrix FloatMatrix::operator-(const FloatMatrix& right) const
 {
-   FloatMatrix ret(*this);
-   ret -= right;
+   FloatMatrix ret;
+   MatrixFunctions::subtract(m_matrix, right.m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix& FloatMatrix::operator-=(const FloatMatrix& right)
 {
-   MatrixFunctions::subtract(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
+   MatrixFunctions::subtract(m_matrix, right.m_matrix, m_matrix);
    return *this;
 }
 
 FloatMatrix& FloatMatrix::operator-=(const float& right)
 {
-   MatrixFunctions::add(m_matrix, (-right), m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, (-right), m_matrix);
    return *this;
 }
 
@@ -236,6 +241,13 @@ FloatMatrix FloatMatrix::zeros(const int64_t rows, const int64_t cols)
 {
    FloatMatrix ret;
    MatrixFunctions::zeros(rows, cols, ret.m_matrix);
+   return ret;
+}
+
+FloatMatrix FloatMatrix::ones(const int64_t rows, const int64_t cols)
+{
+   FloatMatrix ret;
+   MatrixFunctions::ones(rows, cols, ret.m_matrix);
    return ret;
 }
 

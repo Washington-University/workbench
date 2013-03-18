@@ -65,6 +65,10 @@ namespace caret {
       bool checkDimensions() const;//put this inside asserts at the end of functions
    public:
       FloatMatrix() { };//to make the compiler happy
+      ///construct from a simple vector<vector<float> >
+      FloatMatrix(const std::vector<std::vector<float> >& matrixIn);
+      ///construct uninitialized with given size
+      FloatMatrix(const int64_t& rows, const int64_t& cols);
       FloatMatrixRowRef operator[](const int64_t& index);//allow direct indexing to rows
       ConstFloatMatrixRowRef operator[](const int64_t& index) const;//allow direct indexing to rows while const
       FloatMatrix& operator+=(const FloatMatrix& right);//add to
@@ -80,8 +84,6 @@ namespace caret {
       FloatMatrix operator*(const FloatMatrix& right) const;//multiply
       bool operator==(const FloatMatrix& right) const;//compare
       bool operator!=(const FloatMatrix& right) const;//anti-compare
-      ///construct from a simple vector<vector<float> >
-      FloatMatrix(const std::vector<std::vector<float> >& matrixIn);
       ///return the inverse
       FloatMatrix inverse() const;
       ///return the reduced row echelon form
@@ -92,6 +94,8 @@ namespace caret {
       void resize(const int64_t rows, const int64_t cols, const bool destructive = false);
       ///return a matrix of zeros
       static FloatMatrix zeros(const int64_t rows, const int64_t cols);
+      ///return a matrix of ones
+      static FloatMatrix ones(const int64_t rows, const int64_t cols);
       ///return square identity matrix
       static FloatMatrix identity(const int64_t rows);
       ///get the range of values from first until one before afterLast, as a new matrix
@@ -106,6 +110,14 @@ namespace caret {
       const std::vector<std::vector<float> >& getMatrix() const;
       ///separate 3x4 or 4x4 into Vector3Ds, throw on wrong dimensions
       void getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zvec, Vector3D& offset) const;
+      ///get number of rows
+      int64_t getNumberOfRows() { return (int64_t)m_matrix.size(); }
+      ///get number of columns
+      int64_t getNumberOfColumns()
+      {
+          if (m_matrix.size() == 0) return 0;
+          return (int64_t)m_matrix[0].size();
+      }
    };
 
 }
