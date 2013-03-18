@@ -53,6 +53,7 @@ AlgorithmSurfaceApplyAffine.h
 AlgorithmSurfaceApplyWarpfield.h
 AlgorithmSurfaceAverage.h
 AlgorithmSurfaceCortexLayer.h
+AlgorithmSurfaceInflation.h
 AlgorithmSurfaceMatch.h
 AlgorithmSurfaceModifySphere.h
 AlgorithmSurfaceResample.h
@@ -108,6 +109,7 @@ AlgorithmSurfaceApplyAffine.cxx
 AlgorithmSurfaceApplyWarpfield.cxx
 AlgorithmSurfaceAverage.cxx
 AlgorithmSurfaceCortexLayer.cxx
+AlgorithmSurfaceInflation.cxx
 AlgorithmSurfaceMatch.cxx
 AlgorithmSurfaceModifySphere.cxx
 AlgorithmSurfaceResample.cxx
