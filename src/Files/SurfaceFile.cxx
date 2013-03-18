@@ -930,6 +930,42 @@ SurfaceFile::applyMatrix(const Matrix4x4& matrix)
 }
 
 /**
+ * Translate to the surface center of mass.
+ */
+void
+SurfaceFile::translateToCenterOfMass()
+{
+    const int32_t numberOfNodes = getNumberOfNodes();
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    
+    double cx = 0.0;
+    double cy = 0.0;
+    double cz = 0.0;
+    double numberOfNodesWithNeighbors = 0.0;
+    
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (th->getNodeHasNeighbors(i)) {
+            const float* xyz = getCoordinate(i);
+            
+            cx += xyz[0];
+            cy += xyz[1];
+            cz += xyz[2];
+            numberOfNodesWithNeighbors += 1.0;
+        }
+    }
+    
+    if (numberOfNodesWithNeighbors > 0.0) {
+        cx /= numberOfNodesWithNeighbors;
+        cy /= numberOfNodesWithNeighbors;
+        cz /= numberOfNodesWithNeighbors;
+        
+        Matrix4x4 matrix;
+        matrix.setTranslation(-cx, -cy, -cz);
+        applyMatrix(matrix);
+    }
+}
+
+/**
  * @return The radius of the spherical surface.
  *    Surface is assumed spherical.
  */
