@@ -284,6 +284,7 @@ namespace caret {
         QAction* m_moveTabsFromAllWindowsToOneWindowAction;
         
         QAction* m_bringAllToFrontAction;
+        QAction* m_tileWindowsAction;
         
         QAction* m_informationDialogAction;
         

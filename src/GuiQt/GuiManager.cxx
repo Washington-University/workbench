@@ -24,10 +24,12 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <list>
 
 #include <QAction>
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QWebView>
 
 #define __GUI_MANAGER_DEFINE__
@@ -608,9 +610,102 @@ GuiManager::processBringAllWindowsToFront()
 }
 
 /**
+ * Called to tile the windows (arrange browser windows in a grid).
+ */
+void GuiManager::processTileWindows()
+{
+    std::vector<BrainBrowserWindow*> windows = getAllOpenBrainBrowserWindows();
+    const int32_t numWindows = static_cast<int32_t>(windows.size());
+    if (numWindows <= 1) {
+        return;
+    }
+    
+    QDesktopWidget* dw = QApplication::desktop();
+    const int32_t numScreens = dw->screenCount();
+    const int32_t windowsPerScreen = std::max(numWindows / numScreens,
+                                              1);
+    
+    /**
+     * Determine the number of rows and columns for the montage.
+     * Since screen width typically exceeds height, always have
+     * columns greater than or equal to rows.
+     */
+    int32_t numRows = (int)std::sqrt((double)windowsPerScreen);
+    int32_t numCols = numRows;
+    int32_t row2 = numRows * numRows;
+    if (row2 < numWindows) {
+        numCols++;
+    }
+    if ((numRows * numCols) < numWindows) {
+        numRows++;
+    }
+    
+    AString windowInfo("Tiled Windows");
+    
+    /*
+     * Arrange models left-to-right and top-to-bottom.
+     * Note that origin is top-left corner.
+     */
+    int32_t windowIndex = 0;
+    for (int32_t iScreen = 0; iScreen < numScreens; iScreen++) {
+        const QRect rect = dw->availableGeometry(iScreen);
+        const int screenX = rect.x();
+        const int screenY = rect.y();
+        const int screenWidth = rect.width();
+        const int screenHeight = rect.height();
+        
+        const int32_t windowWidth = screenWidth / numCols;
+        const int32_t windowHeight = screenHeight / numRows;
+        int32_t windowX = 0;
+        int32_t windowY = screenY;
+        
+        for (int32_t iRow = 0; iRow < numRows; iRow++) {
+            windowX = screenX;
+            for (int32_t iCol = 0; iCol < numCols; iCol++) {
+                windows[windowIndex]->setGeometry(windowX,
+                                                  windowY,
+                                                  windowWidth,
+                                                  windowHeight);
+                
+                windowX += windowWidth;
+                
+                QString info = ("    Window: "
+                                + windows[windowIndex]->windowTitle()
+                                + " screen/x/y/w/h ("
+                                + QString::number(iScreen)
+                                + ", "
+                                + QString::number(windowX)
+                                + ", "
+                                + QString::number(windowY)
+                                + ", "
+                                + QString::number(windowWidth)
+                                + ", "
+                                + QString::number(windowHeight)
+                                + ")");
+                windowInfo.appendWithNewLine(info);
+                
+                windowIndex++;
+                if (windowIndex >= numWindows) {
+                    /*
+                     * No more windows to place.
+                     * Containing loops would cause a crash.
+                     */
+                    CaretLogFine(windowInfo);
+                    return;
+                }
+            }
+            
+            windowY += windowHeight;
+        }
+    }
+
+    CaretLogFine(windowInfo);
+}
+
+/**
  * Called when show help online is selected.
- */ 
-void 
+ */
+void
 GuiManager::processShowHelpOnlineWindow()
 {
     
@@ -619,7 +714,7 @@ GuiManager::processShowHelpOnlineWindow()
 /**
  * Called when search help online is selected.
  */
-void 
+void
 GuiManager::processShowSearchHelpOnlineWindow()
 {
     

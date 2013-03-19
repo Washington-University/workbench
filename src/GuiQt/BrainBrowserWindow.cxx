@@ -565,6 +565,13 @@ BrainBrowserWindow::createActions()
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
     
+    m_tileWindowsAction = 
+    WuQtUtilities::createAction("Tile Windows",
+                                "Arrange the windows into grid so that the fill the screen",
+                                this,
+                                guiManager,
+                                SLOT(processTileWindows()));
+    
     m_informationDialogAction =
     WuQtUtilities::createAction("Information Window",
                                 "Show the Informaiton Window",
@@ -1186,6 +1193,7 @@ BrainBrowserWindow::createMenuWindow()
     menu->addAction(m_showSceneDialogAction);
     menu->addSeparator();
     menu->addAction(m_bringAllToFrontAction);
+    menu->addAction(m_tileWindowsAction);
     
     return menu;
 }

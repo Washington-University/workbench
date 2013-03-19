@@ -155,6 +155,7 @@ namespace caret {
         void processShowHelpOnlineWindow();
         void processShowSearchHelpOnlineWindow();
         void processShowInformationWindow();
+        void processTileWindows();
         
         void showHideInfoWindowSelected(bool);
         
