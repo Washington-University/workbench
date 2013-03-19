@@ -51,7 +51,7 @@ OperationParameters* AlgorithmMetricRemoveIslands::getParameters()
     
     ret->addMetricParameter(2, "metric-in", "the input ROI metric");
     
-    ret->addMetricOutputParameter(3, "metric-out", "the output metric");
+    ret->addMetricOutputParameter(3, "metric-out", "the output ROI metric");
     
     ret->setHelpText(
         AString("Finds all connected areas in the ROI, and zeros out all but the largest one.")
@@ -72,64 +72,68 @@ AlgorithmMetricRemoveIslands::AlgorithmMetricRemoveIslands(ProgressObject* myPro
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes) throw AlgorithmException("metric file has different number of nodes than the surface");
-    vector<vector<int> > areas;
-    vector<int> used(numNodes, 0);
-    CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
-    const float* roiData = myMetric->getValuePointerForColumn(0);
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+    int numCols = myMetric->getNumberOfColumns();
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
     myMetricOut->setStructure(myMetric->getStructure());
-    myMetricOut->setColumnName(0, myMetric->getColumnName(0));
-    for (int i = 0; i < numNodes; ++i)
+    for (int col = 0; col < numCols; ++col)
     {
-        if (used[i] == 0 && roiData[i] > 0.0f)
+        vector<vector<int> > areas;
+        vector<int> used(numNodes, 0);
+        CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
+        const float* roiData = myMetric->getValuePointerForColumn(col);
+        myMetricOut->setColumnName(col, myMetric->getColumnName(col));
+        for (int i = 0; i < numNodes; ++i)
         {
-            areas.push_back(vector<int>());
-            vector<int>& thisArea = areas.back();
-            thisArea.push_back(i);
-            used[i] = 1;
-            vector<int> mystack;
-            mystack.push_back(i);
-            while (!mystack.empty())
+            if (used[i] == 0 && roiData[i] > 0.0f)
             {
-                int curnode = mystack.back();
-                mystack.pop_back();
-                const vector<int32_t>& neighbors = myHelp->getNodeNeighbors(curnode);
-                int numNeigh = (int)neighbors.size();
-                for (int j = 0; j < numNeigh; ++j)
+                areas.push_back(vector<int>());
+                vector<int>& thisArea = areas.back();
+                thisArea.push_back(i);
+                used[i] = 1;
+                vector<int> mystack;
+                mystack.push_back(i);
+                while (!mystack.empty())
                 {
-                    int thisneigh = neighbors[j];
-                    if (used[thisneigh] == 0 && roiData[thisneigh] > 0.0f)
+                    int curnode = mystack.back();
+                    mystack.pop_back();
+                    const vector<int32_t>& neighbors = myHelp->getNodeNeighbors(curnode);
+                    int numNeigh = (int)neighbors.size();
+                    for (int j = 0; j < numNeigh; ++j)
                     {
-                        used[thisneigh] = 1;
-                        thisArea.push_back(thisneigh);
-                        mystack.push_back(thisneigh);
+                        int thisneigh = neighbors[j];
+                        if (used[thisneigh] == 0 && roiData[thisneigh] > 0.0f)
+                        {
+                            used[thisneigh] = 1;
+                            thisArea.push_back(thisneigh);
+                            mystack.push_back(thisneigh);
+                        }
                     }
                 }
             }
         }
-    }
-    vector<float> outscratch(numNodes, 0.0f);
-    int numAreas = (int)areas.size();
-    int bestArea = -1, bestCount = -1;
-    for (int i = 0; i < numAreas; ++i)
-    {
-        int thisCount = (int)areas[i].size();
-        if (thisCount > bestCount)
+        vector<float> outscratch(numNodes, 0.0f);
+        int numAreas = (int)areas.size();
+        int bestArea = -1, bestCount = -1;
+        for (int i = 0; i < numAreas; ++i)
         {
-            bestArea = i;
-            bestCount = thisCount;
+            int thisCount = (int)areas[i].size();
+            if (thisCount > bestCount)
+            {
+                bestArea = i;
+                bestCount = thisCount;
+            }
         }
-    }
-    if (bestArea != -1)
-    {
-        const vector<int>& thisArea = areas[bestArea];
-        int numAreaNodes = (int)thisArea.size();
-        for (int i = 0; i < numAreaNodes; ++i)
+        if (bestArea != -1)
         {
-            outscratch[thisArea[i]] = 1.0f;//make it into a simple 0/1 metric, even if it wasn't before
+            const vector<int>& thisArea = areas[bestArea];
+            int numAreaNodes = (int)thisArea.size();
+            for (int i = 0; i < numAreaNodes; ++i)
+            {
+                outscratch[thisArea[i]] = 1.0f;//make it into a simple 0/1 metric, even if it wasn't before
+            }
         }
+        myMetricOut->setValuesForColumn(col, outscratch.data());
     }
-    myMetricOut->setValuesForColumn(0, outscratch.data());
 }
 
 float AlgorithmMetricRemoveIslands::getAlgorithmInternalWeight()
