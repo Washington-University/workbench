@@ -597,6 +597,14 @@ GuiManager::processBringAllWindowsToFront()
             m_brainBrowserWindows[i]->activateWindow();
         }
     }
+    
+    for (int32_t i = 0; i < static_cast<int32_t>(nonModalDialogs.size()); i++) {
+        if (nonModalDialogs[i] != NULL) {
+            if (nonModalDialogs[i]->isVisible()) {
+                nonModalDialogs[i]->raise();
+            }
+        }
+    }
 }
 
 /**
