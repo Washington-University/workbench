@@ -174,6 +174,15 @@ IF(WIN32)
    ENDIF(MSVC)
 ENDIF(WIN32)
 
+#
+# Fixes issue with XCode and newer version of CMake.
+# It prevents the ZERO_CHECK dependency from running
+# (which is very slow) every time a build is performed
+# in XCode.
+#
+IF (APPLE)
+    SET (CMAKE_SUPPRESS_REGENERATION TRUE)
+ENDIF (APPLE)
 #=============================================================================
 #
 # Test for offscreen mesa (optional library)
