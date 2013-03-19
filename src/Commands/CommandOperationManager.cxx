@@ -73,12 +73,14 @@
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeDilate.h"
 #include "AlgorithmVolumeExtrema.h"
+#include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeMerge.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
 #include "AlgorithmVolumeParcelSmoothing.h"
 #include "AlgorithmVolumeReduce.h"
+#include "AlgorithmVolumeRemoveIslands.h"
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmVolumeWarpfieldResample.h"
@@ -225,12 +227,14 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeReduce()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
