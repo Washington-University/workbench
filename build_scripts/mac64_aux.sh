@@ -73,8 +73,8 @@ make -j2
 # Run 'macdeployqt' on the Apps so that frameworks are copied
 #
 echo "RUNNING MACDEPLOYQT"
-macdeployqt -verbose=2 Desktop/workbench.app
-macdeployqt -verbose=0 CommandLine/wb_command.app
+macdeployqt Desktop/workbench.app
+macdeployqt CommandLine/wb_command.app
 
 #
 # Copy to distribution directory
