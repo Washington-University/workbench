@@ -61,7 +61,11 @@ git pull -u
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
-cmake -DCMAKE_BUILD_TYPE=Release ${SRC_DIR}
+cmake \
+   -DCMAKE_BUILD_TYPE=Release \
+   -DCMAKE_C_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang \
+   -DCMAKE_CXX_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang++ \
+   ${SRC_DIR}
 make -j2 
 make -j2
 
@@ -69,8 +73,8 @@ make -j2
 # Run 'macdeployqt' on the Apps so that frameworks are copied
 #
 echo "RUNNING MACDEPLOYQT"
-macdeployqt Desktop/workbench.app
-macdeployqt CommandLine/wb_command.app
+macdeployqt -verbose=2 Desktop/workbench.app
+macdeployqt -verbose=0 CommandLine/wb_command.app
 
 #
 # Copy to distribution directory
