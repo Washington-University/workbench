@@ -325,6 +325,7 @@ m_specFile(specFile)
      * Create the table
      */
     m_filesTableWidget = new QTableWidget();
+    m_filesTableWidget->setAlternatingRowColors(true);
     m_filesTableWidget->setSelectionBehavior(QTableWidget::SelectItems);
     m_filesTableWidget->setSelectionMode(QTableWidget::SingleSelection);
     QObject::connect(m_filesTableWidget, SIGNAL(cellChanged(int,int)),
@@ -864,61 +865,29 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                                    item);
             }
             if (m_COLUMN_READ_BUTTON >= 0) {
-                QAction* loadFileAction = WuQtUtilities::createAction("Reload",
-                                                                      "Read or reload a file",
-                                                                      this);
-                if (m_iconReloadFile != NULL) {
-                    loadFileAction->setIcon(*m_iconReloadFile);
-                }
-                QToolButton* loadFileToolButton = new QToolButton();
-                loadFileToolButton->setDefaultAction(loadFileAction);
-                
-                QObject::connect(loadFileAction, SIGNAL(triggered()),
+                WuQImageLabel* loadImageLabel = new WuQImageLabel(m_iconReloadFile,
+                                                                     "Reload");
+                QObject::connect(loadImageLabel, SIGNAL(clicked()),
                                  m_fileReloadOrOpenFileActionSignalMapper, SLOT(map()));
-                m_fileReloadOrOpenFileActionSignalMapper->setMapping(loadFileAction, iRow);
-                
+                m_fileReloadOrOpenFileActionSignalMapper->setMapping(loadImageLabel, iRow);
                 m_filesTableWidget->setCellWidget(iRow,
                                                   m_COLUMN_READ_BUTTON,
-                                                  loadFileToolButton);
+                                                  loadImageLabel);
             }
             
             if (m_COLUMN_REMOVE_BUTTON >= 0) {
-                QAction* removeFileAction = WuQtUtilities::createAction("X",
-                                                                        "Remove a file from Workbench.\n"
-                                                                        "Does NOT delete the file on disk.",
-                                                                        this);
-                removeFileAction->setIcon(*m_iconRemoveFile);
-                QToolButton* removeFileToolButton = new QToolButton();
-                removeFileToolButton->setDefaultAction(removeFileAction);
-                
-                QObject::connect(removeFileAction, SIGNAL(triggered()),
+                WuQImageLabel* removeImageLabel = new WuQImageLabel(m_iconRemoveFile,
+                                                                     "Remove");
+                QObject::connect(removeImageLabel, SIGNAL(clicked()),
                                  m_fileRemoveFileActionSignalMapper, SLOT(map()));
-                m_fileRemoveFileActionSignalMapper->setMapping(removeFileAction, iRow);
-                
+                m_fileRemoveFileActionSignalMapper->setMapping(removeImageLabel, iRow);
                 m_filesTableWidget->setCellWidget(iRow,
                                                   m_COLUMN_REMOVE_BUTTON,
-                                                  removeFileToolButton);
+                                                  removeImageLabel);
             }
         }
         
         if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
-//            QAction* optionsAction = WuQtUtilities::createAction("Options",
-//                                                                 "Display a menu of options for this file",
-//                                                                 this);
-//            QToolButton* optionsToolButton = new QToolButton();
-//            if (m_iconOptions != NULL) {
-//                optionsAction->setIcon(*m_iconOptions);
-//            }
-//            optionsToolButton->setDefaultAction(optionsAction);
-//
-//            QObject::connect(optionsAction, SIGNAL(triggered()),
-//                             m_fileOptionsActionSignalMapper, SLOT(map()));
-//            m_fileOptionsActionSignalMapper->setMapping(optionsAction, iRow);
-//            
-//            m_filesTableWidget->setCellWidget(iRow,
-//                                              m_COLUMN_OPTIONS_TOOLBUTTON,
-//                                              optionsToolButton);
-            
             WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions,
                                                                  "Options");
             QObject::connect(optionsImageLabel, SIGNAL(clicked()),
@@ -1323,28 +1292,21 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                  * Read button
                  */
                 CaretAssert(m_COLUMN_READ_BUTTON >= 0);
-                QWidget* readToolButtonWidget = m_filesTableWidget->cellWidget(rowIndex,
+                QWidget* readCellWidget = m_filesTableWidget->cellWidget(rowIndex,
                                                                                m_COLUMN_READ_BUTTON);
-                CaretAssert(readToolButtonWidget);
-                QToolButton* readToolButton = dynamic_cast<QToolButton*>(readToolButtonWidget);
-                CaretAssert(readToolButton);
-                QList<QAction*> readToolButtonActionList = readToolButton->actions();
-                CaretAssert(readToolButtonActionList.size() > 0);
-                QAction* readToolButtonAction = readToolButtonActionList.at(0);
-                CaretAssert(readToolButtonAction);
+                CaretAssert(readCellWidget);
+                WuQImageLabel* readImageLabel = dynamic_cast<WuQImageLabel*>(readCellWidget);
+                CaretAssert(readImageLabel);
+                
                 if (caretDataFile != NULL) {
-                    readToolButtonAction->setText("Reload");
-                    if (m_iconReloadFile != NULL) {
-                        readToolButtonAction->setIcon(*m_iconReloadFile);
-                    }
-                    readToolButtonAction->setToolTip("Reload this file");
+                    readImageLabel->updateIconText(m_iconReloadFile,
+                                                   "Reload");
+                    readImageLabel->setToolTip("Reload this file");
                 }
                 else {
-                    readToolButtonAction->setText("Load");
-                    if (m_iconOpenFile != NULL) {
-                        readToolButtonAction->setIcon(*m_iconOpenFile);
-                    }
-                    readToolButtonAction->setToolTip("Load this file");
+                    readImageLabel->updateIconText(m_iconOpenFile,
+                                                   "Load");
+                    readImageLabel->setToolTip("Load this file");
                 }
             }
                 break;

@@ -69,12 +69,8 @@ WuQImageLabel::WuQImageLabel(const QIcon* icon,
                              const QString& text)
 : QLabel()
 {
-    if (icon != NULL) {
-        setPixmap(icon->pixmap(16));
-    }
-    else {
-        setText(text);
-    }
+    updateIconText(icon,
+                   text);
     setAlignment(Qt::AlignCenter);
 }
 
@@ -84,6 +80,28 @@ WuQImageLabel::WuQImageLabel(const QIcon* icon,
 WuQImageLabel::~WuQImageLabel()
 {
     
+}
+
+/*
+ * Update image label with either the given icon if the
+ * icon is valid (not NULL).  If the icon is invalid (NULL), the text
+ * will be displayed.
+ *
+ * @param icon
+ *     Icon that is displayed.
+ * @param text
+ *     Text that is displayed if icon is not valid (NULL).
+ */
+void
+WuQImageLabel::updateIconText(const QIcon* icon,
+                              const QString& text)
+{
+    if (icon != NULL) {
+        setPixmap(icon->pixmap(16));
+    }
+    else {
+        setText(text);
+    }
 }
 
 /**

@@ -51,6 +51,9 @@ namespace caret {
         
         virtual ~WuQImageLabel();
         
+        void updateIconText(const QIcon* icon,
+                            const QString& text);
+        
         virtual void mouseMoveEvent(QMouseEvent* ev);
         
         virtual void mousePressEvent(QMouseEvent* ev);
