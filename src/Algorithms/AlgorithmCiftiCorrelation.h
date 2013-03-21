@@ -27,6 +27,7 @@
 
 #include <vector>
 #include "AbstractAlgorithm.h"
+#include "CaretPointer.h"
 
 namespace caret {
     
@@ -53,7 +54,7 @@ namespace caret {
         };
         std::vector<CacheRow> m_rowCache;
         std::vector<RowInfo> m_rowInfo;
-        std::vector<std::vector<float> > m_tempRows;//reuse return values in getRow instead of reallocating
+        std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
         std::vector<float> m_weights;
         std::vector<int> m_weightIndexes;
         bool m_binaryWeights, m_weightedMode;

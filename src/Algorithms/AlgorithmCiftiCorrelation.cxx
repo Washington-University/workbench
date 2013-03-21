@@ -126,15 +126,15 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
         {
             throw AlgorithmException("weight list file doesn't exist");
         }
-        fstream labelListFile(weightFileName.toLocal8Bit().constData(), fstream::in);
-        if (!labelListFile.good())
+        fstream weightListFile(weightFileName.toLocal8Bit().constData(), fstream::in);
+        if (!weightListFile.good())
         {
             throw AlgorithmException("error reading weight list file");
         }
-        while (labelListFile.good())
+        while (weightListFile.good())
         {
             float weight;
-            if (!(labelListFile >> weight))//yes, this is how you check fstream for successfully extracted output.  seriously.
+            if (!(weightListFile >> weight))//yes, this is how you check fstream for successfully extracted output.  seriously.
             {
                 break;
             }
@@ -668,17 +668,17 @@ float* AlgorithmCiftiCorrelation::getTempRow()
         m_tempRows.resize(threadNum + 1);
         for (int i = oldsize; i <= threadNum; ++i)
         {
-            m_tempRows[i].resize(m_numCols);
+            m_tempRows[i] = CaretArray<float>(m_numCols);
         }
     }
-    return m_tempRows[threadNum].data();
+    return m_tempRows[threadNum].getArray();
 #else
     if (m_tempRows.size() == 0)
     {
         m_tempRows.resize(1);
-        m_tempRows[0].resize(m_numCols);
+        m_tempRows[0] = CaretArray<float>(m_numCols);
     }
-    return m_tempRows[0].data();
+    return m_tempRows[0].getArray();
 #endif
 }
 
