@@ -48,6 +48,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SpecFile.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -1053,7 +1054,7 @@ DisplayPropertiesFiberOrientation::loadSphericalOrientationVolumes(AString& erro
 {
     errorMessageOut = "";
 
-    FileInformation specFileInfo(m_brain->getSpecFileName());
+    FileInformation specFileInfo(m_brain->getSpecFile()->getFileName());
     const AString directoryName = specFileInfo.getPathName();
     
     if (m_sampleVolumesValid == false) {

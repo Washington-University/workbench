@@ -66,7 +66,7 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GuiManager.h"
-#include "ManageLoadedFilesDialog.h"
+//#include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "ProgressReportingDialog.h"
@@ -78,8 +78,6 @@
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
-#include "SpecFileCreateAddToDialog.h"
-#include "SpecFileDialog.h"
 #include "SpecFileManagementDialog.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
@@ -408,15 +406,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processDataFileLocationOpen()));
     
-    m_openFileViaSpecFileAction =
-    WuQtUtilities::createAction("Open File via Spec File...", 
-                                "Open a data file listed in the Spec File",
-                                Qt::CTRL + Qt::SHIFT + Qt::Key_O,
-                                this,
-                                this,
-                                SLOT(processDataFileOpenFromSpecFile()));
-    
-    
     m_manageFilesAction =
     WuQtUtilities::createAction("Save/Manage Files...", 
                                 "Save and Manage Loaded Files",
@@ -651,12 +640,14 @@ BrainBrowserWindow::createMenus()
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());
 #ifdef VELAB_INTERNAL_RELEASE_ONLY
-    menubar->addMenu(createMenuDeveloper());
+    QMenu* developerMenu = createMenuDeveloper();
+    if (developerMenu != NULL) {
+        menubar->addMenu(developerMenu);
+    }
 #endif // VELAB_INTERNAL_RELEASE_ONLY
 }
 
-const QString menuTextOpenSpecTable = "Open Spec File";
-const QString menuTextManageSpecTable = "Manage Data Files";
+//const QString developerMenuTextOpenSpecTable = "Open Spec File";
 
 /**
  * @return Create and return the developer menu.
@@ -664,14 +655,14 @@ const QString menuTextManageSpecTable = "Manage Data Files";
 QMenu*
 BrainBrowserWindow::createMenuDeveloper()
 {
-    QMenu* menu = new QMenu("Developer",
-                            this);
-    QObject::connect(menu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(processMenuDeveloper(QAction*)));
-    
-    menu->addAction(menuTextOpenSpecTable);
-    menu->addAction(menuTextManageSpecTable);
-    return menu;
+    return NULL;
+//    QMenu* menu = new QMenu("Developer",
+//                            this);
+//    QObject::connect(menu, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(processMenuDeveloper(QAction*)));
+//    
+//    menu->addAction(developerMenuTextOpenSpecTable);
+//    return menu;
 }
 
 /**
@@ -682,53 +673,15 @@ BrainBrowserWindow::processMenuDeveloper(QAction* action)
 {
     const QString text = action->text();
     
-    Brain* brain = GuiManager::get()->getBrain();
-    if (text == menuTextManageSpecTable) {
-        SpecFileManagementDialog::runManageFilesDialog(brain,
-                                                                    this);
-    }
-    else if (text == menuTextOpenSpecTable) {
-        /*
-         * Setup file selection dialog.
-         */
-        QStringList filenameFilterList;
-        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-        CaretFileDialogExtendable fd(this);
-        fd.setAcceptMode(CaretFileDialog::AcceptOpen);
-        fd.setNameFilters(filenameFilterList);
-        fd.setFileMode(CaretFileDialog::ExistingFile);
-        fd.setViewMode(CaretFileDialog::List);
-        if (fd.exec() == CaretFileDialogExtendable::Accepted) {
-            QStringList files = fd.selectedFiles();
-            if (files.isEmpty() == false) {
-                AString specFileName = files.at(0);
-                
-                SpecFile specFile;
-                try {
-                    specFile.readFile(specFileName);
-                }
-                catch (const DataFileException& e) {
-                    QMessageBox::critical(this,
-                                          "ERROR",
-                                          e.whatString());
-                    return;
-                }
-                
-                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
-                                                                    &specFile,
-                                                                    this)) {
-                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-                }
-            }
-        }
-    }
-    else {
+//    if (text == developerMenuTextOpenSpecTable) {
+//    }
+//    else {
         const QString msg = ("Unrecognized selection from Developer Menu: "
                               + text);
         
         WuQMessageBox::errorOk(this,
                                msg);
-    }
+//    }
 }
 
 
@@ -758,7 +711,7 @@ BrainBrowserWindow::createMenuFile()
                      this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
     QObject::connect(m_recentSpecFileMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processRecentSpecFileMenuSelection(QAction*)));
-    menu->addAction(m_openFileViaSpecFileAction);
+    //menu->addAction(m_openFileViaSpecFileAction);
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
     menu->addSeparator();
@@ -835,9 +788,6 @@ BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
 void 
 BrainBrowserWindow::processFileMenuAboutToShow()
 {
-    const bool enabled = GuiManager::get()->getBrain()->isSpecFileValid();
-    
-    m_openFileViaSpecFileAction->setEnabled(enabled);
 }
 
 /**
@@ -896,7 +846,7 @@ BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
 void 
 BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
 {
-    AString errorMessages;
+    //AString errorMessages;
     
     const AString specFileName = itemAction->data().toString();
     if (specFileName == "CLEAR_CLEAR") {
@@ -906,44 +856,56 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
     }
     
     if (specFileName.isEmpty() == false) {
+        
         SpecFile specFile;
         try {
             specFile.readFile(specFileName);
+            
+            Brain* brain = GuiManager::get()->getBrain();
+            if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
+                                                                &specFile,
+                                                                this)) {
+                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+            }            
         }
         catch (const DataFileException& e) {
-            errorMessages += e.whatString();
+            //errorMessages += e.whatString();
+            QMessageBox::critical(this,
+                                  "ERROR",
+                                  e.whatString());
+            return;
         }
         
-        if (errorMessages.isEmpty()) {
-            SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                           this);
-            if (sfd->exec() == QDialog::Accepted) {
-                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                             &specFile);
-                
-                ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                  this,
-                                                  specFile.getFileNameNoPath());
-                
-                if (readSpecFileEvent.isError()) {
-                    if (errorMessages.isEmpty() == false) {
-                        errorMessages += "\n";
-                    }
-                    errorMessages += readSpecFileEvent.getErrorMessage();
-                }
-            }
-            
-            delete sfd;
-            sfd = NULL;
-            
-            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-        }
+//        if (errorMessages.isEmpty()) {
+//            SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+//                                                                           this);
+//            if (sfd->exec() == QDialog::Accepted) {
+//                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                             &specFile);
+//                
+//                ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                  this,
+//                                                  specFile.getFileNameNoPath());
+//                
+//                if (readSpecFileEvent.isError()) {
+//                    if (errorMessages.isEmpty() == false) {
+//                        errorMessages += "\n";
+//                    }
+//                    errorMessages += readSpecFileEvent.getErrorMessage();
+//                }
+//            }
+//            
+//            delete sfd;
+//            sfd = NULL;
+//            
+//            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//        }
         
-        if (errorMessages.isEmpty() == false) {
-            QMessageBox::critical(this, 
-                                  "ERROR", 
-                                  errorMessages);
-        }
+//        if (errorMessages.isEmpty() == false) {
+//            QMessageBox::critical(this, 
+//                                  "ERROR", 
+//                                  errorMessages);
+//        }
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -1375,20 +1337,6 @@ BrainBrowserWindow::processDataFileOpen()
     }
     
     /*
-     * Widget for adding to file dialog
-     */
-    QCheckBox* addFileToSpecFileCheckBox = new QCheckBox("Add Opened Data File to Spec File");
-    addFileToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) opened\n"
-                                          "will be added to the currently loaded Spec File.\n"
-                                          "If there is not a valid Spec File loaded, you\n"
-                                          "will be prompted to create or select a Spec File.");
-    addFileToSpecFileCheckBox->setChecked(false);
-    QWidget* extraWidget = new QWidget();
-    QVBoxLayout* extraLayout = new QVBoxLayout(extraWidget);
-    extraLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    extraLayout->addWidget(addFileToSpecFileCheckBox, 0, Qt::AlignLeft);
-    
-    /*
      * Setup file selection dialog.
      */
     CaretFileDialogExtendable fd(this);
@@ -1397,7 +1345,6 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
     fd.selectNameFilter(s_previousOpenFileNameFilter);
-    fd.addWidget(extraWidget);
     if (s_previousOpenFileDirectory.isEmpty() == false) {
         FileInformation fileInfo(s_previousOpenFileDirectory);
         if (fileInfo.exists()) {
@@ -1413,57 +1360,20 @@ BrainBrowserWindow::processDataFileOpen()
             /*
              * Load the files.
              */
-            bool isLoadingSpecFile = false;
             std::vector<AString> filenamesVector;
             QStringListIterator nameIter(selectedFiles);
             while (nameIter.hasNext()) {
                 const QString name = nameIter.next();
                 filenamesVector.push_back(name);
-                if (name.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
-                    isLoadingSpecFile = true;
-                }
             }
             
-            bool isLoadDataFiles = true;
-                        
-            AddDataFileToSpecFileMode addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_NO;
-            if (isLoadingSpecFile) {
-                //addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
-            }
-            else {
-                if (addFileToSpecFileCheckBox->isChecked()) {
-                    Brain* brain = GuiManager::get()->getBrain();
-                    FileInformation fileInfo(brain->getSpecFileName());
-                    if (fileInfo.exists()) {
-                        addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
-                    }
-                    else {
-                        SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
-                                                                            SpecFileCreateAddToDialog::MODE_OPEN,
-                                                                            this);
-                        
-                        if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
-                            if (createAddToSpecFileDialog.isAddToSpecFileSelected()) {
-                                addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
-                            }
-                        }
-                        else {
-                            isLoadDataFiles = false;
-                        }
-                    }
-                }                
-            }
-            
-            if (isLoadDataFiles) {
                 std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
                 loadFiles(this,
                           filenamesVector,
                           dataFileTypesDummyNotUsed,
                           LOAD_SPEC_FILE_WITH_DIALOG,
-                          addDataFileToSpecFileMode,
                           "",
                           "");
-            }
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
@@ -1497,7 +1407,6 @@ BrainBrowserWindow::loadFilesFromNetwork(QWidget* parentForDialogs,
                                        filenames,
                                        dataFileTypes,
                                        BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
-                                       ADD_DATA_FILE_TO_SPEC_FILE_NO,
                                        username,
                                        password);
     return successFlag;
@@ -1521,7 +1430,6 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
               filenames,
               dataFileTypesDummyNotUsed,
               loadSpecFileMode,
-              ADD_DATA_FILE_TO_SPEC_FILE_NO,
               "",
               "");
 }
@@ -1605,8 +1513,6 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
  *    filename, the type is inferred from the filename's extension.
  * @param loadSpecFileMode
  *    Specifies handling of SpecFiles
- * @param commandLineFlag
- *    True if files are being loaded from the command line.
  * @param username
  *    Username for network file reading
  * @param password
@@ -1618,7 +1524,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                               const std::vector<AString>& filenames,
                               const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                               const LoadSpecFileMode loadSpecFileMode,
-                              const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
                               const AString& username,
                               const AString& password)
 {
@@ -1788,38 +1693,44 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
             case LOAD_SPEC_FILE_WITH_DIALOG:
             case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
             {
-                /*
-                 * Allow user to choose files listed in the spec file
-                 */
-                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                               parentWidget);
-                if (sfd->exec() == QDialog::Accepted) {
-                    timer.reset();
-                    specFileTimeStart = timer.getElapsedTimeSeconds();
-                    
-                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                 &specFile);
-                    if (username.isEmpty() == false) {
-                        readSpecFileEvent.setUsernameAndPassword(username,
-                                                                 password);
-                    }
-                    
-                    ProgressReportingDialog::runEvent(&readSpecFileEvent,
-                                                      parentWidget,
-                                                      specFile.getFileNameNoPath());
-                    
-                    if (readSpecFileEvent.isError()) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
-                        }
-                        errorMessages += readSpecFileEvent.getErrorMessage();
-                    }
-                    specFileTimeEnd = timer.getElapsedTimeSeconds();
-                    
-                    createDefaultTabsFlag = true;
+                Brain* brain = GuiManager::get()->getBrain();
+                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
+                                                                    &specFile,
+                                                                    this)) {
+                    m_toolbar->addDefaultTabsAfterLoadingSpecFile();
                 }
-                
-                delete sfd;
+//                /*
+//                 * Allow user to choose files listed in the spec file
+//                 */
+//                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+//                                                                               parentWidget);
+//                if (sfd->exec() == QDialog::Accepted) {
+//                    timer.reset();
+//                    specFileTimeStart = timer.getElapsedTimeSeconds();
+//                    
+//                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+//                                                                 &specFile);
+//                    if (username.isEmpty() == false) {
+//                        readSpecFileEvent.setUsernameAndPassword(username,
+//                                                                 password);
+//                    }
+//                    
+//                    ProgressReportingDialog::runEvent(&readSpecFileEvent,
+//                                                      parentWidget,
+//                                                      specFile.getFileNameNoPath());
+//                    
+//                    if (readSpecFileEvent.isError()) {
+//                        if (errorMessages.isEmpty() == false) {
+//                            errorMessages += "\n";
+//                        }
+//                        errorMessages += readSpecFileEvent.getErrorMessage();
+//                    }
+//                    specFileTimeEnd = timer.getElapsedTimeSeconds();
+//                    
+//                    createDefaultTabsFlag = true;
+//                }
+//                
+//                delete sfd;
             }
                 break;
         }
@@ -1830,17 +1741,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     /*
      * Prepare to load any data files
      */
-    bool addDataFileToSpecFile = false;
-    switch (addDataFileToSpecFileMode) {
-        case ADD_DATA_FILE_TO_SPEC_FILE_NO:
-            addDataFileToSpecFile = false;
-            break;
-        case ADD_DATA_FILE_TO_SPEC_FILE_YES:
-            addDataFileToSpecFile = true;
-            break;
-    }
-    EventDataFileRead loadFilesEvent(GuiManager::get()->getBrain(),
-                                    addDataFileToSpecFile);
+    EventDataFileRead loadFilesEvent(GuiManager::get()->getBrain());
     if (username.isEmpty() == false) {
         loadFilesEvent.setUsernameAndPassword(username,
                                              password);
@@ -1882,9 +1783,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                           parentWidget,
                                           "Loading Data Files");
         errorMessages.appendWithNewLine(loadFilesEvent.getErrorMessage());
-        if (loadFilesEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
-            errorMessages.appendWithNewLine(loadFilesEvent.getAddToSpecFileErrorMessages());
-        }
         
         /*
          * Check for errors
@@ -1909,8 +1807,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                   "\nto prevent this error."),
                                  false);
                 if (ded.exec() == WuQDataEntryDialog::Accepted) {
-                    EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
-                                                             addDataFileToSpecFile);
+                    EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain());
                     loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
                                                        dataFileType,
                                                        dataFileName);
@@ -1924,9 +1821,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                                       ("Loading " + shortName));
                     if (loadFileEventStructure.isError()) {
                         errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
-                    }
-                    if (loadFileEventStructure.getAddToSpecFileErrorMessages().isEmpty() == false) {
-                        errorMessages.appendWithNewLine(loadFileEventStructure.getAddToSpecFileErrorMessages());
                     }
                 }
                 else {
@@ -2205,37 +2099,18 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
 }
 
 /**
- * Called when open data file from spec file is selected.
- */
-void 
-BrainBrowserWindow::processDataFileOpenFromSpecFile()
-{
-    const bool valid = GuiManager::get()->getBrain()->isSpecFileValid();
-    if (valid) {
-        try {
-            SpecFile sf;
-            sf.readFile(GuiManager::get()->getBrain()->getSpecFileName());
-            SpecFileDialog::displayFastOpenDataFile(&sf,
-                                                    this);
-        }
-        catch (const DataFileException& e) {
-            QMessageBox::critical(this, 
-                                  "ERROR", 
-                                  e.whatString());
-        }
-    }
-}
-
-/**
  * Called when manage/save loaded files is selected.
  */
 void 
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
-    ManageLoadedFilesDialog manageLoadedFile(this,
-                                             GuiManager::get()->getBrain(),
-                                             false);
-    manageLoadedFile.exec();
+    Brain* brain = GuiManager::get()->getBrain();
+    SpecFileManagementDialog::runManageFilesDialog(brain,
+                                                   this);
+//    ManageLoadedFilesDialog manageLoadedFile(this,
+//                                             GuiManager::get()->getBrain(),
+//                                             false);
+//    manageLoadedFile.exec();
 }
 
 /**
@@ -2886,14 +2761,57 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+//    /*
+//     * Screen mode
+//     * Note: m_screenMode must be set to a different value than 
+//     * the value passed to processViewScreenActionGroupSelection().
+//     */
+//    m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
+//    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode = 
+//    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode", 
+//                                                                                                                 BrainBrowserWindowScreenModeEnum::NORMAL);
+//    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+//    switch (newScreenMode) {
+//        case BrainBrowserWindowScreenModeEnum::NORMAL:
+//            m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
+//            processViewScreenActionGroupSelection(m_viewScreenNormalAction);
+//            break;
+//        case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+//            processViewScreenActionGroupSelection(m_viewScreenFullAction);
+//            break;
+//        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
+//            processViewScreenActionGroupSelection(m_viewScreenMontageTabsAction);
+//            break;
+//        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
+//            processViewScreenActionGroupSelection(m_viewScreenFullMontageTabsAction);
+//            break;
+//    }
+    
     /*
+     * Restore toolbar
+     */
+    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
+    if (toolbarClass != NULL) {
+        m_toolbar->restoreFromScene(sceneAttributes,
+                                    toolbarClass);
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    
+    /*
+     * 3/20/2013 Note moved to AFTER toolbar (tab) restoration since
+     * adjusting the view screen will try to access tab content
+     * (which is invalid prior to restoring toolbar.
+     *
      * Screen mode
-     * Note: m_screenMode must be set to a different value than 
+     * Note: m_screenMode must be set to a different value than
      * the value passed to processViewScreenActionGroupSelection().
      */
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
-    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode = 
-    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode", 
+    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode =
+    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode",
                                                                                                                  BrainBrowserWindowScreenModeEnum::NORMAL);
     m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     switch (newScreenMode) {
@@ -2911,20 +2829,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             processViewScreenActionGroupSelection(m_viewScreenFullMontageTabsAction);
             break;
     }
-    
-    /*
-     * Restore toolbar
-     */
-    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
-    if (toolbarClass != NULL) {
-        m_toolbar->restoreFromScene(sceneAttributes,
-                                    toolbarClass);
-    }
-    
-    m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);
-    
-    
     /*
      * Position and size
      */

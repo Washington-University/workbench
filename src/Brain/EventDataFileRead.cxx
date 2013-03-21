@@ -32,17 +32,11 @@ using namespace caret;
  * 
  * @param loadIntoBrain
  *    Brain into which file is loaded.
- * @param dataFileType
- *    Type of file this for loading.
- * @param dataFileName
- *    Name of data file to load.
  */
-EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
-                                     const bool addDataFileToSpecFile)
+EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain)
 : Event(EventTypeEnum::EVENT_DATA_FILE_READ)
 {
     this->loadIntoBrain = loadIntoBrain;
-    this->addDataFileToSpecFile = addDataFileToSpecFile;
     
     this->username = "";
     this->password = "";
@@ -295,16 +289,6 @@ EventDataFileRead::setUsernameAndPassword(const AString& username,
 }
 
 /**
- * @return Are data files to be added to spec file after
- * the data file is read?
- */
-bool 
-EventDataFileRead::isAddDataFileToSpecFile() const
-{
-    return this->addDataFileToSpecFile;
-}
-
-/**
  * @param dataFileIndex
  *    Index of the data file.
  * @return After file is read, mark it as modified.
@@ -315,28 +299,3 @@ EventDataFileRead::isFileToBeMarkedModified(const int32_t dataFileIndex) const
     CaretAssertVectorIndex(m_dataFiles, dataFileIndex);
     return m_dataFiles[dataFileIndex].m_markFileAsModified;
 }
-
-/**
- * @return Any add to spec file error messages.
- */
-AString
-EventDataFileRead::getAddToSpecFileErrorMessages() const
-{
-    return m_addToSpecFileErrorMessages;
-}
-
-/**
- * Set the add to spec file error messages.
- * @param msg
- *     New value for messages.
- */
-void
-EventDataFileRead::setAddToSpecFileErrorMessages(const AString& msg)
-{
-    if (msg.isEmpty() == false) {
-        m_addToSpecFileErrorMessages.appendWithNewLine(msg);
-    }
-}
-
-
-

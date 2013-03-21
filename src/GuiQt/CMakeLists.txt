@@ -63,7 +63,6 @@ InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
-ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
@@ -79,8 +78,6 @@ ProgressReportingDialog.h
 ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
-SpecFileCreateAddToDialog.h
-SpecFileDialog.h
 SpecFileManagementDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
@@ -180,7 +177,6 @@ InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
-ManageLoadedFilesDialog.h
 MapSettingsEditorDialog.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
@@ -198,8 +194,6 @@ ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
 SceneDialog.h
 SceneWindowGeometry.h
-SpecFileCreateAddToDialog.h
-SpecFileDialog.h
 SpecFileManagementDialog.h
 SplashScreen.h
 StructureEnumComboBox.h
@@ -296,7 +290,6 @@ InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
-ManageLoadedFilesDialog.cxx
 MapSettingsEditorDialog.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
@@ -314,8 +307,6 @@ ProgressReportingWithSlots.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SceneDialog.cxx
 SceneWindowGeometry.cxx
-SpecFileCreateAddToDialog.cxx
-SpecFileDialog.cxx
 SpecFileManagementDialog.cxx
 SplashScreen.cxx
 StructureEnumComboBox.cxx

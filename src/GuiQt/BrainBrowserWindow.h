@@ -118,7 +118,6 @@ namespace caret {
         void processNewTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
-        void processDataFileOpenFromSpecFile();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
         void processRecordMovie();
@@ -177,11 +176,6 @@ namespace caret {
             bool isToolBarDisplayed;
         };
         
-        enum AddDataFileToSpecFileMode {
-            ADD_DATA_FILE_TO_SPEC_FILE_YES,
-            ADD_DATA_FILE_TO_SPEC_FILE_NO
-        };
-        
         enum CreateDefaultTabsMode {
             CREATE_DEFAULT_TABS_YES,
             CREATE_DEFAULT_TABS_NO
@@ -200,7 +194,6 @@ namespace caret {
                        const std::vector<AString>& filenames,
                        const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                        const LoadSpecFileMode loadSpecFileMode,
-                       const AddDataFileToSpecFileMode addDataFileToSpecFileMode,
                        const AString& username,
                        const AString& password);
         
@@ -244,8 +237,6 @@ namespace caret {
         QAction* m_openFileAction;
         
         QAction* m_openLocationAction;
-        
-        QAction* m_openFileViaSpecFileAction;
         
         QAction* m_manageFilesAction;
         

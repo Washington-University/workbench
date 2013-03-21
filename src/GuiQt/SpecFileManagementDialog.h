@@ -100,6 +100,9 @@ namespace caret {
         static void runManageFilesDialog(Brain* brain,
                                          QWidget* parent);
         
+        static bool runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
+                                         QWidget* parent);
+        
         virtual ~SpecFileManagementDialog();
         
     protected:
@@ -131,7 +134,8 @@ namespace caret {
     private:
         enum Mode {
             MODE_MANAGE_FILES,
-            MODE_OPEN_SPEC_FILE
+            MODE_OPEN_SPEC_FILE,
+            MODE_SAVE_FILES_WHILE_QUITTING
         };
         
         enum ManageFilesDisplay {
@@ -184,7 +188,7 @@ namespace caret {
         
         void okButtonClickedOpenSpecFile();
         
-        bool okButtonClickedManageFiles();
+        bool okButtonClickedManageAndSaveFiles();
         
         void changeFileName(QWidget* parent,
                             SpecFileDataFile* specFileDataFile,

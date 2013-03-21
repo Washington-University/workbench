@@ -128,8 +128,6 @@ SpecFileManagementDialog::runOpenSpecFileDialog(Brain* brain,
  *
  * @param brain
  *    Brain for which files are managed.
- * @param specFile
- *    Spec File.
  * @param parent
  *    Parent of dialog.
  */
@@ -148,6 +146,39 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
                                     title,
                                     parent);
     dialog.exec();
+}
+
+/**
+ * Run a dialog for saving files in a brain while exiting workbench.
+ *
+ * DO NOT delete the returned dialog as it will delete itself when closed.
+ *
+ * @param brain
+ *    Brain for which files are managed.
+ * @param parent
+ *    Parent of dialog.
+ * @return 
+ *    true if workbench is allowed to exit, else false.
+ */
+bool
+SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
+                                               QWidget* parent)
+{
+    CaretAssert(brain);
+    const AString title = ("Save Data Files");
+    
+    brain->determineDisplayedDataFiles();
+    
+    SpecFileManagementDialog dialog(MODE_SAVE_FILES_WHILE_QUITTING,
+                                    brain,
+                                    brain->getSpecFile(),
+                                    title,
+                                    parent);
+    
+    if (dialog.exec()) {
+        return true;
+    }
+    return false;
 }
 
 
@@ -190,6 +221,7 @@ m_specFile(specFile)
     bool enableOpenItems   = false;
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
+        case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
             enableManageItems = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
@@ -232,6 +264,10 @@ m_specFile(specFile)
             setCancelButtonText("Cancel");
             m_loadScenesPushButton = addUserPushButton("Load Scenes",
                                                        QDialogButtonBox::AcceptRole);
+            break;
+        case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
+            setOkButtonText("Save Selected Files and Exit");
+            setCancelButtonText("Cancel");
             break;
     }
     
@@ -501,6 +537,7 @@ SpecFileManagementDialog::enableLoadOrSaveButton()
     if (m_specFile != NULL) {
         switch (m_dialogMode) {
             case MODE_MANAGE_FILES:
+            case MODE_SAVE_FILES_WHILE_QUITTING:
             {
                 if (m_specFile->getNumberOfFilesSelectedForSaving() > 0) {
                     isAnyFileSelected = true;
@@ -709,9 +746,14 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
      */
     m_specFileTableRowIndex = -1;
     int numberOfRows = 0;
-    if (m_dialogMode == MODE_MANAGE_FILES) {
-        m_specFileTableRowIndex = numberOfRows;
-        numberOfRows++;
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            m_specFileTableRowIndex = numberOfRows;
+            numberOfRows++;
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
     }
     
     /*
@@ -869,11 +911,20 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
 void
 SpecFileManagementDialog::updateSpecFileRowInTable()
 {
+    bool isUpdateRow = false;
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            isUpdateRow = true;
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+    }
+    
     /*
      * Update spec file data
      */
-    if (m_dialogMode == MODE_MANAGE_FILES) {
-        
+    if (isUpdateRow) {
         if (m_specFileTableRowIndex >= 0) {
             CaretAssert(m_COLUMN_DATA_FILE_TYPE_LABEL >= 0);
             QTableWidgetItem* dataTypeItem = getTableWidgetItem(m_specFileTableRowIndex,
@@ -1187,6 +1238,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
         
         switch (m_dialogMode) {
             case MODE_MANAGE_FILES:
+            case MODE_SAVE_FILES_WHILE_QUITTING:
             {
                 /*
                  * Save checkbox
@@ -1447,12 +1499,15 @@ SpecFileManagementDialog::okButtonClicked ()
     bool allowDialogToClose = false;
     
     switch (m_dialogMode) {
-        case SpecFileManagementDialog::MODE_MANAGE_FILES:
-            allowDialogToClose = okButtonClickedManageFiles();
+        case MODE_MANAGE_FILES:
+            allowDialogToClose = okButtonClickedManageAndSaveFiles();
             break;
-        case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
+        case MODE_OPEN_SPEC_FILE:
             okButtonClickedOpenSpecFile();
             allowDialogToClose = true;
+            break;
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            allowDialogToClose = okButtonClickedManageAndSaveFiles();
             break;
     }
     
@@ -1489,10 +1544,11 @@ SpecFileManagementDialog::okButtonClickedOpenSpecFile()
 }
 
 /**
- * Perform processing when the Open button is pressed for Manage Files mode.
+ * Perform processing when the Open button is pressed for Manage Files 
+ * or Save Files mode.
  */
 bool
-SpecFileManagementDialog::okButtonClickedManageFiles()
+SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
 {
     /*
      * Wait cursor
@@ -1521,30 +1577,6 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
         }
         
     }
-//    const int32_t numGuiGroups = static_cast<int32_t>(m_guiSpecFileDataFileTypeGroups.size());
-//    for (int32_t iGroup = 0; iGroup < numGuiGroups; iGroup++) {
-//        GuiSpecFileDataFileTypeGroup* guiSpecGroup = m_guiSpecFileDataFileTypeGroups[iGroup];
-//        const int32_t numFiles = guiSpecGroup->getNumberOfGuiSpecFileDataFiles();
-//        for (int32_t iFile = 0; iFile < numFiles; iFile++) {
-//            GuiSpecFileDataFile* guiDataFile = guiSpecGroup->getGuiSpecFileDataFile(iFile);
-//            if (guiDataFile->m_saveCheckedItem->flags() & Qt::ItemIsEnabled) {
-//                if (guiDataFile->m_saveCheckedItem->checkState() == Qt::Checked) {
-//                    CaretDataFile* caretDataFile = guiDataFile->m_specFileDataFile->getCaretDataFile();
-//                    if (caretDataFile != NULL) {
-//                        try {
-//                            m_brain->writeDataFile(caretDataFile,
-//                                                   false);
-//                            guiDataFile->m_saveCheckedItem->setCheckState(Qt::Unchecked);
-//                        }
-//                        catch (const DataFileException& e) {
-//                            errorMessages.appendWithNewLine(e.whatString());
-//                        }
-//                        guiDataFile->updateContent();
-//                    }
-//                }
-//            }
-//        }
-//    }
     
     CaretAssert(m_COLUMN_SAVE_CHECKBOX >= 0);
     QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
@@ -1555,14 +1587,22 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
             errorMessages.appendWithNewLine("Spec File name is empty.");
         }
         else {
+            m_specFile->removeAnyFileInformationIfNotInSpecAndNoCaretDataFile();
             AString specFileErrorMessage = writeSpecFile(false);
             if (specFileErrorMessage.isEmpty() == false) {
                 errorMessages.appendWithNewLine(specFileErrorMessage);
+            }
+            else {
             }
             saveItem->setCheckState(Qt::Unchecked);
         }
     }
     
+    /*
+     * Spec file may have changed by SpecFile::removeAnyFileInformationIfNotInSpecAndNoCaretDataFile().
+     */
+    getDataFileContentFromSpecFile();
+    updateTableDimensionsToFitFiles();
     loadSpecFileContentIntoDialog();
     
     cursor.restoreCursor();
@@ -1571,8 +1611,19 @@ SpecFileManagementDialog::okButtonClickedManageFiles()
         WuQMessageBox::errorOk(this, errorMessages);
         return false;
     }
+
+    bool allowDialogToClose = false;
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            break;
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            allowDialogToClose = true;
+            break;
+    }
     
-    return false;
+    return allowDialogToClose;
 }
 
 /**
@@ -1696,8 +1747,7 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         }
     }
     else {
-        EventDataFileRead readEvent(m_brain,
-                                    false);
+        EventDataFileRead readEvent(m_brain);
         readEvent.addDataFile(specFileDataFile->getStructure(),
                               specFileDataFile->getDataFileType(),
                               specFileDataFile->getFileName());
@@ -1706,10 +1756,6 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         
         if (readEvent.isError()) {
             errorMessage.appendWithNewLine(readEvent.getErrorMessage());
-        }
-        
-        if (readEvent.getAddToSpecFileErrorMessages().isEmpty() == false) {
-            errorMessage.appendWithNewLine(readEvent.getAddToSpecFileErrorMessages());
         }
     }
     
@@ -1768,6 +1814,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
             MetaDataEditorDialog mded(m_specFile,
                                       &menu);
             mded.exec();
+            loadSpecFileContentIntoDialog();
         }
         else if (selectedAction != NULL) {
             CaretAssertMessage(0,
@@ -1793,6 +1840,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         QMenu menu;
         switch (m_dialogMode) {
             case MODE_MANAGE_FILES:
+            case MODE_SAVE_FILES_WHILE_QUITTING:
                 if (caretDataFile != NULL) {
                     editMetaDataAction = menu.addAction("Edit Metadata...");
                     setFileNameAction = menu.addAction("Set File Name...");
@@ -1847,6 +1895,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                 MetaDataEditorDialog mded(caretDataFile,
                                           &menu);
                 mded.exec();
+                loadSpecFileContentIntoDialog();
             }
         }
         else if (selectedAction == viewMetaDataAction) {
@@ -1944,6 +1993,7 @@ SpecFileManagementDialog::specFileOptionsActionTriggered()
     metadataAction->setEnabled(false);
     switch (m_dialogMode) {
         case MODE_MANAGE_FILES:
+        case MODE_SAVE_FILES_WHILE_QUITTING:
             setFileNameAction = menu.addAction("Set File Name...");
             break;
         case MODE_OPEN_SPEC_FILE:

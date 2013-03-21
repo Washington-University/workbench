@@ -59,11 +59,9 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
 : CaretObjectTracksModification()
 {
     m_caretDataFile = NULL;
-    m_removeFromSpecFileWhenWritten = false;
     m_filename  = filename;
     m_dataFileType = dataFileType;
     m_structure = structure;
-    m_originalStructure = m_structure;
     m_loadingSelected  = true;
     m_savingSelected = false;
     m_specFileMember = specFileMember;
@@ -107,11 +105,9 @@ void
 SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
 {
     m_caretDataFile = sfdf.m_caretDataFile;
-    m_removeFromSpecFileWhenWritten = false; // do not copy!
     m_filename  = sfdf.m_filename;
     m_dataFileType = sfdf.m_dataFileType;
     m_structure = sfdf.m_structure;
-    m_originalStructure = sfdf.m_originalStructure;
     m_loadingSelected  = sfdf.m_loadingSelected;
     m_savingSelected  = sfdf.m_savingSelected;
     m_specFileMember = sfdf.m_specFileMember;
@@ -263,46 +259,6 @@ SpecFileDataFile::toString() const
     return info;
 }
    
-/**
- * @return Is this file to be removed when the SpecFile is
- * written?
- */
-bool 
-SpecFileDataFile::isRemovedFromSpecFileWhenWritten() const
-{
-    return m_removeFromSpecFileWhenWritten;
-}
-
-/**
- * Set remove file from SpecFile when SpecFile is written.
- * @param removeIt
- *    New status.
- */
-void 
-SpecFileDataFile::setRemovedFromSpecFileWhenWritten(const bool removeIt)
-{
-    m_removeFromSpecFileWhenWritten = removeIt;
-}
-
-/**
- * @return Has this item been edited (typically thru spec file dialog)?
- * True is returned if the structure has been changed
- * or the file is tagged for removal from the SpecFile,
- * otherwise false.
- */
-bool 
-SpecFileDataFile::hasBeenEdited() const
-{
-    if (m_removeFromSpecFileWhenWritten) {
-        return true;
-    }
-    if (m_structure != m_originalStructure) {
-        return true;
-    }
-    
-    return false;
-}
-
 /**
  * @return True if this file is a selected as a member of the spec file.
  * If true, then the spec file is written, this file will be listed in 

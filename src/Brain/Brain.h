@@ -82,7 +82,6 @@ namespace caret {
     class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
-    class SpecFile;
     class VolumeFile;
     
     class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -173,12 +172,6 @@ namespace caret {
         const SpecFile* getSpecFile() const;
         
         SpecFile* getSpecFile();
-        
-        AString getSpecFileName() const;
-        
-        void setSpecFileName(const AString& specFileName);
-        
-        bool isSpecFileValid() const;
         
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
@@ -296,8 +289,7 @@ namespace caret {
 
         void determineDisplayedDataFiles();
         
-        bool areFilesModified(const bool excludeConnectivityFiles,
-                              const bool excludeSceneFiles);
+        bool areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes);
         
         void writeDataFile(CaretDataFile* caretDataFile,
                            const bool isAddToSpecFile) throw (DataFileException);
@@ -374,9 +366,7 @@ namespace caret {
         CaretDataFile* readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
                           const AString& dataFileName,
-                          const bool markDataFileAsModified,
-                          const bool addDataFileToSpecFile,
-                                    AString& addToSpecFileErrorMessageOut) throw (DataFileException);
+                          const bool markDataFileAsModified) throw (DataFileException);
         
         CaretDataFile* readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                                    const DataFileTypeEnum::Enum dataFileType,
@@ -489,8 +479,6 @@ namespace caret {
         std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
         
         mutable AString m_currentDirectory;
-        
-        AString m_specFileName;
         
         SpecFile* m_specFile;
         

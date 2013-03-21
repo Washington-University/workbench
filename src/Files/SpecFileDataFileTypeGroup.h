@@ -54,6 +54,8 @@ namespace caret {
         
         void removeAllFileInformation();
         
+        void removeFileInformationIfNotInSpecAndNoCaretDataFile();
+        
         SpecFileDataFile* getFileInformation(const int32_t fileIndex);
         
         const SpecFileDataFile* getFileInformation(const int32_t fileIndex) const;
@@ -61,10 +63,6 @@ namespace caret {
         void setAllFilesSelectedForLoading(bool selectionStatus);
         
         void setAllFilesSelectedForSaving(bool selectionStatus);
-        
-        void removeFilesTaggedForRemoval();
-    
-        bool hasBeenEdited() const;
         
         virtual void clearModified();
         

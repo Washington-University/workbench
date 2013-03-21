@@ -69,12 +69,6 @@ namespace caret {
         
         void setSavingSelected(const bool selected);
         
-        bool isRemovedFromSpecFileWhenWritten() const;
-        
-        void setRemovedFromSpecFileWhenWritten(const bool removeIt);
-        
-        bool hasBeenEdited() const;
-        
         bool isSpecFileMember() const;
         
         void setSpecFileMember(const bool status);
@@ -93,15 +87,11 @@ namespace caret {
         
         mutable StructureEnum::Enum m_structure;
         
-        StructureEnum::Enum m_originalStructure;
-        
         DataFileTypeEnum::Enum m_dataFileType;
         
         bool m_loadingSelected;
         
         bool m_savingSelected;
-        
-        bool m_removeFromSpecFileWhenWritten;
         
         bool m_specFileMember;
     };

@@ -40,8 +40,7 @@ namespace caret {
     class EventDataFileRead : public Event {
         
     public:
-        EventDataFileRead(Brain* loadIntoBrain,
-                          const bool addDataFileToSpecFile);
+        EventDataFileRead(Brain* loadIntoBrain);
         
         virtual ~EventDataFileRead();
         
@@ -81,18 +80,12 @@ namespace caret {
         void setUsernameAndPassword(const AString& username,
                                     const AString& password);
         
-        bool isAddDataFileToSpecFile() const;
-        
         bool isFileToBeMarkedModified(const int32_t dataFileIndex) const;
         
         CaretDataFile* getDataFileRead(const int32_t dataFileIndex);
         
         void setDataFileRead(const int32_t dataFileIndex,
                          CaretDataFile* caretDataFile);
-        
-        AString getAddToSpecFileErrorMessages() const;
-        
-        void setAddToSpecFileErrorMessages(const AString& msg);
         
     private:
         class FileData {
@@ -131,10 +124,6 @@ namespace caret {
         AString username;
         
         AString password;
-        
-        AString m_addToSpecFileErrorMessages;
-        
-        bool addDataFileToSpecFile;
     };
 
 } // namespace

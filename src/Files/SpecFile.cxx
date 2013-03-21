@@ -814,6 +814,23 @@ SpecFile::areAllFilesSelectedForLoadingSceneFiles() const
 }
 
 /**
+ * Remove any files that are not "in spec" and do not have an
+ * associated caret data file.
+ */
+void
+SpecFile::removeAnyFileInformationIfNotInSpecAndNoCaretDataFile()
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        dataFileTypeGroup->removeFileInformationIfNotInSpecAndNoCaretDataFile();
+    }
+    setModified();
+}
+
+
+/**
  * Read the file.
  *
  * @param filenameIn
@@ -961,7 +978,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
          */
         this->writeFileContentToXML(xmlWriter, 
                                     WRITE_META_DATA_YES,
-                                    WRITE_ALL_FILES);
+                                    WRITE_IN_SPEC_FILES);
                 
         file.close();
         
@@ -1017,11 +1034,6 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
         }
     }
     
-    /*
-     * Remove any files that are tagged for removal.
-     */
-    this->removeFilesTaggedForRemoval();
-    
     //
     // Write files
     //
@@ -1032,13 +1044,12 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
         for (int32_t j = 0; j < numFiles; j++) {
             SpecFileDataFile* file = group->getFileInformation(j);
             
-            if (file->isRemovedFromSpecFileWhenWritten() == false) {
                 bool writeIt = true;
                 switch (writeFilesSelectedStatus) {
                     case WRITE_ALL_FILES:
                         break;
-                    case WRITE_SELECTED_FILES:
-                        writeIt = file->isLoadingSelected();
+                    case WRITE_IN_SPEC_FILES:
+                        writeIt = file->isSpecFileMember();
                         break;
                 }
                 
@@ -1059,7 +1070,6 @@ SpecFile::writeFileContentToXML(XmlWriter& xmlWriter,
                                               + "\n");
                     xmlWriter.writeEndElement();
                 }
-            }
         }
     }
     
@@ -1113,44 +1123,30 @@ SpecFile::updateFileNameAndPathForWriting(const AString& dataFileNameIn)
  * @throws DataFileException
  *    If error writing to XML.
  */
-AString 
-SpecFile::writeFileToString(const WriteMetaDataType writeMetaDataStatus,
-                            const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
-{    
-    /*
-     * Create a TextStream that writes to a string.
-     */
-    AString xmlString;
-    QTextStream textStream(&xmlString);
-    
-    /*
-     * Create the xml writer
-     */
-    XmlWriter xmlWriter(textStream);
-
-    /*
-     * Write file to XML.
-     */
-    this->writeFileContentToXML(xmlWriter,
-                                writeMetaDataStatus,
-                                writeFilesSelectedStatus);
-    
-    return xmlString;
-}
-
-
-/**
- * If any files are marked for removal from SpecFile, remove them.
- */
-void 
-SpecFile::removeFilesTaggedForRemoval()
-{
-    const int32_t numGroups = static_cast<int32_t>(this->dataFileTypeGroups.size());
-    for (int32_t ig = 0; ig < numGroups; ig++) {
-        SpecFileDataFileTypeGroup* group = this->dataFileTypeGroups[ig];
-        group->removeFilesTaggedForRemoval();
-    }
-}
+//AString 
+//SpecFile::writeFileToString(const WriteMetaDataType writeMetaDataStatus,
+//                            const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException)
+//{    
+//    /*
+//     * Create a TextStream that writes to a string.
+//     */
+//    AString xmlString;
+//    QTextStream textStream(&xmlString);
+//    
+//    /*
+//     * Create the xml writer
+//     */
+//    XmlWriter xmlWriter(textStream);
+//
+//    /*
+//     * Write file to XML.
+//     */
+//    this->writeFileContentToXML(xmlWriter,
+//                                writeMetaDataStatus,
+//                                writeFilesSelectedStatus);
+//    
+//    return xmlString;
+//}
 
 /**
  * Get information about this file's contents.
@@ -1278,23 +1274,6 @@ SpecFile::setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected()
 }
 
 /**
- * @return Have any files in this spec file been edited (typically through spec file dialog?
- */
-bool 
-SpecFile::hasBeenEdited() const
-{
-    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
-         iter != dataFileTypeGroups.end();
-         iter++) {
-        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
-        if (dataFileTypeGroup->hasBeenEdited()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
  * @return The version of the file as a number.
  */
 float 
@@ -1342,11 +1321,6 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addPathName("specFileName",
                             specFileNameForScene);
     
-    /*
-     * Remove any files that are tagged for removal.
-     */
-    this->removeFilesTaggedForRemoval();
-    
     std::vector<SceneClass*> dataFileClasses;
     
     //
@@ -1367,8 +1341,11 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
             for (int32_t j = 0; j < numFiles; j++) {
                 SpecFileDataFile* file = group->getFileInformation(j);
                 
-                if (file->isRemovedFromSpecFileWhenWritten() == false) {
-//                    if (file->isSelected()) {
+                /*
+                 * Only write files that are loaded (indicated by its
+                 * "caretDataFile" not NULL.
+                 */
+                if (file->getCaretDataFile() != NULL) {
                         SceneClass* fileClass = new SceneClass("specFileDataFile",
                                                                "SpecFileDataFile",
                                                                1);
@@ -1383,8 +1360,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                                               file->isLoadingSelected());
                         
                         dataFileClasses.push_back(fileClass);
-                    }
-//                }
+                }
             }
         }
     }
@@ -1505,6 +1481,15 @@ SpecFile::appendSpecFile(const SpecFile& toAppend)
                         fileData->isSpecFileMember());//absolute paths should get converted to relative on writing
         }
     }
+}
+
+/**
+ * Set this file modified.
+ */
+void
+SpecFile::setModified()
+{
+    CaretDataFile::setModified();
 }
 
 /**

@@ -60,7 +60,6 @@
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
-#include "ManageLoadedFilesDialog.h"
 #include "MapSettingsEditorDialog.h"
 #include "MovieDialog.h"
 #include "PreferencesDialog.h"
@@ -70,6 +69,7 @@
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
+#include "SpecFileManagementDialog.h"
 #include "SurfacePropertiesEditorDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -449,13 +449,19 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
 bool 
 GuiManager::exitProgram(QWidget* parent)
 {
+    /*
+     * Exclude all
+     *   Connectivity Files
+     */
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesToExclude;
+    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypesToExclude);
+
     bool okToExit = false;
     
     /*
      * Are files modified?
      */
-    const bool areFilesModified = this->getBrain()->areFilesModified(true,
-                                                               false);
+    const bool areFilesModified = this->getBrain()->areFilesModified(dataFileTypesToExclude);
 //    std::vector<CaretDataFile*> dataFiles;
 //    this->getBrain()->getAllDataFiles(dataFiles);
 //    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
@@ -493,12 +499,17 @@ GuiManager::exitProgram(QWidget* parent)
         switch (buttonPressed) {
             case QMessageBox::Save:
             {
-                ManageLoadedFilesDialog manageLoadedFile(parent,
-                                                         this->getBrain(),
-                                                         true);
-                if (manageLoadedFile.exec() == ManageLoadedFilesDialog::Accepted) {
+                if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
+                                                                                       parent)) {
                     okToExit = true;
+                    
                 }
+//                ManageLoadedFilesDialog manageLoadedFile(parent,
+//                                                         this->getBrain(),
+//                                                         true);
+//                if (manageLoadedFile.exec() == ManageLoadedFilesDialog::Accepted) {
+//                    okToExit = true;
+//                }
             }
                 break;
             case QMessageBox::Discard:
@@ -844,7 +855,6 @@ GuiManager::receiveEvent(Event* event)
                            filenamesVector,
                            dataFileTypeVectorNotUsed,
                            BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
-                           BrainBrowserWindow::ADD_DATA_FILE_TO_SPEC_FILE_NO,
                            "",
                            "");
         }

@@ -463,8 +463,19 @@ SceneDialog::replaceSceneButtonClicked()
 bool
 SceneDialog::checkForModifiedFiles()
 {
+    /*
+     * Exclude all 
+     *   Connectivity Files
+     *   Scene Files
+     *   Spec Files
+     */
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesToExclude;
+    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypesToExclude);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
+    
     bool result = true;
-    if (GuiManager::get()->getBrain()->areFilesModified(true, true)) {
+    if (GuiManager::get()->getBrain()->areFilesModified(dataFileTypesToExclude)) {
         result = WuQMessageBox::warningOkCancel(this,
                                            "Files are modified and should be saved "
                                            "before creating the scene.\n"

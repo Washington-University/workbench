@@ -100,6 +100,8 @@ namespace caret {
         
         bool areAllFilesSelectedForLoadingSceneFiles() const;
         
+        void removeAnyFileInformationIfNotInSpecAndNoCaretDataFile();
+        
         virtual void readFile(const AString& filename) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
@@ -128,8 +130,6 @@ namespace caret {
         
         static AString getFileVersionAsString();
 
-        bool hasBeenEdited() const;
-        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -137,6 +137,8 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
         void appendSpecFile(const SpecFile& toAppend);
+        
+        virtual void setModified();
         
         virtual bool isModified() const;
         
@@ -171,7 +173,7 @@ namespace caret {
         
         enum WriteFilesSelectedType {
             WRITE_ALL_FILES,
-            WRITE_SELECTED_FILES
+            WRITE_IN_SPEC_FILES
         };
         
         void copyHelperSpecFile(const SpecFile& sf);
@@ -187,14 +189,12 @@ namespace caret {
                                              const bool fileSavingSelectionStatus,
                                              const bool specFileMemberStatus) throw (DataFileException);
         
-        void removeFilesTaggedForRemoval();
-        
         void readFileFromString(const AString& string) throw (DataFileException);
         
         AString updateFileNameAndPathForWriting(const AString& dataFileName);
         
-        AString writeFileToString(const WriteMetaDataType writeMetaDataStatus,
-                                  const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);   
+//        AString writeFileToString(const WriteMetaDataType writeMetaDataStatus,
+//                                  const WriteFilesSelectedType writeFilesSelectedStatus) throw (DataFileException);   
         
         void writeFileContentToXML(XmlWriter& xmlWriter,
                                    const WriteMetaDataType writeMetaDataStatus,
