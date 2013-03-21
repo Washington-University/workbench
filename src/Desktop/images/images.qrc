@@ -27,6 +27,11 @@
 <file>overlay_wrench.png</file>
 <file>overlay_colorbar.png</file>
 <file>time_series_graph.png</file>
+<file>spec_file_dialog_load_icon.png</file>
+<file>spec_file_dialog_options_icon.png</file>
+<file>spec_file_dialog_reload_icon.png</file>
+<file>spec_file_dialog_delete_icon.png</file>
+
 </qresource>
 </RCC>
 

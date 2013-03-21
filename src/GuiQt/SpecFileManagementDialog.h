@@ -34,12 +34,15 @@
  */
 /*LICENSE_END*/
 
+#include <QLabel>
+
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
 class QActionGroup;
+class QIcon;
 class QLabel;
 class QSignalMapper;
 class QTableWidget;
@@ -253,6 +256,14 @@ namespace caret {
         
         SpecFileManagementDialogRowContent::Sorting m_fileSorting;
         
+        QIcon* m_iconOptions;
+        
+        QIcon* m_iconOpenFile;
+        
+        QIcon* m_iconReloadFile;
+        
+        QIcon* m_iconRemoveFile;
+        
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;
 
@@ -270,7 +281,6 @@ namespace caret {
         
         friend class SpecFileManagementDialogRowContent;
     };
-    
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
     const int SpecFileManagementDialog::SHOW_FILES_ALL = -1;

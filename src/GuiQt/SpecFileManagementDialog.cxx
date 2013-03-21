@@ -75,6 +75,7 @@
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
+#include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -207,6 +208,9 @@ m_dialogMode(dialogMode),
 m_brain(brain),
 m_specFile(specFile)
 {
+    /*
+     * Initialize members
+     */
     m_filesTableWidget = NULL;
     m_fileSelectionActionGroup = NULL;
     m_manageFilesLoadedNotLoadedActionGroup = NULL;
@@ -214,6 +218,14 @@ m_specFile(specFile)
     m_specFileTableRowIndex = -1;
     m_fileSorting = SpecFileManagementDialogRowContent::SORTING_TYPE_STRUCTURE_NAME;
 
+    /*
+     * Load icons.
+     */
+    m_iconOpenFile   = WuQtUtilities::loadIcon(":/spec_file_dialog_load_icon.png");
+    m_iconOptions    = WuQtUtilities::loadIcon(":/spec_file_dialog_options_icon.png");
+    m_iconReloadFile = WuQtUtilities::loadIcon(":/spec_file_dialog_reload_icon.png");
+    m_iconRemoveFile = WuQtUtilities::loadIcon(":/spec_file_dialog_delete_icon.png");
+    
     /*
      * Open Spec File or Manage Files?
      */
@@ -427,6 +439,19 @@ m_specFile(specFile)
 SpecFileManagementDialog::~SpecFileManagementDialog()
 {
     clearSpecFileManagementDialogRowContent();
+    
+    if (m_iconOpenFile != NULL) {
+        delete m_iconOpenFile;
+    }
+    if (m_iconOptions != NULL) {
+        delete m_iconOptions;
+    }
+    if (m_iconReloadFile != NULL) {
+        delete m_iconReloadFile;
+    }
+    if (m_iconRemoveFile != NULL) {
+        delete m_iconRemoveFile;
+    }
 }
 
 /**
@@ -824,7 +849,7 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
             /*
              * Text for modified cell is always red and centered
              */
-            item->setTextAlignment(Qt::AlignHCenter);
+            item->setTextAlignment(Qt::AlignCenter);
             QBrush modifiedBrush = item->foreground();
             modifiedBrush.setColor(Qt::red);
             item->setForeground(modifiedBrush);
@@ -842,6 +867,9 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
                 QAction* loadFileAction = WuQtUtilities::createAction("Reload",
                                                                       "Read or reload a file",
                                                                       this);
+                if (m_iconReloadFile != NULL) {
+                    loadFileAction->setIcon(*m_iconReloadFile);
+                }
                 QToolButton* loadFileToolButton = new QToolButton();
                 loadFileToolButton->setDefaultAction(loadFileAction);
                 
@@ -856,9 +884,10 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
             
             if (m_COLUMN_REMOVE_BUTTON >= 0) {
                 QAction* removeFileAction = WuQtUtilities::createAction("X",
-                                                                        "Remove a file from memory.\n"
+                                                                        "Remove a file from Workbench.\n"
                                                                         "Does NOT delete the file on disk.",
                                                                         this);
+                removeFileAction->setIcon(*m_iconRemoveFile);
                 QToolButton* removeFileToolButton = new QToolButton();
                 removeFileToolButton->setDefaultAction(removeFileAction);
                 
@@ -873,19 +902,31 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
         }
         
         if (m_COLUMN_OPTIONS_TOOLBUTTON >= 0) {
-            QAction* optionsAction = WuQtUtilities::createAction("Options",
-                                                                 "",
-                                                                 this);
-            QToolButton* optionsToolButton = new QToolButton();
-            optionsToolButton->setDefaultAction(optionsAction);
-
-            QObject::connect(optionsAction, SIGNAL(triggered()),
-                             m_fileOptionsActionSignalMapper, SLOT(map()));
-            m_fileOptionsActionSignalMapper->setMapping(optionsAction, iRow);
+//            QAction* optionsAction = WuQtUtilities::createAction("Options",
+//                                                                 "Display a menu of options for this file",
+//                                                                 this);
+//            QToolButton* optionsToolButton = new QToolButton();
+//            if (m_iconOptions != NULL) {
+//                optionsAction->setIcon(*m_iconOptions);
+//            }
+//            optionsToolButton->setDefaultAction(optionsAction);
+//
+//            QObject::connect(optionsAction, SIGNAL(triggered()),
+//                             m_fileOptionsActionSignalMapper, SLOT(map()));
+//            m_fileOptionsActionSignalMapper->setMapping(optionsAction, iRow);
+//            
+//            m_filesTableWidget->setCellWidget(iRow,
+//                                              m_COLUMN_OPTIONS_TOOLBUTTON,
+//                                              optionsToolButton);
             
+            WuQImageLabel* optionsImageLabel = new WuQImageLabel(m_iconOptions,
+                                                                 "Options");
+            QObject::connect(optionsImageLabel, SIGNAL(clicked()),
+                             m_fileOptionsActionSignalMapper, SLOT(map()));
+            m_fileOptionsActionSignalMapper->setMapping(optionsImageLabel, iRow);
             m_filesTableWidget->setCellWidget(iRow,
                                               m_COLUMN_OPTIONS_TOOLBUTTON,
-                                              optionsToolButton);            
+                                              optionsImageLabel);
         }
         if (m_COLUMN_DATA_FILE_TYPE_LABEL >= 0) {
             setTableWidgetItem(iRow,
@@ -1293,9 +1334,17 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 CaretAssert(readToolButtonAction);
                 if (caretDataFile != NULL) {
                     readToolButtonAction->setText("Reload");
+                    if (m_iconReloadFile != NULL) {
+                        readToolButtonAction->setIcon(*m_iconReloadFile);
+                    }
+                    readToolButtonAction->setToolTip("Reload this file");
                 }
                 else {
-                    readToolButtonAction->setText("Open");
+                    readToolButtonAction->setText("Load");
+                    if (m_iconOpenFile != NULL) {
+                        readToolButtonAction->setIcon(*m_iconOpenFile);
+                    }
+                    readToolButtonAction->setToolTip("Load this file");
                 }
             }
                 break;
@@ -1790,6 +1839,9 @@ SpecFileManagementDialog::updateGraphicWindowsAndUserInterface()
 void
 SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
 {
+    m_filesTableWidget->setRangeSelected(QTableWidgetSelectionRange(rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON,
+                                                                    rowIndex, m_COLUMN_OPTIONS_TOOLBUTTON), false);
+    
     if (rowIndex == m_specFileTableRowIndex) {
         QMenu menu;
         QAction* editMetaDataAction = menu.addAction("Edit Metadata...");;
@@ -2491,5 +2543,4 @@ SpecFileManagementDialogRowContent::setSortingKey(const Sorting sorting)
             break;
     }
 }
-
 
