@@ -304,7 +304,7 @@ void AlgorithmMetricRegression::demeanCol(const float* data, const int& count, c
             out[i] = data[i] - accum;
         }
     } else {
-        int usedCount;
+        int usedCount = 0;
         double accum = 0.0;
         for (int i = 0; i < count; ++i)
         {

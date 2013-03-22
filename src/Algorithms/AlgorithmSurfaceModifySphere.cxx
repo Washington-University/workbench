@@ -86,7 +86,7 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
     CaretAssert(numNodes > 1);
     int numNodes3 = numNodes * 3;
     const float* coordData = mySphere->getCoordinateData();
-    float mindist, maxdist;
+    float mindist = 0.0f, maxdist = 0.0f;
     bool first = true;
     const float TOLERANCE = 1.05f;//5% is a very loose tolerance, we expect some odd spheres
     *outSphere = *mySphere;
