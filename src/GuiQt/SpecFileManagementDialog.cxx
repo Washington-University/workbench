@@ -1684,16 +1684,18 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
                                                                m_COLUMN_REMOVE_BUTTON);
     CaretAssert(removeButtonWidget);
     CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
-    if (caretDataFile->isModified()) {
-        const QString msg = (caretDataFile->getFileNameNoPath()
-                             + " is modified.  Remove without saving changes?");
-        if (WuQMessageBox::warningOkCancel(removeButtonWidget, msg) == false) {
-            return;
+    if (caretDataFile != NULL) {
+        if (caretDataFile->isModified()) {
+            const QString msg = (caretDataFile->getFileNameNoPath()
+                                 + " is modified.  Remove without saving changes?");
+            if (WuQMessageBox::warningOkCancel(removeButtonWidget, msg) == false) {
+                return;
+            }
         }
+        GuiManager::get()->getBrain()->removeDataFile(caretDataFile);
+        loadSpecFileContentIntoDialog();
+        updateGraphicWindowsAndUserInterface();
     }
-    GuiManager::get()->getBrain()->removeDataFile(caretDataFile);
-    loadSpecFileContentIntoDialog();
-    updateGraphicWindowsAndUserInterface();
 }
 
 /**
