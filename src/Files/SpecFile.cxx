@@ -1274,6 +1274,20 @@ SpecFile::setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected()
 }
 
 /**
+ * Set the save status to on for any files that are modified.
+ */
+void
+SpecFile::setModifiedFilesSelectedForSaving()
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        dataFileTypeGroup->setModifiedFilesSelectedForSaving();
+    }    
+}
+
+/**
  * @return The version of the file as a number.
  */
 float 

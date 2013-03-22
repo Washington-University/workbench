@@ -238,6 +238,24 @@ SpecFileDataFileTypeGroup::setAllFilesSelectedForSaving(bool selectionStatus)
 }
 
 /**
+ * Set the save status to on for any files that are modified.
+ */
+void
+SpecFileDataFileTypeGroup::setModifiedFilesSelectedForSaving()
+{
+    for (std::vector<SpecFileDataFile*>::iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        SpecFileDataFile* file = *iter;
+        if (file->getCaretDataFile() != NULL) {
+            if (file->getCaretDataFile()->isModified()) {
+                file->setSavingSelected(true);
+            }
+        }
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

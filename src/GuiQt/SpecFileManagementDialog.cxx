@@ -234,6 +234,7 @@ m_specFile(specFile)
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
         case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
+            m_specFile->setModifiedFilesSelectedForSaving();
             enableManageItems = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
@@ -1257,12 +1258,13 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 QTableWidgetItem* saveItem = getTableWidgetItem(rowIndex,
                                                                       m_COLUMN_SAVE_CHECKBOX);
                 CaretAssert(saveItem);
-                saveItem->setCheckState(WuQtUtilities::boolToCheckState(specFileDataFile->isSavingSelected()));
                 if (isFileSavable) {
                     saveItem->setFlags(saveItem->flags() | Qt::ItemIsEnabled);
+                    saveItem->setCheckState(WuQtUtilities::boolToCheckState(specFileDataFile->isSavingSelected()));
                 }
                 else {
                     saveItem->setFlags(saveItem->flags() & (~ Qt::ItemIsEnabled));
+                    saveItem->setCheckState(Qt::Unchecked);
                 }
                                 
                 /*
@@ -1439,6 +1441,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
     
     enableLoadOrSaveButton();
 }
+
 
 /**
  * @return Create and return a text item for the table.
@@ -1902,13 +1905,19 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         //        updateGraphicWindowsAndUserInterface();
         //    }
         else if (selectedAction == unloadFileMapsAction) {
-            
+//            if (caretDataFile->isModified()) {
+//                specFileDataFile->setSavingSelected(true);
+//            }
         }
         else if (selectedAction == editMetaDataAction) {
             if (caretDataFile != NULL) {
                 MetaDataEditorDialog mded(caretDataFile,
                                           &menu);
                 mded.exec();
+                
+                if (caretDataFile->isModified()) {
+                    specFileDataFile->setSavingSelected(true);
+                }
                 loadSpecFileContentIntoDialog();
             }
         }
@@ -1961,13 +1970,19 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
                 /*
                  * Clone current item, remove file from it,
                  * and create new item.
+                 *
+                 * Note: specFileDataFile is NULL when changing the name
+                 * of the spec file.
                  */
                 if (specFileDataFile != NULL) {
                     SpecFileDataFile* sfdf = m_specFile->changeFileName(specFileDataFile,
                                                                         newFileName);
                     caretDataFile = sfdf->getCaretDataFile();
+                    CaretAssert(caretDataFile);
+                    if (caretDataFile->isModified()) {
+                        sfdf->setSavingSelected(true);
+                    }
                 }
-                CaretAssert(caretDataFile);
                 caretDataFile->setFileName(newFileName);
 
                 /*

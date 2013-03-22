@@ -64,6 +64,8 @@ namespace caret {
         
         void setAllFilesSelectedForSaving(bool selectionStatus);
         
+        void setModifiedFilesSelectedForSaving();
+        
         virtual void clearModified();
         
         virtual bool isModified() const;

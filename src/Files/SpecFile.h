@@ -126,6 +126,8 @@ namespace caret {
         
         void setAllSceneFilesSelectedForLoadingAndAllOtherFilesNotSelected();
         
+        void setModifiedFilesSelectedForSaving();
+        
         static float getFileVersion();
         
         static AString getFileVersionAsString();
