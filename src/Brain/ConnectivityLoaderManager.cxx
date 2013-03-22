@@ -691,7 +691,7 @@ ConnectivityLoaderManager::restoreFromScene(const SceneAttributes* sceneAttribut
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
-    bool haveData = false;
+    //bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
          iter++) {
