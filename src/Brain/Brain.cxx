@@ -1142,6 +1142,7 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         cmdf->readFile(filename);
+        cmdf->clearModified();
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1539,6 +1540,7 @@ Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
         }
         
         validateConnectivityFile(clf);
+        clf->clearModified();
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
