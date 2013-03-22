@@ -138,6 +138,7 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
         if (chunkEnd > m_numRowsA) chunkEnd = m_numRowsA;
         cacheRowsA(chunkStart, chunkEnd);
         int64_t counter = 0;
+#pragma omp CARET_PARFOR schedule(dynamic)
         for (int64_t i = 0; i < m_numRowsB; ++i)
         {
             float rrsB;
@@ -330,6 +331,7 @@ void AlgorithmCiftiCrossCorrelation::cacheRowsA(const int64_t& begin, const int6
     }
     m_rowCacheA.resize(end - begin);//set to exactly the size needed
     int64_t counter = begin;//force in-order row reading via critical and counter
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t i = begin; i < end; ++i)
     {
         CacheRow& myRow = m_rowCacheA[i - begin];
