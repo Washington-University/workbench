@@ -3954,16 +3954,13 @@ Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseD
  * Write a data file.
  * @param caretDataFile
  *    Data file to write.
- * @param isAddToSpecFile
- *    If true, add the data file to the spec file.
  * @return
  *    true if file was written, else false.
  * @throw
  *    DataFileException if there was an error writing the file.
  */
 void 
-Brain::writeDataFile(CaretDataFile* caretDataFile,
-                     const bool isAddToSpecFile) throw (DataFileException)
+Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
 {
     /*
      * If file is relative path, update path using current directory

@@ -291,8 +291,7 @@ namespace caret {
         
         bool areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes);
         
-        void writeDataFile(CaretDataFile* caretDataFile,
-                           const bool isAddToSpecFile) throw (DataFileException);
+        void writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
         
         bool removeDataFile(CaretDataFile* caretDataFile);
         

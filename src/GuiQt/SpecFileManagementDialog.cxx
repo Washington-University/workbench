@@ -1580,8 +1580,7 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
             CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
             if (caretDataFile != NULL) {
                 try {
-                    m_brain->writeDataFile(caretDataFile,
-                                           false);
+                    m_brain->writeDataFile(caretDataFile);
                     specFileDataFile->setSavingSelected(false);
                 }
                 catch (const DataFileException& e) {
