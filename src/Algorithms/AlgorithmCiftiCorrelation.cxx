@@ -463,14 +463,14 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1,
             r = accum / (rrs1 * rrs2);
         }
     }
-    if (r > 1.0) r = 1.0;//don't output anything silly
-    if (r < -1.0) r = -1.0;
     if (fisherZ)
     {
         if (r > 0.999999) r = 0.999999;//prevent inf
         if (r < -0.999999) r = -0.999999;//prevent -inf
         return 0.5 * log((1 + r) / (1 - r));
     } else {
+        if (r > 1.0) r = 1.0;//don't output anything silly
+        if (r < -1.0) r = -1.0;
         return r;
     }
 }
