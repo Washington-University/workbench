@@ -25,6 +25,7 @@ AlgorithmCiftiCorrelation.h
 AlgorithmCiftiCorrelationGradient.h
 AlgorithmCiftiCreateDenseTimeseries.h
 AlgorithmCiftiCreateLabel.h
+AlgorithmCiftiCrossCorrelation.h
 AlgorithmCiftiExtrema.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
@@ -85,6 +86,7 @@ AlgorithmCiftiCorrelation.cxx
 AlgorithmCiftiCorrelationGradient.cxx
 AlgorithmCiftiCreateDenseTimeseries.cxx
 AlgorithmCiftiCreateLabel.cxx
+AlgorithmCiftiCrossCorrelation.cxx
 AlgorithmCiftiExtrema.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
