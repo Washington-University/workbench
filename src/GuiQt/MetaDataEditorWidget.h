@@ -44,6 +44,7 @@ class QAction;
 class QGridLayout;
 class QLineEdit;
 class QPushButton;
+class QScrollArea;
 class QSignalMapper;
 class QToolButton;
 
@@ -118,7 +119,7 @@ namespace caret {
         /** Metadata that is being edited */
         GiftiMetaData* m_metaDataBeingEdited;
         
-        QGridLayout* m_metaDataWidgetLayout;
+        QGridLayout* m_metaGridLayout;
         
         std::vector<MetaDataWidgetRow*> m_metaDataWidgetRows;
         
@@ -127,6 +128,8 @@ namespace caret {
         QPushButton* m_newPushButton;
         
         QLineEdit* m_newNameDialogLineEdit;
+        
+        QScrollArea* m_metaDataNameValueScrollArea;
         
         // ADD_NEW_MEMBERS_HERE
 

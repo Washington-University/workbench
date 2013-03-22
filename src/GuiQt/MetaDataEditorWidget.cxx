@@ -44,6 +44,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSignalMapper>
 #include <QTextDocument>
 #include <QToolButton>
@@ -82,21 +83,39 @@ MetaDataEditorWidget::MetaDataEditorWidget(QWidget* parent)
     QObject::connect(m_newPushButton, SIGNAL(clicked()),
                      this, SLOT(newPushButtonClicked()));
     QVBoxLayout* buttonsLayout = new QVBoxLayout();
-    buttonsLayout->addWidget(m_newPushButton);
     buttonsLayout->addStretch();
+    buttonsLayout->addWidget(m_newPushButton);
+    buttonsLayout->addSpacing(10);
     
-    m_metaDataWidgetLayout = new QGridLayout();
-    m_metaDataWidgetLayout->addWidget(new QLabel("Delete"),
-                                      0, COLUMN_DELETE);
-    m_metaDataWidgetLayout->addWidget(new QLabel("Name"),
-                                      0, COLUMN_NAME);
-    m_metaDataWidgetLayout->addWidget(new QLabel("Value"),
-                                      0, COLUMN_VALUE);
+    m_metaGridLayout = new QGridLayout();
+    m_metaGridLayout->addWidget(new QLabel("Delete"),
+                                      0, COLUMN_DELETE,
+                                      Qt::AlignCenter);
+    m_metaGridLayout->addWidget(new QLabel("Name"),
+                                      0, COLUMN_NAME,
+                                      Qt::AlignCenter);
+    m_metaGridLayout->addWidget(new QLabel("Value"),
+                                      0, COLUMN_VALUE,
+                                      Qt::AlignCenter);
+    
+    QWidget* metaDataWidget = new QWidget();
+    QVBoxLayout* metaDataWidgetLayout = new QVBoxLayout(metaDataWidget);
+    metaDataWidgetLayout->addLayout(m_metaGridLayout);
+    metaDataWidgetLayout->addStretch();
+    
+    m_metaDataNameValueScrollArea = new QScrollArea();
+    m_metaDataNameValueScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_metaDataNameValueScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_metaDataNameValueScrollArea->setWidget(metaDataWidget);
+    m_metaDataNameValueScrollArea->setWidgetResizable(true);
+    m_metaDataNameValueScrollArea->setFrameShape(QFrame::NoFrame);
     
     QHBoxLayout* dialogLayout = new QHBoxLayout(this);
-    dialogLayout->addLayout(m_metaDataWidgetLayout, 100);
+    dialogLayout->addWidget(m_metaDataNameValueScrollArea, 100);
     dialogLayout->addLayout(buttonsLayout, 0);
     
+    setMinimumWidth(600);
+    setMinimumHeight(260);
 }
 
 /**
@@ -129,6 +148,8 @@ MetaDataEditorWidget::newPushButtonClicked()
         
         const int32_t numNames = static_cast<int32_t>(m_namesAndValues.size());
         m_metaDataWidgetRows[numNames - 1]->m_valueLineEdit->setFocus();
+        
+        m_metaDataNameValueScrollArea->ensureWidgetVisible(m_metaDataWidgetRows[numNames-1]->m_nameLineEdit);
     }
 }
 
@@ -225,14 +246,15 @@ MetaDataEditorWidget::displayNamesAndValues()
                                                m_deleteActionSignalMapper,
                                                iRow);
             
-            const int layoutRow = m_metaDataWidgetLayout->rowCount();
-            m_metaDataWidgetLayout->addWidget(widgetsRow->m_deleteToolButton,
+            const int layoutRow = m_metaGridLayout->rowCount();
+            m_metaGridLayout->addWidget(widgetsRow->m_deleteToolButton,
                                               layoutRow,
-                                              COLUMN_DELETE);
-            m_metaDataWidgetLayout->addWidget(widgetsRow->m_nameLineEdit,
+                                              COLUMN_DELETE,
+                                              Qt::AlignCenter);
+            m_metaGridLayout->addWidget(widgetsRow->m_nameLineEdit,
                                               layoutRow,
                                               COLUMN_NAME);
-            m_metaDataWidgetLayout->addWidget(widgetsRow->m_valueLineEdit,
+            m_metaGridLayout->addWidget(widgetsRow->m_valueLineEdit,
                                               layoutRow,
                                               COLUMN_VALUE);
             m_metaDataWidgetRows.push_back(widgetsRow);
@@ -442,9 +464,13 @@ MetaDataEditorWidget::MetaDataWidgetRow::MetaDataWidgetRow(QWidget* parent,
     m_deleteToolButton = new QToolButton();
     m_deleteToolButton->setDefaultAction(deleteAction);
 
+    const int minWidth = 150;
+    
     m_nameLineEdit = new QLineEdit();
+    m_nameLineEdit->setMinimumWidth(minWidth);
     
     m_valueLineEdit = new QLineEdit();
+    m_valueLineEdit->setMinimumWidth(minWidth);
     
     m_widgetGroup = new WuQWidgetObjectGroup(parent);
     m_widgetGroup->add(deleteAction);
