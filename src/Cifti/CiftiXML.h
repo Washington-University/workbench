@@ -417,6 +417,9 @@ namespace caret {
         bool operator==(const CiftiXML& rhs) const;
         bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
         
+        ///take a mapping from another xml object
+        void copyMapping(const int& direction, const CiftiXML& other, const int& otherDirection);
+        
         const std::map<AString, AString>* getFileMetaData() const;
         
         std::map<AString, AString>* getFileMetaData();

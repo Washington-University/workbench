@@ -1097,14 +1097,14 @@ bool CiftiXML::hasVolumeData(const int& direction) const
                 return true;
             }
         }
-    /*} else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
+    } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
         for (int64_t i = 0; i < (int64_t)myMap->m_parcels.size(); ++i)
         {
             if (myMap->m_parcels[i].m_voxelIndicesIJK.size() != 0)
             {
                 return true;
             }
-        }//*/ //TSC: I think it should say false for parcels, maybe these functions should be renamed to indicate it specifically means BrainModels
+        }//TSC: I now think it should say true for parcels as long as there are voxels, useful for checking whether the volume XML element is needed
     }
     return false;
 }
@@ -1806,6 +1806,47 @@ bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     CaretAssertVectorIndex(other.m_root.m_matrices[0].m_matrixIndicesMap, other.m_dimToMapLookup[otherDirection]);
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] == other.m_root.m_matrices[0].m_matrixIndicesMap[other.m_dimToMapLookup[otherDirection]]);
+}
+
+void CiftiXML::copyMapping(const int& direction, const CiftiXML& other, const int& otherDirection)
+{
+    CaretAssert(direction > -1 && otherDirection > -1);
+    if ((int)other.m_dimToMapLookup.size() <= otherDirection || other.m_dimToMapLookup[otherDirection] == -1)
+    {
+        throw CiftiFileException("copyMapping called with nonexistant mapping to copy");
+    }
+    bool copyVolSpace = false;
+    if (other.hasVolumeData(otherDirection))
+    {
+        bool haveVoxels = false;
+        for (int i = 0; i < (int)m_dimToMapLookup.size(); ++i)
+        {
+            if (i != direction && hasVolumeData(i))
+            {
+                haveVoxels = true;
+            }
+        }
+        if (haveVoxels)
+        {
+            if (!matchesVolumeSpace(other)) throw CiftiFileException("cannot copy mapping from other cifti due to volume space mismatch");
+        } else {
+            copyVolSpace = true;
+        }
+    }
+    if (m_dimToMapLookup[direction] == -1)
+    {
+        m_dimToMapLookup[direction] = createMap(direction);
+    } else {
+        separateMaps();
+    }
+    if (copyVolSpace)
+    {//we have checked that this is okay because if we have any voxel data, it is in the map that is about to be replaced
+        m_root.m_matrices[0].m_volume = other.m_root.m_matrices[0].m_volume;
+    }
+    CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]];
+    myMap = other.m_root.m_matrices[0].m_matrixIndicesMap[other.m_dimToMapLookup[otherDirection]];
+    myMap.m_appliesToMatrixDimension.clear();
+    myMap.m_appliesToMatrixDimension.push_back(direction);//the member lookups should already be valid, copy works
 }
 
 const map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index) const
