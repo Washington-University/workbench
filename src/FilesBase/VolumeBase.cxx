@@ -62,10 +62,6 @@ void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     freeMemory();
-    if (dimensionsIn.size() < 3)
-    {
-        throw DataFileException("volume files must have 3 or more dimensions");
-    }
     CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
     CaretAssert(indexToSpace[0].size() == 4);
     CaretAssert(indexToSpace[1].size() == 4);
@@ -83,19 +79,24 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_indexToSpace.resize(3);//reduce them both back to 3x4
     m_spaceToIndex.resize(3);
     m_origDims = dimensionsIn;//save the original dimensions
-    m_dimensions[0] = dimensionsIn[0];
-    m_dimensions[1] = dimensionsIn[1];
-    m_dimensions[2] = dimensionsIn[2];
+    int numDims = (int)dimensionsIn.size();
     m_dimensions[3] = 1;
-    for (int i = 0; i < (int)dimensionsIn.size(); ++i)
+    for (int i = 0; i < max(3, numDims); ++i)
     {
-        if (dimensionsIn[i] < 1)
+        if (i < numDims && dimensionsIn[i] < 1)
         {
             throw DataFileException("invalid dimensions specified");
         }
         if (i > 2)
         {
             m_dimensions[3] *= dimensionsIn[i];
+        } else {
+            if (i < numDims)
+            {
+                m_dimensions[i] = dimensionsIn[i];
+            } else {
+                m_dimensions[i] = 1;
+            }
         }
     }
     if (m_dimensions[0] == 1 && m_dimensions[1] == 1 && m_dimensions[2] == 1 && m_dimensions[3] > 10000)

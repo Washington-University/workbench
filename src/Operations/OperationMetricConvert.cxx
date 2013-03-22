@@ -96,6 +96,7 @@ void OperationMetricConvert::useParameters(OperationParameters* myParams, Progre
             {
                 myDims[1] = 32767;
                 myDims[2] = (temp - 1) / 32767 + 1;
+                if (myDims[2] > 32767) throw OperationException("number of vertices too large for nifti1 spatial dimensions, failing");
             } else {
                 myDims[1] = temp;
             }
