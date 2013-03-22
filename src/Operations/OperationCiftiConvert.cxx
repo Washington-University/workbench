@@ -24,11 +24,18 @@
 
 #include "OperationCiftiConvert.h"
 #include "OperationException.h"
+
+#include "CaretAssert.h"
+#include "CaretPointer.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
+#include "FloatMatrix.h"
 #include "GiftiFile.h"
-#include "CaretPointer.h"
+#include "NiftiFile.h"
+
+#include <limits>
 #include <vector>
+
 #include <QFile>
 
 using namespace caret;
@@ -47,9 +54,11 @@ AString OperationCiftiConvert::getShortDescription()
 OperationParameters* OperationCiftiConvert::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
+    
     OptionalParameter* toGiftiExt = ret->createOptionalParameter(1, "-to-gifti-ext", "convert to GIFTI external binary");
     toGiftiExt->addCiftiParameter(1, "cifti-in", "the input cifti file");
-    toGiftiExt->addStringParameter(2, "gifti-out", "the output gifti file");
+    toGiftiExt->addStringParameter(2, "gifti-out", "output - the output gifti file");
+    
     OptionalParameter* fromGiftiExt = ret->createOptionalParameter(2, "-from-gifti-ext", "convert a GIFTI made with this command back into a CIFTI");
     fromGiftiExt->addStringParameter(1, "gifti-in", "the input gifti file");
     fromGiftiExt->addCiftiOutputParameter(2, "cifti-out", "the output cifti file");
@@ -57,6 +66,16 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
+    
+    OptionalParameter* toNifti = ret->createOptionalParameter(3, "-to-nifti", "convert to NIFTI1");
+    toNifti->addCiftiParameter(1, "cifti-in", "the input cifti file");
+    toNifti->addVolumeOutputParameter(2, "nifti-out", "the output nifti file");
+    
+    OptionalParameter* fromNifti = ret->createOptionalParameter(4, "-from-nifti", "convert from NIFTI (1 or 2)");
+    fromNifti->addVolumeParameter(1, "nifti-in", "the input nifti file");
+    fromNifti->addCiftiParameter(2, "cifti-template", "a cifti file with the exact dimensions and mapping that should be used");
+    fromNifti->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
+    
     ret->setHelpText(
         AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
         "Only one of -to-gifti-ext or -from-gifti-ext may be specified.  " +
@@ -70,9 +89,13 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     LevelProgress myProgress(myProgObj);
     int modes = 0;
     OptionalParameter* toGiftiExt = myParams->getOptionalParameter(1);
-    if (toGiftiExt->m_present) ++modes;
     OptionalParameter* fromGiftiExt = myParams->getOptionalParameter(2);
+    OptionalParameter* toNifti = myParams->getOptionalParameter(3);
+    OptionalParameter* fromNifti = myParams->getOptionalParameter(4);
+    if (toGiftiExt->m_present) ++modes;
     if (fromGiftiExt->m_present) ++modes;
+    if (toNifti->m_present) ++modes;
+    if (fromNifti->m_present) ++modes;
     if (modes != 1)
     {
         throw OperationException("you must specify exactly one conversion mode");
@@ -208,6 +231,70 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 scratchRow[j] = dataArrayRef->getDataFloat32(indices);
             }
             myOutFile->setRow(scratchRow.data(), i);
+        }
+    }
+    if (toNifti->m_present)
+    {
+        CiftiFile* myCiftiIn = toNifti->getCifti(1);
+        VolumeFile* myNiftiOut = toNifti->getOutputVolume(2);
+        vector<int64_t> outDims(4, 1);
+        outDims[3] = myCiftiIn->getNumberOfColumns();
+        if (outDims[3] > numeric_limits<short>::max()) throw OperationException("cifti rows are too long for nifti1, failing");
+        int64_t numRows = myCiftiIn->getNumberOfRows();
+        int64_t temp = numRows;
+        int index = 0;
+        while (temp > numeric_limits<short>::max())
+        {
+            if (index > 1) throw OperationException("too many cifti columns for nifti1 spatial dimensions, failing");
+            outDims[index] = numeric_limits<short>::max();
+            temp = (temp - 1) / numeric_limits<short>::max() + 1;//round up
+            ++index;
+        }
+        outDims[index] = temp;
+        myNiftiOut->reinitialize(outDims, FloatMatrix::identity(4).getMatrix());
+        int64_t ijk[3] = { 0, 0, 0 };
+        vector<float> rowscratch(outDims[3]);
+        for (int64_t i = 0; i < numRows; ++i)
+        {
+            myCiftiIn->getRow(rowscratch.data(), i);
+            for (int64_t j = 0; j < outDims[3]; ++j)
+            {
+                myNiftiOut->setValue(rowscratch[j], ijk, j);
+            }
+            ++ijk[0];
+            if (ijk[0] >= outDims[0])
+            {
+                ijk[0] = 0;
+                ++ijk[1];
+                if (ijk[1] >= outDims[1])
+                {
+                    ijk[1] = 0;
+                    ++ijk[2];
+                    CaretAssert(i == numRows - 1 || ijk[2] < outDims[2]);//in case it divided exactly
+                }
+            }
+        }
+    }
+    if (fromNifti->m_present)
+    {
+        VolumeFile* myNiftiIn = fromNifti->getVolume(1);
+        CiftiFile* myTemplate = fromNifti->getCifti(2);
+        CiftiFile* myCiftiOut = fromNifti->getOutputCifti(3);
+        vector<int64_t> myDims;
+        myNiftiIn->getDimensions(myDims);
+        if (myDims[4] != 1) throw OperationException("input nifti has multiple components, aborting");
+        int64_t numRows = myTemplate->getNumberOfRows(), numCols = myTemplate->getNumberOfColumns();
+        if (myDims[3] != numCols) throw OperationException("input nifti has the wrong size for row length");
+        if (numRows > myDims[0] * myDims[1] * myDims[2]) throw OperationException("input nifti is too small for number of rows");
+        myCiftiOut->setCiftiXML(myTemplate->getCiftiXML());
+        vector<float> rowscratch(numCols);
+        for (int64_t i = 0; i < numRows; ++i)
+        {
+            for (int64_t j = 0; j < numCols; ++j)
+            {
+                rowscratch[j] = myNiftiIn->getFrame(j)[i];
+            }
+            myCiftiOut->setRow(rowscratch.data(), i);
         }
     }
 }
