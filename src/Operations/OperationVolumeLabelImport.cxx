@@ -24,16 +24,19 @@
 
 #include "OperationVolumeLabelImport.h"
 #include "OperationException.h"
-#include "VolumeFile.h"
-#include "GiftiLabel.h"
+
 #include "FileInformation.h"
-#include <iostream>
-#include <fstream>
-#include <string>
+#include "GiftiLabel.h"
+#include "VolumeFile.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <iostream>
 #include <limits>
+#include <set>
+#include <string>
 
 using namespace caret;
 using namespace std;
@@ -64,6 +67,8 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to import");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
+    
+    ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
         AString("Creates a new volume with label information in the header in the caret nifti extension format.  The label list file should have ") +
@@ -108,6 +113,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             throw OperationException("invalid column specified");
         }
     }
+    bool dropUnused = myParams->getOptionalParameter(7)->m_present;
     FileInformation textFileInfo(listfileName);
     if (!textFileInfo.exists())
     {
@@ -194,12 +200,17 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         outVol->reinitialize(myVol->getOriginalDimensions(), myVol->getVolumeSpace(), myDims[4], SubvolumeAttributes::LABEL);
         for (int s = 0; s < myDims[3]; ++s)
         {
+            set<int32_t> usedValues;//track used values if we have dropUnused
             for (int c = 0; c < myDims[4]; ++c)//hopefully noone wants a multi-component label volume, that would be silly, but do it anyway
             {
                 const float* frameIn = myVol->getFrame(s, c);//TODO: rework this when support is added for VolumeFile to handle non-float data
                 for (int i = 0; i < FRAMESIZE; ++i)
                 {
                     int32_t labelval = (int32_t)floor(frameIn[i] + 0.5f);//just in case it somehow got poorly encoded, round to nearest
+                    if (dropUnused)
+                    {
+                        usedValues.insert(labelval);
+                    }
                     if (labelval >= 0 && labelval < LOOKUP_SIZE)
                     {
                         if (labelUsed[labelval])
@@ -248,18 +259,30 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                 }
                 outVol->setFrame(frameOut, s, c);
             }
-            *(outVol->getMapLabelTable(s)) = myTable;//set the label table AFTER doing the frame, because we may make new labels while scanning
+            if (dropUnused)
+            {
+                GiftiLabelTable frameTable = myTable;
+                frameTable.deleteUnusedLabels(usedValues);
+                *(outVol->getMapLabelTable(s)) = frameTable;
+            } else {
+                *(outVol->getMapLabelTable(s)) = myTable;//set the label table AFTER doing the frame, because we may make new labels while scanning
+            }
         }
     } else {
         vector<int64_t> newDims = myDims;
         newDims.resize(3);//spatial only
         outVol->reinitialize(newDims, myVol->getVolumeSpace(), myDims[4], SubvolumeAttributes::LABEL);
+        set<int32_t> usedValues;//track used values if we have dropUnused
         for (int c = 0; c < myDims[4]; ++c)//hopefully noone wants a multi-component label volume, that would be silly, but do it anyway
         {
             const float* frameIn = myVol->getFrame(subvol, c);//TODO: rework this when support is added for VolumeFile to handle non-float data
             for (int i = 0; i < FRAMESIZE; ++i)
             {
                 int32_t labelval = (int32_t)floor(frameIn[i] + 0.5f);//just in case it somehow got poorly encoded, round to nearest
+                if (dropUnused)
+                {
+                    usedValues.insert(labelval);
+                }
                 if (labelval >= 0 && labelval < LOOKUP_SIZE)
                 {
                     if (labelUsed[labelval])
@@ -308,6 +331,13 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             }
             outVol->setFrame(frameOut, 0, c);
         }
-        *(outVol->getMapLabelTable(0)) = myTable;//set the label table AFTER doing the frame, because we may make new labels while scanning
+        if (dropUnused)
+        {
+            GiftiLabelTable frameTable = myTable;
+            frameTable.deleteUnusedLabels(usedValues);
+            *(outVol->getMapLabelTable(0)) = frameTable;
+        } else {
+            *(outVol->getMapLabelTable(0)) = myTable;//set the label table AFTER doing the frame, because we may make new labels while scanning
+        }
     }
 }
