@@ -62,6 +62,10 @@ void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     freeMemory();
+    if (dimensionsIn.size() < 1)
+    {
+        throw DataFileException("volume files must have 1 or more dimensions");
+    }
     CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
     CaretAssert(indexToSpace[0].size() == 4);
     CaretAssert(indexToSpace[1].size() == 4);
