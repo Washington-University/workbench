@@ -322,10 +322,11 @@ void SurfaceResamplingHelper::changeRadius(const float& radius, const SurfaceFil
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes3; i += 3)
     {
-        Vector3D tempvec = Vector3D(oldCoordData + i).normal() * radius;
-        newCoordData[i] = tempvec[0];
-        newCoordData[i + 1] = tempvec[1];
-        newCoordData[i + 2] = tempvec[2];
+        Vector3D tempvec1 = oldCoordData + i, tempvec2;
+        tempvec2 = tempvec1 * (radius / tempvec1.length());
+        newCoordData[i] = tempvec2[0];
+        newCoordData[i + 1] = tempvec2[1];
+        newCoordData[i + 2] = tempvec2[2];
     }
     output->setCoordinates(newCoordData.data());
 }

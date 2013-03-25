@@ -94,8 +94,8 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
     for (int i = 0; i < numNodes3; i += 3)
     {
         Vector3D recenterCoord = Vector3D(coordData + i) - center;
-        float tempf;
-        Vector3D outCoord = recenterCoord.normal(&tempf) * newRadius;
+        float tempf = recenterCoord.length();
+        Vector3D outCoord = recenterCoord * (newRadius / tempf);
         outCoords[i] = outCoord[0];
         outCoords[i + 1] = outCoord[1];
         outCoords[i + 2] = outCoord[2];
