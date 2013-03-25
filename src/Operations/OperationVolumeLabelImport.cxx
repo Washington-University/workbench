@@ -32,6 +32,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -58,7 +59,7 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     
     ret->addStringParameter(2, "label-list-file", "text file containing the values and names for labels");
     
-    ret->addVolumeOutputParameter(3, "output", "the output caret label volume");
+    ret->addVolumeOutputParameter(3, "output", "the output workbench label volume");
     
     ret->createOptionalParameter(4, "-discard-others", "set any voxels with values not mentioned in the label list to the ??? label");
     
@@ -71,14 +72,17 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
-        AString("Creates a new volume with label information in the header in the caret nifti extension format.  The label list file should have ") +
+        AString("Creates a new volume with label information in the header in the caret nifti extension format.  The label list file must have ") +
         "lines of the following format:\n\n" + 
         "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" + 
-        "Label names MUST be on a separate line, but may contain spaces or other unusual characters (but not newline).  The values of red, green, blue and alpha " +
-        "should be integers from 0 to 255, and will specify the color the label is drawn as (alpha of 255 means opaque, which is probably " +
-        "what you want).  By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
-        "list file, specify -discard-others to instead set these voxels to the \"???\" label.  Negative keys will get remapped to unused positive keys " +
-        "(caret doesn't allow negative label keys)."
+        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
+        "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
+        "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +
+        "The values of red, green, blue and alpha must be integers from 0 to 255, and will specify the color the label is drawn as " +
+        "(alpha of 255 means opaque, which is probably what you want).  " +
+        "By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
+        "list file, specify -discard-others to instead set these voxels to the \"unlabeled\" key.  " +
+        "Negative keys will get remapped to unused positive keys (workbench doesn't allow negative label keys)."
     );
     return ret;
 }
@@ -148,8 +152,11 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         {
             break;//stop at malformed lines
         }
-        labelListFile.ignore();//drop the newline so that getline doesn't explode
-        temp = AString(labelName.c_str());
+        while (isspace(labelListFile.peek()))
+        {
+            labelListFile.ignore();//drop the newline, possible carriage return or other whitespace so that getline doesn't get nothing, and cause int extraction to fail
+        }
+        temp = AString(labelName.c_str()).trimmed();//drop errant CR or other whitespace from beginning and end of lines
         GiftiLabel myLabel(value, temp, red, green, blue, alpha);
         myTable.insertLabel(&myLabel);
         int32_t newValue = myLabel.getKey();
