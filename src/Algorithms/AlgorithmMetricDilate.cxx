@@ -126,7 +126,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         {
             *(myMetricOut->getMapPaletteColorMapping(thisCol)) = *(myMetric->getMapPaletteColorMapping(thisCol));
             const float* myInputData = myMetric->getValuePointerForColumn(thisCol);
-            myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol) + " dilated");
+            myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
             if (badNodeRoi == NULL)
             {
                 for (int i = 0; i < numNodes; ++i)
@@ -220,7 +220,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
         const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
-        myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum) + " dilated");
+        myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         if (badNodeRoi == NULL)
         {
             for (int i = 0; i < numNodes; ++i)
