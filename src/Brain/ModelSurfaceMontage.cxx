@@ -54,7 +54,6 @@ using namespace caret;
 ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
                          YOKING_ALLOWED_YES,
-                         ROTATION_ALLOWED_YES,
                          brain)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {

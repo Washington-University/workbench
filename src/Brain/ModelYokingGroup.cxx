@@ -48,7 +48,6 @@ ModelYokingGroup::ModelYokingGroup(Brain* brain,
                                    const AString& yokingName)
 : Model(ModelTypeEnum::MODEL_TYPE_YOKING,
         YOKING_ALLOWED_NO,
-        ((yokingType == YOKING_TYPE_SURFACE) ? ROTATION_ALLOWED_YES : ROTATION_ALLOWED_NO),
         brain),
   m_yokingType(yokingType),
   m_yokingName(yokingName)

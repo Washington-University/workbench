@@ -43,14 +43,8 @@ namespace caret {
             YOKING_ALLOWED_NO
         };
         
-        enum RotationAllowedType {
-            ROTATION_ALLOWED_YES,
-            ROTATION_ALLOWED_NO
-        };
-        
         Model(const ModelTypeEnum::Enum controllerType,
                                const YokingAllowedType allowsYokingStatus,
-                               const RotationAllowedType allowsRotationStatus,
                                Brain* brain);
         
         virtual ~Model();
@@ -71,8 +65,6 @@ namespace caret {
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
         virtual AString getNameForBrowserTab() const = 0;
-        
-        bool isRotationAllowed() const;
         
         bool isYokeable() const;
         
@@ -109,8 +101,6 @@ namespace caret {
         ModelTypeEnum::Enum m_modelType;
         
         YokingAllowedType m_allowsYokingStatus;
-        
-        RotationAllowedType m_allowsRotationStatus;
         
         bool m_isYokingController;
     };

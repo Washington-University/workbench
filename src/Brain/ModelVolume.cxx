@@ -50,7 +50,6 @@ using namespace caret;
 ModelVolume::ModelVolume(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                          YOKING_ALLOWED_YES,
-                         ROTATION_ALLOWED_NO,
                          brain)
 {
     EventManager::get()->addEventListener(this, 

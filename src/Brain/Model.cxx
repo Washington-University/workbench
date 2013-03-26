@@ -42,12 +42,9 @@ using namespace caret;
  * Constructor.
  * @param m_modelType Type of this model.
  * @param allowsYokingStatus  This model can be yoked.
- * @param allowsRotationStatus This model can be rotated.
- *
  */
 Model::Model(const ModelTypeEnum::Enum modelType,
              const YokingAllowedType allowsYokingStatus,
-             const RotationAllowedType allowsRotationStatus,
              Brain* brain)
     : CaretObject()
 {
@@ -55,7 +52,6 @@ Model::Model(const ModelTypeEnum::Enum modelType,
     initializeMembersModel();
     m_modelType = modelType;
     m_allowsYokingStatus = allowsYokingStatus;
-    m_allowsRotationStatus   = allowsRotationStatus;
     
     /*
      * Set this last in constructor or else resetViewPrivate() may
@@ -94,18 +90,6 @@ bool
 Model::isYokingModel() const
 {
     return m_isYokingController;
-}
-
-/**
- * See if this controller allows rotation.
- * 
- * @return true if this controller allows rotation, else false.
- *
- */
-bool
-Model::isRotationAllowed() const
-{
-    return (m_allowsRotationStatus == ROTATION_ALLOWED_YES);
 }
 
 /**
