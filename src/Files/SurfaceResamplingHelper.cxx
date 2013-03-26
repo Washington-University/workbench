@@ -106,13 +106,13 @@ void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* out
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
-        map<int, float> accum;
+        map<int32_t, float> accum;
         float maxweight = -1.0f;
         int32_t bestlabel = 0;
         WeightElem* end = m_weights[i + 1];
         for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
         {
-            int label = input[elem->node];
+            int32_t label = input[elem->node];
             map<int, float>::iterator iter = accum.find(label);
             if (iter == accum.end())
             {

@@ -95,7 +95,13 @@ GiftiLabelTable::copyHelper(const GiftiLabelTable& glt)
     for (LABELS_MAP_CONST_ITERATOR iter = glt.labelsMap.begin();
          iter != glt.labelsMap.end();
          iter++) {
-        this->addLabel(iter->second);
+        GiftiLabel* myLabel = this->getLabel(iter->second->getKey());
+        if (myLabel != NULL)
+        {
+            *myLabel = *(iter->second);
+        } else {
+            addLabel(iter->second);
+        }
     }
 }
 
