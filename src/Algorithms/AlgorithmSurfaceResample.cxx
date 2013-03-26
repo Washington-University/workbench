@@ -127,6 +127,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     *surfaceOut = *newSphere;
     surfaceOut->setStructure(newSphere->getStructure());
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
+    surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
     vector<float> coordScratch(numNewNodes * 3, 0.0f);
     SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
     myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
