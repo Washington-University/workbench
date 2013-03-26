@@ -1614,7 +1614,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                         dx = mouseDX * slowdown;
                         dz = mouseDY * slowdown;
                     } else {//parasaggital
-                        dy = mouseDX * slowdown;
+                        dy = -mouseDX * slowdown;
                         dz = mouseDY * slowdown;
                     }
                 } else {
@@ -1635,7 +1635,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 dz = mouseDY * slowdown;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                dy = mouseDX * slowdown;
+                dy = -mouseDX * slowdown;
                 dz = mouseDY * slowdown;
                 break;
         }
