@@ -75,8 +75,6 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
     m_sceneAssistant->addTabIndexedBooleanArray("m_cerebellumEnabled", m_cerebellumEnabled);    
     m_sceneAssistant->addTabIndexedFloatArray("m_leftRightSeparation", m_leftRightSeparation);    
     m_sceneAssistant->addTabIndexedFloatArray("m_cerebellumSeparation", m_cerebellumSeparation);
-    
-    m_defaultModelScaling = 0.85;
 }
 
 /**

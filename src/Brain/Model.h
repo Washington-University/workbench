@@ -28,13 +28,10 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
-#include "Matrix4x4.h"
 #include "SceneableInterface.h"
 
 namespace caret {
     class Brain;
-    class ModelTransform;
-    class UserView;
     class OverlaySet;
     
     /// Base class for controlling a model
@@ -65,24 +62,6 @@ namespace caret {
         void initializeMembersModel();
         
     public:
-        /**
-         * Index for getting the viewing transformation.
-         */
-        enum ViewingTransformIndex {
-            /** For normal viewing modes (and surface montage left) */
-            VIEWING_TRANSFORM_NORMAL = 0,
-            /** For right surface lateral/medial yoked to left surface */
-            VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED = 1,
-            /** Left surface opposing view in surface montage */
-            VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE = 2,
-            /** Right surface view in surface montage */
-            VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT = 3,
-            /** Right surface opposing view in surface montage */
-            VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE = 4,
-            /** Number of rotation matrices */
-            VIEWING_TRANSFORM_COUNT = 5
-        };
-        
         virtual void initializeOverlays() = 0;
         
         Brain* getBrain();
@@ -98,61 +77,6 @@ namespace caret {
         bool isYokeable() const;
         
         bool isYokingModel() const;
-        
-        virtual void copyTransformationsAndViews(const Model& controller,
-                                 const int32_t windowTabNumberSource,
-                                 const int32_t windowTabNumberTarget);
-        
-        virtual Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                            const ViewingTransformIndex viewingTransformIndex);
-        
-        virtual const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                                  const ViewingTransformIndex viewingTransformIndex) const;
-        
-        virtual const float* getTranslation(const int32_t windowTabNumber,
-                                    const ViewingTransformIndex viewingTransformIndex) const;
-        
-        virtual void setTranslation(const int32_t windowTabNumber,
-                            const float t[3]);
-        
-        virtual void setTranslation(const int32_t windowTabNumber,
-                            const float tx,
-                            const float ty,
-                            const float tz);
-        
-        virtual void setTranslation(const int32_t windowTabNumber,
-                            const ViewingTransformIndex viewingTransformIndex,
-                            const float tx,
-                            const float ty,
-                            const float tz);
-        
-        AString getTransformationsAsString(const int32_t windowTabNumber,
-                                           const ViewingTransformIndex viewingTransformIndex) const;
-        
-        virtual float getScaling(const int32_t windowTabNumber) const;
-        
-        virtual void setScaling(const int32_t windowTabNumber,
-                        const float s);
-        
-        virtual void resetView(const int32_t windowTabNumber);
-        
-        virtual void rightView(const int32_t windowTabNumber);
-        
-        virtual void leftView(const int32_t windowTabNumber);
-        
-        virtual void anteriorView(const int32_t windowTabNumber);
-        
-        virtual void posteriorView(const int32_t windowTabNumber);
-        
-        virtual void dorsalView(const int32_t windowTabNumber);
-        
-        virtual void ventralView(const int32_t windowTabNumber);
-                
-        void getTransformationsInModelTransform(const int32_t windowTabNumber,
-                                          ModelTransform& modelTransform) const;
-        
-        void setTransformationsFromModelTransform(const int32_t windowTabNumber,
-                                            const ModelTransform& modelTransform);
         
         virtual AString toString() const;
         
@@ -180,19 +104,6 @@ namespace caret {
         
         /** Brain which contains the controller */
         Brain* m_brain;
-        
-        float m_defaultModelScaling;
-        
-        /** 
-         * Rotation matrix.
-         */
-        Matrix4x4 m_viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT];
-        
-        /**translation. */
-        float m_translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT][3];
-        
-        /**scaling. */
-        float m_scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
         ModelTypeEnum::Enum m_modelType;

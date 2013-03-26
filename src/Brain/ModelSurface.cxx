@@ -57,9 +57,6 @@ ModelSurface::ModelSurface(Brain* brain,
     CaretAssert(surface);
     initializeMembersModelSurface();
     m_surface = surface;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        lateralView(i);
-    }
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET);
@@ -182,69 +179,6 @@ ModelSurface::getNameForBrowserTab() const
 //        setScaling(i, m_defaultModelScaling);
 //    }
 //}
-
-/**
- * Reset view.  For left and right hemispheres, the default
- * view is a lateral view.
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
- */
-void
-ModelSurface::resetView(const int32_t windowTabNumber)
-{
-    Model::resetView(windowTabNumber);
-    lateralView(windowTabNumber);    
-}
-
-/**
- * Switch to a lateral view.  This method only affects
- * surfaces that are the left or right cerebral cortex and
- * are not flat.
- *
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
- */
-void
-ModelSurface::lateralView(const int32_t windowTabNumber)
-{
-    if (m_surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
-        switch (m_surface->getStructure()) {
-            case StructureEnum::CORTEX_LEFT:
-                leftView(windowTabNumber);
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                rightView(windowTabNumber);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-/**
- * Switch to a medial view.  This method only affects
- * surfaces that are the left or right cerebral cortex and
- * are not flat.
- *
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
- */
-void
-ModelSurface::medialView(const int32_t windowTabNumber)
-{
-    if (m_surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
-        switch (m_surface->getStructure()) {
-            case StructureEnum::CORTEX_LEFT:
-                rightView(windowTabNumber);
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                leftView(windowTabNumber);
-                break;
-            default:
-                break;
-        }
-    }
-}
 
 /**
  * Get the overlay set for the given tab.

@@ -71,8 +71,8 @@ using namespace caret;
  *
  * @param surface
  *   Surface in the montage.
- * @param viewingMatrixIndex
- *   Viewing matrix for display of surface.
+ * @param projectionViewType
+ *   Projection view type.
  * @param x
  *   X-coordinate of viewport.
  * @param y
@@ -83,7 +83,7 @@ using namespace caret;
  *   height of viewport.
  */
 SurfaceMontageViewport::SurfaceMontageViewport(Surface* surface,
-                       const Model::ViewingTransformIndex viewingMatrixIndex,
+                                               const ProjectionViewTypeEnum::Enum projectionViewType,
                        const int x,
                        const int y,
                        const int w,
@@ -94,7 +94,7 @@ SurfaceMontageViewport::SurfaceMontageViewport(Surface* surface,
     
     this->surface = surface;
     this->structure = surface->getStructure();
-    this->viewingMatrixIndex = viewingMatrixIndex;
+    this->projectionViewType = projectionViewType;
     this->viewport[0] = x;
     this->viewport[1] = y;
     this->viewport[2] = w;

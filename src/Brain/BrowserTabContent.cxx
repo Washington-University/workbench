@@ -31,6 +31,7 @@
 
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -44,9 +45,11 @@
 #include "EventModelYokingGroupGetAll.h"
 #include "FociFile.h"
 #include "LabelFile.h"
+#include "Matrix4x4.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
+#include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "ModelYokingGroup.h"
@@ -58,11 +61,11 @@
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
+#include "VolumeFile.h"
 #include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
-
 
 /**
  * Constructor.
@@ -82,6 +85,18 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_selectedYokingGroup = NULL;
+
+    m_rotationMatrix = new Matrix4x4();
+    m_volumeSliceRotationMatrix = new Matrix4x4();
+    m_translation[0] = 0.0;
+    m_translation[1] = 0.0;
+    m_translation[2] = 0.0;
+    m_volumeSliceTranslation[0] = 0.0;
+    m_volumeSliceTranslation[1] = 0.0;
+    m_volumeSliceTranslation[2] = 0.0;
+    m_scaling = 1.0;
+    m_volumeSliceScaling = 1.0;
+    leftView();
     
     m_clippingCoordinate[0] = 0.0;
     m_clippingCoordinate[1] = 0.0;
@@ -120,6 +135,20 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                     m_clippingEnabled,
                                     3,
                                     false);
+    
+    m_sceneClassAssistant->addArray("m_translation",
+                                    m_translation,
+                                    3,
+                                    0.0);
+    m_sceneClassAssistant->addArray("m_volumeSliceTranslation",
+                                    m_volumeSliceTranslation,
+                                    3,
+                                    0.0);
+    
+    m_sceneClassAssistant->add("m_scaling",
+                               &m_scaling);
+    m_sceneClassAssistant->add("m_volumeSliceScaling",
+                               &m_volumeSliceScaling);
 }
 
 /**
@@ -128,6 +157,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 BrowserTabContent::~BrowserTabContent()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete m_rotationMatrix;
+    delete m_volumeSliceRotationMatrix;
     
     delete m_surfaceModelSelector;
     m_surfaceModelSelector = NULL;
@@ -157,14 +189,22 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
     m_selectedYokingGroup = tabToClone->m_selectedYokingGroup;
     
+    m_translation[0] = tabToClone->m_translation[0];
+    m_translation[1] = tabToClone->m_translation[1];
+    m_translation[2] = tabToClone->m_translation[2];
+    
+    m_volumeSliceTranslation[0] = tabToClone->m_volumeSliceTranslation[0];
+    m_volumeSliceTranslation[1] = tabToClone->m_volumeSliceTranslation[1];
+    m_volumeSliceTranslation[2] = tabToClone->m_volumeSliceTranslation[2];
+    
+    *m_rotationMatrix = *tabToClone->m_rotationMatrix;
+    *m_volumeSliceRotationMatrix = *tabToClone->m_volumeSliceRotationMatrix;
+    
+    m_scaling = tabToClone->m_scaling;
+    m_volumeSliceScaling = tabToClone->m_volumeSliceScaling;
+    
     Model* model = getModelControllerForDisplay();
-    Model* modelBeingCloned = tabToClone->getModelControllerForDisplay();
-    if ((model != NULL)
-        && (modelBeingCloned != NULL)) {
-        model->copyTransformationsAndViews(*modelBeingCloned, 
-                                           tabToClone->getTabNumber(), 
-                                           getTabNumber());
-    }
+    //Model* modelBeingCloned = tabToClone->getModelControllerForDisplay();
     
     const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
     if (overlaySetToClone != NULL) {
@@ -458,6 +498,18 @@ BrowserTabContent::getDisplayedVolumeModel()
 }
 
 /**
+ * @return Is the displayed model a volume slice model?
+ */
+bool
+BrowserTabContent::isVolumeSlicesDisplayed() const
+{
+    const ModelVolume* mdcv = dynamic_cast<const ModelVolume*>(getModelControllerForDisplay());
+    
+    const bool volumeFlag = (mdcv != NULL);
+    return volumeFlag;
+}
+
+/**
  * Get the displayed whole brain model.
  * 
  * @return  Pointer to displayed whole brain model or 
@@ -695,9 +747,9 @@ BrowserTabContent::updateTransformationsForYoking()
     if (yokingController != NULL) {
         Model* mdc = getModelControllerForDisplay();
         if (mdc != NULL) {
-            mdc->copyTransformationsAndViews(*yokingController, 
-                                     0, // always used window 0  
-                                     m_tabNumber);
+//            mdc->copyTransformationsAndViews(*yokingController, 
+//                                     0, // always used window 0  
+//                                     m_tabNumber);
         }
     }
 }
@@ -1021,6 +1073,817 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
     }
 }
 
+/**
+ * @return The viewing translation.
+ */
+const float*
+BrowserTabContent::getTranslation() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceTranslation;
+    }
+    else {
+        return m_translation;
+    }
+}
+
+/**
+ * Get the viewing translation.
+ *
+ * @param translationOut
+ *    Translation values output.
+ */
+void
+BrowserTabContent::getTranslation(float translationOut[3]) const
+{
+    if (isVolumeSlicesDisplayed()) {
+        translationOut[0] = m_volumeSliceTranslation[0];
+        translationOut[1] = m_volumeSliceTranslation[1];
+        translationOut[2] = m_volumeSliceTranslation[2];
+    }
+    else {
+        translationOut[0] = m_translation[0];
+        translationOut[1] = m_translation[1];
+        translationOut[2] = m_translation[2];
+    }
+}
+
+/**
+ * Set the viewing translation.
+ *
+ * @param translation
+ *    New translation values.
+ */
+void
+BrowserTabContent::setTranslation( const float translation[3])
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceTranslation[0] = translation[0];
+        m_volumeSliceTranslation[1] = translation[1];
+        m_volumeSliceTranslation[2] = translation[2];
+    }
+    else {
+        m_translation[0] = translation[0];
+        m_translation[1] = translation[1];
+        m_translation[2] = translation[2];
+    }
+}
+
+/**
+ * Set the viewing translation.
+ *
+ * @param translationX
+ *    New translation X-value.
+ * @param translationY
+ *    New translation Y-value.
+ * @param translationZ
+ *    New translation Z-value.
+ */
+void
+BrowserTabContent::setTranslation(const float translationX,
+                                  const float translationY,
+                                  const float translationZ)
+{
+    if (isVolumeSlicesDisplayed()) {        
+        m_volumeSliceTranslation[0] = translationX;
+        m_volumeSliceTranslation[1] = translationY;
+        m_volumeSliceTranslation[2] = translationZ;
+    }
+    else {
+        m_translation[0] = translationX;
+        m_translation[1] = translationY;
+        m_translation[2] = translationZ;
+    }
+}
+
+/**
+ * @return The viewing scaling.
+ */
+float
+BrowserTabContent::getScaling() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceScaling;
+    }
+    else {
+        return m_scaling;
+    }
+}
+
+/**
+ * Set the viewing scaling.
+ * @param scaling
+ *    New value for scaling.
+ */
+void
+BrowserTabContent::setScaling(const float scaling)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceScaling = scaling;
+    }
+    else {
+        m_scaling = scaling;
+    }
+}
+
+/**
+ * @return The viewing rotation matrix.
+ */
+Matrix4x4*
+BrowserTabContent::getViewingRotationMatrix()
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceRotationMatrix;
+    }
+    else {
+        return m_rotationMatrix;
+    }
+}
+
+/**
+ * @return The viewing rotation matrix.
+ */
+const Matrix4x4*
+BrowserTabContent::getViewingRotationMatrix() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceRotationMatrix;
+    }
+    else {
+        return m_rotationMatrix;
+    }
+}
+
+/**
+ * Reset the view to the default view.
+ */
+void
+BrowserTabContent::resetView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        setTranslation(0.0, 0.0, 0.0);
+        m_volumeSliceRotationMatrix->identity();
+        setScaling(1.0);
+    }
+    else {
+        setTranslation(0.0, 0.0, 0.0);
+        m_rotationMatrix->identity();
+        setScaling(1.0);
+        leftView();
+    }
+}
+
+/**
+ * Set to a right side view.
+ */
+void
+BrowserTabContent::rightView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+        m_rotationMatrix->rotateY(-90.0);
+        m_rotationMatrix->rotateZ(-90.0);
+    }
+
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(-90.0);
+}
+
+/**
+ * set to a left side view.
+ */
+void
+BrowserTabContent::leftView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+        m_rotationMatrix->rotateY(90.0);
+        m_rotationMatrix->rotateZ(90.0);
+    }
+    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(90.0);
+}
+
+/**
+ * set to a anterior view.
+ */
+void
+BrowserTabContent::anteriorView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+        m_rotationMatrix->rotateX(-90.0);
+        m_rotationMatrix->rotateY(180.0);
+    }
+    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+}
+
+/**
+ * set to a posterior view.
+ */
+void
+BrowserTabContent::posteriorView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+        m_rotationMatrix->rotateX(-90.0);
+    }
+    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
+}
+
+/**
+ * set to a dorsal view.
+ */
+void
+BrowserTabContent::dorsalView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+    }
+    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(180.0);
+}
+
+/**
+ * set to a ventral view.
+ */
+void
+BrowserTabContent::ventralView()
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Nothing */
+    }
+    else {
+        m_rotationMatrix->identity();
+        m_rotationMatrix->rotateY(-180.0);
+    }
+    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-180.0);
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+//    
+//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+}
+
+/**
+ * Apply mouse rotation to the displayed model.
+ *
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
+ * @param mouseDX
+ *    Change in mouse X coordinate.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ */
+void
+BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
+                                      const int32_t mousePressY,
+                                      const int32_t mouseDX,
+                                      const int32_t mouseDY)
+{
+    if (isVolumeSlicesDisplayed()) {
+        /* Volume slices are not rotated */
+    }
+    else {
+//        if (isDisplayedModelSurfaceRightLateralMedialYoked()) {
+//            m_rotationMatrix->rotateX(-mouseDY);
+//            m_rotationMatrix->rotateY(-mouseDX);
+//        }
+        if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
+            m_rotationMatrix->rotateX(-mouseDY);
+            m_rotationMatrix->rotateY(-mouseDX);
+        }
+        else {
+            float dx = mouseDX;
+            float dy = mouseDY;
+            
+            ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+            if (montageModel != NULL) {
+                std::vector<SurfaceMontageViewport> montageViewports;
+                montageModel->getMontageViewports(getTabNumber(),
+                                                  montageViewports);
+                
+                bool isValid = false;
+                bool isLeft = true;
+                bool isLateral = true;
+                const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+                for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                    const SurfaceMontageViewport& smv = montageViewports[ivp];
+                    if (smv.isInside(mousePressX,
+                                     mousePressY)) {
+                        switch (smv.projectionViewType) {
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                                isLeft = true;
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                                isLeft = true;
+                                isLateral = false;
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                                isLeft = false;
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                                isLeft = false;
+                                isLateral = false;
+                                break;
+                        }
+                        isValid = true;
+//                        if (StructureEnum::isLeft(smv.structure)) {
+//                            isValid = true;
+//                            isLeft  = true;
+//                        }
+//                        else if (StructureEnum::isRight(smv.structure)) {
+//                            isValid = true;
+//                            isLeft  = false;
+//                        }
+//                        
+//                        if (isValid) {
+//                            switch (smv.viewingMatrixIndex) {
+//                                case Model::VIEWING_TRANSFORM_COUNT:
+//                                    isValid = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_NORMAL:
+//                                    isLateral = true;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+//                                    isValid = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+//                                    isLateral = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+//                                    isLateral = true;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+//                                    isLateral = false;
+//                                    break;
+//                            }
+//                        }
+                    }
+                    
+                    if (isValid) {
+                        break;
+                    }
+                }
+                
+                if (isValid) {
+                    if (isLeft == false) {
+                        dx = -dx;
+                    }
+                    if (isLateral == false) {
+                        dy = -dy;
+                    }
+                }
+            }
+            
+            m_rotationMatrix->rotateX(-dy);
+            m_rotationMatrix->rotateY(dx);
+        }
+    }
+}
+
+/**
+ * Apply mouse scaling to the displayed model.
+ *
+ * @param mouseDX
+ *    Change in mouse X coordinate.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ */
+void
+BrowserTabContent::applyMouseScaling(const int32_t mouseDX,
+                                     const int32_t mouseDY)
+{
+    if (isVolumeSlicesDisplayed()) {
+        if (mouseDY != 0.0) {
+            m_volumeSliceScaling *= (1.0f + (mouseDY * 0.01));
+        }
+        if (m_volumeSliceScaling < 0.01) {
+            m_volumeSliceScaling = 0.01;
+        }
+    }
+    else {
+        if (mouseDY != 0.0) {
+            m_scaling *= (1.0f + (mouseDY * 0.01));
+        }
+        if (m_scaling < 0.01) {
+            m_scaling = 0.01;
+        }
+    }
+}
+
+/**
+ * Apply mouse translation to the displayed model.
+ *
+ * @param viewportContent
+ *    Content of the viewport.
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
+ * @param mouseDX
+ *    Change in mouse X coordinate.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ */
+void
+BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportContent,
+                                         const int32_t mousePressX,
+                                         const int32_t mousePressY,
+                                         const int32_t mouseDX,
+                                         const int32_t mouseDY)
+{
+    const int tabIndex = getTabNumber();
+    
+    if (isVolumeSlicesDisplayed()) {
+        ModelVolume* modelVolume = getDisplayedVolumeModel();
+        VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+        BoundingBox mybox = vf->getSpaceBoundingBox();
+        float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+        //float slowdown = 0.005f * cubesize / modelVolume->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
+        float slowdown = 0.005f * cubesize / m_volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+        
+        float dx = 0.0;
+        float dy = 0.0;
+        float dz = 0.0;
+        switch (modelVolume->getSliceViewPlane(tabIndex))
+        {
+            case VolumeSliceViewPlaneEnum::ALL:
+            {
+                int viewport[4];
+                viewportContent->getModelViewport(viewport);
+                const int32_t halfWidth  = viewport[2] / 2;
+                const int32_t halfHeight = viewport[3] / 2;
+                const int32_t viewportMousePressedX = mousePressX - viewport[0];
+                const int32_t viewportMousePressedY = mousePressY - viewport[1];
+                bool isRight  = false;
+                bool isTop = false;
+                if (viewportMousePressedX > halfWidth) {
+                    isRight = true;
+                }
+                if (viewportMousePressedY > halfHeight) {
+                    isTop = true;
+                }
+                //CaretLogInfo("right: " + AString::fromBool(isRight) + " top: " + AString::fromBool(isTop));
+                if (isTop)
+                {
+                    if (isRight)//coronal
+                    {
+                        dx = mouseDX * slowdown;
+                        dz = mouseDY * slowdown;
+                    } else {//parasaggital
+                        dy = mouseDX * slowdown;
+                        dz = mouseDY * slowdown;
+                    }
+                } else {
+                    if (isRight)//axial
+                    {
+                        dx = mouseDX * slowdown;
+                        dy = mouseDY * slowdown;
+                    }//bottom left has no slice
+                }
+                break;
+            }
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                dx = mouseDX * slowdown;
+                dy = mouseDY * slowdown;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                dx = mouseDX * slowdown;
+                dz = mouseDY * slowdown;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                dy = mouseDX * slowdown;
+                dz = mouseDY * slowdown;
+                break;
+        }
+        
+        m_volumeSliceTranslation[0] += dx;
+        m_volumeSliceTranslation[1] += dy;
+        m_volumeSliceTranslation[2] += dz;
+    }
+    else {
+        float dx = mouseDX;
+        float dy = mouseDY;
+        
+        ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+        if (montageModel != NULL) {
+            std::vector<SurfaceMontageViewport> montageViewports;
+            montageModel->getMontageViewports(getTabNumber(),
+                                              montageViewports);
+            
+            bool isValid = false;
+            bool isLeft = true;
+            bool isLateral = true;
+            const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+            for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                const SurfaceMontageViewport& smv = montageViewports[ivp];
+                if (smv.isInside(mousePressX,
+                                 mousePressY)) {
+                    switch (smv.projectionViewType) {
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                            isLeft = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                            isLeft = true;
+                            isLateral = false;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                            isLeft = false;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                            isLeft = false;
+                            isLateral = false;
+                            break;
+                    }
+                    isValid = true;
+//                    if (StructureEnum::isLeft(smv.structure)) {
+//                        isValid = true;
+//                        isLeft  = true;
+//                    }
+//                    else if (StructureEnum::isRight(smv.structure)) {
+//                        isValid = true;
+//                        isLeft  = false;
+//                    }
+//                    
+//                    if (isValid) {
+//                        switch (smv.viewingMatrixIndex) {
+//                            case Model::VIEWING_TRANSFORM_COUNT:
+//                                isValid = false;
+//                                break;
+//                            case Model::VIEWING_TRANSFORM_NORMAL:
+//                                isLateral = true;
+//                                break;
+//                            case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+//                                isValid = false;
+//                                break;
+//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+//                                isLateral = false;
+//                                break;
+//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+//                                isLateral = true;
+//                                break;
+//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+//                                isLateral = false;
+//                                break;
+//                        }
+//                    }
+                }
+                
+                if (isValid) {
+                    break;
+                }
+            }
+            
+            if (isValid) {
+                if (isLeft == false) {
+                    dx = -dx;
+                }
+                if (isLateral == false) {
+                    dx = -dx;
+                }
+                
+                m_translation[0] += dx;
+                m_translation[1] += dy;
+            }
+        }
+        else {
+            if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
+                dx = -dx;
+            }
+//            if (isDisplayedModelSurfaceRightLateralMedialYoked()) {
+//                dx = -dx;
+//            }
+            m_translation[0] += dx;
+            m_translation[1] += dy;
+        }
+    }
+}
+
+/**
+ * Get the transformations for drawing a model.
+ *
+ * @param projectionViewType
+ *    Type of projection view
+ * @param translationOut
+ *    Translation
+ * @param rotationMatrixOut
+ *    OpenGL rotation matrix.
+ * @param scalingOut
+ *    Scaling.
+ */
+void
+BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEnum::Enum projectionViewType,
+                                                      float translationOut[3],
+                                                      double rotationMatrixOut[16],
+                                                      float& scalingOut) const
+{
+    if (isVolumeSlicesDisplayed()) {
+        translationOut[0] = m_volumeSliceTranslation[0];
+        translationOut[1] = m_volumeSliceTranslation[1];
+        translationOut[2] = m_volumeSliceTranslation[2];
+        
+        m_volumeSliceRotationMatrix->getMatrixForOpenGL(rotationMatrixOut);
+        
+        scalingOut = m_volumeSliceScaling;
+    }
+    else {
+        translationOut[0] = m_translation[0];
+        translationOut[1] = m_translation[1];
+        translationOut[2] = m_translation[2];
+        
+        double rotationX, rotationY, rotationZ;
+        m_rotationMatrix->getRotation(rotationX,
+                                      rotationY,
+                                      rotationZ);
+        const double rotationFlippedX = -rotationX;
+        const double rotationFlippedY = 180.0 - rotationY;
+        
+        switch (projectionViewType) {
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                rotationX = rotationFlippedX;
+                rotationY = rotationFlippedY;
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                rotationX = rotationFlippedX;
+                rotationY = rotationFlippedY;
+                break;
+        }
+//            case Model::VIEWING_TRANSFORM_COUNT:
+//                break;
+//            case Model::VIEWING_TRANSFORM_NORMAL:
+//            {
+//                const Model* model = getModelControllerForDisplay();
+//                if (model != NULL) {
+//                    const ModelSurface* surfaceModel = dynamic_cast<const ModelSurface*>(model);
+//                    if (surfaceModel != NULL) {
+//                        const Surface* surface = surfaceModel->getSurface();
+//                        StructureEnum::Enum structure = surface->getStructure();
+//                        if (StructureEnum::isRight(structure)) {
+//                            rotationX = rotationFlippedX;
+//                            rotationY = rotationFlippedY;
+//                        }
+//                    }
+//                }
+//            }
+//                break;
+//            case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+//                rotationX = rotationFlippedX;
+//                rotationY = rotationFlippedY;
+//                break;
+//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+//                break;
+//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+//                rotationX = rotationFlippedX;
+//                rotationY = rotationFlippedY;
+//                break;
+//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+//                rotationX = rotationFlippedX;
+//                rotationY = rotationFlippedY;
+//                break;
+//        }
+        
+        Matrix4x4 matrix;
+        matrix.setRotation(rotationX,
+                           rotationY,
+                           rotationZ);
+        matrix.getMatrixForOpenGL(rotationMatrixOut);
+        
+        scalingOut = m_scaling;
+    }
+}
+
+/**
+ * Place the transformations for the given window tab into
+ * the model transform.
+ * @param windowTabNumber
+ *    Tab number for transformations.
+ * @param modelTransform
+ *    Model transform into which transformations are loaded.
+ */
+void
+BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTransform) const
+{
+    modelTransform.setTranslation(getTranslation());
+    
+    const Matrix4x4* rotMatrix = getViewingRotationMatrix();
+    float m[4][4];
+    rotMatrix->getMatrix(m);
+    modelTransform.setRotation(m);
+    modelTransform.setScaling(getScaling());
+}
+
+/**
+ * Apply the transformations to the browser tab.
+ * @param modelTransform
+ *    Model transform into which transformations are retrieved.
+ */
+void
+BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& modelTransform)
+{
+    float translation[3];
+    modelTransform.getTranslation(translation);
+    const float tx = translation[0];
+    const float ty = translation[1];
+    const float tz = translation[2];
+    
+    setTranslation(tx, ty, tz);
+
+    Matrix4x4* rotationMatrix = getViewingRotationMatrix();
+    float m[4][4];
+    modelTransform.getRotation(m);
+    rotationMatrix->setMatrix(m);
+    
+    const float scale = modelTransform.getScaling();
+    setScaling(scale);
+}
+
 
 /**
  * Create a scene for an instance of a class.
@@ -1033,7 +1896,7 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
  * @param instanceName
  *    Name of the class' instance.
  *
- * @return Pointer to SceneClass object representing the state of 
+ * @return Pointer to SceneClass object representing the state of
  *    this object.  Under some circumstances a NULL pointer may be
  *    returned.  Caller will take ownership of returned object.
  */
@@ -1054,6 +1917,15 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     }
     sceneClass->addString("m_selectedYokingGroup", 
                           yokingGroupName);
+    
+    /*
+     * Save rotation matrices.
+     */
+    float matrix[4][4];
+    m_rotationMatrix->getMatrix(matrix);
+    sceneClass->addFloatArray("m_rotationMatrix", (float*)matrix, 16);
+    m_volumeSliceRotationMatrix->getMatrix(matrix);
+    sceneClass->addFloatArray("m_volumeSliceRotationMatrix", (float*)matrix, 16);
     
     return sceneClass;
 }
@@ -1100,7 +1972,24 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 break;
             }
         }
-    }    
+    }
+    
+    /*
+     * Restore rotation matrices.
+     */
+    float matrix[4][4];
+    if (sceneClass->getFloatArrayValue("m_rotationMatrix", (float*)matrix, 16) == 16) {
+        m_rotationMatrix->setMatrix(matrix);
+    }
+    else {
+        m_rotationMatrix->identity();
+    }
+    if (sceneClass->getFloatArrayValue("m_volumeSliceRotationMatrix", (float*)matrix, 16) == 16) {
+        m_volumeSliceRotationMatrix->setMatrix(matrix);
+    }
+    else {
+        m_volumeSliceRotationMatrix->identity();
+    }
 }
 
 /**
@@ -1189,5 +2078,28 @@ BrowserTabContent::setClippingPlaneCoordinate(const int32_t indx,
     CaretAssertArrayIndex(m_clippingCoordinate, 3, indx);
     m_clippingCoordinate[indx] = value;
 }
+
+/**
+ * @return the projection view type (view from left/right)
+ */
+ProjectionViewTypeEnum::Enum
+BrowserTabContent::getProjectionViewType() const
+{
+    ProjectionViewTypeEnum::Enum projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL;
+    
+    const ModelSurface* modelSurface = getDisplayedSurfaceModel();
+    if (modelSurface != NULL) {
+        const SurfaceFile* surfaceFile = modelSurface->getSurface();
+        if (surfaceFile != NULL) {
+            const StructureEnum::Enum structure = surfaceFile->getStructure();
+            if (StructureEnum::isRight(structure)) {
+                projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL;
+            }
+        }
+    }
+    
+    return projectionViewType;
+}
+
 
 

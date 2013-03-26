@@ -475,147 +475,158 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-    Model* modelController = browserTabContent->getModelControllerForTransformation();
-    if (modelController != NULL) {
-        const int32_t tabIndex = browserTabContent->getTabNumber();
-        float dx = mouseEvent.getDx();
-        float dy = mouseEvent.getDy();
-        
-        /*
-         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
-         * so both will be non-NULL if it is a ModelVolume with or without yoking.
-         */
-        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
-        ModelVolume* modelVolume = NULL;
-        if (modelVolumeInterface != NULL) {
-            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
-        }
-        
-            /*
-             * There are several rotation matrix.  The 'NORMAL' matrix is used
-             * in most cases and others are used in special viewing modes
-             * such as surface montage and right/left lateral medial yoking
-             */
-            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dy);
-                rotationMatrix->rotateY(-dx);
-                
-                /*
-                 * Matrix for a right medial/lateral yoked surface
-                 */
-                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dy);
-                rotationMatrixRightLatMedYoked->rotateY(dx);
-            }
-            else {
-                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
-                if (montageModel != NULL) {
-                    std::vector<SurfaceMontageViewport> montageViewports;
-                    montageModel->getMontageViewports(tabIndex,
-                                                      montageViewports);
-                    
-                    bool isValid = false;
-                    bool isLeft = true;
-                    bool isLateral = true;
-                    const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
-                    for (int32_t ivp = 0; ivp < numViewports; ivp++) {
-                        const SurfaceMontageViewport& smv = montageViewports[ivp];
-                        if (smv.isInside(mouseEvent.getPressedX(),
-                                         mouseEvent.getPressedY())) {
-                            if (StructureEnum::isLeft(smv.structure)) {
-                                isValid = true;
-                                isLeft  = true;
-                            }
-                            else if (StructureEnum::isRight(smv.structure)) {
-                                isValid = true;
-                                isLeft  = false;
-                            }
-                            
-                            if (isValid) {
-                                switch (smv.viewingMatrixIndex) {
-                                    case Model::VIEWING_TRANSFORM_COUNT:
-                                        isValid = false;
-                                        break;
-                                    case Model::VIEWING_TRANSFORM_NORMAL:
-                                        isLateral = true;
-                                        break;
-                                    case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-                                        isValid = false;
-                                        break;
-                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-                                        isLateral = false;
-                                        break;
-                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-                                        isLateral = true;
-                                        break;
-                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-                                        isLateral = false;
-                                        break;
-                                }
-                            }
-                        }
-                        
-                        if (isValid) {
-                            break;
-                        }
-                    }
-                    
-                    if (isValid) {
-                        if (isLeft == false) {
-                            dx = -dx;
-                        }
-                        if (isLateral == false) {
-                            dy = -dy;
-                        }
-                    }
-                }
-                
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dy);
-                rotationMatrix->rotateY(dx);
-                
-                /*
-                 * Matrix for a left surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
-                rotationMatrixSurfMontLeftOpp->rotateY(dx);
-                
-                /*
-                 * Matrix for a right surface view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                rotationMatrixSurfMontRight->rotateX(dy); //-dy);
-                rotationMatrixSurfMontRight->rotateY(-dx);
-                
-                /*
-                 * Matrix for a right surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
-                rotationMatrixSurfMontRightOpp->rotateY(-dx);
-                
-                /*
-                 * Matrix for a right medial/lateral yoked surface
-                 */
-                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
-                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dy);
-                rotationMatrixRightLatMedYoked->rotateY(-dx);
-            }
-        
-        /*
-         * Update graphics.
-         */
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
-    }
+    browserTabContent->applyMouseRotation(mouseEvent.getPressedX(),
+                                          mouseEvent.getPressedY(),
+                                          mouseEvent.getDx(),
+                                          mouseEvent.getDy());
+    /*
+     * Update graphics.
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    
+    
+// Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
+//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    if (modelController != NULL) {
+//        const int32_t tabIndex = browserTabContent->getTabNumber();
+//        float dx = mouseEvent.getDx();
+//        float dy = mouseEvent.getDy();
+//        
+//        /*
+//         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
+//         * so both will be non-NULL if it is a ModelVolume with or without yoking.
+//         */
+//        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
+//        ModelVolume* modelVolume = NULL;
+//        if (modelVolumeInterface != NULL) {
+//            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
+//        }
+//        
+//            /*
+//             * There are several rotation matrix.  The 'NORMAL' matrix is used
+//             * in most cases and others are used in special viewing modes
+//             * such as surface montage and right/left lateral medial yoking
+//             */
+//            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+//                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+//                rotationMatrix->rotateX(-dy);
+//                rotationMatrix->rotateY(-dx);
+//                
+//                /*
+//                 * Matrix for a right medial/lateral yoked surface
+//                 */
+//                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+//                rotationMatrixRightLatMedYoked->rotateX(dy);
+//                rotationMatrixRightLatMedYoked->rotateY(dx);
+//            }
+//            else {
+//                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+//                if (montageModel != NULL) {
+//                    std::vector<SurfaceMontageViewport> montageViewports;
+//                    montageModel->getMontageViewports(tabIndex,
+//                                                      montageViewports);
+//                    
+//                    bool isValid = false;
+//                    bool isLeft = true;
+//                    bool isLateral = true;
+//                    const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+//                    for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+//                        const SurfaceMontageViewport& smv = montageViewports[ivp];
+//                        if (smv.isInside(mouseEvent.getPressedX(),
+//                                         mouseEvent.getPressedY())) {
+//                            if (StructureEnum::isLeft(smv.structure)) {
+//                                isValid = true;
+//                                isLeft  = true;
+//                            }
+//                            else if (StructureEnum::isRight(smv.structure)) {
+//                                isValid = true;
+//                                isLeft  = false;
+//                            }
+//                            
+//                            if (isValid) {
+//                                switch (smv.viewingMatrixIndex) {
+//                                    case Model::VIEWING_TRANSFORM_COUNT:
+//                                        isValid = false;
+//                                        break;
+//                                    case Model::VIEWING_TRANSFORM_NORMAL:
+//                                        isLateral = true;
+//                                        break;
+//                                    case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+//                                        isValid = false;
+//                                        break;
+//                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+//                                        isLateral = false;
+//                                        break;
+//                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+//                                        isLateral = true;
+//                                        break;
+//                                    case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+//                                        isLateral = false;
+//                                        break;
+//                                }
+//                            }
+//                        }
+//                        
+//                        if (isValid) {
+//                            break;
+//                        }
+//                    }
+//                    
+//                    if (isValid) {
+//                        if (isLeft == false) {
+//                            dx = -dx;
+//                        }
+//                        if (isLateral == false) {
+//                            dy = -dy;
+//                        }
+//                    }
+//                }
+//                
+//                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+//                rotationMatrix->rotateX(-dy);
+//                rotationMatrix->rotateY(dx);
+//                
+//                /*
+//                 * Matrix for a left surface opposite view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+//                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+//                rotationMatrixSurfMontLeftOpp->rotateY(dx);
+//                
+//                /*
+//                 * Matrix for a right surface view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+//                rotationMatrixSurfMontRight->rotateX(dy); //-dy);
+//                rotationMatrixSurfMontRight->rotateY(-dx);
+//                
+//                /*
+//                 * Matrix for a right surface opposite view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                                      Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+//                rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
+//                rotationMatrixSurfMontRightOpp->rotateY(-dx);
+//                
+//                /*
+//                 * Matrix for a right medial/lateral yoked surface
+//                 */
+//                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex,
+//                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+//                rotationMatrixRightLatMedYoked->rotateX(dy);
+//                rotationMatrixRightLatMedYoked->rotateY(-dx);
+//            }
+//        
+//        /*
+//         * Update graphics.
+//         */
+//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+//    }
 }
 
 /**
@@ -647,33 +658,37 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-    Model* modelController = browserTabContent->getModelControllerForTransformation();
-    if (modelController != NULL) {
-        const int32_t tabIndex = browserTabContent->getTabNumber();
-        float dy = mouseEvent.getDy();
-        
-        /*
-         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
-         * so both will be non-NULL if it is a ModelVolume with or without yoking.
-         */
-        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
-        ModelVolume* modelVolume = NULL;
-        if (modelVolumeInterface != NULL) {
-            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
-        }
-        
-            float scale = modelController->getScaling(tabIndex);
-            if (dy != 0) {
-                scale *= (1.0f + dy * 0.01);
-            }
-            if (scale < 0.01) scale = 0.01;
-            modelController->setScaling(tabIndex, scale);
-        
-        /*
-         * Update graphics.
-         */
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
-    }
+    browserTabContent->applyMouseScaling(mouseEvent.getDx(), mouseEvent.getDy());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    
+// Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
+//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    if (modelController != NULL) {
+//        const int32_t tabIndex = browserTabContent->getTabNumber();
+//        float dy = mouseEvent.getDy();
+//        
+//        /*
+//         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
+//         * so both will be non-NULL if it is a ModelVolume with or without yoking.
+//         */
+//        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
+//        ModelVolume* modelVolume = NULL;
+//        if (modelVolumeInterface != NULL) {
+//            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
+//        }
+//        
+//            float scale = modelController->getScaling(tabIndex);
+//            if (dy != 0) {
+//                scale *= (1.0f + dy * 0.01);
+//            }
+//            if (scale < 0.01) scale = 0.01;
+//            modelController->setScaling(tabIndex, scale);
+//        
+//        /*
+//         * Update graphics.
+//         */
+//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+//    }
 }
 
 /**
@@ -691,193 +706,202 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-    Model* modelController = browserTabContent->getModelControllerForTransformation();
-    if (modelController != NULL) {
-        const int32_t tabIndex = browserTabContent->getTabNumber();
-        float dx = mouseEvent.getDx();
-        float dy = mouseEvent.getDy();
-        
-        /*
-         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
-         * so both will be non-NULL if it is a ModelVolume with or without yoking.
-         */
-        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
-        ModelVolume* modelVolume = NULL;
-        if (modelVolumeInterface != NULL) {
-            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
-        }
-        
-        if ((modelVolume != NULL)
-            && (modelVolumeInterface != NULL))
-        {
-                const float* t1 = modelController->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
-                float t2[] = { t1[0], t1[1], t1[2] };
-                VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
-                BoundingBox mybox = vf->getSpaceBoundingBox();
-                float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
-                float slowdown = 0.005f * cubesize / modelController->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
-                switch (modelVolumeInterface->getSliceViewPlane(tabIndex))
-                {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                    {
-                        int viewport[4];
-                        viewportContent->getModelViewport(viewport);
-                        const int32_t halfWidth  = viewport[2] / 2;
-                        const int32_t halfHeight = viewport[3] / 2;
-                        const int32_t viewportMousePressedX = mouseEvent.getPressedX() - viewport[0];
-                        const int32_t viewportMousePressedY = mouseEvent.getPressedY() - viewport[1];
-                        bool isRight  = false;
-                        bool isTop = false;
-                        if (viewportMousePressedX > halfWidth) {
-                            isRight = true;
-                        }
-                        if (viewportMousePressedY > halfHeight) {
-                            isTop = true;
-                        }
-                        //CaretLogInfo("right: " + AString::fromBool(isRight) + " top: " + AString::fromBool(isTop));
-                        if (isTop)
-                        {
-                            if (isRight)//coronal
-                            {
-                                t2[0] += dx * slowdown;
-                                t2[2] += dy * slowdown;
-                            } else {//parasaggital
-                                t2[1] -= dx * slowdown;
-                                t2[2] += dy * slowdown;
-                            }
-                        } else {
-                            if (isRight)//axial
-                            {
-                                t2[0] += dx * slowdown;
-                                t2[1] += dy * slowdown;
-                            }//bottom left has no slice
-                        }
-                        break;
-                    }
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        t2[0] += dx * slowdown;
-                        t2[1] += dy * slowdown;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        t2[0] += dx * slowdown;
-                        t2[2] += dy * slowdown;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        t2[1] -= dx * slowdown;
-                        t2[2] += dy * slowdown;
-                        break;
-                }
-                modelController->setTranslation(tabIndex, t2);
-                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
-                return;
-        }
-            ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
-            if (montageModel != NULL) {
-                std::vector<SurfaceMontageViewport> montageViewports;
-                montageModel->getMontageViewports(tabIndex,
-                                                  montageViewports);
-                
-                bool isValid = false;
-                bool isLeft = true;
-                bool isLateral = true;
-                const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
-                for (int32_t ivp = 0; ivp < numViewports; ivp++) {
-                    const SurfaceMontageViewport& smv = montageViewports[ivp];
-                    if (smv.isInside(mouseEvent.getPressedX(),
-                                     mouseEvent.getPressedY())) {
-                        if (StructureEnum::isLeft(smv.structure)) {
-                            isValid = true;
-                            isLeft  = true;
-                        }
-                        else if (StructureEnum::isRight(smv.structure)) {
-                            isValid = true;
-                            isLeft  = false;
-                        }
-                        
-                        if (isValid) {
-                            switch (smv.viewingMatrixIndex) {
-                                case Model::VIEWING_TRANSFORM_COUNT:
-                                    isValid = false;
-                                    break;
-                                case Model::VIEWING_TRANSFORM_NORMAL:
-                                    isLateral = true;
-                                    break;
-                                case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-                                    isValid = false;
-                                    break;
-                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-                                    isLateral = false;
-                                    break;
-                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-                                    isLateral = true;
-                                    break;
-                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-                                    isLateral = false;
-                                    break;
-                            }
-                        }
-                    }
-                    
-                    if (isValid) {
-                        break;
-                    }
-                }
-                
-                if (isValid) {
-                    if (isLeft == false) {
-                        dx = -dx;
-                    }
-                    if (isLateral == false) {
-                        dx = -dx;
-                    }
-                    
-                    const float* translation = modelController->getTranslation(tabIndex,
-                                                                               Model::VIEWING_TRANSFORM_NORMAL);
-                    const float tx = translation[0];
-                    const float ty = translation[1];
-                    const float tz = translation[2];
-                    
-                    modelController->setTranslation(tabIndex,
-                                                    Model::VIEWING_TRANSFORM_NORMAL,
-                                                    tx + dx,
-                                                    ty + dy,
-                                                    tz);
-                    modelController->setTranslation(tabIndex,
-                                                    Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
-                                                    tx - dx,
-                                                    ty + dy,
-                                                    tz);
-                    modelController->setTranslation(tabIndex,
-                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
-                                                    tx + dx,
-                                                    ty + dy,
-                                                    tz);
-                    modelController->setTranslation(tabIndex,
-                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
-                                                    tx + dx,
-                                                    ty + dy,
-                                                    tz);
-                    modelController->setTranslation(tabIndex,
-                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
-                                                    tx + dx,
-                                                    ty + dy,
-                                                    tz);
-                }
-            }
-            else {
-                if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
-                    dx = -dx;
-                }
-                const float* t1 = modelController->getTranslation(tabIndex,
-                                                                  Model::VIEWING_TRANSFORM_NORMAL);
-                float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
-                modelController->setTranslation(tabIndex, t2);
-            }
-        
-        /*
-         * Update graphics.
-         */
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
-    }
+    browserTabContent->applyMouseTranslation(viewportContent,
+                                             mouseEvent.getPressedX(),
+                                             mouseEvent.getPressedY(),
+                                             mouseEvent.getDx(),
+                                             mouseEvent.getDy());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    
+    
+// Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
+//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    if (modelController != NULL) {
+//        const int32_t tabIndex = browserTabContent->getTabNumber();
+//        float dx = mouseEvent.getDx();
+//        float dy = mouseEvent.getDy();
+//        
+//        /*
+//         * Both ModelVolume and ModelYokingGroup implement the ModelVolumeInterface
+//         * so both will be non-NULL if it is a ModelVolume with or without yoking.
+//         */
+//        ModelVolumeInterface* modelVolumeInterface = dynamic_cast<ModelVolumeInterface*>(modelController);
+//        ModelVolume* modelVolume = NULL;
+//        if (modelVolumeInterface != NULL) {
+//            modelVolume = dynamic_cast<ModelVolume*>(browserTabContent->getModelControllerForDisplay());
+//        }
+//        
+//        if ((modelVolume != NULL)
+//            && (modelVolumeInterface != NULL))
+//        {
+//                const float* t1 = modelController->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
+//                float t2[] = { t1[0], t1[1], t1[2] };
+//                VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+//                BoundingBox mybox = vf->getSpaceBoundingBox();
+//                float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+//                float slowdown = 0.005f * cubesize / modelController->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
+//                switch (modelVolumeInterface->getSliceViewPlane(tabIndex))
+//                {
+//                    case VolumeSliceViewPlaneEnum::ALL:
+//                    {
+//                        int viewport[4];
+//                        viewportContent->getModelViewport(viewport);
+//                        const int32_t halfWidth  = viewport[2] / 2;
+//                        const int32_t halfHeight = viewport[3] / 2;
+//                        const int32_t viewportMousePressedX = mouseEvent.getPressedX() - viewport[0];
+//                        const int32_t viewportMousePressedY = mouseEvent.getPressedY() - viewport[1];
+//                        bool isRight  = false;
+//                        bool isTop = false;
+//                        if (viewportMousePressedX > halfWidth) {
+//                            isRight = true;
+//                        }
+//                        if (viewportMousePressedY > halfHeight) {
+//                            isTop = true;
+//                        }
+//                        //CaretLogInfo("right: " + AString::fromBool(isRight) + " top: " + AString::fromBool(isTop));
+//                        if (isTop)
+//                        {
+//                            if (isRight)//coronal
+//                            {
+//                                t2[0] += dx * slowdown;
+//                                t2[2] += dy * slowdown;
+//                            } else {//parasaggital
+//                                t2[1] -= dx * slowdown;
+//                                t2[2] += dy * slowdown;
+//                            }
+//                        } else {
+//                            if (isRight)//axial
+//                            {
+//                                t2[0] += dx * slowdown;
+//                                t2[1] += dy * slowdown;
+//                            }//bottom left has no slice
+//                        }
+//                        break;
+//                    }
+//                    case VolumeSliceViewPlaneEnum::AXIAL:
+//                        t2[0] += dx * slowdown;
+//                        t2[1] += dy * slowdown;
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::CORONAL:
+//                        t2[0] += dx * slowdown;
+//                        t2[2] += dy * slowdown;
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                        t2[1] -= dx * slowdown;
+//                        t2[2] += dy * slowdown;
+//                        break;
+//                }
+//                modelController->setTranslation(tabIndex, t2);
+//                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+//                return;
+//        }
+//            ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+//            if (montageModel != NULL) {
+//                std::vector<SurfaceMontageViewport> montageViewports;
+//                montageModel->getMontageViewports(tabIndex,
+//                                                  montageViewports);
+//                
+//                bool isValid = false;
+//                bool isLeft = true;
+//                bool isLateral = true;
+//                const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+//                for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+//                    const SurfaceMontageViewport& smv = montageViewports[ivp];
+//                    if (smv.isInside(mouseEvent.getPressedX(),
+//                                     mouseEvent.getPressedY())) {
+//                        if (StructureEnum::isLeft(smv.structure)) {
+//                            isValid = true;
+//                            isLeft  = true;
+//                        }
+//                        else if (StructureEnum::isRight(smv.structure)) {
+//                            isValid = true;
+//                            isLeft  = false;
+//                        }
+//                        
+//                        if (isValid) {
+//                            switch (smv.viewingMatrixIndex) {
+//                                case Model::VIEWING_TRANSFORM_COUNT:
+//                                    isValid = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_NORMAL:
+//                                    isLateral = true;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
+//                                    isValid = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
+//                                    isLateral = false;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
+//                                    isLateral = true;
+//                                    break;
+//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
+//                                    isLateral = false;
+//                                    break;
+//                            }
+//                        }
+//                    }
+//                    
+//                    if (isValid) {
+//                        break;
+//                    }
+//                }
+//                
+//                if (isValid) {
+//                    if (isLeft == false) {
+//                        dx = -dx;
+//                    }
+//                    if (isLateral == false) {
+//                        dx = -dx;
+//                    }
+//                    
+//                    const float* translation = modelController->getTranslation(tabIndex,
+//                                                                               Model::VIEWING_TRANSFORM_NORMAL);
+//                    const float tx = translation[0];
+//                    const float ty = translation[1];
+//                    const float tz = translation[2];
+//                    
+//                    modelController->setTranslation(tabIndex,
+//                                                    Model::VIEWING_TRANSFORM_NORMAL,
+//                                                    tx + dx,
+//                                                    ty + dy,
+//                                                    tz);
+//                    modelController->setTranslation(tabIndex,
+//                                                    Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
+//                                                    tx - dx,
+//                                                    ty + dy,
+//                                                    tz);
+//                    modelController->setTranslation(tabIndex,
+//                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
+//                                                    tx + dx,
+//                                                    ty + dy,
+//                                                    tz);
+//                    modelController->setTranslation(tabIndex,
+//                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
+//                                                    tx + dx,
+//                                                    ty + dy,
+//                                                    tz);
+//                    modelController->setTranslation(tabIndex,
+//                                                    Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
+//                                                    tx + dx,
+//                                                    ty + dy,
+//                                                    tz);
+//                }
+//            }
+//            else {
+//                if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+//                    dx = -dx;
+//                }
+//                const float* t1 = modelController->getTranslation(tabIndex,
+//                                                                  Model::VIEWING_TRANSFORM_NORMAL);
+//                float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
+//                modelController->setTranslation(tabIndex, t2);
+//            }
+//        
+//        /*
+//         * Update graphics.
+//         */
+//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+//    }
 }
 

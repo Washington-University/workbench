@@ -2691,9 +2691,6 @@ Brain::updateWholeBrainController()
             if (m_isSpecFileBeingRead == false) {
                 m_wholeBrainController->initializeOverlays();
             }
-            for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-                m_wholeBrainController->resetView(i);
-            }
         }
     }
     else {

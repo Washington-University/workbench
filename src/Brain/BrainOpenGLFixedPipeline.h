@@ -36,6 +36,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "Model.h"
+#include "ProjectionViewTypeEnum.h"
 #include "SelectionItemDataTypeEnum.h"
 #include "StructureEnum.h"
 #include "SurfaceNodeColoring.h"
@@ -264,8 +265,11 @@ namespace caret {
                                      ModelSurfaceMontage* surfaceMontageModel,
                                      const int32_t viewport[4]);
         
+//        void setOrthographicProjection(const int32_t viewport[4],
+//                                       const Model::ViewingTransformIndex rotationMatrixIndex);
+        
         void setOrthographicProjection(const int32_t viewport[4],
-                                       const Model::ViewingTransformIndex rotationMatrixIndex);
+                                       const ProjectionViewTypeEnum::Enum projectionType);
         
         void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
@@ -301,13 +305,21 @@ namespace caret {
         void setSelectedItemScreenXYZ(SelectionItem* item,
                                         const float itemXYZ[3]);
 
+//        void setViewportAndOrthographicProjection(const int32_t viewport[4],
+//                                                  const Model::ViewingTransformIndex rotationMatrixIndex);
+        
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
-                                                  const Model::ViewingTransformIndex rotationMatrixIndex);
+                                                  const  ProjectionViewTypeEnum::Enum projectionType);
+        
+//        void applyViewingTransformations(const Model* modelDisplayController,
+//                                         const int32_t tabIndex,
+//                                         const float objectCenterXYZ[3],
+//                                         const Model::ViewingTransformIndex rotationMatrixIndex);
         
         void applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
-                                         const Model::ViewingTransformIndex rotationMatrixIndex);
+                                         const ProjectionViewTypeEnum::Enum projectionViewType);
         
         void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,

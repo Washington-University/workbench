@@ -244,75 +244,80 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
 	}
     Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
-        const int32_t tabIndex = browserTabContent->getTabNumber();
+//        const int32_t tabIndex = browserTabContent->getTabNumber();
             
         {
-            /*
-             * There are several rotation matrix.  The 'NORMAL' matrix is used
-             * in most cases and others are used in special viewing modes
-             * such as surface montage and right/left lateral medial yoking
-             */ 
-            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(dx);
-                rotationMatrix->rotateY(dy);
-                rotationMatrix->rotateZ(dz);
-                
-                /*
-                 * Matrix for a right medial/lateral yoked surface
-                 */
-                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(-dx);
-                rotationMatrixRightLatMedYoked->rotateY(-dy);
-                rotationMatrixRightLatMedYoked->rotateZ(-dz);
-            }
-            else {               
-                
-                
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
-                rotationMatrix->rotateX(-dx);
-                rotationMatrix->rotateY(dy);
-                rotationMatrix->rotateZ(dz);
-                
-                /*
-                 * Matrix for a left surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
-                rotationMatrixSurfMontLeftOpp->rotateX(-dx);
-                rotationMatrixSurfMontLeftOpp->rotateY(dy);
-                rotationMatrixSurfMontLeftOpp->rotateZ(dz);
-                
-                /*
-                 * Matrix for a right surface view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
-                rotationMatrixSurfMontRight->rotateX(dx); 
-                rotationMatrixSurfMontRight->rotateY(-dy);
-                rotationMatrixSurfMontRight->rotateZ(dz);
-                
-                /*
-                 * Matrix for a right surface opposite view in surface montage
-                 */
-                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
-                rotationMatrixSurfMontRightOpp->rotateX(dx);
-                rotationMatrixSurfMontRightOpp->rotateY(-dy);
-                rotationMatrixSurfMontRightOpp->rotateZ(dz);
-                
-                /*
-                 * Matrix for a right medial/lateral yoked surface
-                 */
-                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                           Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
-                rotationMatrixRightLatMedYoked->rotateX(dx);
-                rotationMatrixRightLatMedYoked->rotateY(-dy);
-                rotationMatrixRightLatMedYoked->rotateZ(dz);
-            }            
+            Matrix4x4* rotationMatrix = browserTabContent->getViewingRotationMatrix();
+            rotationMatrix->rotateX(dx);
+            rotationMatrix->rotateY(dy);
+            rotationMatrix->rotateZ(dz);
+            
+//            /*
+//             * There are several rotation matrix.  The 'NORMAL' matrix is used
+//             * in most cases and others are used in special viewing modes
+//             * such as surface montage and right/left lateral medial yoking
+//             */ 
+//            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+//                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+//                rotationMatrix->rotateX(dx);
+//                rotationMatrix->rotateY(dy);
+//                rotationMatrix->rotateZ(dz);
+//                
+//                /*
+//                 * Matrix for a right medial/lateral yoked surface
+//                 */
+//                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+//                rotationMatrixRightLatMedYoked->rotateX(-dx);
+//                rotationMatrixRightLatMedYoked->rotateY(-dy);
+//                rotationMatrixRightLatMedYoked->rotateZ(-dz);
+//            }
+//            else {               
+//                
+//                
+//                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
+//                rotationMatrix->rotateX(-dx);
+//                rotationMatrix->rotateY(dy);
+//                rotationMatrix->rotateZ(dz);
+//                
+//                /*
+//                 * Matrix for a left surface opposite view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
+//                rotationMatrixSurfMontLeftOpp->rotateX(-dx);
+//                rotationMatrixSurfMontLeftOpp->rotateY(dy);
+//                rotationMatrixSurfMontLeftOpp->rotateZ(dz);
+//                
+//                /*
+//                 * Matrix for a right surface view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
+//                rotationMatrixSurfMontRight->rotateX(dx); 
+//                rotationMatrixSurfMontRight->rotateY(-dy);
+//                rotationMatrixSurfMontRight->rotateZ(dz);
+//                
+//                /*
+//                 * Matrix for a right surface opposite view in surface montage
+//                 */
+//                Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+//                rotationMatrixSurfMontRightOpp->rotateX(dx);
+//                rotationMatrixSurfMontRightOpp->rotateY(-dy);
+//                rotationMatrixSurfMontRightOpp->rotateZ(dz);
+//                
+//                /*
+//                 * Matrix for a right medial/lateral yoked surface
+//                 */
+//                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+//                                                                                           Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
+//                rotationMatrixRightLatMedYoked->rotateX(dx);
+//                rotationMatrixRightLatMedYoked->rotateY(-dy);
+//                rotationMatrixRightLatMedYoked->rotateZ(dz);
+//            }            
         }
     }
 }

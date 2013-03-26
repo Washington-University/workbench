@@ -138,10 +138,6 @@ ModelSurfaceMontage::initializeSurfaces()
         m_firstSurfaceEnabled[i] = false;
         m_secondSurfaceEnabled[i] = true;
     }
-
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        leftView(i);
-    }
 }
 
 /**
@@ -371,19 +367,6 @@ ModelSurfaceMontage::getNameForBrowserTab() const
 //}
 
 /**
- * Reset view.  For left and right hemispheres, the default
- * view is a lateral view.
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
- */
-void
-ModelSurfaceMontage::resetView(const int32_t windowTabNumber)
-{
-    Model::resetView(windowTabNumber);
-    leftView(windowTabNumber);    
-}
-
-/**
  * Get the overlay set for the given tab.
  * @param tabIndex
  *   Index of tab.
@@ -488,8 +471,6 @@ ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
     CaretAssertArrayIndex(controllerSource->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberSource);
-    
-    Model::copyTransformationsAndViews(controllerSource, windowTabNumberSource, windowTabNumberTarget);
     
     const ModelSurfaceMontage* modelSurfaceMontage = dynamic_cast<const ModelSurfaceMontage*>(&controllerSource);
     if (modelSurfaceMontage == NULL) {

@@ -600,7 +600,6 @@ CustomViewDialog::transformValueChanged()
     BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
-        const int32_t tabIndex = btc->getTabNumber();
         if (btc != NULL) {
             Model* model = btc->getModelControllerForTransformation();
             if (model != NULL) {
@@ -611,8 +610,7 @@ CustomViewDialog::transformValueChanged()
                 
                 ModelTransform modelTransform;
                 modelTransform.setPanXyRotationMatrixAndZoom(panX, panY, rotationMatrixArray, zoom);
-                model->setTransformationsFromModelTransform(tabIndex,
-                                                            modelTransform);
+                btc->setTransformationsFromModelTransform(modelTransform);
                updateGraphicsWindow();
             }
         }
@@ -682,9 +680,9 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
         if (btc != NULL) {
             Model* model = btc->getModelControllerForTransformation();
             if (model != NULL) {
-                const float* panning = model->getTranslation(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
-                const Matrix4x4* rotationMatrix = model->getViewingRotationMatrix(tabIndex, Model::VIEWING_TRANSFORM_NORMAL);
-                const float zooming = model->getScaling(tabIndex);
+                const float* panning = btc->getTranslation();
+                const Matrix4x4* rotationMatrix = btc->getViewingRotationMatrix();
+                const float zooming = btc->getScaling();
                 
                 double rotX, rotY, rotZ;
                 rotationMatrix->getRotation(rotX, rotY, rotZ);

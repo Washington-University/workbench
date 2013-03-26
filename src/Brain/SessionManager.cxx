@@ -90,9 +90,6 @@ SessionManager::SessionManager()
         ModelYokingGroup* myg = new ModelYokingGroup(brain,
                                                      ModelYokingGroup::YOKING_TYPE_SURFACE,
                                                      yokingGroupName);
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            myg->resetView(i);
-        }
         m_yokingGroupModels.push_back(myg);
     }
     
@@ -105,9 +102,6 @@ SessionManager::SessionManager()
         ModelYokingGroup* myg = new ModelYokingGroup(brain,
                                                      ModelYokingGroup::YOKING_TYPE_VOLUME,
                                                      yokingGroupName);
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            myg->dorsalView(i);
-        }
         m_yokingGroupModels.push_back(myg);
     }
 }

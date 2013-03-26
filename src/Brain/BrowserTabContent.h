@@ -27,17 +27,21 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "Model.h"
 #include "ModelTypeEnum.h"
+#include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
 
 namespace caret {
 
+    class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
-    class Model;
+    class Matrix4x4;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelSurfaceSelector;
+    class ModelTransform;
     class ModelVolume;
     class ModelWholeBrain;
     class ModelYokingGroup;
@@ -97,6 +101,8 @@ namespace caret {
         
         ModelSurfaceSelector* getSurfaceModelSelector();
         
+        bool isVolumeSlicesDisplayed() const;
+        
         void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
         void update(const std::vector<Model*> modelDisplayControllers);
@@ -144,6 +150,63 @@ namespace caret {
         
         void setClippingPlaneCoordinate(const int32_t indx,
                                         const float value);
+        
+        const float* getTranslation() const;
+        
+        void getTranslation(float translationOut[3]) const;
+        
+        void setTranslation( const float translation[3]);
+        
+        void setTranslation(const float translationX,
+                                    const float translationY,
+                                    const float translationZ);
+
+        float getScaling() const;
+        
+        void setScaling(const float scaling);
+        
+        Matrix4x4* getViewingRotationMatrix();
+        
+        const Matrix4x4* getViewingRotationMatrix() const;
+        
+        ProjectionViewTypeEnum::Enum getProjectionViewType() const;
+        
+        void resetView();
+        
+        void rightView();
+        
+        void leftView();
+        
+        void anteriorView();
+        
+        void posteriorView();
+        
+        void dorsalView();
+        
+        void ventralView();
+        
+        void applyMouseRotation(const int32_t mousePressX,
+                                const int32_t mousePressY,
+                                const int32_t mouseDX,
+                                const int32_t mouseDY);
+        
+        void applyMouseScaling(const int32_t mouseDX,
+                               const int32_t mouseDY);
+        
+        void applyMouseTranslation(BrainOpenGLViewportContent* viewportContent,
+                                   const int32_t mousePressX,
+                                   const int32_t mousePressY,
+                                   const int32_t mouseDX,
+                                   const int32_t mouseDY);
+        
+        void getTransformationsForOpenGLDrawing(const ProjectionViewTypeEnum::Enum projectionViewType,
+                                                float translationOut[3],
+                                                double rotationMatrixOut[16],
+                                                float& scalingOut) const;
+        
+        void getTransformationsInModelTransform(ModelTransform& modelTransform) const;
+        
+        void setTransformationsFromModelTransform(const ModelTransform& modelTransform);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -210,6 +273,24 @@ namespace caret {
         
         /** Assists with creating/restoring scenes */
         SceneClassAssistant* m_sceneClassAssistant;
+        
+        /** Rotation matrix. */
+        Matrix4x4* m_rotationMatrix;
+        
+        /** Translation */
+        float m_translation[3];
+        
+        /** Scaling. */
+        float m_scaling;
+        
+        /** Rotation matrix for volume slices. */
+        Matrix4x4* m_volumeSliceRotationMatrix;
+        
+        /** Translation for volume slices */
+        float m_volumeSliceTranslation[3];
+        
+        /** Scaling for volume slices */
+        float m_volumeSliceScaling;
         
     };
     

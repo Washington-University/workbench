@@ -3227,30 +3227,36 @@ void
 BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
-        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-        if (mdcs != NULL) {
-            if (mdcyg != NULL) {
-                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
-                if (StructureEnum::isRight(structure)) {
-                    mdcyg->leftView(btc->getTabNumber());
-                }
-                else {
-                    mdcyg->leftView(btc->getTabNumber());
-                }
-            }
-            else {
-                mdcs->lateralView(btc->getTabNumber());
-            }
-        }
-        else {
-            mdc->leftView(btc->getTabNumber());
-        }
-        
-        this->updateGraphicsWindow();
-    }
+//    ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
+//    if (mdcs != NULL) {
+        btc->leftView();
+//    }
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
+//        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
+//        if (mdcs != NULL) {
+//            if (mdcyg != NULL) {
+//                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
+//                if (StructureEnum::isRight(structure)) {
+//                    mdcyg->leftView(btc->getTabNumber());
+//                }
+//                else {
+//                    mdcyg->leftView(btc->getTabNumber());
+//                }
+//            }
+//            else {
+//                mdcs->lateralView(btc->getTabNumber());
+//            }
+//        }
+//        else {
+//            mdc->leftView(btc->getTabNumber());
+//        }
+//        
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3262,29 +3268,35 @@ void
 BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
-        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-        if (mdcs != NULL) {
-            if (mdcyg != NULL) {
-                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
-                if (StructureEnum::isRight(structure)) {
-                    mdcyg->rightView(btc->getTabNumber());
-                }
-                else {
-                    mdcyg->rightView(btc->getTabNumber());
-                }
-            }
-            else {
-                mdcs->medialView(btc->getTabNumber());
-            }
-        }
-        else {
-            mdc->rightView(btc->getTabNumber());
-        }
-        this->updateGraphicsWindow();
-    }
+//    ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
+//    if (mdcs != NULL) {
+        btc->rightView();
+//    }
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
+//        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
+//        if (mdcs != NULL) {
+//            if (mdcyg != NULL) {
+//                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
+//                if (StructureEnum::isRight(structure)) {
+//                    mdcyg->rightView(btc->getTabNumber());
+//                }
+//                else {
+//                    mdcyg->rightView(btc->getTabNumber());
+//                }
+//            }
+//            else {
+//                mdcs->medialView(btc->getTabNumber());
+//            }
+//        }
+//        else {
+//            mdc->rightView(btc->getTabNumber());
+//        }
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3296,11 +3308,14 @@ void
 BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        mdc->anteriorView(btc->getTabNumber());
-        this->updateGraphicsWindow();
-    }
+    btc->anteriorView();
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        mdc->anteriorView(btc->getTabNumber());
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3312,11 +3327,14 @@ void
 BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        mdc->posteriorView(btc->getTabNumber());
-        this->updateGraphicsWindow();
-    }
+    btc->posteriorView();
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        mdc->posteriorView(btc->getTabNumber());
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3328,11 +3346,14 @@ void
 BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        mdc->dorsalView(btc->getTabNumber());
-        this->updateGraphicsWindow();
-    }
+    btc->dorsalView();
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        mdc->dorsalView(btc->getTabNumber());
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3344,11 +3365,14 @@ void
 BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        mdc->ventralView(btc->getTabNumber());
-        this->updateGraphicsWindow();
-    }
+    btc->ventralView();
+    this->updateGraphicsWindow();
+    
+//    Model* mdc = btc->getModelControllerForTransformation();
+//    if (mdc != NULL) {
+//        mdc->ventralView(btc->getTabNumber());
+//        this->updateGraphicsWindow();
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3360,9 +3384,11 @@ void
 BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    btc->resetView();
+    
     Model* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
-        mdc->resetView(btc->getTabNumber());
+//        mdc->resetView(btc->getTabNumber());
         this->updateVolumeIndicesWidget(btc);
         this->updateGraphicsWindow();
     }
@@ -3377,13 +3403,16 @@ void
 BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    if (btc != NULL) {
-        Model* mdc = btc->getModelControllerForTransformation();
-        if (mdc != NULL) {
-            mdc->leftView(btc->getTabNumber());
-            this->updateGraphicsWindow();
-        }
-    }
+    btc->leftView();
+    this->updateGraphicsWindow();
+    
+//    if (btc != NULL) {
+//        Model* mdc = btc->getModelControllerForTransformation();
+//        if (mdc != NULL) {
+//            mdc->leftView(btc->getTabNumber());
+//            this->updateGraphicsWindow();
+//        }
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3395,13 +3424,16 @@ void
 BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    if (btc != NULL) {
-        Model* mdc = btc->getModelControllerForTransformation();
-        if (mdc != NULL) {
-            mdc->dorsalView(btc->getTabNumber());
-            this->updateGraphicsWindow();
-        }
-    }
+    btc->dorsalView();
+    this->updateGraphicsWindow();
+
+//    if (btc != NULL) {
+//        Model* mdc = btc->getModelControllerForTransformation();
+//        if (mdc != NULL) {
+//            mdc->dorsalView(btc->getTabNumber());
+//            this->updateGraphicsWindow();
+//        }
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3413,13 +3445,16 @@ void
 BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    if (btc != NULL) {
-        Model* mdc = btc->getModelControllerForTransformation();
-        if (mdc != NULL) {
-            mdc->anteriorView(btc->getTabNumber());
-            this->updateGraphicsWindow();
-        }
-    }
+    btc->anteriorView();
+    this->updateGraphicsWindow();
+    
+//    if (btc != NULL) {
+//        Model* mdc = btc->getModelControllerForTransformation();
+//        if (mdc != NULL) {
+//            mdc->anteriorView(btc->getTabNumber());
+//            this->updateGraphicsWindow();
+//        }
+//    }
     
     this->checkUpdateCounter();
 }
@@ -3462,10 +3497,11 @@ BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
             ModelTransform modelTransform;
             if (prefs->getCustomView(customViewName, modelTransform)) {
                 BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-                const int32_t tabIndex = btc->getTabNumber();
-                Model* mdc = btc->getModelControllerForTransformation();
-                mdc->setTransformationsFromModelTransform(tabIndex,
-                                                          modelTransform);
+                btc->setTransformationsFromModelTransform(modelTransform);
+//                const int32_t tabIndex = btc->getTabNumber();
+//                Model* mdc = btc->getModelControllerForTransformation();
+//                mdc->setTransformationsFromModelTransform(tabIndex,
+//                                                          modelTransform);
                 this->updateGraphicsWindow();
             }
         }
@@ -4261,12 +4297,13 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
     
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     ModelYokingGroup* yokingGroup = btc->getSelectedYokingGroupForModel(volumeController);
-    if (yokingGroup != NULL) {
-        yokingGroup->resetView(tabIndex);
-    }
-    else if (volumeController != NULL) {
-        volumeController->resetView(tabIndex);
-    }
+    btc->resetView();
+//    if (yokingGroup != NULL) {
+//        yokingGroup->resetView(tabIndex);
+//    }
+//    else if (volumeController != NULL) {
+//        volumeController->resetView(tabIndex);
+//    }
 
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();

@@ -489,8 +489,6 @@ ModelVolume::copyTransformationsAndViews(const Model& controllerSource,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberSource);
     
-    Model::copyTransformationsAndViews(controllerSource, windowTabNumberSource, windowTabNumberTarget);
-
     const ModelVolumeInterface* modelVolumeSource = dynamic_cast<const ModelVolumeInterface*>(&controllerSource);
     if (modelVolumeSource == NULL) {
         return;

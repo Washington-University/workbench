@@ -45,8 +45,6 @@ namespace caret {
         
         void initializeSurfaces();
         
-        virtual void resetView(const int32_t windowTabNumber);
-        
         virtual void receiveEvent(Event* event);
         
         OverlaySet* getOverlaySet(const int tabIndex);

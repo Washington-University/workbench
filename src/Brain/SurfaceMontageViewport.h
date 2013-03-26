@@ -36,7 +36,7 @@
 
 
 #include "CaretObject.h"
-#include "Model.h"
+#include "ProjectionViewTypeEnum.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -48,7 +48,7 @@ namespace caret {
 //        SurfaceMontageViewport();
         
         SurfaceMontageViewport(Surface* surface,
-                               const Model::ViewingTransformIndex viewingMatrixIndex,
+                               const ProjectionViewTypeEnum::Enum projectionViewType,
                                const int x,
                                const int y,
                                const int w,
@@ -60,12 +60,13 @@ namespace caret {
         
         Surface* surface;
         
-        Model::ViewingTransformIndex viewingMatrixIndex;
+        ProjectionViewTypeEnum::Enum projectionViewType;
 
         StructureEnum::Enum structure;
         
         bool isInside(const int32_t x,
                       const int32_t y) const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

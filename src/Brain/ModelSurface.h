@@ -42,12 +42,6 @@ namespace caret {
         
         virtual ~ModelSurface();
         
-        virtual void resetView(const int32_t windowTabNumber);
-        
-        void lateralView(const int32_t windowTabNumber);
-        
-        void medialView(const int32_t windowTabNumber);
-        
         virtual void receiveEvent(Event* event);
         
         OverlaySet* getOverlaySet(const int tabIndex);

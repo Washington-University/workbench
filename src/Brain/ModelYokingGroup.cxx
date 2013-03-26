@@ -360,8 +360,6 @@ ModelYokingGroup::copyTransformationsAndViews(const Model& controllerSource,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberSource);
     
-    Model::copyTransformationsAndViews(controllerSource, windowTabNumberSource, windowTabNumberTarget);
-    
     const ModelVolumeInterface* modelVolumeSource = dynamic_cast<const ModelVolumeInterface*>(&controllerSource);
     if (modelVolumeSource == NULL) {
         return;
@@ -504,21 +502,4 @@ ModelYokingGroup::restoreModelSpecificInformationFromScene(const SceneAttributes
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
 }
-
-/**
- * Reset view.  For left and right hemispheres, the default
- * view is a lateral view.
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
- */
-void
-ModelYokingGroup::resetView(const int32_t windowTabNumber)
-{
-    Model::resetView(windowTabNumber);
-    
-    if (m_yokingType == ModelYokingGroup::YOKING_TYPE_SURFACE) {
-        leftView(windowTabNumber);    
-    }
-}
-
 
