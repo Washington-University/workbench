@@ -36,7 +36,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, float distance, MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, int columnNum = -1);
+        AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance,
+                              MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, const int& columnNum = -1, const bool& nearest = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

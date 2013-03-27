@@ -60,6 +60,8 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
+    ret->createOptionalParameter(7, "-nearest", "use the nearest good value instead of a weighted average");
+    
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a good vertex or are within the specified distance of a good vertex, ") +
         "replace the value with a distance weighted average of nearby good vertices, otherwise set the value to zero.  If -bad-vertex-roi is specified, " +
@@ -91,10 +93,12 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, columnNum);
+    bool nearest = myParams->getOptionalParameter(7)->m_present;
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, columnNum, nearest);
 }
 
-AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, float distance, MetricFile* myMetricOut, const MetricFile* badNodeRoi, int columnNum) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance, MetricFile* myMetricOut,
+                                             const MetricFile* badNodeRoi, const int& columnNum, const bool& nearest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -119,6 +123,19 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     CaretArray<int> markArray(numNodes);
     mySurf->computeNodeAreas(myAreas);
     myMetricOut->setStructure(mySurf->getStructure());
+    if (badNodeRoi != NULL)
+    {
+        const float* myRoiData = badNodeRoi->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (myRoiData[i] > 0.0f)
+            {
+                markArray[i] = 0;
+            } else {
+                markArray[i] = 1;
+            }
+        }
+    }
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
@@ -138,17 +155,6 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                         markArray[i] = 1;
                     }
                 }
-            } else {
-                const float* myRoiData = badNodeRoi->getValuePointerForColumn(0);
-                for (int i = 0; i < numNodes; ++i)
-                {
-                    if (myRoiData[i] > 0.0f)
-                    {
-                        markArray[i] = 0;
-                    } else {
-                        markArray[i] = 1;
-                    }
-                }
             }
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
             CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
@@ -160,6 +166,162 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                     vector<float> distList;
                     myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);
                     int numInRange = (int)nodeList.size();
+                    if (nearest)
+                    {
+                        float tempDist = -1.0f;
+                        int closestNode = -1;
+                        for (int j = 0; j < numInRange; ++j)
+                        {
+                            if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
+                            {
+                                closestNode = nodeList[j];
+                                tempDist = distList[j];
+                            }
+                        }
+                        if (closestNode != -1)
+                        {
+                            colScratch[i] = myInputData[closestNode];
+                        } else {
+                            nodeList = myTopoHelp->getNodeNeighbors(i);
+                            nodeList.push_back(i);
+                            myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                            numInRange = (int)nodeList.size();
+                            for (int j = 0; j < numInRange; ++j)
+                            {
+                                if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
+                                {
+                                    closestNode = nodeList[j];
+                                    tempDist = distList[j];
+                                }
+                            }
+                            if (closestNode != -1)
+                            {
+                                colScratch[i] = myInputData[closestNode];
+                            } else {
+                                colScratch[i] = 0.0f;
+                            }
+                        }
+                    } else {
+                        float totalWeight = 0.0f, weightedSum = 0.0f;
+                        for (int j = 0; j < numInRange; ++j)
+                        {
+                            if (markArray[nodeList[j]] == 1)
+                            {
+                                float weight;
+                                const float tolerance = 0.00001f;
+                                if (distList[j] > tolerance)
+                                {
+                                    weight = myAreas[nodeList[j]] / distList[j] / distList[j];
+                                } else {
+                                    weight = myAreas[nodeList[j]] / tolerance / tolerance;
+                                }
+                                totalWeight += weight;
+                                weightedSum += myInputData[nodeList[j]] * weight;
+                            }
+                        }
+                        if (totalWeight != 0.0f)
+                        {
+                            colScratch[i] = weightedSum / totalWeight;
+                        } else {
+                            nodeList = myTopoHelp->getNodeNeighbors(i);
+                            nodeList.push_back(i);
+                            myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                            numInRange = (int)nodeList.size();
+                            totalWeight = 0.0f;//not really needed, but hey
+                            weightedSum = 0.0f;
+                            for (int j = 0; j < numInRange; ++j)
+                            {
+                                if (markArray[nodeList[j]] == 1)
+                                {
+                                    float weight;
+                                    const float tolerance = 0.00001f;
+                                    if (distList[j] > tolerance)
+                                    {
+                                        weight = myAreas[nodeList[j]] / distList[j] / distList[j];
+                                    } else {
+                                        weight = myAreas[nodeList[j]] / tolerance / tolerance;
+                                    }
+                                    totalWeight += weight;
+                                    weightedSum += myInputData[nodeList[j]] * weight;
+                                }
+                            }
+                            if (totalWeight != 0.0f)
+                            {
+                                colScratch[i] = weightedSum / totalWeight;
+                            } else {
+                                colScratch[i] = 0.0f;
+                            }
+                        }
+                    }
+                } else {
+                    colScratch[i] = myInputData[i];
+                }
+            }
+            myMetricOut->setValuesForColumn(thisCol, colScratch.getArray());
+        }
+    } else {
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
+        const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
+        myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
+        if (badNodeRoi == NULL)
+        {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (myInputData[i] == 0.0f)
+                {
+                    markArray[i] = 0;
+                } else {
+                    markArray[i] = 1;
+                }
+            }
+        }
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (markArray[i] == 0)
+            {
+                vector<int32_t> nodeList;
+                vector<float> distList;
+                myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);
+                int numInRange = (int)nodeList.size();
+                if (nearest)
+                {
+                    float tempDist = -1.0f;
+                    int closestNode = -1;
+                    for (int j = 0; j < numInRange; ++j)
+                    {
+                        if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
+                        {
+                            closestNode = nodeList[j];
+                            tempDist = distList[j];
+                        }
+                    }
+                    if (closestNode != -1)
+                    {
+                        colScratch[i] = myInputData[closestNode];
+                    } else {
+                        nodeList = myTopoHelp->getNodeNeighbors(i);
+                        nodeList.push_back(i);
+                        myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                        numInRange = (int)nodeList.size();
+                        for (int j = 0; j < numInRange; ++j)
+                        {
+                            if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
+                            {
+                                closestNode = nodeList[j];
+                                tempDist = distList[j];
+                            }
+                        }
+                        if (closestNode != -1)
+                        {
+                            colScratch[i] = myInputData[closestNode];
+                        } else {
+                            colScratch[i] = 0.0f;
+                        }
+                    }
+                } else {
                     float totalWeight = 0.0f, weightedSum = 0.0f;
                     for (int j = 0; j < numInRange; ++j)
                     {
@@ -209,99 +371,6 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                         } else {
                             colScratch[i] = 0.0f;
                         }
-                    }
-                } else {
-                    colScratch[i] = myInputData[i];
-                }
-            }
-            myMetricOut->setValuesForColumn(thisCol, colScratch.getArray());
-        }
-    } else {
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-        *(myMetricOut->getMapPaletteColorMapping(0)) = *(myMetric->getMapPaletteColorMapping(columnNum));
-        const float* myInputData = myMetric->getValuePointerForColumn(columnNum);
-        myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
-        if (badNodeRoi == NULL)
-        {
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (myInputData[i] == 0.0f)
-                {
-                    markArray[i] = 0;
-                } else {
-                    markArray[i] = 1;
-                }
-            }
-        } else {
-            const float* myRoiData = badNodeRoi->getValuePointerForColumn(0);
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (myRoiData[i] > 0.0f)
-                {
-                    markArray[i] = 0;
-                } else {
-                    markArray[i] = 1;
-                }
-            }
-        }
-        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-        for (int i = 0; i < numNodes; ++i)
-        {
-            if (markArray[i] == 0)
-            {
-                vector<int32_t> nodeList;
-                vector<float> distList;
-                myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);
-                int numInRange = (int)nodeList.size();
-                float totalWeight = 0.0f, weightedSum = 0.0f;
-                for (int j = 0; j < numInRange; ++j)
-                {
-                    if (markArray[nodeList[j]] == 1)
-                    {
-                        float weight;
-                        const float tolerance = 0.00001f;
-                        if (distList[j] > tolerance)
-                        {
-                            weight = myAreas[nodeList[j]] / distList[j] / distList[j];
-                        } else {
-                            weight = myAreas[nodeList[j]] / tolerance / tolerance;
-                        }
-                        totalWeight += weight;
-                        weightedSum += myInputData[nodeList[j]] * weight;
-                    }
-                }
-                if (totalWeight != 0.0f)
-                {
-                    colScratch[i] = weightedSum / totalWeight;
-                } else {
-                    nodeList = myTopoHelp->getNodeNeighbors(i);
-                    nodeList.push_back(i);
-                    myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
-                    numInRange = (int)nodeList.size();
-                    totalWeight = 0.0f;//not really needed, but hey
-                    weightedSum = 0.0f;
-                    for (int j = 0; j < numInRange; ++j)
-                    {
-                        if (markArray[nodeList[j]] == 1)
-                        {
-                            float weight;
-                            const float tolerance = 0.00001f;
-                            if (distList[j] > tolerance)
-                            {
-                                weight = myAreas[nodeList[j]] / distList[j] / distList[j];
-                            } else {
-                                weight = myAreas[nodeList[j]] / tolerance / tolerance;
-                            }
-                            totalWeight += weight;
-                            weightedSum += myInputData[nodeList[j]] * weight;
-                        }
-                    }
-                    if (totalWeight != 0.0f)
-                    {
-                        colScratch[i] = weightedSum / totalWeight;
-                    } else {
-                        colScratch[i] = 0.0f;
                     }
                 }
             } else {
