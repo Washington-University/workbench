@@ -1187,30 +1187,33 @@ BrowserTabContent::setScaling(const float scaling)
 }
 
 /**
- * @return The viewing rotation matrix.
+ * @return The rotation matrix.
  */
-Matrix4x4*
-BrowserTabContent::getViewingRotationMatrix()
+Matrix4x4
+BrowserTabContent::getRotationMatrix() const
 {
     if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceRotationMatrix;
+        return *m_volumeSliceRotationMatrix;
     }
     else {
-        return m_rotationMatrix;
+        return *m_rotationMatrix;
     }
 }
 
 /**
- * @return The viewing rotation matrix.
+ * Set the rotation matrix.
+ *
+ * @param rotationMatrix
+ *    The new rotation matrix.
  */
-const Matrix4x4*
-BrowserTabContent::getViewingRotationMatrix() const
+void
+BrowserTabContent::setRotationMatrix(const Matrix4x4& rotationMatrix)
 {
     if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceRotationMatrix;
+        *m_volumeSliceRotationMatrix = rotationMatrix;
     }
     else {
-        return m_rotationMatrix;
+        *m_rotationMatrix = rotationMatrix;
     }
 }
 
@@ -1852,9 +1855,9 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
 {
     modelTransform.setTranslation(getTranslation());
     
-    const Matrix4x4* rotMatrix = getViewingRotationMatrix();
+    const Matrix4x4 rotMatrix = getRotationMatrix();
     float m[4][4];
-    rotMatrix->getMatrix(m);
+    rotMatrix.getMatrix(m);
     modelTransform.setRotation(m);
     modelTransform.setScaling(getScaling());
 }
@@ -1875,11 +1878,13 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     
     setTranslation(tx, ty, tz);
 
-    Matrix4x4* rotationMatrix = getViewingRotationMatrix();
     float m[4][4];
     modelTransform.getRotation(m);
-    rotationMatrix->setMatrix(m);
     
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setMatrix(m);
+    setRotationMatrix(rotationMatrix);
+
     const float scale = modelTransform.getScaling();
     setScaling(scale);
 }

@@ -165,9 +165,9 @@ namespace caret {
         
         void setScaling(const float scaling);
         
-        Matrix4x4* getViewingRotationMatrix();
+        Matrix4x4 getRotationMatrix() const;
         
-        const Matrix4x4* getViewingRotationMatrix() const;
+        void setRotationMatrix(const Matrix4x4& rotationMatrix);
         
         ProjectionViewTypeEnum::Enum getProjectionViewType() const;
         

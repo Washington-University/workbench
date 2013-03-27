@@ -681,11 +681,11 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
             Model* model = btc->getModelControllerForTransformation();
             if (model != NULL) {
                 const float* panning = btc->getTranslation();
-                const Matrix4x4* rotationMatrix = btc->getViewingRotationMatrix();
+                const Matrix4x4 rotationMatrix = btc->getRotationMatrix();
                 const float zooming = btc->getScaling();
                 
                 double rotX, rotY, rotZ;
-                rotationMatrix->getRotation(rotX, rotY, rotZ);
+                rotationMatrix.getRotation(rotX, rotY, rotZ);
                 
                 setTransformationControlValues(panning[0],
                                                panning[1],

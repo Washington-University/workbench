@@ -247,10 +247,11 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
             
         {
-            Matrix4x4* rotationMatrix = browserTabContent->getViewingRotationMatrix();
-            rotationMatrix->rotateX(dx);
-            rotationMatrix->rotateY(dy);
-            rotationMatrix->rotateZ(dz);
+            Matrix4x4 rotationMatrix = browserTabContent->getRotationMatrix();
+            rotationMatrix.rotateX(dx);
+            rotationMatrix.rotateY(dy);
+            rotationMatrix.rotateZ(dz);
+            browserTabContent->setRotationMatrix(rotationMatrix);
             
 //            /*
 //             * There are several rotation matrix.  The 'NORMAL' matrix is used
