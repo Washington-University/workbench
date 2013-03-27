@@ -104,13 +104,13 @@ void OperationSetMapName::useParameters(OperationParameters* myParams, ProgressO
         }
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
         {
             CiftiFile myCifti;
             myCifti.openFile(fileName, IN_MEMORY);
             CiftiXML myXML = myCifti.getCiftiXML();
-            if (myXML.getMappingType(CiftiXML::ALONG_ROW) != CIFTI_INDEX_TYPE_SCALARS) throw OperationException("cifti file is not a dense scalar file");
             if (mapIndex >= myXML.getNumberOfColumns()) throw OperationException("cifti file doesn't have enough columns for specified map index");
-            myXML.setMapNameForRowIndex(mapIndex, mapName);//need to remove this nomenclature
+            if (!myXML.setMapNameForIndex(CiftiXML::ALONG_ROW, mapIndex, mapName)) throw OperationException("failed to set map name, check the type of the cifti file");
             CiftiFile myOutCifti(ON_DISK);
             myOutCifti.setCiftiCacheFile(fileName);
             myOutCifti.setCiftiXML(myXML);
