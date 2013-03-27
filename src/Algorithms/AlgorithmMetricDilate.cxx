@@ -64,9 +64,10 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a good vertex or are within the specified distance of a good vertex, ") +
-        "replace the value with a distance weighted average of nearby good vertices, otherwise set the value to zero.  If -bad-vertex-roi is specified, " +
-        "all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  If it is not specified, " +
-        "only vertices with value zero are bad."
+        "replace the value with a distance weighted average of nearby good vertices, otherwise set the value to zero.  " +
+        "If -nearest is specified, it will use the value from the closest good vertex within range instead of a weighted average.\n\n" +
+        "If -bad-vertex-roi is specified, all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  " +
+        "If it is not specified, only vertices with a value of zero are bad."
     );
     return ret;
 }
