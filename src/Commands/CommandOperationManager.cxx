@@ -63,6 +63,7 @@
 #include "AlgorithmSurfaceApplyWarpfield.h"
 #include "AlgorithmSurfaceAverage.h"
 #include "AlgorithmSurfaceCortexLayer.h"
+#include "AlgorithmSurfaceDistortion.h"
 #include "AlgorithmSurfaceGenerateInflated.h"
 #include "AlgorithmSurfaceInflation.h"
 #include "AlgorithmSurfaceMatch.h"
@@ -218,6 +219,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
 #endif // VELAB_INTERNAL_RELEASE_ONLY
 
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceDistortion()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGenerateInflated()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceInflation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
