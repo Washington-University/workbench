@@ -49,6 +49,7 @@ namespace caret {
         enum Method
         {
             GEO_GAUSS_AREA,
+            GEO_GAUSS_EQUAL,
             GEO_GAUSS
         };
         MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi = NULL, Method myMethod = GEO_GAUSS_AREA);
@@ -70,6 +71,8 @@ namespace caret {
         void precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
         void precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel);
         void precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
+        void precomputeWeightsGeoGaussEqual(const SurfaceFile* mySurf, float myKernel);
+        void precomputeWeightsROIGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
         MetricSmoothingObject();
     };
     

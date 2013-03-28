@@ -63,7 +63,7 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     
     ret->setHelpText(
         AString("This command, when not using -caret5-method, is equivalent to using -surface-vertex-areas on each surface, ") +
-        "smoothing both output metrics on the surface they came from if -smooth is specified, and then using the formula " +
+        "smoothing both output metrics with the GEO_GAUSS_EQUAL method on the surface they came from if -smooth is specified, and then using the formula " +
         "'ln(distorted/reference)/ln(2)' on the smoothed results.\n\n" +
         "When using -caret5-method, it uses the surface distortion method from caret5, which takes the base 2 log of the ratio of tile areas, " +
         "then averages those results at each vertex, and then smooths the result on the reference surface."
@@ -159,8 +159,8 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         {
             MetricFile tempResult;
             tempResult.setNumberOfNodesAndColumns(numNodes, 1);
-            tempResult.setValuesForColumn(0, nodescratch.data());
-            AlgorithmMetricSmoothing(caret5Smooth, referenceSurf, &tempResult, smooth, myMetricOut);
+            tempResult.setValuesForColumn(0, nodescratch.data());//TSC: not sure what the "best" smoothing method here is, but there isn't a "correct" one because this method has flaws
+            AlgorithmMetricSmoothing(caret5Smooth, referenceSurf, &tempResult, smooth, myMetricOut, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_AREA);
             myMetricOut->setStructure(referenceSurf->getStructure());//just in case we change where metric smoothing gets structure from
             myMetricOut->setColumnName(0, "area distortion (caret5)");
         } else {
@@ -180,8 +180,8 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         const float* refData = refAreas.getValuePointerForColumn(0), *distortData = distortAreas.getValuePointerForColumn(0);
         if (smooth > 0.0f)
         {
-            AlgorithmMetricSmoothing(smoothRef, referenceSurf, &refAreas, smooth, &refSmoothed);
-            AlgorithmMetricSmoothing(smoothDistort, distortedSurf, &distortAreas, smooth, &distortSmoothed);
+            AlgorithmMetricSmoothing(smoothRef, referenceSurf, &refAreas, smooth, &refSmoothed, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_EQUAL);
+            AlgorithmMetricSmoothing(smoothDistort, distortedSurf, &distortAreas, smooth, &distortSmoothed, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_EQUAL);
             refData = refSmoothed.getValuePointerForColumn(0);
             distortData = distortSmoothed.getValuePointerForColumn(0);
         }

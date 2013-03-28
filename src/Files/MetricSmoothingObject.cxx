@@ -496,6 +496,139 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* 
     }
 }
 
+void MetricSmoothingObject::precomputeWeightsGeoGaussEqual(const SurfaceFile* mySurf, float myKernel)
+{//this method is normalized in two ways to provide evenly diffusing smoothing with equivalent sum of values as input - this special purpose smoothing is for things that should not be integrated across the surface
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
+    tempList.resize(numNodes);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            myGeoHelp->getNodesToGeoDist(i, myGeoDist, tempList[i].m_nodes, distances, true);
+            const vector<int32_t>& tempneighbors = myTopoHelp->getNodeNeighbors(i);
+            if (distances.size() <= tempneighbors.size())//because neighbors doesn't include center, so if they are equal, geo is missing a neighbor
+            {
+                tempList[i].m_nodes = tempneighbors;
+                tempList[i].m_nodes.push_back(i);
+                myGeoHelp->getGeoToTheseNodes(i, tempList[i].m_nodes, distances, true);
+            }
+            int32_t numNeigh = (int32_t)distances.size();
+            tempList[i].m_weights.resize(numNeigh);
+            tempList[i].m_weightSum = 0.0f;
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                tempList[i].m_weights[j] = weight;//we multiply by area so that a node scattering to a dense region on one side and a sparse region on the other
+                tempList[i].m_weightSum += weight;//gives similar areal influence to each direction rather than giving a more influence on the dense region (simply because nodes are more numerous)
+            }
+            float myFactor = 1.0f / tempList[i].m_weightSum;//make each scattering kernel sum to 1
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                tempList[i].m_weights[j] *= myFactor;
+            }
+            tempList[i].m_weightSum = 1.0f;
+        }
+    }
+    m_weightLists.resize(numNodes);//now convert it to gathering kernels
+    for (int32_t i = 0; i < numNodes; ++i)//sadly, this is VERY hard to parallelize in a manner that is efficient, since it needs random access modification
+    {
+        m_weightLists[i].m_weightSum = 0.0f;//memory initialization may not go much faster in parallel
+        size_t neighborCount = tempList[i].m_nodes.size();
+        m_weightLists[i].m_nodes.reserve(neighborCount);//also preallocate the expected number of nodes (geodesic distance should be symmetric except for rounding errors, so it should usually be exact)
+        m_weightLists[i].m_weights.reserve(neighborCount);
+    }
+    for (int32_t i = 0; i < numNodes; ++i)//and this needs to push onto random vectors in the weight list
+    {
+        int32_t numNeigh = tempList[i].m_nodes.size();
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            int32_t node = tempList[i].m_nodes[j];
+            float weight = tempList[i].m_weights[j];
+            m_weightLists[node].m_nodes.push_back(i);
+            m_weightLists[node].m_weights.push_back(weight);
+            m_weightLists[node].m_weightSum += weight;
+        }
+    }
+}
+
+void MetricSmoothingObject::precomputeWeightsROIGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+{
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
+    tempList.resize(numNodes);
+    const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+        vector<int32_t> nodes;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            if (myRoiColumn[i] > 0.0f)//we don't need to scatter from things outside the ROI
+            {
+                myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+                const vector<int32_t>& tempneighbors = myTopoHelp->getNodeNeighbors(i);
+                if (distances.size() <= tempneighbors.size())//because neighbors doesn't include center, so if they are equal, geo is missing a neighbor
+                {
+                    nodes = tempneighbors;
+                    nodes.push_back(i);
+                    myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
+                }
+                int32_t numNeigh = (int32_t)distances.size();
+                tempList[i].m_weightSum = 0.0f;
+                for (int32_t j = 0; j < numNeigh; ++j)
+                {//but we DO need to compute scattering TO things outside the ROI, so that our normalization doesn't increase the in-ROI influence of edge nodes
+                    float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                    tempList[i].m_weightSum += weight;//add it to the total weight in order to normalize correctly
+                    if (myRoiColumn[nodes[j]] > 0.0f)
+                    {//BUT, don't add it to the list if it is outside the ROI
+                        tempList[i].m_nodes.push_back(nodes[j]);
+                        tempList[i].m_weights.push_back(weight);
+                    }
+                }
+                float myFactor = 1.0f / tempList[i].m_weightSum;//make each scattering kernel sum to 1
+                int32_t numUsed = (int32_t)tempList[i].m_nodes.size();
+                for (int32_t j = 0; j < numUsed; ++j)
+                {
+                    tempList[i].m_weights[j] *= myFactor;
+                }
+                tempList[i].m_weightSum = 0.0f;//this is never actually used again, but make sure it is wrong in case anything tries to use it
+            }
+        }
+    }
+    m_weightLists.resize(numNodes);//now convert it to gathering kernels
+    for (int32_t i = 0; i < numNodes; ++i)//sadly, this is VERY hard to parallelize in a manner that is efficient, since it needs random access modification
+    {
+        m_weightLists[i].m_weightSum = 0.0f;//memory initialization may not go much faster in parallel
+        size_t neighborCount = tempList[i].m_nodes.size();
+        m_weightLists[i].m_nodes.reserve(neighborCount);//also preallocate the expected number of nodes, again, should be exact except for rounding errors in geodesic distance
+        m_weightLists[i].m_weights.reserve(neighborCount);
+    }
+    for (int32_t i = 0; i < numNodes; ++i)//and this needs to push onto random vectors in the weight list
+    {
+        int32_t numNeigh = tempList[i].m_nodes.size();
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            int32_t node = tempList[i].m_nodes[j];
+            float weight = tempList[i].m_weights[j];
+            m_weightLists[node].m_nodes.push_back(i);
+            m_weightLists[node].m_weights.push_back(weight);
+            m_weightLists[node].m_weightSum += weight;
+        }
+    }
+}
+
 void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod)
 {
     if (theRoi != NULL)
@@ -504,6 +637,9 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
         {
             case GEO_GAUSS_AREA:
                 precomputeWeightsROIGeoGaussArea(mySurf, myKernel, theRoi);
+                break;
+            case GEO_GAUSS_EQUAL:
+                precomputeWeightsROIGeoGaussEqual(mySurf, myKernel, theRoi);
                 break;
             case GEO_GAUSS:
                 precomputeWeightsROIGeoGauss(mySurf, myKernel, theRoi);
@@ -516,6 +652,9 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
         {
             case GEO_GAUSS_AREA:
                 precomputeWeightsGeoGaussArea(mySurf, myKernel);
+                break;
+            case GEO_GAUSS_EQUAL:
+                precomputeWeightsGeoGaussEqual(mySurf, myKernel);
                 break;
             case GEO_GAUSS:
                 precomputeWeightsGeoGauss(mySurf, myKernel);
