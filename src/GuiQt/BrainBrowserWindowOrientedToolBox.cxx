@@ -17,6 +17,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
+#include "ChartViewController.h"
 #include "ConnectivityManagerViewController.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
@@ -78,6 +79,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     
     m_borderSelectionViewController = NULL;
+    m_chartViewController = NULL;
     m_connectivityViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fiberTrajectorySelectionViewController = NULL;
@@ -90,6 +92,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_tabWidget = new QTabWidget();
     
     m_borderTabIndex = -1;
+    m_chartTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
     m_fiberTrajectoryTabIndex = -1;
@@ -119,6 +122,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
         m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
                              "Data Series");
+    }
+    if (isOverlayToolBox) {
+        m_chartViewController = new ChartViewController(orientation,
+                                                        browserWindowIndex);
+        m_chartTabIndex = addToTabWidget(m_chartViewController,
+                                               "Charts");                                                        
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,

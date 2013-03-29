@@ -40,6 +40,7 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+ChartViewController.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 ConnectivityManagerViewController.h
@@ -138,6 +139,7 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+ChartViewController.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 ConnectivityManagerViewController.h
@@ -253,6 +255,7 @@ CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
+ChartViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityManagerViewController.cxx

@@ -13,6 +13,7 @@ class QTabWidget;
 
 namespace caret {
     class BorderSelectionViewController;
+    class ChartViewController;
     class ConnectivityManagerViewController;
     class FiberOrientationSelectionViewController;
     class FiberTrajectorySelectionViewController;
@@ -61,6 +62,8 @@ namespace caret {
         OverlaySetViewController* m_overlaySetViewController;
         
         BorderSelectionViewController* m_borderSelectionViewController;
+
+        ChartViewController* m_chartViewController;
         
         ConnectivityManagerViewController* m_connectivityViewController;
         
@@ -86,6 +89,8 @@ namespace caret {
         int32_t m_overlayTabIndex;
         
         int32_t m_borderTabIndex;
+
+        int32_t m_chartTabIndex;
         
         int32_t m_connectivityTabIndex;
         
