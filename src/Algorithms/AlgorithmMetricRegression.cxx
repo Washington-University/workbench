@@ -235,7 +235,7 @@ AlgorithmMetricRegression::AlgorithmMetricRegression(ProgressObject* myProgObj, 
             FloatMatrix regressed = solver * y;
             vector<float> outscratch(numNodes);
             m = 0;
-            for (int j = 0; j < numUsedNodes; ++j)
+            for (int j = 0; j < numNodes; ++j)
             {
                 if (roiData == NULL || roiData[j] > 0.0f)
                 {
