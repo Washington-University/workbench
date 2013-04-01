@@ -25,19 +25,14 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
-#include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
-#include "IdentificationManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "ModelVolume.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
-#include "SceneObjectMapIntegerKey.h"
-#include "ScenePrimitive.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -111,18 +106,24 @@ ModelVolume::getNameForBrowserTab() const
 VolumeFile* 
 ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
-    VolumeFile* vf = NULL;
-    
-    EventBrowserTabGet getBrowserTabEvent(windowTabNumber);
-    EventManager::get()->sendEvent(getBrowserTabEvent.getPointer());
-    BrowserTabContent* btc = getBrowserTabEvent.getBrowserTab();
-    if (btc != NULL) {
-        OverlaySet* overlaySet = btc->getOverlaySet();
-        vf = overlaySet->getUnderlayVolume();
-        if (vf == NULL) {
-            vf = overlaySet->setUnderlayToVolume();
-        }
+    CaretAssertArrayIndex(m_overlaySet,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumber);
+    VolumeFile* vf = m_overlaySet[windowTabNumber]->getUnderlayVolume();
+    if (vf == NULL) {
+        vf = m_overlaySet[windowTabNumber]->setUnderlayToVolume();
     }
+    
+//    EventBrowserTabGet getBrowserTabEvent(windowTabNumber);
+//    EventManager::get()->sendEvent(getBrowserTabEvent.getPointer());
+//    BrowserTabContent* btc = getBrowserTabEvent.getBrowserTab();
+//    if (btc != NULL) {
+//        OverlaySet* overlaySet = btc->getOverlaySet();
+//        vf = overlaySet->getUnderlayVolume();
+//        if (vf == NULL) {
+//            vf = overlaySet->setUnderlayToVolume();
+//        }
+//    }
     
     return vf;
 }

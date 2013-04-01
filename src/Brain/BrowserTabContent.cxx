@@ -153,6 +153,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_wholeBrainSliceSettings",
                                "VolumeSliceSettings",
                                m_wholeBrainSliceSettings);
+
+    m_sceneClassAssistant->add("m_wholeBrainSurfaceSettings",
+                               "WholeBrainSurfaceSettings",
+                               m_wholeBrainSurfaceSettings);
+
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
                                                                    &m_yokingGroup);
     
@@ -554,6 +559,8 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
     
     const int32_t numModels = static_cast<int32_t>(modelDisplayControllers.size());
     
+    ModelVolume* previousVolumeModel = m_volumeModel;
+    
     m_allSurfaceModels.clear();
     m_surfaceModelSelector->getSelectableSurfaceControllers(m_allSurfaceModels);
     m_volumeModel = NULL;
@@ -625,6 +632,37 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
         }
         else if (m_surfaceMontageModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
+        }
+    }
+    
+    if (m_volumeModel != NULL) {
+        if (m_volumeModel != previousVolumeModel) {
+        
+            VolumeFile* underlayVolume = m_volumeModel->getOverlaySet(m_tabNumber)->getUnderlayVolume();
+            if (underlayVolume != NULL) {
+                /*
+                 * Set montage slice spacing based upon slices
+                 * in the Z-axis.
+                 */
+                std::vector<int64_t> dimensions;
+                underlayVolume->getDimensions(dimensions);
+                
+                if (dimensions.size() >= 3) {
+                    const int32_t dimZ = dimensions[2];
+                    if (dimZ > 0) {
+                        const int32_t maxZ = static_cast<int32_t>(dimZ * 0.90);
+                        const int32_t minZ = static_cast<int32_t>(dimZ * 0.10);
+                        const int32_t sliceRange = (maxZ - minZ);
+                        int32_t sliceSpacing = 1;
+                        if (sliceRange > 0) {
+                            const int32_t numSlicesViewed = (m_volumeSliceSettings->getMontageNumberOfRows()
+                                                             * m_volumeSliceSettings->getMontageNumberOfColumns());
+                            sliceSpacing = (sliceRange / numSlicesViewed);
+                        }
+                        m_volumeSliceSettings->setMontageSliceSpacing(sliceSpacing);
+                    }
+                }
+            }
         }
     }
 }
