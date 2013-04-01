@@ -30,6 +30,7 @@
 #include <QStack>
 #include <QToolBar>
 
+#include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
 #include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
@@ -110,7 +111,7 @@ namespace caret {
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
-        ModelVolumeInterface* getModelVolumeForViewSelections();
+//        ModelVolumeInterface* getModelVolumeForViewSelections();
         
         Model* getDisplayedModelController();
         
@@ -121,6 +122,7 @@ namespace caret {
         void updateUserInterface();
         void updateToolBox();
         void updateTabName(const int32_t tabIndex);
+        void updateOtherYokedWindows();
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();
@@ -344,12 +346,12 @@ namespace caret {
         
     private:
         
-        QComboBox* windowYokeGroupComboBox;
+        EnumComboBoxTemplate* m_yokingGroupComboBox;
         WuQWidgetObjectGroup* windowYokingWidgetGroup;
 
     
     private slots:
-        void windowYokeToGroupComboBoxIndexChanged(int indx);
+        void windowYokeToGroupComboBoxIndexChanged();
         
     private:
         StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;

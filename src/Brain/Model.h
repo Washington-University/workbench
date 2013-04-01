@@ -38,13 +38,7 @@ namespace caret {
     class Model : public CaretObject, public SceneableInterface {
         
     protected:
-        enum YokingAllowedType {
-            YOKING_ALLOWED_YES,
-            YOKING_ALLOWED_NO
-        };
-        
         Model(const ModelTypeEnum::Enum controllerType,
-                               const YokingAllowedType allowsYokingStatus,
                                Brain* brain);
         
         virtual ~Model();
@@ -65,10 +59,6 @@ namespace caret {
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
         virtual AString getNameForBrowserTab() const = 0;
-        
-        bool isYokeable() const;
-        
-        bool isYokingModel() const;
         
         virtual AString toString() const;
         
@@ -99,10 +89,6 @@ namespace caret {
         
     private:
         ModelTypeEnum::Enum m_modelType;
-        
-        YokingAllowedType m_allowsYokingStatus;
-        
-        bool m_isYokingController;
     };
 
 } // namespace

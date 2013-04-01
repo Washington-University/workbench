@@ -57,7 +57,6 @@
 #include <ModelVolume.h>
 #include <VolumeSliceViewModeEnum.h>
 #include <VolumeSliceViewPlaneEnum.h>
-#include <VolumeSliceCoordinateSelection.h>
 #include <VolumeFile.h>
 
 using namespace caret;
@@ -242,7 +241,7 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
 	if (browserTabContent == NULL) {
 		return;
 	}
-    Model* modelController = browserTabContent->getModelControllerForTransformation();
+    Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
             
@@ -575,39 +574,39 @@ void MovieDialog::processUpdateVolumeSlice()
 		return;
 	}
 
-	VolumeSliceViewModeEnum::Enum vme = mv->getSliceViewMode(tabIndex);
+	VolumeSliceViewModeEnum::Enum vme = btc->getSliceViewMode();
 	if(vme != VolumeSliceViewModeEnum::ORTHOGONAL)
 	{
 		return;
 	}
 
 
-	VolumeSliceCoordinateSelection* vscs = mv->getSelectedVolumeSlices(tabIndex);
+//	VolumeSliceCoordinateSelection* vscs = btc->getSelectedVolumeSlices();
 	VolumeFile* vf = mv->getUnderlayVolumeFile(tabIndex);
 	std::vector<int64_t> dim;
 	vf->getDimensions(dim);
-	VolumeSliceViewPlaneEnum::Enum vpe = mv->getSliceViewPlane(tabIndex);
+	VolumeSliceViewPlaneEnum::Enum vpe = btc->getSliceViewPlane();
 	
 	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
 	   vpe == VolumeSliceViewPlaneEnum::AXIAL)
 	{		
-		int64_t sliceIndex = vscs->getSliceIndexAxial(vf);
+		int64_t sliceIndex = btc->getSliceIndexAxial(vf);
 		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::AXIAL,sliceIndex);
-		vscs->setSliceIndexAxial(vf,sliceIndex);
+		btc->setSliceIndexAxial(vf,sliceIndex);
 	}
 	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
 	   vpe == VolumeSliceViewPlaneEnum::CORONAL)
 	{
-		int64_t sliceIndex = vscs->getSliceIndexCoronal(vf);
+		int64_t sliceIndex = btc->getSliceIndexCoronal(vf);
 		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::CORONAL,sliceIndex);
-		vscs->setSliceIndexCoronal(vf,sliceIndex);
+		btc->setSliceIndexCoronal(vf,sliceIndex);
 	}
 	if(vpe == VolumeSliceViewPlaneEnum::ALL ||
 		vpe == VolumeSliceViewPlaneEnum::PARASAGITTAL)
 	{
-		int64_t sliceIndex = vscs->getSliceIndexParasagittal(vf);
+		int64_t sliceIndex = btc->getSliceIndexParasagittal(vf);
 		sliceIndex += this->getSliceDelta(dim,VolumeSliceViewPlaneEnum::PARASAGITTAL,sliceIndex);
-		vscs->setSliceIndexParasagittal(vf,sliceIndex);
+		btc->setSliceIndexParasagittal(vf,sliceIndex);
 	}
 }
 

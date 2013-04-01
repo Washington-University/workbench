@@ -90,9 +90,9 @@ namespace caret {
         void setSecondSurfaceEnabled(const int tabIndex,
                                     const bool enabled);
         
-        virtual void copyTransformationsAndViews(const Model& controller,
-                                                 const int32_t windowTabNumberSource,
-                                                 const int32_t windowTabNumberTarget);
+//        virtual void copyTransformationsAndViews(const Model& controller,
+//                                                 const int32_t windowTabNumberSource,
+//                                                 const int32_t windowTabNumberTarget);
         
         void setMontageViewports(const int32_t tabIndex,
                                  const std::vector<SurfaceMontageViewport>& montageViewports);

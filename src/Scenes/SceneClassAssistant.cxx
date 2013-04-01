@@ -98,6 +98,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          float* floatAddress)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(floatAddress);
     FloatData* fd = new FloatData(name,
                                   floatAddress,
@@ -120,6 +121,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          int32_t* integerAddress)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(integerAddress);
     IntegerData* id = new IntegerData(name,
                                   integerAddress,
@@ -142,6 +144,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          bool* booleanAddress)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(booleanAddress);
     BooleanData* bd = new BooleanData(name,
                                       booleanAddress,
@@ -164,6 +167,7 @@ void
 SceneClassAssistant::add(const AString& name,
                          AString* stringAddress)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(stringAddress);
     StringData* sd = new StringData(name,
                                       stringAddress,
@@ -214,6 +218,7 @@ SceneClassAssistant::add(const AString& name,
                          const AString& className,
                          SceneableInterface* sceneClass)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(sceneClass);
     
     ClassData* cd = new ClassData(name,
@@ -239,6 +244,7 @@ SceneClassAssistant::addArray(const AString& name,
                               const int32_t numberOfElements,
                               const bool defaultValue)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(booleanArray);
     CaretAssert(numberOfElements >= 0);
     
@@ -266,6 +272,7 @@ SceneClassAssistant::addArray(const AString& name,
                               const int32_t numberOfElements,
                               const float defaultValue)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(floatArray);
     CaretAssert(numberOfElements >= 0);
     
@@ -293,6 +300,7 @@ SceneClassAssistant::addArray(const AString& name,
                               const int32_t numberOfElements,
                               const int32_t defaultValue)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(integerArray);
     CaretAssert(numberOfElements >= 0);
     
@@ -320,6 +328,7 @@ SceneClassAssistant::addArray(const AString& name,
                               const int32_t numberOfElements,
                               const AString& defaultValue)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(stringArray);
     CaretAssert(numberOfElements >= 0);
     
@@ -364,6 +373,7 @@ void
 SceneClassAssistant::addTabIndexedBooleanArray(const AString& name,
                                              bool* booleanArray)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(booleanArray);
     
     BooleanTabIndexArrayMapData* bad = new BooleanTabIndexArrayMapData(name,
@@ -385,6 +395,7 @@ void
 SceneClassAssistant::addTabIndexedIntegerArray(const AString& name,
                                              int32_t* integerArray)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(integerArray);
     
     IntegerTabIndexArrayMapData* bad = new IntegerTabIndexArrayMapData(name,
@@ -406,6 +417,7 @@ void
 SceneClassAssistant::addTabIndexedFloatArray(const AString& name,
                                            float* floatArray)
 {
+    CaretAssert(name.isEmpty() == false);
     CaretAssert(floatArray);
     
     FloatTabIndexArrayMapData* bad = new FloatTabIndexArrayMapData(name,

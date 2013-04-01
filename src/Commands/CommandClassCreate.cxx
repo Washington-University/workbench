@@ -86,6 +86,11 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "        Specify the parent (derived from) class.\n"
                         "        By default, the parent class is CaretObject.\n"
                         "    \n"
+                        "    -scene\n"
+                        "        Implement the SceneableInterface so that \n"
+                        "        instances of the class can be restored from \n"
+                        "        and saved to scenes. \n"
+                        "    \n"
                         );
     return helpInfo; 
 }
@@ -109,6 +114,7 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     AString eventTypeEnumName;
     
     bool hasCopyAndAssignment = false;
+    bool hasScenes = false;
     while (parameters.hasNext()) {
         const AString& param = parameters.nextString("Create Class Parameter");
         if (param == "-copy") {
@@ -134,6 +140,9 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
         }
         else if (param == "-no-parent") {
             derivedFromClassName = "";
+        }
+        else if (param == "-scene") {
+            hasScenes = true;
         }
         else {
             throw CommandException("Invalid parameter: " + param);
@@ -182,14 +191,16 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                            derivedFromClassName,
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
-                           hasCopyAndAssignment);
+                           hasCopyAndAssignment,
+                           hasScenes);
     
     this->createImplementationFile(implementationFileName,
                                    className, 
                                    derivedFromClassName,
                                    eventTypeEnumName,
                                    ifdefNameStaticDeclarations, 
-                                   hasCopyAndAssignment);
+                                   hasCopyAndAssignment,
+                                   hasScenes);
 }
 
 /**
@@ -207,6 +218,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
  *    Name for "infdef" of static declarations.
  * @param hasCopyAndAssignment
  *    Has copy constructor and assignment operator.
+ * @param hasScenes
+ *    Class implements the SceneableInterface for scene support.
  */
 void 
 CommandClassCreate::createHeaderFile(const AString& outputFileName,
@@ -214,7 +227,8 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
                                      const AString& derivedFromClassName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
-                                         const bool hasCopyAndAssignment)
+                                     const bool hasCopyAndAssignment,
+                                     const bool hasScenes)
 {
     AString t;
     
@@ -229,8 +243,22 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     
     t += (this->getIncludeDeclaration(derivedFromClassName) + "\n");
+    t += ("\n");    
+    if (hasScenes) {
+        t += (this->getIncludeDeclaration("SceneableInterface") + "\n");
+        if (derivedFromDeclaration.isEmpty()) {
+            derivedFromDeclaration += (" : ");
+        }
+        else {
+            derivedFromDeclaration += (", ");
+        }
+        derivedFromDeclaration += ("public SceneableInterface");
+    }
     t += ("\n");
     t += ("namespace caret {\n");
+    if (hasScenes) {
+        t += ("    class SceneClassAssistant;\n");
+    }
     t += ("\n");
 
     t += ("    class " + className + derivedFromDeclaration + " {\n");
@@ -269,16 +297,25 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("        virtual AString toString() const;\n");
         t += ("        \n");
     }
+    if (hasScenes) {
+        t += ("        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                        const AString& instanceName);\n");
+        t += ("\n");
+        t += ("        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                      const SceneClass* sceneClass);\n");
+        t += ("\n");
+    }
     
     t += ("    private:\n");
     
     if (hasCopyAndAssignment) {
         t += ("        void copyHelper" + className + "(const " + className + "& obj);\n");
+        t += ("\n");
     }
-    else {
-        
+    if (hasScenes) {
+        t += ("        SceneClassAssistant* m_sceneAssistant;\n");
+        t += ("\n");
     }
-    t += ("\n");
     t += ("        " + getNewMembersString() + "\n");
     t += ("\n");
     t += ("    };\n");
@@ -317,6 +354,8 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
  *    Name for "infdef" of static declarations.
  * @param hasCopyAndAssignment
  *    Has copy constructor and assignment operator.
+ * @param hasScenes
+ *    Class implements the SceneableInterface for scene support.
  */
 void 
 CommandClassCreate::createImplementationFile(const AString& outputFileName,
@@ -324,7 +363,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
                                              const AString& derivedFromClassName,
                                              const AString& eventTypeEnumName,
                                                  const AString& ifdefNameStaticDeclaration,
-                                                 const bool hasCopyAndAssignment)
+                                             const bool hasCopyAndAssignment,
+                                             const bool hasScenes)
 {
     AString module;
     FileInformation dirInfo(QDir::currentPath());
@@ -343,6 +383,11 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("\n");
     if (eventTypeEnumName.isEmpty() == false) {
         t += ("#include \"EventTypeEnum.h\"\n");
+        t += ("\n");
+    }
+    if (hasScenes) {
+        t += (this->getIncludeDeclaration("SceneClass") + "\n");
+        t += (this->getIncludeDeclaration("SceneClassAssistant") + "\n");
         t += ("\n");
     }
     t += ("using namespace caret;\n");
@@ -368,6 +413,10 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     }
     t += ("{\n");
     t += ("    \n");
+    if (hasScenes) {
+        t += ("    m_sceneAssistant = new SceneClassAssistant();\n");
+        t += ("    \n");
+    }
     t += ("}\n");
     t += ("\n");
     t += ("/**\n");
@@ -375,6 +424,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += (" */\n");
     t += ("" + className + "::~" + className + "()\n");
     t += ("{\n");
+    if (hasScenes) {
+        t += ("    delete m_sceneAssistant;\n");
+    }
     t += ("    \n");
     t += ("}\n");
     t += ("\n");
@@ -431,8 +483,58 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("{\n");
         t += ("    return \"" + className + "\";\n");
         t += ("}\n");
+        t += ("\n");
     }
 
+    if (hasScenes) {
+        t += ("/**\n");
+        t += (" * Save information specific to this type of model to the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneAttributes\n");
+        t += (" *    Attributes for the scene.  Scenes may be of different types\n");
+        t += (" *    (full, generic, etc) and the attributes should be checked when\n");
+        t += (" *    saving the scene.\n");
+        t += (" *\n");
+        t += (" * @param instanceName\n");
+        t += (" *    Name of instance in the scene.\n");
+        t += (" */\n");
+        t += ("SceneClass*\n");
+        t += (className + "::saveToScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                 const AString& instanceName)\n");
+        t += ("{\n");
+        t += ("    SceneClass* sceneClass = new SceneClass(instanceName,\n");
+        t += ("                                            \"" + className + "\",\n");
+        t += ("                                            1);\n");
+        t += ("    m_sceneAssistant->saveMembers(sceneAttributes,\n");
+        t += ("                                  sceneClass);\n");
+        t += ("    \n");
+        t += ("    return sceneClass;\n");
+        t += ("}\n");
+        t += ("\n");
+        t += ("/**\n");
+        t += (" * Restore information specific to the type of model from the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneAttributes\n");
+        t += (" *    Attributes for the scene.  Scenes may be of different types\n");
+        t += (" *    (full, generic, etc) and the attributes should be checked when\n");
+        t += (" *    restoring the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneClass\n");
+        t += (" *     sceneClass from which model specific information is obtained.\n");
+        t += (" */\n");
+        t += ("void\n");
+        t += (className + "::restoreFromScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                      const SceneClass* sceneClass)\n");
+        t += ("{\n");
+        t += ("    if (sceneClass == NULL) {\n");
+        t += ("        return;\n");
+        t += ("    }\n");
+        t += ("    \n");
+        t += ("    m_sceneAssistant->restoreMembers(sceneAttributes,\n");
+        t += ("                                     sceneClass);    \n");    
+        t += ("}\n");
+        t += ("\n");
+    }
     TextFile tf;
     tf.replaceText(t);
     

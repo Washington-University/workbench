@@ -128,24 +128,6 @@ Overlay::Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
 }
 
 /**
- * Constructor for
- * @param
- *    Controller that is for 
- */
-Overlay::Overlay(ModelYokingGroup* /*modelDisplayControllerYokingGroup*/)
-: CaretObject()
-{
-//    CaretAssert(modelDisplayControllerYokingGroup);
-    
-    m_volumeController  = NULL;
-    m_wholeBrainController  = NULL;
-    m_surfaceMontageController = NULL;
-    
-    initializeOverlay(NULL,
-                            NULL);
-}
-
-/**
  * Initialize the overlay's members.
  * @param modelDisplayController
  *    Controller that uses this overlay.

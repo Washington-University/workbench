@@ -25,12 +25,17 @@
  * 
  */ 
 
+#include <set>
+
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
+#include "VolumeSliceViewModeEnum.h"
+#include "VolumeSliceViewPlaneEnum.h"
+#include "YokingGroupEnum.h"
 
 namespace caret {
 
@@ -44,12 +49,15 @@ namespace caret {
     class ModelTransform;
     class ModelVolume;
     class ModelWholeBrain;
-    class ModelYokingGroup;
     class OverlaySet;
     class Palette;
     class SceneClassAssistant;
     class Surface;
+    class ViewingTransformations;
+    class VolumeFile;
+    class VolumeSliceSettings;
     class VolumeSurfaceOutlineSetModel;
+    class WholeBrainSurfaceSettings;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -85,8 +93,6 @@ namespace caret {
         
         Model* getModelControllerForDisplay();
         
-        Model* getModelControllerForTransformation();
-        
         ModelSurface* getDisplayedSurfaceModel();
         
         const ModelSurface* getDisplayedSurfaceModel() const;
@@ -103,6 +109,8 @@ namespace caret {
         
         bool isVolumeSlicesDisplayed() const;
         
+        bool isWholeBrainDisplayed() const;
+        
         void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
         void update(const std::vector<Model*> modelDisplayControllers);
@@ -117,24 +125,12 @@ namespace caret {
         
         void updateTransformationsForYoking();
         
-        bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
-        
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
         
         VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet();
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
-        
-        const ModelYokingGroup* getSelectedYokingGroup() const;
-        
-        ModelYokingGroup* getSelectedYokingGroup();
-        
-        const ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model) const;
-        
-        ModelYokingGroup* getSelectedYokingGroupForModel(const Model* model);
-        
-        void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
         
         bool isClippingPlaneEnabled(const int32_t indx) const;
         
@@ -208,6 +204,103 @@ namespace caret {
         
         void setTransformationsFromModelTransform(const ModelTransform& modelTransform);
         
+        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
+        
+        void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        
+        VolumeSliceViewModeEnum::Enum getSliceViewMode() const;
+        
+        void setSliceViewMode(VolumeSliceViewModeEnum::Enum sliceViewMode);
+        
+        int32_t getMontageNumberOfColumns() const;
+        
+        void setMontageNumberOfColumns(const int32_t montageNumberOfColumns);
+        
+        int32_t getMontageNumberOfRows() const;
+        
+        void setMontageNumberOfRows(const int32_t montageNumberOfRows);
+        
+        int32_t getMontageSliceSpacing() const;
+        
+        void setMontageSliceSpacing(const int32_t montageSliceSpacing);
+        
+        void setSlicesToOrigin();
+        
+        float getSliceCoordinateAxial() const;
+        
+        void setSliceCoordinateAxial(const float x);
+        
+        float getSliceCoordinateCoronal() const;
+        
+        void setSliceCoordinateCoronal(const float y);
+        
+        float getSliceCoordinateParasagittal() const;
+        
+        void setSliceCoordinateParasagittal(const float z);
+        
+        int64_t getSliceIndexAxial(const VolumeFile* volumeFile) const;
+        
+        void setSliceIndexAxial(const VolumeFile* volumeFile,
+                                const int64_t sliceIndexAxial);
+        
+        int64_t getSliceIndexCoronal(const VolumeFile* volumeFile) const;
+        
+        void setSliceIndexCoronal(const VolumeFile* volumeFile,
+                                  const int64_t sliceIndexCoronal);
+        
+        int64_t getSliceIndexParasagittal(const VolumeFile* volumeFile) const;
+        
+        void setSliceIndexParasagittal(const VolumeFile* volumeFile,
+                                       const int64_t sliceIndexParasagittal);
+        
+        bool isSliceParasagittalEnabled() const;
+        
+        void setSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
+        
+        bool isSliceCoronalEnabled() const;
+        
+        void setSliceCoronalEnabled(const bool sliceEnabledCoronal);
+        
+        bool isSliceAxialEnabled() const;
+        
+        void setSliceAxialEnabled(const bool sliceEnabledAxial);
+        
+        void updateForVolumeFile(const VolumeFile* volumeFile);
+        
+        void selectSlicesAtOrigin();
+        
+        void selectSlicesAtCoordinate(const float xyz[3]);
+        
+        void reset();
+
+        void updateYokedBrowserTabs();
+        
+        bool isYoked() const;
+        
+        YokingGroupEnum::Enum getYokingGroup() const;
+        
+        void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+        
+        bool isWholeBrainLeftEnabled() const;
+        
+        void setWholeBrainLeftEnabled(const bool enabled);
+        
+        bool isWholeBrainRightEnabled() const;
+        
+        void setWholeBrainRightEnabled(const bool enabled);
+        
+        bool isWholeBrainCerebellumEnabled() const;
+        
+        void setWholeBrainCerebellumEnabled(const bool enabled);
+        
+        float getWholeBrainLeftRightSeparation() const;
+        
+        void setWholeBrainLeftRightSeparation(const float separation);
+        
+        float getWholeBrainCerebellumSeparation() const;
+        
+        void setWholeBrainCerebellumSeparation(const float separation);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -265,8 +358,8 @@ namespace caret {
          */
         bool m_clippingEnabled[3];
         
-        /** Controls yoking */
-        ModelYokingGroup* m_selectedYokingGroup;
+        /** Yoking group */
+        YokingGroupEnum::Enum m_yokingGroup;
         
         /** Volume Surface Outlines */
         VolumeSurfaceOutlineSetModel* m_volumeSurfaceOutlineSetModel;
@@ -274,28 +367,27 @@ namespace caret {
         /** Assists with creating/restoring scenes */
         SceneClassAssistant* m_sceneClassAssistant;
         
-        /** Rotation matrix. */
-        Matrix4x4* m_rotationMatrix;
+        /** Transformation for surface/all viewing */
+        ViewingTransformations* m_viewingTransformation;
         
-        /** Translation */
-        float m_translation[3];
+        /** Transformation for volume slices viewing */
+        ViewingTransformations* m_volumeSliceViewingTransformation;
+
+        /** Volume slice settings for volume slices */
+        VolumeSliceSettings* m_volumeSliceSettings;
         
-        /** Scaling. */
-        float m_scaling;
+        /** Volume slice settings for whole brain */
+        VolumeSliceSettings* m_wholeBrainSliceSettings;
         
-        /** Rotation matrix for volume slices. */
-        Matrix4x4* m_volumeSliceRotationMatrix;
+        /** Whole brain surface settings. */
+        WholeBrainSurfaceSettings* m_wholeBrainSurfaceSettings;
         
-        /** Translation for volume slices */
-        float m_volumeSliceTranslation[3];
-        
-        /** Scaling for volume slices */
-        float m_volumeSliceScaling;
-        
+        /** Contains all active browser tab content instances */
+        static std::set<BrowserTabContent*> s_allBrowserTabContent;
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<BrowserTabContent*> BrowserTabContent::s_allBrowserTabContent;
 #endif // __BROWSER_TAB_CONTENT_DECLARE__
 
 } // namespace

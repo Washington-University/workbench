@@ -59,7 +59,6 @@
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Model.h"
-#include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
@@ -786,21 +785,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 return;
             }
             
-            const int32_t numItemsToDraw = getModelEvent.getNumberOfItemsToDraw();
             bool needUpdate = false;
-            if (numItemsToDraw > 0) {
-                for (int32_t i = 0; i < numItemsToDraw; i++) {
-                    BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
-                    if (btc != NULL) {
-                        Model* mdc = btc->getModelControllerForDisplay();
-                        ModelYokingGroup* myg = btc->getSelectedYokingGroupForModel(mdc);
-                        if (myg != NULL) {
-                            needUpdate = true;
-                            break;
-                        }
-                    }
-                }
-            }
             if (needUpdate) {
                 this->updateGL();
             }

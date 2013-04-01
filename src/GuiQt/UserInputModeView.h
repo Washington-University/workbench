@@ -64,6 +64,8 @@ namespace caret {
         UserInputModeView(const UserInputModeView&);
 
         UserInputModeView& operator=(const UserInputModeView&);
+
+        void updateGraphics(const MouseEvent& mouseEvent);
         
         void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
                                             BrainOpenGLWidget* openGLWidget,

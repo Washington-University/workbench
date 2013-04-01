@@ -50,7 +50,6 @@ using namespace caret;
 ModelSurface::ModelSurface(Brain* brain,
                                                              Surface* surface)
 : Model(ModelTypeEnum::MODEL_TYPE_SURFACE,
-                         YOKING_ALLOWED_YES,
                          brain)
 {
     CaretAssert(surface);

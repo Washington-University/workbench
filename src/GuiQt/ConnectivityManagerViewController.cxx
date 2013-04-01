@@ -585,7 +585,7 @@ ConnectivityManagerViewController::processRotateTransformation(const double dx,
 	if (browserTabContent == NULL) {
 		return;
 	}
-    Model* modelController = browserTabContent->getModelControllerForTransformation();
+    Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
             

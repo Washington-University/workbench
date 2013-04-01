@@ -162,6 +162,7 @@ EventOperatingSystemRequestOpenDataFile.h
 EventUpdateAnimationStartTime.h
 EventUpdateInformationWindows.h
 EventUpdateTimeCourseDialog.h
+EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
 FiberTrajectorySelectionViewController.h
@@ -277,6 +278,7 @@ EventOperatingSystemRequestOpenDataFile.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateTimeCourseDialog.cxx
+EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
 FiberTrajectorySelectionViewController.cxx

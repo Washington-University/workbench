@@ -62,14 +62,16 @@ namespace caret {
                               const AString& derivedFromClassName,
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
-                              const bool hasCopyAndAssignment);
+                              const bool hasCopyAndAssignment,
+                              const bool hasScenes);
         
         void createImplementationFile(const AString& outputFileName,
                                       const AString& className,
                                       const AString& derivedFromClassName,
                                       const AString& eventTypeEnumName,
                                       const AString& ifdefNameStaticDeclaration,
-                                      const bool hasCopyAndAssignment);
+                                      const bool hasCopyAndAssignment,
+                                      const bool hasScenes);
     };
     
 } // namespace

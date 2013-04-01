@@ -99,11 +99,6 @@ ModelTypeEnum::initialize()
                                     "MODEL_TYPE_WHOLE_BRAIN", 
                                     "Whole Brain"));
     
-    enumData.push_back(ModelTypeEnum(MODEL_TYPE_YOKING, 
-                                                      5, 
-                                                      "MODEL_TYPE_YOKING", 
-                                                      "Yoking"));
-    
 }
 
 /**

@@ -45,13 +45,13 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
+#include "EventUpdateYokedWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationStringBuilder.h"
 #include "ModelSurfaceMontage.h"
-#include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Model.h"
 #include "ModelVolume.h"
@@ -482,11 +482,11 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     /*
      * Update graphics.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    updateGraphics(mouseEvent);
     
     
 // Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
-//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    Model* modelController = browserTabContent->getModelControllerForDisplay();
 //    if (modelController != NULL) {
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
 //        float dx = mouseEvent.getDx();
@@ -659,10 +659,10 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     browserTabContent->applyMouseScaling(mouseEvent.getDx(), mouseEvent.getDy());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    updateGraphics(mouseEvent);
     
 // Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
-//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    Model* modelController = browserTabContent->getModelControllerForDisplay();
 //    if (modelController != NULL) {
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
 //        float dy = mouseEvent.getDy();
@@ -711,11 +711,11 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
                                              mouseEvent.getPressedY(),
                                              mouseEvent.getDx(),
                                              mouseEvent.getDy());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    updateGraphics(mouseEvent);
     
     
 // Code below moved into BrowserTabContent::applyMouseTranslation() as part of WB-223.
-//    Model* modelController = browserTabContent->getModelControllerForTransformation();
+//    Model* modelController = browserTabContent->getModelControllerForDisplay();
 //    if (modelController != NULL) {
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
 //        float dx = mouseEvent.getDx();
@@ -904,4 +904,34 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
 //        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
 //    }
 }
+
+/**
+ * If this windows is yoked, issue an event to update other
+ * windows that are using the same yoking.
+ */
+void
+UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
+{
+    bool issuedYokeEvent = false;
+    if (mouseEvent.getViewportContent() != NULL) {
+        BrowserTabContent* browserTabContent = mouseEvent.getViewportContent()->getBrowserTabContent();
+        const int32_t browserWindowIndex = mouseEvent.getBrowserWindowIndex();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+        
+        if (browserTabContent != NULL) {
+            if (browserTabContent->isYoked()) {
+                issuedYokeEvent = true;
+                EventManager::get()->sendEvent(EventUpdateYokedWindows(browserTabContent->getYokingGroup()).getPointer());
+            }
+        }
+    }
+    
+    /*
+     * If not yoked, just need to update graphics.
+     */
+    if (issuedYokeEvent == false) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+    }
+}
+
 

@@ -84,7 +84,6 @@ EventModelAdd.h
 EventModelDelete.h
 EventModelGetAll.h
 EventModelSurfaceGet.h
-EventModelYokingGroupGetAll.h
 EventOverlayValidate.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
@@ -106,9 +105,7 @@ ModelSurfaceMontage.h
 ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
-ModelVolumeInterface.h
 ModelWholeBrain.h
-ModelYokingGroup.h
 Overlay.h
 OverlaySet.h
 ProjectionViewTypeEnum.h
@@ -128,12 +125,15 @@ SurfaceDrawingTypeEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
-VolumeSliceCoordinateSelection.h
+ViewingTransformations.h
+VolumeSliceSettings.h
 VolumeSliceViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
+WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
+YokingGroupEnum.h
 
 BorderDrawingTypeEnum.cxx
 Brain.cxx
@@ -171,7 +171,6 @@ EventModelAdd.cxx
 EventModelDelete.cxx
 EventModelGetAll.cxx
 EventModelSurfaceGet.cxx
-EventModelYokingGroupGetAll.cxx
 EventOverlayValidate.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
@@ -194,7 +193,6 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
-ModelYokingGroup.cxx
 Overlay.cxx
 OverlaySet.cxx
 ProjectionViewTypeEnum.cxx
@@ -214,12 +212,15 @@ SurfaceDrawingTypeEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
-VolumeSliceCoordinateSelection.cxx
+ViewingTransformations.cxx
+VolumeSliceSettings.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx
+WholeBrainSurfaceSettings.cxx
 WholeBrainVoxelDrawingMode.cxx
+YokingGroupEnum.cxx
 ) 
 
 #

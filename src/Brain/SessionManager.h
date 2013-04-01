@@ -36,7 +36,6 @@ namespace caret {
     class BrowserTabContent;
     class CaretPreferences;
     class Model;
-    class ModelYokingGroup;
     
     /// Manages a Caret session which contains 'global' brain data.
     class SessionManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -94,9 +93,6 @@ namespace caret {
         
         /** Caret's preferences */
         CaretPreferences* m_caretPreferences;
-        
-        /** Yoking Groups */
-        std::vector<ModelYokingGroup*> m_yokingGroupModels;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

@@ -41,11 +41,9 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
-#include "EventModelYokingGroupGetAll.h"
 #include "EventProgressUpdate.h"
 #include "LogManager.h"
 #include "ModelWholeBrain.h"
-#include "ModelYokingGroup.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -75,35 +73,9 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL);
     
     Brain* brain = new Brain();
-    m_brains.push_back(brain);    
-
-    const int32_t numberOfSurfaceYokingGroups = 4;
-    int32_t letterIndex = 0;
-    for (int32_t i = 0; i < numberOfSurfaceYokingGroups; i++) {
-        const char letter = ('A' + (char)letterIndex);
-        letterIndex++;
-        const AString yokingGroupName = (AString(letter)
-                                         + "-Surface");
-        ModelYokingGroup* myg = new ModelYokingGroup(brain,
-                                                     ModelYokingGroup::YOKING_TYPE_SURFACE,
-                                                     yokingGroupName);
-        m_yokingGroupModels.push_back(myg);
-    }
-    
-    const int32_t numberOfVolumeYokingGroups = 4;
-    for (int32_t i = 0; i < numberOfVolumeYokingGroups; i++) {
-        const char letter = ('A' + (char)letterIndex);
-        letterIndex++;
-        const AString yokingGroupName = (AString(letter)
-                                         + "-Volume");
-        ModelYokingGroup* myg = new ModelYokingGroup(brain,
-                                                     ModelYokingGroup::YOKING_TYPE_VOLUME,
-                                                     yokingGroupName);
-        m_yokingGroupModels.push_back(myg);
-    }
+    m_brains.push_back(brain);
 }
 
 /**
@@ -130,12 +102,6 @@ SessionManager::~SessionManager()
     m_brains.clear();
     
     EventManager::get()->removeAllEventsFromListener(this);
-    
-    const int32_t numYokingGroups = static_cast<int32_t>(m_yokingGroupModels.size());
-    for (int32_t i = 0; i < numYokingGroups; i++) {
-        delete m_yokingGroupModels[i];
-        m_yokingGroupModels[i] = NULL;
-    }
     
     delete m_caretPreferences;
 }
@@ -377,18 +343,6 @@ SessionManager::receiveEvent(Event* event)
         
         getModelsEvent->addModels(m_modelDisplayControllers);
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL) {
-        EventModelYokingGroupGetAll* getYokingEvent =
-            dynamic_cast<EventModelYokingGroupGetAll*>(event);
-        CaretAssert(getYokingEvent);
-        
-        getYokingEvent->setEventProcessed();
-        
-        const int32_t numYokingGroups = static_cast<int32_t>(m_yokingGroupModels.size());
-        for (int32_t i = 0; i < numYokingGroups; i++) {
-            getYokingEvent->addYokingGroup(m_yokingGroupModels[i]);
-        }
-    }
 }
 
 /**
@@ -466,19 +420,6 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(new SceneClassArray("m_browserTabs",
                                              browserTabSceneClasses));
     
-    /*
-     * Save yoking groups
-     */
-    std::vector<SceneClass*> yokingGroupClasses;
-    for (std::vector<ModelYokingGroup*>::iterator iter = m_yokingGroupModels.begin();
-         iter != m_yokingGroupModels.end();
-         iter++) {
-        ModelYokingGroup* myg = *iter;
-        yokingGroupClasses.push_back(myg->saveToScene(sceneAttributes, "m_yokingGroupModels"));
-    }
-    sceneClass->addChild(new SceneClassArray("m_yokingGroupModels",
-                                             yokingGroupClasses));
-    
     return sceneClass;
 }
 
@@ -524,16 +465,6 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
-    }
-    
-    const SceneClassArray* yokingGroupArray = sceneClass->getClassArray("m_yokingGroupModels");
-    if (yokingGroupArray != NULL) {
-        const int32_t numToRestore = std::min(yokingGroupArray->getNumberOfArrayElements(),
-                                              static_cast<int32_t>(m_yokingGroupModels.size()));
-        for (int32_t i = 0; i < numToRestore; i++) {
-            m_yokingGroupModels[i]->restoreFromScene(sceneAttributes, 
-                                                     yokingGroupArray->getClassAtIndex(i));
-        }
     }
     
     /*

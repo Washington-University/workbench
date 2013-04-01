@@ -158,10 +158,6 @@ EventTypeEnum::initialize()
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET", 
                                      "Get a specific model display controller surface"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL, 
-                                     "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
-                                     "Get all model display YOKING GROUP controllers"));
-
     enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",
                                      "Operating system requests open data file (Mac only)"));
@@ -206,6 +202,10 @@ EventTypeEnum::initialize()
                                      "EVENT_UPDATE_ANIMATION_START_TIME", 
                                      "Update the animation start time after user has modified the preference"));
 
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_YOKED_WINDOWS,
+                                     "EVENT_UPDATE_YOKED_WINDOWS",
+                                     "Update yoked windows graphics and toolbar"));
+    
     enumData.push_back(EventTypeEnum(EVENT_COUNT,
                                     "EVENT_COUNT", 
                                     "Count of events"));

@@ -50,6 +50,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
 #include "BrowserTabContent.h"
+#include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -58,7 +59,6 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "ModelTransform.h"
-#include "ModelYokingGroup.h"
 #include "SessionManager.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQListWidget.h"
@@ -601,7 +601,7 @@ CustomViewDialog::transformValueChanged()
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
-            Model* model = btc->getModelControllerForTransformation();
+            Model* model = btc->getModelControllerForDisplay();
             if (model != NULL) {
                 Matrix4x4 rotationMatrix;
                 rotationMatrix.setRotation(rotX, rotY, rotZ);
@@ -678,7 +678,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         const int32_t tabIndex = btc->getTabNumber();
         if (btc != NULL) {
-            Model* model = btc->getModelControllerForTransformation();
+            Model* model = btc->getModelControllerForDisplay();
             if (model != NULL) {
                 const float* panning = btc->getTranslation();
                 const Matrix4x4 rotationMatrix = btc->getRotationMatrix();

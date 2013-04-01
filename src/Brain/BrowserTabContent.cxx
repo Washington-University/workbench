@@ -40,10 +40,11 @@
 #include "GroupAndNameHierarchyName.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
-#include "EventModelYokingGroupGetAll.h"
 #include "FociFile.h"
+#include "IdentificationManager.h"
 #include "LabelFile.h"
 #include "Matrix4x4.h"
 #include "ModelSurface.h"
@@ -52,7 +53,6 @@
 #include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
-#include "ModelYokingGroup.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "SceneAttributes.h"
@@ -62,8 +62,11 @@
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
+#include "ViewingTransformations.h"
+#include "VolumeSliceSettings.h"
 #include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
+#include "WholeBrainSurfaceSettings.h"
 
 using namespace caret;
 
@@ -75,6 +78,10 @@ using namespace caret;
 BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
+    CaretLogSevere("CREATING BROWSER TAB: " + QString::number(tabNumber));
+    
+    s_allBrowserTabContent.insert(this);
+    
     m_tabNumber = tabNumber;
     m_surfaceModelSelector = new ModelSurfaceSelector();
     m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
@@ -84,19 +91,16 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_guiName = "";
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
-    m_selectedYokingGroup = NULL;
+    m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
 
-    m_rotationMatrix = new Matrix4x4();
-    m_volumeSliceRotationMatrix = new Matrix4x4();
-    m_translation[0] = 0.0;
-    m_translation[1] = 0.0;
-    m_translation[2] = 0.0;
-    m_volumeSliceTranslation[0] = 0.0;
-    m_volumeSliceTranslation[1] = 0.0;
-    m_volumeSliceTranslation[2] = 0.0;
-    m_scaling = 1.0;
-    m_volumeSliceScaling = 1.0;
+    m_viewingTransformation = new ViewingTransformations();
+    m_volumeSliceViewingTransformation = new ViewingTransformations();
+    m_wholeBrainSurfaceSettings = new WholeBrainSurfaceSettings();
+    
     leftView();
+
+    m_volumeSliceSettings = new VolumeSliceSettings();
+    m_wholeBrainSliceSettings = new VolumeSliceSettings();
     
     m_clippingCoordinate[0] = 0.0;
     m_clippingCoordinate[1] = 0.0;
@@ -136,19 +140,26 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                     3,
                                     false);
     
-    m_sceneClassAssistant->addArray("m_translation",
-                                    m_translation,
-                                    3,
-                                    0.0);
-    m_sceneClassAssistant->addArray("m_volumeSliceTranslation",
-                                    m_volumeSliceTranslation,
-                                    3,
-                                    0.0);
+    m_sceneClassAssistant->add("m_viewingTransformation",
+                               "ViewingTransformations",
+                               m_viewingTransformation);
     
-    m_sceneClassAssistant->add("m_scaling",
-                               &m_scaling);
-    m_sceneClassAssistant->add("m_volumeSliceScaling",
-                               &m_volumeSliceScaling);
+    m_sceneClassAssistant->add("m_volumeSliceViewingTransformation",
+                               "ViewingTransformations",
+                               m_volumeSliceViewingTransformation);
+    
+    m_sceneClassAssistant->add("m_volumeSliceSettings",
+                               "VolumeSliceSettings",
+                               m_volumeSliceSettings);
+    
+    m_sceneClassAssistant->add("m_wholeBrainSliceSettings",
+                               "VolumeSliceSettings",
+                               m_wholeBrainSliceSettings);
+    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
+                                                                   &m_yokingGroup);
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
 
 /**
@@ -156,16 +167,24 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
  */
 BrowserTabContent::~BrowserTabContent()
 {
+    CaretLogSevere("DELETING BROWSER TAB: " + QString::number(m_tabNumber));
     EventManager::get()->removeAllEventsFromListener(this);
+ 
+    s_allBrowserTabContent.erase(this);
     
-    delete m_rotationMatrix;
-    delete m_volumeSliceRotationMatrix;
+    delete m_viewingTransformation;
+    delete m_volumeSliceViewingTransformation;
     
     delete m_surfaceModelSelector;
     m_surfaceModelSelector = NULL;
     
     delete m_volumeSurfaceOutlineSetModel;
     m_volumeSurfaceOutlineSetModel = NULL;
+    
+    delete m_volumeSliceSettings;
+    delete m_wholeBrainSliceSettings;
+    
+    delete m_wholeBrainSurfaceSettings;
     
     delete m_sceneClassAssistant;
     m_sceneClassAssistant = NULL;
@@ -187,24 +206,15 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_volumeModel = tabToClone->m_volumeModel;
     m_wholeBrainModel = tabToClone->m_wholeBrainModel;
     m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
-    m_selectedYokingGroup = tabToClone->m_selectedYokingGroup;
+    m_yokingGroup = tabToClone->m_yokingGroup;
     
-    m_translation[0] = tabToClone->m_translation[0];
-    m_translation[1] = tabToClone->m_translation[1];
-    m_translation[2] = tabToClone->m_translation[2];
-    
-    m_volumeSliceTranslation[0] = tabToClone->m_volumeSliceTranslation[0];
-    m_volumeSliceTranslation[1] = tabToClone->m_volumeSliceTranslation[1];
-    m_volumeSliceTranslation[2] = tabToClone->m_volumeSliceTranslation[2];
-    
-    *m_rotationMatrix = *tabToClone->m_rotationMatrix;
-    *m_volumeSliceRotationMatrix = *tabToClone->m_volumeSliceRotationMatrix;
-    
-    m_scaling = tabToClone->m_scaling;
-    m_volumeSliceScaling = tabToClone->m_volumeSliceScaling;
+    *m_viewingTransformation = *tabToClone->m_viewingTransformation;
+    *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
+    *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
+    *m_wholeBrainSliceSettings = *tabToClone->m_wholeBrainSliceSettings;
+    *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
     
     Model* model = getModelControllerForDisplay();
-    //Model* modelBeingCloned = tabToClone->getModelControllerForDisplay();
     
     const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
     if (overlaySetToClone != NULL) {
@@ -335,9 +345,7 @@ BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 }
 
 /**
- * Get the model controller for DISPLAY purposes.  Note: When applying
- * transformations, use getModelControllerForTransformation() so that
- * any yoking is properly carried out.
+ * Get the model controller for DISPLAY.
  * 
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
@@ -362,18 +370,13 @@ BrowserTabContent::getModelControllerForDisplay()
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = m_wholeBrainModel;
             break;
-        case ModelTypeEnum::MODEL_TYPE_YOKING:
-            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
-            break;
     }
     
     return mdc;
 }
 
 /**
- * Get the model controller for DISPLAY purposes.  Note: When applying
- * transformations, use getModelControllerForTransformation() so that
- * any yoking is properly carried out.
+ * Get the model controller for DISPLAY.
  * 
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
@@ -398,59 +401,10 @@ BrowserTabContent::getModelControllerForDisplay() const
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = m_wholeBrainModel;
             break;
-        case ModelTypeEnum::MODEL_TYPE_YOKING:
-            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
-            break;
     }
     
     return mdc;
 }
-
-/**
- * Get the model controller for TRANSFORMATION purposes.  If yoked
- * to a valid yoking model, the transformation for the yoking model
- * will be returned.
- * 
- * @return  Pointer to transformation controller or NULL
- *          if none are available.
- */   
-Model* 
-BrowserTabContent::getModelControllerForTransformation()
-{
-    Model* mdc = getModelControllerForDisplay();
-    if (mdc == NULL) {
-        return NULL;
-    }
-    
-    ModelYokingGroup* myg = getSelectedYokingGroupForModel(mdc);
-    if (myg != NULL) {
-        mdc = myg;
-    }
-    
-    return mdc;
-}
-
-/**
- * @return Is the displayed model a right surface that is lateral/medial yoked?
- */
-bool 
-BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
-{
-    bool itIs = false;
-    
-    const ModelSurface* surfaceController = getDisplayedSurfaceModel();
-    if (surfaceController != NULL) {
-        const Surface* surface = surfaceController->getSurface();
-        if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-            if (getSelectedYokingGroupForModel(surfaceController) != NULL) {
-                itIs = true;
-            }
-        }
-    }
-    
-    return itIs;
-}
-
 
 /**
  * Get the displayed surface model.
@@ -507,6 +461,17 @@ BrowserTabContent::isVolumeSlicesDisplayed() const
     
     const bool volumeFlag = (mdcv != NULL);
     return volumeFlag;
+}
+
+/**
+ * @return Is the displayed model the whole brain model (ALL)?
+ */
+bool
+BrowserTabContent::isWholeBrainDisplayed() const
+{
+    const ModelWholeBrain* mwb = dynamic_cast<const ModelWholeBrain*>(getModelControllerForDisplay());
+    const bool wholeBrainFlag = (mwb != NULL);
+    return wholeBrainFlag;
 }
 
 /**
@@ -652,9 +617,6 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
                 m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
-        case ModelTypeEnum::MODEL_TYPE_YOKING:
-            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
-            break;
     }
     
     if (m_selectedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
@@ -729,9 +691,67 @@ BrowserTabContent::isSurfaceMontageModelValid() const
  * @param event
  *     The event that the receive can respond to.
  */
-void 
-BrowserTabContent::receiveEvent(Event* /*event*/)
+void
+BrowserTabContent::receiveEvent(Event* event)
 {
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idLocationEvent =
+        dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idLocationEvent);
+
+        Model* model = getModelControllerForDisplay();
+        if (model == NULL) {
+            return;
+        }
+
+        Brain* brain = model->getBrain();
+        if (brain->getIdentificationManager()->isVolumeIdentificationEnabled()) {
+            const float* highlighXYZ = idLocationEvent->getXYZ();
+            for (int32_t windowTabNumber = 0;
+                 windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
+                 windowTabNumber++) {
+                
+                m_wholeBrainSliceSettings->selectSlicesAtCoordinate(highlighXYZ);
+
+                
+                float volumeSliceXYZ[3] = {
+                    highlighXYZ[0],
+                    highlighXYZ[1],
+                    highlighXYZ[2]
+                };
+                
+                /*
+                 * If volume montage viewing, do not change the
+                 * slice in the plane that is being viewed.
+                 */
+                switch (m_volumeSliceSettings->getSliceViewMode()) {
+                    case VolumeSliceViewModeEnum::MONTAGE:
+                        switch (getSliceViewPlane()) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                break;
+                        }
+                        break;
+                    case VolumeSliceViewModeEnum::OBLIQUE:
+                        break;
+                    case VolumeSliceViewModeEnum::ORTHOGONAL:
+                        break;
+                }
+                
+                m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
+            }
+        }
+        
+        idLocationEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -741,17 +761,17 @@ BrowserTabContent::receiveEvent(Event* /*event*/)
 void 
 BrowserTabContent::updateTransformationsForYoking()
 {
-    Model* transformController = getModelControllerForTransformation();
-    ModelYokingGroup* yokingController = 
-        dynamic_cast<ModelYokingGroup*>(transformController);
-    if (yokingController != NULL) {
-        Model* mdc = getModelControllerForDisplay();
-        if (mdc != NULL) {
-//            mdc->copyTransformationsAndViews(*yokingController, 
-//                                     0, // always used window 0  
-//                                     m_tabNumber);
-        }
-    }
+//    Model* transformController = getModelControllerForTransformation();
+//    ModelYokingGroup* yokingController = 
+//        dynamic_cast<ModelYokingGroup*>(transformController);
+//    if (yokingController != NULL) {
+//        Model* mdc = getModelControllerForDisplay();
+//        if (mdc != NULL) {
+////            mdc->copyTransformationsAndViews(*yokingController, 
+////                                     0, // always used window 0  
+////                                     m_tabNumber);
+//        }
+//    }
 }
 
 /**
@@ -810,123 +830,6 @@ const VolumeSurfaceOutlineSetModel*
 BrowserTabContent::getVolumeSurfaceOutlineSet() const
 {
     return m_volumeSurfaceOutlineSetModel;
-}
-
-/**
- * @return The model yoking group (NULL if NOT yoked).
- * NOTE: This just returns the selected yoking model, it does
- * not indicate if the yoking is compatible with a brain model.
- * In most cases, getSelectedYokingGroupForModel() is the
- * appropriate method to use.
- */
-const ModelYokingGroup* 
-BrowserTabContent::getSelectedYokingGroup() const
-{
-    return m_selectedYokingGroup;
-}
-
-/**
- * @return The model yoking group (NULL if NOT yoked).
- * NOTE: This just returns the selected yoking model, it does
- * not indicate if the yoking is compatible with a brain model.
- * In most cases, getSelectedYokingGroupForModel() is the
- * appropriate method to use.
- */
-ModelYokingGroup* 
-BrowserTabContent::getSelectedYokingGroup()
-{
-    return m_selectedYokingGroup;
-}
-
-/**
- * If yoking is selected and the yoking is appropriate for
- * the given model, return the selected yoking group.  Otherwise,
- * return NULL.
- * 
- * @param model
- *     Model which is tested for compatibility with selected yoking.
- * @return The model yoking group if yoking is selected and valid
- *     for the given model, else NULL.
- */
-const ModelYokingGroup* 
-BrowserTabContent::getSelectedYokingGroupForModel(const Model* model) const
-{
-    ModelYokingGroup* myg = m_selectedYokingGroup;
-    if (myg != NULL) {
-        if (model->isYokeable()) {
-            switch (model->getControllerType()) {
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                    if (myg->isSurfaceYoking() == false) {
-                        myg = NULL;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    if (myg->isVolumeYoking() == false) {
-                        myg = NULL;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_YOKING:
-                    break;
-            }
-        }
-    }
-    
-    return myg;
-}
-
-/**
- * If yoking is selected and the yoking is appropriate for
- * the given model, return the selected yoking group.  Otherwise,
- * return NULL.
- * 
- * @param model
- *     Model which is tested for compatibility with selected yoking.
- * @return The model yoking group if yoking is selected and valid
- *     for the given model, else NULL.
- */
-ModelYokingGroup* 
-BrowserTabContent::getSelectedYokingGroupForModel(const Model* model)
-{
-    ModelYokingGroup* myg = m_selectedYokingGroup;
-    if (myg != NULL) {
-        if (model->isYokeable()) {
-            switch (model->getControllerType()) {
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                    if (myg->isSurfaceYoking() == false) {
-                        myg = NULL;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    if (myg->isVolumeYoking() == false) {
-                        myg = NULL;
-                    }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_YOKING:
-                    break;
-            }
-        }
-    }
-    
-    return myg;
-}
-
-/**
- * Set the model yoking group to the given value.
- * @param selectedYokingGroup
- *     New value for yoking group.
- */
-void 
-BrowserTabContent::setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup)
-{
-    m_selectedYokingGroup = selectedYokingGroup;
 }
 
 /**
@@ -991,18 +894,16 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
         {
             ModelWholeBrain* wbm = getDisplayedWholeBrainModel();
-            if (wbm->isLeftEnabled(tabIndex)) {
+            if (isWholeBrainLeftEnabled()) {
                 displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CORTEX_LEFT, tabIndex));
             }
-            if (wbm->isRightEnabled(tabIndex)) {
+            if (isWholeBrainRightEnabled()) {
                 displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CORTEX_RIGHT, tabIndex));
             }
-            if (wbm->isCerebellumEnabled(tabIndex)) {
+            if (isWholeBrainCerebellumEnabled()) {
                 displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CEREBELLUM, tabIndex));
             }
         }
-            break;
-        case ModelTypeEnum::MODEL_TYPE_YOKING:
             break;
     }
 
@@ -1080,10 +981,10 @@ const float*
 BrowserTabContent::getTranslation() const
 {
     if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceTranslation;
+        return m_volumeSliceViewingTransformation->getTranslation();
     }
     else {
-        return m_translation;
+        return m_viewingTransformation->getTranslation();
     }
 }
 
@@ -1097,14 +998,10 @@ void
 BrowserTabContent::getTranslation(float translationOut[3]) const
 {
     if (isVolumeSlicesDisplayed()) {
-        translationOut[0] = m_volumeSliceTranslation[0];
-        translationOut[1] = m_volumeSliceTranslation[1];
-        translationOut[2] = m_volumeSliceTranslation[2];
+        m_volumeSliceViewingTransformation->getTranslation(translationOut);
     }
     else {
-        translationOut[0] = m_translation[0];
-        translationOut[1] = m_translation[1];
-        translationOut[2] = m_translation[2];
+        m_viewingTransformation->getTranslation(translationOut);
     }
 }
 
@@ -1118,15 +1015,12 @@ void
 BrowserTabContent::setTranslation( const float translation[3])
 {
     if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceTranslation[0] = translation[0];
-        m_volumeSliceTranslation[1] = translation[1];
-        m_volumeSliceTranslation[2] = translation[2];
+        m_volumeSliceViewingTransformation->setTranslation(translation);
     }
     else {
-        m_translation[0] = translation[0];
-        m_translation[1] = translation[1];
-        m_translation[2] = translation[2];
+        m_viewingTransformation->setTranslation(translation);
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1144,16 +1038,17 @@ BrowserTabContent::setTranslation(const float translationX,
                                   const float translationY,
                                   const float translationZ)
 {
-    if (isVolumeSlicesDisplayed()) {        
-        m_volumeSliceTranslation[0] = translationX;
-        m_volumeSliceTranslation[1] = translationY;
-        m_volumeSliceTranslation[2] = translationZ;
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceViewingTransformation->setTranslation(translationX,
+                                                           translationY,
+                                                           translationZ);
     }
     else {
-        m_translation[0] = translationX;
-        m_translation[1] = translationY;
-        m_translation[2] = translationZ;
+        m_viewingTransformation->setTranslation(translationX,
+                                                translationY,
+                                                translationZ);
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1163,10 +1058,10 @@ float
 BrowserTabContent::getScaling() const
 {
     if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceScaling;
+        return m_volumeSliceViewingTransformation->getScaling();
     }
     else {
-        return m_scaling;
+        return m_viewingTransformation->getScaling();
     }
 }
 
@@ -1179,11 +1074,12 @@ void
 BrowserTabContent::setScaling(const float scaling)
 {
     if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceScaling = scaling;
+        m_volumeSliceViewingTransformation->setScaling(scaling);
     }
     else {
-        m_scaling = scaling;
+        m_viewingTransformation->setScaling(scaling);
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1193,10 +1089,10 @@ Matrix4x4
 BrowserTabContent::getRotationMatrix() const
 {
     if (isVolumeSlicesDisplayed()) {
-        return *m_volumeSliceRotationMatrix;
+        return m_volumeSliceViewingTransformation->getRotationMatrix();
     }
     else {
-        return *m_rotationMatrix;
+        return m_viewingTransformation->getRotationMatrix();
     }
 }
 
@@ -1210,11 +1106,12 @@ void
 BrowserTabContent::setRotationMatrix(const Matrix4x4& rotationMatrix)
 {
     if (isVolumeSlicesDisplayed()) {
-        *m_volumeSliceRotationMatrix = rotationMatrix;
+        m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
     }
     else {
-        *m_rotationMatrix = rotationMatrix;
+        m_viewingTransformation->setRotationMatrix(rotationMatrix);
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1224,16 +1121,12 @@ void
 BrowserTabContent::resetView()
 {
     if (isVolumeSlicesDisplayed()) {
-        setTranslation(0.0, 0.0, 0.0);
-        m_volumeSliceRotationMatrix->identity();
-        setScaling(1.0);
+        m_volumeSliceViewingTransformation->resetView();
     }
     else {
-        setTranslation(0.0, 0.0, 0.0);
-        m_rotationMatrix->identity();
-        setScaling(1.0);
-        leftView();
+        m_viewingTransformation->resetView();
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1246,26 +1139,9 @@ BrowserTabContent::rightView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
-        m_rotationMatrix->rotateY(-90.0);
-        m_rotationMatrix->rotateZ(-90.0);
+        m_viewingTransformation->rightView();
     }
-
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(-90.0);
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1278,26 +1154,9 @@ BrowserTabContent::leftView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
-        m_rotationMatrix->rotateY(90.0);
-        m_rotationMatrix->rotateZ(90.0);
+        m_viewingTransformation->leftView();
     }
-    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(90.0);
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1310,23 +1169,9 @@ BrowserTabContent::anteriorView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
-        m_rotationMatrix->rotateX(-90.0);
-        m_rotationMatrix->rotateY(180.0);
+        m_viewingTransformation->anteriorView();
     }
-    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1339,24 +1184,9 @@ BrowserTabContent::posteriorView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
-        m_rotationMatrix->rotateX(-90.0);
+        m_viewingTransformation->posteriorView();
     }
-    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1369,19 +1199,9 @@ BrowserTabContent::dorsalView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
+        m_viewingTransformation->dorsalView();
     }
-    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(180.0);
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1394,18 +1214,9 @@ BrowserTabContent::ventralView()
         /* Nothing */
     }
     else {
-        m_rotationMatrix->identity();
-        m_rotationMatrix->rotateY(-180.0);
+        m_viewingTransformation->ventralView();
     }
-    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-180.0);
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
-//    
-//    m_viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1430,13 +1241,11 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
         /* Volume slices are not rotated */
     }
     else {
-//        if (isDisplayedModelSurfaceRightLateralMedialYoked()) {
-//            m_rotationMatrix->rotateX(-mouseDY);
-//            m_rotationMatrix->rotateY(-mouseDX);
-//        }
         if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
-            m_rotationMatrix->rotateX(-mouseDY);
-            m_rotationMatrix->rotateY(-mouseDX);
+            Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
+            rotationMatrix.rotateX(-mouseDY);
+            rotationMatrix.rotateY(-mouseDX);
+            m_viewingTransformation->setRotationMatrix(rotationMatrix);
         }
         else {
             float dx = mouseDX;
@@ -1473,37 +1282,6 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                                 break;
                         }
                         isValid = true;
-//                        if (StructureEnum::isLeft(smv.structure)) {
-//                            isValid = true;
-//                            isLeft  = true;
-//                        }
-//                        else if (StructureEnum::isRight(smv.structure)) {
-//                            isValid = true;
-//                            isLeft  = false;
-//                        }
-//                        
-//                        if (isValid) {
-//                            switch (smv.viewingMatrixIndex) {
-//                                case Model::VIEWING_TRANSFORM_COUNT:
-//                                    isValid = false;
-//                                    break;
-//                                case Model::VIEWING_TRANSFORM_NORMAL:
-//                                    isLateral = true;
-//                                    break;
-//                                case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-//                                    isValid = false;
-//                                    break;
-//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-//                                    isLateral = false;
-//                                    break;
-//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-//                                    isLateral = true;
-//                                    break;
-//                                case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-//                                    isLateral = false;
-//                                    break;
-//                            }
-//                        }
                     }
                     
                     if (isValid) {
@@ -1521,10 +1299,13 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                 }
             }
             
-            m_rotationMatrix->rotateX(-dy);
-            m_rotationMatrix->rotateY(dx);
+            Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
+            rotationMatrix.rotateX(-dy);
+            rotationMatrix.rotateY(dx);
+            m_viewingTransformation->setRotationMatrix(rotationMatrix);
         }
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1540,21 +1321,26 @@ BrowserTabContent::applyMouseScaling(const int32_t mouseDX,
                                      const int32_t mouseDY)
 {
     if (isVolumeSlicesDisplayed()) {
+        float scaling = m_volumeSliceViewingTransformation->getScaling();
         if (mouseDY != 0.0) {
-            m_volumeSliceScaling *= (1.0f + (mouseDY * 0.01));
+            scaling *= (1.0f + (mouseDY * 0.01));
         }
-        if (m_volumeSliceScaling < 0.01) {
-            m_volumeSliceScaling = 0.01;
+        if (scaling < 0.01) {
+            scaling = 0.01;
         }
+        m_volumeSliceViewingTransformation->setScaling(scaling);
     }
     else {
+        float scaling = m_viewingTransformation->getScaling();
         if (mouseDY != 0.0) {
-            m_scaling *= (1.0f + (mouseDY * 0.01));
+            scaling *= (1.0f + (mouseDY * 0.01));
         }
-        if (m_scaling < 0.01) {
-            m_scaling = 0.01;
+        if (scaling < 0.01) {
+            scaling = 0.01;
         }
+        m_viewingTransformation->setScaling(scaling);
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1581,17 +1367,17 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     const int tabIndex = getTabNumber();
     
     if (isVolumeSlicesDisplayed()) {
+        const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
         ModelVolume* modelVolume = getDisplayedVolumeModel();
         VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
         BoundingBox mybox = vf->getSpaceBoundingBox();
         float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
-        //float slowdown = 0.005f * cubesize / modelVolume->getScaling(tabIndex);//when zoomed in, make the movements slower to match - still changes based on viewport currently
-        float slowdown = 0.005f * cubesize / m_volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+        float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
         
         float dx = 0.0;
         float dy = 0.0;
         float dz = 0.0;
-        switch (modelVolume->getSliceViewPlane(tabIndex))
+        switch (this->getSliceViewPlane())
         {
             case VolumeSliceViewPlaneEnum::ALL:
             {
@@ -1643,9 +1429,12 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 break;
         }
         
-        m_volumeSliceTranslation[0] += dx;
-        m_volumeSliceTranslation[1] += dy;
-        m_volumeSliceTranslation[2] += dz;
+        float translation[3];
+        m_volumeSliceViewingTransformation->getTranslation(translation);
+        translation[0] += dx;
+        translation[1] += dy;
+        translation[2] += dz;
+        m_volumeSliceViewingTransformation->setTranslation(translation);
     }
     else {
         float dx = mouseDX;
@@ -1682,37 +1471,6 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             break;
                     }
                     isValid = true;
-//                    if (StructureEnum::isLeft(smv.structure)) {
-//                        isValid = true;
-//                        isLeft  = true;
-//                    }
-//                    else if (StructureEnum::isRight(smv.structure)) {
-//                        isValid = true;
-//                        isLeft  = false;
-//                    }
-//                    
-//                    if (isValid) {
-//                        switch (smv.viewingMatrixIndex) {
-//                            case Model::VIEWING_TRANSFORM_COUNT:
-//                                isValid = false;
-//                                break;
-//                            case Model::VIEWING_TRANSFORM_NORMAL:
-//                                isLateral = true;
-//                                break;
-//                            case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-//                                isValid = false;
-//                                break;
-//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-//                                isLateral = false;
-//                                break;
-//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-//                                isLateral = true;
-//                                break;
-//                            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-//                                isLateral = false;
-//                                break;
-//                        }
-//                    }
                 }
                 
                 if (isValid) {
@@ -1728,21 +1486,25 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                     dx = -dx;
                 }
                 
-                m_translation[0] += dx;
-                m_translation[1] += dy;
+                float translation[3];
+                m_viewingTransformation->getTranslation(translation);
+                translation[0] += dx;
+                translation[1] += dy;
+                m_viewingTransformation->setTranslation(translation);
             }
         }
         else {
             if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
                 dx = -dx;
             }
-//            if (isDisplayedModelSurfaceRightLateralMedialYoked()) {
-//                dx = -dx;
-//            }
-            m_translation[0] += dx;
-            m_translation[1] += dy;
+            float translation[3];
+            m_viewingTransformation->getTranslation(translation);
+            translation[0] += dx;
+            translation[1] += dy;
+            m_viewingTransformation->setTranslation(translation);
         }
     }
+    updateYokedBrowserTabs();
 }
 
 /**
@@ -1764,21 +1526,19 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                                                       float& scalingOut) const
 {
     if (isVolumeSlicesDisplayed()) {
-        translationOut[0] = m_volumeSliceTranslation[0];
-        translationOut[1] = m_volumeSliceTranslation[1];
-        translationOut[2] = m_volumeSliceTranslation[2];
+        m_volumeSliceViewingTransformation->getTranslation(translationOut);
         
-        m_volumeSliceRotationMatrix->getMatrixForOpenGL(rotationMatrixOut);
+        Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
         
-        scalingOut = m_volumeSliceScaling;
+        scalingOut = m_volumeSliceViewingTransformation->getScaling();
     }
     else {
-        translationOut[0] = m_translation[0];
-        translationOut[1] = m_translation[1];
-        translationOut[2] = m_translation[2];
-        
+        m_viewingTransformation->getTranslation(translationOut);
+
+        Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
         double rotationX, rotationY, rotationZ;
-        m_rotationMatrix->getRotation(rotationX,
+        rotationMatrix.getRotation(rotationX,
                                       rotationY,
                                       rotationZ);
         const double rotationFlippedX = -rotationX;
@@ -1798,39 +1558,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                 rotationY = rotationFlippedY;
                 break;
         }
-//            case Model::VIEWING_TRANSFORM_COUNT:
-//                break;
-//            case Model::VIEWING_TRANSFORM_NORMAL:
-//            {
-//                const Model* model = getModelControllerForDisplay();
-//                if (model != NULL) {
-//                    const ModelSurface* surfaceModel = dynamic_cast<const ModelSurface*>(model);
-//                    if (surfaceModel != NULL) {
-//                        const Surface* surface = surfaceModel->getSurface();
-//                        StructureEnum::Enum structure = surface->getStructure();
-//                        if (StructureEnum::isRight(structure)) {
-//                            rotationX = rotationFlippedX;
-//                            rotationY = rotationFlippedY;
-//                        }
-//                    }
-//                }
-//            }
-//                break;
-//            case Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED:
-//                rotationX = rotationFlippedX;
-//                rotationY = rotationFlippedY;
-//                break;
-//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE:
-//                break;
-//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT:
-//                rotationX = rotationFlippedX;
-//                rotationY = rotationFlippedY;
-//                break;
-//            case Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE:
-//                rotationX = rotationFlippedX;
-//                rotationY = rotationFlippedY;
-//                break;
-//        }
         
         Matrix4x4 matrix;
         matrix.setRotation(rotationX,
@@ -1838,7 +1565,7 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                            rotationZ);
         matrix.getMatrixForOpenGL(rotationMatrixOut);
         
-        scalingOut = m_scaling;
+        scalingOut = m_viewingTransformation->getScaling();
     }
 }
 
@@ -1887,6 +1614,7 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     const float scale = modelTransform.getScaling();
     setScaling(scale);
+    updateYokedBrowserTabs();
 }
 
 
@@ -1916,21 +1644,6 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
     
-    AString yokingGroupName = "";
-    if (m_selectedYokingGroup != NULL) {
-        yokingGroupName = m_selectedYokingGroup->getYokingName();
-    }
-    sceneClass->addString("m_selectedYokingGroup", 
-                          yokingGroupName);
-    
-    /*
-     * Save rotation matrices.
-     */
-    float matrix[4][4];
-    m_rotationMatrix->getMatrix(matrix);
-    sceneClass->addFloatArray("m_rotationMatrix", (float*)matrix, 16);
-    m_volumeSliceRotationMatrix->getMatrix(matrix);
-    sceneClass->addFloatArray("m_volumeSliceRotationMatrix", (float*)matrix, 16);
     
     return sceneClass;
 }
@@ -1957,44 +1670,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
-    
-    /*
-     * Restore the selected yoking group
-     */
-    const AString yokingGroupName = sceneClass->getStringValue("m_selectedYokingGroup", "");
-    m_selectedYokingGroup = NULL;
-    if (yokingGroupName.isEmpty() == false) {
-        EventModelYokingGroupGetAll getYokingGroups;
-        EventManager::get()->sendEvent(getYokingGroups.getPointer());
-        std::vector<ModelYokingGroup*> yokingGroups;
-        getYokingGroups.getYokingGroups(yokingGroups);
-        for (std::vector<ModelYokingGroup*>::iterator iter= yokingGroups.begin();
-             iter != yokingGroups.end();
-             iter++) {
-            ModelYokingGroup* myg = *iter;
-            if (myg->getYokingName() == yokingGroupName) {
-                m_selectedYokingGroup = myg;
-                break;
-            }
-        }
-    }
-    
-    /*
-     * Restore rotation matrices.
-     */
-    float matrix[4][4];
-    if (sceneClass->getFloatArrayValue("m_rotationMatrix", (float*)matrix, 16) == 16) {
-        m_rotationMatrix->setMatrix(matrix);
-    }
-    else {
-        m_rotationMatrix->identity();
-    }
-    if (sceneClass->getFloatArrayValue("m_volumeSliceRotationMatrix", (float*)matrix, 16) == 16) {
-        m_volumeSliceRotationMatrix->setMatrix(matrix);
-    }
-    else {
-        m_volumeSliceRotationMatrix->identity();
-    }
 }
 
 /**
@@ -2106,5 +1781,739 @@ BrowserTabContent::getProjectionViewType() const
     return projectionViewType;
 }
 
+/**
+ * @return The slice view plane.
+ *
+ */
+VolumeSliceViewPlaneEnum::Enum
+BrowserTabContent::getSliceViewPlane() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceViewPlane();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceViewPlane();
+    }
+    
+    return VolumeSliceViewPlaneEnum::AXIAL;
+}
+
+/**
+ * Set the slice view plane.
+ * @param windowTabNumber
+ *    New value for slice plane.
+ */
+void
+BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceViewPlane(slicePlane);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceViewPlane(slicePlane);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return the slice viewing mode.
+ */
+VolumeSliceViewModeEnum::Enum
+BrowserTabContent::getSliceViewMode() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceViewMode();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceViewMode();
+    }
+    return VolumeSliceViewModeEnum::ORTHOGONAL;
+}
+
+/**
+ * Set the slice viewing mode.
+ * @param sliceViewMode
+ *    New value for view mode
+ */
+void
+BrowserTabContent::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceViewMode)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceViewMode(sliceViewMode);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceViewMode(sliceViewMode);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return the montage number of columns for the given window tab.
+ */
+int32_t
+BrowserTabContent::getMontageNumberOfColumns() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getMontageNumberOfColumns();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getMontageNumberOfColumns();
+    }
+    return 1;
+}
+
+
+/**
+ * Set the montage number of columns in the given window tab.
+ * @param montageNumberOfColumns
+ *    New value for montage number of columns
+ */
+void
+BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumns)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return the montage number of rows for the given window tab.
+ */
+int32_t
+BrowserTabContent::getMontageNumberOfRows() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getMontageNumberOfRows();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getMontageNumberOfRows();
+    }
+    return 1;
+}
+
+/**
+ * Set the montage number of rows.
+ * @param montageNumberOfRows
+ *    New value for montage number of rows
+ */
+void
+BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return the montage slice spacing.
+ */
+int32_t
+BrowserTabContent::getMontageSliceSpacing() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getMontageSliceSpacing();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getMontageSliceSpacing();
+    }
+    return 1;
+}
+
+/**
+ * Set the montage slice spacing.
+ * @param montageSliceSpacing
+ *    New value for montage slice spacing
+ */
+void
+BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Set the selected slices to the origin.
+ */
+void
+BrowserTabContent::setSlicesToOrigin()
+{
+    selectSlicesAtOrigin();
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Reset the slices.
+ */
+void
+BrowserTabContent::reset()
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->reset();
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->reset();
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Update the slices coordinates so that they are valid for
+ * the given VolumeFile.
+ * @param volumeFile
+ *   File for which slice coordinates are made valid.
+ */
+void
+BrowserTabContent::updateForVolumeFile(const VolumeFile* volumeFile)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->updateForVolumeFile(volumeFile);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->updateForVolumeFile(volumeFile);
+    }
+}
+
+/**
+ * Set the slice indices so that they are at the origin.
+ */
+void
+BrowserTabContent::selectSlicesAtOrigin()
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->selectSlicesAtOrigin();
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->selectSlicesAtOrigin();
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Set the selected slices to the given coordinate.
+ * @param xyz
+ *    Coordinate for selected slices.
+ */
+void
+BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->selectSlicesAtCoordinate(xyz);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->selectSlicesAtCoordinate(xyz);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Return the axial slice index.
+ * @return
+ *   Axial slice index or negative if invalid
+ */
+int64_t
+BrowserTabContent::getSliceIndexAxial(const VolumeFile* volumeFile) const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceIndexAxial(volumeFile);
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceIndexAxial(volumeFile);
+    }
+    return 1;
+}
+
+/**
+ * Set the axial slice index.
+ * @param
+ *    New value for axial slice index.
+ */
+void
+BrowserTabContent::setSliceIndexAxial(const VolumeFile* volumeFile,
+                                        const int64_t sliceIndexAxial)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Return the coronal slice index.
+ * @return
+ *   Coronal slice index.
+ */
+int64_t
+BrowserTabContent::getSliceIndexCoronal(const VolumeFile* volumeFile) const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceIndexCoronal(volumeFile);
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceIndexCoronal(volumeFile);
+    }
+    return 1;
+}
+
+
+/**
+ * Set the coronal slice index.
+ * @param sliceIndexCoronal
+ *    New value for coronal slice index.
+ */
+void
+BrowserTabContent::setSliceIndexCoronal(const VolumeFile* volumeFile,
+                                          const int64_t sliceIndexCoronal)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Return the parasagittal slice index.
+ * @return
+ *   Parasagittal slice index.
+ */
+int64_t
+BrowserTabContent::getSliceIndexParasagittal(const VolumeFile* volumeFile) const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceIndexParasagittal(volumeFile);
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceIndexParasagittal(volumeFile);
+    }
+    return 1;
+}
+
+/**
+ * Set the parasagittal slice index.
+ * @param sliceIndexParasagittal
+ *    New value for parasagittal slice index.
+ */
+void
+BrowserTabContent::setSliceIndexParasagittal(const VolumeFile* volumeFile,
+                                               const int64_t sliceIndexParasagittal)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceIndexParasagittal(volumeFile,
+                                                         sliceIndexParasagittal);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceIndexParasagittal(volumeFile,
+                                                             sliceIndexParasagittal);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Coordinate of axial slice.
+ */
+float
+BrowserTabContent::getSliceCoordinateAxial() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceCoordinateAxial();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceCoordinateAxial();
+    }
+    return true;
+}
+
+/**
+ * Set the coordinate for the axial slice.
+ * @param z
+ *    Z-coordinate for axial slice.
+ */
+void
+BrowserTabContent::setSliceCoordinateAxial(const float z)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceCoordinateAxial(z);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceCoordinateAxial(z);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Coordinate of coronal slice.
+ */
+float
+BrowserTabContent::getSliceCoordinateCoronal() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceCoordinateCoronal();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceCoordinateCoronal();
+    }
+    return 0.0;
+}
+
+/**
+ * Set the coordinate for the coronal slice.
+ * @param y
+ *    Y-coordinate for coronal slice.
+ */
+void
+BrowserTabContent::setSliceCoordinateCoronal(const float y)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceCoordinateCoronal(y);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceCoordinateCoronal(y);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Coordinate of parasagittal slice.
+ */
+float
+BrowserTabContent::getSliceCoordinateParasagittal() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->getSliceCoordinateParasagittal();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->getSliceCoordinateParasagittal();
+    }
+    return 0.0;
+}
+
+/**
+ * Set the coordinate for the parasagittal slice.
+ * @param x
+ *    X-coordinate for parasagittal slice.
+ */
+void
+BrowserTabContent::setSliceCoordinateParasagittal(const float x)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceCoordinateParasagittal(x);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceCoordinateParasagittal(x);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Is the parasagittal slice enabled?
+ * @return
+ *    Enabled status of parasagittal slice.
+ */
+bool
+BrowserTabContent::isSliceParasagittalEnabled() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->isSliceParasagittalEnabled();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->isSliceParasagittalEnabled();
+    }
+    return true;
+}
+
+/**
+ * Set the enabled status of the parasagittal slice.
+ * @param sliceEnabledParasagittal
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Is the coronal slice enabled?
+ * @return
+ *    Enabled status of coronal slice.
+ */
+bool
+BrowserTabContent::isSliceCoronalEnabled() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->isSliceCoronalEnabled();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->isSliceCoronalEnabled();
+    }
+    return true;
+}
+
+/**
+ * Set the enabled status of the coronal slice.
+ * @param sliceEnabledCoronal
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
+    }
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Is the axial slice enabled?
+ * @return
+ *    Enabled status of axial slice.
+ */
+bool
+BrowserTabContent::isSliceAxialEnabled() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        return m_volumeSliceSettings->isSliceAxialEnabled();
+    }
+    else if (isWholeBrainDisplayed()) {
+        return m_wholeBrainSliceSettings->isSliceAxialEnabled();
+    }
+    return false;
+}
+
+/**
+ * Set the enabled status of the axial slice.
+ * @param sliceEnabledAxial
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setSliceAxialEnabled(const bool sliceEnabledAxial)
+{
+    if (isVolumeSlicesDisplayed()) {
+        m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
+    }
+    else if (isWholeBrainDisplayed()) {
+        m_wholeBrainSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
+    }
+    updateYokedBrowserTabs();
+}
+
+
+
+/**
+ * @return Enabled status for left cerebral cortex.
+ */
+bool
+BrowserTabContent::isWholeBrainLeftEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isLeftEnabled();
+}
+
+/**
+ * Set the enabled status for the left hemisphere.
+ * @param windowTabNumber
+ *    Index of window tab.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainLeftEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setLeftEnabled(enabled);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for right cerebral cortex.
+ */
+bool
+BrowserTabContent::isWholeBrainRightEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isRightEnabled();
+}
+
+/**
+ * Set the enabled status for the right hemisphere.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainRightEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setRightEnabled(enabled);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for cerebellum.
+ */
+bool
+BrowserTabContent::isWholeBrainCerebellumEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isCerebellumEnabled();
+}
+
+/**
+ * Set the enabled status for the cerebellum.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainCerebellumEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setCerebellumEnabled(enabled);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return The separation between the left and right surfaces.
+ */
+float
+BrowserTabContent::getWholeBrainLeftRightSeparation() const
+{
+    return m_wholeBrainSurfaceSettings->getLeftRightSeparation();
+}
+
+/**
+ * Set the separation between the cerebellum and the left/right surfaces.
+ * @param separation
+ *     New value for separation.
+ */
+void
+BrowserTabContent::setWholeBrainLeftRightSeparation(const float separation)
+{
+    m_wholeBrainSurfaceSettings->setLeftRightSeparation(separation);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return The separation between the left/right surfaces.
+ */
+float
+BrowserTabContent::getWholeBrainCerebellumSeparation() const
+{
+    return m_wholeBrainSurfaceSettings->getCerebellumSeparation();
+}
+
+/**
+ * Set the separation between the cerebellum and the eft and right surfaces.
+ * @param separation
+ *     New value for separation.
+ */
+void
+BrowserTabContent::setWholeBrainCerebellumSeparation(const float separation)
+{
+    m_wholeBrainSurfaceSettings->setCerebellumSeparation(separation);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Selected yoking group.
+ */
+YokingGroupEnum::Enum
+BrowserTabContent::getYokingGroup() const
+{
+    return m_yokingGroup;
+}
+
+/**
+ * Set the selected yoking group.
+ *
+ * @param yokingGroup
+ *    New value for yoking group.
+ */
+void
+BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
+{
+    m_yokingGroup = yokingGroup;
+    
+    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /*
+     * Find another browser tab using the same yoking as 'me' and copy
+     * yoked data from the other browser tab.
+     */
+    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
+         iter != s_allBrowserTabContent.end();
+         iter++) {
+        BrowserTabContent* btc = *iter;
+        if (btc != this) {
+            if (btc->getYokingGroup() == m_yokingGroup) {
+                *m_viewingTransformation = *btc->m_viewingTransformation;
+                *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+                *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
+                *m_wholeBrainSliceSettings = *btc->m_wholeBrainSliceSettings;
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * @return Is this browser tab yoked?
+ */
+bool
+BrowserTabContent::isYoked() const
+{
+    const bool yoked = (m_yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF);
+    return yoked;
+}
+
+/**
+ * Update other browser tabs with yoked data.
+ */
+void
+BrowserTabContent::updateYokedBrowserTabs()
+{
+    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /*
+     * Copy yoked data from 'me' to all other yoked browser tabs
+     */
+    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
+         iter != s_allBrowserTabContent.end();
+         iter++) {
+        BrowserTabContent* btc = *iter;
+        if (btc != this) {
+            if (btc->getYokingGroup() == m_yokingGroup) {
+                *btc->m_viewingTransformation = *m_viewingTransformation;
+                *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+                *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
+                *btc->m_wholeBrainSliceSettings = *m_wholeBrainSliceSettings;
+                //*btc->m_wholeBrainSurfaceSettings = *m_wholeBrainSurfaceSettings;
+            }
+        }
+    }
+}
 
 

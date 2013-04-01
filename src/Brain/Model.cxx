@@ -41,24 +41,15 @@ using namespace caret;
 /**
  * Constructor.
  * @param m_modelType Type of this model.
- * @param allowsYokingStatus  This model can be yoked.
+ * @param brain Brain that 'owns' this model.
  */
 Model::Model(const ModelTypeEnum::Enum modelType,
-             const YokingAllowedType allowsYokingStatus,
              Brain* brain)
     : CaretObject()
 {
     m_brain = brain;
     initializeMembersModel();
     m_modelType = modelType;
-    m_allowsYokingStatus = allowsYokingStatus;
-    
-    /*
-     * Set this last in constructor or else resetViewPrivate() may
-     * not function correctly.
-     */
-    m_isYokingController = (m_modelType ==
-                                ModelTypeEnum::MODEL_TYPE_YOKING);
 }
 
 /**
@@ -71,7 +62,6 @@ Model::~Model()
 void
 Model::initializeMembersModel()
 {
-    m_isYokingController = false;
 }
 
 /**
@@ -81,28 +71,6 @@ ModelTypeEnum::Enum
 Model::getControllerType() const
 {
     return m_modelType; 
-}
-
-/**
- * @return Is this a yoking model?
- */
-bool 
-Model::isYokingModel() const
-{
-    return m_isYokingController;
-}
-
-/**
- * See if this controller allows yoking.
- * When Yoked, this controller will maintain the same viewpoint
- * as the user moves the mouse in any other yoked controller.
- * @return  true if this controller supports yoking, else false.
- *
- */
-bool
-Model::isYokeable() const
-{
-    return (m_allowsYokingStatus == YOKING_ALLOWED_YES);
 }
 
 /**
@@ -188,7 +156,6 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
     /*
      * Save the overlays (except for yoking)
      */
-    if (m_modelType != ModelTypeEnum::MODEL_TYPE_YOKING) {
         std::vector<SceneClass*> overlaySetClassVector;
         for (int32_t iat = 0; iat < numActiveTabs; iat++) {
             const int32_t tabIndex = tabIndices[iat];
@@ -206,7 +173,6 @@ Model::saveToScene(const SceneAttributes* sceneAttributes,
         SceneClassArray* overlaySetClassArray = new SceneClassArray("m_overlaySet",
                                                                     overlaySetClassVector);
         sceneClass->addChild(overlaySetClassArray);
-    }
     
     /*
      * Save information specific to the type of model
@@ -270,7 +236,6 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Restore the overlays (except for yoking)
      */
-    if (m_modelType != ModelTypeEnum::MODEL_TYPE_YOKING) {
         const SceneClassArray* overlaySetClassArray = sceneClass->getClassArray("m_overlaySet");
         if (overlaySetClassArray != NULL) {
             const int32_t numSavedOverlaySets = overlaySetClassArray->getNumberOfArrayElements();
@@ -286,7 +251,6 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
-    }
     
     /*
      * Restore any information specific to type of model

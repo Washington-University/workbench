@@ -86,8 +86,6 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
         /** model display controller surface get */
         EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET,
-        /** model display yoking group controllers - get all*/
-        EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */
@@ -110,6 +108,8 @@ public:
         EVENT_UPDATE_TIME_COURSE_DIALOG,
         /** Update Animation start time */
         EVENT_UPDATE_ANIMATION_START_TIME,
+        /** Event to update yoked windows (graphics and toolbar) */
+        EVENT_UPDATE_YOKED_WINDOWS,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };

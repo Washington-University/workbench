@@ -42,7 +42,6 @@
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
-#include "ModelYokingGroup.h"
 #include "Overlay.h"
 #include "Scene.h"
 #include "SceneClass.h"
@@ -148,23 +147,6 @@ OverlaySet::OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain)
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         m_overlays[i] = new Overlay(modelDisplayControllerWholeBrain);
-    }
-}
-
-/**
- * Constructor for yoking controller.
- * @param modelDisplayControllerYoking
- *     Yoking controller that uses this overlay set.
- */
-OverlaySet::OverlaySet(ModelYokingGroup* modelDisplayControllerYoking)
-: CaretObject()
-{
-    m_sceneAssistant = NULL;
-    initializeOverlaySet(modelDisplayControllerYoking,
-                               NULL);
-    
-    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = NULL;
     }
 }
 

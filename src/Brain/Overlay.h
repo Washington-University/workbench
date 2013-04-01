@@ -39,7 +39,6 @@ namespace caret {
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
-    class ModelYokingGroup;
     class SceneClassAssistant;
     
     class Overlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -50,8 +49,6 @@ namespace caret {
         Overlay(ModelVolume* modelDisplayControllerVolume);
         
         Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain);
-        
-        Overlay(ModelYokingGroup* modelDisplayControllerYokingGroup);
         
         Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         

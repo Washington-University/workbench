@@ -618,8 +618,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         enableVolumeSurfaceOutline = (haveSurfaces
                                                       & haveVolumes);
                         break;
-                    case ModelTypeEnum::MODEL_TYPE_YOKING:
-                        break;
                 }
             }
         }
