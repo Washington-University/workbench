@@ -73,8 +73,11 @@ OperationParameters* OperationCiftiConvert::getParameters()
     
     OptionalParameter* fromNifti = ret->createOptionalParameter(4, "-from-nifti", "convert from NIFTI (1 or 2)");
     fromNifti->addVolumeParameter(1, "nifti-in", "the input nifti file");
-    fromNifti->addCiftiParameter(2, "cifti-template", "a cifti file with the exact dimensions and mapping that should be used");
+    fromNifti->addCiftiParameter(2, "cifti-template", "a cifti file with the dimension(s) and mapping(s) that should be used");
     fromNifti->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
+    OptionalParameter* fnresetTimeOpt = fromNifti->createOptionalParameter(4, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the nifti file");
+    fnresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
+    fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
     
     ret->setHelpText(
         AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
@@ -283,10 +286,16 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myNiftiIn->getDimensions(myDims);
         if (myDims[4] != 1) throw OperationException("input nifti has multiple components, aborting");
-        int64_t numRows = myTemplate->getNumberOfRows(), numCols = myTemplate->getNumberOfColumns();
+        CiftiXML outXML = myTemplate->getCiftiXML();
+        OptionalParameter* fnresetTimeOpt = fromNifti->getOptionalParameter(4);
+        if (fnresetTimeOpt->m_present)
+        {
+            outXML.resetRowsToTimepoints(fnresetTimeOpt->getDouble(1), myDims[3], fnresetTimeOpt->getDouble(2));
+        }
+        int64_t numRows = outXML.getNumberOfRows(), numCols = outXML.getNumberOfColumns();
         if (myDims[3] != numCols) throw OperationException("input nifti has the wrong size for row length");
         if (numRows > myDims[0] * myDims[1] * myDims[2]) throw OperationException("input nifti is too small for number of rows");
-        myCiftiOut->setCiftiXML(myTemplate->getCiftiXML());
+        myCiftiOut->setCiftiXML(outXML);
         vector<float> rowscratch(numCols);
         for (int64_t i = 0; i < numRows; ++i)
         {
