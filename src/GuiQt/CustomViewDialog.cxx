@@ -118,8 +118,6 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     m_blockDialogUpdate = false;
-    
-//    loadCustomViewListWidget();
 }
 
 /**
@@ -196,20 +194,6 @@ CustomViewDialog::customViewSelectedAndApplied()
     copyToTransformPushButtonClicked();
 }
 
-///**
-// * @return The selected user view or NULL if no user view selected.
-// */
-//UserView*
-//CustomViewDialog::getSelectedUserView()
-//{
-//    UserView* userView = NULL;
-//    QListWidgetItem* lwi = m_customViewListWidget->currentItem();
-//    if (lwi != NULL) {
-//        userView = reinterpret_cast<UserView*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-//    }
-//    return userView;
-//}
-//
 /**
  * @return Name of selected custom view..
  */
@@ -676,7 +660,6 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
-        const int32_t tabIndex = btc->getTabNumber();
         if (btc != NULL) {
             Model* model = btc->getModelControllerForDisplay();
             if (model != NULL) {
@@ -787,19 +770,6 @@ CustomViewDialog::getCaretPreferences()
     return prefs;
 }
 
-///**
-// * @return The user views (updated by rereading from preferences).
-// */
-//std::vector<UserView*>
-//CustomViewDialog::getUserViews()
-//{
-//    CaretPreferences* cp = getCaretPreferences();
-//    cp->readUserViews();
-//    std::vector<UserView*> userViews = cp->getAllUserViews();
-//    return userViews;
-//}
-
-
 /**
  * Called when new custom view push button clicked.
  */
@@ -886,78 +856,6 @@ CustomViewDialog::deleteCustomViewPushButtonClicked()
             loadCustomViewListWidget();
         }
     }
-/*
-    bool ok = false;
-    bool exitLoop = false;
-    AString newViewName;
-    while (exitLoop == false) {
-        newViewName = QInputDialog::getText(m_deleteCustomViewPushButton,
-                                            "",
-                                            "Name of New View",
-                                            QLineEdit::Normal,
-                                            newViewName,
-                                            &ok);
-        if (ok) {
-            bool overwriteFlag = false;
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            const std::vector<UserView*> userViews = prefs->getAllUserViews();
-            const int32_t numViews = static_cast<int32_t>(userViews.size());
-            if (numViews > 0) {
-                for (int32_t i = 0; i < numViews; i++) {
-                    const QString viewName = userViews[i]->getName();
-                    if (viewName == newViewName) {
-                        overwriteFlag = true;
-                    }
-                }
-            }
-            if (overwriteFlag) {
-                const QString msg = ("View named \""
-                                     + newViewName
-                                     + "\" already exits.  Replace?");
-                if (WuQMessageBox::warningYesNo(m_deleteCustomViewPushButton,
-                                                msg)) {
-                    exitLoop = true;
-                }
-            }
-            else {
-                exitLoop = true;
-            }
-            
-        }
-        else {
-            exitLoop = true;
-        }
-    }
-    if (ok && (newViewName.isEmpty() == false)) {
-        double panX, panY, rotX, rotY, rotZ, zoom;
-        getTransformationControlValues(panX,
-                                       panY,
-                                       rotX,
-                                       rotY,
-                                       rotZ,
-                                       zoom);
-        const float panning[3] = { panX, panY, 0.0 };
-
-        UserView uv;
-        
-        uv.setTranslation(panning);
-        
-        Matrix4x4 rotationMatrix;
-        rotationMatrix.setRotation(rotX,
-                                   rotY,
-                                   rotZ);
-        float rotationMatrixArray[4][4];
-        rotationMatrix.getMatrix(rotationMatrixArray);
-        uv.setRotation(rotationMatrixArray);
-        
-        uv.setScaling(zoom);
-        
-        uv.setName(newViewName);
-        
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addUserView(uv);
-    }
-*/    
 }
 
 /**

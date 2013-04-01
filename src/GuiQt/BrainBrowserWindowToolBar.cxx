@@ -1965,7 +1965,6 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-//    VolumeSliceCoordinateSelection* sliceSelection = NULL;
     VolumeFile* vf = NULL;
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
@@ -1982,7 +1981,6 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
             vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
-//            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             this->volumeIndicesAxialCheckBox->setVisible(true);
             this->volumeIndicesCoronalCheckBox->setVisible(true);
             this->volumeIndicesParasagittalCheckBox->setVisible(true);
@@ -1990,12 +1988,9 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     }
     
     if (vf != NULL) {
-//        if (sliceSelection != NULL) {
             this->volumeIndicesAxialCheckBox->setChecked(btc->isSliceAxialEnabled());
             this->volumeIndicesCoronalCheckBox->setChecked(btc->isSliceCoronalEnabled());
-            this->volumeIndicesParasagittalCheckBox->setChecked(btc->isSliceParasagittalEnabled());
-//        }
-        
+            this->volumeIndicesParasagittalCheckBox->setChecked(btc->isSliceParasagittalEnabled());        
     }
     
     this->updateSliceIndicesAndCoordinatesRanges();
@@ -2017,7 +2012,6 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-//    VolumeSliceCoordinateSelection* sliceSelection = NULL;
     VolumeFile* vf = NULL;
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
@@ -2094,24 +2088,6 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
         this->volumeIndicesYcoordSpinBox->setSingleStep(dy);
         this->volumeIndicesZcoordSpinBox->setSingleStep(dz);
         
-//        if (sliceSelection != NULL) {
-//            this->volumeIndicesAxialSpinBox->setValue(sliceSelection->getSliceIndexAxial(vf));
-//            this->volumeIndicesCoronalSpinBox->setValue(sliceSelection->getSliceIndexCoronal(vf));
-//            this->volumeIndicesParasagittalSpinBox->setValue(sliceSelection->getSliceIndexParasagittal(vf));
-//            
-//            int64_t slices[3] = {
-//                sliceSelection->getSliceIndexParasagittal(vf),
-//                sliceSelection->getSliceIndexCoronal(vf),
-//                sliceSelection->getSliceIndexAxial(vf)
-//            };
-//            float sliceCoords[3] = { 0.0, 0.0, 0.0 };
-//            if (vf != NULL) {
-//                vf->indexToSpace(slices,
-//                                 sliceCoords);
-//            }
-//            this->volumeIndicesXcoordSpinBox->setValue(sliceSelection->getSliceCoordinateParasagittal());
-//            this->volumeIndicesYcoordSpinBox->setValue(sliceSelection->getSliceCoordinateCoronal());
-//            this->volumeIndicesZcoordSpinBox->setValue(sliceSelection->getSliceCoordinateAxial());
             this->volumeIndicesAxialSpinBox->setValue(btc->getSliceIndexAxial(vf));
             this->volumeIndicesCoronalSpinBox->setValue(btc->getSliceIndexCoronal(vf));
             this->volumeIndicesParasagittalSpinBox->setValue(btc->getSliceIndexParasagittal(vf));
@@ -2129,7 +2105,6 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
             this->volumeIndicesXcoordSpinBox->setValue(btc->getSliceCoordinateParasagittal());
             this->volumeIndicesYcoordSpinBox->setValue(btc->getSliceCoordinateCoronal());
             this->volumeIndicesZcoordSpinBox->setValue(btc->getSliceCoordinateAxial());
-//        }
         
     }
 
@@ -2615,9 +2590,6 @@ BrainBrowserWindowToolBar::updateSurfaceMontageOptionsWidget(BrowserTabContent* 
         leftSecondSurfaceSelectionModel = msm->getLeftSecondSurfaceSelectionModel(tabIndex);
         rightSurfaceSelectionModel = msm->getRightSurfaceSelectionModel(tabIndex);
         rightSecondSurfaceSelectionModel = msm->getRightSecondSurfaceSelectionModel(tabIndex);
-        
-//        surfaceMontageLeftSecondSurfaceViewController->getWidget()->setEnabled(secondConfigEnabled);
-//        surfaceMontageRightSecondSurfaceViewController->getWidget()->setEnabled(secondConfigEnabled);
     }
     this->surfaceMontageLeftSurfaceViewController->updateControl(leftSurfaceSelectionModel);
     this->surfaceMontageLeftSecondSurfaceViewController->updateControl(leftSecondSurfaceSelectionModel);
@@ -2794,18 +2766,10 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
     this->volumeMontageWidgetGroup->blockAllSignals(true);
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     this->montageRowsSpinBox->setValue(btc->getMontageNumberOfRows());
     this->montageColumnsSpinBox->setValue(btc->getMontageNumberOfColumns());
     this->montageSpacingSpinBox->setValue(btc->getMontageSliceSpacing());
-//    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
-//    if (volumeModel != NULL) {
-//        this->montageRowsSpinBox->setValue(volumeModel->getMontageNumberOfRows(tabIndex));
-//        this->montageColumnsSpinBox->setValue(volumeModel->getMontageNumberOfColumns(tabIndex));
-//        this->montageSpacingSpinBox->setValue(volumeModel->getMontageSliceSpacing(tabIndex));
-//    }
-    
     
     this->volumeMontageWidgetGroup->blockAllSignals(false);
 
@@ -2990,11 +2954,6 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
     this->volumePlaneWidgetGroup->blockAllSignals(true);
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-//    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
-
-        //switch (volumeModel->getSliceViewPlane(tabIndex)) {
         switch (btc->getSliceViewPlane()) {
             case VolumeSliceViewPlaneEnum::ALL:
                 this->volumePlaneAllToolButtonAction->setChecked(true);
@@ -3011,7 +2970,6 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
         }
         
         switch(btc->getSliceViewMode()) {
-//        switch(volumeModel->getSliceViewMode(tabIndex)) {
             case VolumeSliceViewModeEnum::MONTAGE:
                 this->volumePlaneViewMontageToolButtonAction->setChecked(true);
                 break;
@@ -3028,25 +2986,6 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
-
-///**
-// * @return Model volume for viewing selections.
-// * If view is yoked, model returned is the yoking model.
-// */
-//ModelVolumeInterface* 
-//BrainBrowserWindowToolBar::getModelVolumeForViewSelections()
-//{
-//    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
-//    ModelVolumeInterface* volumeInterface = volumeModel;
-//    if (volumeModel != NULL) {
-//        ModelYokingGroup* modelYokingGroup = btc->getSelectedYokingGroupForModel(volumeModel);
-//        if (modelYokingGroup != NULL) {
-//            volumeInterface = modelYokingGroup;
-//        }        
-//    }
-//    return volumeInterface;
-//}
 
 /**
  * Create a tool widget which is a group of widgets with 
@@ -3185,9 +3124,6 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
     this->updateTabName(-1);
     this->updateToolBox();
     emit viewedModelChanged();
-
-//    this->updateToolBar();   
-//    this->updateTabName(-1);
     this->updateGraphicsWindow();
 }
 
@@ -3198,37 +3134,9 @@ void
 BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//    ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-//    if (mdcs != NULL) {
         btc->leftView();
-//    }
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
-//        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-//        if (mdcs != NULL) {
-//            if (mdcyg != NULL) {
-//                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
-//                if (StructureEnum::isRight(structure)) {
-//                    mdcyg->leftView(btc->getTabNumber());
-//                }
-//                else {
-//                    mdcyg->leftView(btc->getTabNumber());
-//                }
-//            }
-//            else {
-//                mdcs->lateralView(btc->getTabNumber());
-//            }
-//        }
-//        else {
-//            mdc->leftView(btc->getTabNumber());
-//        }
-//        
-//        this->updateGraphicsWindow();
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3240,36 +3148,9 @@ void
 BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//    ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-//    if (mdcs != NULL) {
         btc->rightView();
-//    }
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        ModelYokingGroup* mdcyg = dynamic_cast<ModelYokingGroup*>(mdc);
-//        ModelSurface* mdcs = btc->getDisplayedSurfaceModel();
-//        if (mdcs != NULL) {
-//            if (mdcyg != NULL) {
-//                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
-//                if (StructureEnum::isRight(structure)) {
-//                    mdcyg->rightView(btc->getTabNumber());
-//                }
-//                else {
-//                    mdcyg->rightView(btc->getTabNumber());
-//                }
-//            }
-//            else {
-//                mdcs->medialView(btc->getTabNumber());
-//            }
-//        }
-//        else {
-//            mdc->rightView(btc->getTabNumber());
-//        }
-//        this->updateGraphicsWindow();
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3285,12 +3166,6 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
     
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        mdc->anteriorView(btc->getTabNumber());
-//        this->updateGraphicsWindow();
-//    }
-    
     this->checkUpdateCounter();
 }
 
@@ -3304,12 +3179,6 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checke
     btc->posteriorView();
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        mdc->posteriorView(btc->getTabNumber());
-//        this->updateGraphicsWindow();
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3325,12 +3194,6 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
     
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        mdc->dorsalView(btc->getTabNumber());
-//        this->updateGraphicsWindow();
-//    }
-    
     this->checkUpdateCounter();
 }
 
@@ -3344,12 +3207,6 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*
     btc->ventralView();
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    Model* mdc = btc->getModelControllerForDisplay();
-//    if (mdc != NULL) {
-//        mdc->ventralView(btc->getTabNumber());
-//        this->updateGraphicsWindow();
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3365,7 +3222,6 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
     
     Model* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
-//        mdc->resetView(btc->getTabNumber());
         this->updateVolumeIndicesWidget(btc);
         this->updateGraphicsWindow();
         this->updateOtherYokedWindows();
@@ -3385,14 +3241,6 @@ BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*ch
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
     
-//    if (btc != NULL) {
-//        Model* mdc = btc->getModelControllerForDisplay();
-//        if (mdc != NULL) {
-//            mdc->leftView(btc->getTabNumber());
-//            this->updateGraphicsWindow();
-//        }
-//    }
-    
     this->checkUpdateCounter();
 }
 
@@ -3406,14 +3254,6 @@ BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*ch
     btc->dorsalView();
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-
-//    if (btc != NULL) {
-//        Model* mdc = btc->getModelControllerForDisplay();
-//        if (mdc != NULL) {
-//            mdc->dorsalView(btc->getTabNumber());
-//            this->updateGraphicsWindow();
-//        }
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3428,14 +3268,6 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
     btc->anteriorView();
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    if (btc != NULL) {
-//        Model* mdc = btc->getModelControllerForDisplay();
-//        if (mdc != NULL) {
-//            mdc->anteriorView(btc->getTabNumber());
-//            this->updateGraphicsWindow();
-//        }
-//    }
     
     this->checkUpdateCounter();
 }
@@ -3479,10 +3311,6 @@ BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
             if (prefs->getCustomView(customViewName, modelTransform)) {
                 BrowserTabContent* btc = this->getTabContentFromSelectedTab();
                 btc->setTransformationsFromModelTransform(modelTransform);
-//                const int32_t tabIndex = btc->getTabNumber();
-//                Model* mdc = btc->getModelControllerForDisplay();
-//                mdc->setTransformationsFromModelTransform(tabIndex,
-//                                                          modelTransform);
                 this->updateGraphicsWindow();
                 this->updateOtherYokedWindows();
             }
@@ -3531,7 +3359,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController == NULL) {
@@ -3728,7 +3555,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*stat
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController == NULL) {
@@ -3750,7 +3576,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController == NULL) {
@@ -3772,7 +3597,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
     this->checkUpdateCounter();
 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController == NULL) {
@@ -3794,7 +3618,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
     this->checkUpdateCounter();
 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController == NULL) {
@@ -3817,9 +3640,6 @@ BrainBrowserWindowToolBar::volumeIndicesOriginActionTriggered()
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setSlicesToOrigin();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     
     this->updateVolumeIndicesWidget(btc);
     
@@ -3840,16 +3660,6 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int /*s
     btc->setSliceParasagittalEnabled(this->volumeIndicesParasagittalCheckBox->isChecked());
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-    
-//    const int32_t tabIndex = btc->getTabNumber();
-//    
-//    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-//    if (wholeBrainController != NULL) {
-//        if (this->getDisplayedModelController() == wholeBrainController) {
-//            wholeBrainController->getSelectedVolumeSlices(tabIndex)->setSliceParasagittalEnabled(this->volumeIndicesParasagittalCheckBox->isChecked());
-//            this->updateGraphicsWindow();
-//        }
-//    }
 }
 
 /**
@@ -3865,15 +3675,6 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int /*state*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setSliceCoronalEnabled(this->volumeIndicesCoronalCheckBox->isChecked());
     this->updateGraphicsWindow();
-//    const int32_t tabIndex = btc->getTabNumber();
-//    
-//    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-//    if (wholeBrainController != NULL) {
-//        if (this->getDisplayedModelController() == wholeBrainController) {
-//            wholeBrainController->getSelectedVolumeSlices(tabIndex)->setSliceCoronalEnabled(this->volumeIndicesCoronalCheckBox->isChecked());
-//            this->updateGraphicsWindow();
-//        }
-//    }
 }
 
 /**
@@ -3889,15 +3690,6 @@ BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int /*state*/)
     btc->setSliceAxialEnabled(this->volumeIndicesAxialCheckBox->isChecked());
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-//    const int32_t tabIndex = btc->getTabNumber();
-//    
-//    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-//    if (wholeBrainController != NULL) {
-//        if (this->getDisplayedModelController() == wholeBrainController) {
-//            wholeBrainController->getSelectedVolumeSlices(tabIndex)->setSliceAxialEnabled(this->volumeIndicesAxialCheckBox->isChecked());
-//            this->updateGraphicsWindow();
-//        }
-//    }
 }
 
 /**
@@ -3980,13 +3772,11 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
-//    VolumeSliceCoordinateSelection* sliceSelection = NULL;
     
     VolumeFile* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
-//            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
         }
     }
@@ -3994,12 +3784,10 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
         if (this->getDisplayedModelController() == volumeController) {
-//            sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
         }
     }
     
-//    if (sliceSelection != NULL) {
         if (underlayVolumeFile != NULL) {
             const int64_t parasagittalSlice = this->volumeIndicesParasagittalSpinBox->value();
             const int64_t coronalSlice      = this->volumeIndicesCoronalSpinBox->value();
@@ -4007,15 +3795,7 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
             btc->setSliceIndexAxial(underlayVolumeFile, axialSlice);
             btc->setSliceIndexCoronal(underlayVolumeFile, coronalSlice);
             btc->setSliceIndexParasagittal(underlayVolumeFile, parasagittalSlice);
-            
-//            sliceSelection->setSliceIndexParasagittal(underlayVolumeFile,
-//                                                      parasagittalSlice);
-//            sliceSelection->setSliceIndexCoronal(underlayVolumeFile,
-//                                                 coronalSlice);
-//            sliceSelection->setSliceIndexAxial(underlayVolumeFile,
-//                                               axialSlice);            
         }
-//    }
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
@@ -4035,13 +3815,11 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
-//    VolumeSliceCoordinateSelection* sliceSelection = NULL;
     
     VolumeFile* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
-//            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
         }
     }
@@ -4085,7 +3863,6 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged()
         
         YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
         btc->setYokingGroup(yokingGroup);
-        btc->updateTransformationsForYoking();
             this->updateVolumeIndicesWidget(btc);
             this->updateVolumeMontageWidget(btc);
             this->updateVolumePlaneWidget(btc);
@@ -4110,7 +3887,6 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
         surfaceModelSelector->setSelectedStructure(structure);
         surfaceModelSelector->setSelectedSurfaceController(surfaceController);
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        btc->updateTransformationsForYoking();
         this->updateUserInterface();
         this->updateGraphicsWindow();
     }
@@ -4150,10 +3926,8 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
     }
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     btc->setSliceViewPlane(plane);
-//    volumeController->setSliceViewPlane(tabIndex, plane);
     
     /*
      * If ALL and currently Montage, switch from Montage to Orthogonal
@@ -4164,11 +3938,6 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
             btc->setSliceViewMode(VolumeSliceViewModeEnum::ORTHOGONAL);
             this->updateVolumePlaneWidget(btc);
         }
-//        if (volumeController->getSliceViewMode(tabIndex) == VolumeSliceViewModeEnum::MONTAGE) {
-//            volumeController->setSliceViewMode(tabIndex, 
-//                                               VolumeSliceViewModeEnum::ORTHOGONAL);
-//            this->updateVolumePlaneWidget(btc);
-//        }
     }
     
     this->updateVolumeIndicesWidget(btc);
@@ -4201,10 +3970,8 @@ BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
     }
      
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
     btc->setSliceViewMode(mode);
-//    volumeController->setSliceViewMode(tabIndex, mode);
     /*
      * If Montage and currently ALL, switch from ALL to Axial
      * since ALL and Montage are incompatible.
@@ -4214,11 +3981,6 @@ BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
             btc->setSliceViewPlane(VolumeSliceViewPlaneEnum::AXIAL);
             this->updateVolumePlaneWidget(btc);
         }
-//        if (volumeController->getSliceViewPlane(tabIndex) == VolumeSliceViewPlaneEnum::ALL) {
-//            volumeController->setSliceViewPlane(tabIndex, 
-//                                               VolumeSliceViewPlaneEnum::AXIAL);
-//            this->updateVolumePlaneWidget(btc);
-//        }
     }
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
@@ -4235,16 +3997,7 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     btc->resetView();
-//    if (yokingGroup != NULL) {
-//        yokingGroup->resetView(tabIndex);
-//    }
-//    else if (volumeController != NULL) {
-//        volumeController->resetView(tabIndex);
-//    }
 
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
@@ -4261,19 +4014,13 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
-//    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
-//    if (volumeModel == NULL) {
-//        return;
-//    }
     btc->setMontageNumberOfRows(this->montageRowsSpinBox->value());
-//    volumeModel->setMontageNumberOfRows(tabIndex, this->montageRowsSpinBox->value());
     
     /*
      * When yoked, need to update other toolbars.
      */
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+   // EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
 
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
@@ -4288,19 +4035,9 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
     CaretLogEntering();
     this->checkUpdateCounter();
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-//    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
-//    if (volumeModel == NULL) {
-//        return;
-//    }
     btc->setMontageNumberOfColumns(this->montageColumnsSpinBox->value());
-//    volumeModel->setMontageNumberOfColumns(tabIndex, this->montageColumnsSpinBox->value());
     
-    /*
-     * When yoked, need to update other toolbars.
-     */
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
+        //EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
     
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
@@ -4315,18 +4052,8 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int /*i*/)
     CaretLogEntering();
     this->checkUpdateCounter();
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
     
-//    ModelVolumeInterface* volumeModel = this->getModelVolumeForViewSelections();
-//    if (volumeModel == NULL) {
-//        return;
-//    }
     btc->setMontageSliceSpacing(this->montageSpacingSpinBox->value());
-//    volumeModel->setMontageSliceSpacing(tabIndex, this->montageSpacingSpinBox->value());
-    
-    /*
-     * When yoked, need to update other toolbars.
-     */
     
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
@@ -4490,14 +4217,6 @@ BrainBrowserWindowToolBar::getTabContentFromSelectedTab()
     const int tabIndex = this->tabBar->currentIndex();
     BrowserTabContent* btc = this->getTabContentFromTab(tabIndex);
     return btc;
-/*
-   if ((tabIndex >= 0) && (tabIndex < this->tabBar->count())) {
-        void* p = this->tabBar->tabData(tabIndex).value<void*>();
-        BrowserTabContent* btc = (BrowserTabContent*)p;
-        return btc;
-    }
-    return NULL;
-*/
 }
 
 /**
@@ -4632,7 +4351,6 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
     const int32_t numberOfOpenTabs = this->tabBar->count();
     for (int32_t iClose = (numberOfOpenTabs - 1); iClose >= 0; iClose--) {
         this->tabClosed(iClose);
-//        this->tabBar->removeTab(iClose);
     }
     
     /*

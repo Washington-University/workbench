@@ -343,28 +343,6 @@ ModelSurfaceMontage::getNameForBrowserTab() const
 }
 
 /**
- * Set the scaling so that the model fills the window.
- *
- */
-//void
-//ModelSurfaceMontage::setDefaultScalingToFitWindow()
-//{
-//    /*
-//    BoundingBox bounds;
-//    m_surface->getBounds(bounds);
-//    
-//    float bigY = std::max(std::abs(bounds.getMinY()), bounds.getMaxY());
-//    float percentScreenY = BrainOpenGL::getModelViewingHalfWindowHeight() * 0.90f;
-//    float scale = percentScreenY / bigY;
-//    m_defaultModelScaling = scale;
-//    
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        m_setScaling(i, m_defaultModelScaling);
-//    }
-//    */
-//}
-
-/**
  * Get the overlay set for the given tab.
  * @param tabIndex
  *   Index of tab.
@@ -442,51 +420,6 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
     }
     return surface;
 }
-
-///**
-// * For a structure model, copy the transformations from one window of
-// * the structure model to another window.
-// *
-// * @param controllerSource        Source structure model
-// * @param windowTabNumberSource   windowTabNumber of source transformation.
-// * @param windowTabNumberTarget   windowTabNumber of target transformation.
-// *
-// */
-//void
-//ModelSurfaceMontage::copyTransformationsAndViews(const Model& controllerSource,
-//                                         const int32_t windowTabNumberSource,
-//                                         const int32_t windowTabNumberTarget)
-//{
-//    if (this == &controllerSource) {
-//        if (windowTabNumberSource == windowTabNumberTarget) {
-//            return;
-//        }
-//    }
-//    
-//    CaretAssertArrayIndex(m_translation,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          windowTabNumberTarget);
-//    CaretAssertArrayIndex(controllerSource->translation,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          windowTabNumberSource);
-//    
-//    const ModelSurfaceMontage* modelSurfaceMontage = dynamic_cast<const ModelSurfaceMontage*>(&controllerSource);
-//    if (modelSurfaceMontage == NULL) {
-//        return;
-//    }
-//  
-//    m_leftSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-//                                modelSurfaceMontage->m_leftSurfaceSelectionModel[windowTabNumberSource]->getSurface());
-//    
-//    m_leftSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-//                                modelSurfaceMontage->m_leftSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());
-//
-//    m_rightSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-//                                modelSurfaceMontage->m_rightSurfaceSelectionModel[windowTabNumberSource]->getSurface());
-//    
-//    m_rightSecondSurfaceSelectionModel[windowTabNumberTarget]->setSurface(
-//                                modelSurfaceMontage->m_rightSecondSurfaceSelectionModel[windowTabNumberSource]->getSurface());    
-//}
 
 /**
  * Save information specific to this type of model to the scene.

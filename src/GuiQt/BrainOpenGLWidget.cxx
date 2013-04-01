@@ -619,8 +619,6 @@ BrainOpenGLWidget::performIdentification(const int x,
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
-//    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
-//    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
     
     if (idViewport != NULL) {
         /*

@@ -58,7 +58,6 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
         m_rightEnabled[i] = true;
         m_leftRightSeparation[i] = 0.0;
         m_cerebellumSeparation[i] = 0.0;        
-//        m_volumeSlicesSelected[i].reset();
         m_overlaySet[i] = new OverlaySet(this);
     }
     
@@ -202,170 +201,9 @@ ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
                                                          const SurfaceTypeEnum::Enum surfaceType)
 {
     m_selectedSurfaceType[windowTabNumber] = surfaceType;
-    
-//    /*
-//     * If surface type is neither anatomical nor reconstruction,
-//     * turn of the display of volume slices.
-//     */
-//    switch (surfaceType) {
-//        case SurfaceTypeEnum::ANATOMICAL:
-//            break;
-//        case SurfaceTypeEnum::RECONSTRUCTION:
-//            break;
-//        default:
-//            m_volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
-//            m_volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
-//            m_volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
-//            break;
-//    }
     updateController();
 }
 
-///**
-// * @return Enabled status for left cerebral cortex.
-// */
-//bool 
-//ModelWholeBrain::isLeftEnabled(const int32_t windowTabNumber) const
-//{
-//    return m_leftEnabled[windowTabNumber];
-//}
-//
-///**
-// * Set the enabled status for the left hemisphere.
-// * @param windowTabNumber
-// *    Index of window tab.
-// * @param enabled
-// *    New enabled status.
-// */
-//void 
-//ModelWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
-//                                                 const bool enabled)
-//{
-//    m_leftEnabled[windowTabNumber] = enabled;
-//}
-//
-///**
-// * @return Enabled status for right cerebral cortex.
-// */
-//bool 
-//ModelWholeBrain::isRightEnabled(const int32_t windowTabNumber) const
-//{
-//    return m_rightEnabled[windowTabNumber];    
-//}
-//
-///**
-// * Set the enabled status for the right hemisphere.
-// * @param windowTabNumber
-// *    Index of window tab.
-// * @param enabled
-// *    New enabled status.
-// */
-//void 
-//ModelWholeBrain::setRightEnabled(const int32_t windowTabNumber,
-//                                                  const bool enabled)
-//{
-//    m_rightEnabled[windowTabNumber] = enabled;
-//}
-//
-///**
-// * @return Enabled status for cerebellum.
-// */
-//bool 
-//ModelWholeBrain::isCerebellumEnabled(const int32_t windowTabNumber) const
-//{
-//    return m_cerebellumEnabled[windowTabNumber];
-//}
-//
-///**
-// * Set the enabled status for the cerebellum.
-// * @param windowTabNumber
-// *    Index of window tab.
-// * @param enabled
-// *    New enabled status.
-// */
-//void 
-//ModelWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
-//                                                       const bool enabled)
-//{
-//    m_cerebellumEnabled[windowTabNumber] = enabled;
-//}
-//
-///**
-// * @return The separation between the left and right surfaces.
-// */
-//float 
-//ModelWholeBrain::getLeftRightSeparation(const int32_t windowTabNumber) const
-//{
-//    return m_leftRightSeparation[windowTabNumber];
-//}
-//
-///**
-// * Set the separation between the cerebellum and the left/right surfaces.
-// * @param windowTabNumber
-// *     Index of window tab.
-// * @param separation
-// *     New value for separation.
-// */
-//void 
-//ModelWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
-//                            const float separation)
-//{
-//    m_leftRightSeparation[windowTabNumber] = separation;
-//}
-//
-///**
-// * @return The separation between the left/right surfaces.
-// */
-//float 
-//ModelWholeBrain::getCerebellumSeparation(const int32_t windowTabNumber) const
-//{
-//    return m_cerebellumSeparation[windowTabNumber];
-//}
-//
-///**
-// * Set the separation between the cerebellum and the eft and right surfaces.
-// * @param windowTabNumber
-// *     Index of window tab.
-// * @param separation
-// *     New value for separation.
-// */
-//void 
-//ModelWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
-//                                                         const float separation)
-//{
-//    m_cerebellumSeparation[windowTabNumber] = separation;
-//}
-
-///**
-// * Return the volume slice selection.
-// * @param windowTabNumber
-// *   Tab Number of window.
-// * @return
-// *   Volume slice selection for tab.
-// */
-//VolumeSliceCoordinateSelection* 
-//ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
-//{
-//    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(getUnderlayVolumeFile(windowTabNumber));
-//    return &m_volumeSlicesSelected[windowTabNumber];
-//}
-//
-///**
-// * Return the volume slice selection.
-// * @param windowTabNumber
-// *   Tab Number of window.
-// * @return
-// *   Volume slice selection for tab.
-// */
-//const VolumeSliceCoordinateSelection* 
-//ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
-//{
-//    const VolumeFile* vf = getUnderlayVolumeFile(windowTabNumber);
-//    m_volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
-//    return &m_volumeSlicesSelected[windowTabNumber];
-//}
-//
-//
 /**
  * Get the name for use in a GUI.
  *
@@ -415,16 +253,6 @@ ModelWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
     
     return vf;
 }
-
-///**
-// * Set the selected slices to the origin.
-// * @param  windowTabNumber  Window for which slices set to origin is requested.
-// */
-//void
-//ModelWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
-//{
-//    m_volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
-//}
 
 /**
  * @return Return the surfaces displayed in the given tab.
@@ -542,25 +370,8 @@ ModelWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
  *   The event.
  */
 void 
-ModelWholeBrain::receiveEvent(Event* event)
+ModelWholeBrain::receiveEvent(Event* /*event*/)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
-        EventIdentificationHighlightLocation* idLocationEvent =
-        dynamic_cast<EventIdentificationHighlightLocation*>(event);
-//        CaretAssert(idLocationEvent);
-//        
-//        if (getBrain()->getIdentificationManager()->isVolumeIdentificationEnabled()) {
-//            const float* highlighXYZ = idLocationEvent->getXYZ();
-//        
-//            for (int32_t windowTabNumber = 0; 
-//                 windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
-//                 windowTabNumber++) {
-//                m_volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
-//            }
-//        }
-//        
-//        idLocationEvent->setEventProcessed();
-    }
 }
 
 /**
@@ -626,15 +437,6 @@ ModelWholeBrain::saveModelSpecificInformationToScene(const SceneAttributes* scen
     
     const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
-    
-    SceneObjectMapIntegerKey* volumeSliceMap = new SceneObjectMapIntegerKey("m_volumeSlicesSelected",
-                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
-    for (int32_t i = 0; i < numTabs; i++) {
-        const int32_t tabIndex = tabIndices[i];
-        const AString name = ("m_volumeSlicesSelected[" + AString::number(tabIndex) + "]");
-//        volumeSliceMap->addClass(tabIndex, m_volumeSlicesSelected[tabIndex].saveToScene(sceneAttributes, name));
-    }
-    sceneClass->addChild(volumeSliceMap);
     
     std::vector<SceneClass*> classesForSelectedSurfaceArray;
     for (int32_t i = 0; i < numTabs; i++) {
@@ -728,21 +530,7 @@ ModelWholeBrain::restoreModelSpecificInformationFromScene(const SceneAttributes*
             }
         }
     }
-    
-    /*
-     * Restore selected volume slices (Needs to be done after surface restoration)
-     */
-    const SceneObjectMapIntegerKey* volumeSliceMap = sceneClass->getMapIntegerKey("m_volumeSlicesSelected");
-    if (volumeSliceMap != NULL) {
-        const std::vector<int32_t> keys = volumeSliceMap->getKeys();
-        const int32_t numKeys = static_cast<int32_t>(keys.size());
-        for (int32_t i = 0; i < numKeys; i++) {
-            const int32_t tabIndex = keys[i];
-            const SceneClass* selectedSlicesClass = dynamic_cast<const SceneClass*>(volumeSliceMap->getObject(tabIndex));
-//            m_volumeSlicesSelected[tabIndex].restoreFromScene(sceneAttributes, selectedSlicesClass);
-        }
-    }
-    
+
     /*
      * Need tpo do after
      */

@@ -123,8 +123,6 @@ namespace caret {
 
         bool isSurfaceMontageModelValid() const;
         
-        void updateTransformationsForYoking();
-        
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
         

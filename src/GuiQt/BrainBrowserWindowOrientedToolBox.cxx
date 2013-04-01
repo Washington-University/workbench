@@ -170,16 +170,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }
-    
-    /*
-     * Layout the widgets
-     */
-//    QWidget* widget = new QWidget();
-//    QVBoxLayout* layout = new QVBoxLayout(widget);
-//    WuQtUtilities::setLayoutMargins(layout, 0, 0);
-//    layout->addWidget(tabBar);
-//    layout->addWidget(scrollArea);
-    
+        
     setWidget(m_tabWidget);
 
     if (orientation == Qt::Horizontal) {
@@ -242,10 +233,6 @@ void
 BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool /*status*/)
 {
     QString title = m_toolBoxTitle;
-//    if (status) {
-//        title += (" "
-//                  + QString::number(m_browserWindowIndex + 1));
-//    }
     setWindowTitle(title);
 }
 
@@ -300,7 +287,6 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     /**
      * Save the size when visible BUT NOT floating
      */
-//    if (isVisible() && (isFloating() == false)) {
     if (isFloating() == false) {
         sceneClass->addInteger("toolboxWidth", width());
         sceneClass->addInteger("toolboxHeight", height());
@@ -329,18 +315,6 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_fiberTrajectorySelectionViewController->saveToScene(sceneAttributes,
                                                      "m_fiberTrajectorySelectionViewController"));
     }
-    
-////    if (isFloating()) {
-//        /*
-//         * Position and size
-//         */
-////        SceneWindowGeometry swg(this,
-////                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-//    SceneWindowGeometry swg(this->m_tabWidget->currentWidget(),
-//                            GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-//        sceneClass->addClass(swg.saveToScene(sceneAttributes,
-//                                             "geometry"));
-////    }
     
     return sceneClass;
 }
@@ -445,36 +419,7 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                                this,
                                SLOT(restoreMinimumAndMaximumSizesAfterSceneRestored()));
         }
-//        if (childWidget != NULL) {
-//            childWidget->setMinimumSize(childSize);
-//            SceneWindowGeometry swg(this,
-//                                    GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-//            swg.restoreFromScene(sceneAttributes,
-//                                 sceneClass->getClass("geometry"));
-//            childWidget->setMinimumSize(childMinSize);
-//        }
     }
-//    if (isVisible()) {
-//        SceneWindowGeometry swg(this,
-//                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-//        swg.restoreFromScene(sceneAttributes,
-//                             sceneClass->getClass("geometry"));
-//    }
-    
-//    //if (isFloating() && isVisible()) {
-//    if (isVisible()) {
-//        /*
-//         * Position and size
-//         */
-//        SceneWindowGeometry swg(this->m_tabWidget->currentWidget(),
-//                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-////        SceneWindowGeometry swg(this,
-////                                GuiManager::get()->getBrowserWindowByWindowIndex(this->m_browserWindowIndex));
-//        if (isFloating() == false) {
-//            swg.setWidthHeightOnly(true);
-//        }
-//        swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
-//    }
 }
 
 /**
@@ -515,7 +460,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveFibers     = false;
         bool haveFoci       = false;
         bool haveLabels     = false;
-        //bool haveOverlays   = false;
         bool haveSurfaces   = false;
         bool haveTraj       = false;
         bool haveVolumes    = false;
@@ -533,19 +477,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
                     haveCiftiMatrix = true;
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                     haveCiftiMatrix = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                    //haveOverlays = true;
                     haveDataSeries = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
@@ -565,15 +505,12 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::LABEL:
                     haveLabels = true;
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::METRIC:
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:
-                    //haveOverlays = true;
                     break;
                 case DataFileTypeEnum::SCENE:
                     break;
@@ -585,7 +522,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::UNKNOWN:
                     break;
                 case DataFileTypeEnum::VOLUME:
-                    //haveOverlays = true;
                     haveVolumes = true;
                     break;
             }
@@ -627,7 +563,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        //if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, haveOverlays);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveCiftiMatrix);
         if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);

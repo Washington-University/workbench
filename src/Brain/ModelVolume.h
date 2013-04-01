@@ -29,9 +29,6 @@
 #include "EventListenerInterface.h"
 #include "Model.h"
 
-#include "VolumeSliceViewPlaneEnum.h"
-#include "VolumeSliceViewModeEnum.h"
-
 namespace caret {
 
     class Brain;
@@ -48,33 +45,6 @@ namespace caret {
         
         VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
-//        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane(const int32_t windowTabNumber) const;
-//        
-//        void setSliceViewPlane(const int32_t windowTabNumber,
-//                              VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
-//        
-//        VolumeSliceViewModeEnum::Enum getSliceViewMode(const int32_t windowTabNumber) const;
-//        
-//        void setSliceViewMode(const int32_t windowTabNumber,
-//                              VolumeSliceViewModeEnum::Enum sliceViewMode);
-//                
-//        int32_t getMontageNumberOfColumns(const int32_t windowTabNumber) const;
-//        
-//        void setMontageNumberOfColumns(const int32_t windowTabNumber,
-//                                    const int32_t montageNumberOfColumns);
-//        
-//        int32_t getMontageNumberOfRows(const int32_t windowTabNumber) const;
-//        
-//        void setMontageNumberOfRows(const int32_t windowTabNumber,
-//                                    const int32_t montageNumberOfRows);
-//        
-//        int32_t getMontageSliceSpacing(const int32_t windowTabNumber) const;
-//        
-//        void setMontageSliceSpacing(const int32_t windowTabNumber,
-//                                    const int32_t montageSliceSpacing);
-//        
-//        virtual void setSlicesToOrigin(const int32_t windowTabNumber);
-        
         void updateController(const int32_t windowTabNumber);
         
         void receiveEvent(Event* event);
@@ -84,10 +54,6 @@ namespace caret {
         const OverlaySet* getOverlaySet(const int tabIndex) const;
         
         void initializeOverlays();
-        
-//        virtual void copyTransformationsAndViews(const Model& controller,
-//                                                 const int32_t windowTabNumberSource,
-//                                                 const int32_t windowTabNumberTarget);
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -108,21 +74,6 @@ namespace caret {
         virtual AString getNameForBrowserTab() const;
         
     private:
-//        /** Axis of slice being viewed */
-//        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//        
-//        /** Type of slice viewing */
-//        VolumeSliceViewModeEnum::Enum m_sliceViewMode[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//        
-//        /** Number of montage rows */
-//        int32_t m_montageNumberOfRows[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//        
-//        /** Number of montage columns */
-//        int32_t m_montageNumberOfColumns[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-//        
-//        /** Montage slice spacing */
-//        int32_t m_montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
         VolumeFile* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */

@@ -637,7 +637,6 @@ ConnectivityLoaderManager::saveToScene(const SceneAttributes* sceneAttributes,
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     m_brain->getMappableConnectivityFilesOfAllTypes(connectivityFiles);
     
-    bool haveData = false;
 	QList<QString> list;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();

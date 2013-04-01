@@ -68,8 +68,6 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
-        //void setDefaultScalingToFitWindow();
-        
         bool isLeftEnabled(const int tabIndex) const;
         
         void setLeftEnabled(const int tabIndex,
@@ -89,10 +87,6 @@ namespace caret {
         
         void setSecondSurfaceEnabled(const int tabIndex,
                                     const bool enabled);
-        
-//        virtual void copyTransformationsAndViews(const Model& controller,
-//                                                 const int32_t windowTabNumberSource,
-//                                                 const int32_t windowTabNumberTarget);
         
         void setMontageViewports(const int32_t tabIndex,
                                  const std::vector<SurfaceMontageViewport>& montageViewports);

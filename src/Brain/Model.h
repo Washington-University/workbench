@@ -74,6 +74,11 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        bool getOldSceneTransformation(const int tabIndex,
+                                       float translationOut[3],
+                                       float& scalingOut,
+                                       float rotationMatrixOut[4][4]) const;
+        
     private:
         void resetViewPrivate(const int windowTabNumber);
         
@@ -88,7 +93,23 @@ namespace caret {
         Brain* m_brain;
         
     private:
+        /**
+         * Transformations in older scene files when transforms were stored
+         * in each of the models for every tab.  
+         */
+        class OldSceneTransformation {
+        public:
+            float m_translation[3];
+            float m_scaling;
+            float m_rotationMatrix[4][4];
+            bool m_translationValid;
+            bool m_scalingValid;
+            bool m_rotationValid;
+        };
+        
         ModelTypeEnum::Enum m_modelType;
+        
+        std::vector<OldSceneTransformation> m_oldSceneTransformations;
     };
 
 } // namespace

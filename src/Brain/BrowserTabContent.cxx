@@ -78,8 +78,6 @@ using namespace caret;
 BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
-    CaretLogSevere("CREATING BROWSER TAB: " + QString::number(tabNumber));
-    
     s_allBrowserTabContent.insert(this);
     
     m_tabNumber = tabNumber;
@@ -167,7 +165,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
  */
 BrowserTabContent::~BrowserTabContent()
 {
-    CaretLogSevere("DELETING BROWSER TAB: " + QString::number(m_tabNumber));
     EventManager::get()->removeAllEventsFromListener(this);
  
     s_allBrowserTabContent.erase(this);
@@ -257,8 +254,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     }
     
     m_volumeSurfaceOutlineSetModel->copyVolumeSurfaceOutlineSetModel(tabToClone->getVolumeSurfaceOutlineSet());
-    
-    updateTransformationsForYoking();
 }
 
 /**
@@ -341,7 +336,6 @@ void
 BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 {
     m_selectedModelType = selectedModelType;
-    updateTransformationsForYoking();
 }
 
 /**
@@ -633,8 +627,6 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
         }
     }
-
-    updateTransformationsForYoking();
 }
 
 /**
@@ -752,26 +744,6 @@ BrowserTabContent::receiveEvent(Event* event)
         
         idLocationEvent->setEventProcessed();
     }
-}
-
-/**
- * Update the transformations for yoking prior to drawing.
- * Does nothing if not yoked.
- */
-void 
-BrowserTabContent::updateTransformationsForYoking()
-{
-//    Model* transformController = getModelControllerForTransformation();
-//    ModelYokingGroup* yokingController = 
-//        dynamic_cast<ModelYokingGroup*>(transformController);
-//    if (yokingController != NULL) {
-//        Model* mdc = getModelControllerForDisplay();
-//        if (mdc != NULL) {
-////            mdc->copyTransformationsAndViews(*yokingController, 
-////                                     0, // always used window 0  
-////                                     m_tabNumber);
-//        }
-//    }
 }
 
 /**
@@ -1639,7 +1611,7 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            1);
+                                            2); // version 2 as of 4/1/2013
 
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
@@ -1670,6 +1642,54 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
+    
+    /*
+     * In older version of workbench, transformation were stored in the
+     * model for each tab, so try to restore them.
+     */
+    if (sceneClass->getVersionNumber() < 2) {
+        float translation[3];
+        float scaling;
+        float rotationMatrix[4][4];
+        
+        const Model* model = getModelControllerForDisplay();
+        if (model != NULL) {
+            const bool valid = model->getOldSceneTransformation(m_tabNumber,
+                                                                translation,
+                                                                scaling,
+                                                                rotationMatrix);
+            if (valid) {
+                setTranslation(translation);
+                setScaling(scaling);
+                Matrix4x4 m;
+                m.setMatrix(rotationMatrix);
+                
+                ModelSurface* ms = getDisplayedSurfaceModel();
+                if (ms != NULL) {
+                    /*
+                     * Right hemispheres need rotations changed for
+                     * proper viewing.
+                     */
+                    const StructureEnum::Enum structure = ms->getSurface()->getStructure();
+                    if (StructureEnum::isRight(structure)) {
+                        double rotationX, rotationY, rotationZ;
+                        m.getRotation(rotationX,
+                                      rotationY,
+                                      rotationZ);
+                        //rotationX = -rotationX;
+                        //rotationY = 180.0 - rotationY;
+                        rotationY = 90 + rotationY;
+                        rotationZ = -rotationZ;
+                        m.identity();
+                        m.setRotation(rotationX,
+                                           rotationY,
+                                           rotationZ);
+                    }
+                }
+                setRotationMatrix(m);
+            }
+        }
+    }
 }
 
 /**

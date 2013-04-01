@@ -257,8 +257,132 @@ Model::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     restoreModelSpecificInformationFromScene(sceneAttributes, 
                                              sceneClass);
+
+    /*
+     * Check for transformations that are stored in the model's scene.
+     * These are only present in older scene files (circa March 2013 
+     * and earlier).
+     */
+    m_oldSceneTransformations.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_oldSceneTransformations[i].m_rotationValid = false;
+        m_oldSceneTransformations[i].m_scalingValid = false;
+        m_oldSceneTransformations[i].m_translationValid = false;
+    }
+    
+    /*
+     * Restore scaling
+     */
+    const SceneClassArray* scalingClassArray = sceneClass->getClassArray("m_scaling");
+    if (scalingClassArray != NULL) {
+        const int32_t numSavedScaling = scalingClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedScaling; ism++) {
+            const SceneClass* scalingClass = scalingClassArray->getClassAtIndex(ism);
+            const int32_t tabIndex = scalingClass->getIntegerValue("tabIndex", -1);
+            if ((tabIndex >= 0)
+                && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                m_oldSceneTransformations[tabIndex].m_scaling = scalingClass->getFloatValue("scaling", 1.0);
+                m_oldSceneTransformations[tabIndex].m_scalingValid = true;
+            }
+        }
+    }
+    
+    /*
+     * Restore translation
+     */
+    const SceneClassArray* translationClassArray = sceneClass->getClassArray("m_translation");
+    if (translationClassArray != NULL) {
+        const int32_t numSavedTanslations = translationClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedTanslations; ism++) {
+            const SceneClass* translationClass = translationClassArray->getClassAtIndex(ism);
+            const int32_t tabIndex = translationClass->getIntegerValue("tabIndex", -1);
+            const int32_t viewingTransformIndex = translationClass->getIntegerValue("viewingTransformIndex", -1);
+            if ((tabIndex >= 0)
+                && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                if (viewingTransformIndex == 0) {
+                    if (translationClass->getFloatArrayValue("translation",
+                                                             m_oldSceneTransformations[tabIndex].m_translation,
+                                                             3) == 3) {
+                        m_oldSceneTransformations[tabIndex].m_translationValid = true;
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Restore rotation matrices
+     */
+    const SceneClassArray* rotationMatrixClassArray = sceneClass->getClassArray("m_viewingRotationMatrix");
+    if (rotationMatrixClassArray != NULL) {
+        const int32_t numSavedMatrices = rotationMatrixClassArray->getNumberOfArrayElements();
+        for (int32_t ism = 0; ism < numSavedMatrices; ism++) {
+            const SceneClass* rotationMatrixClass = rotationMatrixClassArray->getClassAtIndex(ism);
+            const int32_t tabIndex = rotationMatrixClass->getIntegerValue("tabIndex", -1);
+            const int32_t viewingTransformIndex = rotationMatrixClass->getIntegerValue("viewingTransformIndex", -1);
+            if ((tabIndex >= 0)
+                && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                if (viewingTransformIndex == 0) {
+                    if (rotationMatrixClass->getFloatArrayValue("matrix",
+                                                                (float*)m_oldSceneTransformations[tabIndex].m_rotationMatrix,
+                                                                16) == 16) {
+                        m_oldSceneTransformations[tabIndex].m_rotationValid = true;
+                    }
+                }
+            }
+        }
+    }
+    
+
 }
 
+/**
+ * Get transformations for a given tab from older scenes that were
+ * created when the transformations were present in every model for
+ * every tab.  Transformations have since been moved into the 
+ * browser tab content.
+ *
+ * @param tabIndex
+ *     Index of tab for transformation.
+ * @param translationOut
+ *     The translation for the given tab.
+ * @param scalingOut
+ *     The scaling for the given tab.
+ * @param rotationMatrixOut
+ *     The rotation matrix for the given tab.
+ * @return
+ *     true if the transformations are valid, else false.
+ */
+bool
+Model::getOldSceneTransformation(const int tabIndex,
+                                 float translationOut[3],
+                                 float& scalingOut,
+                                 float rotationMatrixOut[4][4]) const
+{
+    if ((tabIndex >= 0)
+        && (tabIndex < static_cast<int32_t>(m_oldSceneTransformations.size()))) {
+        const OldSceneTransformation& ost = m_oldSceneTransformations[tabIndex];
+        if (ost.m_rotationValid
+            && ost.m_scalingValid
+            && ost.m_translationValid) {
+            translationOut[0] = ost.m_translation[0];
+            translationOut[1] = ost.m_translation[1];
+            translationOut[2] = ost.m_translation[2];
+            
+            scalingOut = ost.m_scaling;
+            
+            for (int32_t i = 0; i < 4; i++) {
+                for (int32_t j = 0; j < 4; j++) {
+                    rotationMatrixOut[i][j] = ost.m_rotationMatrix[i][j];
+                }
+            }
+            
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 
 
