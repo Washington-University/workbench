@@ -1274,7 +1274,24 @@ GiftiLabelTable::toString() const
 AString
 GiftiLabelTable::toFormattedString(const AString& indentation)
 {
-    return (indentation + this->toString());
+    AString s = (indentation +
+                 + "GiftiLabelTable=[\n");
+    
+    const AString indent2 = (indentation + indentation);
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        s += indent2;
+        s += "key=";
+        s += AString::number(iter->first);
+        s += "  ";
+        s += iter->second->toString();
+        s += "\n";
+        
+    }
+    s += "]\n";
+    
+    return s;
 }
 
 /**
