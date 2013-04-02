@@ -177,7 +177,7 @@ GiftiLabelTable::addLabel(
                    const float blue,
                    const float alpha)
 {
-    const GiftiLabel gl(-1, labelName, red, green, blue, alpha);
+    const GiftiLabel gl(GiftiLabel::getInvalidLabelKey(), labelName, red, green, blue, alpha);
     return this->addLabel(&gl);
 }
 
@@ -222,7 +222,7 @@ GiftiLabelTable::addLabel(
                    const int32_t blue,
                    const int32_t alpha)
 {
-    const GiftiLabel gl(-1, labelName, red, green, blue, alpha);
+    const GiftiLabel gl(GiftiLabel::getInvalidLabelKey(), labelName, red, green, blue, alpha);
     return this->addLabel(&gl);
 }
 
@@ -269,7 +269,7 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
      * (which may be invalid) from the input label,
      * and check that nothing uses that key
      */
-    if (key < 0) {
+    if (key == GiftiLabel::getInvalidLabelKey()) {
         int32_t tempkey = glIn->getKey();
         LABELS_MAP_ITERATOR iter = this->labelsMap.find(tempkey);
         if (iter == labelsMap.end())
@@ -281,7 +281,7 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     /*
      * Still need a key, find an unused key
      */
-    if (key < 0) {
+    if (key == GiftiLabel::getInvalidLabelKey()) {
         key = this->generateUnusedKey();
         
         GiftiLabel* gl = new GiftiLabel(*glIn);
@@ -458,7 +458,7 @@ GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
 {
     GiftiLabel* label = new GiftiLabel(*labelIn);
     int32_t key = label->getKey();
-    if (key < 0) {
+    if (key == GiftiLabel::getInvalidLabelKey()) {
         key = this->generateUnusedKey();
         label->setKey(key);
     }
@@ -485,7 +485,7 @@ GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
 /**
  * Get the key of a lable from its name.
  * @param name   Name to search for.
- * @return       Key of Name or -1 if not found.
+ * @return       Key of Name or GiftiLabel::getInvalidLabelKey() if not found.
  *
  */
 int32_t
@@ -501,7 +501,7 @@ GiftiLabelTable::getLabelKeyFromName(const AString& name) const
             return key;
         }
     }
-    return -1;
+    return GiftiLabel::getInvalidLabelKey();
 }
 
 /**

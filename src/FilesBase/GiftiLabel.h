@@ -181,6 +181,11 @@ namespace caret {
         
         const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
+        /**
+         * @return The invalid label key.
+         */
+        static inline int32_t getInvalidLabelKey() { return s_invalidLabelKey; }
+        
     private:
         /**tracks modification status (DO NOT CLONE) */
         bool modifiedFlag;
@@ -211,8 +216,13 @@ namespace caret {
         /** Selection status of this label in the map/label hierarchy */
         GroupAndNameHierarchyItem* m_groupNameSelectionItem;
         
+        /** The invalid label key */
+        const static int32_t s_invalidLabelKey;
     };
     
+#ifdef __GIFTI_LABEL_DECLARE__
+    const int32_t GiftiLabel::s_invalidLabelKey = -2147483648;
+#endif // __GIFTI_LABEL_DECLARE__
 } // namespace
 
 #endif // __GIFTILABEL_H__

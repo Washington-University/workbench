@@ -24,7 +24,9 @@
 
 #include <sstream>
 
+#define __GIFTI_LABEL_DECLARE__
 #include "GiftiLabel.h"
+#undef __GIFTI_LABEL_DECLARE__
 
 
 using namespace caret;
@@ -295,7 +297,7 @@ GiftiLabel::initializeMembersGiftiLabel()
 {
     this->modifiedFlag = false;
     this->name = "";
-    this->key = -1;
+    this->key = s_invalidLabelKey;
     this->selected = true;
     this->red = 1.0;
     this->green = 1.0;    
