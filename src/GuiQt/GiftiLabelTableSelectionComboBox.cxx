@@ -207,7 +207,7 @@ GiftiLabelTableSelectionComboBox::currentIndexChanged(int /*indx*/)
         emit labelKeyChanged(gl->getKey());
     }
     else {
-        emit labelKeyChanged(-1);
+        emit labelKeyChanged(GiftiLabel::getInvalidLabelKey());
     }
 }
 
@@ -229,7 +229,7 @@ GiftiLabelTableSelectionComboBox::itemActivated(int /*indx*/)
         emit labelKeyActivated(gl->getKey());
     }
     else {
-        emit labelKeyActivated(-1);
+        emit labelKeyActivated(GiftiLabel::getInvalidLabelKey());
     }
 }
 
@@ -368,7 +368,8 @@ GiftiLabelTableSelectionComboBox::setSelectedLabel(const GiftiLabel* label)
 }
 
 /**
- * @return Key of the selected label or -1 if no label selected.
+ * @return Key of the selected label or GiftiLabel::getInvalidLabelKey()
+ * if no label selected.
  */
 int32_t
 GiftiLabelTableSelectionComboBox::getSelectedLabelKey() const
@@ -378,7 +379,7 @@ GiftiLabelTableSelectionComboBox::getSelectedLabelKey() const
         return gl->getKey();
     }
     
-    return -1;
+    return GiftiLabel::getInvalidLabelKey();
 }
 
 /**

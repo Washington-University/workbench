@@ -456,7 +456,7 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
     if (usePreviouslySelectedIndex) {
         previousSelectedIndex = m_labelSelectionListWidget->currentRow();
     }
-    int32_t selectedKey = -1;
+    int32_t selectedKey = GiftiLabel::getInvalidLabelKey();
     GiftiLabel* selectedLabel = getSelectedLabel();
     if (selectedLabel != NULL) {
         selectedKey = selectedLabel->getKey();

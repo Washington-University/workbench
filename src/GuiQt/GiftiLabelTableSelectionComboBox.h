@@ -90,7 +90,7 @@ namespace caret {
          * The item's key is passed. Note that this signal is sent even when
          * the choice is not changed. If you need to know when the choice
          * actually changes, use signal labelKeyChanged().  If the selected
-         * label is invalid, -1 is passed.
+         * label is invalid, GiftiLabel::getInvalidLabelKey() is passed.
          */
         void labelKeyActivated(const int32_t key);
         
@@ -104,7 +104,7 @@ namespace caret {
         /**
          * This signal is sent whenever the label in the combobox
          * changes either through user interaction or programmatically.
-         * If the selected label is invalid, -1 is passed.
+         * If the selected label is invalid, GiftiLabel::getInvalidLabelKey() is passed.
          */
         void labelKeyChanged(const int32_t key);
         
