@@ -936,28 +936,28 @@ GiftiLabelTable::resetLabelCounts()
     }
 }
 
-/**
- * @return Are there any labels that have an invalid group/name
- * hierarchy settings.  This can be caused by changing the name
- * of a label or its color.
- */
-bool
-GiftiLabelTable::hasLabelsWithInvalidGroupNameHierarchy() const
-{
-    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
-         iter != this->labelsMap.end();
-         iter++) {
-        if (iter != this->labelsMap.end()) {
-            GiftiLabel* gl = iter->second;
-            if (gl->getGroupNameSelectionItem() == NULL) {
-                return true;
-                break;
-            }
-        }
-    }
-    
-    return false;
-}
+///**
+// * @return Are there any labels that have an invalid group/name
+// * hierarchy settings.  This can be caused by changing the name
+// * of a label or its color.
+// */
+//bool
+//GiftiLabelTable::hasLabelsWithInvalidGroupNameHierarchy() const
+//{
+//    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+//         iter != this->labelsMap.end();
+//         iter++) {
+//        if (iter != this->labelsMap.end()) {
+//            GiftiLabel* gl = iter->second;
+//            if (gl->getGroupNameSelectionItem() == NULL) {
+//                return true;
+//                break;
+//            }
+//        }
+//    }
+//    
+//    return false;
+//}
 
 /**
  * Remove labels that have the 'count' attribute
@@ -1272,7 +1272,7 @@ GiftiLabelTable::toString() const
  *
  */
 AString
-GiftiLabelTable::toFormattedString(const AString& indentation)
+GiftiLabelTable::toFormattedString(const AString& indentation) const
 {
     AString s = (indentation +
                  + "GiftiLabelTable=[\n");
@@ -1289,7 +1289,8 @@ GiftiLabelTable::toFormattedString(const AString& indentation)
         s += "\n";
         
     }
-    s += "]\n";
+    s += (indentation +
+          + "]\n");
     
     return s;
 }
@@ -1450,6 +1451,27 @@ void GiftiLabelTable::getKeys(std::vector<int32_t>& keysOut) const
         keysOut.push_back(iter->first);
     }
 }
+
+/**
+ * Get all keys and names.
+ * 
+ * @parm keysAndNamesOut
+ *     Map containing the pairs of corresponding keys and names.
+ */
+void
+GiftiLabelTable::getKeysAndNames(std::map<int32_t, AString>& keysAndNamesOut) const
+{
+    keysAndNamesOut.clear();
+    
+    for (std::map<int32_t,GiftiLabel*>::const_iterator iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        const GiftiLabel* gl = iter->second;
+        keysAndNamesOut.insert(std::make_pair(iter->first,
+                                              gl->getName()));
+    }
+}
+
 
 bool GiftiLabelTable::matches(const GiftiLabelTable& rhs, const bool checkColors, const bool checkCoords) const
 {

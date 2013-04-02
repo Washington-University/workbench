@@ -83,7 +83,12 @@ namespace caret {
         
         void setUserInterfaceUpdateNeeded();
         
-        /** 
+        /**
+         * Contains label keys, and names from previous update with labels.
+         */
+        std::map<int32_t, AString> m_previousLabelKeysAndNames;
+        
+        /**
          * Update needed status of DISPLAY GROUP in EACH TAB.
          * Used when user has set to a display group.
          * Indicates that an update is needed for the given display group in the given tab.

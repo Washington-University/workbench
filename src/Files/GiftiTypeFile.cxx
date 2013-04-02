@@ -149,9 +149,9 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
     
     checkFileReadability(filename);
     
+    this->setFileName(filename);
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
-    this->setFileName(filename);
     this->clearModified();
 }
 

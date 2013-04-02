@@ -39,6 +39,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyName.h"
 #include "FociFile.h"
@@ -272,8 +273,8 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
         sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
         
-//        std::cout << "HIERARCHY:" << std::endl;
-//        std::cout << qPrintable(toString()) << std::endl;
+        CaretLogFine("BORDER HIERARCHY:"
+                     + toString());
     }
 }
 
@@ -301,6 +302,8 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
      */
     GiftiLabelTable* labelTable = labelFile->getLabelTable();
     
+    std::map<int32_t, AString> labelKeysAndNames;
+    
     if (needToGenerateKeys == false) {
         /*
          * Check to see if any group (map) names have changed.
@@ -319,15 +322,51 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
             }
             
             if (needToGenerateKeys == false) {
-                if (labelTable->hasLabelsWithInvalidGroupNameHierarchy()) {
+                labelTable->getKeysAndNames(labelKeysAndNames);
+                
+                if (m_previousLabelKeysAndNames.size() != labelKeysAndNames.size()) {
                     needToGenerateKeys = true;
                 }
+                else {
+                    std::map<int32_t, AString>::const_iterator prevIter = m_previousLabelKeysAndNames.begin();
+                    for (std::map<int32_t, AString>::const_iterator labelIter = labelKeysAndNames.begin();
+                         labelIter != labelKeysAndNames.end();
+                         labelIter++) {
+                        if (prevIter->first != labelIter->first) {
+                            needToGenerateKeys = true;
+                            break;
+                        }
+                        else if (prevIter->second != labelIter->second) {
+                            needToGenerateKeys = true;
+                            break;
+                        }
+                        
+                        prevIter++;
+                    }
+//                    if (std::equal(labelKeysAndNames.begin(),
+//                                   labelKeysAndNames.end(),
+//                                   m_previousLabelKeysAndNames) == false) {
+//                        needToGenerateKeys = true;
+//                    }
+                }
+                
+//                if (labelTable->hasLabelsWithInvalidGroupNameHierarchy()) {
+//                    needToGenerateKeys = true;
+//                }
             }
         }
     }
 
     if (needToGenerateKeys) {
         //const int32_t ID_NOT_USED = 0;
+        
+        /*
+         * Save keys and names for comparison in next update test
+         */
+        m_previousLabelKeysAndNames = labelKeysAndNames;
+        if (m_previousLabelKeysAndNames.empty()) {
+            labelTable->getKeysAndNames(m_previousLabelKeysAndNames);
+        }
         
         /*
          * Clear everything
@@ -408,7 +447,10 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
         }
         
         setUserInterfaceUpdateNeeded();
-    }    
+        
+        CaretLogFine("LABEL HIERARCHY:"
+                     + toString());
+    }
 }
 
 /**
@@ -524,8 +566,8 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
         sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
 
-//        std::cout << "HIERARCHY:" << std::endl;
-//        std::cout << qPrintable(toString()) << std::endl;
+        CaretLogFine("FOCI HIERARCHY:"
+                     + toString());
     }
 }
 

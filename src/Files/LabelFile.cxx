@@ -27,6 +27,7 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
+#include "GiftiLabel.h"
 #include "MathFunctions.h"
 #include "LabelFile.h"
 
@@ -158,6 +159,8 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
         this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerInt());
     }
     
+    validateKeysAndLabels();
+    
     m_classNameHierarchy->update(this,
                                  true);
     m_forceUpdateOfGroupAndNameHierarchy = false;
@@ -168,6 +171,89 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
                   + "\n"
                   + m_classNameHierarchy->toString());
 }
+
+/**
+ * Validate keys and labels in the file.
+ */
+void
+LabelFile::validateKeysAndLabels() const
+{
+    /*
+     * Skip if logging is not fine or less.
+     */
+    if (CaretLogger::getLogger()->isFine() == false) {
+        return;
+    }
+    
+    AString message;
+    
+    /*
+     * Find the label keys that are in the data
+     */
+    std::set<int32_t> dataKeys;
+    const int32_t numNodes = getNumberOfNodes();
+    const int32_t numMaps  = getNumberOfMaps();
+    for (int32_t iNode = 0; iNode < numNodes; iNode++) {
+        for (int32_t jMap = 0; jMap < numMaps; jMap++) {
+            const int32_t key = getLabelKey(iNode, jMap);
+            dataKeys.insert(key);
+        }
+    }
+    
+    /*
+     * Find any keys that are not in the label table
+     */
+    const GiftiLabelTable* labelTable = getLabelTable();
+    std::set<int32_t> missingLabelKeys;
+    for (std::set<int32_t>::iterator dataKeyIter = dataKeys.begin();
+         dataKeyIter != dataKeys.end();
+         dataKeyIter++) {
+        const int32_t dataKey = *dataKeyIter;
+        
+        const GiftiLabel* label = labelTable->getLabel(dataKey);
+        if (label == NULL) {
+            missingLabelKeys.insert(dataKey);
+        }
+    }
+    
+    if (missingLabelKeys.empty() == false) {
+        for (std::set<int32_t>::iterator missingKeyIter = missingLabelKeys.begin();
+             missingKeyIter != missingLabelKeys.end();
+             missingKeyIter++) {
+            const int32_t missingKey = *missingKeyIter;
+            
+            message.appendWithNewLine("    Missing Label for Key: "
+                                      + AString::number(missingKey));
+        }
+    }
+    
+    /*
+     * Find any label table names that are not used
+     */
+    std::map<int32_t, AString> labelTableKeysAndNames;
+    labelTable->getKeysAndNames(labelTableKeysAndNames);
+    for (std::map<int32_t, AString>::const_iterator ltIter = labelTableKeysAndNames.begin();
+         ltIter != labelTableKeysAndNames.end();
+         ltIter++) {
+        const int32_t ltKey = ltIter->first;
+        if (std::find(dataKeys.begin(),
+                      dataKeys.end(),
+                      ltKey) == dataKeys.end()) {
+            message.appendWithNewLine("    Label Not Used Key="
+                                      + AString::number(ltKey)
+                                      + ": "
+                                      + ltIter->second);
+        }
+    }
+    
+    AString msg = ("File: "
+                   + getFileName()
+                   + "\n"
+                   + labelTable->toFormattedString("    ")
+                   + message);
+    CaretLogFine(msg);
+}
+
 
 /**
  * Get the number of nodes.

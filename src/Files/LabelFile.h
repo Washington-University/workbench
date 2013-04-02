@@ -103,6 +103,8 @@ namespace caret {
         void initializeMembersLabelFile();
         
     private:
+        void validateKeysAndLabels() const;
+        
         /** Points to actual data in each Gifti Data Array */
         std::vector<int32_t*> columnDataPointers;
 

@@ -177,7 +177,7 @@ public:
 
     AString toString() const;
 
-    AString toFormattedString(const AString& indentation);
+    AString toFormattedString(const AString& indentation) const;
 
     //void readFromXMLDOM(const Node* rootNode)
     //        throw (GiftiException);
@@ -199,7 +199,9 @@ public:
 
     void getKeys(std::vector<int32_t>& keysOut) const;
 
-    bool hasLabelsWithInvalidGroupNameHierarchy() const;
+    void getKeysAndNames(std::map<int32_t, AString>& keysAndNamesOut) const;
+    
+//    bool hasLabelsWithInvalidGroupNameHierarchy() const;
     
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;
