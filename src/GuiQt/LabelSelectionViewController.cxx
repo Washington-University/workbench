@@ -248,7 +248,7 @@ LabelSelectionViewController::updateLabelViewController()
     
     m_labelDrawingTypeComboBox->setSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>(dpb->getDrawingType(displayGroup,
                                                                     browserTabIndex));
-    /*;
+    /*
      * Get all of label files.
      */
     std::vector<LabelFile*> allLabelFiles;
@@ -262,9 +262,19 @@ LabelSelectionViewController::updateLabelViewController()
     }
     
     /*
+     * Get all CIFTI label files
+     */
+    std::vector<CiftiBrainordinateLabelFile*> allCiftiLabelFiles;
+    const int32_t numCiftiLabelFiles = brain->getNumberOfConnectivityDenseLabelFiles();
+    for (int32_t iclf = 0; iclf < numCiftiLabelFiles; iclf++) {
+        allCiftiLabelFiles.push_back(brain->getConnectivityDenseLabelFile(iclf));
+    }
+    
+    /*
      * Update the class/name hierarchy
      */
     m_labelClassNameHierarchyViewController->updateContents(allLabelFiles,
+                                                            allCiftiLabelFiles,
                                                              displayGroup);
 }
 

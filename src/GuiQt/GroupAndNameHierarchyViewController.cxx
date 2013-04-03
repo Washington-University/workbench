@@ -47,6 +47,7 @@
 #include "BorderFile.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -281,7 +282,7 @@ GroupAndNameHierarchyViewController::getAllModels() const
  *    The selected display group.
  */
 void 
-GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles,
+GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*>& borderFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     std::vector<GroupAndNameHierarchyModel*> models;
@@ -308,7 +309,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
  *    The selected display group.
  */
 void 
-GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles,
+GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*>& fociFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     std::vector<GroupAndNameHierarchyModel*> models;
@@ -331,22 +332,35 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociF
  * Update with label files.
  * @param labelFiles
  *    The label files.
+ * @param ciftiLabelFiles
+ *    The CIFTI label files.
  * @param displayGroup
  *    The selected display group.
  */
 void
-GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*> labelFiles,
+GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*>& labelFiles,
+                                                    std::vector<CiftiBrainordinateLabelFile*>& ciftiLabelFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     std::vector<GroupAndNameHierarchyModel*> models;
     m_displayGroup = displayGroup;
+    
     std::vector<GroupAndNameHierarchyModel*> classAndNameHierarchyModels;
+    
     for (std::vector<LabelFile*>::iterator iter = labelFiles.begin();
          iter != labelFiles.end();
          iter++) {
         LabelFile* lf = *iter;
         CaretAssert(lf);
         models.push_back(lf->getGroupAndNameHierarchyModel());
+    }
+    
+    for (std::vector<CiftiBrainordinateLabelFile*>::iterator iter = ciftiLabelFiles.begin();
+         iter != ciftiLabelFiles.end();
+         iter++) {
+        CiftiBrainordinateLabelFile* clf = *iter;
+        CaretAssert(clf);
+        models.push_back(clf->getGroupAndNameHierarchyModel());
     }
     
     updateContents(models,

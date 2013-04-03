@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "CiftiInterface.h"
 #include "CiftiXnat.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
@@ -72,6 +73,9 @@ using namespace caret;
 CiftiBrainordinateFile::CiftiBrainordinateFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretMappableDataFile(dataFileType)
 {
+    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    
     clearPrivate();
 }
 
@@ -81,6 +85,7 @@ CiftiBrainordinateFile::CiftiBrainordinateFile(const DataFileTypeEnum::Enum data
 CiftiBrainordinateFile::~CiftiBrainordinateFile()
 {
     clearPrivate();
+    delete m_classNameHierarchy;
 }
 
 /**
@@ -105,6 +110,10 @@ CiftiBrainordinateFile::clearPrivate()
     }
     m_ciftiXML = NULL;
     m_mapContent.clear();
+
+    m_classNameHierarchy->clear();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+
 }
 
 /**
@@ -297,6 +306,17 @@ CiftiBrainordinateFile::readFile(const AString& filename) throw (DataFileExcepti
         throw DataFileException(e.whatString());
     }
     
+    m_classNameHierarchy->update(this,
+                                 true);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    m_classNameHierarchy->setAllSelected(true);
+    
+    CaretLogFiner("CLASS/NAME Table for : "
+                  + this->getFileNameNoPath()
+                  + "\n"
+                  + m_classNameHierarchy->toString());
+    
+    validateKeysAndLabels();
 }
 
 /**
@@ -685,8 +705,8 @@ CiftiBrainordinateFile::getMapLabelTable(const int32_t mapIndex)
  *    Label table for the map (constant) (will be NULL for data
  *    not mapped using a label table).
  */
-const
-GiftiLabelTable* CiftiBrainordinateFile::getMapLabelTable(const int32_t mapIndex) const
+const GiftiLabelTable*
+CiftiBrainordinateFile::getMapLabelTable(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
@@ -694,7 +714,7 @@ GiftiLabelTable* CiftiBrainordinateFile::getMapLabelTable(const int32_t mapIndex
 }
 
 /**
- * Update coloring for a map.
+ * Update scalar coloring for a map.
  *
  * @param mapIndex
  *    Index of map.
@@ -703,12 +723,10 @@ GiftiLabelTable* CiftiBrainordinateFile::getMapLabelTable(const int32_t mapIndex
  */
 void
 CiftiBrainordinateFile::updateScalarColoringForMap(const int32_t mapIndex,
-                                        const PaletteFile* paletteFile)
+                                                   const PaletteFile* paletteFile)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-//    m_mapContent[mapIndex]->updateColoring(mapIndex,
-//                                           paletteFile);
     m_mapContent[mapIndex]->updateColoring(paletteFile);
 }
 
@@ -913,9 +931,12 @@ CiftiBrainordinateFile::getMapSurfaceNodeValue(const int32_t mapIndex,
  * Get the node coloring for the surface.
  * @param surface
  *    Surface whose nodes are colored.
- * @param surfaceRGBA
+ * @param surfaceRGBAOut
  *    Filled with RGBA coloring for the surface's nodes.
  *    Contains numberOfNodes * 4 elements.
+ * @param dataValuesOut
+ *    Data values for the nodes (elements are valid when the alpha value in
+ *    the RGBA colors is valid (greater than zero).
  * @param surfaceNumberOfNodes
  *    Number of nodes in the surface.
  * @return
@@ -923,9 +944,10 @@ CiftiBrainordinateFile::getMapSurfaceNodeValue(const int32_t mapIndex,
  */
 bool
 CiftiBrainordinateFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
-                                                        const StructureEnum::Enum structure,
-                                               float* surfaceRGBA,
-                                               const int32_t surfaceNumberOfNodes)
+                                                  const StructureEnum::Enum structure,
+                                                  float* surfaceRGBAOut,
+                                                  float* dataValuesOut,
+                                                  const int32_t surfaceNumberOfNodes)
 {
     if (m_ciftiInterface == NULL) {
         throw DataFileException("Connectivity matrix file named \""
@@ -946,10 +968,12 @@ CiftiBrainordinateFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         if (nodeMap.empty() == false) {
             for (int64_t i = 0; i < surfaceNumberOfNodes; i++) {
                 const int64_t i4 = i * 4;
-                surfaceRGBA[i4]   =  0.0;
-                surfaceRGBA[i4+1] =  0.0;
-                surfaceRGBA[i4+2] =  0.0;
-                surfaceRGBA[i4+3] = -1.0;
+                surfaceRGBAOut[i4]   =  0.0;
+                surfaceRGBAOut[i4+1] =  0.0;
+                surfaceRGBAOut[i4+2] =  0.0;
+                surfaceRGBAOut[i4+3] = -1.0;
+                
+                dataValuesOut[i] = 0.0;
             }
 
             const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
@@ -958,10 +982,12 @@ CiftiBrainordinateFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
                 const int64_t cifti4 = nodeMap[i].m_ciftiIndex * 4;
                 CaretAssertArrayIndex(surfaceRGBA, (surfaceNumberOfNodes * 4), node4);
                 CaretAssertArrayIndex(this->dataRGBA, (mc->m_dataCount * 4), cifti4);
-                surfaceRGBA[node4]   = mc->m_rgba[cifti4];
-                surfaceRGBA[node4+1] = mc->m_rgba[cifti4+1];
-                surfaceRGBA[node4+2] = mc->m_rgba[cifti4+2];
-                surfaceRGBA[node4+3] = mc->m_rgba[cifti4+3];
+                surfaceRGBAOut[node4]   = mc->m_rgba[cifti4];
+                surfaceRGBAOut[node4+1] = mc->m_rgba[cifti4+1];
+                surfaceRGBAOut[node4+2] = mc->m_rgba[cifti4+2];
+                surfaceRGBAOut[node4+3] = mc->m_rgba[cifti4+3];
+                
+                dataValuesOut[nodeMap[i].m_surfaceNode] = mc->m_data[nodeMap[i].m_ciftiIndex];
             }
             return true;
         }
@@ -1260,88 +1286,9 @@ CiftiBrainordinateFile::MapContent::createVolume(const CiftiInterface* ciftiInte
     }
 }
 
-///**
-// * Update coloring for this map.
-// *
-// * @param mapIndex
-// *    Index of map.
-// * @param paletteFile
-// *    File containing the palettes.
-// */
-//void
-//CiftiBrainordinateFile::MapContent::updateColoring(const int32_t mapIndex,
-//                                                            const PaletteFile* paletteFile)
-//{
-//    if (m_data.empty()) {
-//        return;
-//    }
-//    
-//    switch (m_mapContentDataType) {
-//        case MAP_CONTENT_DATA_TYPE_LABELS:
-//            NodeAndVoxelColoring::colorIndicesWithLabelTable(m_labelTable,
-//                                                             &m_data[0],
-//                                                             m_dataCount,
-//                                                             &m_rgba[0]);
-//            break;
-//        case MAP_CONTENT_DATA_TYPE_SCALARS:
-//        {
-//            CaretAssert(m_paletteColorMapping);
-//            CaretAssert(paletteFile);
-//            const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
-//            const Palette* palette = paletteFile->getPaletteByName(paletteName);
-//            if (palette != NULL) {
-//                NodeAndVoxelColoring::colorScalarsWithPalette(getFastStatistics(),
-//                                                              m_paletteColorMapping,
-//                                                              palette,
-//                                                              &m_data[0],
-//                                                              &m_data[0],
-//                                                              m_dataCount,
-//                                                              &m_rgba[0]);
-//            }
-//            else {
-//                CaretLogWarning("Missing palette named \""
-//                                + paletteName
-//                                + "\" for coloring connectivity data");
-//            }
-//        }
-//            break;
-//    }
-//    
-//    CaretLogFine("Connectivity Data Average/Min/Max: "
-//                 + QString::number(m_fastStatistics->getMean())
-//                 + " "
-//                 + QString::number(m_fastStatistics->getMostNegativeValue())
-//                 + " "
-//                 + QString::number(m_fastStatistics->getMostPositiveValue()));
-//    
-//    
-//    if (m_ciftiToVolumeMapping.empty() == false) {
-//        /*
-//         * Update colors in map.
-//         */
-//        CaretAssert(m_volumeFile);
-//        m_volumeFile->clearVoxelColoringForMap(mapIndex);
-//        
-//        for (std::vector<CiftiVolumeMap>::const_iterator iter = m_ciftiToVolumeMapping.begin();
-//             iter != m_ciftiToVolumeMapping.end();
-//             iter++) {
-//            const CiftiVolumeMap& vm = *iter;
-//            const int64_t dataRGBAIndex = vm.m_ciftiIndex * 4;
-//            const float* rgba = &m_rgba[dataRGBAIndex];
-//            m_volumeFile->setVoxelColorInMap(vm.m_ijk[0],
-//                                             vm.m_ijk[1],
-//                                             vm.m_ijk[2],
-//                                             mapIndex,
-//                                             rgba);
-//        }
-//    }
-//}
-
 /**
  * Update coloring for this map.
  *
- * @param mapIndex
- *    Index of map.
  * @param paletteFile
  *    File containing the palettes.
  */
@@ -1473,6 +1420,156 @@ CiftiBrainordinateFile::restoreFromScene(const SceneAttributes* /*sceneAttribute
     if (sceneClass == NULL) {
         return;
     }    
+}
+
+/**
+ * Get the unique label keys in the given map.
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Keys used by the map.
+ */
+std::vector<int32_t>
+CiftiBrainordinateFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_mapContent, mapIndex);
+    
+    std::set<int32_t> uniqueKeys;
+    const int64_t numItems = static_cast<int64_t>(m_mapContent[mapIndex]->m_data.size());
+    if (numItems > 0) {
+        const float* dataPtr = &m_mapContent[mapIndex]->m_data[0];
+        for (int64_t i = 0; i < numItems; i++) {
+            const int32_t key = static_cast<int32_t>(dataPtr[i]);
+            uniqueKeys.insert(key);
+        }
+    }
+    
+    std::vector<int32_t> keyVector;
+    keyVector.insert(keyVector.end(),
+                     uniqueKeys.begin(),
+                     uniqueKeys.end());
+    return keyVector;
+}
+
+/**
+ * @return The class and name hierarchy.
+ */
+GroupAndNameHierarchyModel*
+CiftiBrainordinateFile::getGroupAndNameHierarchyModel()
+{
+    m_classNameHierarchy->update(this,
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * @return The class and name hierarchy.
+ */
+const GroupAndNameHierarchyModel*
+CiftiBrainordinateFile::getGroupAndNameHierarchyModel() const
+{
+    m_classNameHierarchy->update(const_cast<CiftiBrainordinateFile*>(this),
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * Validate keys and labels in the file.
+ */
+void
+CiftiBrainordinateFile::validateKeysAndLabels() const
+{
+    /*
+     * Skip if logging is not fine or less.
+     */
+    if (CaretLogger::getLogger()->isFine() == false) {
+        return;
+    }
+    
+    AString messages;
+    
+    /*
+     * Find the label keys that are in the data
+     */
+    std::set<int32_t> dataKeys;
+    const int32_t numMaps  = getNumberOfMaps();
+    for (int32_t jMap = 0; jMap < numMaps; jMap++) {
+        AString mapMessage;
+        
+        const int64_t numItems = static_cast<int64_t>(m_mapContent[jMap]->m_data.size());
+        const float* data = &m_mapContent[jMap]->m_data[0];
+        for (int32_t i = 0; i < numItems; i++) {
+            const int32_t key = static_cast<int32_t>(data[i]);
+            dataKeys.insert(key);
+        }
+        
+        /*
+         * Find any keys that are not in the label table
+         */
+        const GiftiLabelTable* labelTable = getMapLabelTable(jMap);
+        std::set<int32_t> missingLabelKeys;
+        for (std::set<int32_t>::iterator dataKeyIter = dataKeys.begin();
+             dataKeyIter != dataKeys.end();
+             dataKeyIter++) {
+            const int32_t dataKey = *dataKeyIter;
+            
+            const GiftiLabel* label = labelTable->getLabel(dataKey);
+            if (label == NULL) {
+                missingLabelKeys.insert(dataKey);
+            }
+        }
+        
+        if (missingLabelKeys.empty() == false) {
+            for (std::set<int32_t>::iterator missingKeyIter = missingLabelKeys.begin();
+                 missingKeyIter != missingLabelKeys.end();
+                 missingKeyIter++) {
+                const int32_t missingKey = *missingKeyIter;
+                
+                mapMessage.appendWithNewLine("        Missing Label for Key: "
+                                          + AString::number(missingKey));
+            }
+        }
+        
+        /*
+         * Find any label table names that are not used
+         */
+        std::map<int32_t, AString> labelTableKeysAndNames;
+        labelTable->getKeysAndNames(labelTableKeysAndNames);
+        for (std::map<int32_t, AString>::const_iterator ltIter = labelTableKeysAndNames.begin();
+             ltIter != labelTableKeysAndNames.end();
+             ltIter++) {
+            const int32_t ltKey = ltIter->first;
+            if (std::find(dataKeys.begin(),
+                          dataKeys.end(),
+                          ltKey) == dataKeys.end()) {
+                mapMessage.appendWithNewLine("        Label Not Used Key="
+                                          + AString::number(ltKey)
+                                          + ": "
+                                          + ltIter->second);
+            }
+        }
+        
+        if (mapMessage.isEmpty() == false) {
+            mapMessage = ("    Map: "
+                          + getMapName(jMap)
+                          + ":\n"
+                          + mapMessage
+                          + "\n"
+                          + labelTable->toFormattedString("        "));
+            messages += mapMessage;
+        }
+    }
+    
+    
+    AString msg = ("File: "
+                   + getFileName()
+                   + "\n"
+                   + messages);
+    CaretLogFine(msg);
 }
 
 

@@ -94,7 +94,9 @@ namespace caret {
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
-        bool assignCiftiLabelColoring(const BrainStructure* brainStructure,
+        bool assignCiftiLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                      const int32_t browserTabIndex,
+                                      const BrainStructure* brainStructure,
                                   CiftiBrainordinateLabelFile* ciftiScalarFile,
                                   const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,

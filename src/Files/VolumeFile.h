@@ -216,6 +216,11 @@ namespace caret {
                                          const int64_t sliceIndex,
                                          uint8_t* rgbaOut) const;
 
+        void getVoxelValuesForSliceInMap(const int32_t mapIndex,
+                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                         const int64_t sliceIndex,
+                                         float* sliceValues) const;
+        
         void getVoxelColorInMap(const int64_t i,
                                 const int64_t j,
                                 const int64_t k,

@@ -307,7 +307,9 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                    isColoringValid = this->assignCiftiLabelColoring(brainStructure,
+                    isColoringValid = this->assignCiftiLabelColoring(displayPropertiesLabels,
+                                                                     browserTabIndex,
+                                                                     brainStructure,
                                                                       dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
                                                                       selectedMapUniqueID,
                                                                       numNodes,
@@ -564,144 +566,6 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     }
 
     return true;
-    
-    //    std::vector<LabelFile*> allLabelFiles;
-    //    brainStructure->getLabelFiles(allLabelFiles);
-    //
-    //    int32_t displayColumn = -1;
-    //    for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
-    //         iter != allLabelFiles.end();
-    //         iter++) {
-    //        LabelFile* lf = *iter;
-    //        if (lf == labelFile) {
-    //            displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
-    //            if (displayColumn >= 0) {
-    //                break;
-    //            }
-    //        }
-    //    }
-    //
-    //    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::getDefaultValue();
-    //    LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
-    //    if (displayPropertiesLabels != NULL) {
-    //        displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    //        labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-    //                                           browserTabIndex);
-    //    }
-    //
-    //
-    //    const GroupAndNameHierarchyModel* classNameModel = labelFile->getGroupAndNameHierarchyModel();
-    //    if (classNameModel->isSelected(displayGroup, browserTabIndex) == false) {
-    //        return false;
-    //    }
-    //    if (displayColumn < 0) {
-    //        return false;
-    //    }
-    //
-    //    bool allNamesSelected = false;
-    //    const GroupAndNameHierarchyGroup* classGroup = classNameModel->getGroupSelectorForGroupKey(displayColumn);
-    //    CaretAssert(classGroup);
-    //    if (classGroup->isSelected(displayGroup, browserTabIndex) == false) {
-    //        return false;
-    //    }
-    //    if (classGroup->isAllSelected(displayGroup, browserTabIndex)) {
-    //        allNamesSelected = true;
-    //    }
-    //
-    //    const int32_t classKey = classGroup->getKey();
-    //
-    //    /*
-    //     * Invalidate all coloring.
-    //     */
-    //    for (int32_t i = 0; i < numberOfNodes; i++) {
-    //        rgbv[i*4+3] = 0.0;
-    //    }
-    //
-    //    const GiftiLabelTable* labelTable = labelFile->getLabelTable();
-    //
-    //    switch (labelDrawingType) {
-    //        case LabelDrawingTypeEnum::DRAW_FILLED:
-    //        {
-    //            /*
-    //             * Assign colors from labels to nodes
-    //             */
-    //            float labelRGBA[4];
-    //            for (int32_t i = 0; i < numberOfNodes; i++) {
-    //                const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
-    //
-    //                bool useIt = allNamesSelected;
-    //                if (useIt == false) {
-    //                    useIt = classNameModel->isNameSelected(displayGroup,
-    //                                                           browserTabIndex,
-    //                                                           classKey,
-    //                                                           labelKey);
-    //                }
-    //                if (useIt) {
-    //                    const GiftiLabel* gl = labelTable->getLabel(labelKey);
-    //                    if (gl != NULL) {
-    //                        gl->getColor(labelRGBA);
-    //                        if (labelRGBA[3] > 0.0) {
-    //                            const int32_t i4 = i * 4;
-    //                            rgbv[i4]   = labelRGBA[0];
-    //                            rgbv[i4+1] = labelRGBA[1];
-    //                            rgbv[i4+2] = labelRGBA[2];
-    //                            rgbv[i4+3] = 1.0;
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //            break;
-    //        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-    //        {
-    //            CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
-    //            float labelRGBA[4];
-    //            for (int32_t i = 0; i < numberOfNodes; i++) {
-    //                const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
-    //
-    //                bool useIt = allNamesSelected;
-    //                if (useIt == false) {
-    //                    useIt = classNameModel->isNameSelected(displayGroup,
-    //                                                           browserTabIndex,
-    //                                                           classKey,
-    //                                                           labelKey);
-    //                }
-    //                if (useIt) {
-    //                    bool colorValid = false;
-    //
-    //                    /*
-    //                     * Check for any neighbors with different label key.
-    //                     */
-    //                    int32_t numNeighbors = 0;
-    //                    const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
-    //                    for (int32_t n = 0; n < numNeighbors; n++) {
-    //                        const int32_t neighbor = allNeighbors[n];
-    //                        if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
-    //                            colorValid = true;
-    //                            break;
-    //                        }
-    //                    }
-    //
-    //                    if (colorValid) {
-    //                        const GiftiLabel* gl = labelTable->getLabel(labelKey);
-    //                        if (gl != NULL) {
-    //                            gl->getColor(labelRGBA);
-    //                            if (labelRGBA[3] > 0.0) {
-    //                                const int32_t i4 = i * 4;
-    //                                rgbv[i4]   = labelRGBA[0];
-    //                                rgbv[i4+1] = labelRGBA[1];
-    //                                rgbv[i4+2] = labelRGBA[2];
-    //                                rgbv[i4+3] = 1.0;
-    //                            }
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //            break;
-    //    }
-    //
-    //    return true;
 }
 
 /**
@@ -861,12 +725,19 @@ SurfaceNodeColoring::assignCiftiConnectivityMatrixColoring(const BrainStructure*
  *    True if coloring is valid, else false.
  */
 bool
-SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructure,
+SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                              const int32_t browserTabIndex,
+                                              const BrainStructure* brainStructure,
                                           CiftiBrainordinateLabelFile* ciftiLabelFile,
                                           const AString& ciftiMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
+    CaretAssert(displayPropertiesLabels);
+    CaretAssert(brainStructure);
+    CaretAssert(ciftiLabelFile);
+    CaretAssert(rgbv);
+    
     Brain* brain = (Brain*)(brainStructure->getBrain());
     std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
     brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
@@ -888,6 +759,10 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructu
         return false;
     }
     
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+                                                               browserTabIndex);
+    
     /*
      * Invalidate all coloring.
      */
@@ -895,11 +770,45 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const BrainStructure* brainStructu
         rgbv[i*4+3] = 0.0;
     }
     
+    std::vector<float> dataValues(numberOfNodes);
+    
+    /*
+     * Assigns colors for all nodes.
+     */
     const StructureEnum::Enum structure = brainStructure->getStructure();
     ciftiLabelFile->getMapSurfaceNodeColoring(mapIndex,
                                               structure,
-                                            rgbv,
-                                            numberOfNodes);
+                                              rgbv,
+                                              &dataValues[0],
+                                              numberOfNodes);
+    
+    /*
+     * All nodes are colored.  Remove coloring for nodes whose
+     * label is not selected.
+     */
+    GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+    CaretAssert(labelTable);
+    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
+        const int32_t indexAlpha = (iNode * 4) + 3;
+        if (rgbv[indexAlpha] > 0.0) {
+            bool disableIt = false;
+            
+            const int32_t labelKey = static_cast<int32_t>(dataValues[iNode]);
+            GiftiLabel* label = labelTable->getLabel(labelKey);
+            if (label != NULL) {
+                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                if (item->isSelected(displayGroup,
+                                     browserTabIndex) == false) {
+                    disableIt = true;
+                }
+            }
+            
+            if (disableIt) {
+                rgbv[indexAlpha] = 0.0;
+            }
+        }
+    }
+    
     return true;
 }
 
@@ -960,11 +869,13 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     //const AString paletteName = paletteColorMapping->getSelectedPaletteName();
     //const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
     
+    std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
     ciftiScalarFile->getMapSurfaceNodeColoring(mapIndex,
-                                            structure,
-                                            rgbv,
-                                            numberOfNodes);
+                                               structure,
+                                               rgbv,
+                                               &dataValues[0],
+                                               numberOfNodes);
     return true;
 }
 

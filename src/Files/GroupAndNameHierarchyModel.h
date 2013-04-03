@@ -43,6 +43,7 @@
 namespace caret {
 
     class BorderFile;
+    class CiftiBrainordinateFile;
     class FociFile;
     class LabelFile;
     
@@ -71,6 +72,9 @@ namespace caret {
         void update(LabelFile* labelFile,
                     const bool forceUpdate);
         
+        void update(CiftiBrainordinateFile* ciftiBrainordinateFile,
+                    const bool forceUpdate);
+        
         bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,
                          const int32_t tabIndex) const;
         
@@ -84,9 +88,14 @@ namespace caret {
         void setUserInterfaceUpdateNeeded();
         
         /**
-         * Contains label keys, and names from previous update with labels.
+         * Contains label keys and names from previous update with Label File.
          */
-        std::map<int32_t, AString> m_previousLabelKeysAndNames;
+        std::map<int32_t, AString> m_previousLabelFileKeysAndNames;
+        
+        /**
+         * Contains label keys and names from previous update with CIFTI label file.
+         */
+        std::vector<std::map<int32_t, AString> > m_previousCiftiLabelFileMapKeysAndNames;
         
         /**
          * Update needed status of DISPLAY GROUP in EACH TAB.

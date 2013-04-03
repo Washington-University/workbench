@@ -40,6 +40,7 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiBrainordinateFile.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyName.h"
 #include "FociFile.h"
@@ -324,11 +325,11 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
             if (needToGenerateKeys == false) {
                 labelTable->getKeysAndNames(labelKeysAndNames);
                 
-                if (m_previousLabelKeysAndNames.size() != labelKeysAndNames.size()) {
+                if (m_previousLabelFileKeysAndNames.size() != labelKeysAndNames.size()) {
                     needToGenerateKeys = true;
                 }
                 else {
-                    std::map<int32_t, AString>::const_iterator prevIter = m_previousLabelKeysAndNames.begin();
+                    std::map<int32_t, AString>::const_iterator prevIter = m_previousLabelFileKeysAndNames.begin();
                     for (std::map<int32_t, AString>::const_iterator labelIter = labelKeysAndNames.begin();
                          labelIter != labelKeysAndNames.end();
                          labelIter++) {
@@ -363,9 +364,9 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
         /*
          * Save keys and names for comparison in next update test
          */
-        m_previousLabelKeysAndNames = labelKeysAndNames;
-        if (m_previousLabelKeysAndNames.empty()) {
-            labelTable->getKeysAndNames(m_previousLabelKeysAndNames);
+        m_previousLabelFileKeysAndNames = labelKeysAndNames;
+        if (m_previousLabelFileKeysAndNames.empty()) {
+            labelTable->getKeysAndNames(m_previousLabelFileKeysAndNames);
         }
         
         /*
@@ -452,6 +453,198 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                      + toString());
     }
 }
+
+/**
+ * Update this group hierarchy with the label names
+ * and groups.
+ *
+ * @param ciftiBrainordinateFile
+ *    The cifti brainordinate file from which classes and names are from.
+ * @parm forceUpdate
+ *    If true, force an update.
+ */
+void
+GroupAndNameHierarchyModel::update(CiftiBrainordinateFile* ciftiBrainordinateFile,
+                                   const bool forceUpdate)
+{
+    bool needToGenerateKeys = forceUpdate;
+    
+    setName(ciftiBrainordinateFile->getFileNameNoPath());
+    
+    std::vector<std::map<int32_t, AString> > labelMapKeysAndNames;
+    
+    if (needToGenerateKeys == false) {
+        /*
+         * Check to see if any group (map) names have changed.
+         */
+        const std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
+        const int numGroups = static_cast<int32_t>(groups.size());
+        if (numGroups != ciftiBrainordinateFile->getNumberOfMaps()) {
+            /*
+             * Number of maps has changed.
+             */
+            needToGenerateKeys = true;
+        }
+        else {
+            for (int32_t i = 0; i < numGroups; i++) {
+                if (groups[i]->getName() != ciftiBrainordinateFile->getMapName(i)) {
+                    needToGenerateKeys = true;
+                    break;
+                }
+            }
+            
+            if (needToGenerateKeys == false) {
+                if (m_previousCiftiLabelFileMapKeysAndNames.size() != ciftiBrainordinateFile->getNumberOfMaps()) {
+                    needToGenerateKeys = true;
+                }
+            }
+            if (needToGenerateKeys == false) {
+                for (int32_t i = 0; i < numGroups; i++) {
+                    const GiftiLabelTable* labelTable = ciftiBrainordinateFile->getMapLabelTable(i);
+                    std::map<int32_t, AString> labelKeysAndNames;
+                    labelTable->getKeysAndNames(labelKeysAndNames);
+                    
+                    labelMapKeysAndNames.push_back(labelKeysAndNames);
+                }
+                
+                for (int32_t i = 0; i < numGroups; i++) {
+                    const std::map<int32_t, AString>& labelKeysAndNames = labelMapKeysAndNames[i];
+                
+                    const std::map<int32_t, AString>& previousLabelKeysAndNames = m_previousCiftiLabelFileMapKeysAndNames[i];
+                    
+                    if (previousLabelKeysAndNames.size() != labelKeysAndNames.size()) {
+                        needToGenerateKeys = true;
+                        break;
+                    }
+                    else {
+                        std::map<int32_t, AString>::const_iterator prevIter = previousLabelKeysAndNames.begin();
+                        for (std::map<int32_t, AString>::const_iterator labelIter = labelKeysAndNames.begin();
+                             labelIter != labelKeysAndNames.end();
+                             labelIter++) {
+                            if (prevIter->first != labelIter->first) {
+                                needToGenerateKeys = true;
+                                break;
+                            }
+                            else if (prevIter->second != labelIter->second) {
+                                needToGenerateKeys = true;
+                                break;
+                            }
+                            
+                            prevIter++;
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
+    
+    if (needToGenerateKeys) {
+        //const int32_t ID_NOT_USED = 0;
+        
+        /*
+         * Save keys and names for comparison in next update test
+         */
+        const int numMaps = ciftiBrainordinateFile->getNumberOfMaps();
+        m_previousCiftiLabelFileMapKeysAndNames = labelMapKeysAndNames;
+        if (m_previousCiftiLabelFileMapKeysAndNames.empty()) {
+            for (int32_t i = 0; i < numMaps; i++) {
+                const GiftiLabelTable* labelTable = ciftiBrainordinateFile->getMapLabelTable(i);
+                std::map<int32_t, AString> labelKeysAndNames;
+                labelTable->getKeysAndNames(labelKeysAndNames);
+                m_previousCiftiLabelFileMapKeysAndNames.push_back(labelKeysAndNames);
+            }
+        }
+        
+        /*
+         * Clear everything
+         */
+        this->clear();
+        
+        /*
+         * Names for missing group names or foci names.
+         */
+        const AString missingGroupName = "NoGroup";
+        const AString missingName = "NoName";
+        
+        /*
+         * Update with labels from maps
+         */
+        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+            /*
+             * The label table
+             */
+            GiftiLabelTable* labelTable = ciftiBrainordinateFile->getMapLabelTable(iMap);
+            
+            /*
+             * Get the group.  If it is empty, use the default name.
+             */
+            AString theGroupName = ciftiBrainordinateFile->getMapName(iMap);
+            if (theGroupName.isEmpty()) {
+                theGroupName = missingGroupName;
+            }
+            
+            /*
+             * Find/create group
+             */
+            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
+                                                            theGroupName,
+                                                            iMap);
+            CaretAssert(groupItem);
+            
+            /*
+             * Get indices of labels used in this map
+             */
+            std::vector<int32_t> labelKeys = ciftiBrainordinateFile->getUniqueLabelKeysUsedInMap(iMap);
+            
+            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
+                const int32_t labelKey = labelKeys[iLabel];
+                GiftiLabel* label = labelTable->getLabel(labelKey);
+                if (label == NULL) {
+                    continue;
+                }
+                
+                AString labelName = label->getName();
+                if (labelName.isEmpty()) {
+                    labelName = missingName;
+                }
+                
+                const float* rgba = label->getColor();
+                
+                /*
+                 * Adding focus to class
+                 */
+                GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
+                                                                          labelName,
+                                                                          labelKey);
+                nameItem->setIconColorRGBA(rgba);
+                
+                /*
+                 * Place the name selector into the label.
+                 */
+                label->setGroupNameSelectionItem(nameItem);
+            }
+        }
+        
+        /*
+         * Sort names in each group
+         */
+        std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
+        for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = groups.begin();
+             iter != groups.end();
+             iter++) {
+            GroupAndNameHierarchyItem* nameItem = *iter;
+            nameItem->sortDescendantsByName();
+        }
+        
+        setUserInterfaceUpdateNeeded();
+        
+        CaretLogFine("LABEL HIERARCHY:"
+                     + toString());
+    }
+}
+
 
 /**
  * Update this group hierarchy with the foci names

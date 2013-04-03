@@ -48,6 +48,7 @@ class QVBoxLayout;
 namespace caret {
 
     class BorderFile;
+    class CiftiBrainordinateLabelFile;
     class FociFile;
     class LabelFile;
     class GroupAndNameHierarchyModel;
@@ -64,13 +65,14 @@ namespace caret {
         
         virtual ~GroupAndNameHierarchyViewController();
         
-        void updateContents(std::vector<BorderFile*> borderFiles,
+        void updateContents(std::vector<BorderFile*>& borderFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
-        void updateContents(std::vector<FociFile*> fociFiles,
+        void updateContents(std::vector<FociFile*>& fociFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
-        void updateContents(std::vector<LabelFile*> labelFiles,
+        void updateContents(std::vector<LabelFile*>& labelFiles,
+                            std::vector<CiftiBrainordinateLabelFile*>& ciftiLabelFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
     private slots:

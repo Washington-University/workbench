@@ -41,12 +41,11 @@
 
 namespace caret {
 
-    class CiftiInterface;
+    class CiftiInterface;    
+    class GroupAndNameHierarchyModel;
     class VolumeFile;
     
-    class CiftiBrainordinateFile
-    : public CaretMappableDataFile,
-    public SceneableInterface
+    class CiftiBrainordinateFile: public CaretMappableDataFile, public SceneableInterface
     {
     
     public:
@@ -138,9 +137,10 @@ namespace caret {
                                             AString& textOut) const;
         
         virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
-                                       const StructureEnum::Enum structure,
-                                    float* surfaceRGBA,
-                                    const int32_t surfaceNumberOfNodes);
+                                               const StructureEnum::Enum structure,
+                                               float* surfaceRGBAOut,
+                                               float* dataValuesOut,
+                                               const int32_t surfaceNumberOfNodes);
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -149,6 +149,12 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
         AString getMapDataTypeName() const;
+        
+        std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
+        
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
+        
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
    private:
         CiftiBrainordinateFile(const CiftiBrainordinateFile&);
@@ -162,6 +168,8 @@ namespace caret {
     private:
 
         void clearPrivate();
+        
+        void validateKeysAndLabels() const;
         
         class MapContent {
           
@@ -252,6 +260,13 @@ namespace caret {
         
         /** Type of data in columns */
         MapContent::MapContentDataType m_columnMapDataType;
+        
+        
+        /** Holds class and name hierarchy used for display selection */
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
         
     };
     

@@ -479,6 +479,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveCiftiMatrix = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    haveLabels = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                     haveCiftiMatrix = true;
