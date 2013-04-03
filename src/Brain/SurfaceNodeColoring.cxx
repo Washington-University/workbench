@@ -762,6 +762,14 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
     const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
                                                                browserTabIndex);
+    bool isOutlineMode = false;
+    switch (labelDrawingType) {
+        case LabelDrawingTypeEnum::DRAW_FILLED:
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+            isOutlineMode = true;
+            break;
+    }
     
     /*
      * Invalidate all coloring.
@@ -782,6 +790,14 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
                                               &dataValues[0],
                                               numberOfNodes);
     
+    const Surface* surface = ((brainStructure->getNumberOfSurfaces() > 0)
+                              ? brainStructure->getSurface(0)
+                              : NULL);
+    CaretPointer<TopologyHelper> topologyHelper;
+    if (surface != NULL) {
+        topologyHelper = surface->getTopologyHelper();
+    }
+
     /*
      * All nodes are colored.  Remove coloring for nodes whose
      * label is not selected.
@@ -805,6 +821,30 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
             
             if (disableIt) {
                 rgbv[indexAlpha] = 0.0;
+            }
+            else if (isOutlineMode) {
+                /*
+                 * In outline mode, only those nodes that are on the 'outside'
+                 * are drawn so that the labels appear as outlines.
+                 */
+                if (topologyHelper != NULL) {
+                    int32_t numberOfNeighbors = 0;
+                    const int32_t* neighbors = topologyHelper->getNodeNeighbors(iNode,
+                                                                                numberOfNeighbors);
+                    bool insideFlag = true;
+                    for (int32_t iNeigh = 0; iNeigh < numberOfNeighbors; iNeigh++) {
+                        const int32_t ni = neighbors[iNeigh];
+                        const int32_t neighborLabelKey = static_cast<int32_t>(dataValues[ni]);
+                        if (labelKey != neighborLabelKey) {
+                            insideFlag = false;
+                            break;
+                        }
+                    }
+                    
+                    if (insideFlag) {
+                        rgbv[indexAlpha] = 0.0;
+                    }
+                }
             }
         }
     }

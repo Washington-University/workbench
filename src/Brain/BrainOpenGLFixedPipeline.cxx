@@ -62,6 +62,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CiftiBrainordinateFile.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -72,6 +73,7 @@
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
+#include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -2983,6 +2985,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
     
     /**
      * Holds colors for voxels in the slice
@@ -2992,7 +2997,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
      * all voxels in the slice than it is to call it
      * separately for each voxel.
      */
-    std::vector<float> sliceVoxelsValuesVector;
     std::vector<uint8_t> sliceVoxelsRgbaVector;
     
     /*
@@ -3163,6 +3167,47 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                                 slicePlane,
                                                 drawingSliceIndex,
                                                 sliceVoxelsRGBA);
+                
+                CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(ciftiBrainFile);
+                if (ciftiLabelFile != NULL) {
+                    /*
+                     * Slice values
+                     */
+                    std::vector<float> sliceValuesVector(numVoxelsInSlice);
+                    float* sliceValues = &sliceValuesVector[0];
+                    vf->getVoxelValuesForSliceInMap(0, // always use 0 for map index since volume is in map
+                                                    slicePlane,
+                                                    drawingSliceIndex,
+                                                    sliceValues);
+                    
+                    
+                    /*
+                     * Use label table from the CIFTI lable file
+                     */
+                    GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+                    
+                    /*
+                     * Set alpha to zero for any labels that are not displayed.
+                     */
+                    for (int64_t iVoxel = 0; iVoxel < numVoxelsInSlice; iVoxel++) {
+                        const int64_t alphaIndex = iVoxel * 4 + 3;
+                        if (sliceVoxelsRGBA[alphaIndex] > 0) {
+                            const int32_t labelKey = static_cast<int32_t>(sliceValues[iVoxel]);
+                            const GiftiLabel* label = labelTable->getLabel(labelKey);
+                            if (label != NULL) {
+                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                if (item != NULL) {
+                                    if (item->isSelected(displayGroup,
+                                                         browserTabIndex) == false) {
+                                        sliceVoxelsRGBA[alphaIndex] = 0.0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+
             }
             else {
                 volumeFile->getVoxelColorsForSliceInMap(mapIndex,

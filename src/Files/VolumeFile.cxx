@@ -1114,6 +1114,77 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
 }
 
 /**
+ * Get the voxel values for a slice in a map.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param slicePlane
+ *    Plane for which colors are requested.
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param sliceValuesOut
+ *    Slice values output must be correct number of elements.
+ */
+void
+VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
+                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                        const int64_t sliceIndex,
+                                        float* sliceValuesOut) const
+{
+    CaretAssert(sliceValuesOut);
+    
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimMaps;
+    getDimensions(dimI, dimJ, dimK, dimTime, dimMaps);
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return;
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            int64_t counter = 0;
+            for (int64_t j = 0; j < dimJ; j++) {
+                for (int64_t i = 0; i < dimI; i++) {
+                    sliceValuesOut[counter] = getValue(i, j, sliceIndex, 0, mapIndex);
+                    counter++;
+                }
+            }
+
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            int64_t counter = 0;
+            for (int64_t k = 0; k < dimK; k++) {
+                for (int64_t i = 0; i < dimI; i++) {
+                    sliceValuesOut[counter] = getValue(i, sliceIndex, k, 0, mapIndex);
+                    counter++;
+                }
+            }
+            
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            int64_t counter = 0;
+            for (int64_t k = 0; k < dimK; k++) {
+                for (int64_t j = 0; j < dimJ; j++) {
+                    sliceValuesOut[counter] = getValue(sliceIndex, j, k, 0, mapIndex);
+                    counter++;
+                }
+            }
+            
+        }
+            break;
+    }
+}
+
+
+/**
  * Get the RGBA color components for voxel.
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.

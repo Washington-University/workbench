@@ -463,6 +463,22 @@ BrainStructure::getSurface(int indx)
 }
 
 /**
+ * Get a surface at the specified index.
+ *
+ * @param indx
+ *    Index of surface.
+ * @return
+ *    Surface at the specified index.
+ */
+const Surface*
+BrainStructure::getSurface(int indx) const
+{
+    CaretAssertVectorIndex(m_surfaces, indx);
+    
+    return m_surfaces[indx];
+}
+
+/**
  * Get all surfaces of the given type in this brain structure.
  * @param surfaceType
  *   Type of surface

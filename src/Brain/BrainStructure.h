@@ -95,6 +95,8 @@ namespace caret {
         
         Surface* getSurface(const int32_t indx);
         
+        const Surface* getSurface(const int32_t indx) const;
+        
         void getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
                                std::vector<Surface*>& surfacesOut) const;
         
