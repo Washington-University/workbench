@@ -217,7 +217,7 @@ DisplayPropertiesLabels::saveToScene(const SceneAttributes* sceneAttributes,
     const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "DisplayPropertiesFoci",
+                                            "DisplayPropertiesLabels",
                                             1);
     
     m_sceneAssistant->saveMembers(sceneAttributes,
