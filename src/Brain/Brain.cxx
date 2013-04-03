@@ -162,7 +162,7 @@ Brain::Brain()
                           m_displayPropertiesFoci);
     
     m_sceneAssistant->add("m_displayPropertiesLabels",
-                          "m_displayPropertiesLabels",
+                          "DisplayPropertiesLabels",
                           m_displayPropertiesLabels);
     
     m_sceneAssistant->add("m_displayPropertiesSurface",
