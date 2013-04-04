@@ -1303,6 +1303,138 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
 }
 
 /**
+ * Find a cifti scalar file containing shape information.
+ *
+ * @param ciftiScalarShapeFileOut
+ *    Output CIFTI Scalar file that meets requirements (NULL if no matches.
+ * @param shapeMapIndexOut
+ *    Output Index of map meeting requirements.
+ */
+void
+Brain::getCiftiShapeMap(CiftiBrainordinateScalarFile* &ciftiScalarShapeFileOut,
+                        int32_t& ciftiScalarhapeFileMapIndexOut,
+                        std::vector<CiftiBrainordinateScalarFile*>& ciftiScalarNotShapeFilesOut) const
+{
+    ciftiScalarShapeFileOut = NULL;
+    ciftiScalarhapeFileMapIndexOut   = -1;
+    ciftiScalarNotShapeFilesOut.clear();
+    
+    CiftiBrainordinateScalarFile* depthMetricFile = NULL;
+    int32_t     depthMapIndex = -1;
+    CiftiBrainordinateScalarFile* depthNamedMetricFile = NULL;
+    CiftiBrainordinateScalarFile* curvatureMetricFile = NULL;
+    int32_t     curvatureMapIndex = -1;
+    CiftiBrainordinateScalarFile* curvatureNamedMetricFile = NULL;
+    CiftiBrainordinateScalarFile* shapeNamedMetricFile = NULL;
+    CiftiBrainordinateScalarFile* sulcMetricFile = NULL;
+    int32_t     sulcMapIndex = -1;
+    CiftiBrainordinateScalarFile* sulcNamedMetricFile = NULL;
+    
+    const int numFiles = static_cast<int32_t>(m_connectivityDenseScalarFiles.size());
+    for (int32_t i = 0; i < numFiles; i++) {
+        CiftiBrainordinateScalarFile* cf = m_connectivityDenseScalarFiles[i];
+        const AString filename = cf->getFileNameNoPath().toLower();
+        const int32_t numMaps = cf->getNumberOfMaps();
+        for (int32_t j = 0; j < numMaps; j++) {
+            const AString mapName = cf->getMapName(j).toLower();
+            if (mapName.contains("sulc")) {
+                if (sulcMetricFile == NULL) {
+                    sulcMetricFile = cf;
+                    sulcMapIndex   = j;
+                }
+            }
+            else if (mapName.contains("depth")) {
+                if (depthMetricFile == NULL) {
+                    depthMetricFile = cf;
+                    depthMapIndex   = j;
+                }
+            }
+            else if (mapName.contains("curv")) {
+                if (curvatureMetricFile == NULL) {
+                    curvatureMetricFile = cf;
+                    curvatureMapIndex   = j;
+                }
+            }
+        }
+        
+        if (filename.contains("sulc")) {
+            if (numMaps > 0) {
+                sulcNamedMetricFile = cf;
+            }
+        }
+        if (filename.contains("shape")) {
+            if (numMaps > 0) {
+                shapeNamedMetricFile = cf;
+            }
+        }
+        if (filename.contains("curv")) {
+            if (numMaps > 0) {
+                curvatureNamedMetricFile = cf;
+            }
+        }
+        if (filename.contains("depth")) {
+            if (numMaps > 0) {
+                depthNamedMetricFile = cf;
+            }
+        }
+    }
+    
+    if (sulcMetricFile != NULL) {
+        ciftiScalarShapeFileOut = sulcMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = sulcMapIndex;
+    }
+    else if (depthMetricFile != NULL) {
+        ciftiScalarShapeFileOut = depthMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = depthMapIndex;
+    }
+    else if (curvatureMetricFile != NULL) {
+        ciftiScalarShapeFileOut = curvatureMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = curvatureMapIndex;
+    }
+    else if (sulcNamedMetricFile != NULL) {
+        ciftiScalarShapeFileOut = sulcNamedMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = 0;
+    }
+    else if (depthNamedMetricFile != NULL) {
+        ciftiScalarShapeFileOut = depthNamedMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = 0;
+    }
+    else if (curvatureNamedMetricFile != NULL) {
+        ciftiScalarShapeFileOut = curvatureNamedMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = 0;
+    }
+    else if (shapeNamedMetricFile != NULL) {
+        ciftiScalarShapeFileOut = shapeNamedMetricFile;
+        ciftiScalarhapeFileMapIndexOut   = 0;
+    }
+
+    /*
+     * Get all shape type files (NULLs okay)
+     */
+    std::vector<CiftiBrainordinateScalarFile*> ciftiShapeFiles;
+    ciftiShapeFiles.push_back(sulcMetricFile);
+    ciftiShapeFiles.push_back(depthMetricFile);
+    ciftiShapeFiles.push_back(curvatureMetricFile);
+    ciftiShapeFiles.push_back(sulcNamedMetricFile);
+    ciftiShapeFiles.push_back(depthNamedMetricFile);
+    ciftiShapeFiles.push_back(curvatureNamedMetricFile);
+    ciftiShapeFiles.push_back(shapeNamedMetricFile);
+
+    /*
+     * Find files that are NOT shape files
+     */
+    for (int32_t i = 0; i < numFiles; i++) {
+        CiftiBrainordinateScalarFile* cf = m_connectivityDenseScalarFiles[i];
+        if (std::find(ciftiShapeFiles.begin(),
+                      ciftiShapeFiles.end(),
+                      cf) == ciftiShapeFiles.end()) {
+            ciftiScalarNotShapeFilesOut.push_back(cf);
+        }
+    }
+}
+
+
+/**
  * Read a connectivity fiber orientation file.
  *
  * @param reloadThisFileIfNotNull

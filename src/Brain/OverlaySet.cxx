@@ -35,6 +35,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -505,13 +507,50 @@ OverlaySet::initializeOverlays()
 //        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
 //    }
 //    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
+    /*
+     * CIFTI Scalar files
+     */
+    CiftiBrainordinateScalarFile* ciftiScalarShapeFile = NULL;
+    int32_t ciftiScalarhapeFileMapIndex = -1;
+    std::vector<CiftiBrainordinateScalarFile*> ciftiScalarNotShapeFiles;
+    
+    brain->getCiftiShapeMap(ciftiScalarShapeFile,
+                            ciftiScalarhapeFileMapIndex,
+                            ciftiScalarNotShapeFiles);
     
     
     std::deque<CaretMappableDataFile*> shapeMapFiles;
     std::deque<int32_t> shapeMapFileIndices;
     
+    if ((ciftiScalarShapeFile != NULL)
+        && (ciftiScalarhapeFileMapIndex >= 0)) {
+        shapeMapFiles.push_back(ciftiScalarShapeFile);
+        shapeMapFileIndices.push_back(ciftiScalarhapeFileMapIndex);
+    }
+    
+    
     std::deque<CaretMappableDataFile*> overlayMapFiles;
     std::deque<int32_t> overlayMapFileIndices;
+    
+    /*
+     * Cifti Scalar files NOT containing shape data
+     */
+    for (std::vector<CiftiBrainordinateScalarFile*>::iterator scalarIter = ciftiScalarNotShapeFiles.begin();
+         scalarIter != ciftiScalarNotShapeFiles.begin();
+         scalarIter++) {
+        overlayMapFiles.push_back(*scalarIter);
+        overlayMapFileIndices.push_back(0);
+    }
+
+    /*
+     * Cifti Label Files
+     */
+    std::vector<CiftiBrainordinateLabelFile*> ciftiLabelFiles;
+    const int32_t numCiftiLabelFiles = brain->getNumberOfConnectivityDenseLabelFiles();
+    for (int32_t i = 0; i < numCiftiLabelFiles; i++) {
+        overlayMapFiles.push_back(brain->getConnectivityDenseLabelFile(i));
+        overlayMapFileIndices.push_back(0);
+    }
     
     ModelVolume* mdcv = dynamic_cast<ModelVolume*>(m_modelDisplayController);
     ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(m_modelDisplayController);

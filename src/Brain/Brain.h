@@ -337,6 +337,10 @@ namespace caret {
 
         SelectionManager* getSelectionManager();
         
+        void getCiftiShapeMap(CiftiBrainordinateScalarFile* &ciftiScalarShapeFileOut,
+                              int32_t& ciftiScalarhapeFileMapIndexOut,
+                              std::vector<CiftiBrainordinateScalarFile*>& ciftiScalarNotShapeFilesOut) const;
+        
     private:
         enum ResetBrainKeepSceneFiles {
             RESET_BRAIN_KEEP_SCENE_FILES_NO,
