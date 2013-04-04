@@ -1068,7 +1068,8 @@ CiftiBrainordinateFile::MapContent::MapContent(CiftiInterface* ciftiInterface,
     /*
      * Set name of map.
      */
-    m_name = ciftiInterface->getMapNameForColumnIndex(mapIndex);
+    //m_name = ciftiInterface->getMapNameForColumnIndex(mapIndex);
+    m_name = ciftiInterface->getMapNameForRowIndex(mapIndex);
     
     /*
      * Copy the palette color mapping
