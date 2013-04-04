@@ -90,6 +90,7 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
+#include "LabelDrawingTypeEnum.h"
 #include "Matrix4x4.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
@@ -2988,6 +2989,16 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+                                                                                                browserTabIndex);
+    bool isOutlineMode = false;
+    switch (labelDrawingType) {
+        case LabelDrawingTypeEnum::DRAW_FILLED:
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+            isOutlineMode = true;
+            break;
+    }
     
     /**
      * Holds colors for voxels in the slice
@@ -3199,7 +3210,75 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 if (item != NULL) {
                                     if (item->isSelected(displayGroup,
                                                          browserTabIndex) == false) {
-                                        sliceVoxelsRGBA[alphaIndex] = 0.0;
+                                        sliceVoxelsRGBA[alphaIndex] = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    /* 
+                     * DISABLE AT THIS TIME.
+                     *   AT THIS TIME, THE UNDERLAY FOR VOLUME SLICES CANNOT
+                     *   BE A CIFI FILE SINCE IT IS NOT A VOLUME FILE.  SO
+                     *   FINDING A VOXEL THAT IS INSIDE A LABEL IS NEARLY 
+                     *   IMPOSSIBLE.
+                     */
+                    if (isOutlineMode) {
+                        isOutlineMode = false;
+                        CaretLogWarning("CIFTI LABEL OUTLINE ON VOLUME SLICES IS DISABLED BECAUSE IT DOES NOT WORK AND IS TOO DIFFICULAT TO DEBUG SINCE CIFTI FILES CANNOT BE THE UNDERLAY VOLUME");
+                    }
+                    if (isOutlineMode) {
+                        int32_t numRows = 0;
+                        int32_t numCols = 0;
+                        switch (slicePlane) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                CaretAssert(0);
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                numRows = numSliceVoxelsI - 1;
+                                numCols = numSliceVoxelsJ - 1;
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                numRows = numSliceVoxelsI - 1;
+                                numCols = numSliceVoxelsK - 1;
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                numRows = numSliceVoxelsJ - 1;
+                                numCols = numSliceVoxelsK - 1;
+                                break;
+                        }
+                        const int32_t numRowsM1 = numRows - 1;
+                        const int32_t numColsM1 = numCols - 1;
+                        
+                        for (int32_t j = 1; j < numRowsM1; j++) {
+                            for (int32_t i = 1; i < numColsM1; i++) {
+                                const int32_t offset = (numCols * j) + i;
+                                CaretAssert(offset < numVoxelsInSlice);
+                                const int32_t alphaIndex = (offset * 4) + 3;
+                                CaretAssert(alphaIndex< numVoxelsInSliceRGBA);
+                                if (sliceVoxelsRGBA[alphaIndex] > 0.0) {
+                                    const float value = sliceValues[offset];
+                                    
+                                    bool allTheSame = true;
+                                    for (int32_t jNeigh = (j - 1); jNeigh <= (j + 1); jNeigh++) {
+                                        for (int32_t iNeigh = (i - 1); iNeigh <= (i + 1); iNeigh++) {
+                                            if (iNeigh != jNeigh) {
+                                                const int32_t offsetIJ = (numCols * jNeigh) + iNeigh;
+                                                CaretAssert(offsetIJ < numVoxelsInSlice);
+                                                if (sliceValues[offsetIJ] != value) {
+                                                    allTheSame = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (allTheSame == false) {
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (allTheSame) {
+                                        sliceVoxelsRGBA[alphaIndex] = 0;
                                     }
                                 }
                             }
