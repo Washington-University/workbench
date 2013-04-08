@@ -77,7 +77,7 @@ using namespace caret;
  * Constructor.
  */
 ChartViewController::ChartViewController(const Qt::Orientation orientation,
-                                                                     const int32_t browserWindowIndex,
+                                                                     const int32_t /*browserWindowIndex*/,
                                                                      /*const DataFileTypeEnum::Enum connectivityFileType, */                                                                    
                                                                      QWidget* parent)
 : QWidget(parent)

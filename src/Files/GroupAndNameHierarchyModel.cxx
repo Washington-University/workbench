@@ -494,7 +494,7 @@ GroupAndNameHierarchyModel::update(CiftiBrainordinateFile* ciftiBrainordinateFil
             }
             
             if (needToGenerateKeys == false) {
-                if (m_previousCiftiLabelFileMapKeysAndNames.size() != ciftiBrainordinateFile->getNumberOfMaps()) {
+                if (static_cast<int32_t>(m_previousCiftiLabelFileMapKeysAndNames.size()) != ciftiBrainordinateFile->getNumberOfMaps()) {
                     needToGenerateKeys = true;
                 }
             }

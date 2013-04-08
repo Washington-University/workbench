@@ -305,20 +305,10 @@ namespace caret {
         void setSelectedItemScreenXYZ(SelectionItem* item,
                                         const float itemXYZ[3]);
 
-//        void setViewportAndOrthographicProjection(const int32_t viewport[4],
-//                                                  const Model::ViewingTransformIndex rotationMatrixIndex);
-        
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
                                                   const  ProjectionViewTypeEnum::Enum projectionType);
         
-//        void applyViewingTransformations(const Model* modelDisplayController,
-//                                         const int32_t tabIndex,
-//                                         const float objectCenterXYZ[3],
-//                                         const Model::ViewingTransformIndex rotationMatrixIndex);
-        
-        void applyViewingTransformations(const Model* modelDisplayController,
-                                         const int32_t tabIndex,
-                                         const float objectCenterXYZ[3],
+        void applyViewingTransformations(const float objectCenterXYZ[3],
                                          const ProjectionViewTypeEnum::Enum projectionViewType);
         
         void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,

@@ -83,7 +83,7 @@ WholeBrainSurfaceSettings::~WholeBrainSurfaceSettings()
  *    Object that is copied.
  */
 WholeBrainSurfaceSettings::WholeBrainSurfaceSettings(const WholeBrainSurfaceSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface(obj)
 {
     this->copyHelperWholeBrainSurfaceSettings(obj);
 }

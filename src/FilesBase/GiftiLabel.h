@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 #include "TracksModificationInterface.h"
 
+#include <limits>
 #include <stdint.h>
 
 #include <AString.h>
@@ -221,7 +222,8 @@ namespace caret {
     };
     
 #ifdef __GIFTI_LABEL_DECLARE__
-    const int32_t GiftiLabel::s_invalidLabelKey = -2147483648;
+    const int32_t GiftiLabel::s_invalidLabelKey =  std::numeric_limits<int32_t>::min(); 
+    //const int32_t GiftiLabel::s_invalidLabelKey = -2147483648;
 #endif // __GIFTI_LABEL_DECLARE__
 } // namespace
 

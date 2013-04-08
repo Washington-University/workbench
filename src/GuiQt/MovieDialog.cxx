@@ -229,7 +229,7 @@ void MovieDialog::getImageCrop(AString fileName, int *cropOut)
     cropOut[3] = leftTopRightBottom[1]+marginSize;
 }
 
-void MovieDialog::on_cropImageCheckBox_toggled(bool checked)
+void MovieDialog::on_cropImageCheckBox_toggled(bool /*checked*/)
 {
 
 }

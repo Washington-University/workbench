@@ -537,13 +537,8 @@ BrainOpenGLFixedPipeline::applyClippingPlanes()
 }
 
 /**
- * Apply the viewing transformations for the model controller
- * in the given tab.
+ * Apply the viewing transformations for the content of the browser tab.
  *
- * @param modelDisplayController
- *    Model controller being viewed.
- * @param tabIndex
- *    Index of tab containing the controller.
  * @param objectCenterXYZ
  *    If not NULL, contains center of object about
  *    which rotation should take place.
@@ -551,10 +546,8 @@ BrainOpenGLFixedPipeline::applyClippingPlanes()
  *    Projection view type.
  */
 void
-BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayController,
-                                 const int32_t tabIndex,
-                                 const float objectCenterXYZ[3],
-                                 const ProjectionViewTypeEnum::Enum projectionViewType)
+BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXYZ[3],
+                                                      const ProjectionViewTypeEnum::Enum projectionViewType)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -940,9 +933,7 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     this->setViewportAndOrthographicProjection(viewport,
                                                browserTabContent->getProjectionViewType());
     
-    this->applyViewingTransformations(surfaceController,
-                                      this->windowTabIndex,
-                                      center,
+    this->applyViewingTransformations(center,
                                       browserTabContent->getProjectionViewType());
     
     const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceController, 
@@ -6053,9 +6044,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         this->setViewportAndOrthographicProjection(mvp.viewport,
                                                    mvp.projectionViewType);
         
-        this->applyViewingTransformations(surfaceMontageModel,
-                                          this->windowTabIndex,
-                                          center,
+        this->applyViewingTransformations(center,
                                           mvp.projectionViewType);
         this->drawSurface(mvp.surface,
                           nodeColoringRGBA);
@@ -6119,9 +6108,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     
     this->setViewportAndOrthographicProjection(viewport,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
-    this->applyViewingTransformations(wholeBrainController,
-                                      this->windowTabIndex,
-                                      center,
+    this->applyViewingTransformations(center,
                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);

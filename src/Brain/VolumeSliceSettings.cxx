@@ -106,7 +106,7 @@ VolumeSliceSettings::~VolumeSliceSettings()
  *    Object that is copied.
  */
 VolumeSliceSettings::VolumeSliceSettings(const VolumeSliceSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface(obj)
 {
     this->copyHelperVolumeSliceSettings(obj);
 }

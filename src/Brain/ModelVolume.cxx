@@ -135,7 +135,7 @@ ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
  *    Tab number of window.
  */
 void 
-ModelVolume::updateController(const int32_t windowTabNumber)
+ModelVolume::updateController(const int32_t /*windowTabNumber*/)
 {
 }
 

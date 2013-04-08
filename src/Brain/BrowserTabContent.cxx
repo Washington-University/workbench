@@ -1327,7 +1327,7 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
  *    Change in mouse Y coordinate.
  */
 void
-BrowserTabContent::applyMouseScaling(const int32_t mouseDX,
+BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
                                      const int32_t mouseDY)
 {
     if (isVolumeSlicesDisplayed()) {

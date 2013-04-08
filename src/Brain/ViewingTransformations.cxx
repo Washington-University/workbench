@@ -86,7 +86,7 @@ ViewingTransformations::~ViewingTransformations()
  *    Object that is copied.
  */
 ViewingTransformations::ViewingTransformations(const ViewingTransformations& obj)
-: CaretObject(obj)
+: CaretObject(obj), SceneableInterface(obj)
 {
     this->copyHelperViewingTransformations(obj);
 }
