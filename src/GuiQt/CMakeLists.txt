@@ -224,6 +224,7 @@ WuQDialogModal.h
 WuQDialogNonModal.h
 WuQDoubleSlider.h
 WuQEventBlockingFilter.h
+WuQFactory.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQGridLayoutGroup.h
@@ -339,6 +340,7 @@ WuQDialogModal.cxx
 WuQDialogNonModal.cxx
 WuQDoubleSlider.cxx
 WuQEventBlockingFilter.cxx
+WuQFactory.cxx
 WuQFileDialog.cxx
 WuQGridLayoutGroup.cxx
 WuQImageLabel.cxx
