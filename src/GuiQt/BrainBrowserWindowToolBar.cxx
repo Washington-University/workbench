@@ -256,6 +256,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     this->clippingWidget = this->createClippingWidget();
+    this->chartWidget = this->createChartWidget();
     
     /*
      * Layout the toolbar's widgets.
@@ -285,6 +286,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->clippingWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
+
+    this->toolbarWidgetLayout->addWidget(this->chartWidget, 0, Qt::AlignLeft);
 
     this->toolbarWidgetLayout->addStretch();
 
@@ -1188,6 +1191,7 @@ BrainBrowserWindowToolBar::createViewWidget()
 //    this->viewModeSurfaceMontageRadioButton->setText("Surface\nMontage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
+    this->viewModeChartRadioButton = new QRadioButton("Chart");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1196,6 +1200,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
+    layout->addWidget(this->viewModeChartRadioButton);
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
@@ -1203,6 +1208,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
     
@@ -1211,6 +1217,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewWidgetGroup->add(this->viewModeSurfaceMontageRadioButton);
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
     this->viewWidgetGroup->add(this->viewModeWholeBrainRadioButton);
+    this->viewWidgetGroup->add(this->viewModeChartRadioButton);
     
     QWidget* w = this->createToolWidget("View", 
                                         widget, 
@@ -1248,6 +1255,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
         this->viewModeSurfaceMontageRadioButton->setEnabled(browserTabContent->isSurfaceMontageModelValid());
         this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
         this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
+        //this->viewModeChartRadioButton->setEnabled(browserTabContent->isChartValid());
     }
     
     switch (modelType) {
@@ -1264,6 +1272,9 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
             break;
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             this->viewModeWholeBrainRadioButton->setChecked(true);
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            this->viewModeChartRadioButton->setChecked(true);
             break;
     }
     
@@ -4533,6 +4544,148 @@ BrainBrowserWindowToolBar::createClippingWidget()
                                         WIDGET_PLACEMENT_TOP,
                                         0);
     return w;
+}
+
+/**
+ * @return The chart widget.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createChartWidget()
+{
+    QLabel* axisLabel = new QLabel("Axis ");
+    QLabel* minLabel = new QLabel("Min");
+    QLabel* maxLabel = new QLabel("Max");
+
+    const int   minExtentBoxWidth = 65;
+    const int   maxExtentBoxWidth = 65;
+    const float xMinExtent = 0.0;
+    const float xMaxExtent = 1000.0;
+    const float yMinExtent = 0.0;
+    const float yMaxExtent = 1000.0;
+    const float ExtentsStep = 1.0;
+    const int   ExtentsDecimals = 1;
+
+    this->xMinExtentSpinBox = new QDoubleSpinBox();
+    this->xMaxExtentSpinBox = new QDoubleSpinBox();
+    this->yMinExtentSpinBox = new QDoubleSpinBox();
+    this->yMaxExtentSpinBox = new QDoubleSpinBox();
+    this->autoFitTimeLinesCB = new QCheckBox("Autofit Plot");
+    this->showAverageCB = new QCheckBox("Show Average");
+    this->zoomXAxisCB = new QCheckBox("Zoom X Axis");
+    this->zoomYAxisCB = new QCheckBox("Zoom Y Axis");
+
+    this->clearChartPB = new QToolButton();
+    this->clearChartPB->setText("Clear Chart");
+    this->resetViewPB = new QToolButton();
+    this->resetViewPB->setText("Reset View");
+    this->openTimeLinePB = new QToolButton();
+    this->openTimeLinePB->setText("Open...");
+    this->exportTimeLinePB = new QToolButton();
+    this->exportTimeLinePB->setText("Export...");
+    
+    
+    this->xMinExtentSpinBox->setRange(xMinExtent, xMaxExtent);
+    this->xMinExtentSpinBox->setSingleStep(ExtentsStep);
+    this->xMinExtentSpinBox->setDecimals(ExtentsDecimals);
+    this->xMinExtentSpinBox->setFixedWidth(minExtentBoxWidth);
+
+    this->xMaxExtentSpinBox->setRange(xMinExtent, xMaxExtent);
+    this->xMaxExtentSpinBox->setSingleStep(ExtentsStep);
+    this->xMaxExtentSpinBox->setDecimals(ExtentsDecimals);
+    this->xMaxExtentSpinBox->setFixedWidth(maxExtentBoxWidth);
+    this->xMaxExtentSpinBox->setValue(1000.0);
+
+    this->yMinExtentSpinBox->setRange(yMinExtent, yMaxExtent);
+    this->yMinExtentSpinBox->setSingleStep(ExtentsStep);
+    this->yMinExtentSpinBox->setDecimals(ExtentsDecimals);
+    this->yMinExtentSpinBox->setFixedWidth(minExtentBoxWidth);
+
+    this->yMaxExtentSpinBox->setRange(yMinExtent, yMaxExtent);
+    this->yMaxExtentSpinBox->setSingleStep(ExtentsStep);
+    this->yMaxExtentSpinBox->setDecimals(ExtentsDecimals);
+    this->yMaxExtentSpinBox->setFixedWidth(maxExtentBoxWidth);
+    this->yMaxExtentSpinBox->setValue(1000.0);
+
+    this->clearChartPB->setFixedWidth(minExtentBoxWidth);
+    this->resetViewPB->setFixedWidth(maxExtentBoxWidth);
+    this->openTimeLinePB->setFixedWidth(minExtentBoxWidth);
+    this->exportTimeLinePB->setFixedWidth(maxExtentBoxWidth);    
+    
+
+    QObject::connect(this->xMinExtentSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(extentsControlChanged()));
+    QObject::connect(this->xMaxExtentSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(extentsControlChanged()));
+    QObject::connect(this->yMinExtentSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(extentsControlChanged()));
+    QObject::connect(this->yMaxExtentSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(extentsControlChanged()));
+
+
+    
+    this->extentsWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->extentsWidgetGroup->add(this->xMinExtentSpinBox);
+    this->extentsWidgetGroup->add(this->xMaxExtentSpinBox);
+    this->extentsWidgetGroup->add(this->yMinExtentSpinBox);
+    this->extentsWidgetGroup->add(this->yMaxExtentSpinBox);
+
+    this->extentsWidgetGroup->add(this->clearChartPB);
+    this->extentsWidgetGroup->add(this->resetViewPB);
+    this->extentsWidgetGroup->add(this->openTimeLinePB);
+    this->extentsWidgetGroup->add(this->exportTimeLinePB);
+
+    this->extentsWidgetGroup->add(this->autoFitTimeLinesCB);
+    this->extentsWidgetGroup->add(this->showAverageCB);
+    this->extentsWidgetGroup->add(this->zoomXAxisCB);
+    this->extentsWidgetGroup->add(this->zoomYAxisCB);
+
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
+    WuQtUtilities::setLayoutMargins(gridLayout, 0, 0);
+    int row = 0;
+    gridLayout->addWidget(axisLabel, row, 0 , Qt::AlignHCenter);
+    gridLayout->addWidget(minLabel, row, 1, Qt::AlignLeft);
+    gridLayout->addWidget(maxLabel, row, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(new QLabel("X: "), row, 0);
+    gridLayout->addWidget(this->xMinExtentSpinBox, row, 1);
+    gridLayout->addWidget(this->xMaxExtentSpinBox, row, 2);
+    gridLayout->addWidget(this->autoFitTimeLinesCB, row, 3, Qt::AlignCenter);
+    row++;
+    gridLayout->addWidget(new QLabel("Y: "), row, 0);
+    gridLayout->addWidget(this->yMinExtentSpinBox, row, 1);
+    gridLayout->addWidget(this->yMaxExtentSpinBox, row, 2);
+    gridLayout->addWidget(this->showAverageCB, row, 3);
+    row++;
+    gridLayout->addWidget(this->clearChartPB, row, 1);
+    gridLayout->addWidget(this->resetViewPB, row, 2);
+    gridLayout->addWidget(this->zoomXAxisCB, row, 3);
+    row++;
+    gridLayout->addWidget(this->openTimeLinePB, row, 1);
+    gridLayout->addWidget(this->exportTimeLinePB, row, 2);
+    gridLayout->addWidget(this->zoomYAxisCB, row, 3);
+    row++;
+
+    widget->setSizePolicy(QSizePolicy::Fixed,
+                          QSizePolicy::Fixed);
+    
+    
+    QWidget* w = this->createToolWidget("Chart",
+                                        widget,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
+    return w;
+}
+/**
+ * Update the clipping widgets.
+ * @param browserTabContent
+ *    Currently displayed content.
+ */
+void extentsControlChanged()
+{
+
+
 }
 
 /**

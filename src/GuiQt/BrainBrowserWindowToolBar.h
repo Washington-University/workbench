@@ -135,6 +135,7 @@ namespace caret {
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         QWidget* createClippingWidget();
+        QWidget* createChartWidget();
         
         ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
@@ -165,6 +166,7 @@ namespace caret {
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         QWidget* clippingWidget;
+        QWidget* chartWidget;
         //QWidget* spacerWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
@@ -178,6 +180,7 @@ namespace caret {
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
         WuQWidgetObjectGroup* clippingWidgetGroup;
+        WuQWidgetObjectGroup* extentsWidgetGroup;
         
         QWidget* fullToolBarWidget;
         QWidget* m_toolbarWidget;
@@ -241,6 +244,7 @@ namespace caret {
         QRadioButton* viewModeSurfaceMontageRadioButton;
         QRadioButton* viewModeVolumeRadioButton;
         QRadioButton* viewModeWholeBrainRadioButton;
+        QRadioButton* viewModeChartRadioButton;
         
     private slots:
         void viewModeRadioButtonClicked(QAbstractButton*);
@@ -436,6 +440,26 @@ namespace caret {
         QDoubleSpinBox* clippingYCoordSpinBox;
         QDoubleSpinBox* clippingZCoordSpinBox;
         
+    private:
+
+        QDoubleSpinBox *xMinExtentSpinBox;
+        QDoubleSpinBox *xMaxExtentSpinBox;
+        QDoubleSpinBox *yMinExtentSpinBox;
+        QDoubleSpinBox *yMaxExtentSpinBox;
+        QSpinBox *lineWidthSpinBox;
+        QCheckBox *autoFitTimeLinesCB;
+        QCheckBox *zoomXAxisCB;
+        QCheckBox *zoomYAxisCB;
+
+        QCheckBox *showAverageCB;
+        QToolButton *clearChartPB;
+        QToolButton *resetViewPB;
+        QToolButton *openTimeLinePB;
+        QToolButton *exportTimeLinePB;
+
+
+    private slots:
+        void extentsControlChanged() {}
     private:
         int32_t browserWindowIndex;
         

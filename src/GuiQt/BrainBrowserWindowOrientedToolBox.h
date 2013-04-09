@@ -29,7 +29,9 @@ namespace caret {
         enum ToolBoxType {
             TOOL_BOX_FEATURES,
             TOOL_BOX_OVERLAYS_HORIZONTAL,
-            TOOL_BOX_OVERLAYS_VERTICAL
+            TOOL_BOX_OVERLAYS_VERTICAL,
+            TOOL_BOX_CHARTS_HORIZONTAL,
+            TOOL_BOX_CHARTS_VERTICAL
         };
         
         BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
