@@ -173,5 +173,5 @@ ADD_CUSTOM_COMMAND(
         -P "${CMAKE_SOURCE_DIR}/../build_scripts/git_commit_info.cmake.in"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
     DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/../build_scripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/../.git/HEAD ${CMAKE_SOURCE_DIR}/../.git/index
-    COMMENT "setting commit info"
+    COMMENT "Setting commit info"
 )

@@ -1,9 +1,13 @@
 FIND_PACKAGE(Git)
-EXECUTE_PROCESS(
-    COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-    OUTPUT_VARIABLE "rev_info"
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+IF(GIT_FOUND)
+    EXECUTE_PROCESS(
+        COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+        OUTPUT_VARIABLE "rev_info"
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+ELSE(GIT_FOUND)
+    SET(rev_info "unknown")
+ENDIF(GIT_FOUND)
 IF(WIN32)
     EXECUTE_PROCESS(
         COMMAND powershell.exe -Command "& {(Get-Content ${INFILE}) | ForEach-Object { $_ -replace \"@COMMIT_INFO@\", \"${rev_info}\" } | Set-Content ${OUTFILE}}"
