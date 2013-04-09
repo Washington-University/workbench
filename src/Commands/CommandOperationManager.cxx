@@ -126,8 +126,9 @@
 #include "OperationZipSceneFile.h"
 #include "OperationZipSpecFile.h"
 
-#include "CommandParser.h"
 #include "AlgorithmException.h"
+#include "ApplicationInformation.h"
+#include "CommandParser.h"
 #include "OperationException.h"
 
 #include "CommandClassAddMember.h"
@@ -146,6 +147,7 @@
 #include <iostream>
 
 using namespace caret;
+using namespace std;
 
 /**
  * Get the command operation manager.
@@ -322,36 +324,50 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
     const uint64_t numberOfCommands = this->commandOperations.size();
 
     if (parameters.hasNext() == false) {
-        printAllCommands();
+        printHelpInfo();
         return;
     }
     
     AString commandSwitch;
     try {
         commandSwitch = parameters.nextString("Command Name");
-    
-        CommandOperation* operation = NULL;
         
-        for (uint64_t i = 0; i < numberOfCommands; i++) {
-            if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
-                operation = this->commandOperations[i];
-                break;
-            }
-        }
-        
-        if (operation == NULL) {
-            throw CommandException("Command \"" + commandSwitch + "\" not found.");
-        }
-
-        if (!parameters.hasNext() && operation->takesParameters())
+        if (commandSwitch == "-help")
         {
-            std::cout << operation->getHelpInformation(parameters.getProgramName()) << std::endl;
+            printHelpInfo();
+        } else if (commandSwitch == "-arguments-help") {
+            printArgumentsHelp(parameters.getProgramName());
+        } else if (commandSwitch == "-version") {
+            printVersionInfo();
+        } else if (commandSwitch == "-list-commands") {
+            printAllCommands();
+        } else if (commandSwitch == "-all-commands-help") {
+            printAllCommandsHelpInfo(parameters.getProgramName());
         } else {
-            operation->execute(parameters);
+        
+            CommandOperation* operation = NULL;
+            
+            for (uint64_t i = 0; i < numberOfCommands; i++) {
+                if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
+                    operation = this->commandOperations[i];
+                    break;
+                }
+            }
+            
+            if (operation == NULL) {
+                throw CommandException("Command \"" + commandSwitch + "\" not found.");
+            }
+
+            if (!parameters.hasNext() && operation->takesParameters())
+            {
+                cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
+            } else {
+                operation->execute(parameters);
+            }
         }
     }
     catch (ProgramParametersException& e) {
-        std::cerr << "caught PPE" << std::endl;
+        cerr << "caught PPE" << endl;
         throw CommandException(e);
     }
 }
@@ -362,7 +378,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
 void
 CommandOperationManager::printAllCommands()
 {
-    std::map<AString, AString> cmdMap;
+    map<AString, AString> cmdMap;
     
     int64_t longestSwitch = 0;
     
@@ -376,7 +392,7 @@ CommandOperationManager::printAllCommands()
             longestSwitch = switchLength;
         }
         
-        cmdMap.insert(std::make_pair(cmdSwitch,
+        cmdMap.insert(make_pair(cmdSwitch,
                                      op->getOperationShortDescription()));
         
         const AString helpInfo = op->getHelpInformation("");
@@ -385,14 +401,14 @@ CommandOperationManager::printAllCommands()
         }
     }
 
-    for (std::map<AString, AString>::iterator iter = cmdMap.begin();
+    for (map<AString, AString>::iterator iter = cmdMap.begin();
          iter != cmdMap.end();
          iter++) {
         AString cmdSwitch = iter->first;
         cmdSwitch = cmdSwitch.leftJustified(longestSwitch + 2, ' ');
         AString description = iter->second;
         
-        std::cout << qPrintable(cmdSwitch) << qPrintable(description) << std::endl;
+        cout << qPrintable(cmdSwitch) << qPrintable(description) << endl;
     }
 }
 
@@ -409,5 +425,92 @@ CommandOperationManager::getCommandOperations()
     return this->commandOperations;
 }
 
+void CommandOperationManager::printHelpInfo()
+{
+    printVersionInfo();
+    cout << endl << "Information options:" << endl;
+    cout << "   -help                 print this help info" << endl;
+    cout << "   -arguments-help       explain how to read the help info for subcommands" << endl;
+    cout << "   -version              print version information only" << endl;
+    cout << "   -list-commands        print all non-information (processing) subcommands" << endl;
+    cout << "   -all-commands-help    print all non-information (processing) subcommands and their help info - VERY LONG" << endl;
+    cout << endl;
+}
 
+void CommandOperationManager::printArgumentsHelp(const AString& programName)
+{
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   To get the help information on a subcommand, run it without any additional" << endl;
+    cout << "   arguments.  Options can occur in any position within the correct scope, and" << endl;
+    cout << "   can have suboptions, which must occur within the scope of the option.  The" << endl;
+    cout << "   easiest way to get this right is to specify options and arguments in the" << endl;
+    cout << "   order they are listed.  As an example, consider this help information:" << endl;
+    cout << "$ " << programName << " -volume-math" << endl;
+    cout << "EVALUATE EXPRESSION ON VOLUME FILES" << endl;
+    cout << "   " << programName << " -volume-math" << endl;
+    cout << "      <expression>" << endl;
+    cout << "      <volume-out>" << endl;
+    cout << "      [-fixnan]" << endl;
+    cout << "         <replace>" << endl;
+    cout << "      [-var] (repeatable)" << endl;
+    cout << "         <name>" << endl;
+    cout << "         <volume>" << endl;
+    cout << "         [-subvolume]" << endl;
+    cout << "            <subvol>" << endl;
+    cout << "..." << endl;
+    cout << endl;
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   '<expression>' and '<volume-out>' denote mandatory parameters, '[-fixnan]'" << endl;
+    cout << "   denotes an option taking one mandatory parameter '<replace>', and" << endl;
+    cout << "   '[-var] (repeatable)' denotes a repeatable option with mandatory parameters" << endl;
+    cout << "   '<name>' and '<volume>', and a suboption '[-subvolume]', which has a" << endl;
+    cout << "   mandatory parameter '<subvol>'.  Commands also provide additional help info" << endl;
+    cout << "   along with descriptions of options and parameters below the section in the" << endl;
+    cout << "   example.  Each option starts a new scope, and ends any scope that it is not" << endl;
+    cout << "   valid in.  For example, this command is correct:" << endl;
+    cout << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' -fixnan 0 -var x x.nii.gz -subvolume 1" << endl;
+    cout << endl;
+    cout << "   as is this one (though less intuitive):" << endl;
+    cout << endl;
+    cout << "$ " << programName << " -volume-math -fixnan 0 -var x -subvolume 1 x.nii.gz 'sin(x)'" << endl;
+    cout << endl;
+    cout << "   while this one is not, because the -fixnan argument ends the scope of -var" << endl;
+    cout << "   before all of its mandatory arguments are given:" << endl;
+    cout << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' -var x -fixnan 0 x.nii.gz -subvolume 1" << endl;
+    cout << endl;
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   and this one is incorrect because the -subvolume option occurs after the" << endl;
+    cout << "   scope of -var has ended due to -fixnan:" << endl;
+    cout << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
+    cout << endl;
+}
 
+void CommandOperationManager::printVersionInfo()
+{
+    ApplicationInformation myInfo;
+    vector<AString> myLines;
+    myInfo.getAllInformation(myLines);
+    for (int i = 0; i < (int)myLines.size(); ++i)
+    {
+        cout << myLines[i] << endl;
+    }
+}
+
+void CommandOperationManager::printAllCommandsHelpInfo(const AString& programName)
+{
+    map<AString, CommandOperation*> cmdMap;
+    const uint64_t numberOfCommands = this->commandOperations.size();
+    for (uint64_t i = 0; i < numberOfCommands; i++) {
+        CommandOperation* op = this->commandOperations[i];
+        cmdMap[op->getCommandLineSwitch()] = op;
+    }
+    for (map<AString, CommandOperation*>::iterator iter = cmdMap.begin();
+         iter != cmdMap.end();
+         iter++) {
+        cout << iter->first << endl;
+        cout << iter->second->getHelpInformation(programName) << endl << endl;
+    }
+}

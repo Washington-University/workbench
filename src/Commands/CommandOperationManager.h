@@ -59,6 +59,14 @@ namespace caret {
 
         void printAllCommands();
         
+        void printAllCommandsHelpInfo(const AString& programName);
+        
+        void printHelpInfo();
+        
+        void printArgumentsHelp(const AString& programName);
+        
+        void printVersionInfo();
+        
     private:
         std::vector<CommandOperation*> commandOperations;
         

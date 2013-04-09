@@ -98,7 +98,7 @@ TracksModificationInterface.h
 Vector3D.h
 
 ${MOC_SOURCE_FILES}
-ApplicationInformation.cxx
+${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 AString.cxx
 Base64.cxx
 BoundingBox.cxx
@@ -164,4 +164,14 @@ Vector3D.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
+)
+ADD_CUSTOM_COMMAND(
+    OUTPUT ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
+    COMMAND ${CMAKE_COMMAND}
+        -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
+        -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+        -P "${CMAKE_SOURCE_DIR}/../build_scripts/git_commit_info.cmake.in"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+    DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/../build_scripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/../.git/HEAD ${CMAKE_SOURCE_DIR}/../.git/index
+    COMMENT "setting commit info"
 )

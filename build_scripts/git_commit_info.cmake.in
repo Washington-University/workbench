@@ -1,0 +1,17 @@
+FIND_PACKAGE(Git)
+EXECUTE_PROCESS(
+    COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+    OUTPUT_VARIABLE "rev_info"
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+IF(WIN32)
+    EXECUTE_PROCESS(
+        COMMAND powershell.exe -Command "& {(Get-Content ${INFILE}) | ForEach-Object { $_ -replace \"@COMMIT_INFO@\", \"${rev_info}\" } | Set-Content ${OUTFILE}}"
+    )
+ELSE(WIN32)
+    EXECUTE_PROCESS(
+        INPUT_FILE "${INFILE}"
+        COMMAND sed "s/@COMMIT_INFO@/${rev_info}/g"
+        OUTPUT_FILE "${OUTFILE}"
+    )
+ENDIF(WIN32)
