@@ -64,6 +64,7 @@
 #include "SessionManager.h"
 #include "TimeCourseDialog.h"
 #include "TimeSeriesManagerForViewController.h"
+#include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -118,16 +119,16 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     this->graphToolButton = new QToolButton();
     this->graphToolButton->setDefaultAction(this->graphDisplayAction);
     
-    this->frameSpinBox = new QSpinBox();
-    this->frameSpinBox->setMinimum(1);
-    this->frameSpinBox->setMaximum(std::numeric_limits<int>::max());
-    this->frameSpinBox->setSingleStep(1.0);
+    this->frameSpinBox =
+    WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                  std::numeric_limits<int>::max(),
+                                                  1,
+                                                  this,
+                                                  SLOT(frameSpinBoxValueChanged(int)));
     this->frameSpinBox->setMaximumWidth(80);
     
     WuQtUtilities::setToolTipAndStatusTip(this->frameSpinBox,
                                           "Select timepoint for display on brainordinates");
-    QObject::connect(this->frameSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(frameSpinBoxValueChanged(int)));
 
     this->frameName = new QLineEdit();
     frameName->setReadOnly(true);

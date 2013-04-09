@@ -63,6 +63,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
+#include "WuQFactory.h"
 #include "WuQtUtilities.h"
 
 #include "qwt_plot.h"
@@ -370,24 +371,29 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                      this, SLOT(thresholdHighSliderValueChanged(double)));
     
     const int spinBoxWidth = 80.0;
-    this->thresholdLowSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSpinBox, 
+    this->thresholdLowSpinBox =
+       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0,
+                                                                   1.0,
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(thresholdLowSpinBoxValueChanged(double)));
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSpinBox,
                                           "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
     this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
-    this->thresholdLowSpinBox->setSingleStep(0.10);
-    this->thresholdLowSpinBox->setDecimals(3);
-    QObject::connect(this->thresholdLowSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(thresholdLowSpinBoxValueChanged(double)));
-    this->thresholdHighSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSpinBox, 
+
+    this->thresholdHighSpinBox =
+       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0,
+                                                                   1.0,
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(thresholdHighSpinBoxValueChanged(double)));
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSpinBox,
                                           "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
     this->thresholdHighSpinBox->setFixedWidth(spinBoxWidth);
-    this->thresholdHighSpinBox->setSingleStep(0.10);
-    this->thresholdHighSpinBox->setDecimals(3);
-    QObject::connect(this->thresholdHighSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(thresholdHighSpinBoxValueChanged(double)));
 
     this->thresholdShowInsideRadioButton = new QRadioButton("Show Data Inside Thresholds");
     WuQtUtilities::setWordWrappedToolTip(this->thresholdShowInsideRadioButton,
@@ -661,100 +667,112 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Percentage mapping 
      */
-    this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMaximumSpinBox, 
+    this->scaleAutoPercentageNegativeMaximumSpinBox =
+       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMaximumSpinBox,
                                           "Map percentile (NOT percentage) most negative value to -1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(100.0);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMinimumSpinBox, 
+    this->scaleAutoPercentageNegativeMinimumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMinimumSpinBox,
                                           "Map percentile (NOT percentage) least negative value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(100.0);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMinimumSpinBox, 
+    this->scaleAutoPercentagePositiveMinimumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMinimumSpinBox,
                                           "Map percentile (NOT percentage) least positive value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(100.0);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMaximumSpinBox, 
+    this->scaleAutoPercentagePositiveMaximumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   100.0,
+                                                                   1.0,
+                                                                   2,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMaximumSpinBox,
                                           "Map percentile (NOT percentage) most positive value to 1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(100.0);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
     /*
      * Fixed mapping
      */
-    this->scaleFixedNegativeMaximumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMaximumSpinBox, 
+    this->scaleFixedNegativeMaximumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-std::numeric_limits<float>::max(),
+                                                                   0.0,
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMaximumSpinBox,
                                           "Map this value to -1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
-    this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMaximumSpinBox->setMaximum(0);
-    this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
-    this->scaleFixedNegativeMaximumSpinBox->setDecimals(3);
-    QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMinimumSpinBox, 
+    this->scaleFixedNegativeMinimumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-std::numeric_limits<float>::max(),
+                                                                   0.0,
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMinimumSpinBox,
                                           "Map this value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedNegativeMinimumSpinBox);
     this->scaleFixedNegativeMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
-    this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMinimumSpinBox->setMaximum(0.0);
-    this->scaleFixedNegativeMinimumSpinBox->setSingleStep(1.0);
-    this->scaleFixedNegativeMinimumSpinBox->setDecimals(3);
-    QObject::connect(this->scaleFixedNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMinimumSpinBox, 
+    this->scaleFixedPositiveMinimumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   std::numeric_limits<float>::max(),
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMinimumSpinBox,
                                           "Map this value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMinimumSpinBox);
     this->scaleFixedPositiveMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
-    this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMinimumSpinBox->setSingleStep(1.0);
-    this->scaleFixedPositiveMinimumSpinBox->setDecimals(3);
-    QObject::connect(this->scaleFixedPositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
-    this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMaximumSpinBox, 
+    this->scaleFixedPositiveMaximumSpinBox =
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                   std::numeric_limits<float>::max(),
+                                                                   1.0,
+                                                                   3,
+                                                                   this,
+                                                                   SLOT(applySelections()));
+
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMaximumSpinBox,
                                           "Map this value to 1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
     this->scaleFixedPositiveMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
-    this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMaximumSpinBox->setSingleStep(1.0);
-    this->scaleFixedPositiveMaximumSpinBox->setDecimals(3);
-    QObject::connect(this->scaleFixedPositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(applySelections()));
     
     QWidget* colorMappingWidget = new QWidget();
     QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
