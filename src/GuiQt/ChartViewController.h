@@ -54,6 +54,7 @@ class QLabel;
 class QListWidget;
 class QSpinBox;
 class QVBoxLayout;
+class WuQGridLayout;
 
 
 namespace caret {
@@ -88,30 +89,13 @@ namespace caret {
         
         
         static std::set<ChartViewController*> allChartViewControllers;
-        /* widgets */
-        QHBoxLayout *m_hBoxLayout;
-        QGroupBox *m_dataControlsGroupBox;
-        QGroupBox *m_historyGroupBox;
-        QVBoxLayout *m_dataControlsLayout;
-        QVBoxLayout *m_historyLayout;
-        QDoubleSpinBox *m_XMinSpinBox;
-        QDoubleSpinBox *m_XMaxSpinBox;
-        QDoubleSpinBox *m_YMinSpinBox;
-        QDoubleSpinBox *m_YMaxSpinBox;
-        QSpinBox *m_lineWidthSpinBox;
+        WuQGridLayout* gridLayout;
 
-        QCheckBox *m_autofitTimeLinesCB;
-        QCheckBox *m_zoomXAxisCB;
-        QCheckBox *m_zoomYAxisCB;
-        QCheckBox *m_showAverageCB;
-        QPushButton *m_clearChartPB;
-        QPushButton *m_resetViewPB;
-        QPushButton *m_openTimeLinePB;
-        QPushButton *m_exportTimeLinePB;
+        QCheckBox* enabledCheckBox;
 
-        QSpinBox *m_keepLastSpinBox;
-        QListWidget *m_historyList;
-        
+        QAction* settingsAction;
+
+        QLabel* timeLineName;
 
         
         

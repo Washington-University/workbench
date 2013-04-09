@@ -82,128 +82,14 @@ ChartViewController::ChartViewController(const Qt::Orientation orientation,
                                                                      QWidget* parent)
 : QWidget(parent)
 {
-    this->m_hBoxLayout = new QHBoxLayout(this);
-    this->m_dataControlsGroupBox = new QGroupBox("Data Controls");
-    this->m_dataControlsLayout = new QVBoxLayout();
-    this->m_XMinSpinBox = new QDoubleSpinBox();
-    this->m_XMaxSpinBox = new QDoubleSpinBox();
-    this->m_YMinSpinBox = new QDoubleSpinBox();
-    this->m_YMaxSpinBox = new QDoubleSpinBox();
-    this->m_lineWidthSpinBox = new QSpinBox();
-
-    this->m_autofitTimeLinesCB = new QCheckBox("Autofit Plot");
-    this->m_zoomXAxisCB = new QCheckBox("Zoom X Axis");
-    this->m_zoomYAxisCB = new QCheckBox("Zoom Y Axis");
-    this->m_showAverageCB = new QCheckBox("Show Average");
-    this->m_clearChartPB = new QPushButton("Clear Chart");
-    this->m_resetViewPB = new QPushButton("Reset View");
-    this->m_openTimeLinePB = new QPushButton("Open...");
-    this->m_exportTimeLinePB = new QPushButton("Export...");
-
-    this->m_historyGroupBox = new QGroupBox("History");
-    this->m_historyLayout = new QVBoxLayout();
-    this->m_keepLastSpinBox = new QSpinBox();
-    this->m_historyList = new QListWidget();
+    
 
 
 
     if (orientation == Qt::Horizontal)
     {
-        QHBoxLayout *temp = new QHBoxLayout();
-        QLabel *tempLabel;
 
-        this->m_hBoxLayout->addWidget(m_dataControlsGroupBox);
-        this->m_dataControlsGroupBox->setLayout(this->m_dataControlsLayout);
-        this->m_dataControlsLayout->addLayout(temp);
         
-        tempLabel = new QLabel("X");
-        tempLabel->setFixedWidth(50);
-        tempLabel->setAlignment(Qt::AlignRight);
-        temp->addWidget(tempLabel);    
-        this->m_XMinSpinBox->setFixedWidth(80);
-        this->m_XMaxSpinBox->setFixedWidth(80);
-        temp->addWidget(this->m_XMinSpinBox);
-        temp->addWidget(this->m_XMaxSpinBox);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        tempLabel = new QLabel("Y");
-        tempLabel->setFixedWidth(50);
-        tempLabel->setAlignment(Qt::AlignRight);
-        temp->addWidget(tempLabel);
-        this->m_YMinSpinBox->setFixedWidth(80);
-        this->m_YMaxSpinBox->setFixedWidth(80);
-        temp->addWidget(this->m_YMinSpinBox);
-        temp->addWidget(this->m_YMaxSpinBox);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        tempLabel = new QLabel("Line Width");
-        tempLabel->setFixedWidth(50);
-        tempLabel->setAlignment(Qt::AlignRight);
-        temp->addWidget(tempLabel);
-        temp->addWidget(this->m_lineWidthSpinBox);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        this->m_autofitTimeLinesCB->setFixedWidth(105);
-        temp->addWidget(this->m_autofitTimeLinesCB);
-        temp->addWidget(this->m_zoomXAxisCB);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        this->m_showAverageCB->setFixedWidth(105);
-        temp->addWidget(this->m_showAverageCB);
-        temp->addWidget(this->m_zoomYAxisCB);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        temp->addWidget(this->m_clearChartPB);
-        temp->addWidget(this->m_resetViewPB);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        temp->addWidget(this->m_openTimeLinePB);
-        temp->addWidget(this->m_exportTimeLinePB);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        temp = new QHBoxLayout();
-        this->m_dataControlsLayout->addLayout(temp);
-        temp->addWidget(this->m_openTimeLinePB);
-        temp->addWidget(this->m_exportTimeLinePB);
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-
-        this->m_dataControlsLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Maximum,
-            QSizePolicy::MinimumExpanding));
-
-        QVBoxLayout *tempV;
-        this->m_hBoxLayout->addWidget(m_historyGroupBox);
-        this->m_historyGroupBox->setLayout(this->m_historyLayout);
-        tempV = new QVBoxLayout();
-        temp = new QHBoxLayout();
-        temp->addWidget(new QLabel("Keep Last"));
-        temp->addWidget(this->m_keepLastSpinBox);
-        
-        temp->addSpacerItem(new QSpacerItem(20, 0, QSizePolicy::MinimumExpanding,
-            QSizePolicy::Maximum ));
-        this->m_historyLayout->addLayout(tempV);
-        
-        tempV->addWidget(this->m_historyList);
-        tempV->addLayout(temp);
 
 
     }

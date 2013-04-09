@@ -138,7 +138,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_chartViewController = new ChartViewController(orientation,
                                                         browserWindowIndex);
         m_chartTabIndex = addToTabWidget(m_chartViewController,
-                                               "Charts");                                                        
+                                               "Chart");                                                        
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
