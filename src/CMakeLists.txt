@@ -79,11 +79,44 @@ ENDIF(APPLE)
 SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displayed")
 
 #
+# Allow support for C11X compiler
+#
+SET (WORKBENCH_C11X FALSE)
+##SET (WORKBENCH_C11X TRUE)
+
+#
+# Set flags for C11 compiler
+# Only set for C++ compiler
+# C11x options are not recognized by C compiler
+#
+SET (CLANG_11X_FLAGS "")
+SET (GNU_11X_FLAGS "")
+SET (INTEL_11X_FLAGS "")
+IF (WORKBENCH_C11X)
+    ADD_DEFINITIONS("-DWORKBENCH_HAVE_C11X")
+    SET (CLANG_11X_FLAGS "-std=c++11 -Wno-error=c++11-narrowing")
+    SET (GNU_11X_FLAGS "-std=c++11 -Wno-error=c++11-narrowing")
+    SET (INTEL_11X_FLAGS "-std=c++11 -Wno-error=c++11-narrowing")
+ENDIF (WORKBENCH_C11X)
+
+#
 # Intel compiler
 #
 IF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
-        ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
+    ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${INTEL_11X_FLAGS}")
 ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
+
+#
+# Clang compiler on Mac
+#
+IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
+    ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS}")
+    ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
+    ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter" CACHE STRING "C++ compiler options" FORCE)
+ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
+
 
 #
 # IF GNU compiler, functions without a return type or switch
@@ -108,6 +141,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
     else()
         #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch" CACHE STRING "c++ compiler specific options")
         ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GNU_11X_FLAGS}")
     endif()
 endif()
 ENDIF (NOT MSVC)
@@ -154,6 +188,8 @@ ELSE (OPENMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found")
 ENDIF(OPENMP_FOUND)
 
+
+MESSAGE("\nC++ flags ${CMAKE_CXX_FLAGS}\n")
 
 #
 # MUST have ZLIB

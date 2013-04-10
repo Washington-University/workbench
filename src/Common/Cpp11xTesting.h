@@ -35,10 +35,7 @@
 /*LICENSE_END*/
 
 
-//#define HAVE_CXX_11
-
-
-#ifdef HAVE_CXX_11
+#ifdef WORKBENCH_HAVE_C11X
 
 namespace caret {
 
@@ -49,7 +46,8 @@ namespace caret {
         
         Cpp11xTesting(const int value);
         
-        virtual void methodName() noexcept;
+        // Intel does not suport 'noexcept' keyword
+        //virtual void methodName() noexcept;
         
         virtual ~Cpp11xTesting();
         
@@ -63,23 +61,18 @@ namespace caret {
         /*
          * Initialization of a member's value.
          */
-        int m_x = 5;
-    
-        /*
-         * Initialize a static members value
-         */
-        static float s_y = 9.0;
-    
+        int m_x = 5;    
     };
     
-    class SubClass : public Cp11xTesting {
+    class SubClass : public Cpp11xTesting {
         
-        SubClass() : Cp11xTesting(5) { }
+        SubClass() : Cpp11xTesting(5) { }
         
         virtual ~SubClass() { }
         
-        virtual void methodName() override noexcept;
-    }
+        // Intel does not support 'override' keyword
+        //virtual void methodName() override noexcept;
+    };
 #ifdef __CPP11X_TESTING_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CPP11X_TESTING_DECLARE__
@@ -88,4 +81,5 @@ namespace caret {
 #endif  //__CPP11X_TESTING_H__
 
 
-#endif // HAVE_CXX_11
+#endif // WORKBENCH_HAVE_C11X
+

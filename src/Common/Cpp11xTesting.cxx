@@ -36,14 +36,14 @@
 #include "Cpp11xTesting.h"
 #undef __CPP11X_TESTING_DECLARE__
 
-#ifdef HAVE_CXX_11
+#ifdef WORKBENCH_HAVE_C11X
 
 using namespace caret;
 
 #include <iostream>
 #include <memory>
 #include <set>
-#include <tuple>
+// Not on Intel #include <tuple>
 #include <vector>
 
 /**
@@ -56,9 +56,10 @@ using namespace caret;
  * Constructor.
  *
  * Tests delegating constructor (calls another constructor within same class)
+ * Not supported by Intel compiler
  */
 Cpp11xTesting::Cpp11xTesting()
-: Cp11xTesting(5)
+/*: Cp11xTesting(5)*/
 {
     
 }
@@ -66,7 +67,7 @@ Cpp11xTesting::Cpp11xTesting()
 /**
  * Constructor.
  */
-Cpp11xTesting(const int value)
+Cpp11xTesting::Cpp11xTesting(const int /*value*/)
 {
     
 }
@@ -81,12 +82,13 @@ Cpp11xTesting::~Cpp11xTesting()
 
 /**
  * Test 'noexcept' keyword indicating no exception is thrown
+ * Not supported by Intel Compiler
  */
-void
-Cpp11xTesting::methodName() noexcept()
-{
-    
-}
+//void
+//Cpp11xTesting::methodName() noexcept()
+//{
+//    
+//}
 
 void
 Cpp11xTesting::test()
@@ -98,8 +100,9 @@ Cpp11xTesting::test()
     
     /*
      * Initialization list for vector
+     * Not supported by Intel Compiler
      */
-    std::vector<set> values { 3, 8, 5 };
+    std::vector<int> values; // { 3, 8, 5 };
     
     /*
      * Iterator over vector using both 'auto' and the new iterator
@@ -112,11 +115,16 @@ Cpp11xTesting::test()
      * 'nullptr' instead of NULL or zero.
      */
     float* fptr = nullptr;
+    if (fptr != nullptr) {
+        
+    }
     
     /*
-     * Array initialization
+     * Array initialization, new style
+     * Not supported by Intel compiler
      */
-    int a[] { 1, 3, 5 };
+    //int a[] { 1, 3, 5 };
+    int a[] = { 1, 3, 5 };
     
     /*
      * Iteration over array using both 'auto' and the new iterator
@@ -127,19 +135,10 @@ Cpp11xTesting::test()
 
     /*
      * Tuple
+     * Not supported by Intel compiler
      */
-    std::tuple<int, double, double> tp(5, 9.1, 12.5);
-    std::cout << "Tuple 2nd value: " << std::get<1>(tp) << std::endl;
-    
-    /*
-     * Initialization
-     */
-    float fUndefined;
-    float fDefined{}; // receives default value of 0
-    std::cout << "float undefined/defined: " << fUndefined << ", " << fDefined << std::endl;
-    int* pUndefined;
-    int* pDefined{}; // receives default value of nkkullptr
-    std::cout << "pointer undefined/defined: " << pUndefined << ", " << pDefined << std::endl;
+    //std::tuple<int, double, double> tp(5, 9.1, 12.5);
+    //std::cout << "Tuple 2nd value: " << std::get<1>(tp) << std::endl;
     
     /*
      * Test Lambda
@@ -151,11 +150,12 @@ Cpp11xTesting::test()
 
 /**
  * 'override' keyword would cause an error if superclass did not have methodName()
+ * Not supported by Intel compiler
  */
-void
-SubClass:methodName() override noexcept
-{
-    
-}
+//void
+//SubClass:methodName() override noexcept
+//{
+//    
+//}
 
-#endif // HAVE_CXX_11
+#endif // WORKBENCH_HAVE_C11X
