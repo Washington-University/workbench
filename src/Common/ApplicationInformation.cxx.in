@@ -57,7 +57,8 @@ ApplicationInformation::ApplicationInformation()
 {
     this->name    = "Workbench";
     this->version = "Beta 0.81";
-    this->commitInfo = "commit: @COMMIT_INFO@";
+    this->commit = "commit: @COMMIT@";
+    this->commitDate = "commit date: @COMMIT_DATE@";
 }
 
 /**
@@ -104,6 +105,8 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     
     informationValues.push_back("Qt Runtime Version: " + QString(qVersion()));
     
-    informationValues.push_back(commitInfo);
+    informationValues.push_back(commit);
+    
+    informationValues.push_back(commitDate);
 }
 

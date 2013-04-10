@@ -2,7 +2,12 @@ FIND_PACKAGE(Git)
 IF(GIT_FOUND)
     EXECUTE_PROCESS(
         COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-        OUTPUT_VARIABLE "rev_info"
+        OUTPUT_VARIABLE "commit"
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    EXECUTE_PROCESS(
+        COMMAND ${GIT_EXECUTABLE} log -1 --format=%ai
+        OUTPUT_VARIABLE "commit_date"
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 ELSE(GIT_FOUND)
@@ -10,12 +15,12 @@ ELSE(GIT_FOUND)
 ENDIF(GIT_FOUND)
 IF(WIN32)
     EXECUTE_PROCESS(
-        COMMAND powershell.exe -Command "& {(Get-Content ${INFILE}) | ForEach-Object { $_ -replace \"@COMMIT_INFO@\", \"${rev_info}\" } | Set-Content ${OUTFILE}}"
+        COMMAND powershell.exe -Command "& {(Get-Content ${INFILE}) | ForEach-Object { ($_ -replace \"@COMMIT@\", \"${commit}\") -replace \"@COMMIT_DATE@\", \"${commit_date}\" } | Set-Content ${OUTFILE}}"
     )
 ELSE(WIN32)
     EXECUTE_PROCESS(
         INPUT_FILE "${INFILE}"
-        COMMAND sed "s/@COMMIT_INFO@/${rev_info}/g"
+        COMMAND sed -e "s/@COMMIT@/${commit}/g" -e "s/@COMMIT_DATE@/${commit_date}/g"
         OUTPUT_FILE "${OUTFILE}"
     )
 ENDIF(WIN32)

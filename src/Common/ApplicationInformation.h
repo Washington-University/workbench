@@ -61,7 +61,9 @@ namespace caret {
         
         AString version;
         
-        AString commitInfo;
+        AString commit;
+        
+        AString commitDate;
     };
     
 #ifdef __APPLICATION_INFORMATION_DECLARE__
