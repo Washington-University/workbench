@@ -11,7 +11,8 @@ IF(GIT_FOUND)
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 ELSE(GIT_FOUND)
-    SET(rev_info "unknown")
+    SET(commit "unknown")
+    SET(commit_date "unknown")
 ENDIF(GIT_FOUND)
 IF(WIN32)
     EXECUTE_PROCESS(
