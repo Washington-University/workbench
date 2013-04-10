@@ -6,7 +6,7 @@ IF(GIT_FOUND)
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     EXECUTE_PROCESS(
-        COMMAND ${GIT_EXECUTABLE} log -1 --format=%ai
+        COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%ai
         OUTPUT_VARIABLE "commit_date"
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
